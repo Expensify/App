@@ -7,7 +7,7 @@ import type {EducationalTooltipProps, GenericTooltipState} from '@components/Too
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import measureTooltipCoordinate, {getTooltipCoordiate} from './measureTooltipCoordinate';
+import measureTooltipCoordinate, {getTooltipCoordinates} from './measureTooltipCoordinate';
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
 
@@ -20,7 +20,7 @@ type ScrollingEventData = {
  */
 function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnScroll = false, ...props}: EducationalTooltipProps) {
     const genericTooltipStateRef = useRef<GenericTooltipState>();
-    const tooltipElRef = useRef<React.Component & Readonly<NativeMethods>>();
+    const tooltipElementRef = useRef<React.Component & Readonly<NativeMethods>>();
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<() => void>();
@@ -30,7 +30,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
 
     const setTooltipPosition = useCallback(
         (isScrolling: boolean) => {
-            if (!shouldHideOnScroll || !genericTooltipStateRef.current || !tooltipElRef.current) {
+            if (!shouldHideOnScroll || !genericTooltipStateRef.current || !tooltipElementRef.current) {
                 return;
             }
 
@@ -38,7 +38,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
             if (isScrolling) {
                 hideTooltip();
             } else {
-                getTooltipCoordiate(tooltipElRef.current, (bounds) => {
+                getTooltipCoordinates(tooltipElementRef.current, (bounds) => {
                     updateTargetBounds(bounds);
                     const {y, height} = bounds;
 
@@ -131,7 +131,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                         }
                         // e.target is specific to native, use e.nativeEvent.target on web instead
                         const target = e.target || e.nativeEvent.target;
-                        tooltipElRef.current = target;
+                        tooltipElementRef.current = target;
                         show.current = () => measureTooltipCoordinate(target, updateTargetBounds, showTooltip);
                     },
                 });

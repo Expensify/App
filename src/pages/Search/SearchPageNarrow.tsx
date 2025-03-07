@@ -48,8 +48,8 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
 
-    // this function handles the visibility of the educational tooltip based on the user's scroll actions.
-    // It hides or shows the tooltip accordingly.
+    // Controls the visibility of the educational tooltip based on user scrolling.
+    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
 
     const handleBackButtonPress = useCallback(() => {

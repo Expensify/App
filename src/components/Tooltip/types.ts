@@ -88,7 +88,7 @@ type EducationalTooltipProps = ChildrenProps &
         /** Whether the tooltip should hide when navigating */
         shouldHideOnNavigate?: boolean;
 
-        /** whether tooltip should hide during scrolling  */
+        /** Whether the tooltip should hide during scrolling */
         shouldHideOnScroll?: boolean;
     };
 
