@@ -553,7 +553,7 @@ describe('actions/PolicyMember', () => {
                     key: ONYXKEYS.IMPORTED_SPREADSHEET,
                     callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(value)
+                        resolve(value);
                     },
                 });
             });
@@ -585,7 +585,7 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.IMPORTED_SPREADSHEET,
                     callback: (value) => {
-                        Onyx.disconnect(connection)
+                        Onyx.disconnect(connection);
                         resolve(value);
                     },
                 });
