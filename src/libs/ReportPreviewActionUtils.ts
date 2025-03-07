@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -68,6 +69,7 @@ function canExport(report: Report, policy: Policy) {
 }
 
 function canRemoveHold(report: Report, policy: Policy, reportTransactions: Transaction[]) {
+    // remove policy from here (unused)
     const isExpense = isExpenseReport(report);
     const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, report.reportID));
     const isOpen = isOpenReport(report);
@@ -83,11 +85,15 @@ function canReview(report: Report, policy: Policy) {
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
     const areWorkflowsEnabled = policy.areWorkflowsEnabled;
-
     return hasViolations && (isSubmitter || isApprover) && areWorkflowsEnabled;
 }
 
-function getReportPreviewAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: TransactionViolation[]): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
+function getReportPreviewAction(
+    report: Report,
+    policy: Policy,
+    reportTransactions: Transaction[],
+    violations: OnyxCollection<TransactionViolation[]>,
+): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (canSubmit(report, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
@@ -110,4 +116,4 @@ function getReportPreviewAction(report: Report, policy: Policy, reportTransactio
     return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
 }
 
-export default getReportPreviewAction;
+export {getReportPreviewAction, canSubmit, canApprove, canPay, canExport, canRemoveHold, canReview};
