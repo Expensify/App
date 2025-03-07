@@ -108,12 +108,27 @@ function BaseVideoPlayer({
         videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentlyPlayingURL(url);
-        } else if (isPlaying) {
-            pauseVideo();
-        } else {
-            playVideo();
+            return;
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
+    
+        if (!videoPlayerRef.current) {
+            return;
+        }
+    
+        videoPlayerRef.current.getStatusAsync().then((status: AVPlaybackStatus) => {
+            if (!status || !('isPlaying' in status)) {
+                return;
+            } 
+            if (status.isPlaying) {
+                pauseVideo();
+            } else {
+                playVideo();
+            }
+        });
+    
+    }, [isCurrentlyURLSet, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
+    
+    
 
     const hideControl = useCallback(() => {
         if (isEnded) {
