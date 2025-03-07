@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -24,8 +25,10 @@ function HelpButton({style}: HelpButtonProps) {
     const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
+    const {isProduction} = useEnvironment();
 
-    if (!sidePane || language !== CONST.LOCALES.EN) {
+    const shouldHideHelpButton = !sidePane || language !== CONST.LOCALES.EN;
+    if (shouldHideHelpButton && isProduction) {
         return null;
     }
 
@@ -33,7 +36,7 @@ function HelpButton({style}: HelpButtonProps) {
         <Tooltip text={translate('common.help')}>
             <PressableWithoutFeedback
                 accessibilityLabel={translate('common.help')}
-                style={[styles.flexRow, styles.touchableButtonImage, styles.pr2, style]}
+                style={[styles.flexRow, styles.touchableButtonImage, styles.mr2, style]}
                 onPress={() => triggerSidePane(isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen, {shouldUpdateNarrowLayout: !isExtraLargeScreenWidth})}
             >
                 <Icon
