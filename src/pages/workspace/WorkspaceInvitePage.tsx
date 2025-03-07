@@ -14,17 +14,17 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportActions from '@libs/actions/Report';
+import {searchInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
-import * as LoginUtils from '@libs/LoginUtils';
+import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import * as PhoneNumber from '@libs/PhoneNumber';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
+import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import * as Member from '@userActions/Policy/Member';
@@ -60,7 +60,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
 
     const openWorkspaceInvitePage = () => {
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
     };
     const {options, areOptionsInitialized} = useOptionsList({
@@ -76,7 +76,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     useNetwork({onReconnect: openWorkspaceInvitePage});
 
     const excludedUsers = useMemo(() => {
-        const ineligibleInvites = PolicyUtils.getIneligibleInvitees(policy?.employeeList);
+        const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
         return ineligibleInvites.reduce((acc, login) => {
             acc[login] = true;
             return acc;
@@ -88,15 +88,12 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
 
         return {...inviteOptions, recentReports: [], currentUserOption: null};
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
-    const inviteOptions = useMemo(
-        () => OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}),
-        [debouncedSearchTerm, defaultOptions, excludedUsers],
-    );
+    const inviteOptions = useMemo(() => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}), [debouncedSearchTerm, defaultOptions, excludedUsers]);
 
     useEffect(() => {
         if (!areOptionsInitialized) {
@@ -114,7 +111,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 return;
             }
 
-            detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail);
+            detailsMap[detail.login] = formatMemberForList(detail);
         });
 
         const newSelectedOptions: MemberForList[] = [];
@@ -177,7 +174,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
 
-                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
 
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -193,7 +190,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
         const personalDetailsWithoutSelected = Object.values(personalDetails).filter(({login}) => !selectedLogins.some((selectedLogin) => selectedLogin === login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => OptionsListUtils.formatMemberForList(item));
+        const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => formatMemberForList(item));
 
         sectionsArr.push({
             title: translate('common.contacts'),
@@ -207,7 +204,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             if (hasUnselectedUserToInvite) {
                 sectionsArr.push({
                     title: undefined,
-                    data: [OptionsListUtils.formatMemberForList(userToInvite)],
+                    data: [formatMemberForList(userToInvite)],
                     shouldShow: true,
                 });
             }
@@ -267,15 +264,11 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
         if (
             usersToInvite.length === 0 &&
-            excludedUsers[
-                PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible
-                    ? PhoneNumber.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue))
-                    : searchValue
-            ]
+            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
-        return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
+        return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
     }, [excludedUsers, translate, debouncedSearchTerm, policyName, usersToInvite, personalDetails.length]);
 
     const footerContent = useMemo(
@@ -294,14 +287,14 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     );
 
     useEffect(() => {
-        ReportActions.searchInServer(debouncedSearchTerm);
+        searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
                 shouldEnableMaxHeight
@@ -332,7 +325,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     onConfirm={inviteUser}
                     showScrollIndicator
                     showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
-                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
                 />
