@@ -12,7 +12,7 @@ import {getNextApproverAccountID} from './actions/IOU';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
-import {getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
 
 let currentUserAccountID = -1;
@@ -297,7 +297,8 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             };
             // We want to show pending approval next step for cases where the policy has approvals enabled
-            if (autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) {
+            const policyApprovalMode = getApprovalWorkflow(policy);
+            if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policyApprovalMode)) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
