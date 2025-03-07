@@ -8277,7 +8277,7 @@ function canIOUBePaid(
         !isOpenExpenseReport &&
         !iouSettled &&
         !iouReport?.isWaitingOnBankAccount &&
-        reimbursableSpend !== 0 &&
+        reimbursableSpend > 0 &&
         !isChatReportArchived &&
         !isAutoReimbursable &&
         (!shouldBeApproved || !shouldCheckApprovedState) &&
