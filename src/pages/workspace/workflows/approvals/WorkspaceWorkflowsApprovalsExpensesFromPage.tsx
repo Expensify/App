@@ -152,7 +152,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         } else {
             goBack();
         }
-    }, [route.params.backTo, route.params.policyID, selectedMembers, isInitialCreationFlow, goBack]);
+    }, [route.params.policyID, selectedMembers, isInitialCreationFlow, goBack]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
