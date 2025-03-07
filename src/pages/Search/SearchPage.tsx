@@ -39,12 +39,18 @@ function SearchPage({route}: SearchPageProps) {
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const {q, name, groupBy} = route.params;
 
-    const {queryJSON, policyID} = useMemo(() => {
+    const {queryJSON, extractedPolicyID} = useMemo(() => {
         const parsedQuery = buildSearchQueryJSON(q);
-        const extractedPolicyID = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
-        const policy = getPolicy(extractedPolicyID);
-        return {queryJSON: parsedQuery, policyID: shouldShowPolicy(policy, !!isOffline, currentUserLogin) ? extractedPolicyID : undefined};
-    }, [currentUserLogin, isOffline, q]);
+        const policyID = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
+        return {queryJSON: parsedQuery, extractedPolicyID: policyID};
+    }, [q]);
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${extractedPolicyID || CONST.DEFAULT_NUMBER_ID}`);
+
+    const policyID = useMemo(() => {
+        return shouldShowPolicy(policy, !!isOffline, currentUserLogin) ? extractedPolicyID : undefined;
+    }, [policy, isOffline, currentUserLogin, extractedPolicyID]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
