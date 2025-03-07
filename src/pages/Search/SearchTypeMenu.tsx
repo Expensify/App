@@ -125,9 +125,6 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
             personalDetails,
             reports,
             taxRates,
-            shouldShowProductTrainingTooltip,
-            hideProductTrainingTooltip,
-            renderProductTrainingTooltip,
             cardFeedNamesWithType,
         ],
     );
