@@ -82,16 +82,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
         },
     });
 
-    const onContentSizeChange = useCallback(
-        (w: number, h: number) => {
-            if (windowHeight <= h) {
-                return;
-            }
-            topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
-        },
-        [windowHeight, topBarOffset, StyleUtils.searchHeaderDefaultOffset],
-    );
-
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
     const shouldDisplayCancelSearch = shouldUseNarrowLayout && ((!!queryJSON && !isCannedSearchQuery(queryJSON)) || searchRouterListVisible);
@@ -172,6 +162,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                         <HeaderWithBackButton
                             title={translate('common.selectMultiple')}
                             onBackButtonPress={() => {
+                                topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                                 clearSelectedTransactions();
                                 turnOffMobileSelectionMode();
                             }}
@@ -189,7 +180,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                             key={queryJSON.hash}
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}
-                            onContentSizeChange={onContentSizeChange}
                             contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentContainerStyles : undefined}
                             shouldGroupByReports={shouldGroupByReports}
                         />

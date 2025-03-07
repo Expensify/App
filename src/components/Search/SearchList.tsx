@@ -1,15 +1,20 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ContentStyle, FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
-import React, {type Component, type ForwardedRef, forwardRef, type LegacyRef, type ReactNode, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {type NativeScrollEvent, type NativeSyntheticEvent, type StyleProp, StyleSheet, View, type ViewStyle} from 'react-native';
-import Animated, {type AnimatedProps} from 'react-native-reanimated';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
+import {StyleSheet, View} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType, ValidListItem} from '@components/SelectionList/types';
+import type ChatListItem from '@components/SelectionList/ChatListItem';
+import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
+import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
+import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -20,12 +25,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 const AnimatedFlashList = Animated.createAnimatedComponent<FlashListProps<SearchListItem>>(FlashList<SearchListItem>);
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
+type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem;
 
 type SearchListHandle = {
     scrollAndHighlightItem?: (items: string[]) => void;
@@ -36,7 +43,7 @@ type SearchListProps = {
     data: SearchListItem[];
 
     /** Default renderer for every item in the list */
-    ListItem: ValidListItem;
+    ListItem: SearchListItemComponentType;
 
     SearchTableHeader?: React.JSX.Element;
 
@@ -74,6 +81,9 @@ type SearchListProps = {
 
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     ListFooterComponent?: React.JSX.Element | null;
+
+    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    shouldPreventDefaultFocusOnSelectRow?: boolean;
 };
 
 function SearchList(
@@ -91,6 +101,7 @@ function SearchList(
         onEndReached,
         containerStyle,
         ListFooterComponent,
+        shouldPreventDefaultFocusOnSelectRow,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -114,7 +125,7 @@ function SearchList(
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const {selectionMode} = useMobileSelectionMode(true);
+    const {selectionMode} = useMobileSelectionMode();
     // Check if selection should be on when the modal is opened
     const wasSelectionOnRef = useRef(false);
     // Keep track of the number of selected items to determine if we should turn off selection mode
@@ -218,7 +229,7 @@ function SearchList(
     });
 
     const selectFocusedOption = () => {
-        const focusedItem = data?.[focusedIndex];
+        const focusedItem = data.at(focusedIndex);
 
         if (!focusedItem) {
             return;
@@ -284,23 +295,34 @@ function SearchList(
     // _______________________________________ arrow navigation logic _______________________________________
 
     const renderItem = useCallback(
-        (info: ListRenderItemInfo<SearchListItem>) => {
-            const isItemFocused = focusedIndex === info.index;
-            const isItemHighlighted = !!itemsToHighlight?.has(info.item.keyForList ?? '');
+        ({item, index}: ListRenderItemInfo<SearchListItem>) => {
+            const isItemFocused = focusedIndex === index;
+            const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
             return (
                 <ListItem
                     showTooltip={false}
                     isFocused={isItemFocused}
                     onSelectRow={onSelectRow}
+                    onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+                        // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+                        if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
+                            return;
+                        }
+                        setFocusedIndex(index);
+                    }}
                     onLongPressRow={handleLongPressRow}
                     onCheckboxPress={onCheckboxPress}
                     canSelectMultiple={canSelectMultiple}
-                    item={info.item}
+                    item={{
+                        shouldAnimateInHighlight: isItemHighlighted,
+                        ...item,
+                    }}
+                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 />
             );
         },
-        [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, onCheckboxPress, onSelectRow],
+        [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, itemsToHighlight, onCheckboxPress, onSelectRow, setFocusedIndex, shouldPreventDefaultFocusOnSelectRow],
     );
 
     return (
