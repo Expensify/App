@@ -1077,9 +1077,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     AUTHENTICATE_PUSHER: 'AuthenticatePusher',
     GENERATE_SPOTNANA_TOKEN: 'GenerateSpotnanaToken',
     GET_MISSING_ONYX_MESSAGES: 'GetMissingOnyxMessages',
-    JOIN_POLICY_VIA_INVITE_LINK: 'JoinWorkspaceViaInviteLink',
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
-    OPEN_REPORT: 'OpenReport',
     RECONNECT_APP: 'ReconnectApp',
     REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
@@ -1098,11 +1096,9 @@ type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
 
 type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT]: Parameters.OpenReportParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS]: Parameters.RevealExpensifyCardDetailsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES]: Parameters.GetMissingOnyxMessagesParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN]: Parameters.GenerateSpotnanaTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: Parameters.ValidateTwoFactorAuthParams;
