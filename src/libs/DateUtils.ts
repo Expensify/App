@@ -31,7 +31,7 @@ import {
     subMilliseconds,
     subMinutes,
 } from 'date-fns';
-import {formatInTimeZone, fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import {enGB} from 'date-fns/locale/en-GB';
 import {es} from 'date-fns/locale/es';
 import throttle from 'lodash/throttle';
@@ -756,7 +756,7 @@ const getTimeValidationErrorKey = (inputTime: Date): string => {
  * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
 function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
-    const date = new Date(datetime);
+    const date = toDate(datetime, {timeZone: 'UTC'});
 
     if (isValid(date)) {
         return tzFormat(toZonedTime(date, 'UTC'), dateFormat);
