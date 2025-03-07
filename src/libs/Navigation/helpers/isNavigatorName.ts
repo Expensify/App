@@ -1,5 +1,6 @@
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {FullScreenName, OnboardingFlowName, SplitNavigatorName, SplitNavigatorSidebarScreen} from '@libs/Navigation/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 const ONBOARDING_SCREENS = [
@@ -12,7 +13,7 @@ const ONBOARDING_SCREENS = [
     SCREENS.ONBOARDING.WORKSPACES,
 ];
 
-const FULL_SCREENS_SET = new Set([...Object.values(SIDEBAR_TO_SPLIT), SCREENS.SEARCH.ROOT]);
+const FULL_SCREENS_SET = new Set([...Object.values(SIDEBAR_TO_SPLIT), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]);
 const SIDEBARS_SET = new Set(Object.values(SPLIT_TO_SIDEBAR));
 const ONBOARDING_SCREENS_SET = new Set(ONBOARDING_SCREENS);
 const SPLIT_NAVIGATORS_SET = new Set(Object.values(SIDEBAR_TO_SPLIT));
