@@ -2409,7 +2409,8 @@ function createNewReport(policyID: string, creatorPersonalDetails: PersonalDetai
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const {firstName, accountID} = creatorPersonalDetails;
-    const reportName = `${firstName}'s report`;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const reportName = `${firstName || 'User'}'s report`;
 
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
 
