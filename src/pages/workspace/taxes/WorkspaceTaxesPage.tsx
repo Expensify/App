@@ -316,7 +316,7 @@ function WorkspaceTaxesPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceTaxesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -362,6 +362,7 @@ function WorkspaceTaxesPage({
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
                     showScrollIndicator={false}
+                    addBottomSafeAreaPadding
                 />
                 <ConfirmModal
                     title={translate('workspace.taxes.actions.delete')}

@@ -72,6 +72,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.intacct.expenseTypes')}

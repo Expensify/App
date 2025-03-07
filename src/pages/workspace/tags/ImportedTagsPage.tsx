@@ -124,7 +124,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     return (
         <ScreenWrapper
             testID={ImportedTagsPage.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.tags.importTags')}
