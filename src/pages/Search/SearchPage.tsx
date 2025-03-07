@@ -26,6 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchTypeMenu from './SearchTypeMenu';
+import isSearchTopmostFullScreenNavigator from '@libs/Navigation/helpers/isSearchTopmostFullScreenNavigator';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -137,7 +138,7 @@ function SearchPage({route}: SearchPageProps) {
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}
                                 shouldGroupByReports={shouldGroupByReports}
-                                isSearchScreenFocused={isSearchTopmostFullScreenRoute()}
+                                isSearchScreenFocused={isSearchTopmostFullScreenNavigator()}
                             />
                         </ScreenWrapper>
                     </View>
