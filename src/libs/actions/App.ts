@@ -483,7 +483,7 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     if (!isLoggingInAsNewUser && exitTo) {
         Navigation.waitForProtectedRoutes()
             .then(() => {
-                Navigation.navigate(exitTo);
+                Navigation.navigate(exitTo, {forceReplace: true});
             })
             .then(endSignOnTransition);
     } else {
