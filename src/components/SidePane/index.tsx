@@ -2,6 +2,7 @@ import {findFocusedRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
+import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import useEnvironment from '@hooks/useEnvironment';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -75,6 +76,7 @@ function SidePane() {
                 )}
             </View>
             <Animated.View style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop}]}>
+                <HeaderGap />
                 <HeaderWithBackButton
                     title={translate('common.help')}
                     style={styles.headerBarDesktopHeight}
