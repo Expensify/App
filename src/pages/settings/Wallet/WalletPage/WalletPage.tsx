@@ -396,7 +396,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
 
     if (isLoadingApp) {
         return (
-            <ScreenWrapper testID={WalletPage.displayName}>
+            <ScreenWrapper
+                testID={WalletPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+            >
                 {headerWithBackButton}
                 <View style={styles.flex1}>
                     <FullScreenLoadingIndicator />
