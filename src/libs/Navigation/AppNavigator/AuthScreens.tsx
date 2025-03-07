@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
@@ -200,10 +201,25 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
+// AuthScreens has been migrated to useOnyx. In the previous version, withOnyx waited until all the Onyx values are loaded and then rendered the component first time.
+// To avoid breaking functionalities that rely on this logic, we are keeping the same behavior by waiting for the Onyx values to be loaded before rendering the component.
 function AuthScreens() {
+    const [, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
+    const [, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+    const isLastOpenedPublicRoomIDLoading = isLoadingOnyxValue(lastOpenedPublicRoomIDStatus);
+    const isInitialLastUpdateIDAppliedToClientLoading = isLoadingOnyxValue(initialLastUpdateIDAppliedToClientStatus);
+
+    if (isLastOpenedPublicRoomIDLoading && isInitialLastUpdateIDAppliedToClientLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
+
+    return <AuthScreensContent />;
+}
+
+function AuthScreensContent() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [lastOpenedPublicRoomID, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
-    const [initialLastUpdateIDAppliedToClient, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
+    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
@@ -214,10 +230,6 @@ function AuthScreens() {
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
-    const isLastOpenedPublicRoomIDLoading = isLoadingOnyxValue(lastOpenedPublicRoomIDStatus);
-    const isInitialLastUpdateIDAppliedToClientLoading = isLoadingOnyxValue(initialLastUpdateIDAppliedToClientStatus);
-    const isLastOpenedPublicRoomIDLoadedRef = useRef(false);
-    const isInitialLastUpdateIDAppliedToClientLoadedRef = useRef(false);
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -253,36 +265,6 @@ function AuthScreens() {
         }
         Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
     }, [shouldShowRequire2FAPage]);
-    useEffect(() => {
-        if (isLastOpenedPublicRoomIDLoading || isLastOpenedPublicRoomIDLoadedRef.current) {
-            return;
-        }
-
-        isLastOpenedPublicRoomIDLoadedRef.current = true;
-        if (lastOpenedPublicRoomID) {
-            // Re-open the last opened public room if the user logged in from a public room link
-            Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
-        }
-    }, [isLastOpenedPublicRoomIDLoading, lastOpenedPublicRoomID]);
-
-    useEffect(() => {
-        if (isInitialLastUpdateIDAppliedToClientLoading || isInitialLastUpdateIDAppliedToClientLoadedRef.current) {
-            return;
-        }
-
-        isInitialLastUpdateIDAppliedToClientLoadedRef.current = true;
-        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
-        if (!CONFIG.IS_HYBRID_APP) {
-            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-            if (SessionUtils.didUserLogInDuringSession()) {
-                App.openApp();
-            } else {
-                Log.info('[AuthScreens] Sending ReconnectApp');
-                App.reconnectApp(initialLastUpdateIDAppliedToClient);
-            }
-        }
-    }, [initialLastUpdateIDAppliedToClient, isInitialLastUpdateIDAppliedToClientLoading]);
 
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
@@ -303,12 +285,28 @@ function AuthScreens() {
         PusherConnectionManager.init();
         initializePusher();
 
+        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
+        if (!CONFIG.IS_HYBRID_APP) {
+            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
+            if (SessionUtils.didUserLogInDuringSession()) {
+                App.openApp();
+            } else {
+                Log.info('[AuthScreens] Sending ReconnectApp');
+                App.reconnectApp(initialLastUpdateIDAppliedToClient);
+            }
+        }
+
         PriorityMode.autoSwitchToFocusMode();
 
         App.setUpPoliciesAndNavigate(session);
 
         App.redirectThirdPartyDesktopSignIn();
 
+        if (lastOpenedPublicRoomID) {
+            // Re-open the last opened public room if the user logged in from a public room link
+            Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
+        }
         Download.clearDownloads();
 
         const unsubscribeOnyxModal = onyxSubscribe({
