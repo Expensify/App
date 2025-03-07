@@ -139,11 +139,33 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Used to locate the component in the tests */
     testID?: string;
+
+    /**
+     * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
+     * Modals should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+     * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+     */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the view. */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
+const renderWithConditionalWrapper = (
+    shouldUseScrollView: boolean,
+    contentContainerStyle: StyleProp<ViewStyle>,
+    children: ReactNode,
+    addBottomSafeAreaPadding = false,
+): React.JSX.Element => {
     if (shouldUseScrollView) {
-        return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
+        return (
+            <ScrollView
+                contentContainerStyle={contentContainerStyle}
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            >
+                {children}
+            </ScrollView>
+        );
     }
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <>{children}</>;
@@ -187,6 +209,8 @@ function PopoverMenu({
     shouldUseModalPaddingStyle,
     shouldUseNewModal,
     testID,
+    enableEdgeToEdgeBottomSafeAreaPadding = false,
+    addBottomSafeAreaPadding = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -391,12 +415,13 @@ function PopoverMenu({
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
             shouldUseNewModal={shouldUseNewModal}
+            enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
+                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems, addBottomSafeAreaPadding)}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>

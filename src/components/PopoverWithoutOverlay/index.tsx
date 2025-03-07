@@ -7,8 +7,8 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {onModalDidClose, setCloseModal, willAlertModalBecomeVisible} from '@libs/actions/Modal';
 import variables from '@styles/variables';
-import * as Modal from '@userActions/Modal';
 import viewRef from '@src/types/utils/viewRef';
 import type PopoverWithoutOverlayProps from './types';
 
@@ -54,13 +54,13 @@ function PopoverWithoutOverlay(
                 close: onClose,
                 anchorRef,
             });
-            removeOnClose = Modal.setCloseModal(onClose);
+            removeOnClose = setCloseModal(onClose);
         } else {
             onModalHide();
             close(anchorRef);
-            Modal.onModalDidClose();
+            onModalDidClose();
         }
-        Modal.willAlertModalBecomeVisible(isVisible, true);
+        willAlertModalBecomeVisible(isVisible, true);
 
         return () => {
             if (!removeOnClose) {
@@ -77,7 +77,7 @@ function PopoverWithoutOverlay(
         paddingBottom: safeAreaPaddingBottom,
         paddingLeft: safeAreaPaddingLeft,
         paddingRight: safeAreaPaddingRight,
-    } = useMemo(() => StyleUtils.getSafeAreaPadding(insets), [StyleUtils, insets]);
+    } = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
 
     const modalPaddingStyles = useMemo(
         () =>
