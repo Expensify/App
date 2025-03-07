@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {openReport} from '@libs/actions/Report';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';

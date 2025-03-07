@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';

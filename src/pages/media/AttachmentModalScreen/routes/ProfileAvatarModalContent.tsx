@@ -1,4 +1,4 @@
-import {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';

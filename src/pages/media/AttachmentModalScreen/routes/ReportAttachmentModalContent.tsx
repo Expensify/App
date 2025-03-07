@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
