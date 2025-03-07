@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
 import getValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForSignerInfo';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -32,15 +33,15 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             description: translate('signerInfoStep.jobTitle'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(1);
+                onMove(0);
             },
         },
         {
-            title: values.jobTitle,
+            title: values.directors.find((director) => director.directorID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY)?.occupation,
             description: translate('signerInfoStep.occupation'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(2);
+                onMove(1);
             },
         },
     ];
