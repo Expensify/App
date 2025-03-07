@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import type {InputType} from 'storybook/internal/types';
 import type {TupleToUnion} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import TransactionPreview from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContentUI';
+import TransactionPreviewContent from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContent';
 import type {TransactionPreviewUIProps} from '@components/ReportActionItem/TransactionPreview/types';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
@@ -160,7 +160,7 @@ const disabledProperties = Object.keys(staticProps).reduce<Record<string, {table
     return storyProperties;
 }, {});
 
-type TransactionPreviewStory = StoryFn<typeof TransactionPreview>;
+type TransactionPreviewStory = StoryFn<typeof TransactionPreviewContent>;
 
 const usersArgType: InputType = {
     options: availableUsers,
@@ -176,9 +176,9 @@ const usersArgType: InputType = {
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: Meta<typeof TransactionPreview> = {
+const story: Meta<typeof TransactionPreviewContent> = {
     title: 'Components/TransactionPreview',
-    component: TransactionPreview,
+    component: TransactionPreviewContent,
     argTypes: {
         ...disabledProperties,
         requestCurrency: {
@@ -216,7 +216,7 @@ function Template(props: TransactionPreviewUIProps) {
             <ThemeStylesProvider>
                 <View style={{flexDirection: 'row'}}>
                     {/* eslint-disable react/jsx-props-no-spreading */}
-                    <TransactionPreview
+                    <TransactionPreviewContent
                         {...staticProps}
                         {...props}
                     />

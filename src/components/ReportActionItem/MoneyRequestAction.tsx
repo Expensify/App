@@ -112,6 +112,10 @@ function MoneyRequestAction({
         }
         return <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isReversedTransaction}">${translate(message)}</deleted-action>`} />;
     }
+
+    // TODO: this part of code is needed here if we want to replace MoneyRequestPreview with TransactionPreview
+    // const renderCondition = lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction);
+    // return renderCondition ? null : (
     return (
         <MoneyRequestPreview
             iouReportID={requestReportID}
