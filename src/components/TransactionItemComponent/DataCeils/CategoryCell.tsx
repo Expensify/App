@@ -3,7 +3,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import TextWithIconCell from '@components/SelectionList/Search/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import colors from '@styles/theme/colors';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 function CategoryCell({isLargeScreenWidth, showTooltip, transactionItem}: TransactionDataCellProps) {
@@ -12,7 +11,7 @@ function CategoryCell({isLargeScreenWidth, showTooltip, transactionItem}: Transa
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={transactionItem?.category ?? ''}
-            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, {color: colors.green800}]}
+            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
         />
     ) : (
         <TextWithIconCell

@@ -4,7 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getCurrency as getTransactionCurrency, hasReceipt, isReceiptBeingScanned} from '@libs/TransactionUtils';
-import colors from '@styles/theme/colors';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 function TotalCell({showTooltip, transactionItem}: TransactionDataCellProps) {
@@ -22,7 +21,7 @@ function TotalCell({showTooltip, transactionItem}: TransactionDataCellProps) {
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={amount}
-            style={[styles.optionDisplayName, styles.justifyContentCenter, {color: colors.green800}]}
+            style={[styles.optionDisplayName, styles.justifyContentCenter]}
         />
     );
 }
