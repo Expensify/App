@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {requestResetFreePlanBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
-import CONST from '@src/CONST';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -56,7 +55,6 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.connectBankAccount')}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={onBackButtonPress}
             />
             <ScrollView style={[styles.flex1]}>

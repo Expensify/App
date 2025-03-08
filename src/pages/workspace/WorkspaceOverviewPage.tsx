@@ -176,7 +176,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
             route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_OVERVIEW}
             // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
             shouldShowLoading={policy === undefined}
             shouldUseScrollView

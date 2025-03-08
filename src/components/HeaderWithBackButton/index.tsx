@@ -29,7 +29,6 @@ function HeaderWithBackButton({
     iconWidth,
     iconHeight,
     iconStyles,
-    guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
@@ -43,8 +42,6 @@ function HeaderWithBackButton({
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
     isDownloading = false,
-    shouldShowGetAssistanceButton = false,
-    shouldDisableGetAssistanceButton = false,
     shouldShowPinButton = false,
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
@@ -232,22 +229,6 @@ function HeaderWithBackButton({
                                 color={theme.spinner}
                             />
                         ))}
-                    {shouldShowGetAssistanceButton && (
-                        <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
-                            <PressableWithoutFeedback
-                                disabled={shouldDisableGetAssistanceButton}
-                                onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID, Navigation.getActiveRoute()))}
-                                style={[styles.touchableButtonImage]}
-                                role="button"
-                                accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
-                            >
-                                <Icon
-                                    src={Expensicons.QuestionMark}
-                                    fill={iconFill ?? theme.icon}
-                                />
-                            </PressableWithoutFeedback>
-                        </Tooltip>
-                    )}
                     {shouldShowPinButton && !!report && <PinButton report={report} />}
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu

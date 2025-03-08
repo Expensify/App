@@ -183,8 +183,6 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                 <HeaderWithBackButton
                     title={translate('workspace.inviteMessage.confirmDetails')}
                     subtitle={policyName}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
