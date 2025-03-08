@@ -550,7 +550,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentID = rand64();
-    const attachmentVersion = rand64();
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     let optimisticAttachment: Attachment | undefined;
@@ -571,7 +570,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         optimisticAttachment = {
             attachmentID,
             localSource: file.uri,
-            localVersion: attachmentVersion,
         };
     }
 
@@ -621,14 +619,19 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
-        file,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
         idempotencyKey: Str.guid(),
     };
 
     if (file) {
-        parameters.attachmentID = attachmentID;
-        parameters.attachmentVersion = attachmentVersion;
+        parameters.files = [
+            {
+                file,
+                attachmentID,
+            },
+        ];
+        console.log(attachmentID);
+        // parameters.attachmentID = attachmentID;
     }
 
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChatReport(report)) {

@@ -8,6 +8,10 @@ type AddCommentOrAttachementParams = {
     commentReportActionID?: string | null;
     reportComment?: string;
     file?: FileObject;
+    files?: {
+        file: FileObject;
+        attachmentID: string;
+    }[];
     timezone?: string;
     clientCreatedTime?: string;
     isOldDotConciergeChat?: boolean;
