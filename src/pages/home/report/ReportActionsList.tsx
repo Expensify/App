@@ -177,6 +177,8 @@ function ReportActionsList({
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
     const participantsContext = useContext(PersonalDetailsContext);
 
+    const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
+
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
             setIsVisible(Visibility.isVisible());
@@ -459,6 +461,7 @@ function ReportActionsList({
                     return;
                 }
                 reportScrollManager.scrollToBottom();
+                setIsScrollToBottomEnabled(true);
             });
         },
         [reportScrollManager, report.reportID],
@@ -667,8 +670,12 @@ function ReportActionsList({
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
             onLayout(event);
+            if (isScrollToBottomEnabled) {
+                reportScrollManager.scrollToBottom();
+                setIsScrollToBottomEnabled(false);
+            }
         },
-        [onLayout],
+        [isScrollToBottomEnabled, onLayout, reportScrollManager],
     );
     const onContentSizeChangeInner = useCallback(
         (w: number, h: number) => {
