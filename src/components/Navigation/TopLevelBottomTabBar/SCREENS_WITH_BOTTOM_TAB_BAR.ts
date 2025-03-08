@@ -1,0 +1,6 @@
+import {SIDEBAR_TO_SPLIT} from '@libs/Navigation/linkingConfig/RELATIONS';
+import SCREENS from '@src/SCREENS';
+
+const SCREENS_WITH_BOTTOM_TAB_BAR = [...Object.keys(SIDEBAR_TO_SPLIT), SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.WORKSPACES];
+
+export default SCREENS_WITH_BOTTOM_TAB_BAR;

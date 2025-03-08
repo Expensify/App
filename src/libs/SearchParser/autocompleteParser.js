@@ -283,7 +283,7 @@ function peg$parse(input, options) {
       if (!value) {
         autocomplete = {
           key,
-          value: '',
+          value: "",
           start: location().end.offset,
           length: 0,
         };
@@ -294,7 +294,6 @@ function peg$parse(input, options) {
         key,
         ...value[value.length - 1],
       };
-
       return value
         .filter((filter) => filter.length > 0)
         .map((filter) => ({

@@ -25,7 +25,7 @@ type VideoPlayerPreviewProps = {
     videoUrl: string;
 
     /** reportID of the video */
-    reportID: string;
+    reportID: string | undefined;
 
     /** Dimension of a video. */
     videoDimensions: VideoDimensions;
@@ -103,6 +103,7 @@ function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fil
                         style={[styles.w100, styles.h100]}
                         isPreview
                         videoPlayerStyle={styles.videoPlayerPreview}
+                        reportID={reportID}
                     />
                     <View style={[styles.pAbsolute, styles.w100]}>
                         <IconButton

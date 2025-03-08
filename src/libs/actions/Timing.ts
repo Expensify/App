@@ -5,6 +5,7 @@ import * as Environment from '@libs/Environment/Environment';
 import Firebase from '@libs/Firebase';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import pkg from '../../../package.json';
 
 type TimestampData = {
     startTime: number;
@@ -67,6 +68,7 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
             name: grafanaEventName,
             value: eventTime,
             platform: `${getPlatform()}`,
+            version: `${pkg.version}`,
         };
 
         API.read(READ_COMMANDS.SEND_PERFORMANCE_TIMING, parameters, {});

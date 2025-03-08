@@ -222,7 +222,7 @@ function peg$parse(input, options) {
   var peg$c35 = "<=";
   var peg$c36 = "<";
 
-  var peg$r0 = /^[^ \t\r\n]/;
+  var peg$r0 = /^[^ \t\r\n\xA0]/;
   var peg$r1 = /^[:=]/;
   var peg$r2 = /^[^ ,"\u201D\u201C\t\n\r\xA0]/;
   var peg$r3 = /^["\u201C-\u201D]/;
@@ -230,7 +230,7 @@ function peg$parse(input, options) {
   var peg$r5 = /^[^ ,\t\n\r\xA0]/;
   var peg$r6 = /^[ \t\r\n\xA0]/;
 
-  var peg$e0 = peg$classExpectation([" ", "\t", "\r", "\n"], true, false);
+  var peg$e0 = peg$classExpectation([" ", "\t", "\r", "\n", "\xA0"], true, false);
   var peg$e1 = peg$otherExpectation("key");
   var peg$e2 = peg$otherExpectation("default key");
   var peg$e3 = peg$literalExpectation(",", false);
@@ -302,7 +302,9 @@ function peg$parse(input, options) {
       const keywordFilter = buildFilter(
         "eq",
         "keyword",
-        keywords.map((filter) => filter.right.replace(/^(['"])(.*)\1$/, '$2')).flat()
+        keywords
+          .map((filter) => filter.right.replace(/^(['"])(.*)\1$/, "$2"))
+          .flat()
       );
       if (keywordFilter.right.length > 0) {
         nonKeywords.push(keywordFilter);
@@ -315,10 +317,14 @@ function peg$parse(input, options) {
       updateDefaultValues(key, value);
     };
   var peg$f3 = function(value) {
+      //handle no-breaking space
+      let word;
       if (Array.isArray(value)) {
-        return buildFilter("eq", "keyword", value.join(""));
+        word = value.join("");
+      } else {
+        word = value;
       }
-      return buildFilter("eq", "keyword", value);
+      return buildFilter("eq", "keyword", word);
     };
   var peg$f4 = function(field, op, values) {
       return buildFilter(op, field, values);

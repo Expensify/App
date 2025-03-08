@@ -11,7 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -71,14 +71,14 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             if (value !== '') {
                 ReportActions.updateReportField(report.reportID, {...reportField, value}, reportField);
             }
-            Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : report?.reportID);
+            Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : report?.reportID);
         }
     };
 
     const handleReportFieldDelete = () => {
         ReportActions.deleteReportField(report.reportID, reportField);
         setIsDeleteModalVisible(false);
-        Navigation.dismissModal(isSearchTopmostCentralPane() ? undefined : report?.reportID);
+        Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : report?.reportID);
     };
 
     const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;
