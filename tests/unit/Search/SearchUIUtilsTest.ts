@@ -1388,4 +1388,8 @@ describe('SearchUIUtils', () => {
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
+
+    test('Should return true if the search result has valid type', () => {
+        expect(SearchUIUtils.hasValidType(searchResults)).toBe(true);
+    });
 });
