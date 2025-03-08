@@ -14,12 +14,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as Workflow from '@userActions/Workflow';
+import {clearApprovalWorkflow, removeApprovalWorkflow, setApprovalWorkflow, updateApprovalWorkflow, validateApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -39,12 +39,12 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const formRef = useRef<ScrollView>(null);
 
-    const updateApprovalWorkflow = useCallback(() => {
+    const updateApprovalWorkflowCallback = useCallback(() => {
         if (!approvalWorkflow || !initialApprovalWorkflow) {
             return;
         }
 
-        if (!Workflow.validateApprovalWorkflow(approvalWorkflow)) {
+        if (!validateApprovalWorkflow(approvalWorkflow)) {
             return;
         }
 
@@ -53,11 +53,11 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
         Navigation.dismissModal();
         InteractionManager.runAfterInteractions(() => {
-            Workflow.updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
+            updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
         });
     }, [approvalWorkflow, initialApprovalWorkflow, route.params.policyID]);
 
-    const removeApprovalWorkflow = useCallback(() => {
+    const removeApprovalWorkflowCallback = useCallback(() => {
         if (!initialApprovalWorkflow) {
             return;
         }
@@ -66,7 +66,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         Navigation.dismissModal();
         InteractionManager.runAfterInteractions(() => {
             // Remove the approval workflow using the initial data as it could be already edited
-            Workflow.removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
+            removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
         });
     }, [initialApprovalWorkflow, route.params.policyID]);
 
@@ -92,8 +92,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     }, [personalDetails, policy, route.params.firstApproverEmail]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundView =
-        (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !currentApprovalWorkflow;
+    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || !currentApprovalWorkflow;
 
     // Set the initial approval workflow when the page is loaded
     useEffect(() => {
@@ -102,10 +101,10 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         }
 
         if (!currentApprovalWorkflow) {
-            return Workflow.clearApprovalWorkflow();
+            return clearApprovalWorkflow();
         }
 
-        Workflow.setApprovalWorkflow({
+        setApprovalWorkflow({
             ...currentApprovalWorkflow,
             availableMembers: [...currentApprovalWorkflow.members, ...defaultWorkflowMembers],
             usedApproverEmails,
@@ -127,8 +126,8 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                    onBackButtonPress={goBackFromInvalidPolicy}
+                    onLinkPress={goBackFromInvalidPolicy}
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsEditApprovalsPage.title')}
@@ -145,7 +144,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                             />
                             <FormAlertWithSubmitButton
                                 isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
-                                onSubmit={updateApprovalWorkflow}
+                                onSubmit={updateApprovalWorkflowCallback}
                                 onFixTheErrorsLinkPressed={() => {
                                     formRef.current?.scrollTo({y: 0, animated: true});
                                 }}
@@ -160,7 +159,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                 <ConfirmModal
                     title={translate('workflowsEditApprovalsPage.deleteTitle')}
                     isVisible={isDeleteModalVisible}
-                    onConfirm={removeApprovalWorkflow}
+                    onConfirm={removeApprovalWorkflowCallback}
                     onCancel={() => setIsDeleteModalVisible(false)}
                     prompt={translate('workflowsEditApprovalsPage.deletePrompt')}
                     confirmText={translate('common.delete')}

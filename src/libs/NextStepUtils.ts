@@ -82,6 +82,34 @@ function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boo
     return getDisplayNameForParticipant({accountID: approverAccountID}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
+function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
+    const optimisticNextStep: ReportNextStep = {
+        type: 'alert',
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: "Oops! Looks like you're submitting to ",
+            },
+            {
+                text: 'yourself',
+                type: 'strong',
+            },
+            {
+                text: '. Approving your own reports is ',
+            },
+            {
+                text: 'forbidden',
+                type: 'strong',
+            },
+            {
+                text: ' by your policy. Please submit this report to someone else or contact your admin to change the person you submit to.',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
  *
@@ -416,4 +444,4 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     return optimisticNextStep;
 }
 
-export {parseMessage, buildNextStep};
+export {parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled};
