@@ -82,6 +82,7 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
                 >
                     <InputWrapper
                         InputComponent={TextInput}
