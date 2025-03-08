@@ -74,6 +74,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
+import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -82,7 +83,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import type {OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction, OptimisticChatReport, OptimisticNewReport} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
@@ -101,9 +102,11 @@ import {
     findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
+    generateReportID,
     getChatByParticipants,
     getChildReportNotificationPreference,
     getDefaultNotificationPreferenceForReport,
+    getExpenseReportStateAndStatus,
     getFieldViolation,
     getLastVisibleMessage,
     getOptimisticDataForParentReportAction,
@@ -143,6 +146,7 @@ import type {
     NewGroupChatDraft,
     Onboarding,
     OnboardingPurpose,
+    PersonalDetails,
     PersonalDetailsList,
     PolicyReportField,
     QuickAction,
@@ -2398,6 +2402,55 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     } else {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID), linkToOptions);
     }
+}
+
+function createNewReport(policyID: string, creatorPersonalDetails: PersonalDetails) {
+    const policy = getPolicy(policyID);
+    const optimisticReportID = generateReportID();
+    const reportActionID = rand64();
+    const {firstName, accountID} = creatorPersonalDetails;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const reportName = `${firstName || 'User'}'s report`;
+
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
+
+    const optimisticDataValue: OptimisticNewReport = {
+        reportID: optimisticReportID,
+        policyID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        ownerAccountID: accountID,
+        reportName,
+        stateNum,
+        statusNum,
+        total: 0,
+        nonReimbursableTotal: 0,
+        participants: {},
+        lastVisibleActionCreated: DateUtils.getDBTime(),
+    };
+
+    if (accountID) {
+        optimisticDataValue.participants = {
+            [accountID]: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            },
+        };
+        optimisticDataValue.ownerAccountID = accountID;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+            value: optimisticDataValue,
+        },
+    ];
+
+    API.write(
+        WRITE_COMMANDS.CREATE_APP_REPORT,
+        {reportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID},
+        {optimisticData, successData: [], failureData: []},
+    );
+    return optimisticReportID;
 }
 
 /** Add a policy report (workspace room) optimistically and navigate to it. */
@@ -4680,6 +4733,7 @@ export {
     clearPrivateNotesError,
     clearReportFieldKeyErrors,
     completeOnboarding,
+    createNewReport,
     deleteReport,
     deleteReportActionDraft,
     deleteReportComment,

@@ -32,6 +32,7 @@ export type {default as GetOlderActionsParams} from './GetOlderActionsParams';
 export type {default as GetPolicyCategoriesParams} from './GetPolicyCategories';
 export type {default as GetReportPrivateNoteParams} from './GetReportPrivateNoteParams';
 export type {default as GetRouteParams} from './GetRouteParams';
+export type {default as CreateAppReportParams} from './CreateAppReportParams';
 export type {default as GetStatementPDFParams} from './GetStatementPDFParams';
 export type {default as HandleRestrictedEventParams} from './HandleRestrictedEventParams';
 export type {default as LogOutParams} from './LogOutParams';

@@ -283,6 +283,24 @@ type OptimisticExpenseReport = Pick<
     | 'fieldList'
 >;
 
+type OptimisticNewReport = Pick<
+    Report,
+    | 'reportID'
+    | 'policyID'
+    | 'type'
+    | 'ownerAccountID'
+    | 'reportName'
+    | 'stateNum'
+    | 'statusNum'
+    | 'total'
+    | 'nonReimbursableTotal'
+    | 'parentReportID'
+    | 'lastVisibleActionCreated'
+    | 'parentReportActionID'
+    | 'participants'
+    | 'managerID'
+>;
+
 type OptimisticIOUReportAction = Pick<
     ReportAction,
     | 'actionName'
@@ -9572,6 +9590,7 @@ export {
     isHiddenForCurrentUser,
     prepareOnboardingOnyxData,
     getReportSubtitlePrefix,
+    getExpenseReportStateAndStatus,
 };
 
 export type {
@@ -9588,4 +9607,5 @@ export type {
     PartialReportAction,
     ParsingDetails,
     MissingPaymentMethod,
+    OptimisticNewReport,
 };

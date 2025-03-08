@@ -81,7 +81,7 @@ const ROUTES = {
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/report/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `search/view/${reportID}` as const;
+            const baseRoute = `search/report/${reportID}` as const;
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
@@ -314,6 +314,7 @@ const ROUTES = {
     NEW_CHAT_EDIT_NAME: 'new/chat/confirm/name/edit',
     NEW_ROOM: 'new/room',
 
+    NEW_REPORT_WORKSPACE_SELECTION: 'new-report-workspace-selection',
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
