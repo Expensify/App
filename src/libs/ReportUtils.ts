@@ -5292,7 +5292,10 @@ function getFormattedAmount(reportAction: ReportAction, report?: Report | null) 
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const amount = report && isExpenseReport(report) ? (originalMessage?.amount ?? 0) * -1 : Math.abs(originalMessage?.amount ?? 0);
+
+    // Expense reports can have a negative amount and we need to display it as negative in the UI
+    // the amount found in originalMessage does not accurately track this so we need to use the total from the report instead
+    const amount = report && isExpenseReport(report) ? (report?.total ?? 0) * -1 : Math.abs(originalMessage?.amount ?? 0);
     const formattedAmount = convertToDisplayString(amount, originalMessage?.currency);
     return formattedAmount;
 }
