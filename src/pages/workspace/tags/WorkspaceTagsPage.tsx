@@ -158,6 +158,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             accessibilityLabel={translate('workspace.tags.requiresTag')}
                             onToggle={(newValue: boolean) => updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight)}
                             disabled={isSwitchDisabled}
+                            showLockIcon={getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && policy?.requiresTag && isSwitchEnabled}
                         />
                     ),
                 };
