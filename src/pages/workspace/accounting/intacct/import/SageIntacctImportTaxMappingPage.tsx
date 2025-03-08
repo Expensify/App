@@ -2,7 +2,6 @@ import React, {useCallback, useMemo} from 'react';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
-import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {UpdateSageIntacctTaxSolutionID} from '@libs/actions/connections/SageIntacct';
@@ -19,22 +18,20 @@ import type SCREENS from '@src/SCREENS';
 type SageIntacctMappingsTypePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
 
 function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePageProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const policy = usePolicy(route.params.policyID);
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const {config} = policy?.connections?.intacct ?? {};
     const {pendingFields} = config ?? {};
     const sageIntacctConfig = policy?.connections?.intacct?.config;
     const sageIntacctConfigTaxSolutionID = sageIntacctConfig?.tax?.taxSolutionID;
     const sageIntacctData = policy?.connections?.intacct?.data;
-    const sageIntacctTaxSolutionIDs = sageIntacctData?.taxSolutionIDs ?? [];
 
     const selectionOptions = useMemo<SelectorType[]>(() => {
         const mappingOptions: SelectorType[] = [];
-
+        const sageIntacctTaxSolutionIDs = sageIntacctData?.taxSolutionIDs ?? [];
         sageIntacctTaxSolutionIDs.forEach((taxSolutionID) => {
             mappingOptions.push({
                 value: taxSolutionID,
@@ -45,7 +42,7 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
         });
 
         return mappingOptions;
-    }, [sageIntacctConfigTaxSolutionID, sageIntacctTaxSolutionIDs]);
+    }, [sageIntacctConfigTaxSolutionID, sageIntacctData?.taxSolutionIDs]);
 
     const updateMapping = useCallback(
         ({value}: SelectorType) => {

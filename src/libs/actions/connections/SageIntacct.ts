@@ -111,7 +111,7 @@ function prepareOnyxDataForMappingUpdate(
 
 function updateSageIntacctBillable(policyID: string | undefined, enabled: boolean) {
     if (!policyID) {
-        return
+        return;
     }
     const parameters = {
         policyID,
@@ -166,7 +166,10 @@ function changeMappingsValueFromDefaultToTag(policyID: string, mappings?: SageIn
     }
 }
 
-function UpdateSageIntacctTaxSolutionID(policyID: string, taxSolutionID: string) {
+function UpdateSageIntacctTaxSolutionID(policyID: string | undefined, taxSolutionID: string) {
+    if (!policyID) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -239,7 +242,10 @@ function UpdateSageIntacctTaxSolutionID(policyID: string, taxSolutionID: string)
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TAX_SOLUTION_ID, {policyID, taxSolutionID}, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolean) {
+function updateSageIntacctSyncTaxConfiguration(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
