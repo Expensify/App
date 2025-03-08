@@ -2712,6 +2712,12 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
+        blockingErrorViewContainer: {
+            paddingBottom: variables.contentHeaderHeight,
+            maxWidth: 475,
+            alignSelf: 'center',
+        },
+
         forcedBlockingViewContainer: {
             ...positioning.pFixed,
             top: 0,

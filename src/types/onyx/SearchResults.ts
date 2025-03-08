@@ -428,6 +428,9 @@ type SearchResults = {
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
+
+    /** Whether search data fetch has failed */
+    errors?: OnyxCommon.Errors;
 };
 
 export default SearchResults;
