@@ -63,7 +63,6 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
             style={[
                 styles.eReceiptContainer,
                 primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined,
-                isThumbnail && styles.w100,
                 isThumbnail && StyleUtils.getMinimumWidth(variables.eReceiptBGHWidth),
             ]}
         >
