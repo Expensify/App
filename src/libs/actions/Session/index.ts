@@ -222,7 +222,7 @@ function isExpiredSession(sessionCreationDate: number): boolean {
     return new Date().getTime() - sessionCreationDate >= CONST.SESSION_EXPIRATION_TIME_MS;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true) {
+function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true, shouldForceUseStashedSession?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
@@ -275,9 +275,10 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             [ONYXKEYS.STASHED_SESSION]: stashedSession,
         };
     }
-    // Now if this is a supportal access, we do not want to stash the current session and we have a
+
+    // Now if this is a supportal access or force use stashed session, we do not want to stash the current session and we have a
     // stashed session, then we need to restore the stashed session instead of completely logging out
-    if (isSupportal && !shouldStashSession && hasStashedSession()) {
+    if ((isSupportal || shouldForceUseStashedSession) && !shouldStashSession && hasStashedSession()) {
         onyxSetParams = {
             [ONYXKEYS.CREDENTIALS]: stashedCredentials,
             [ONYXKEYS.SESSION]: stashedSession,
