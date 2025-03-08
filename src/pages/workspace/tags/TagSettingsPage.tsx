@@ -155,6 +155,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                 <ConfirmModal
                     isVisible={showCannotDisableLastTagModal}
                     onConfirm={() => setShowCannotDisableLastTagModal(false)}
+                    onCancel={() => setShowCannotDisableLastTagModal(false)}
                     title={translate('workspace.tags.cannotDisableAllTags.title')}
                     prompt={translate('workspace.tags.cannotDisableAllTags.description')}
                     confirmText={translate('common.buttonConfirm')}

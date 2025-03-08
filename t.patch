@@ -1,0 +1,172 @@
+diff --git a/src/pages/workspace/categories/CategorySettingsPage.tsx b/src/pages/workspace/categories/CategorySettingsPage.tsx
+index 88cfad62d43..bc6ff733d38 100644
+--- a/src/pages/workspace/categories/CategorySettingsPage.tsx
++++ b/src/pages/workspace/categories/CategorySettingsPage.tsx
+@@ -168,6 +168,7 @@ function CategorySettingsPage({
+                         <ConfirmModal
+                             isVisible={showCannotDisableLastCategoryModal}
+                             onConfirm={() => setShowCannotDisableLastCategoryModal(false)}
++                            onCancel={() => setShowCannotDisableLastCategoryModal(false)}
+                             title={translate('workspace.categories.cannotDisableAllCategories.title')}
+                             prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
+                             confirmText={translate('common.buttonConfirm')}
+diff --git a/src/pages/workspace/categories/WorkspaceCategoriesPage.tsx b/src/pages/workspace/categories/WorkspaceCategoriesPage.tsx
+index eda82d64986..ad576bc4462 100644
+--- a/src/pages/workspace/categories/WorkspaceCategoriesPage.tsx
++++ b/src/pages/workspace/categories/WorkspaceCategoriesPage.tsx
+@@ -473,6 +473,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
+                 <ConfirmModal
+                     isVisible={showCannotDisableLastCategoryModal}
+                     onConfirm={() => setShowCannotDisableLastCategoryModal(false)}
++                    onCancel={() => setShowCannotDisableLastCategoryModal(false)}
+                     title={translate('workspace.categories.cannotDisableAllCategories.title')}
+                     prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
+                     confirmText={translate('common.buttonConfirm')}
+diff --git a/src/pages/workspace/tags/TagSettingsPage.tsx b/src/pages/workspace/tags/TagSettingsPage.tsx
+index 238dd2f7789..9328600dff5 100644
+--- a/src/pages/workspace/tags/TagSettingsPage.tsx
++++ b/src/pages/workspace/tags/TagSettingsPage.tsx
+@@ -155,6 +155,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
+                 <ConfirmModal
+                     isVisible={showCannotDisableLastTagModal}
+                     onConfirm={() => setShowCannotDisableLastTagModal(false)}
++                    onCancel={() => setShowCannotDisableLastTagModal(false)}
+                     title={translate('workspace.tags.cannotDisableAllTags.title')}
+                     prompt={translate('workspace.tags.cannotDisableAllTags.description')}
+                     confirmText={translate('common.buttonConfirm')}
+diff --git a/src/pages/workspace/tags/WorkspaceTagsPage.tsx b/src/pages/workspace/tags/WorkspaceTagsPage.tsx
+index 510aae625d9..77cd72ad52d 100644
+--- a/src/pages/workspace/tags/WorkspaceTagsPage.tsx
++++ b/src/pages/workspace/tags/WorkspaceTagsPage.tsx
+@@ -111,12 +111,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
+     });
+ 
+     const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
+-        if (!policyTagList) {
++        if (!policyTagList || !policyTagList.tags) {
+             return undefined;
+         }
+-        return (policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)
+-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+-            : undefined;
++
++        return (
++            (policyTagList.pendingAction as PendingAction) ??
++            (Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined)
++        );
+     };
+ 
+     const updateWorkspaceTagEnabled = useCallback(
+@@ -353,6 +355,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
+                 options={options}
+                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                 isDisabled={!selectedTagsArray.length}
++                testID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
+             />
+         );
+     };
+@@ -507,6 +510,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
+                 <ConfirmModal
+                     isVisible={showCannotDisableLastTagModal}
+                     onConfirm={() => setShowCannotDisableLastTagModal(false)}
++                    onCancel={() => setShowCannotDisableLastTagModal(false)}
+                     title={translate('workspace.tags.cannotDisableAllTags.title')}
+                     prompt={translate('workspace.tags.cannotDisableAllTags.description')}
+                     confirmText={translate('common.buttonConfirm')}
+diff --git a/tests/ui/WorkspaceCategoriesTest.tsx b/tests/ui/WorkspaceCategoriesTest.tsx
+index cdcba7295c0..267807f22a4 100644
+--- a/tests/ui/WorkspaceCategoriesTest.tsx
++++ b/tests/ui/WorkspaceCategoriesTest.tsx
+@@ -168,6 +168,92 @@ describe('WorkspaceCategories', () => {
+             expect(screen.queryByText(SECOND_CATEGORY)).not.toBeOnTheScreen();
+         });
+ 
++        unmount();
++        await waitForBatchedUpdatesWithAct();
++    });
++    it('should show a blocking modal when trying to disable the only enabled category when policy has requiresCategory set to true', async () => {
++        await TestHelper.signInWithTestUser();
++
++        const policy = {
++            ...LHNTestUtils.getFakePolicy(),
++            role: CONST.POLICY.ROLE.ADMIN,
++            areCategoriesEnabled: true,
++            requiresCategory: true,
++        };
++
++        const categories = {
++            [FIRST_CATEGORY]: {
++                name: FIRST_CATEGORY,
++                enabled: true,
++            },
++            [SECOND_CATEGORY]: {
++                name: SECOND_CATEGORY,
++                enabled: true,
++            },
++        };
++
++        // Initialize categories
++        await act(async () => {
++            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
++            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, categories);
++        });
++
++        const {unmount} = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
++
++        await waitForBatchedUpdatesWithAct();
++
++        // Wait for initial render and verify categories are visible
++        await waitFor(() => {
++            expect(screen.getByText(FIRST_CATEGORY)).toBeOnTheScreen();
++        });
++        await waitFor(() => {
++            expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
++        });
++
++        // Select categories to delete by clicking their checkboxes
++        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
++        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
++
++        const dropdownMenuButtonTestID = `${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`;
++
++        // Wait for selection mode to be active and click the dropdown menu button
++        await waitFor(() => {
++            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
++        });
++
++        // Click the "2 selected" button to open the menu
++        const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
++        fireEvent.press(dropdownButton);
++
++        await waitForBatchedUpdatesWithAct();
++
++        // Wait for menu items to be visible
++        await waitFor(() => {
++            const disableText = Localize.translateLocal('workspace.categories.disableCategories');
++            expect(screen.getByText(disableText)).toBeOnTheScreen();
++        });
++
++        // Find and verify "Disable categories" dropdown menu item
++        const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable categories');
++        expect(disableMenuItem).toBeOnTheScreen();
++
++        // Create a mock event object that matches GestureResponderEvent. Needed for onPress in MenuItem to be called
++        const mockEvent = {
++            nativeEvent: {},
++            type: 'press',
++            target: disableMenuItem,
++            currentTarget: disableMenuItem,
++        };
++        fireEvent.press(disableMenuItem, mockEvent);
++
++        await waitForBatchedUpdatesWithAct();
++
++        // After clicking disable categories dropdown menu item, verify the blocking modal appears
++        await waitFor(() => {
++            const blockingPrompt = Localize.translateLocal('workspace.categories.cannotDisableAllCategories.title');
++            expect(screen.getByText(blockingPrompt)).toBeOnTheScreen();
++        });
++
+         unmount();
+         await waitForBatchedUpdatesWithAct();
+     });

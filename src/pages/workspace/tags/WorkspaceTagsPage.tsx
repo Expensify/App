@@ -111,12 +111,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     });
 
     const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
-        if (!policyTagList) {
+        if (!policyTagList || !policyTagList.tags) {
             return undefined;
         }
-        return (policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
-            : undefined;
+
+        return (
+            (policyTagList.pendingAction as PendingAction) ??
+            (Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined)
+        );
     };
 
     const updateWorkspaceTagEnabled = useCallback(
@@ -353,6 +355,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTagsArray.length}
+                testID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
             />
         );
     };
@@ -507,6 +510,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 <ConfirmModal
                     isVisible={showCannotDisableLastTagModal}
                     onConfirm={() => setShowCannotDisableLastTagModal(false)}
+                    onCancel={() => setShowCannotDisableLastTagModal(false)}
                     title={translate('workspace.tags.cannotDisableAllTags.title')}
                     prompt={translate('workspace.tags.cannotDisableAllTags.description')}
                     confirmText={translate('common.buttonConfirm')}

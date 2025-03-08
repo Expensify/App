@@ -473,6 +473,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 <ConfirmModal
                     isVisible={showCannotDisableLastCategoryModal}
                     onConfirm={() => setShowCannotDisableLastCategoryModal(false)}
+                    onCancel={() => setShowCannotDisableLastCategoryModal(false)}
                     title={translate('workspace.categories.cannotDisableAllCategories.title')}
                     prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
                     confirmText={translate('common.buttonConfirm')}
