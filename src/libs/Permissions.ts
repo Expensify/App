@@ -50,6 +50,10 @@ function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
 }
 
+function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -61,4 +65,5 @@ export default {
     canUseInternationalBankAccount,
     canUseNSQS,
     canUseCustomRules,
+    canUseProhibitedExpenses,
 };
