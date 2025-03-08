@@ -9,7 +9,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteAccountingMethod} from '@libs/actions/connections/NetSuiteCommands';
+import {updateQuickbooksOnlineAccountingMethod} from '@libs/actions/connections/QuickbooksOnline';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -22,12 +22,11 @@ type MenuListItem = ListItem & {
     value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
-function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
+function QuickbooksAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const styles = useThemeStyles();
-    const config = policy?.connections?.netsuite?.options?.config;
-    const autoSyncConfig = policy?.connections?.netsuite?.config;
+    const config = policy?.connections?.quickbooksOnline?.config;
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const data: MenuListItem[] = Object.values(COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD).map((accountingMethodType) => ({
         value: accountingMethodType,
@@ -38,7 +37,7 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     }));
 
     const pendingAction =
-        settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ?? settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
+        settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
     const headerContent = useMemo(
         () => (
@@ -52,16 +51,16 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const selectExpenseReportApprovalLevel = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.accountingMethod) {
-                updateNetSuiteAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
+                updateQuickbooksOnlineAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID));
+            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID));
         },
         [config?.accountingMethod, policyID],
     );
 
     return (
         <SelectionScreen
-            displayName={NetSuiteAccountingMethodPage.displayName}
+            displayName={QuickbooksAccountingMethodPage.displayName}
             title="workspace.accountingMethods.label"
             headerContent={headerContent}
             sections={[{data}]}
@@ -71,13 +70,13 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID))}
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID))}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             pendingAction={pendingAction}
         />
     );
 }
 
-NetSuiteAccountingMethodPage.displayName = 'NetSuiteExpenseReportApprovalLevelSelectPage';
+QuickbooksAccountingMethodPage.displayName = 'QuickbooksAccountingMethodPage';
 
-export default withPolicyConnections(NetSuiteAccountingMethodPage);
+export default withPolicyConnections(QuickbooksAccountingMethodPage);
