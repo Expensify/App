@@ -100,13 +100,28 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     : xCoordinatesOfCursor;
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
+
+            // Use the parent container's y position if cursor coordinates are not available
             let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
-            const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMaxHeight, topInset});
-            const isEnoughSpaceToRenderMenuAboveForSmall = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMinHeight, topInset});
+            const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({
+                y,
+                cursorCoordinates: {x: cursorCoordinates.x, y: cursorCoordinates.y},
+                scrollValue,
+                contentHeight: contentMaxHeight,
+                topInset,
+            });
+            const isEnoughSpaceToRenderMenuAboveForSmall = isEnoughSpaceToRenderMenuAboveCursor({
+                y,
+                cursorCoordinates: {x: cursorCoordinates.x, y: cursorCoordinates.y},
+                scrollValue,
+                contentHeight: contentMinHeight,
+                topInset,
+            });
 
             const newLeftOffset = shouldUseNarrowLayout ? x : bigScreenLeftOffset;
+
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
             const isAdjustmentNeeded = Math.abs(prevLeftValue.current - bigScreenLeftOffset) > 150;
             if (isInitialRender.current || isAdjustmentNeeded) {
@@ -134,14 +149,16 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 left: leftValue.current,
                 bottom: bottomValue,
                 width: widthValue,
-                cursorCoordinates,
+                cursorCoordinates: {x: cursorCoordinates.x, y: cursorCoordinates.y},
             });
         });
     }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, shouldUseNarrowLayout, suggestionsLength, bottomInset, topInset, isKeyboardAnimatingRef]);
 
-    if ((containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) || (containerState.cursorCoordinates.x === 0 && containerState.cursorCoordinates.y === 0)) {
+    // Only prevent rendering if we have no suggestions
+    if ((containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) || !suggestionsLength) {
         return null;
     }
+
     return (
         <AutoCompleteSuggestionsPortal
             // eslint-disable-next-line react/jsx-props-no-spreading
