@@ -295,7 +295,6 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category
 
 function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Record<string, {name: string; enabled: boolean}>) {
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const optimisticPolicyCategoriesData = {
         ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
             acc[key] = {
@@ -310,7 +309,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             return acc;
         }, {}),
     };
-    const shouldDisableRequiresCategory = !hasEnabledOptions({...policyCategories, ...optimisticPolicyCategoriesData});
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -359,37 +358,6 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             },
         ],
     };
-    if (shouldDisableRequiresCategory) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                requiresCategory: false,
-                pendingFields: {
-                    requiresCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-            },
-        });
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingFields: {
-                    requiresCategory: null,
-                },
-            },
-        });
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                requiresCategory: policy?.requiresCategory,
-                pendingFields: {
-                    requiresCategory: null,
-                },
-            },
-        });
-    }
 
     const parameters = {
         policyID,
@@ -962,9 +930,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
         acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
         return acc;
     }, {});
-    const shouldDisableRequiresCategory = !hasEnabledOptions(
-        Object.values(policyCategories).filter((category) => !categoryNamesToDelete.includes(category.name) && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-    );
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -998,37 +964,6 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             },
         ],
     };
-    if (shouldDisableRequiresCategory) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                requiresCategory: false,
-                pendingFields: {
-                    requiresCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-            },
-        });
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingFields: {
-                    requiresCategory: null,
-                },
-            },
-        });
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                requiresCategory: policy?.requiresCategory,
-                pendingFields: {
-                    requiresCategory: null,
-                },
-            },
-        });
-    }
 
     const parameters = {
         policyID,

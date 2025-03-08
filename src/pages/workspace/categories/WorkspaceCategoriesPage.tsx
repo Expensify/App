@@ -40,6 +40,7 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getEnabledCategoriesCount} from '@libs/OptionsListUtils';
 import {getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
@@ -70,6 +71,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
+    const [showCannotDisableLastCategoryModal, setShowCannotDisableLastCategoryModal] = useState(false);
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID;
     const backTo = route.params?.backTo;
@@ -133,14 +135,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         isOn={value.enabled}
                         disabled={isDisabled}
                         accessibilityLabel={translate('workspace.categories.enableCategory')}
-                        onToggle={(newValue: boolean) => updateWorkspaceRequiresCategory(newValue, value.name)}
+                        onToggle={(newValue: boolean) => {
+                            if (policy?.requiresCategory && getEnabledCategoriesCount(policyCategories) === 1 && !newValue) {
+                                setShowCannotDisableLastCategoryModal(true);
+                                return;
+                            }
+                            updateWorkspaceRequiresCategory(newValue, value.name);
+                        }}
+                        showLockIcon={getEnabledCategoriesCount(policyCategories) === 1 && policy?.requiresCategory && value.enabled}
                     />
                 ),
             });
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory]);
+    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory, policy?.requiresCategory]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
@@ -228,11 +237,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         return acc;
                     }, {});
 
+                const categoriesToDisableCount = Object.keys(categoriesToDisable).length;
+                const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
                 options.push({
                     icon: Expensicons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
+                        if (categoriesToDisableCount === enabledCategoriesCount && policy?.requiresCategory) {
+                            setShowCannotDisableLastCategoryModal(true);
+                            return;
+                        }
                         setSelectedCategories({});
                         setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
                     },
@@ -454,6 +469,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         showScrollIndicator={false}
                     />
                 )}
+
+                <ConfirmModal
+                    isVisible={showCannotDisableLastCategoryModal}
+                    onConfirm={() => setShowCannotDisableLastCategoryModal(false)}
+                    title={translate('workspace.categories.cannotDisableAllCategories.title')}
+                    prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
 
                 <ConfirmModal
                     isVisible={isOfflineModalVisible}

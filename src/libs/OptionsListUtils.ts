@@ -984,7 +984,10 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
 /**
  * Calculates count of all enabled options
  */
-function getEnabledCategoriesCount(options: PolicyCategories): number {
+function getEnabledCategoriesCount(options: PolicyCategories | undefined): number {
+    if (options === undefined) {
+        return 0;
+    }
     return Object.values(options).filter((option) => option.enabled).length;
 }
 

@@ -407,7 +407,10 @@ function escapeTagName(tag: string) {
 /**
  * Gets a count of enabled tags of a policy
  */
-function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
+function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number {
+    if (!policyTags) {
+        return 0;
+    }
     return Object.values(policyTags).filter((policyTag) => policyTag.enabled).length;
 }
 

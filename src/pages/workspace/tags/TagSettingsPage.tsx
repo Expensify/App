@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -20,8 +20,10 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCleanedTagName,
+    getCountOfEnabledTagsOfList,
     getTagApproverRule,
     getTagList,
+    getTagLists,
     getWorkflowApprovalsUnavailable,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     isControlPolicy,
@@ -40,6 +42,7 @@ type TagSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList,
 
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`);
+    const [policyTagLists] = useMemo(() => [getTagLists(policyTags)], [policyTags]);
     const {orderWeight, policyID, tagName, backTo} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -47,6 +50,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const policy = usePolicy(policyID);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
+    const [showCannotDisableLastTagModal, setShowCannotDisableLastTagModal] = useState(false);
     const isQuickSettingsFlow = !!backTo;
     const tagApprover = getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
     const approver = getPersonalDetailByEmail(tagApprover);
@@ -71,6 +75,10 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
+        if (policy?.requiresTag && getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && !value) {
+            setShowCannotDisableLastTagModal(true);
+            return;
+        }
         setWorkspaceTagEnabled(policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
     };
 
@@ -144,6 +152,14 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                <ConfirmModal
+                    isVisible={showCannotDisableLastTagModal}
+                    onConfirm={() => setShowCannotDisableLastTagModal(false)}
+                    title={translate('workspace.tags.cannotDisableAllTags.title')}
+                    prompt={translate('workspace.tags.cannotDisableAllTags.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
                 <View style={styles.flexGrow1}>
                     <OfflineWithFeedback
                         errors={getLatestErrorMessageField(currentPolicyTag)}
@@ -158,6 +174,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                     isOn={currentPolicyTag.enabled}
                                     accessibilityLabel={translate('workspace.tags.enableTag')}
                                     onToggle={updateWorkspaceTagEnabled}
+                                    showLockIcon={policy?.requiresTag && getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && currentPolicyTag?.enabled}
                                 />
                             </View>
                         </View>

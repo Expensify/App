@@ -20,6 +20,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getEnabledCategoriesCount} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -55,6 +56,7 @@ function CategorySettingsPage({
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
+    const [showCannotDisableLastCategoryModal, setShowCannotDisableLastCategoryModal] = useState(false);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = !!backTo;
 
@@ -113,6 +115,10 @@ function CategorySettingsPage({
     }
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
+        if (policy?.requiresCategory && getEnabledCategoriesCount(policyCategories) === 1 && !value) {
+            setShowCannotDisableLastCategoryModal(true);
+            return;
+        }
         setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
     };
 
@@ -159,6 +165,14 @@ function CategorySettingsPage({
                             cancelText={translate('common.cancel')}
                             danger
                         />
+                        <ConfirmModal
+                            isVisible={showCannotDisableLastCategoryModal}
+                            onConfirm={() => setShowCannotDisableLastCategoryModal(false)}
+                            title={translate('workspace.categories.cannotDisableAllCategories.title')}
+                            prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
+                            confirmText={translate('common.buttonConfirm')}
+                            shouldShowCancelButton={false}
+                        />
                         <ScrollView contentContainerStyle={[styles.flexGrow1, safeAreaPaddingBottomStyle]}>
                             <OfflineWithFeedback
                                 errors={getLatestErrorMessageField(policyCategory)}
@@ -173,6 +187,7 @@ function CategorySettingsPage({
                                             isOn={policyCategory.enabled}
                                             accessibilityLabel={translate('workspace.categories.enableCategory')}
                                             onToggle={updateWorkspaceRequiresCategory}
+                                            showLockIcon={getEnabledCategoriesCount(policyCategories) === 1 && policy?.requiresCategory && policyCategory.enabled}
                                         />
                                     </View>
                                 </View>

@@ -260,8 +260,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
             return acc;
         }, {}),
     };
-    const shouldDisableRequiredTag = !OptionsListUtils.hasEnabledOptions({...policyTag.tags, ...optimisticPolicyTagsData});
-
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -269,7 +267,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {required: false, pendingFields: {required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
                         tags: optimisticPolicyTagsData,
                     },
                 },
@@ -281,7 +278,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {pendingFields: {required: null}} : {}),
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
@@ -308,7 +304,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {pendingFields: {required: null}, required: policyTag.required} : {}),
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {

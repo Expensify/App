@@ -3774,6 +3774,10 @@ const translations = {
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
             importCategories: 'Importar categorías',
+            cannotDisableAllCategories: {
+                title: 'No se pueden deshabilitar todas las categorías',
+                description: `No puedes deshabilitar todas las categorías cuando se requieren en el espacio de trabajo.`,
+            },
         },
         moreFeatures: {
             subtitle: 'Utiliza los botones de abajo para activar más funciones a medida que creces. Cada función aparecerá en el menú de navegación para una mayor personalización.',
