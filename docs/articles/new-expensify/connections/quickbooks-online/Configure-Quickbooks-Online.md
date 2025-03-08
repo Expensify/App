@@ -22,6 +22,13 @@ As Locations are only configurable as tags, you cannot export expense reports as
 {% include end-info.html %}
            <li><b>Taxes</b>: Choose whether to import tax rates and defaults.</li>
        </ul>
+   </li>
+   <li><b>Disabling Imported Accounts and Tags</b>:  
+       <ul>
+           <li>Admins can <b>toggle individual items on or off</b> using the switch on the right side of each row.</li>
+           <li>To disable multiple items at once, admins can <b>select multiple checkboxes</b> on the left and then click the <b>"Disable" option</b> at the top of the page. Disabling an account or tag prevents it from being available when workspace members code expenses.</li>
+       </ul>
+   </li>
 </ol>
 
 # Step 2: Configure export settings
