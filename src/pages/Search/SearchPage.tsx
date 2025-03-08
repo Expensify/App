@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderGap from '@components/HeaderGap';
@@ -11,10 +11,12 @@ import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -24,6 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchTypeMenu from './SearchTypeMenu';
+import isSearchTopmostFullScreenNavigator from '@libs/Navigation/helpers/isSearchTopmostFullScreenNavigator';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -42,12 +45,32 @@ function SearchPage({route}: SearchPageProps) {
     }, [q]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    const {resetVideoPlayerData} = usePlaybackContext();
     const {clearSelectedTransactions} = useSearchContext();
 
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
+
+    // Handles video player cleanup:
+    // 1. On mount: Resets player if navigating from report screen
+    // 2. On unmount: Stops video when leaving this screen
+    // in narrow layout, the reset will be handled by the attachment modal, so we don't need to do it here to preserve autoplay
+    useEffect(() => {
+        if (shouldUseNarrowLayout) {
+            return;
+        }
+        resetVideoPlayerData();
+        return () => {
+            if (shouldUseNarrowLayout) {
+                return;
+            }
+            resetVideoPlayerData();
+        };
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (shouldUseNarrowLayout) {
         return (
@@ -115,6 +138,7 @@ function SearchPage({route}: SearchPageProps) {
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}
                                 shouldGroupByReports={shouldGroupByReports}
+                                isSearchScreenFocused={isSearchTopmostFullScreenNavigator()}
                             />
                         </ScreenWrapper>
                     </View>
