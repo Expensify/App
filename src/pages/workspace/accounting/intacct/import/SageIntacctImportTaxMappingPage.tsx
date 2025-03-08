@@ -5,17 +5,16 @@ import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateSageIntacctMappingValue, updateSageIntacctSyncTaxConfiguration, UpdateSageIntacctTaxSolutionID} from '@libs/actions/connections/SageIntacct';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {UpdateSageIntacctTaxSolutionID} from '@libs/actions/connections/SageIntacct';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SageIntacctMappingName, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
 type SageIntacctMappingsTypePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
 
@@ -27,7 +26,7 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
     const policyID = policy?.id ?? '-1';
 
     const {config} = policy?.connections?.intacct ?? {};
-    const {mappings, pendingFields, export: exportConfig} = config ?? {};
+    const {pendingFields} = config ?? {};
     const sageIntacctConfig = policy?.connections?.intacct?.config;
     const sageIntacctConfigTaxSolutionID = sageIntacctConfig?.tax?.taxSolutionID;
     const sageIntacctData = policy?.connections?.intacct?.data;
@@ -46,7 +45,7 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
         });
 
         return mappingOptions;
-    }, [sageIntacctConfigTaxSolutionID, sageIntacctTaxSolutionIDs, translate]);
+    }, [sageIntacctConfigTaxSolutionID, sageIntacctTaxSolutionIDs]);
 
     const updateMapping = useCallback(
         ({value}: SelectorType) => {
@@ -70,9 +69,9 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX.getRoute(policyID))}
             headerTitleAlreadyTranslated="Tax solution"
             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.TAX, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID)}
+            errors={getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID)}
+            onClose={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID)}
         />
     );
 }

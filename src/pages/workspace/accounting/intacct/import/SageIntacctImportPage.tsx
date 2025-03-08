@@ -6,8 +6,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearSageIntacctErrorField, updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration} from '@libs/actions/connections/SageIntacct';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {clearSageIntacctErrorField, updateSageIntacctBillable} from '@libs/actions/connections/SageIntacct';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -46,22 +46,9 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const policyID: string = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const sageIntacctConfig = policy?.connections?.intacct?.config;
     const sageIntacctData = policy?.connections?.intacct?.data;
-
-    useEffect(() => {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-            connections: {
-                intacct: {
-                    data: {
-                        taxSolutionIDs: ['Australia - GST', 'United Kingdom - VAT', 'Canadian Sales Taxn- SYS', 'South Africa - VAT'],
-                    },
-                },
-            },
-        });
-        console.log('sageIntacctData', sageIntacctData);
-    }, [policyID]);
 
     const mapingItems = useMemo(
         () =>
@@ -107,7 +94,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 isActive={sageIntacctConfig?.mappings?.syncItems ?? false}
                 onToggle={() => updateSageIntacctBillable(policyID, !sageIntacctConfig?.mappings?.syncItems)}
                 pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS], sageIntacctConfig?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(sageIntacctConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
+                errors={getLatestErrorField(sageIntacctConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
             />
 
@@ -126,7 +113,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 </OfflineWithFeedback>
             ))}
 
-            {sageIntacctData?.taxSolutionIDs && sageIntacctData?.taxSolutionIDs.length > 0 && (
+            {!!sageIntacctData?.taxSolutionIDs && sageIntacctData?.taxSolutionIDs?.length > 0 && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.TAX, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], sageIntacctConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={
