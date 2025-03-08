@@ -1,4 +1,6 @@
-import type {RequireAtLeastOne} from 'type-fest';
+import type CONST from '@src/CONST';
+import {Receipt} from '@src/types/onyx/Transaction';
+import type {RequireAtLeastOne, ValueOf} from 'type-fest';
 
 type SendInvoiceParams = RequireAtLeastOne<
     {
@@ -23,6 +25,8 @@ type SendInvoiceParams = RequireAtLeastOne<
         createdIOUReportActionID: string;
         createdReportActionIDForThread: string | undefined;
         reportActionID: string;
+        receipt?: Receipt;
+        receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     },
     'receiverEmail' | 'receiverInvoiceRoomID'
 >;
