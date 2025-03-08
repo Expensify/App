@@ -78,7 +78,7 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
                             contentFit="fill"
                         />
                         <View style={styles.eReceiptContentWrapper}>
-                            <View style={[StyleUtils.getBackgroundColorStyle(theme.textColorfulBackground), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <View style={[StyleUtils.getBackgroundColorStyle(theme.textColorfulBackground), styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
                                 <View
                                     style={[
                                         StyleUtils.getWidthAndHeightStyle(variables.eReceiptEmptyIconWidth, variables.eReceiptEmptyIconWidth),
@@ -113,7 +113,7 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
                                     <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.h40)]} />
                                 </View>
                                 <View style={[styles.flexColumn, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph9, styles.flex1]}>
-                                    <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, styles.mb11]}>
+                                    <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2]}>
                                         <View style={[styles.flexRow, styles.justifyContentCenter, StyleUtils.getWidthStyle(variables.eReceiptTextContainerWidth)]}>
                                             <View style={[styles.flexColumn, styles.pt1]}>
                                                 <Text style={[styles.eReceiptCurrency, primaryTextColorStyle]}>{currency}</Text>
@@ -127,7 +127,7 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
                                         </View>
                                         <Text style={[styles.eReceiptMerchant, styles.breakWord, styles.textAlignCenter, primaryTextColorStyle]}>{transactionMerchant}</Text>
                                     </View>
-                                    <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb11, styles.gap4, styles.ph3]}>
+                                    <View style={[styles.alignSelfStretch, styles.flexColumn, styles.gap4, styles.ph3]}>
                                         <View style={[styles.flexColumn, styles.gap1]}>
                                             <Text style={[styles.eReceiptWaypointTitle, titleTextColorStyle]}>{translate('eReceipt.transactionDate')}</Text>
                                             <Text style={[styles.eReceiptWaypointAddress, primaryTextColorStyle]}>{transactionDate}</Text>
