@@ -13,7 +13,7 @@ Emails can sometimes be delayed and may take up to 30–60 minutes to arrive. If
 
 - Check your **Email Preferences** via **Settings > Account > Preferences**. In the **Contact Preferences** section, ensure the relevant notification types are enabled.
 - Check your email spam and trash folders, as Expensify messages might be filtered incorrectly.
-- Ensure that Expensify emails are not blocked. Add the domain **expensify.com** to your email provider’s allowlist.
+- Ensure that Expensify emails are not blocked by adding the domain **expensify.com** to your email provider’s allowlist.
 
 ## Issue: A Banner Says “We’re Having Trouble Emailing You”
 
@@ -29,6 +29,8 @@ Confirm that the email address on your Expensify account is valid, then click th
 
 ![Expensify SMTP Error](https://help.expensify.com/assets/images/ExpensifyHelp_SMTPError.png){:width="100%"}
 
+---
+
 # Further Troubleshooting for Public Domains
 
 If you use a public email provider (e.g., **gmail.com** or **yahoo.com**), try the following steps:
@@ -36,6 +38,8 @@ If you use a public email provider (e.g., **gmail.com** or **yahoo.com**), try t
 - Search for messages from **expensify.com** in your spam folder, open them, and mark them as **Not Spam**.
 - Configure an email filter to direct all messages from **expensify.com** to your inbox.
 - Add known Expensify email addresses (e.g., **concierge@expensify.com**) to your contacts list.
+
+---
 
 # Further Troubleshooting for Private Domains
 
@@ -61,7 +65,9 @@ Even if you have received Expensify emails in the past, confirm that **expensify
 - **IT Administrators:** Adjust email allowlist and safe senders settings to include **expensify.com**:
   - [Allowlists, Denylists, and Approved Senders](https://support.google.com/a/answer/60752)
 
-{% include faq-begin.md %}
+---
+
+# FAQ
 
 ## How Can I Be Sure That Emails from Expensify Are Legitimate and Not Spam?
 
@@ -74,5 +80,3 @@ This typically happens when a third-party domain or IP reputation service mistak
 ## What Is the Best Way to Ensure Expensify Emails Are Not Marked as Spam?
 
 For server-level spam detection, the best approach is to verify **DKIM** and **SPF** rather than relying solely on the reputation of the sending IP address.
-
-{% include faq-end.md %}
