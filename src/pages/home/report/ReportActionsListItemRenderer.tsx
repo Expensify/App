@@ -11,9 +11,6 @@ type ReportActionsListItemRendererProps = {
     /** All the data of the action item */
     reportAction: ReportAction;
 
-    /** Array of report actions for the report */
-    reportActions: ReportAction[];
-
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
 
@@ -56,7 +53,6 @@ type ReportActionsListItemRendererProps = {
 
 function ReportActionsListItemRenderer({
     reportAction,
-    reportActions = [],
     parentReportAction,
     index,
     report,
@@ -152,7 +148,6 @@ function ReportActionsListItemRenderer({
                 parentReportAction={parentReportAction}
                 reportID={report.reportID}
                 report={report}
-                reportActions={reportActions}
                 transactionThreadReport={transactionThreadReport}
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
@@ -169,7 +164,6 @@ function ReportActionsListItemRenderer({
             transactionThreadReport={transactionThreadReport}
             parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}
-            reportActions={reportActions}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
