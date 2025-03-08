@@ -111,7 +111,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     });
 
     const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
-        if (!policyTagList || !policyTagList.tags) {
+        if (!policyTagList ?? !policyTagList.tags) {
             return undefined;
         }
 

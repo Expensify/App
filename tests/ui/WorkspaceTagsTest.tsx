@@ -9,7 +9,7 @@ import OnyxProvider from '@components/OnyxProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceTagsPage from '@pages/workspace/tags/WorkspaceTagsPage';
@@ -125,7 +125,7 @@ describe('WorkspaceTags', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const disableText = Localize.translateLocal('workspace.tags.disableTags');
+            const disableText = translateLocal('workspace.tags.disableTags');
             expect(screen.getByText(disableText)).toBeOnTheScreen();
         });
 
@@ -143,7 +143,7 @@ describe('WorkspaceTags', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const blockingPrompt = Localize.translateLocal('workspace.tags.cannotDisableAllTags.title');
+            const blockingPrompt = translateLocal('workspace.tags.cannotDisableAllTags.title');
             expect(screen.getByText(blockingPrompt)).toBeOnTheScreen();
         });
 
