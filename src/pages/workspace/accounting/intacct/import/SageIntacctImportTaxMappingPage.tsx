@@ -64,7 +64,7 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
             onSelectRow={updateMapping}
             initiallyFocusedOptionKey={selectionOptions.find((option) => option.isSelected)?.keyForList}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX.getRoute(policyID))}
-            title='workspace.sageIntacct.taxSolution'
+            title="workspace.sageIntacct.taxSolution"
             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.TAX, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], pendingFields)}
             errors={getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
