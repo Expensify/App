@@ -18,14 +18,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getPreservedSplitNavigatorState} from '@navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -79,6 +79,33 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         clearSelectedText();
         interceptAnonymousUser(() => {
             const defaultCannedQuery = buildCannedSearchQuery();
+
+            const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
+            const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+            const lastSearchRoute = lastSearchNavigator?.state?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+            
+            if (lastSearchRoute) {
+                const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+                const queryJSON = buildSearchQueryJSON(q);
+                if (queryJSON) {
+                    queryJSON.policyID = activeWorkspaceID;
+                    const query = buildSearchQueryString(queryJSON);
+                    Navigation.navigate(
+                        ROUTES.SEARCH_ROOT.getRoute({
+                            query,
+                            ...rest,
+                        }),
+                    );
+                } else {
+                    Navigation.navigate(
+                        ROUTES.SEARCH_ROOT.getRoute({
+                            query: q,
+                            ...rest,
+                        }),
+                    );
+                }
+                return;
+            }
             // when navigating to search we might have an activePolicyID set from workspace switcher
             const query = activeWorkspaceID ? `${defaultCannedQuery} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultCannedQuery;
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));

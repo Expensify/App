@@ -150,6 +150,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         }
     }
 
+    console.log(action);
     const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
     navigation.dispatch(minimalAction);
 }
