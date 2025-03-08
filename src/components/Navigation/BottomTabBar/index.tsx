@@ -83,7 +83,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
             const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             const lastSearchRoute = lastSearchNavigator?.state?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-            
+
             if (lastSearchRoute) {
                 const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
                 const queryJSON = buildSearchQueryJSON(q);
