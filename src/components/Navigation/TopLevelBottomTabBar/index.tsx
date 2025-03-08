@@ -33,8 +33,8 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
 
     // That means it's visible and it's not covered by the overlay.
     const isBottomTabVisibleDirectly = getIsBottomTabVisibleDirectly(state);
-    const selectedTab = getSelectedTab(state);
     const isScreenWithBottomTabFocused = getIsScreenWithBottomTabFocused(state);
+    const selectedTab = getSelectedTab(state);
 
     const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithBottomTabFocused : isBottomTabVisibleDirectly;
     const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;

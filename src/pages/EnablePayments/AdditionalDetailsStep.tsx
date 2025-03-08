@@ -1,8 +1,7 @@
 import {subYears} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -16,15 +15,24 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {extractFirstAndLastNameFromAvailableDetails} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {
+    getFieldRequiredErrors,
+    isValidAddress,
+    isValidPastDate,
+    isValidSSNFullNine,
+    isValidSSNLastFour,
+    isValidUSPhone,
+    isValidZipCode,
+    meetsMaximumAgeRequirement,
+    meetsMinimumAgeRequirement,
+} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
-import * as Wallet from '@userActions/Wallet';
+import {setAdditionalDetailsQuestions, updatePersonalDetails} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AdditionalDetailStepForm';
-import type {WalletAdditionalDetails} from '@src/types/onyx';
 import IdologyQuestions from './IdologyQuestions';
 
 const DEFAULT_WALLET_ADDITIONAL_DETAILS = {
@@ -36,12 +44,7 @@ const DEFAULT_WALLET_ADDITIONAL_DETAILS = {
     errorCode: '',
 };
 
-type AdditionalDetailsStepOnyxProps = {
-    /** Stores additional information about the additional details step e.g. loading state and errors with fields */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetails>;
-};
-
-type AdditionalDetailsStepProps = AdditionalDetailsStepOnyxProps & WithCurrentUserPersonalDetailsProps;
+type AdditionalDetailsStepProps = WithCurrentUserPersonalDetailsProps;
 
 const fieldNameTranslationKeys = {
     legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
@@ -63,44 +66,45 @@ const STEP_FIELDS = [
     INPUT_IDS.ADDRESS_STATE,
     INPUT_IDS.SSN,
 ];
-function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIONAL_DETAILS, currentUserPersonalDetails}: AdditionalDetailsStepProps) {
+function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [walletAdditionalDetails = DEFAULT_WALLET_ADDITIONAL_DETAILS] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const currentDate = new Date();
     const minDate = subYears(currentDate, CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
         if (values.dob) {
-            if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
+            if (!isValidPastDate(values.dob) || !meetsMaximumAgeRequirement(values.dob)) {
                 errors.dob = translate('bankAccount.error.dob');
-            } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
+            } else if (!meetsMinimumAgeRequirement(values.dob)) {
                 errors.dob = translate('bankAccount.error.age');
             }
         }
 
-        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+        if (values.addressStreet && !isValidAddress(values.addressStreet)) {
             errors.addressStreet = translate('bankAccount.error.addressStreet');
         }
 
-        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+        if (values.addressZipCode && !isValidZipCode(values.addressZipCode)) {
             errors.addressZipCode = translate('bankAccount.error.zipCode');
         }
 
-        if (values.phoneNumber && !ValidationUtils.isValidUSPhone(values.phoneNumber, true)) {
+        if (values.phoneNumber && !isValidUSPhone(values.phoneNumber, true)) {
             errors.phoneNumber = translate('bankAccount.error.phoneNumber');
         }
 
         // walletAdditionalDetails stores errors returned by the server. If the server returns an SSN error
         // then the user needs to provide the full 9 digit SSN.
         if (walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN) {
-            if (values.ssn && !ValidationUtils.isValidSSNFullNine(values.ssn)) {
+            if (values.ssn && !isValidSSNFullNine(values.ssn)) {
                 errors.ssn = translate('additionalDetailsStep.ssnFull9Error');
             }
-        } else if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
+        } else if (values.ssn && !isValidSSNLastFour(values.ssn)) {
             errors.ssn = translate('bankAccount.error.ssnLast4');
         }
 
@@ -120,7 +124,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
             ssn: values.ssn ?? '',
         };
         // Attempt to set the personal details
-        Wallet.updatePersonalDetails(personalDetails);
+        updatePersonalDetails(personalDetails);
     };
 
     if (walletAdditionalDetails?.questions && walletAdditionalDetails.questions.length > 0) {
@@ -133,7 +137,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
             >
                 <HeaderWithBackButton
                     title={translate('additionalDetailsStep.headerTitle')}
-                    onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
+                    onBackButtonPress={() => setAdditionalDetailsQuestions(null)}
                 />
                 <IdologyQuestions
                     questions={walletAdditionalDetails.questions}
@@ -171,7 +175,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={PersonalDetailsUtils.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
+                        defaultValue={extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
                     />
                     <InputWrapper
@@ -181,7 +185,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                         label={translate(fieldNameTranslationKeys.legalLastName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={PersonalDetailsUtils.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
+                        defaultValue={extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
                     />
                     <AddressFormFields
@@ -223,7 +227,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                         label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                         accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={shouldAskForFullSSN ? 9 : 4}
+                        maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                     />
                 </FormProvider>
@@ -234,11 +238,4 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
 
 AdditionalDetailsStep.displayName = 'AdditionalDetailsStep';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<AdditionalDetailsStepProps, AdditionalDetailsStepOnyxProps>({
-        // @ts-expect-error: ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
-        walletAdditionalDetails: {
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-        },
-    })(AdditionalDetailsStep),
-);
+export default withCurrentUserPersonalDetails(AdditionalDetailsStep);
