@@ -99,9 +99,12 @@ type MoneyReportHeaderProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
+
+    /** Method that triggers search to avoid held expense disappearing (https://github.com/Expensify/App/issues/57605) */
+    triggerSearch?: () => void;
 };
 
-function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, onBackButtonPress, triggerSearch}: MoneyReportHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -538,6 +541,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         }
                     }}
                     transactionCount={transactionIDs?.length ?? 0}
+                    triggerSearch={triggerSearch}
                 />
             )}
             <DelegateNoAccessModal
