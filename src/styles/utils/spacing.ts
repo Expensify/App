@@ -732,4 +732,8 @@ export default {
     minHeight65: {
         minHeight: 260,
     },
+
+    minWidth18: {
+        minWidth: 72,
+    },
 } satisfies Record<string, ViewStyle>;
