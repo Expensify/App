@@ -835,7 +835,7 @@ function PureReportActionItem({
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
