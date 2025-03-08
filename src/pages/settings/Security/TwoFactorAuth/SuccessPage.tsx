@@ -3,6 +3,7 @@ import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {openLink} from '@userActions/Link';
@@ -17,6 +18,7 @@ type SuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList
 function SuccessPage({route}: SuccessPageProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const styles = useThemeStyles();
 
     return (
         <TwoFactorAuthWrapper
@@ -40,6 +42,7 @@ function SuccessPage({route}: SuccessPageProps) {
                         openLink(route.params.forwardTo, environmentURL);
                     }
                 }}
+                containerStyle={styles.flex1}
             />
         </TwoFactorAuthWrapper>
     );
