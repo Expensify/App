@@ -4550,6 +4550,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
+        policyName: createdWorkspaceParams?.policyName,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
