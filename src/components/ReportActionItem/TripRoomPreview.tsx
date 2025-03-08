@@ -192,7 +192,6 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
                             renderItem={renderItem}
                         />
                         <Button
-                            success
                             text={translate('travel.viewTrip')}
                             onPress={navigateToTrip}
                         />
