@@ -1,12 +1,12 @@
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
-import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';

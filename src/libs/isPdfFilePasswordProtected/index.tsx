@@ -1,5 +1,5 @@
 import * as pdfjsLib from 'pdfjs-dist';
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 
 const isPdfFilePasswordProtected = (file: FileObject): Promise<boolean> =>
     new Promise((resolve) => {
