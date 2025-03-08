@@ -5281,7 +5281,7 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function getFormattedAmount(reportAction: ReportAction) {
+function getFormattedAmount(reportAction: ReportAction, report?: Report) {
     if (
         !isSubmittedAction(reportAction) &&
         !isForwardedAction(reportAction) &&
@@ -5292,7 +5292,8 @@ function getFormattedAmount(reportAction: ReportAction) {
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const formattedAmount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
+    const amount = report && isExpenseReport(report) ? (originalMessage?.amount ?? 0) * -1 : Math.abs(originalMessage?.amount ?? 0);
+    const formattedAmount = convertToDisplayString(amount, originalMessage?.currency);
     return formattedAmount;
 }
 
@@ -5302,8 +5303,11 @@ function getReportAutomaticallySubmittedMessage(
     return translateLocal('iou.automaticallySubmittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
 }
 
-function getIOUSubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>) {
-    return translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
+function getIOUSubmittedMessage(
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>,
+    report: Report,
+) {
+    return translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
 }
 
 function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
