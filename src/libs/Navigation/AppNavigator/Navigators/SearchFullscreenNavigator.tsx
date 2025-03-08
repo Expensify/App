@@ -1,4 +1,5 @@
 import React from 'react';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import createSearchFullscreenNavigator from '@navigation/AppNavigator/createSearchFullscreenNavigator';
@@ -15,10 +16,18 @@ const Stack = createSearchFullscreenNavigator<SearchFullscreenNavigatorParamList
 function SearchFullscreenNavigator() {
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
 
+    const searchRootScreenOptions: PlatformStackNavigationOptions = {
+        ...rootNavigatorScreenOptions.fullScreen,
+        web: {
+            ...rootNavigatorScreenOptions.fullScreen.web,
+            cardStyleInterpolator: undefined,
+        },
+    };
+
     return (
         <FreezeWrapper>
             <Stack.Navigator
-                screenOptions={rootNavigatorScreenOptions.fullScreen}
+                screenOptions={searchRootScreenOptions}
                 defaultCentralScreen={SCREENS.SEARCH.ROOT}
             >
                 <Stack.Screen
