@@ -278,6 +278,14 @@ function ProfilePage({route}: ProfilePageProps) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
+                        {isCurrentUser && (
+                            <MenuItem
+                                shouldShowRightIcon
+                                title={'Edit your Profile'} // This wil be trasnalted in es.ts file as well
+                                icon={Expensicons.Pencil}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
+                            />
+                        )}
                         {shouldShowNotificationPreference && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
