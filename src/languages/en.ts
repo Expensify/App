@@ -524,6 +524,7 @@ const translations = {
         validate: 'Validate',
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
+        editYourProfile: 'Edit your profile',
     },
     supportalNoAccess: {
         title: 'Not so fast',

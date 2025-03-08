@@ -281,7 +281,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         {isCurrentUser && (
                             <MenuItem
                                 shouldShowRightIcon
-                                title={'Edit your Profile'} // This wil be trasnalted in es.ts file as well
+                                title={translate('common.editYourProfile')}
                                 icon={Expensicons.Pencil}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
                             />

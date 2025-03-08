@@ -515,6 +515,7 @@ const translations = {
         validate: 'Validar',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
+        editYourProfile: 'Edita tu perfil',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
