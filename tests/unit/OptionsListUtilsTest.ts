@@ -179,8 +179,6 @@ describe('OptionsListUtils', () => {
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
-
-        // Thread report with notification preference = hidden
         '11': {
             lastReadTime: '2021-01-14 11:25:39.200',
             lastVisibleActionCreated: '2022-11-22 03:26:02.001',
@@ -195,6 +193,25 @@ describe('OptionsListUtils', () => {
             type: CONST.REPORT.TYPE.CHAT,
             policyID,
             policyName: POLICY.name,
+        },
+
+        // Thread report with notification preference = hidden
+        '12': {
+            lastReadTime: '2021-01-14 11:25:39.200',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            reportID: '11',
+            isPinned: false,
+            participants: {
+                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+            reportName: '',
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+            policyName: POLICY.name,
+            parentReportActionID: '123',
+            parentReportID: '123',
         },
     };
 
@@ -547,7 +564,7 @@ describe('OptionsListUtils', () => {
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(9);
 
-        // Then all of the reports should be shown including the archived rooms, except for the report with notificationPreferences hidden.
+        // Then all of the reports should be shown including the archived rooms, except for the thread report with notificationPreferences hidden.
         expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
     });
 
@@ -766,8 +783,8 @@ describe('OptionsListUtils', () => {
         // When we pass an empty search value
         let results = getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, []);
 
-        // Then we should expect all the recent reports to show but exclude the archived rooms
-        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
+        // Then we should expect all the recent reports to show but exclude the archived rooms and the hidden thread
+        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 2);
 
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
         const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
@@ -782,8 +799,8 @@ describe('OptionsListUtils', () => {
         // When we also have a policy to return rooms in the results
         results = getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
         // Then we should expect the DMS, the group chats and the workspace room to show
-        // We should expect all the recent reports to show, excluding the archived rooms
-        expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 1);
+        // We should expect all the recent reports to show, excluding the archived rooms and the hidden thread
+        expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 2);
     });
 
     describe('getShareLogOptions', () => {
@@ -834,7 +851,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
             const filteredOptions = filterAndOrderOptions(options, '');
 
-            expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(12);
+            expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(13);
         });
 
         it('should return filtered options in correct order', () => {
@@ -923,7 +940,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions(OPTIONS);
             const filteredOptions = filterAndOrderOptions(options, searchText);
 
-            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports.length).toBe(3);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
         });
@@ -1151,7 +1168,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions(OPTIONS);
             const filteredOptions = filterAndOrderOptions(options, 'fantastic');
 
-            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports.length).toBe(3);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
 
