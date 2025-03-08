@@ -4016,6 +4016,10 @@ const translations = {
             importTags: 'Importar categorías',
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
+            cannotDisableAllTags: {
+                title: 'No se pueden desactivar todas las etiquetas',
+                description: `No puedes desactivar todas las etiquetas cuando se requieren en el espacio de trabajo.`,
+            },
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
