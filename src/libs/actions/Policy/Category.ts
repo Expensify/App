@@ -705,7 +705,6 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                 value: {
                     [policyCategory.oldName]: null,
                     [policyCategory.newName]: {
-                        ...policyCategoryToUpdate,
                         name: policyCategory.newName,
                         errors: null,
                         pendingAction: null,
