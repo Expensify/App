@@ -13,6 +13,7 @@ import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
+import {READ_COMMANDS} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -35,6 +36,8 @@ use(Pagination);
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 use(SaveResponseInOnyx);
+
+let requestIndex = 0;
 
 type OnyxData = {
     optimisticData?: OnyxUpdate[];
@@ -78,6 +81,7 @@ function prepareRequest<TCommand extends ApiCommand>(
         command,
         data,
         initiatedOffline: isOffline(),
+        requestID: requestIndex++,
         ...onyxDataWithoutOptimisticData,
         ...conflictResolver,
     };
@@ -198,6 +202,11 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
 
     // Apply optimistic updates of read requests immediately
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
+    // Sign in with shortLivedAuthToken command shouldn't be blocked by write commands
+    if (command === READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN) {
+        processRequest(request, CONST.API_REQUEST_TYPE.READ);
+        return;
+    }
     waitForWrites(command).then(() => {
         processRequest(request, CONST.API_REQUEST_TYPE.READ);
     });

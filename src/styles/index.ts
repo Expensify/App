@@ -132,6 +132,10 @@ const headlineFont = {
     ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
 } satisfies TextStyle;
 
+const headlineItalicFont = {
+    ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM_ITALIC,
+} satisfies TextStyle;
+
 const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
@@ -156,12 +160,6 @@ const webViewStyles = (theme: ThemeColors) =>
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
-            },
-
-            strong: {
-                // We set fontFamily and fontWeight directly in order to avoid overriding fontStyle.
-                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
-                fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
             },
 
             a: link(theme),
@@ -193,7 +191,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 ...baseCodeTagStyles(theme),
                 paddingVertical: 8,
                 paddingHorizontal: 12,
-                fontSize: 13,
+                fontSize: undefined,
                 ...FontUtils.fontFamily.platform.MONOSPACE,
                 marginTop: 0,
                 marginBottom: 0,
@@ -204,7 +202,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 paddingLeft: 5,
                 paddingRight: 5,
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
-                // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
             img: {
@@ -227,7 +224,8 @@ const webViewStyles = (theme: ThemeColors) =>
                 marginBottom: 0,
             },
             h1: {
-                fontSize: variables.fontSizeLarge,
+                fontSize: undefined,
+                fontWeight: undefined,
                 marginBottom: 8,
             },
         },
@@ -272,6 +270,18 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             boxShadow: variables.popoverMenuShadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
+        },
+
+        h1: {
+            fontSize: variables.fontSizeLarge,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+            fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+            marginBottom: 8,
+        },
+
+        strong: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+            fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
         },
 
         autoCompleteSuggestionContainer: {
@@ -4272,6 +4282,16 @@ const styles = (theme: ThemeColors) =>
             ...writingDirection.ltr,
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeh2,
+            maxWidth: '100%',
+            ...wordBreak.breakWord,
+        },
+
+        taskTitleMenuItemItalic: {
+            ...writingDirection.ltr,
+            ...headlineItalicFont,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeh2,
             maxWidth: '100%',
             ...wordBreak.breakWord,
         },
@@ -5460,12 +5480,15 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        sidePaneOverlay: {
+        sidePaneOverlay: (isOverlayVisible: boolean) => ({
             ...positioning.pFixed,
+            top: 0,
+            bottom: 0,
+            left: 0,
             right: -variables.sideBarWidth,
             backgroundColor: theme.overlay,
-            opacity: variables.overlayOpacity,
-        },
+            opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
+        }),
         sidePaneContainer: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             right: 0,
