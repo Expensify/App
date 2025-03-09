@@ -48,7 +48,6 @@ function EmptyCardView({isBankAccountVerified}: EmptyCardViewProps) {
                     subtitle={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'getStartedIssuing' : 'verifyingTheDetails'}`)}
                     headerContentStyles={isBankAccountVerified ? null : styles.pendingStateCardIllustration}
                     minModalHeight={isBankAccountVerified ? 500 : 400}
-                    shouldEnableScroll={false}
                 />
             </View>
             <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
