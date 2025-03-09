@@ -1803,7 +1803,7 @@ function buildPolicyData(
                 autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 harvesting: {
-                    enabled: shouldEnableWorkflowsByDefault ? false : true,
+                    enabled: !shouldEnableWorkflowsByDefault,
                 },
                 customUnits,
                 areCategoriesEnabled: true,
