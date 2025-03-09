@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {ReactNode} from 'react';
+import type {MutableRefObject, ReactNode} from 'react';
 import React, {createContext, useCallback, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,8 +14,8 @@ type FloatingActionButtonPopoverMenuRef = {
 type FABPopoverContextValue = {
     isCreateMenuActive: boolean;
     hideCreateMenu: () => void;
-    toggleCreateMenu: (isFabActionActive: boolean) => void;
-    fabRef: React.RefObject<HTMLDivElement | View>;
+    toggleCreateMenu: (fabRef: React.RefObject<HTMLDivElement>) => void;
+    fabRef: MutableRefObject<HTMLDivElement | View | null>;
 };
 
 const FABPopoverContext = createContext<FABPopoverContextValue>({
@@ -31,7 +31,7 @@ type FABPopoverProviderProps = {
 
 function FABPopoverProvider({children}: FABPopoverProviderProps) {
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const fabRef = useRef<HTMLDivElement>(null);
+    const fabRef = useRef<HTMLDivElement | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const platform = getPlatform();
@@ -101,14 +101,15 @@ function FABPopoverProvider({children}: FABPopoverProviderProps) {
     );
 
     const toggleCreateMenu = useCallback(
-        (isFabActionActive: boolean) => {
-            if (isFabActionActive) {
+        (fab: React.RefObject<HTMLDivElement>) => {
+            fabRef.current = fab.current;
+            if (isCreateMenuActive) {
                 hideCreateMenu();
             } else {
                 showCreateMenu();
             }
         },
-        [hideCreateMenu, showCreateMenu],
+        [hideCreateMenu, isCreateMenuActive, showCreateMenu],
     );
 
     const value = useMemo(

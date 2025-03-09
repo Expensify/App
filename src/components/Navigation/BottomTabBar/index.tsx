@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useContext, useEffect, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -43,8 +43,8 @@ type BottomTabBarProps = {
 };
 
 function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
-    const {isCreateMenuActive, toggleCreateMenu, fabRef} = useContext(FABPopoverContext);
-    const [isFabActionActive, setIsFabActionActive] = useState(isCreateMenuActive);
+    const {isCreateMenuActive, toggleCreateMenu} = useContext(FABPopoverContext);
+    const localFabRef = useRef<HTMLDivElement>(null);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -60,10 +60,6 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
         isTooltipAllowed && selectedTab !== BOTTOM_TABS.HOME,
     );
-
-    useEffect(() => {
-        setIsFabActionActive(isCreateMenuActive);
-    }, [isCreateMenuActive]);
 
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReportIDs));
@@ -248,9 +244,9 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     <FloatingActionButton
                         accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
                         role={CONST.ROLE.BUTTON}
-                        isActive={isFabActionActive}
-                        ref={fabRef}
-                        onPress={() => toggleCreateMenu(isFabActionActive)}
+                        isActive={isCreateMenuActive}
+                        ref={localFabRef}
+                        onPress={() => toggleCreateMenu(localFabRef)}
                         isTooltipAllowed={isTooltipAllowed}
                     />
                 </View>
