@@ -9,8 +9,8 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {Plus, Trashcan} from '@components/Icon/Expensicons';
+import {Pencil} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -38,11 +38,11 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
+import {getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getReportFieldKey} from '@libs/ReportUtils';
+import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as ReportField from '@userActions/Policy/ReportField';
+import {deleteReportFields, openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -82,17 +82,17 @@ function WorkspaceReportFieldsPage({
     }, [policy]);
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isSyncInProgress);
+    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentConnectionName(policy);
 
     const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     const fetchReportFields = useCallback(() => {
-        ReportField.openPolicyReportFieldsPage(policyID);
+        openPolicyReportFieldsPage(policyID);
     }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchReportFields});
@@ -126,7 +126,7 @@ function WorkspaceReportFieldsPage({
                         isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined && canSelectMultiple,
                         isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         text: reportField.name,
-                        rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(translate(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(reportField.type)))} />,
+                        rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))} />,
                     })),
                 isDisabled: false,
             },
@@ -136,7 +136,7 @@ function WorkspaceReportFieldsPage({
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(reportFieldsSections.at(0)?.data ?? ([] as ListItem[]));
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
-        const fieldKey = ReportUtils.getReportFieldKey(item.fieldID);
+        const fieldKey = getReportFieldKey(item.fieldID);
         const updatedReportFields = selectedReportFields.find((selectedReportField) => selectedReportField.name === item.value)
             ? selectedReportFields.filter((selectedReportField) => selectedReportField.name !== item.value)
             : [...selectedReportFields, filteredPolicyFieldList[fieldKey]];
@@ -154,9 +154,9 @@ function WorkspaceReportFieldsPage({
     };
 
     const handleDeleteReportFields = () => {
-        const reportFieldKeys = selectedReportFields.map((selectedReportField) => ReportUtils.getReportFieldKey(selectedReportField.fieldID));
+        const reportFieldKeys = selectedReportFields.map((selectedReportField) => getReportFieldKey(selectedReportField.fieldID));
         setSelectedReportFields([]);
-        ReportField.deleteReportFields(policyID, reportFieldKeys);
+        deleteReportFields(policyID, reportFieldKeys);
         setDeleteReportFieldsConfirmModalVisible(false);
     };
 
@@ -169,7 +169,7 @@ function WorkspaceReportFieldsPage({
 
         if (shouldUseNarrowLayout ? canSelectMultiple : selectedReportFields.length > 0) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: Trashcan,
                 text: translate(selectedReportFields.length === 1 ? 'workspace.reportFields.delete' : 'workspace.reportFields.deleteFields'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setDeleteReportFieldsConfirmModalVisible(true),
@@ -194,7 +194,7 @@ function WorkspaceReportFieldsPage({
                 <Button
                     success
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
-                    icon={Expensicons.Plus}
+                    icon={Plus}
                     text={translate('workspace.reportFields.addField')}
                     style={[shouldUseNarrowLayout && styles.flex1]}
                 />
@@ -246,7 +246,7 @@ function WorkspaceReportFieldsPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={!selectionModeHeader ? Illustrations.Pencil : undefined}
+                    icon={!selectionModeHeader ? Pencil : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.reportFields')}
                     shouldShowBackButton={shouldUseNarrowLayout}
