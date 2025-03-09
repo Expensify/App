@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
@@ -357,14 +358,16 @@ function ReportActionsView({
 
     if (visibleReportActions.length === 0) {
         return (
-            <EmptyStateComponent
-                SkeletonComponent={SearchRowSkeleton}
-                title={translate('report.noActivityYet')}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                headerMedia={Illustrations.EmptyState}
-                headerStyles={styles.emptyFolderDarkBG}
-                headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
-            />
+            <ScrollView>
+                <EmptyStateComponent
+                    SkeletonComponent={SearchRowSkeleton}
+                    title={translate('report.noActivityYet')}
+                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                    headerMedia={Illustrations.EmptyState}
+                    headerStyles={styles.emptyFolderDarkBG}
+                    headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
+                />
+            </ScrollView>
         );
     }
 
