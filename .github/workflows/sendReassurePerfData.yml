@@ -33,6 +33,9 @@ jobs:
         with:
           github_token: ${{ github.token }}
 
+      - name: Test connectivity to stats.expensify.com server
+        run: nc -zv stats.expensify.com 3003
+
       - name: Get and save graphite string
         id: saveGraphiteString
         uses: ./.github/actions/javascript/getGraphiteString
