@@ -3160,7 +3160,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         ? {
                               approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                               autoReporting: false,
-                              autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+                              autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES. INSTANT,
                               harvesting: {
                                   enabled: false,
                               },
