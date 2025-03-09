@@ -10,6 +10,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -41,13 +42,14 @@ function TaskView({report}: TaskViewProps) {
     useEffect(() => {
         setTaskReport(report);
     }, [report]);
-
-    const taskTitle = convertToLTR(report?.reportName ?? '');
+    const taskTitle = `<task-title>${convertToLTR(report?.reportName ?? '')}</task-title>`;
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false);
+
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
     const canModifyTask = canModifyTaskUtil(report, currentUserPersonalDetails.accountID);
     const canActionTask = canActionTaskUtil(report, currentUserPersonalDetails.accountID);
+
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
     const {translate} = useLocalize();
@@ -107,12 +109,7 @@ function TaskView({report}: TaskViewProps) {
                                             disabled={!canActionTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
-                                            <Text
-                                                numberOfLines={3}
-                                                style={styles.taskTitleMenuItem}
-                                            >
-                                                {taskTitle}
-                                            </Text>
+                                            <RenderHTML html={taskTitle} />
                                         </View>
                                         {!isDisableInteractive && (
                                             <View style={styles.taskRightIconContainer}>

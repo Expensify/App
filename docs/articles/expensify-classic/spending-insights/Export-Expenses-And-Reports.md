@@ -3,80 +3,79 @@ title: Export Expenses and Reports
 description: How to export expenses and reports using custom reports, PDF files, CSVs, and more
 ---
 
-There are several methods you can use to export your expenses and reports on the Expensify Classic web app, including:
-- Export as a PDF
-- Export as a CSV or to an accounting integration
-- Export using a default or custom export template
 
-Please note that it is currently not possible to export these files using the Expensify Classic mobile app.
+Expensify offers multiple ways to export your expenses and reports:
+- **Export as a PDF**
+- **Export as a CSV or to an accounting integration**
+- **Use a default or custom export template**
 
-# Export PDF
+**Note:** You cannot export files using the Expensify mobile app.
+
+---
+
+# Export as a PDF
 
 1. Click the **Reports** tab.
-2. Open a report.
-3. Click **Details** in the top right of the report.
-4. Click the download icon.
+2. Open the report you want to export.
+3. Click **Details** in the top-right corner.
+4. Click the **Download** icon.
 
-The PDF will be downloaded with all expenses, any attached receipts, and all report notes.
+The PDF will include all expenses, attached receipts, and report notes.
 
-# Export CSV or apply a template
+---
+
+# Export as a CSV or Apply a Template
 
 1. Click either the **Expenses** or **Reports** tab.
-2. On the left hand side, select the expenses/reports you’d like to export.
-3. Click **Export to** at the top right of the page.
-4. Choose the desired export option. You can use one of the default templates below, or you can create your own template. *Note: The default templates and the option to export to a connected accounting package are only available on the Reports page.*
-   - **All Data - Expense Level Export**: Prints a line for each expense with all of the data associated with the expenses. This is useful if you want to see all of the data stored in Expensify for each expense.
-   - **All Data - Report Level Export**: Prints a line per report, giving a summary of the report data.
-   - **Basic Export**: A simpler expense-level export of the data visible on the PDF report. Includes basics such as date, amount, merchant, category, tag, reimbursable state, description, receipt URL, and original expense currency and amount.
-   - **Canadian Multiple Tax Export**: Exports a line per expense with all available information on the taxes applied to the expenses on your report(s). This is useful if you need to see the tax spend.
-   - **Category Export**: Exports category names with the total amount attributed to each category on the report. While you can also access this information on the Insights page, it can be convenient to export to a CSV to run further analysis in your favorite spreadsheet program.
-   - **Per Diem Export**: Exports basic expense details for only the per diem expenses on the report. Useful for reviewing employee Per Diem spend.
-   - **Tag Export**: Exports tag names into columns with the total amount attributed to each tag on the report.
+2. Select the expenses or reports you want to export from the left-hand menu.
+3. Click **Export to** in the top-right corner.
+4. Choose an export format:
+   - **All Data - Expense Level Export**: One row per expense, including all associated data.
+   - **All Data - Report Level Export**: One row per report, summarizing report data.
+   - **Basic Export**: A simplified expense-level export including essential details like date, amount, merchant, category, and receipt URL.
+   - **Canadian Multiple Tax Export**: Includes tax details for each expense.
+   - **Category Export**: Summarizes expenses by category.
+   - **Per Diem Export**: Exports only per diem expenses.
+   - **Tag Export**: Summarizes expenses by tag.
 
-# Create custom export templates
+**Note:** Default templates and exports to accounting software are only available on the **Reports** page.
 
-If you don't have a direct connection to your accounting system, you can export your expense data to the system for upload as long as the system accepts a CSV file. You can then analyze the data in your favorite spreadsheet program.
+---
 
-Custom export templates can be created and made available to all Workspace Admins for your workspace, or you can create a template that is just for your own use.
+# Create a Custom Export Template
 
-## For a workspace
+If your accounting system accepts CSV files, you can create a custom export template to format your data for easy upload. Templates can be created for either **workspace-wide** use or **personal use**.
 
-{% include info.html %}
-Must be a Group Workspace Admin to complete this process.
-{% include end-info.html %}
+## Create a Template for a Workspace
 
-1. Hover over **Settings** and click **Workspaces**.
-2. Select the desired workspace.
-3. Click the **Export Formats** tab on the left.
-4. Click **New Export Format**.
-5. Enter a name for the export format.
-6. Select the format type (e.g., CSV, XLS for Excel, or CSV without BOM for MS Access)
-7. Enter a name and formula for each column (formulas provided below).
-8. Scroll below all of the columns and, if needed:
-   - Click **Add Column** to add a new column.
-   - Drag and drop the columns into a different order.
-   - Hover over a column and click the red X in the right corner to delete it.
-9. Check the Example Output at the bottom and click **Save Export Format** when all the columns are complete.
+**Note:** You must be a Company Workspace Admin to do the following:
 
-## For personal use
+1. Go to **Settings > Workspaces** and select your workspace.
+2. Click the **Export Formats** tab.
+3. Click **New Export Format**.
+4. Name your export format.
+5. Select the format type (**CSV, XLS, or CSV without BOM**).
+6. Add columns by entering a name and formula (see formulas below).
+7. Adjust columns as needed:
+   - Click **Add Column** to add more.
+   - Drag and drop columns to reorder them.
+   - Click the red **X** to remove a column.
+8. Review the **Example Output** section.
+9. Click **Save Export Format**.
 
-1. Hover over **Settings** and click **Account**.
-2. Click **Preferences**.
-3. Under CSV Export Formats, click **New Export Format**.
-4. Enter a name for the export format.
-5. Select the format type (e.g., CSV, XLS for Excel, or CSV without BOM for MS Access)
-6. Enter a name and formula for each column (formulas provided below).
-7. Scroll below all of the columns and, if needed:
-   - Click **Add Column** to add a new column.
-   - Drag and drop the columns into a different order.
-   - Hover over a column and click the red X in the right corner to delete it.
-8. Check the Example Output at the bottom and click **Save Export Format** when all the columns are complete.
+## Create a Template for Personal Use
 
-## Formulas
+1. Go to **Settings > Account > Preferences**.
+2. Under **CSV Export Formats**, click **New Export Format**.
+3. Follow steps 4-9 from the workspace template instructions.
+
+---
+
+# Formulas
 
 Enter any of the following formulas into the Formula field for each column. Be sure to also include both brackets around the formula as shown in the table below.
 
-### Report level
+## Report level
 
 | Formula | Description |
 | -- | -- |
@@ -143,7 +142,7 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | {report:submit:from:fullname}| Sally Ride |
 | {report:submit:from:email} | sride@email.com|
 
-### Expense level
+## Expense level
 
 | Formula | Description |
 | -- | -- |
@@ -217,7 +216,7 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | {expense:tag:glcode} | Would output the GL code associated with the tag of the expense. If the GL code for Client X is 08294 this would output simply 08294.|
 | {expense:tag:ntag-3:glcode} | Would output the GL code associated with the third tag the user chooses. This is only for companies that have multiple tags setup.|
 
-### Date formats
+## Date formats
 
 | Formula | Description |
 | -- | -- |
@@ -232,7 +231,7 @@ Enter any of the following formulas into the Formula field for each column. Be s
 |dd/MM/yy| 23/05/19|
 |yyyy| 2019|
 
-### Math formulas
+## Math formulas
 
 | Formula | Description |
 | -- | -- |
@@ -260,41 +259,40 @@ Functions can be applied to any formula using the `|` symbol and the function na
 | domain | Get the domain name from an email address; the part after the `@` sign.|
 | {report:submit:from:email\|domain} | email.com if alice@email.com was the submitter|
 
-{% include faq-begin.md %}
+---
 
-**Can I export one line per report?**
+# FAQ
 
-No, the custom template always exports one line per *expense*. At the moment, it is not possible to create a template that will export one line per report.
+## Can I export one line per report?
+No, custom templates export one line per **expense**, not per report.
 
-**Can I export to CSV or PDF on my mobile app?**
+## Can I export from the mobile app?
+No, exports are only available on the **web app**.
 
-No, expenses can only be exported using the web app.
-
-**How do I print a report?**
-
+## How do I print a report?
 1. Click the **Reports** tab.
 2. Open a report.
 3. Click **Details** in the top right of the report.
 4. Click the Print icon.
 
-**Why isn’t my report exporting?**
+## Why isn’t my report exporting?
+If your report has many expenses with high-resolution images, the PDF download may fail. Try splitting it into smaller reports. A report must have at least one expense to be exported or saved as a PDF.
 
-Big reports with a lot of expenses may cause the PDF download to fail due to images with large resolutions. In that case, try breaking the report into multiple smaller reports. A report must have at least one expense to be exported or saved as a PDF.
+## Can I download multiple PDFs at once?
+No, you must download reports individually. Use **CSV export** if you need multiple reports in one file.
 
-**Can I download multiple PDFs at once?**
+## The data exported to Excel is showing incorrectly. How can I fix this?
+When you open a CSV file from Expensify in Excel, report and transaction IDs may appear in exponential format if they’re too long. To fix this, import the CSV instead of opening it directly:
 
-No, you can’t download multiple reports as PDFs at the same time. If you’d like to export multiple reports, an alternative to consider is the CSV export option.
+1. Open Excel and click **File > Import**.
+2. Select your CSV file and follow the prompts.
+3. Set the report ID or transaction ID column to **Text format**.
 
-**The data exported to Excel is showing incorrectly. How can I fix this?**
+## Why do the numbers in my exported file look incorrect?
+If numbers are displayed in scientific notation (e.g., `1.79e+308`), switch your spreadsheet program to **Plain Text** or **Number** format.
 
-When opening a CSV file export from Expensify in Excel, it’ll automatically register report IDs and transaction IDs as numbers and assign the number format to the report ID column. If a number is greater than a certain length, Excel will contract the number and display it in exponential form. To prevent this, the number needs to be imported as text, which can be done by opening Excel and clicking File > Import > select your CSV file. Follow the prompts, then on step 3, set the report ID/transactionID column to import as Text.
-
-**Why are my numbers exporting in a weird format?**
-
-Do your numbers look something like this: 1.7976931348623157e+308? This means that your spreadsheet program is formatting long numbers in an exponential or scientific format. If that happens, you can correct it by changing the data to Plain Text or a Number in your spreadsheet program.
-
-**Why are my leading zeros missing?**
-
-Is the export showing “1” instead of “01”? This means that your spreadsheet program is cutting off the leading zero. This is a common issue with viewing exported data in Excel. Unfortunately, we don’t have a good solution for this. We recommend checking your spreadsheet program’s help documents for formatting suggestions.
-
-{% include faq-end.md %}
+## Why are leading zeros missing in my export?
+Excel may automatically remove leading zeros. To prevent this:
+1. Open Excel and click **File > Import**.
+2. Select your CSV file.
+3. In step 3, set relevant columns to **Text format**.
