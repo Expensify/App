@@ -291,13 +291,13 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     // Wait for signOut (if called), then redirect and update Onyx.
     signOutPromise
         .then((response) => {
-            Onyx.multiSet(onyxSetParams);
-
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
                 asyncOpenURL(redirectToSignIn(), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
             } else {
-                redirectToSignIn();
+                redirectToSignIn().then(() => {
+                    Onyx.multiSet(onyxSetParams);
+                });
             }
         })
         .catch((error: string) => Log.warn('Error during sign out process:', error));
