@@ -129,7 +129,7 @@ describe('Middleware', () => {
                 {
                     command: 'OpenReport',
                     data: {authToken: 'testToken', reportID: '2345', reportActionID: undefined, parentReportActionID: undefined},
-                }
+                },
             ];
             for (const request of requests) {
                 SequentialQueue.push(request);
@@ -155,8 +155,6 @@ describe('Middleware', () => {
 
             SequentialQueue.unpause();
             await waitForNetworkPromises();
-
-
 
             expect(global.fetch).toHaveBeenCalledTimes(3);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/OpenReport?', expect.anything());
