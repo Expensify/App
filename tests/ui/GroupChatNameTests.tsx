@@ -131,10 +131,11 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
 describe('Tests for group chat name', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        Onyx.clear();
 
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
+
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     const participantAccountIDs4 = [USER_A_ACCOUNT_ID, USER_B_ACCOUNT_ID, USER_C_ACCOUNT_ID, USER_D_ACCOUNT_ID];

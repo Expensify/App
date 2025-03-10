@@ -952,18 +952,7 @@ describe('actions/Report', () => {
         global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
         const mockedXhr = jest.fn();
-        mockedXhr
-            .mockImplementationOnce(originalXHR)
-            .mockImplementationOnce(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.EXP_ERROR,
-                }),
-            )
-            .mockImplementation(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.SUCCESS,
-                }),
-            );
+        mockedXhr.mockImplementation(originalXHR);
 
         HttpUtils.xhr = mockedXhr;
         await waitForBatchedUpdates();
@@ -975,14 +964,25 @@ describe('actions/Report', () => {
         Report.addComment(REPORT_ID, 'Testing a comment');
         await waitForNetworkPromises();
 
+        expect(PersistedRequests.getAll().length).toBe(1);
+        expect(PersistedRequests.getAll().at(0)?.isRollbacked).toBeTruthy();
         const newComment = PersistedRequests.getAll().at(1);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
         await waitForBatchedUpdates();
+        HttpUtils.xhr = mockedXhr
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.EXP_ERROR,
+                }),
+            )
+            .mockImplementation(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                }),
+            );
 
-        expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll().at(0)?.isRollbacked).toBeTruthy();
         Report.deleteReportComment(REPORT_ID, reportAction);
 
         jest.runOnlyPendingTimers();
