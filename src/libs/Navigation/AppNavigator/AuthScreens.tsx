@@ -223,7 +223,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
-    const shouldShowRequire2FAPage = account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
+    const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
     const navigation = useNavigation();
 
     useEffect(() => {
