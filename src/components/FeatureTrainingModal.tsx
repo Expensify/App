@@ -94,7 +94,7 @@ type BaseFeatureTrainingModalProps = {
     /** Modal width */
     width?: number;
 
-    /** Whether to disable the modal */
+    /** Whether the modal is visible */
     isVisible?: boolean;
 };
 
