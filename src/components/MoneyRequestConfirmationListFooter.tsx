@@ -19,7 +19,15 @@ import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTagForDisplay, getTaxAmount, getTaxName, isAmountMissing, isCreatedMissing, isFetchingWaypointsFromServer, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
+import {
+    getTagForDisplay,
+    getTaxAmount,
+    getTaxName,
+    isAmountMissing,
+    isCreatedMissing,
+    isFetchingWaypointsFromServer,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -29,6 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -41,7 +50,6 @@ import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
 import ShowMoreButton from './ShowMoreButton';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -242,6 +250,7 @@ function MoneyRequestConfirmationListFooter({
 
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const showMapAsImage = isDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
 
     const senderWorkspace = useMemo(() => {
