@@ -1590,6 +1590,8 @@ type ReportsSplitNavigatorParamList = {
         reportID: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
+        moneyRequestReportActionID?: string;
+        transactionID?: string;
     };
 };
 

@@ -258,6 +258,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {reportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
 
@@ -433,8 +434,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
+        const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
+        const transactionID: string | undefined = route.params?.transactionID;
+
+        // If we have moneyRequestReportActionID and transactionID, we're creating a new thread
+        if (moneyRequestReportActionID && transactionID && currentUserEmail) {
+            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID);
+            return;
+        }
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [reportIDFromRoute, reportActionIDFromRoute]);
+    }, [route.params?.moneyRequestReportActionID, route.params?.transactionID, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
