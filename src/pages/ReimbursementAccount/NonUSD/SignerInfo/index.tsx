@@ -64,7 +64,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const [directorBeingModifiedID, setDirectorBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
 
     const submit = useCallback(() => {
-        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorKeys, isUserDirector);
+        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorKeys, isUserOwner);
 
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);

@@ -88,6 +88,11 @@ function getSignerDetailsAndSignerFilesForSignerInfo(
     });
 
     if (isUserBeneficialOwner) {
+        signerDetails[FULL_NAME] = '';
+        signerDetails[DATE_OF_BIRTH] = '';
+        signerDetails[ADDRESS] = '';
+        signerDetails[`${DIRECTOR_PREFIX}_${CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY}_${DIRECTOR_FULL_NAME}`] = '';
+
         beneficialOwnerFields.forEach((fieldName) => {
             const beneficialFieldKey: BeneficialOwnerDataKey = `${BENEFICIAL_PREFIX}_${CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY}_${fieldName}`;
 
@@ -96,12 +101,13 @@ function getSignerDetailsAndSignerFilesForSignerInfo(
                     ? `${String(signerDetails[FULL_NAME])} ${String(reimbursementAccountDraft?.[beneficialFieldKey])}`
                     : String(reimbursementAccountDraft?.[beneficialFieldKey]);
                 directorIDs.forEach((directorID: string) => {
+                    const key = `${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_FULL_NAME}`;
+
                     if (directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY) {
                         return;
                     }
 
                     if (fieldName === FIRST_NAME || fieldName === LAST_NAME) {
-                        const key = `${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_FULL_NAME}`;
                         signerDetails[key] = signerDetails[key]
                             ? `${String(signerDetails[key])} ${String(reimbursementAccountDraft?.[beneficialFieldKey])}`
                             : String(reimbursementAccountDraft?.[beneficialFieldKey]);
