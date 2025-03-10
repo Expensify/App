@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -16,21 +15,15 @@ import {getDatePassedError, getFieldRequiredErrors} from '@libs/ValidationUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SettingsStatusClearDateForm';
-import type * as OnyxTypes from '@src/types/onyx';
 
 type DateTime = {
     dateTime: string;
 };
 
-type SetDatePageOnyxProps = {
-    customStatus: OnyxEntry<OnyxTypes.CustomStatusDraft>;
-};
-
-type SetDatePageProps = SetDatePageOnyxProps;
-
-function SetDatePage({customStatus}: SetDatePageProps) {
+function SetDatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
     const customClearAfter = customStatus?.clearAfter ?? '';
 
     const onSubmit = (value: DateTime) => {
@@ -82,8 +75,4 @@ function SetDatePage({customStatus}: SetDatePageProps) {
 
 SetDatePage.displayName = 'SetDatePage';
 
-export default withOnyx<SetDatePageProps, SetDatePageOnyxProps>({
-    customStatus: {
-        key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
-    },
-})(SetDatePage);
+export default SetDatePage;
