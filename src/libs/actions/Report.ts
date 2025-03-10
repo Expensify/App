@@ -4685,7 +4685,7 @@ function downloadReportPDF(fileName: string, reportName: string) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
-    fileDownload('https://staging.expensify.com/secure?secureType=pdfreport&filename=d0dcbe92e48147701f4e78666d5464d845caa0f9.pdf&downloadName=Expense_Report__5082537786080821.pdf', downloadFileName, '', Browser.isMobileSafari());
+    fileDownload(pdfURL, downloadFileName, '', Browser.isMobileSafari());
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
