@@ -96,9 +96,9 @@ const ROUTES = {
                 queryParams.push(`transactionID=${transactionID}`);
             }
 
-            const queryString = queryParams.length > 0 ? `${baseRoute}?${queryParams.join('&')}` : baseRoute;
+            const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
 
-            return getUrlWithBackToParam(queryString, backTo) as const;
+            return getUrlWithBackToParam(queryString, backTo);
         },
     },
     SEARCH_MONEY_REQUEST_REPORT: {
