@@ -4,6 +4,7 @@ import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -16,10 +17,8 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchState from '@hooks/useSearchState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +32,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
@@ -107,7 +107,6 @@ function MoneyRequestPreviewContent({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-    const {isOnSearch} = useSearchState();
 
     const policy = usePolicy(iouReport?.policyID);
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
@@ -140,7 +139,7 @@ function MoneyRequestPreviewContent({
         category,
     } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
 
-    const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToMarkdown(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = hasReceiptTransactionUtils(transaction);
     const isScanning = hasReceipt && isReceiptBeingScanned(transaction);
@@ -284,7 +283,7 @@ function MoneyRequestPreviewContent({
     };
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
-        if (shouldShowBrokenConnectionViolation(transaction, iouReport, policy, violations)) {
+        if (shouldShowBrokenConnectionViolation(iouReport, policy, violations)) {
             return {shouldShow: true, messageIcon: Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
         return {shouldShow: false};
@@ -371,7 +370,6 @@ function MoneyRequestPreviewContent({
                     style={[
                         isScanning || isWhisper ? [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius] : undefined,
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
-                        isOnSearch ? styles.borderedContentCardLarge : {},
                     ]}
                 >
                     {!isDeleted && (

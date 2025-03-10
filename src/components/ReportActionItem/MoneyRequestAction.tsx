@@ -1,9 +1,9 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,6 +13,7 @@ import {
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -81,6 +82,9 @@ function MoneyRequestAction({
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
 
     const onMoneyRequestPreviewPressed = () => {
+        if (contextMenuRef.current?.isContextMenuOpening) {
+            return;
+        }
         if (isSplitBillAction) {
             Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
             return;

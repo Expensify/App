@@ -29,9 +29,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.SEARCH.ROOT]: {
-            path: ROUTES.SEARCH_ROOT.route,
-        },
 
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
@@ -107,13 +104,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
             },
         },
-
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
-                [SCREENS.CONSOLE_DEBUG]: {
-                    path: ROUTES.CONSOLE_DEBUG.route,
-                    exact: true,
-                },
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
                         [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
@@ -220,6 +212,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.CONSOLE]: {
+                            path: ROUTES.SETTINGS_CONSOLE.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.SHARE_LOG]: ROUTES.SETTINGS_SHARE_LOG.route,
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHODS.route,
@@ -304,13 +300,13 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION,
                         },
                         [SCREENS.WORKSPACE.CURRENCY]: {
-                            path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
+                            path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
                         },
                         [SCREENS.WORKSPACE.ADDRESS]: {
-                            path: ROUTES.WORKSPACE_PROFILE_ADDRESS.route,
+                            path: ROUTES.WORKSPACE_OVERVIEW_ADDRESS.route,
                         },
                         [SCREENS.WORKSPACE.PLAN]: {
-                            path: ROUTES.WORKSPACE_PROFILE_PLAN.route,
+                            path: ROUTES.WORKSPACE_OVERVIEW_PLAN.route,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
@@ -560,7 +556,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {path: ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.MULTI_CONNECTION_SELECTOR]: {path: ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.route},
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
-                            path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
+                            path: ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.route,
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.route,
@@ -569,7 +565,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.route,
                         },
                         [SCREENS.WORKSPACE.SHARE]: {
-                            path: ROUTES.WORKSPACE_PROFILE_SHARE.route,
+                            path: ROUTES.WORKSPACE_OVERVIEW_SHARE.route,
                         },
                         [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: {
                             path: ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.route,
@@ -879,7 +875,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.KEYBOARD_SHORTCUTS]: {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
                         },
-                        [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_PROFILE_NAME.route,
+                        [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
@@ -1547,7 +1543,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             screens: {
                 [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
                 [SCREENS.SETTINGS.WORKSPACES]: {
-                    path: ROUTES.SETTINGS_WORKSPACES,
+                    path: ROUTES.SETTINGS_WORKSPACES.route,
                     exact: true,
                 },
                 [SCREENS.SETTINGS.PROFILE.ROOT]: {
@@ -1586,7 +1582,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.WORKSPACE.INITIAL]: {
                     path: ROUTES.WORKSPACE_INITIAL.route,
                 },
-                [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
+                [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_OVERVIEW.route,
                 [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
                     path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
                 },
@@ -1628,6 +1624,17 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.RULES]: {
                     path: ROUTES.WORKSPACE_RULES.route,
+                },
+            },
+        },
+
+        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: {
+            screens: {
+                [SCREENS.SEARCH.ROOT]: {
+                    path: ROUTES.SEARCH_ROOT.route,
+                },
+                [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
+                    path: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                 },
             },
         },

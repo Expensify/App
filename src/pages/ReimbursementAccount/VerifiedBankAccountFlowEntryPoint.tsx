@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {Bank, Connect, Lightbulb, Lock, RotateLeft} from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -18,7 +18,7 @@ import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
+import {getEarliestErrorField, getLatestError, getLatestErrorField} from '@libs/ErrorUtils';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
@@ -206,7 +206,7 @@ function VerifiedBankAccountFlowEntryPoint({
                     {!!personalBankAccounts.length && (
                         <View style={[styles.flexRow, styles.mt4, styles.alignItemsCenter, styles.pb1, styles.pt1]}>
                             <Icon
-                                src={Expensicons.Lightbulb}
+                                src={Lightbulb}
                                 fill={theme.icon}
                                 additionalStyles={styles.mr2}
                                 medium
@@ -219,56 +219,55 @@ function VerifiedBankAccountFlowEntryPoint({
                             </Text>
                         </View>
                     )}
-                    <OfflineWithFeedback
-                        errors={errors}
-                        shouldShowErrorMessages
-                        onClose={resetReimbursementAccount}
-                    >
-                        {shouldShowContinueSetupButton === true ? (
-                            <>
+                    {shouldShowContinueSetupButton === true ? (
+                        <OfflineWithFeedback
+                            errors={getLatestError(errors)}
+                            shouldShowErrorMessages
+                            onClose={resetReimbursementAccount}
+                        >
+                            <MenuItem
+                                title={translate('workspace.bankAccount.continueWithSetup')}
+                                icon={Connect}
+                                iconFill={theme.icon}
+                                onPress={onContinuePress}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.cardMenuItem, styles.mt4]}
+                                disabled={!!pendingAction || !isEmptyObject(errors)}
+                            />
+                            <MenuItem
+                                title={translate('workspace.bankAccount.startOver')}
+                                icon={RotateLeft}
+                                iconFill={theme.icon}
+                                // TODO add method for non USD accounts in next issue - https://github.com/Expensify/App/issues/50912
+                                onPress={requestResetFreePlanBankAccount}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.cardMenuItem, styles.mt4]}
+                                disabled={!!pendingAction || !isEmptyObject(errors)}
+                            />
+                        </OfflineWithFeedback>
+                    ) : (
+                        <>
+                            {!hasForeignCurrency && !shouldShowContinueSetupButton && (
                                 <MenuItem
-                                    title={translate('workspace.bankAccount.continueWithSetup')}
-                                    icon={Expensicons.Connect}
-                                    iconFill={theme.iconMenu}
-                                    onPress={onContinuePress}
+                                    title={translate('bankAccount.connectOnlineWithPlaid')}
+                                    icon={Bank}
+                                    iconFill={theme.icon}
+                                    disabled={!!isPlaidDisabled}
+                                    onPress={handleConnectPlaid}
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.cardMenuItem, styles.mt4]}
                                 />
-                                <MenuItem
-                                    title={translate('workspace.bankAccount.startOver')}
-                                    icon={Expensicons.RotateLeft}
-                                    iconFill={theme.iconMenu}
-                                    // TODO add method for non USD accounts in next issue - https://github.com/Expensify/App/issues/50912
-                                    onPress={requestResetFreePlanBankAccount}
-                                    shouldShowRightIcon
-                                    wrapperStyle={[styles.cardMenuItem, styles.mt4]}
-                                    disabled={!!pendingAction || !isEmptyObject(errors)}
-                                />
-                            </>
-                        ) : (
-                            <>
-                                {!hasForeignCurrency && !shouldShowContinueSetupButton && (
-                                    <MenuItem
-                                        title={translate('bankAccount.connectOnlineWithPlaid')}
-                                        icon={Expensicons.Bank}
-                                        iconFill={theme.iconMenu}
-                                        disabled={!!isPlaidDisabled}
-                                        onPress={handleConnectPlaid}
-                                        shouldShowRightIcon
-                                        wrapperStyle={[styles.cardMenuItem, styles.mt4]}
-                                    />
-                                )}
-                                <MenuItem
-                                    title={translate('bankAccount.connectManually')}
-                                    icon={Expensicons.Connect}
-                                    iconFill={theme.iconMenu}
-                                    onPress={handleConnectManually}
-                                    shouldShowRightIcon
-                                    wrapperStyle={[styles.cardMenuItem, styles.mt4]}
-                                />
-                            </>
-                        )}
-                    </OfflineWithFeedback>
+                            )}
+                            <MenuItem
+                                title={translate('bankAccount.connectManually')}
+                                icon={Connect}
+                                iconFill={theme.icon}
+                                onPress={handleConnectManually}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.cardMenuItem, styles.mt4]}
+                            />
+                        </>
+                    )}
                 </Section>
                 <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                     <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
@@ -280,7 +279,7 @@ function VerifiedBankAccountFlowEntryPoint({
                         <TextLink href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}>{translate('bankAccount.yourDataIsSecure')}</TextLink>
                         <View style={styles.ml1}>
                             <Icon
-                                src={Expensicons.Lock}
+                                src={Lock}
                                 fill={theme.link}
                             />
                         </View>

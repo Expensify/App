@@ -42,7 +42,9 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
                 newStatus.positionMillis = 0;
             }
-            playVideoPromiseRef.current = currentVideoPlayerRef.current?.setStatusAsync(newStatus);
+            playVideoPromiseRef.current = currentVideoPlayerRef.current?.setStatusAsync(newStatus).catch((error: AVPlaybackStatus) => {
+                return error;
+            });
         });
     }, [currentVideoPlayerRef]);
 
@@ -155,7 +157,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             pauseVideo,
             checkVideoPlaying,
             videoResumeTryNumberRef,
-            resetVideoPlayerData,
             updateCurrentPlayingReportID,
         }),
         [
@@ -169,7 +170,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             pauseVideo,
             checkVideoPlaying,
             setCurrentlyPlayingURL,
-            resetVideoPlayerData,
             updateCurrentPlayingReportID,
         ],
     );

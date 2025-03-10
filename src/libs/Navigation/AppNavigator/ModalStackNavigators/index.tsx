@@ -3,7 +3,6 @@ import React from 'react';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {
     AddPersonalBankAccountNavigatorParamList,
-    ConsoleNavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
@@ -227,10 +226,6 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_AM_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/ImTeacherPage').default,
 });
 
-const ConsoleModalStackNavigator = createModalStackNavigator<ConsoleNavigatorParamList>({
-    [SCREENS.CONSOLE_DEBUG]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ConsolePage').default,
-});
-
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
     [SCREENS.SETTINGS.SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/ShareCodePage').default,
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PronounsPage').default,
@@ -252,7 +247,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/ThemePage').default,
     [SCREENS.SETTINGS.CLOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/CloseAccountPage').default,
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require<ReactComponentModule>('../../../../pages/settings/AppDownloadLinks').default,
-    [SCREENS.CONSOLE_DEBUG]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ConsolePage').default,
+    [SCREENS.SETTINGS.CONSOLE]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ConsolePage').default,
     [SCREENS.SETTINGS.SHARE_LOG]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ShareLogPage').default,
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage').default,
@@ -284,12 +279,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInviteMessagePage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPayerPage').default,
     [SCREENS.WORKSPACE.NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceNamePage').default,
-    [SCREENS.WORKSPACE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceProfileDescriptionPage').default,
-    [SCREENS.WORKSPACE.SHARE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceProfileSharePage').default,
-    [SCREENS.WORKSPACE.CURRENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceProfileCurrencyPage').default,
+    [SCREENS.WORKSPACE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewDescriptionPage').default,
+    [SCREENS.WORKSPACE.SHARE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewSharePage').default,
+    [SCREENS.WORKSPACE.CURRENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyPage').default,
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategorySettingsPage').default,
-    [SCREENS.WORKSPACE.ADDRESS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceProfileAddressPage').default,
-    [SCREENS.WORKSPACE.PLAN]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceProfilePlanTypePage').default,
+    [SCREENS.WORKSPACE.ADDRESS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewAddressPage').default,
+    [SCREENS.WORKSPACE.PLAN]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewPlanTypePage').default,
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/WorkspaceCategoriesSettingsPage').default,
     [SCREENS.WORKSPACE.CATEGORIES_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/ImportCategoriesPage').default,
     [SCREENS.WORKSPACE.CATEGORIES_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/ImportedCategoriesPage').default,
@@ -766,5 +761,4 @@ export {
     MissingPersonalDetailsModalStackNavigator,
     DebugModalStackNavigator,
     WorkspaceConfirmationModalStackNavigator,
-    ConsoleModalStackNavigator,
 };
