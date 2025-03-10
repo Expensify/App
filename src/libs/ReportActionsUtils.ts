@@ -412,6 +412,11 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
             return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
         }
 
+        // Ensure that neither first's nor second's created property is undefined
+        if (first.created === undefined || second.created === undefined) {
+            return (first.created === undefined ? -1 : 1) * invertedMultiplier;
+        }
+
         // Then sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
@@ -427,6 +432,11 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         // will be consistent across all users and devices
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
+
+    if (sortedActions.at(0)?.created === undefined) {
+        console.log(sortedActions.map((action) => action.created));
+    }
+    
 
     return sortedActions;
 }
