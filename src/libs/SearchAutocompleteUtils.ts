@@ -137,7 +137,6 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 
 function filterOutRangesWithCorrectValue(
     range: SearchAutocompleteQueryRange,
-    userDisplayName: string,
     substitutionMap: SubstitutionMap,
     userLogins: SharedValue<string[]>,
     currencyList: SharedValue<string[]>,
@@ -148,11 +147,12 @@ function filterOutRangesWithCorrectValue(
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
     const expenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE) as string[];
-    const statusList = Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP}) as string[];
+    const statusList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP}) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined;
 
@@ -173,7 +173,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
             return tagList.get().includes(range.value);
         default:
-            return true;
+            return false;
     }
 }
 
@@ -196,13 +196,9 @@ function parseForLiveMarkdown(
     const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
     const ranges = parsedAutocomplete.ranges;
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, userDisplayName, map, userLogins, currencyList, categoryList, tagList))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList))
         .map((range) => {
             let type = 'mention-user';
-
-            if (range.key === CONST.SEARCH.SYNTAX_RANGE_NAME) {
-                type = CONST.SEARCH.SYNTAX_RANGE_NAME;
-            }
 
             if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (userLogins.get().includes(range.value) || range.value === userDisplayName)) {
                 type = 'mention-here';

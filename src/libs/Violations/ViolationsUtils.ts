@@ -230,7 +230,8 @@ const ViolationsUtils = {
         const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === 'receiptRequired');
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
-        const amount = updatedTransaction.modifiedAmount ?? updatedTransaction.amount;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
         const shouldShowReceiptRequiredViolation =
             !isInvoiceTransaction &&
             policy.maxExpenseAmountNoReceipt &&
@@ -293,7 +294,7 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate']): string {
+    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -380,7 +381,7 @@ const ViolationsUtils = {
                     rterType,
                 });
             case 'smartscanFailed':
-                return translate('violations.smartscanFailed');
+                return translate('violations.smartscanFailed', {canEdit});
             case 'someTagLevelsRequired':
                 return translate('violations.someTagLevelsRequired', {tagName});
             case 'tagOutOfPolicy':

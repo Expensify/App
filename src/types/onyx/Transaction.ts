@@ -82,7 +82,10 @@ type Comment = {
     splits?: Split[];
 
     /** Violations that were dismissed */
-    dismissedViolations?: Record<ViolationName, Record<string, string | number>>;
+    dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
+
+    /** Defines the type of liability for the transaction */
+    liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 };
 
 /** Model of transaction custom unit */

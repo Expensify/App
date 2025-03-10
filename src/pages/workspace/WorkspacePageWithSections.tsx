@@ -1,6 +1,6 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -146,12 +146,11 @@ function WorkspacePageWithSections({
         firstRender.current = false;
     }, []);
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchData(policyID, shouldSkipVBBACall);
-        }, [policyID, shouldSkipVBBACall]),
-    );
-
+    useEffect(() => {
+        fetchData(policyID, shouldSkipVBBACall);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
@@ -176,7 +175,7 @@ function WorkspacePageWithSections({
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route)}
                 onLinkPress={Navigation.goBackToHome}
                 shouldShow={shouldShow}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}

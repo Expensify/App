@@ -154,6 +154,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import TripSummary from './TripSummary';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -583,7 +584,7 @@ function PureReportActionItem({
 
     const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID}), [report?.reportID]);
+    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID, exactlyMatch: true}), [report?.reportID]);
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
             return [
@@ -1055,7 +1056,8 @@ function PureReportActionItem({
                 {shouldDisplayThreadReplies && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemThread
-                            childReportID={`${action.childReportID}`}
+                            reportAction={action}
+                            reportID={reportID}
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${action.childLastVisibleActionCreated}`}
                             isHovered={hovered || isContextMenuActive}
@@ -1120,6 +1122,11 @@ function PureReportActionItem({
             />
         );
     }
+
+    if (isTripPreview(action) && isThreadReportParentAction) {
+        return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
+    }
+
     if (isChronosOOOListAction(action)) {
         return (
             <ChronosOOOListActions

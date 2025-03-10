@@ -89,8 +89,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     policyID,
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
                     isQuickSettingsFlow
-                        ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`, orderWeight, tagName, backTo)
-                        : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`, orderWeight, tagName),
+                        ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policyID, orderWeight, tagName, backTo)
+                        : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policyID, orderWeight, tagName),
                 ),
             );
             return;
@@ -173,6 +173,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
                         <MenuItemWithTopDescription
                             description={translate(`workspace.tags.glCode`)}
+                            title={currentPolicyTag?.['GL Code']}
                             onPress={navigateToEditGlCode}
                             iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
                             interactive={!hasAccountingConnections}

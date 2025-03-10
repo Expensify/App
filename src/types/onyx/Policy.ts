@@ -1073,9 +1073,9 @@ type NetSuiteConnection = {
 };
 
 /**
- *  NSQS Payable account
+ *  NSQS Payment account
  */
-type NSQSPayableAccount = {
+type NSQSPaymentAccount = {
     /** ID assigned to the account in NSQS */
     id: string;
 
@@ -1096,8 +1096,8 @@ type NSQSPayableAccount = {
  * Connection data for NSQS
  */
 type NSQSConnectionData = {
-    /** Collection of the payable accounts */
-    payableAccounts: NSQSPayableAccount[];
+    /** Collection of the payments accounts */
+    paymentAccounts: NSQSPaymentAccount[];
 };
 
 /**
@@ -1105,7 +1105,7 @@ type NSQSConnectionData = {
  */
 type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Configuration of automatic synchronization from NSQS to the app */
-    autoSync: {
+    autoSync?: {
         /** Job ID of the synchronization */
         jobID: string;
 
@@ -1114,9 +1114,9 @@ type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     };
 
     /** Configuration options pertaining to sync */
-    syncOptions: {
+    syncOptions?: {
         /** Configuration of import settings from NSQS to Expensify */
-        mapping: {
+        mapping?: {
             /** How NSQS customers are displayed as */
             customers: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
 
@@ -1136,7 +1136,7 @@ type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** NSQS credentials */
     credentials: {
-        /** Encrypted token for NSQS authentification */
+        /** Encrypted token for NSQS authentication */
         accessToken: string;
 
         /** The company ID */
@@ -1155,8 +1155,8 @@ type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the connection is configured */
     isConfigured: boolean;
 
-    /** The account used for approvals in NSQS */
-    approvalAccount: string;
+    /** The account used for payments in NSQS */
+    paymentAccount: string;
 
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
@@ -1371,69 +1371,77 @@ type QBDConnectionData = {
 };
 
 /**
+ * Export config for QuickBooks Desktop
+ */
+type QBDExportConfig = {
+    /** E-mail of the exporter */
+    exporter: string;
+
+    /** Defines how reimbursable expenses are exported */
+    reimbursable: QBDReimbursableExportAccountType;
+
+    /** Account that receives the reimbursable expenses */
+    reimbursableAccount: string;
+
+    /** Export date type */
+    exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+
+    /** Defines how non-reimbursable expenses are exported */
+    nonReimbursable: QBDNonReimbursableExportAccountType;
+
+    /** Account that receives the non reimbursable expenses */
+    nonReimbursableAccount: string;
+
+    /** Default vendor of non reimbursable bill */
+    nonReimbursableBillDefaultVendor: string;
+};
+
+/**
  * User configuration for the QuickBooks Desktop accounting integration.
  */
-type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** API provider */
-    apiProvider: string;
+type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** API provider */
+        apiProvider: string;
 
-    /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
-    autoSync: {
-        /** Job ID of the synchronization */
-        jobID: string;
+        /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
+        autoSync: {
+            /** Job ID of the synchronization */
+            jobID: string;
 
-        /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
-        enabled: boolean;
-    };
+            /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
+            enabled: boolean;
+        };
 
-    /** Whether a check to be printed */
-    markChecksToBePrinted: boolean;
+        /** Whether a check to be printed */
+        markChecksToBePrinted: boolean;
 
-    /** Determines if a vendor should be automatically created */
-    shouldAutoCreateVendor: boolean;
+        /** Determines if a vendor should be automatically created */
+        shouldAutoCreateVendor: boolean;
 
-    /** Whether items is imported */
-    importItems: boolean;
+        /** Whether items is imported */
+        importItems: boolean;
 
-    /** Configuration of the export */
-    export: {
-        /** E-mail of the exporter */
-        exporter: string;
+        /** Configuration of the export */
+        export: QBDExportConfig;
 
-        /** Defines how reimbursable expenses are exported */
-        reimbursable: QBDReimbursableExportAccountType;
+        /** Configuration of import settings from QuickBooks Desktop to the app */
+        mappings: {
+            /** How QuickBooks Desktop classes displayed as */
+            classes: IntegrationEntityMap;
 
-        /** Account that receives the reimbursable expenses */
-        reimbursableAccount: string;
+            /** How QuickBooks Desktop customers displayed as */
+            customers: IntegrationEntityMap;
+        };
 
-        /** Export date type */
-        exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+        /** Whether new categories are enabled in chart of accounts */
+        enableNewCategories: boolean;
 
-        /** Defines how non-reimbursable expenses are exported */
-        nonReimbursable: QBDNonReimbursableExportAccountType;
-
-        /** Account that receives the non reimbursable expenses */
-        nonReimbursableAccount: string;
-
-        /** Default vendor of non reimbursable bill */
-        nonReimbursableBillDefaultVendor: string;
-    };
-
-    /** Configuration of import settings from QuickBooks Desktop to the app */
-    mappings: {
-        /** How QuickBooks Desktop classes displayed as */
-        classes: IntegrationEntityMap;
-
-        /** How QuickBooks Desktop customers displayed as */
-        customers: IntegrationEntityMap;
-    };
-
-    /** Whether new categories are enabled in chart of accounts */
-    enableNewCategories: boolean;
-
-    /** Collections of form field errors */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof QBDExportConfig
+>;
 
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
@@ -2027,7 +2035,7 @@ export type {
     NetSuiteTaxAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
-    NSQSPayableAccount,
+    NSQSPaymentAccount,
     SageIntacctMappingValue,
     SageIntacctMappingType,
     SageIntacctMappingName,
