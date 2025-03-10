@@ -3,7 +3,7 @@ import {findFocusedRoute, useNavigation} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
@@ -36,6 +36,7 @@ import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -219,8 +220,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {toggleSearch} = useSearchRouterContext();
 
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const shouldShowRequire2FAPage = account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -242,6 +245,13 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             NavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
         };
     }, [theme]);
+
+    useEffect(() => {
+        if (!shouldShowRequire2FAPage) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
+    }, [shouldShowRequire2FAPage]);
 
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
@@ -595,6 +605,13 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             },
                             beforeRemove: () => Modal.setDisableDismissOnEscape(false),
                         }}
+                    />
+                )}
+                {shouldShowRequire2FAPage && (
+                    <RootStack.Screen
+                        name={SCREENS.REQUIRE_TWO_FACTOR_AUTH}
+                        options={{...rootNavigatorScreenOptions.fullScreen, gestureEnabled: false}}
+                        component={RequireTwoFactorAuthenticationPage}
                     />
                 )}
                 <RootStack.Screen
