@@ -4680,7 +4680,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
         return;
     }
     // We do not want to create negative amount expenses
-    if (ReportActionsUtils.hasRequestFromCurrentAccount(iouReport.reportID, iouReport.managerID ?? -1)) {
+    if (ReportActionsUtils.hasRequestFromCurrentAccount(iouReport.reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID)) {
         return;
     }
 
