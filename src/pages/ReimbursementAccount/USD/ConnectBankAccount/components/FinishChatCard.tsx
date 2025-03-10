@@ -20,9 +20,12 @@ type FinishChatCardProps = {
 
     /** Boolean required to display Enable2FACard component */
     requiresTwoFactorAuth: boolean;
+
+    /** Method to set the state of USD bank account step */
+    setUSDBankAccountStep: (step: string | null) => void;
 };
 
-function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishChatCardProps) {
+function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBankAccountStep}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
@@ -50,13 +53,19 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishCha
                 <MenuItem
                     title={translate('workspace.bankAccount.noLetsStartOver')}
                     icon={Expensicons.RotateLeft}
-                    onPress={BankAccounts.requestResetFreePlanBankAccount}
+                    onPress={BankAccounts.requestResetBankAccount}
                     shouldShowRightIcon
                     wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                 />
             </Section>
             {!requiresTwoFactorAuth && <Enable2FACard policyID={policyID} />}
-            {shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
+            {shouldShowResetModal && (
+                <WorkspaceResetBankAccountModal
+                    reimbursementAccount={reimbursementAccount}
+                    isNonUSDWorkspace={false}
+                    setUSDBankAccountStep={setUSDBankAccountStep}
+                />
+            )}
         </ScrollView>
     );
 }

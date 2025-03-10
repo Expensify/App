@@ -2,7 +2,8 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
-import resetFreePlanBankAccount from './resetFreePlanBankAccount';
+import resetNonUSDBankAccount from './resetNonUSDBankAccount';
+import resetUSDBankAccount from './resetUSDBankAccount';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {setBankAccountFormValidationErrors, resetReimbursementAccount} from './errors';
@@ -33,23 +34,24 @@ function clearReimbursementAccountDraft() {
 /**
  * Triggers a modal to open allowing the user to reset their bank account
  */
-function requestResetFreePlanBankAccount() {
+function requestResetBankAccount() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: true});
 }
 
 /**
  * Hides modal allowing the user to reset their bank account
  */
-function cancelResetFreePlanBankAccount() {
+function cancelResetBankAccount() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: false});
 }
 
 export {
-    resetFreePlanBankAccount,
+    resetUSDBankAccount,
+    resetNonUSDBankAccount,
     setBankAccountSubStep,
     hideBankAccountErrors,
     updateReimbursementAccountDraft,
-    requestResetFreePlanBankAccount,
-    cancelResetFreePlanBankAccount,
+    requestResetBankAccount,
+    cancelResetBankAccount,
     clearReimbursementAccountDraft,
 };

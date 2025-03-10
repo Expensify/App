@@ -406,6 +406,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 setUSDBankAccountStep={setUSDBankAccountStep}
                 onBackButtonPress={goBack}
+                isNonUSDWorkspace={hasForeignCurrency}
             />
         );
     }
@@ -443,7 +444,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
             onBackButtonPress={Navigation.goBack}
             shouldShowContinueSetupButton={shouldShowContinueSetupButton}
-            hasForeignCurrency={hasForeignCurrency}
+            isNonUSDWorkspace={hasForeignCurrency}
             setNonUSDBankAccountStep={setNonUSDBankAccountStep}
             setUSDBankAccountStep={setUSDBankAccountStep}
         />
