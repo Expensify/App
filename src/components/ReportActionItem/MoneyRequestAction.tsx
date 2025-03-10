@@ -8,13 +8,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
+    getOriginalMessage,
     isDeletedParentAction as isDeletedParentActionReportActionsUtils,
+    isMoneyRequestAction,
     isReversedTransaction as isReversedTransactionReportActionsUtils,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
-import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {generateReportID} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,6 +90,21 @@ function MoneyRequestAction({
         }
         if (isSplitBillAction) {
             Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
+            return;
+        }
+
+        const transactionID = (isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
+        if (!action?.childReportID && transactionID && action.reportActionID) {
+            const optimisticReportID = generateReportID();
+            Navigation.navigate(
+                ROUTES.REPORT_WITH_ID.getRoute(
+                    optimisticReportID,
+                    undefined, // reportActionID
+                    undefined, // referrer
+                    action.reportActionID,
+                    transactionID,
+                ),
+            );
             return;
         }
 
