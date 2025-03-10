@@ -1,7 +1,7 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {TextInputProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -37,6 +37,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Report from '@src/types/onyx/Report';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import KeyboardUtils from '@src/utils/keyboard';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
@@ -163,7 +164,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate],
+        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed],
     );
 
     const searchQueryItem = textInputValue
@@ -273,14 +274,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     submitSearch(item.searchQuery);
                 }
             } else {
-                if (item?.reportID) {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
-                } else if ('login' in item) {
-                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
-                }
-                InteractionManager.runAfterInteractions(() => {
-                    // Can use `setTimeout` with a delay time is 0 instead.
-                    onRouterClose();
+                KeyboardUtils.dismiss().then(() => {
+                    if (item?.reportID) {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
+                    } else if ('login' in item) {
+                        navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                    }
+                    setTimeout(() => {
+                        onRouterClose();
+                    }, 0);
                 });
             }
         },
