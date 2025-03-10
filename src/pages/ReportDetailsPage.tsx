@@ -967,7 +967,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     title={translate('common.details')}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
-                <ScrollView contentContainerStyle={[styles.flex1]}>
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
                         {isExpenseReport && (!shouldShowTitleField || !titleField) && nameSectionExpenseIOU}
