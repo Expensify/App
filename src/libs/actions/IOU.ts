@@ -153,13 +153,12 @@ import {
     getTransaction,
     getUpdatedTransaction,
     hasReceipt as hasReceiptTransactionUtils,
-    isAmountMissing,
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold,
-    isPartialMerchant,
+    isPartial,
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
@@ -8247,7 +8246,7 @@ function canApproveIOU(
         reportTransactions.every(
             (transaction) =>
                 (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
-                (isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction)) ||
+                isPartial(transaction) ||
                 (isScanRequestTransactionUtils(transaction) && isReceiptBeingScannedTransactionUtils(transaction)),
         );
     if (hasOnlyPendingCardOrScanningTransactions) {
@@ -8359,7 +8358,7 @@ function canSubmitReport(
 
     const hasOnlyPendingCardOrScanFailTransactions =
         transactions.length > 0 &&
-        transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || isReceiptBeingScannedTransactionUtils(t));
+        transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || isPartial(t) || isReceiptBeingScannedTransactionUtils(t));
 
     return (
         transactions.length > 0 &&
