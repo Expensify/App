@@ -3,6 +3,8 @@ title: Add a Personal Australian Bank Account
 description: Receive AUD reimbursements from an Australian employer by adding your banking information
 ---
 
+<div id="expensify-classic" markdown="1">
+
 Australian employees can connect a personal deposit-only bank account to receive reimbursements for their expense reports.  
 
 **Important Notes:**
