@@ -98,7 +98,7 @@ const ROUTES = {
 
             const queryString = queryParams.length > 0 ? `${baseRoute}?${queryParams.join('&')}` : baseRoute;
 
-            return getUrlWithBackToParam(queryString, backTo);
+            return getUrlWithBackToParam(queryString, backTo) as const;
         },
     },
     SEARCH_MONEY_REQUEST_REPORT: {
