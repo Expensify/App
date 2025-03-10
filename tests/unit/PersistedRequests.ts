@@ -9,6 +9,7 @@ const request: Request = {
     command: 'OpenReport',
     successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
     failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
+    requestID: 1,
 };
 
 beforeAll(() =>
@@ -52,6 +53,7 @@ describe('PersistedRequests', () => {
             command: 'AddComment',
             successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
             failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
+            requestID: 2,
         };
         PersistedRequests.save(request2);
         PersistedRequests.processNextRequest();
@@ -66,6 +68,7 @@ describe('PersistedRequests', () => {
             command: 'OpenReport',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
+            requestID: 3,
         };
         PersistedRequests.update(0, newRequest);
         expect(PersistedRequests.getAll().at(0)).toEqual(newRequest);
@@ -76,6 +79,7 @@ describe('PersistedRequests', () => {
             command: 'OpenReport',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
+            requestID: 4,
         };
         PersistedRequests.updateOngoingRequest(newRequest);
         expect(PersistedRequests.getOngoingRequest()).toEqual(newRequest);
