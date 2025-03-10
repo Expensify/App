@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import {getFileName, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import {getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
@@ -24,8 +24,9 @@ function extractAttachments(
     }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; report: OnyxEntry<Report>},
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
+    const description = report?.description ?? '';
     const attachments: Attachment[] = [];
-    const canUserPerformWriteAction = canUserPerformWriteActionUtil(report);
+    const canUserPerformAction = canUserPerformWriteAction(report);
 
     let currentLink = '';
 
@@ -97,9 +98,16 @@ function extractAttachments(
         return attachments.reverse();
     }
 
+    if (type === CONST.ATTACHMENT_TYPE.ONBOARDING) {
+        htmlParser.write(description);
+        htmlParser.end();
+
+        return attachments.reverse();
+    }
+
     const actions = [...(parentReportAction ? [parentReportAction] : []), ...getSortedReportActions(Object.values(reportActions ?? {}))];
     actions.forEach((action, key) => {
-        if (!shouldReportActionBeVisible(action, key, canUserPerformWriteAction) || isMoneyRequestAction(action)) {
+        if (!shouldReportActionBeVisible(action, key, canUserPerformAction) || isMoneyRequestAction(action)) {
             return;
         }
 
