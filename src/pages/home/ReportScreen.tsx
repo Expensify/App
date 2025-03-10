@@ -79,6 +79,7 @@ import {
 } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -315,8 +316,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.dismissModal();
             return;
         }
+        if (route.params?.backTo) {
+            Navigation.goBack(route.params?.backTo as Route, {shouldPopToTop: true});
+            return;
+        }
         Navigation.goBack(undefined, {shouldPopToTop: true});
-    }, [isInNarrowPaneModal]);
+    }, [isInNarrowPaneModal, route]);
 
     let headerView = (
         <HeaderView
