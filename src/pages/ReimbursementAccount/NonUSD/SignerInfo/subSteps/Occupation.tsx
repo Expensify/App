@@ -5,30 +5,33 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type JobTitleProps = SubStepProps & {directorID?: string};
+type OccupationProps = SubStepProps & {directorID?: string};
 
-const {SIGNER_JOB_TITLE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {DIRECTOR_PREFIX, DIRECTOR_JOB_TITLE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {DIRECTOR_PREFIX, DIRECTOR_OCCUPATION} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
-function JobTitle({onNext, onMove, isEditing, directorID}: JobTitleProps) {
+function Occupation({onNext, onMove, isEditing, directorID}: OccupationProps) {
     const {translate} = useLocalize();
-
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const inputID =
-        directorID && directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY ? (`${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_JOB_TITLE}` as keyof SignerInfoStepProps) : SIGNER_JOB_TITLE;
+
+    const inputID = `${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_OCCUPATION}` as keyof SignerInfoStepProps;
     const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, [inputID]);
+            const errors = getFieldRequiredErrors(values, [inputID]);
+
+            if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
+                errors[inputID] = translate('bankAccount.error.fullName');
+            }
+
+            return errors;
         },
-        [inputID],
+        [inputID, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -43,11 +46,11 @@ function JobTitle({onNext, onMove, isEditing, directorID}: JobTitleProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('signerInfoStep.whatsYourJobTitle')}
+            formTitle={translate('signerInfoStep.whatsYourOccupation')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={inputID}
-            inputLabel={translate('signerInfoStep.jobTitle')}
+            inputLabel={translate('signerInfoStep.occupation')}
             inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
@@ -55,6 +58,6 @@ function JobTitle({onNext, onMove, isEditing, directorID}: JobTitleProps) {
     );
 }
 
-JobTitle.displayName = 'JobTitle';
+Occupation.displayName = 'Occupation';
 
-export default JobTitle;
+export default Occupation;
