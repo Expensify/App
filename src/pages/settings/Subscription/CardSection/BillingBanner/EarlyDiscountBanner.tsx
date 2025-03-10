@@ -125,7 +125,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onDismisse
                     <Text>{translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase2', {discountType: discountInfo?.discountType})}</Text>
                 </Text>
             )}
-            {shouldUseNarrowLayout && dismissButton}
+            {shouldUseNarrowLayout && !isSubscriptionPage && dismissButton}
         </View>
     );
 
