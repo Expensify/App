@@ -1,5 +1,4 @@
 import React, {lazy, memo, Suspense} from 'react';
-import lazyRetry from '@src/utils/lazyRetry';
 
 const AuthScreens = lazy(() => import(/* webpackMode: "eager" */ './AuthScreens'));
 const PublicScreens = lazy(() => import(/* webpackMode: "eager" */ './PublicScreens'));
