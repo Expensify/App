@@ -755,10 +755,10 @@ describe('actions/IOU', () => {
             };
             const existingTransaction: Transaction = {
                 transactionID: rand64(),
-                attendees: [{email: 'text@expensify.com'}],
                 amount: 1000,
                 comment: {
                     comment: 'Existing transaction',
+                    attendees: [{email: 'text@expensify.com'}],
                 },
                 created: DateUtils.getDBTime(),
                 currency: CONST.CURRENCY.USD,
@@ -1332,10 +1332,10 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(200);
             const julesExistingTransaction: OnyxEntry<Transaction> = {
                 transactionID: rand64(),
-                attendees: [{email: 'text@expensify.com'}],
                 amount: 1000,
                 comment: {
                     comment: 'This is an existing transaction',
+                    attendees: [{email: 'text@expensify.com'}],
                 },
                 created: DateUtils.getDBTime(),
                 currency: '',
