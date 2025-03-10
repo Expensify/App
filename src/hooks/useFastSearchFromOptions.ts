@@ -1,8 +1,8 @@
+import deburr from 'lodash/deburr';
 import {useMemo} from 'react';
 import FastSearch from '@libs/FastSearch';
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
-import deburr from 'lodash/deburr';
 
 type AllOrSelectiveOptions = ReportAndPersonalDetailOptions | OptionsListType;
 
