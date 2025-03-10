@@ -3,6 +3,8 @@ title: Edit and Submit Reports
 description: Learn how to edit, submit, and manage expense reports in Expensify, including workspace changes, approvals, and report statuses.
 ---
 
+<div id="expensify-classic" markdown="1">
+
 You can easily edit and submit reports in Expensify to keep your expenses organized and ensure they go through the right approval process. This guide walks you through adding expenses to a report, updating report details, submitting reports for approval, and managing report statuses.
 
 ---
