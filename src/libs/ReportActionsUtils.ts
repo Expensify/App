@@ -433,11 +433,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
 
-    if (sortedActions.at(0)?.created === undefined) {
-        console.log(sortedActions.map((action) => action.created));
-    }
-    
-
     return sortedActions;
 }
 
