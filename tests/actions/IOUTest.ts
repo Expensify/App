@@ -2059,9 +2059,10 @@ describe('actions/IOU', () => {
                                     payIOUAction = Object.values(reportActionsForIOUReport ?? {}).find(
                                         (reportAction) => isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                     );
-                                    expect(payIOUAction).toBeTruthy();
-
                                     resolve();
+
+                                    expect(payIOUAction).toBeTruthy();
+                                    expect(payIOUAction?.pendingAction).toBeFalsy();
                                 },
                             });
                         }),
