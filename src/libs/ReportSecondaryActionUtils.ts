@@ -5,7 +5,15 @@ import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApprovedMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
-import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasNoPolicyOtherThanPersonalType, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    getConnectedIntegration,
+    getCorrectedAutoReportingFrequency,
+    hasAccountingConnections,
+    hasIntegrationAutoSync,
+    hasNoPolicyOtherThanPersonalType,
+    isPrefferedExporter,
+} from './PolicyUtils';
 import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
 import {
     isClosedReport,
@@ -149,7 +157,8 @@ function isExportAction(report: Report, policy: Policy): boolean {
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const syncEnabled = isAutoSyncEnabled(policy);
+    const connectedIntegration = getConnectedIntegration(policy);
+    const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const isReportExported = isExported(getReportActions(report));
     const isFinished = isApproved || isReimbursed || isClosed;
 
@@ -183,7 +192,8 @@ function isMarkAsExportedAction(report: Report, policy: Policy): boolean {
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isReimbursed = isSettled(report);
     const hasAccountingConnection = hasAccountingConnections(policy);
-    const syncEnabled = isAutoSyncEnabled(policy);
+    const connectedIntegration = getConnectedIntegration(policy);
+    const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const isFinished = isClosedOrApproved || isReimbursed;
 
     if (isAdmin && isFinished && hasAccountingConnection && syncEnabled) {
@@ -294,15 +304,13 @@ function isDeleteAction(report: Report): boolean {
     return isOpen || isProcessing || isApproved;
 }
 
-function getSecondaryAction(
+function getSecondaryActions(
     report: Report,
     policy: Policy,
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD);
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
     if (isSubmitAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
@@ -332,9 +340,13 @@ function getSecondaryAction(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD);
+
     if (isChangeWorkspaceAction(report, policy, reportTransactions, violations)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
+
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
     if (isDeleteAction(report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
@@ -343,4 +355,4 @@ function getSecondaryAction(
     return options;
 }
 
-export default getSecondaryAction;
+export default getSecondaryActions;

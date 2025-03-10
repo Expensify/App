@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import getSecondaryAction from '@libs/ReportSecondaryActionUtils';
+import getSecondaryActions from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -36,10 +36,9 @@ describe('getSecondaryAction', () => {
     it('should always return default options', () => {
         const report = {} as unknown as Report;
         const policy = {} as unknown as Policy;
-        // await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
-        expect(getSecondaryAction(report, policy, [], {})).toEqual(result);
+        expect(getSecondaryActions(report, policy, [], {})).toEqual(result);
     });
 
     it('includes SUBMIT option', async () => {
@@ -58,7 +57,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
@@ -88,7 +87,7 @@ describe('getSecondaryAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryAction(report, policy, [transaction], {});
+        const result = getSecondaryActions(report, policy, [transaction], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
 
@@ -113,7 +112,7 @@ describe('getSecondaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        const result = getSecondaryAction(report, policy, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]});
+        const result = getSecondaryActions(report, policy, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
 
@@ -139,7 +138,7 @@ describe('getSecondaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        const result = getSecondaryAction(report, policy, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]});
+        const result = getSecondaryActions(report, policy, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
 
@@ -153,7 +152,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Report;
         const policy = {approver: CURRENT_USER_EMAIL} as unknown as Policy;
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
 
@@ -167,7 +166,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
@@ -194,7 +193,7 @@ describe('getSecondaryAction', () => {
         } as unknown as ReportAction;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
-        const result = getSecondaryAction(
+        const result = getSecondaryActions(
             report,
             policy,
             [
@@ -216,7 +215,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(true);
     });
 
@@ -234,7 +233,7 @@ describe('getSecondaryAction', () => {
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {}},
         } as unknown as Policy;
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(true);
     });
 
@@ -251,7 +250,7 @@ describe('getSecondaryAction', () => {
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {autosync: {enabled: true}}}},
         } as unknown as Policy;
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(true);
     });
 
@@ -264,7 +263,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
@@ -281,7 +280,7 @@ describe('getSecondaryAction', () => {
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         } as unknown as Policy;
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
@@ -298,7 +297,7 @@ describe('getSecondaryAction', () => {
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {autosync: {enabled: true}}}},
         } as unknown as Policy;
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
@@ -314,7 +313,7 @@ describe('getSecondaryAction', () => {
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: CURRENT_USER_EMAIL}}}},
         } as unknown as Policy;
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
@@ -328,7 +327,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
@@ -344,7 +343,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -359,7 +358,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -375,7 +374,7 @@ describe('getSecondaryAction', () => {
             approver: CURRENT_USER_EMAIL,
         } as unknown as Policy;
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -391,7 +390,7 @@ describe('getSecondaryAction', () => {
             role: CONST.POLICY.ROLE.ADMIN,
         } as unknown as Policy;
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -406,7 +405,7 @@ describe('getSecondaryAction', () => {
             role: CONST.POLICY.ROLE.ADMIN,
         } as unknown as Policy;
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -424,7 +423,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
-        const result = getSecondaryAction(report, {} as Policy, [], {});
+        const result = getSecondaryActions(report, {} as Policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -439,7 +438,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryAction(report, policy, [], {});
+        const result = getSecondaryActions(report, policy, [], {});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 });

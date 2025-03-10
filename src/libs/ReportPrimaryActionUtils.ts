@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApprovedMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
-import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
+import {arePaymentsEnabled, getConnectedIntegration, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasIntegrationAutoSync, isPrefferedExporter} from './PolicyUtils';
 import {
     isClosedReport,
     isCurrentUserSubmitter,
@@ -85,7 +85,8 @@ function isExportAction(report: Report, policy: Policy) {
         return false;
     }
 
-    const syncEnabled = isAutoSyncEnabled(policy);
+    const connectedIntegration = getConnectedIntegration(policy);
+    const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     if (syncEnabled) {
         return false;
     }
