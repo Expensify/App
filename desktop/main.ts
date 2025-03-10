@@ -709,9 +709,9 @@ const mainWindow = (): Promise<void> => {
 
             // Start checking for JS updates
             .then((browserWindowRef) => {
-                // if (__DEV__) {
-                //     return;
-                // }
+                if (__DEV__) {
+                    return;
+                }
 
                 checkForUpdates(electronUpdater(browserWindowRef));
             })
