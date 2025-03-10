@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LoadingBar from '@components/LoadingBar';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -54,8 +55,8 @@ type ReportActionsViewProps = {
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** The report metadata loading states */
-    isLoadingInitialReportActions?: boolean;
+    /** The report's metadata */
+    reportMetadata: OnyxTypes.ReportMetadata;
 
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -74,7 +75,7 @@ function ReportActionsView({
     report,
     parentReportAction,
     reportActions: allReportActions,
-    isLoadingInitialReportActions,
+    reportMetadata,
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
@@ -103,6 +104,8 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
+
+    const {isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions, hasLoadingNewerReportActionsError} = reportMetadata;
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -212,6 +215,8 @@ function ReportActionsView({
         [reportActions, isOffline, canPerformWriteAction],
     );
 
+    const showLoadingBar = !!isLoadingOlderReportActions || !!isLoadingNewerReportActions || !!(visibleReportActions.length > 0 && isLoadingInitialReportActions);
+
     const reportActionIDMap = useMemo(() => {
         const reportActionIDs = allReportActions?.map((action) => action.reportActionID);
         return reportActions.map((action) => ({
@@ -283,7 +288,7 @@ function ReportActionsView({
                     isOffline ||
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
-                    didLoadNewerChats.current ||
+                    !!(didLoadNewerChats.current && hasLoadingNewerReportActionsError) ||
                     newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ) {
                 return;
@@ -304,7 +309,7 @@ function ReportActionsView({
                 getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
-        [reportActionID, isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
+        [reportActionID, isFocused, newestReportAction, hasNewerActions, isOffline, hasLoadingNewerReportActionsError, transactionThreadReport, reportActionIDMap, reportID],
     );
 
     /**
@@ -375,6 +380,7 @@ function ReportActionsView({
     const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
     return (
         <>
+            <LoadingBar shouldShow={showLoadingBar} />
             <ReportActionsList
                 report={report}
                 transactionThreadReport={transactionThreadReport}
