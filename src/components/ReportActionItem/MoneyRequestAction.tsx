@@ -93,18 +93,12 @@ function MoneyRequestAction({
             return;
         }
 
-        const transactionID = (isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
+        // In case the childReportID is not present it probably means the transaction thread was not created yet,
+        // so we need to send the parentReportActionID and the transactionID to the route so we can call OpenReport correctly
+        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         if (!action?.childReportID && transactionID && action.reportActionID) {
             const optimisticReportID = generateReportID();
-            Navigation.navigate(
-                ROUTES.REPORT_WITH_ID.getRoute(
-                    optimisticReportID,
-                    undefined, // reportActionID
-                    undefined, // referrer
-                    action.reportActionID,
-                    transactionID,
-                ),
-            );
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID));
             return;
         }
 
