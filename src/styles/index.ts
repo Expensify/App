@@ -5482,7 +5482,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
         expenseWidgetMargin: {
-            margin: 5,
+            padding: 12,
         },
 
         expenseWidgetRadius: {

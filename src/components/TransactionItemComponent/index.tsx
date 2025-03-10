@@ -5,6 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type Transaction from '@src/types/onyx/Transaction';
+import variables from '@styles/variables';
 import CategoryCell from './DataCeils/CategoryCell';
 import DateCell from './DataCeils/DateCell';
 import MerchantCell from './DataCeils/MerchantCell';
@@ -23,16 +24,16 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
     return (
         <View style={styles.flex1}>
             {!isLargeScreenWidth ? (
-                <View style={[backgroundColor, styles.expenseWidgetRadius]}>
+                <View style={[backgroundColor, styles.expenseWidgetRadius, styles.expenseWidgetMargin]}>
                     <View style={[styles.flexRow]}>
-                        <View style={[styles.expenseWidgetMargin]}>
+                        <View style={[]}>
                             <ReceiptCell
                                 transactionItem={transactionItem}
                                 isSelected={isSelected}
                             />
                         </View>
-                        <View style={[styles.flex2, styles.flexColumn]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flex2, styles.flexColumn,styles.justifyContentEvenly]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, {maxHeight:variables.fontSizeLabel}]}>
                                 <DateCell
                                     transactionItem={transactionItem}
                                     showTooltip={showTooltip}
@@ -45,7 +46,7 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
                                     isLargeScreenWidth={isLargeScreenWidth}
                                 />
                             </View>
-                            <View style={[styles.flex1, styles.justifyContentCenter]}>
+                            <View style={[styles.flex1,{maxHeight:variables.fontSizeLarge}]}>
                                 <MerchantCell
                                     transactionItem={transactionItem}
                                     showTooltip={showTooltip}
@@ -53,7 +54,7 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
                                 />
                             </View>
                         </View>
-                        <View style={[styles.flex2, styles.expenseWidgetMargin, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                        <View style={[styles.flex2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                             <TotalCell
                                 transactionItem={transactionItem}
                                 showTooltip={showTooltip}
@@ -61,7 +62,7 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
                             />
                         </View>
                     </View>
-                    <View style={[styles.expenseWidgetMargin, styles.flexRow, styles.alignItemsCenter, styles.gap6,styles.minHeight3]}>
+                    <View style={[ styles.flexRow, styles.alignItemsCenter, styles.gap6,styles.minHeight3,styles.ml1]}>
                         <CategoryCell
                             transactionItem={transactionItem}
                             showTooltip={showTooltip}

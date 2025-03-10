@@ -43,7 +43,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
                 fallbackIcon={Receipt}
-                fallbackIconSize={20}
+                fallbackIconSize={35}
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
