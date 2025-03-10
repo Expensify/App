@@ -118,7 +118,7 @@ function Confirmation({onNext}: SubStepProps) {
             />
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
-                accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('agreementsStep.termsAndConditions')}`}
+                accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('agreementsStep.termsAndConditions')}.`}
                 inputID={AGREE_TO_TERMS_AND_CONDITIONS}
                 style={styles.mt6}
                 LabelComponent={TermsAndConditionsLabel}
@@ -127,7 +127,7 @@ function Confirmation({onNext}: SubStepProps) {
             />
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
-                accessibilityLabel={`${translate('agreementsStep.iConsentToThe')} ${translate('agreementsStep.privacyNotice')}`}
+                accessibilityLabel={`${translate('agreementsStep.iConsentToThe')} ${translate('agreementsStep.privacyNotice')}.`}
                 inputID={CONSENT_TO_PRIVACY_NOTICE}
                 style={styles.mt6}
                 LabelComponent={ConsentToPrivacyNoticeLabel}
