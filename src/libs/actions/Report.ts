@@ -114,6 +114,7 @@ import {
     getOriginalReportID,
     getParsedComment,
     getPendingChatMembers,
+    getPolicyExpenseChat,
     getReportFieldKey,
     getReportIDFromLink,
     getReportLastMessage,
@@ -149,6 +150,7 @@ import type {
     OnboardingPurpose,
     PersonalDetails,
     PersonalDetailsList,
+    Policy,
     PolicyReportField,
     QuickAction,
     RecentlyUsedReportFields,
@@ -2405,20 +2407,16 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
-function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string) {
-    const policy = getPolicy(policyID);
-    const optimisticReportID = generateReportID();
-    const reportActionID = rand64();
-    const {firstName, accountID} = creatorPersonalDetails;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportName = `${firstName || 'User'}'s report`;
-    const currentTime = DateUtils.getDBTime();
-
+function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: string, reportActionID: string, reportName: string, creatorPersonalDetails: PersonalDetails) {
+    const {accountID, login} = creatorPersonalDetails;
+    const parentReport = getPolicyExpenseChat(accountID, policy?.id);
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
+    const timeOfCreation = DateUtils.getDBTime();
+    const reportPreviewActionID = rand64();
 
     const optimisticDataValue: OptimisticNewReport = {
-        reportID: optimisticReportID,
-        policyID,
+        reportID,
+        policyID: policy?.id,
         type: CONST.REPORT.TYPE.EXPENSE,
         ownerAccountID: accountID,
         reportName,
@@ -2427,7 +2425,7 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
         total: 0,
         nonReimbursableTotal: 0,
         participants: {},
-        lastVisibleActionCreated: currentTime,
+        lastVisibleActionCreated: timeOfCreation,
     };
 
     if (accountID) {
@@ -2440,45 +2438,87 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
     }
 
     const optimisticCreateAction = {
-        accountEmail: creatorPersonalDetails.login,
-        accountID: creatorPersonalDetails.accountID,
         action: CONST.REPORT.ACTIONS.TYPE.CREATED,
-        created: currentTime,
+        accountEmail: login,
+        accountID,
+        created: timeOfCreation,
         message: {
             isNewDot: true,
-            lastModified: currentTime,
+            lastModified: timeOfCreation,
         },
         reportActionID,
-        reportID: optimisticReportID,
+        reportID,
         sequenceNumber: 0,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+
+    const createReportActionMessage = [
+        {
+            html: `${policy?.name} owes ${policy?.outputCurrency} 0.00`,
+            text: `${policy?.name} owes ${policy?.outputCurrency} 0.00`,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        },
+    ];
+
+    const optimisticReportPreview = {
+        action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+        childReportName: reportName,
+        childReportID: reportID,
+        childType: CONST.REPORT.TYPE.EXPENSE,
+        created: timeOfCreation,
+        shouldShow: true,
+        actorAccountID: accountID,
+        automatic: false,
+        avatar: creatorPersonalDetails.avatar,
+        isAttachmentOnly: false,
+        reportActionID: reportPreviewActionID,
+        message: createReportActionMessage,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: optimisticDataValue,
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportActionID]: optimisticCreateAction},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+            value: {[reportActionID]: optimisticReportPreview},
         },
     ];
 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {errorFields: {create: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportActionID]: {errorFields: {create: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
         },
     ];
+
+    return {optimisticData, failureData};
+}
+
+function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string) {
+    const policy = getPolicy(policyID);
+    const optimisticReportID = generateReportID();
+    const reportActionID = rand64();
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const reportName = `${creatorPersonalDetails.firstName || 'User'}'s report`;
+
+    const {optimisticData, failureData} = buildNewReportOptimisticData(policy, optimisticReportID, reportActionID, reportName, creatorPersonalDetails);
 
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
