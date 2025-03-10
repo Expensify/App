@@ -25,6 +25,7 @@ type MenuItemProps = {
     shouldShowRightIcon: boolean;
     onPress: () => void;
     interactive?: boolean;
+    disabled?: boolean;
 };
 
 function TermsAndConditionsLabel() {
@@ -69,20 +70,20 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         {
             description: translate('common.country'),
             title: formValues.bankCountry,
-            shouldShowRightIcon: !isOffline,
+            shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.COUNTRY_SELECTOR);
             },
-            interactive: !isOffline,
+            disabled: isOffline,
         },
         {
             description: translate('common.currency'),
             title: formValues.bankCurrency,
-            shouldShowRightIcon: !isOffline,
+            shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS);
             },
-            interactive: !isOffline,
+            disabled: isOffline,
         },
     ];
 
@@ -150,7 +151,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
             <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
-            {summaryItems.map(({description, title, shouldShowRightIcon, interactive, onPress}) => (
+            {summaryItems.map(({description, title, shouldShowRightIcon, interactive, disabled, onPress}) => (
                 <MenuItemWithTopDescription
                     key={`${title}_${description}`}
                     description={description}
@@ -158,6 +159,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                     shouldShowRightIcon={shouldShowRightIcon}
                     onPress={onPress}
                     interactive={interactive}
+                    disabled={disabled}
                 />
             ))}
             <FormProvider
