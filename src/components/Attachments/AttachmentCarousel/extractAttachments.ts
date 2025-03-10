@@ -40,6 +40,7 @@ function extractAttachments(
 
                 const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${source}`);
                 attachments.unshift({
+                    reportActionID: attribs['data-id'],
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
                     file: {name: fileName},
@@ -113,7 +114,9 @@ function extractAttachments(
 
         const decision = getReportActionMessage(action)?.moderationDecision?.decision;
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
-        const html = getReportActionHtml(action).replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
+        const html = getReportActionHtml(action)
+            .replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`)
+            .replace('<video ', `<video data-id="${action.reportActionID}" `);
         htmlParser.write(html);
     });
     htmlParser.end();
