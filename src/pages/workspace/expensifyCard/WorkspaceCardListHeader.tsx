@@ -6,8 +6,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
@@ -23,7 +23,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);

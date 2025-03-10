@@ -5,8 +5,9 @@ import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPolicy, getWorkspaceAccountID, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getCardIssuedMessage, getOriginalMessage, isActionOfType, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +24,7 @@ type IssueCardMessageProps = {
 function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
