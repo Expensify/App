@@ -788,7 +788,7 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
 /**
  * Checks if the search results are empty or query invalid type
  */
-function isShowEmptyState(isDataLoaded: boolean, dataLength: number, searchResults: SearchResults) {
+function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, searchResults: SearchResults) {
     return !isDataLoaded || dataLength === 0 || !Object.hasOwn(SearchColumns, searchResults?.search.type);
 }
 
@@ -809,6 +809,6 @@ export {
     getAction,
     createTypeMenuItems,
     createBaseSavedSearchMenuItem,
-    isShowEmptyState,
+    shouldShowEmptyState,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};

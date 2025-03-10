@@ -30,8 +30,8 @@ import {
     isReportActionListItemType,
     isReportListItemType,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
-    isShowEmptyState,
     isTransactionListItemType,
+    shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {isOnHold} from '@libs/TransactionUtils';
@@ -380,7 +380,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
-    if (isShowEmptyState(isDataLoaded, data.length, searchResults)) {
+    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults)) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView

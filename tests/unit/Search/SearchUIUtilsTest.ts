@@ -1390,8 +1390,8 @@ describe('SearchUIUtils', () => {
     });
 
     test('Should return true if the search result has valid type', () => {
-        expect(SearchUIUtils.isShowEmptyState(false, reportsListItems.length, searchResults)).toBe(true);
-        expect(SearchUIUtils.isShowEmptyState(true, 0, searchResults)).toBe(true);
-        expect(SearchUIUtils.isShowEmptyState(false, reportsListItems.length, searchResults)).toBe(true);
+        expect(SearchUIUtils.shouldShowEmptyState(false, reportsListItems.length, searchResults)).toBe(true);
+        expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults)).toBe(true);
+        expect(SearchUIUtils.shouldShowEmptyState(false, reportsListItems.length, searchResults)).toBe(true);
     });
 });
