@@ -785,8 +785,8 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
     };
 }
 
-function hasValidType(searchResults: SearchResults) {
-    return Object.hasOwn(SearchColumns, searchResults?.search.type);
+function isShowEmptyState(isDataLoaded: boolean, dataLength: number, searchResults: SearchResults) {
+    return !isDataLoaded || dataLength === 0 || !Object.hasOwn(SearchColumns, searchResults?.search.type);
 }
 
 export {
@@ -806,6 +806,6 @@ export {
     getAction,
     createTypeMenuItems,
     createBaseSavedSearchMenuItem,
-    hasValidType,
+    isShowEmptyState,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};

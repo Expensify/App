@@ -27,10 +27,10 @@ import {
     getListItem,
     getSections,
     getSortedSections,
-    hasValidType,
     isReportActionListItemType,
     isReportListItemType,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
+    isShowEmptyState,
     isTransactionListItemType,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -380,7 +380,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
-    const shouldShowEmptyState = !isDataLoaded || data.length === 0 || !hasValidType(searchResults);
+    const shouldShowEmptyState = isShowEmptyState(isDataLoaded, data.length, searchResults);
 
     if (shouldShowEmptyState) {
         return (
