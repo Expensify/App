@@ -193,7 +193,7 @@ function SearchAutocompleteInput(
         <View style={[outerWrapperStyle]}>
             <Animated.View
                 style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}
-                layout={shouldUseNarrowLayout ? LinearTransition : undefined}
+                layout={shouldUseNarrowLayout && rightComponent ? LinearTransition : undefined}
             >
                 <View
                     style={styles.flex1}

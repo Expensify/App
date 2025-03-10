@@ -3,10 +3,10 @@ https://community.expensify.com,https://help.expensify.com
 https://community.expensify.com/discussion/5634/deep-dive-how-long-will-it-take-for-me-to-receive-my-reimbursement,https://help.expensify.com/articles/expensify-classic/expenses/reports/Reimbursements
 https://community.expensify.com/discussion/4925/how-to-dispute-an-expensify-card-transaction,https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-A-Transaction
 https://community.expensify.com/discussion/5184/faq-how-am-i-protected-from-fraud-using-the-expensify-card,https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-A-Transaction
-https://community.expensify.com/discussion/4887/deep-dive-understanding-your-expensify-card-statement,https://help.expensify.com/articles/expensify-classic/expensify-card/Statements
-https://community.expensify.com/discussion/4883/how-to-export-your-expensify-card-statement,https://help.expensify.com/articles/expensify-classic/expensify-card/Statements
-https://community.expensify.com/discussion/9528/how-to-understand-the-amount-owed-figure,https://help.expensify.com/articles/expensify-classic/expensify-card/Statements
-https://community.expensify.com/discussion/4806/how-to-pay-your-expensify-card-balance,https://help.expensify.com/articles/expensify-classic/expensify-card/Statements
+https://community.expensify.com/discussion/4887/deep-dive-understanding-your-expensify-card-statement,https://help.expensify.com/articles/expensify-classic/expensify-card/Expensify-Card-Statements
+https://community.expensify.com/discussion/4883/how-to-export-your-expensify-card-statement,https://help.expensify.com/articles/expensify-classic/expensify-card/Expensify-Card-Statements
+https://community.expensify.com/discussion/9528/how-to-understand-the-amount-owed-figure,https://help.expensify.com/articles/expensify-classic/expensify-card/Expensify-Card-Statements
+https://community.expensify.com/discussion/4806/how-to-pay-your-expensify-card-balance,https://help.expensify.com/articles/expensify-classic/expensify-card/Expensify-Card-Statements
 https://community.expensify.com/discussion/7303/how-to-track-and-report-on-fringe-benefits-tax-fbt,https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Fringe-Benefits
 https://community.expensify.com/discussion/8984/how-to-display-report-ids-or-transactionids-correctly-in-excel,https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Other-Export-Options
 https://community.expensify.com/discussion/5799/deep-dive-date-formatting-for-formulas,https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates
@@ -501,7 +501,6 @@ https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-a
 https://community.expensify.com/discussion/7862/introducing-expensify-cash-open-source-financial-group-chat-built-with-react-native,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Reports-Invoices-and-Bills
 https://community.expensify.com/discussion/7931/how-to-become-an-expensify-org-donor,https://www.expensify.org/donate
 https://community.expensify.com/discussion/8705/how-to-change-an-invoice-to-an-expense-report/,https://help.expensify.com/articles/expensify-classic/reports/Edit-a-report
-https://community.expensify.com/discussion/8803/settle-your-expensify-cards-monthly-or-daily-you-pick,https://help.expensify.com/articles/expensify-classic/expensify-card/Statements#expensify-card-settlement-frequency
 https://community.expensify.com/discussion/4784/how-to-alternate-option-submit-as-part-of-approval-workflow,https://help.expensify.com/articles/expensify-classic/reports/Create-a-report-approval-workflow
 https://community.expensify.com/discussion/4863/how-to-assign-and-unassign-company-cards,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds#how-to-assign-company-cards
 https://community.expensify.com/discussion/4902/how-to-expense-grab-airport-mobile-orders-with-expensify,https://help.expensify.com/articles/expensify-classic/connections/Additional-Travel-Integrations#how-to-connect-to-grab
@@ -659,6 +658,7 @@ https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments
 https://help.expensify.com/articles/expensify-classic/expenses/Add-Invoices-in-Bulk,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Send-and-Pay-Invoices
 https://help.expensify.com/articles/expensify-classic/expenses/Send-and-Receive-Payment-for-Invoices,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Send-and-Pay-Invoices
 https://help.expensify.com/articles/expensify-classic/expenses/Create-Expense-Rules,https://help.expensify.com/articles/expensify-classic/expenses/Expense-Rules
+https://help.expensify.com/articles/expensify-classic/reports/Add-comments-and-attachments-to-a-report,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
 https://help.expensify.com/articles/expensify-classic/expensify-card/Statements,https://help.expensify.com/articles/expensify-classic/expensify-card/Expensify-Card-Statements
 https://help.expensify.com/articles/expensify-classic/expensify-billing/Out-of-date-Billing,https://help.expensify.com/articles/expensify-classic/expensify-billing/Out-of-Date-Billing
 https://help.expensify.com/articles/expensify-classic/settings/Set-time-zone,https://help.expensify.com/articles/expensify-classic/settings/Set-Time-Zone
