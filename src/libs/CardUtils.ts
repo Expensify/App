@@ -308,10 +308,13 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
-function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemovedFeeds = false): CompanyFeeds {
+function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemovedFeeds = false, shouldFilterOutPendingFeeds = false): CompanyFeeds {
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
             if (shouldFilterOutRemovedFeeds && value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return false;
+            }
+            if (shouldFilterOutPendingFeeds && value.pending) {
                 return false;
             }
             return key !== CONST.EXPENSIFY_CARD.BANK;
@@ -470,6 +473,10 @@ function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCo
     return cards;
 }
 
+function isSmartLimitEnabled(cards: CardList) {
+    return Object.values(cards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+}
+
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
 
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
@@ -585,6 +592,7 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
+    isSmartLimitEnabled,
     hasIssuedExpensifyCard,
     hasCardListObject,
     isExpensifyCardFullySetUp,

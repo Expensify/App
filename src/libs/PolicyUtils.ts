@@ -520,7 +520,7 @@ function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pi
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
 }
 
 /** Get a tax with given ID from policy */
@@ -613,11 +613,11 @@ function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseRe
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
-    if (!employee) {
+    if (!employee && !defaultApprover) {
         return -1;
     }
 
-    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover]).at(0) ?? -1;
+    return getAccountIDsByLogins([employee?.submitsTo ?? defaultApprover]).at(0) ?? -1;
 }
 
 /**
@@ -676,7 +676,7 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     }
     return Object.keys(policy.employeeList)
         .map((email) => ({...policy.employeeList?.[email], email}))
-        .filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
+        .filter((employee) => employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
@@ -1325,35 +1325,6 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
-/**
- * Returns an array of user emails who are currently self-approving:
- * i.e. user.submitsTo === their own email.
- */
-function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
-    const defaultApprover = policy?.approver ?? policy?.owner;
-    if (!policy?.employeeList || !defaultApprover) {
-        return [];
-    }
-    return Object.keys(policy.employeeList).filter((email) => {
-        const employee = policy?.employeeList?.[email] ?? {};
-        return employee?.submitsTo === email && employee?.email !== defaultApprover;
-    });
-}
-
-/**
- * Checks if the workspace has only one user and if there no approver for the policy.
- * If so, we can't enable the "Prevent Self Approvals" feature.
- */
-function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
-    if (!policy?.employeeList || !policy.approver) {
-        return false;
-    }
-
-    const employeeEmails = Object.keys(policy.employeeList);
-
-    return employeeEmails.length > 1;
-}
-
 function isPrefferedExporter(policy: Policy) {
     const user = getCurrentUserEmail();
     const exporters = [
@@ -1383,12 +1354,10 @@ function isAutoSyncEnabled(policy: Policy) {
 
 export {
     canEditTaxRate,
-    canEnablePreventSelfApprovals,
     extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
     getPerDiemCustomUnits,
-    getAllSelfApprovers,
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
@@ -1519,6 +1488,7 @@ export {
     getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
+    getManagerAccountID,
     isPrefferedExporter,
     isAutoSyncEnabled,
 };
