@@ -8,7 +8,7 @@ process.env.IS_SSR_BUILD = 'true';
 /**
  * Webpack configuration for server-side rendering emails.
  */
-const emailsConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
+const ssrConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
     mode: 'development',
     entry: '../emails/server.ts',
     output: {
@@ -46,4 +46,4 @@ const emailsConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
     },
 });
 
-export default emailsConfig;
+export default ssrConfig;
