@@ -8,6 +8,7 @@ import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
+import Parser from './Parser';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
 
 let allReports: OnyxCollection<Report> = {};
@@ -53,9 +54,10 @@ function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Messa
 
 function getTaskTitleFromReport(taskReport: OnyxEntry<Report>, fallbackTitle = ''): string {
     // We need to check for reportID, not just reportName, because when a receiver opens the task for the first time,
-    // an optimistic report is created with the only property – reportName: 'Chat report',
+    // an optimistic report is created with the only property - reportName: 'Chat report',
     // and it will be displayed as the task title without checking for reportID to be present.
-    return taskReport?.reportID && taskReport.reportName ? taskReport.reportName : fallbackTitle;
+    const title = taskReport?.reportID && taskReport.reportName ? taskReport.reportName : fallbackTitle;
+    return Parser.htmlToText(title);
 }
 
 function getTaskTitle(taskReportID: string | undefined, fallbackTitle = ''): string {
