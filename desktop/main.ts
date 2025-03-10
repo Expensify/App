@@ -1,3 +1,4 @@
+import {exec} from 'child_process';
 import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
 import contextMenu from 'electron-context-menu';
@@ -337,7 +338,25 @@ const mainWindow = (): Promise<void> => {
                 });
 
                 ipcMain.handle(ELECTRON_EVENTS.REQUEST_DEVICE_ID, () => machineId());
+                ipcMain.handle(ELECTRON_EVENTS.OPEN_LOCATION_SETTING, () => {
+                    if (process.platform !== 'darwin') {
+                        // Platform not supported for location settings
+                        return Promise.resolve(undefined);
+                    }
 
+                    return new Promise((resolve, reject) => {
+                        const command = 'open x-apple.systempreferences:com.apple.preference.security?Privacy_Location';
+
+                        exec(command, (error) => {
+                            if (error) {
+                                console.error('Error opening location settings:', error);
+                                reject(error);
+                                return;
+                            }
+                            resolve(undefined);
+                        });
+                    });
+                });
                 /*
                  * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
                  * This causes CORS errors because the referer and origin headers are wrong and the API responds with an Access-Control-Allow-Origin that doesn't match app://-
