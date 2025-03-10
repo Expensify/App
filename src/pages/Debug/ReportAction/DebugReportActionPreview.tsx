@@ -9,17 +9,19 @@ import type {Report, ReportAction} from '@src/types/onyx';
 type DebugReportActionPreviewProps = {
     /** The report action to be previewed. */
     reportAction: OnyxEntry<ReportAction>;
+
+    /** The report id to be previewed. */
+    reportID: string;
 };
 
-function DebugReportActionPreview({reportAction}: DebugReportActionPreviewProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.reportID}`);
+function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPreviewProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     return (
         <ScrollView>
             <ReportActionItem
                 action={reportAction ?? ({} as ReportAction)}
                 report={report ?? ({} as Report)}
-                reportActions={[]}
                 parentReportAction={undefined}
                 displayAsGroup={false}
                 isMostRecentIOUReportAction={false}

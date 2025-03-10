@@ -3,6 +3,7 @@ import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+import {translateLocal} from '@libs/Localize';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -499,6 +500,20 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 expect(getReportName(threadOfRemovedRoomMemberAction, policy, removedParentReportAction)).toBe('removed ragnar@vikings.net');
+            });
+        });
+
+        describe('Task Report', () => {
+            const htmlTaskTitle = `<h1>heading with <a href="https://www.unknown.com" target="_blank" rel="noreferrer noopener">link</a></h1>`;
+
+            it('Should return the text extracted from report name html', () => {
+                const report: Report = {...createRandomReport(1), type: 'task'};
+                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual('heading with link');
+            });
+
+            it('Should return deleted task translations when task is is deleted', () => {
+                const report: Report = {...createRandomReport(1), type: 'task', isDeletedParentAction: true};
+                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translateLocal('parentReportAction.deletedTask'));
             });
         });
     });

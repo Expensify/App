@@ -34,7 +34,6 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 testID={PolicyRulesPage.displayName}
                 shouldUseScrollView
                 headerText={translate('workspace.common.rules')}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_RULES}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
                 icon={Illustrations.Rules}

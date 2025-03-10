@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -13,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
+import {setPolicyCategoryGLCode} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,28 +25,43 @@ type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList
 function CategoryGLCodePage({route}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyId = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const categoryName = route.params.categoryName;
     const glCode = policyCategories?.[categoryName]?.['GL Code'];
     const {inputCallbackRef} = useAutoFocusInput();
     const isQuickSettingsFlow = !!backTo;
 
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
+            const value = values[INPUT_IDS.GL_CODE];
+
+            if (value.length > CONST.MAX_LENGTH_256) {
+                errors[INPUT_IDS.GL_CODE] = translate('common.error.characterLimitExceedCounter', {
+                    length: value.length,
+                    limit: CONST.MAX_LENGTH_256,
+                });
+            }
+
+            return errors;
+        },
+        [translate],
+    );
+
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newGLCode = values.glCode.trim();
             if (newGLCode !== glCode) {
-                Category.setPolicyCategoryGLCode(route.params.policyID, categoryName, newGLCode);
+                setPolicyCategoryGLCode(policyID, categoryName, newGLCode);
             }
             Navigation.goBack(
-                isQuickSettingsFlow
-                    ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName, backTo)
-                    : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName),
+                isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, categoryName, backTo) : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName),
             );
         },
-        [categoryName, glCode, route.params.policyID, isQuickSettingsFlow, backTo],
+        [categoryName, glCode, policyID, isQuickSettingsFlow, backTo],
     );
 
     return (
@@ -73,6 +88,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
+                    validate={validate}
                     onSubmit={editGLCode}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
@@ -86,7 +102,6 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                         accessibilityLabel={translate('workspace.categories.glCode')}
                         inputID={INPUT_IDS.GL_CODE}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.MAX_LENGTH_256}
                     />
                 </FormProvider>
             </ScreenWrapper>

@@ -99,7 +99,6 @@ function NamePage({
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                             value={name}
-                            maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                             onChangeText={setName}
                             ref={inputCallbackRef}
                         />

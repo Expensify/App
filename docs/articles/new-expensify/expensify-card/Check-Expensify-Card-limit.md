@@ -25,3 +25,7 @@ To check your Smart Limit,
 {% include end-selector.html %}
 
 </div>
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/wallet-01.png){:width=“100%“}
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/wallet-02.png){:width=“100%“}

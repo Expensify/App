@@ -27,7 +27,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: ${{ inputs.APP_PULL_REQUEST_NUMBER }},
-                body: `🚧 @${{ github.actor }} has triggered a test hybrid app build. You can view the [workflow run here](${workflowURL}).`
+                body: `🚧 @${{ github.actor }} has triggered a test app build. You can view the [workflow run here](${workflowURL}).`
                 });
 
         - name: Add build start comment to OD PR

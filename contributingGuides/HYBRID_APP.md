@@ -65,7 +65,7 @@ The build should be very straightforward. Assuming you've cleared cache, and hav
 1. `npm i`
 2. `npm run pod-install` (if you build iOS)
 3. `npm run ios` or `npm run android`
-If you encounter any problems, please refer to the [[#Pro Tips & Troubleshooting]] section, or (if you don't find your answer there) remove the cache by executing `npm run clean`
+If you encounter any problems, please refer to the [[Pro Tips & Troubleshooting](#pro-tips-and-troubleshooting)] section, or (if you don't find your answer there) remove the cache by executing `npm run clean`
 
 # Submodules
 OldDot code in `Expensify/App` repo is located in `Mobile-Expensify` directory, which technically is a git submodule. Even though it seems like an advanced concept, in reality it is very straightforward: it basically sets a commit hash from which `Mobile-Expensify` code should be pulled.
@@ -75,7 +75,7 @@ In practice a submodule is just a regular git repository, set to a specific comm
 If you change the `Mobile-Expensify` code, it will be seen by `Expensify/App` as a commit hash change that may be pushed to a remote repository. Currently we automatically update the `Mobile-Expensify` commit hash, therefore you don't need to do it manually. In order to avoid confusion you can update your `.git/config` by running the following command: `git config submodule.Mobile-Expensify.ignore all`. This way you won't accidentally change the commit hash for the submodule in your PR.
 ## Useful commands
 
-IMPORTANT: Please execute the following commands form the root of the project!
+IMPORTANT: Please execute the following commands from the root of the project!
 - `git submodule update --init` 
 	- it initialises the submodule, and pulls the `Mobile-Expensify` code from the commit set in `Expensify/App`. 
 	- **IMPORTANT**: If you already have the `Mobile-Expensify` code, you don't need to run the command with `--init` flag.
@@ -95,7 +95,9 @@ The `patch-package` takes `.patch` files, and applies the diff to `node_modules`
 If you need to setup your local environment, you can create a `.env` file in the root of the project (aka `Expensify/App`). The variables will be included into the **native build**, which means that in case of HybridApp they will be also visible on the OldDot side. There is no need to have another `.env` file in `Mobile-Expensify`.
 
 If there are some connection problems with your local backend, please make sure you've included `ENVIRONMENT=development` in your `.env` file.
-# Pro Tips & Troubleshooting
+
+# Pro Tips and Troubleshooting
+
 ## General
 
 ### My build has just failed. What should I do?

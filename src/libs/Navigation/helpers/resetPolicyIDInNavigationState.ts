@@ -10,8 +10,7 @@ import SCREENS from '@src/SCREENS';
  */
 function resetPolicyIDInNavigationState() {
     const rootState = navigationRef.getRootState();
-    const lastPolicyRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.ROOT);
-
+    const lastPolicyRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     if (!lastPolicyRoute) {
         return;
     }
@@ -21,14 +20,18 @@ function resetPolicyIDInNavigationState() {
         return;
     }
 
-    const {q, ...rest} = lastPolicyRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+    const lastSearchRoute = lastPolicyRoute.state?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+    if (!lastSearchRoute || !lastSearchRoute.params) {
+        return;
+    }
+    const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
     const queryJSON = SearchQueryUtils.buildSearchQueryJSON(q);
     if (!queryJSON || !queryJSON.policyID) {
         return;
     }
 
     delete queryJSON.policyID;
-    Navigation.setParams({q: SearchQueryUtils.buildSearchQueryString(queryJSON), ...rest}, lastPolicyRoute.key);
+    Navigation.setParams({q: SearchQueryUtils.buildSearchQueryString(queryJSON), ...rest}, lastSearchRoute.key);
 }
 
 export default resetPolicyIDInNavigationState;

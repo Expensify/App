@@ -14,14 +14,14 @@ import useLocalize from '@hooks/useLocalize';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import * as TaskActions from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,20 +36,17 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const assignee = useMemo(() => TaskActions.getAssignee(task?.assigneeAccountID ?? -1, personalDetails), [task?.assigneeAccountID, personalDetails]);
-    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
-        OptionsListUtils.getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
-        false,
-    );
+    const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails), [task?.assigneeAccountID, personalDetails]);
+    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails), false);
     const shareDestination = useMemo(
-        () => (task?.shareDestination ? TaskActions.getShareDestination(task.shareDestination, reports, personalDetails) : undefined),
+        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails) : undefined),
         [task?.shareDestination, reports, personalDetails],
     );
     const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
     const [errorMessage, setErrorMessage] = useState('');
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
-    const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
+    const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || isAllowedToComment(parentReport), [parentReport]);
 
     const {paddingBottom} = useStyledSafeAreaInsets();
 
@@ -74,7 +71,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         // this allows us to go ahead and set that report as the share destination
         // and disable the share destination selector
         if (task?.parentReportID) {
-            TaskActions.setShareDestinationValue(task.parentReportID);
+            setShareDestinationValue(task.parentReportID);
         }
     }, [task?.assignee, task?.assigneeAccountID, task?.description, task?.parentReportID, task?.shareDestination, task?.title]);
 
@@ -97,15 +94,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         }
 
         playSound(SOUNDS.DONE);
-        TaskActions.createTaskAndNavigate(
-            parentReport?.reportID ?? '-1',
-            task.title,
-            task?.description ?? '',
-            task?.assignee ?? '',
-            task.assigneeAccountID,
-            task.assigneeChatReport,
-            parentReport?.policyID,
-        );
+        createTaskAndNavigate(parentReport?.reportID, task.title, task?.description ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport, parentReport?.policyID);
     };
 
     return (
@@ -115,7 +104,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         >
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}
-                onBackButtonPress={() => TaskActions.dismissModalAndClearOutTaskInfo()}
+                onBackButtonPress={() => dismissModalAndClearOutTaskInfo()}
                 shouldShowLink={false}
             >
                 <HeaderWithBackButton
@@ -149,6 +138,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE.getRoute(backTo))}
                                 shouldShowRightIcon
                                 rightLabel={translate('common.required')}
+                                shouldParseTitle
                             />
                             <MenuItemWithTopDescription
                                 description={translate('task.description')}
@@ -162,7 +152,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                             <MenuItem
                                 label={assignee?.displayName ? translate('task.assignee') : ''}
                                 title={assignee?.displayName ?? ''}
-                                description={assignee?.displayName ? LocalePhoneNumber.formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
+                                description={assignee?.displayName ? formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
                                 icon={assignee?.icons}
                                 onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE.getRoute(backTo))}
                                 shouldShowRightIcon

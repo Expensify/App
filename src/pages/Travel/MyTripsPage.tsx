@@ -9,7 +9,7 @@ import ManageTrips from './ManageTrips';
 
 function MyTripsPage() {
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel} = usePermissions();
 
     return (
         <ScreenWrapper
@@ -21,7 +21,7 @@ function MyTripsPage() {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={(!canUseSpotnanaTravel && !NativeModules.HybridAppModule) || (isBlockedFromSpotnanaTravel && !NativeModules.HybridAppModule)}
+                shouldShow={!canUseSpotnanaTravel && !NativeModules.HybridAppModule}
             >
                 <HeaderWithBackButton
                     title={translate('travel.header')}

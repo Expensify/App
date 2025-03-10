@@ -205,7 +205,6 @@ function BaseReportActionContextMenu({
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
-            reportID &&
             contextAction.shouldShow({
                 type,
                 reportAction,

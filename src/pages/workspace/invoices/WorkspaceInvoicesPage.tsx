@@ -29,7 +29,6 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
             <WorkspacePageWithSections
                 shouldUseScrollView
                 headerText={translate('workspace.common.invoices')}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldSkipVBBACall={false}
                 route={route}

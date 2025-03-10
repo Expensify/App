@@ -357,7 +357,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 headerText={translate('workspace.common.workflows')}
                 icon={Workflows}
                 route={route}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
                 isLoading={isLoading}

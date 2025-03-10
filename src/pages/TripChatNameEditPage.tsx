@@ -13,7 +13,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
 import {getReportName} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {isValidReportName} from '@libs/ValidationUtils';
 import {updateChatName} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,8 +37,11 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
             const errors: Errors = {};
-            if (!isValidReportName(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
-                errors.newChatName = translate('common.error.characterLimit', {limit: CONST.REPORT_NAME_LIMIT});
+            const name = values[INPUT_IDS.NEW_CHAT_NAME] ?? '';
+            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
+            const nameLength = [...name.trim()].length;
+            if (nameLength > CONST.REPORT_NAME_LIMIT) {
+                errors.newChatName = translate('common.error.characterLimitExceedCounter', {length: nameLength, limit: CONST.REPORT_NAME_LIMIT});
             }
 
             if (StringUtils.isEmptyString(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
@@ -83,7 +85,6 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
             >
                 <InputWrapper
                     InputComponent={TextInput}
-                    maxLength={CONST.REPORT_NAME_LIMIT}
                     defaultValue={currentChatName}
                     label={translate('common.name')}
                     accessibilityLabel={translate('common.name')}

@@ -8,6 +8,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import useEnvironment from './useEnvironment';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
@@ -25,17 +26,24 @@ function isSidePaneHidden(sidePane: OnyxEntry<OnyxTypes.SidePane>, isExtraLargeS
 function useSidePane() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
+    const {isProduction} = useEnvironment();
 
-    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
+    const [sidePaneNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const isPaneHidden = isSidePaneHidden(sidePane, isExtraLargeScreenWidth) || language !== CONST.LOCALES.EN;
+    const isLanguageUnsupported = language !== CONST.LOCALES.EN;
+    const isPaneHidden = isSidePaneHidden(sidePaneNVP, isExtraLargeScreenWidth) || isLanguageUnsupported;
 
     const sidePaneWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;
 
     const [shouldHideSidePane, setShouldHideSidePane] = useState(true);
     const shouldHideSidePaneBackdrop = isPaneHidden || isExtraLargeScreenWidth || shouldUseNarrowLayout;
-    const shouldHideTopLevelBottomBar = !shouldHideSidePaneBackdrop || (!isPaneHidden && shouldUseNarrowLayout);
+
+    // The help button is hidden in production if the side pane nvp is not present or the language is unsupported.
+    const shouldHideOnProduction = isProduction && (!sidePaneNVP || isLanguageUnsupported);
+
+    // The help button is also hidden if the side pane is displayed currently.
+    const shouldHideHelpButton = shouldHideOnProduction || !isPaneHidden;
 
     const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
     const sidePaneTranslateX = useRef(new Animated.Value(isPaneHidden ? sidePaneWidth : 0));
@@ -62,10 +70,10 @@ function useSidePane() {
     }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth]);
 
     return {
-        sidePane,
+        sidePane: sidePaneNVP,
         shouldHideSidePane,
         shouldHideSidePaneBackdrop,
-        shouldHideTopLevelBottomBar,
+        shouldHideHelpButton,
         sidePaneOffset,
         sidePaneTranslateX,
     };

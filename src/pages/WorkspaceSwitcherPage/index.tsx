@@ -151,6 +151,7 @@ function WorkspaceSwitcherPage() {
                     <HeaderWithBackButton
                         title={translate('workspace.switcher.headerTitle')}
                         onBackButtonPress={Navigation.goBack}
+                        shouldDisplayHelpButton={false}
                     />
                     {shouldShowLoadingIndicator ? (
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />

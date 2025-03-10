@@ -1,83 +1,68 @@
 import React, {useEffect} from 'react';
-import Animated, {cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 type LoadingBarProps = {
-    // Whether or not to show the loading bar
+    // Whether to show the loading bar
     shouldShow: boolean;
 };
 
 function LoadingBar({shouldShow}: LoadingBarProps) {
-    const left = useSharedValue(0);
-    const width = useSharedValue(0);
+    const left = useSharedValue(-30);
     const opacity = useSharedValue(0);
+    const isAnimating = useSharedValue(false);
     const styles = useThemeStyles();
 
     useEffect(() => {
-        if (shouldShow) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            left.set(0);
-            width.set(0);
-            opacity.set(withTiming(1, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}));
+        if (shouldShow && !isAnimating.get()) {
+            isAnimating.set(true);
+            opacity.set(withTiming(1, {duration: CONST.TIMING.SKELETON_FADE_DURATION}));
 
             left.set(
-                withDelay(
-                    CONST.ANIMATED_PROGRESS_BAR_DELAY,
-                    withRepeat(
-                        withSequence(
-                            withTiming(0, {duration: 0}),
-                            withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                            withTiming(100, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                        ),
-                        -1,
-                        false,
-                    ),
-                ),
+                withTiming(100, {duration: CONST.TIMING.SKELETON_SLIDE_DURATION}, () => {
+                    requestAnimationFrame(() => {
+                        if (shouldShow) {
+                            left.set(-30);
+                            left.set(withTiming(100, {duration: CONST.TIMING.SKELETON_SLIDE_DURATION}));
+                        } else {
+                            opacity.set(
+                                withTiming(0, {duration: CONST.TIMING.SKELETON_FADE_DURATION}, () => {
+                                    isAnimating.set(false);
+                                }),
+                            );
+                        }
+                    });
+                }),
             );
-
-            width.set(
-                withDelay(
-                    CONST.ANIMATED_PROGRESS_BAR_DELAY,
-                    withRepeat(
-                        withSequence(
-                            withTiming(0, {duration: 0}),
-                            withTiming(100, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                            withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                        ),
-                        -1,
-                        false,
-                    ),
-                ),
-            );
-        } else {
+        } else if (!shouldShow) {
             opacity.set(
-                withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}, () => {
-                    cancelAnimation(left);
-                    cancelAnimation(width);
+                withTiming(0, {duration: CONST.TIMING.SKELETON_FADE_DURATION}, () => {
+                    isAnimating.set(false);
                 }),
             );
         }
-        // we want to update only when shouldShow changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShow]);
 
-    const animatedIndicatorStyle = useAnimatedStyle(() => ({
+    const barStyle = useAnimatedStyle(() => ({
         left: `${left.get()}%`,
-        width: `${width.get()}%`,
-    }));
-
-    const animatedContainerStyle = useAnimatedStyle(() => ({
+        width: '30%',
+        height: '100%',
+        backgroundColor: colors.green,
         opacity: opacity.get(),
+        borderRadius: 2,
     }));
 
     return (
-        <Animated.View style={[styles.progressBarWrapper, animatedContainerStyle]}>
-            <Animated.View style={[styles.progressBar, animatedIndicatorStyle]} />
-        </Animated.View>
+        <View style={[styles.progressBarWrapper]}>
+            <Animated.View style={barStyle} />
+        </View>
     );
 }
 
-LoadingBar.displayName = 'ProgressBar';
+LoadingBar.displayName = 'LoadingBar';
 
 export default LoadingBar;

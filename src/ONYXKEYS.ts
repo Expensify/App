@@ -480,7 +480,7 @@ const ONYXKEYS = {
     TRAVEL_PROVISIONING: 'travelProvisioning',
 
     /** Stores the information about the state of side panel */
-    NVP_SIDE_PANE: 'nvp_sidePaneExpanded',
+    NVP_SIDE_PANE: 'nvp_sidePane',
 
     /** Collection Keys */
     COLLECTION: {

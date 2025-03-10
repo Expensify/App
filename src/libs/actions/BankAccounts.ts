@@ -616,7 +616,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
  * @param policyID - ID of the policy we're setting the bank account on
  * @param isConfirmPage - If we're submitting from the confirmation substep, to trigger all external checks
  */
-function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>, policyID: string, isConfirmPage: boolean) {
+function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>, policyID: string | undefined, isConfirmPage: boolean) {
     API.write(
         WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT,
         {

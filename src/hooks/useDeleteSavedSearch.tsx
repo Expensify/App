@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
+import {useSearchContext} from '@components/Search/SearchContext';
 import {clearAdvancedFilters, deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
@@ -10,6 +11,7 @@ export default function useDeleteSavedSearch() {
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [hashToDelete, setHashToDelete] = useState(0);
     const {translate} = useLocalize();
+    const {currentSearchHash} = useSearchContext();
 
     const showDeleteModal = (hash: number) => {
         setIsDeleteModalVisible(true);
@@ -19,12 +21,15 @@ export default function useDeleteSavedSearch() {
     const handleDelete = () => {
         deleteSavedSearch(hashToDelete);
         setIsDeleteModalVisible(false);
-        clearAdvancedFilters();
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: buildCannedSearchQuery(),
-            }),
-        );
+
+        if (hashToDelete === currentSearchHash) {
+            clearAdvancedFilters();
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: buildCannedSearchQuery(),
+                }),
+            );
+        }
     };
 
     function DeleteConfirmModal() {

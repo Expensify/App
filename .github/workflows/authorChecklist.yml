@@ -5,6 +5,7 @@ on:
   # Warning: – when using the pull_request_target event, DO NOT checkout code from an untrusted branch: https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
   pull_request_target:
     types: [opened, edited, reopened, synchronize]
+    branches: [main]
 
 jobs:
   # Note: PHP specifically looks for the name of this job, "checklist", so if the name of the job is changed,
