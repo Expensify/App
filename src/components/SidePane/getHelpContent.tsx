@@ -4,7 +4,6 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import type {ThemeStyles} from '@styles/index';
 
@@ -365,7 +364,7 @@ function DiagnosticData({styles, route, children, isExactMatch}: DiagnosticDataP
     const diagnosticTitle = isExactMatch ? 'Help content found for route:' : 'Missing help content for route:';
 
     return (
-        <ScrollView style={styles.ph5}>
+        <>
             <Text style={[styles.textHeadlineH1, styles.mb4]}>{diagnosticTitle}</Text>
             <Text style={styles.textNormal}>{route}</Text>
             {!!children && (
@@ -374,7 +373,7 @@ function DiagnosticData({styles, route, children, isExactMatch}: DiagnosticDataP
                     {children}
                 </>
             )}
-        </ScrollView>
+        </>
     );
 }
 
@@ -395,7 +394,7 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
 
     if (currentNode?.content) {
         if (isProduction) {
-            return <View style={styles.ph5}>{currentNode.content(styles)}</View>;
+            return currentNode.content(styles);
         }
 
         return (
