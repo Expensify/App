@@ -249,6 +249,7 @@ describe('ReportActionsUtils', () => {
                             whisperedTo: [],
                         },
                     },
+                    // @ts-expect-error sometimes created field is missing in backend returned data
                     {
                         reportActionID: '2962390724708756',
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -256,7 +257,7 @@ describe('ReportActionsUtils', () => {
                             html: 'Hello world',
                             whisperedTo: [],
                         },
-                    },
+                    } as ReportAction,
                     {
                         created: '2022-11-09 22:26:48.889',
                         reportActionID: '1609646094152486',
