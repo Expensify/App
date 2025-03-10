@@ -249,7 +249,6 @@ describe('ReportActionsUtils', () => {
                             whisperedTo: [],
                         },
                     },
-                    // @ts-expect-error sometimes created field is missing in backend returned data
                     {
                         reportActionID: '2962390724708756',
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -257,7 +256,7 @@ describe('ReportActionsUtils', () => {
                             html: 'Hello world',
                             whisperedTo: [],
                         },
-                    } as ReportAction,
+                    },
                     {
                         created: '2022-11-09 22:26:48.889',
                         reportActionID: '1609646094152486',
@@ -286,16 +285,16 @@ describe('ReportActionsUtils', () => {
                         },
                     },
                 ],
-            ]
+            ],
         ];
 
         test.each(cases)('sorts by created, then actionName, then reportActionID', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input);
+            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[]);
             expect(result).toStrictEqual(expectedOutput);
         });
 
         test.each(cases)('in descending order', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input, true);
+            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[], true);
             expect(result).toStrictEqual(expectedOutput.reverse());
         });
     });
