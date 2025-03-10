@@ -1,7 +1,7 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {TextInputProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -37,7 +37,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Report from '@src/types/onyx/Report';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import KeyboardUtils from '@src/utils/keyboard';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
@@ -74,9 +73,10 @@ function getContextualSearchQuery(item: SearchQueryItem) {
 type SearchRouterProps = {
     onRouterClose: () => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
+    isSearchRouterDisplayed?: boolean;
 };
 
-function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, ref: React.Ref<View>) {
+function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
@@ -110,6 +110,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
 
             // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
+                return undefined;
+            }
+
+            if (!isSearchRouterDisplayed) {
                 return undefined;
             }
 
@@ -269,14 +273,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                     submitSearch(item.searchQuery);
                 }
             } else {
-                onRouterClose();
-
-                KeyboardUtils.dismiss().then(() => {
-                    if (item?.reportID) {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
-                    } else if ('login' in item) {
-                        navigateToAndOpenReport(item.login ? [item.login] : [], false);
-                    }
+                if (item?.reportID) {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
+                } else if ('login' in item) {
+                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                }
+                InteractionManager.runAfterInteractions(() => {
+                    // Can use `setTimeout` with a delay time is 0 instead.
+                    onRouterClose();
                 });
             }
         },
