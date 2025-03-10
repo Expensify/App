@@ -25,6 +25,7 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import {exportToIntegration} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -33,6 +34,7 @@ import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
+import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     canBeExported,
@@ -68,6 +70,7 @@ import {
     isReportOwner,
     isSettled,
     isTripRoom as isTripRoomReportUtils,
+    navigateToDetailsPage,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
@@ -82,7 +85,7 @@ import {
 } from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport, unholdRequest} from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -509,6 +512,57 @@ function ReportPreview({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
     }, [iouReportID]);
 
+    if (!iouReport) {
+        return null;
+    }
+    if (!policy) {
+        return null;
+    }
+    if (!transactions) {
+        return null;
+    }
+    if (!connectedIntegration) {
+        return null;
+    }
+    const reportPreviewAction = getReportPreviewAction(iouReport, policy, transactions, violations);
+
+    function unholdRequest() {
+        // mock just for not having red in ide
+        return;
+    }
+
+    // TODO check below translationKeys and functions
+    const reportPreviewActions = {
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: {
+            translationKey: 'common.submit',
+            callback: () => submitReport(iouReport),
+        },
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: {
+            translationKey: 'iou.approve',
+            callback: () => confirmApproval(),
+        },
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: {
+            translationKey: 'iou.pay',
+            callback: () => exportToIntegration(iouReport.reportID, connectedIntegration),
+        },
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING]: {
+            translationKey: 'iou.approve',
+            callback: () => exportToIntegration(iouReport.reportID, connectedIntegration),
+        },
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REMOVE_HOLD]: {
+            translationKey: 'iou.removeHold',
+            callback: () => unholdRequest(),
+        },
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: {
+            translationKey: 'common.review',
+            callback: () => {},
+        },
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: {
+            translationKey: 'common.view',
+            callback: () => navigateToDetailsPage(iouReport),
+        },
+    };
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -649,7 +703,7 @@ function ReportPreview({
                                         }}
                                     />
                                 )}
-                                {shouldShowSubmitButton && (
+                                {shouldShowSubmitButton && ( // added to reportPreviewActions
                                     <Button
                                         success={isWaitingForSubmissionFromCurrentUser}
                                         text={translate('common.submit')}

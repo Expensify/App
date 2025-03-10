@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import {canApprove, canExport, canPay, canRemoveHold, canReview, canSubmit} from '@libs/ReportPreviewActionUtils';
-import {hasReportViolations} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportViolations, Transaction} from '@src/types/onyx';
