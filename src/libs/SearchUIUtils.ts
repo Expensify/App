@@ -785,6 +785,9 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
     };
 }
 
+/**
+ * Checks if the search results are empty or query invalid type
+ */
 function isShowEmptyState(isDataLoaded: boolean, dataLength: number, searchResults: SearchResults) {
     return !isDataLoaded || dataLength === 0 || !Object.hasOwn(SearchColumns, searchResults?.search.type);
 }
