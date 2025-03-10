@@ -521,6 +521,9 @@ const styles = (theme: ThemeColors) =>
         textBold: {
             fontWeight: FontUtils.fontWeight.bold,
         },
+        textItalic: {
+            ...FontUtils.fontFamily.platform.MONOSPACE_ITALIC,
+        },
 
         textVersion: {
             color: theme.iconColorfulBackground,

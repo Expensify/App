@@ -31,7 +31,12 @@ function HelpButton({style}: HelpButtonProps) {
             <PressableWithoutFeedback
                 accessibilityLabel={translate('common.help')}
                 style={[styles.flexRow, styles.touchableButtonImage, styles.mr2, style]}
-                onPress={() => triggerSidePane(isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen, {shouldUpdateNarrowLayout: !isExtraLargeScreenWidth})}
+                onPress={() => {
+                    triggerSidePane({
+                        isOpen: isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen,
+                        isOpenNarrowScreen: isExtraLargeScreenWidth ? undefined : !sidePane?.openNarrowScreen,
+                    });
+                }}
             >
                 <Icon
                     src={Expensicons.QuestionMark}
