@@ -19,7 +19,6 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
 
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(Navigation.parseHybridAppUrl(initialURL));
-            setInitialURL(undefined);
         });
     }, [initialURL, setInitialURL]);
 
