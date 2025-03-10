@@ -56,9 +56,19 @@ operator "operator"
   / "<" { return "lt"; }
 
 quotedString "quote"
-  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:[^"”“\r\n]* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
-      return [...start, '"', ...inner, '"', ...end].join("");
-    }
+  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”")                  // Opening quote
+    inner:([^"\r\n] /  (!closingQuote "\"" {return "\""} ))*      // Allow anything inside, but exclude true closing quotes
+    end:closingQuote                                              // Detect the actual closing quote
+{
+    return [...start, '"', ...inner, ...end].join("");
+}
+
+closingQuote
+  = ("“" / "\"" / "”") &validClosingCondition                     // A quote that is followed by a valid closing pattern
+
+validClosingCondition
+  = [ \t\n\r\xA0a-zA-Z0-9]* [a-zA-Z0-9]* [ \t\n\r\xA0]* operator  // Case 1: Followed by WORD + OPERATOR (new key-value pair)
+  / [ \t\n\r\xA0a-zA-Z]* !operator !.  // Case 2: Followed by any number of spaces, or words, with no operator, and then an END OF INPUT.
 
 alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
 
