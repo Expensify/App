@@ -1213,12 +1213,11 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     );
 }
 
-function getGroupPoliciesWithExpenseChatEnabledLength(policies: OnyxCollection<Policy> | null = allPolicies): number {
+function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null = allPolicies) {
     if (isEmptyObject(policies)) {
-        return 0;
+        return CONST.EMPTY_ARRAY;
     }
-    const groupPolicies = Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
-    return groupPolicies.length;
+    return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -1495,6 +1494,7 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
     getForwardsToAccount,
     getSubmitToAccountID,
     getWorkspaceAccountID,
@@ -1509,7 +1509,6 @@ export {
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
-    getGroupPoliciesWithExpenseChatEnabledLength,
     shouldDisplayPolicyNotFoundPage,
     hasOtherControlWorkspaces,
     getManagerAccountEmail,

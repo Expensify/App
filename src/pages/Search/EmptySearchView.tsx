@@ -23,7 +23,7 @@ import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {getGroupPoliciesWithExpenseChatEnabledLength} from '@libs/PolicyUtils';
+import {getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import variables from '@styles/variables';
@@ -55,7 +55,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const [modalVisible, setModalVisible] = useState(false);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return getGroupPoliciesWithExpenseChatEnabledLength(allPolicies) === 0;
+        return getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies).length === 0;
     }, [allPolicies]);
 
     const tripViewChildren = useMemo(() => {

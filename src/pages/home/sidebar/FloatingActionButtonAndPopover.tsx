@@ -13,6 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -35,7 +36,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {canSendInvoice as canSendInvoicePolicyUtils, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice as canSendInvoicePolicyUtils, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {canCreateRequest, generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getNavatticURL} from '@libs/TourUtils';
@@ -210,10 +211,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         isCreateMenuActive && (!shouldUseNarrowLayout || isFocused),
     );
 
-    const paidWorkspacesWithChatEnabled = useMemo(
-        () => Object.values((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {}).filter((policy) => policy?.isPolicyExpenseChatEnabled && isPaidGroupPolicy(policy)),
-        [allPolicies],
-    );
+    const {activeWorkspaceID} = useActiveWorkspace();
+    const defaultWorkspace = allPolicies?.[activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID];
+    const groupPoliciesWithChatEnabled = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies as OnyxCollection<OnyxTypes.Policy>), []);
 
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
@@ -221,8 +221,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
      * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
      */
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return paidWorkspacesWithChatEnabled.length === 0;
-    }, [paidWorkspacesWithChatEnabled.length]);
+        return groupPoliciesWithChatEnabled.length === 0;
+    }, [groupPoliciesWithChatEnabled.length]);
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
 
@@ -485,15 +485,21 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   return;
                               }
 
-                              // If the user has more than one paid group workspace with chat enabled, we need to redirect them to workspace selection
-                              if (paidWorkspacesWithChatEnabled.length > 1) {
-                                  Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                              // If the users default workspace is paid group workspace with chat enabled, we create a report with it by default
+                              if (defaultWorkspace && defaultWorkspace.isPolicyExpenseChatEnabled && isPaidGroupPolicy(defaultWorkspace as OnyxTypes.Policy)) {
+                                  const createdReportID = createNewReport(currentUserPersonalDetails, defaultWorkspace?.id);
+                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                   return;
                               }
 
-                              const defaultWorkspace = paidWorkspacesWithChatEnabled.at(0);
-                              const createdReportID = createNewReport(currentUserPersonalDetails, defaultWorkspace?.id);
-                              Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                              if (groupPoliciesWithChatEnabled.length === 1) {
+                                  const createdReportID = createNewReport(currentUserPersonalDetails, groupPoliciesWithChatEnabled.at(0)?.id);
+                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                  return;
+                              }
+
+                              // If the users default workspace is personal and user has more than one group workspace which is paid and has chat enabled, we need to redirect them to workspace selection screen
+                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
                           });
                       },
                   },
