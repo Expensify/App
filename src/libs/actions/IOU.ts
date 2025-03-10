@@ -149,6 +149,7 @@ import {
     getAmount,
     getCategoryTaxCodeAndAmount,
     getCurrency,
+    getDistanceInMeters,
     getMerchant,
     getTransaction,
     getUpdatedTransaction,
@@ -1061,12 +1062,18 @@ function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: st
     }
 
     const distanceRate = DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
+    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    let newDistance;
+    if (distanceRate?.unit && distanceRate?.unit !== transaction?.comment?.customUnit?.distanceUnit) {
+        newDistance = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit), distanceRate.unit);
+    }
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             customUnit: {
                 customUnitRateID,
                 ...(!!policy && {defaultP2PRate: null}),
                 ...(distanceRate && {distanceUnit: distanceRate.unit}),
+                ...(newDistance && {quantity: newDistance}),
             },
         },
     });
@@ -4602,7 +4609,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
             ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
             : undefined;
-    const existingTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
+    const existingTransaction =
+        action === CONST.IOU.ACTION.SUBMIT
+            ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID}`]
+            : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
 
     const {
         payerAccountID,
