@@ -36,7 +36,7 @@ function SidePane() {
 
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop, sidePane} = useSidePane();
-    const {paddingTop} = useStyledSafeAreaInsets();
+    const {paddingTop, paddingBottom} = useStyledSafeAreaInsets();
 
     const onClose = useCallback(
         (shouldUpdateNarrow = false) => {
@@ -83,7 +83,9 @@ function SidePane() {
                     />
                 )}
             </View>
-            <Animated.View style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop}]}>
+            <Animated.View
+                style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop, paddingBottom}]}
+            >
                 <HeaderGap />
                 <HeaderWithBackButton
                     title={translate('common.help')}
