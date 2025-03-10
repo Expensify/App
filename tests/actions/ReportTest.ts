@@ -971,15 +971,17 @@ describe('actions/Report', () => {
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
         await waitForBatchedUpdates();
-        HttpUtils.xhr = mockedXhr.mockImplementationOnce(() => 
-            Promise.resolve({ 
-                jsonCode: CONST.JSON_CODE.EXP_ERROR, 
-            })
-        ).mockImplementation(() => 
-            Promise.resolve({ 
-                jsonCode: CONST.JSON_CODE.SUCCESS, 
-            })
-        );
+        HttpUtils.xhr = mockedXhr
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.EXP_ERROR,
+                }),
+            )
+            .mockImplementation(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                }),
+            );
 
         Report.deleteReportComment(REPORT_ID, reportAction);
 
