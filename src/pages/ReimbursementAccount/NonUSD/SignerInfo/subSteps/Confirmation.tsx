@@ -37,7 +37,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             },
         },
         {
-            title: values.directors.find((director) => director.directorID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY)?.occupation,
+            title: String(values.directors.find((director) => director.directorID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY)?.occupation),
             description: translate('signerInfoStep.occupation'),
             shouldShowRightIcon: true,
             onPress: () => {
