@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
@@ -571,16 +571,38 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
             >
-                {!!primaryAction && primaryActions[primaryAction]}
-                <ButtonWithDropdownMenu
-                    success={false}
-                    onPress={() => {}}
-                    shouldAlwaysShowDropdownMenu
-                    customText="More"
-                    options={applicableSecondaryActions}
-                    isSplitButton={false}
-                />
+                {!shouldUseNarrowLayout && (
+                    <View style={[styles.flexRow, styles.gap2]}>
+                        {!!primaryAction && primaryActions[primaryAction]}
+                        {!!secondaryActions.length && (
+                            <ButtonWithDropdownMenu
+                                success={false}
+                                onPress={() => {}}
+                                shouldAlwaysShowDropdownMenu
+                                customText="More"
+                                options={applicableSecondaryActions}
+                                isSplitButton={false}
+                            />
+                        )}
+                    </View>
+                )}
             </HeaderWithBackButton>
+            {shouldUseNarrowLayout && (
+                <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <View style={[styles.flexGrow4]}>{!!primaryAction && primaryActions[primaryAction]}</View>
+                    {!!secondaryActions.length && (
+                        <ButtonWithDropdownMenu
+                            success={false}
+                            onPress={() => {}}
+                            shouldAlwaysShowDropdownMenu
+                            customText="More"
+                            options={applicableSecondaryActions}
+                            isSplitButton={false}
+                            wrapperStyle={[!primaryAction && styles.flexGrow4]}
+                        />
+                    )}
+                </View>
+            )}
             {!!isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>
                     {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
