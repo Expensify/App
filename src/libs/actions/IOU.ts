@@ -1271,8 +1271,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         const date = new Date();
         const optimisticIOUReportAction = buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.PAY,
-            iou.report?.total ?? 0,
-            iou.report?.currency ?? '',
+            isScanRequest ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total ?? 0,
+            isScanRequest ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency ?? '',
             '',
             transaction.participants ?? [],
             '',

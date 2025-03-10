@@ -899,7 +899,7 @@ function IOURequestStepScan({
                     <View
                         onLayout={(e) => {
                             setElementTop(
-                                isSmallScreenWidth ? e.nativeEvent.layout.height : e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding),
+                                isSmallScreenWidth ? e.nativeEvent.layout.height - variables.tabSelectorButtonPadding : e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight + 2),
                             );
                         }}
                         style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
