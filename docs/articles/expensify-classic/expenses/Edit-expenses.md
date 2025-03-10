@@ -3,6 +3,8 @@ title: Edit Expenses
 description: Learn how to edit expenses in Expensify, including restrictions and permissions.
 ---
 
+<div id="expensify-classic" markdown="1">
+
 You can edit expenses in Expensify to update details like category, description, or attendees. However, some fields have restrictions based on the expense type and report status.
 
 ---
