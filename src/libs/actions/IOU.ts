@@ -61,6 +61,7 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getPerDiemCustomUnit, getPolicy, getSubmitToAccountID, hasDependentTags, isControlPolicy, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
+    getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleMessage,
     getOriginalMessage,
@@ -107,6 +108,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getOptimisticDataForParentReportAction,
     getOutstandingChildRequest,
+    getParsedComment,
     getPersonalDetailsForAccountID,
     getReportNameValuePairs,
     getReportOrDraftReport,
@@ -123,6 +125,7 @@ import {
     isInvoiceRoom,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOneOnOneChat,
+    isOneTransactionThread,
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
     isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
     isOptimisticPersonalDetail,
@@ -130,6 +133,7 @@ import {
     isPayer as isPayerReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isReportApproved,
+    isReportManager,
     isSelfDM,
     isSettled,
     isTrackExpenseReport,
@@ -161,7 +165,7 @@ import {
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
     removeSettledAndApprovedTransactions,
-    shouldShowBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -451,6 +455,29 @@ type CreateDistanceRequestInformation = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
+};
+
+type CreateSplitsTransactionParams = {
+    amount: number;
+    comment: string;
+    currency: string;
+    merchant: string;
+    created: string;
+    category: string;
+    tag: string;
+    splitShares: SplitShares;
+    billable?: boolean;
+    iouRequestType?: IOURequestType;
+    taxCode?: string;
+    taxAmount?: number;
+};
+
+type CreateSplitsAndOnyxDataParams = {
+    participants: Participant[];
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    existingSplitChatReportID?: string;
+    transactionParams: CreateSplitsTransactionParams;
 };
 
 type TrackExpenseTransactionParams = {
@@ -3540,6 +3567,15 @@ function getUpdateMoneyRequestParams(
             value: getOutstandingChildRequest(updatedMoneyRequestReport),
         },
     );
+    if (isOneTransactionThread(transactionThreadReportID, iouReport?.reportID, undefined)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                lastReadTime: updatedReportAction.created,
+            },
+        });
+    }
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -3943,13 +3979,16 @@ function updateMoneyRequestDate(
 
 /** Updates the billable field of an expense */
 function updateMoneyRequestBillable(
-    transactionID: string,
-    transactionThreadReportID: string,
+    transactionID: string | undefined,
+    transactionThreadReportID: string | undefined,
     value: boolean,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
+    if (!transactionID || !transactionThreadReportID) {
+        return;
+    }
     const transactionChanges: TransactionChanges = {
         billable: value,
     };
@@ -4158,8 +4197,9 @@ function updateMoneyRequestDescription(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
+    const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
-        comment,
+        comment: parsedComment,
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
@@ -4170,6 +4210,7 @@ function updateMoneyRequestDescription(
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
     }
     const {params, onyxData} = data;
+    params.description = parsedComment;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
 }
 
@@ -4455,6 +4496,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
+        description: transactionParams.comment,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -4515,6 +4557,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
+        description: transactionParams.comment,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -4526,6 +4569,8 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible} = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
+    const parsedComment = getParsedComment(transactionParams.comment ?? '');
+    transactionParams.comment = parsedComment;
     const {
         amount,
         currency,
@@ -4663,6 +4708,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 reimbursible,
+                description: parsedComment,
             };
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
@@ -4772,6 +4818,11 @@ function sendInvoice(
     companyName?: string,
     companyWebsite?: string,
 ) {
+    const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
+    if (transaction?.comment) {
+        // eslint-disable-next-line no-param-reassign
+        transaction.comment.comment = parsedComment;
+    }
     const {
         senderWorkspaceID,
         receiver,
@@ -4795,7 +4846,7 @@ function sendInvoice(
         accountID: currentUserAccountID,
         amount: transaction?.amount ?? 0,
         currency: transaction?.currency ?? '',
-        comment: transaction?.comment?.comment?.trim() ?? '',
+        comment: parsedComment,
         merchant: transaction?.merchant ?? '',
         category: transaction?.category,
         date: transaction?.created ?? '',
@@ -4807,6 +4858,7 @@ function sendInvoice(
         transactionThreadReportID,
         companyName,
         companyWebsite,
+        description: parsedComment,
         ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
     };
 
@@ -4829,6 +4881,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
     const {report, action, isDraftPolicy, participantParams, policyParams: policyData = {}, transactionParams: transactionData} = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
+    const parsedComment = getParsedComment(transactionData.comment ?? '');
+    transactionData.comment = parsedComment;
     const {
         amount,
         currency,
@@ -5031,6 +5085,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 createdReportActionIDForThread,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
+                description: parsedComment,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
@@ -5053,9 +5108,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
     notifyNewAction(activeReportID, payeeAccountID);
 }
 
-function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
+function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
-    const existingChatReportID = existingSplitChatReportID || participants.at(0)?.reportID;
+    const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
 
     // Check if the report is available locally if we do have one
     const existingSplitChatOnyxData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
@@ -5108,24 +5163,26 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
  * @param amount - always in the smallest unit of the currency
  * @param existingSplitChatReportID - the report ID where the split expense happens, could be a group chat or a workspace chat
  */
-function createSplitsAndOnyxData(
-    participants: Participant[],
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    amount: number,
-    comment: string,
-    currency: string,
-    merchant: string,
-    created: string,
-    category: string,
-    tag: string,
-    splitShares: SplitShares = {},
-    existingSplitChatReportID = '',
-    billable = false,
-    iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
-    taxCode = '',
-    taxAmount = 0,
-): SplitsAndOnyxData {
+function createSplitsAndOnyxData({
+    participants,
+    currentUserLogin,
+    currentUserAccountID,
+    existingSplitChatReportID,
+    transactionParams: {
+        amount,
+        comment,
+        currency,
+        merchant,
+        created,
+        category,
+        tag,
+        splitShares = {},
+        billable = false,
+        iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+        taxCode = '',
+        taxAmount = 0,
+    },
+}: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
@@ -5566,37 +5623,40 @@ function splitBill({
     tag = '',
     billable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
-    existingSplitChatReportID = '',
+    existingSplitChatReportID,
     splitShares = {},
     splitPayerAccountIDs = [],
     taxCode = '',
     taxAmount = 0,
 }: SplitBillActionsParams) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(
+    const parsedComment = getParsedComment(comment);
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData({
         participants,
         currentUserLogin,
         currentUserAccountID,
-        amount,
-        comment,
-        currency,
-        merchant,
-        created,
-        category,
-        tag,
-        splitShares,
         existingSplitChatReportID,
-        billable,
-        iouRequestType,
-        taxCode,
-        taxAmount,
-    );
+        transactionParams: {
+            amount,
+            comment: parsedComment,
+            currency,
+            merchant,
+            created,
+            category,
+            tag,
+            splitShares,
+            billable,
+            iouRequestType,
+            taxCode,
+            taxAmount,
+        },
+    });
 
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
         amount,
         splits: JSON.stringify(splits),
         currency,
-        comment,
+        comment: parsedComment,
         category,
         merchant,
         created,
@@ -5610,6 +5670,7 @@ function splitBill({
         splitPayerAccountIDs,
         taxCode,
         taxAmount,
+        description: parsedComment,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
@@ -5639,25 +5700,29 @@ function splitBillAndOpenReport({
     splitPayerAccountIDs = [],
     taxCode = '',
     taxAmount = 0,
+    existingSplitChatReportID,
 }: SplitBillActionsParams) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(
+    const parsedComment = getParsedComment(comment);
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData({
         participants,
         currentUserLogin,
         currentUserAccountID,
-        amount,
-        comment,
-        currency,
-        merchant,
-        created,
-        category,
-        tag,
-        splitShares,
-        '',
-        billable,
-        iouRequestType,
-        taxCode,
-        taxAmount,
-    );
+        existingSplitChatReportID,
+        transactionParams: {
+            amount,
+            comment: parsedComment,
+            currency,
+            merchant,
+            created,
+            category,
+            tag,
+            splitShares,
+            billable,
+            iouRequestType,
+            taxCode,
+            taxAmount,
+        },
+    });
 
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
@@ -5666,7 +5731,7 @@ function splitBillAndOpenReport({
         currency,
         merchant,
         created,
-        comment,
+        comment: parsedComment,
         category,
         tag,
         billable,
@@ -5678,6 +5743,7 @@ function splitBillAndOpenReport({
         splitPayerAccountIDs,
         taxCode,
         taxAmount,
+        description: parsedComment,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
@@ -5713,7 +5779,7 @@ function startSplitBill({
     currentUserAccountID,
     comment,
     receipt,
-    existingSplitChatReportID = '',
+    existingSplitChatReportID,
     billable = false,
     category = '',
     tag = '',
@@ -5725,6 +5791,7 @@ function startSplitBill({
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
     const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
+    const parsedComment = getParsedComment(comment);
 
     const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt;
     const receiptObject: Receipt = {state, source};
@@ -5735,7 +5802,7 @@ function startSplitBill({
             amount: 0,
             currency,
             reportID: CONST.REPORT.SPLIT_REPORTID,
-            comment,
+            comment: parsedComment,
             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
             receipt: receiptObject,
             category,
@@ -5753,7 +5820,7 @@ function startSplitBill({
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         0,
         CONST.CURRENCY.USD,
-        comment,
+        parsedComment,
         participants,
         splitTransaction.transactionID,
         undefined,
@@ -5990,7 +6057,7 @@ function startSplitBill({
         transactionID: splitTransaction.transactionID,
         splits: JSON.stringify(splits),
         receipt,
-        comment,
+        comment: parsedComment,
         category,
         tag,
         currency,
@@ -6000,6 +6067,7 @@ function startSplitBill({
         chatType: splitChatReport?.chatType,
         taxCode,
         taxAmount,
+        description: parsedComment,
     };
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
@@ -6023,6 +6091,11 @@ function completeSplitBill(
     sessionAccountID: number,
     sessionEmail?: string,
 ) {
+    const parsedComment = getParsedComment(updatedTransaction?.comment?.comment ?? '');
+    if (updatedTransaction?.comment) {
+        // eslint-disable-next-line no-param-reassign
+        updatedTransaction.comment.comment = parsedComment;
+    }
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(sessionEmail);
     const transactionID = updatedTransaction?.transactionID;
     const unmodifiedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -6149,7 +6222,7 @@ function completeSplitBill(
                 amount: isPolicyExpenseChat ? -splitAmount : splitAmount,
                 currency: currency ?? '',
                 reportID: oneOnOneIOUReport?.reportID,
-                comment: updatedTransaction?.comment?.comment,
+                comment: parsedComment,
                 created: updatedTransaction?.modifiedCreated,
                 merchant: updatedTransaction?.modifiedMerchant,
                 receipt: {...updatedTransaction?.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
@@ -6169,7 +6242,7 @@ function completeSplitBill(
                 CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 splitAmount,
                 currency ?? '',
-                updatedTransaction?.comment?.comment ?? '',
+                parsedComment,
                 currentUserEmailForIOUSplit,
                 [participant],
                 oneOnOneTransaction.transactionID,
@@ -6253,6 +6326,7 @@ function completeSplitBill(
         taxCode: transactionTaxCode,
         taxAmount: transactionTaxAmount,
         billable: transactionBillable,
+        description: parsedComment,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
@@ -6297,6 +6371,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         policyParams = {},
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList} = policyParams;
+    const parsedComment = getParsedComment(transactionParams.comment);
+    transactionParams.comment = parsedComment;
     const {amount, comment, currency, created, category, tag, taxAmount, taxCode, merchant, billable, validWaypoints, customUnitRateID = '', splitShares = {}} = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -6317,24 +6393,26 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             splitData,
             splits,
             onyxData: splitOnyxData,
-        } = createSplitsAndOnyxData(
+        } = createSplitsAndOnyxData({
             participants,
-            currentUserLogin ?? '',
+            currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
-            amount,
-            comment,
-            currency,
-            merchant,
-            created,
-            category ?? '',
-            tag ?? '',
-            splitShares,
-            report?.reportID,
-            billable,
-            CONST.IOU.REQUEST_TYPE.DISTANCE,
-            taxCode,
-            taxAmount,
-        );
+            existingSplitChatReportID: report?.reportID,
+            transactionParams: {
+                amount,
+                comment,
+                currency,
+                merchant,
+                created,
+                category: category ?? '',
+                tag: tag ?? '',
+                splitShares,
+                billable,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                taxCode,
+                taxAmount,
+            },
+        });
         onyxData = splitOnyxData;
 
         // Splits don't use the IOU report param. The split transaction isn't linked to a report shown in the UI, it's linked to a special default reportID of -2.
@@ -6355,6 +6433,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             billable,
             splits: JSON.stringify(splits),
             chatType: splitData.chatType,
+            description: parsedComment,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -6421,6 +6500,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             createdReportActionIDForThread,
             payerEmail,
             customUnitRateID,
+            description: parsedComment,
         };
     }
 
@@ -6591,6 +6671,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
             const message = updatedReportPreviewAction.message.at(0);
             if (message) {
                 message.text = messageText;
+                message.html = messageText;
                 message.deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
             }
         } else if (!Array.isArray(updatedReportPreviewAction.message) && updatedReportPreviewAction.message) {
@@ -7807,6 +7888,23 @@ function getReportFromHoldRequestsOnyxData(
     };
 }
 
+function hasOutstandingChildRequest(chatReport: OnyxTypes.Report, excludedIOUReport: OnyxEntry<OnyxTypes.Report>, policyId?: string) {
+    const policy = getPolicy(policyId);
+    if (!policy?.achAccount?.bankAccountID) {
+        return false;
+    }
+    const reportActions = getAllReportActions(chatReport.reportID);
+    return !!Object.values(reportActions).find((action) => {
+        const iouReportID = getIOUReportIDFromReportActionPreview(action);
+        if (iouReportID === excludedIOUReport?.reportID) {
+            return false;
+        }
+        const iouReport = getReportOrDraftReport(iouReportID);
+        const transactions = getReportTransactions(iouReportID);
+        return canIOUBePaid(iouReport, chatReport, policy, transactions) || canIOUBePaid(iouReport, chatReport, policy, transactions, true);
+    });
+}
+
 function getPayMoneyRequestParams(
     initialChatReport: OnyxTypes.Report,
     iouReport: OnyxEntry<OnyxTypes.Report>,
@@ -7893,7 +7991,7 @@ function getPayMoneyRequestParams(
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        hasOutstandingChildRequest: false,
+        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport, iouReport?.policyID),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
@@ -8160,6 +8258,16 @@ function canApproveIOU(
     return reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isPayAtEndExpenseReport;
 }
 
+function canUnapproveIOU(iouReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
+    return (
+        isExpenseReport(iouReport) &&
+        (isReportManager(iouReport) || isPolicyAdmin(policy)) &&
+        isReportApproved({report: iouReport}) &&
+        !isSubmitAndClose(policy) &&
+        !iouReport?.isWaitingOnBankAccount
+    );
+}
+
 function canIOUBePaid(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
@@ -8231,6 +8339,10 @@ function canIOUBePaid(
     );
 }
 
+function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>) {
+    return isPayerReportUtils(session, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
+}
+
 function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
@@ -8243,7 +8355,7 @@ function canSubmitReport(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
-    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDList, report, policy, allViolations);
+    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDList, report, policy, allViolations);
 
     const hasOnlyPendingCardOrScanFailTransactions =
         transactions.length > 0 &&
@@ -8471,6 +8583,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         optimisticHoldReportExpenseActionIDs,
     };
 
+    playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
@@ -8759,6 +8872,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                isWaitingOnBankAccount: false,
                 lastVisibleActionCreated: optimisticReportAction?.created,
                 lastMessageText: getReportActionText(optimisticReportAction),
                 lastMessageHtml: getReportActionHtml(optimisticReportAction),
@@ -8801,6 +8915,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
             },
         },
     ];
@@ -9934,8 +10049,10 @@ export {
     getNextApproverAccountID,
     approveMoneyRequest,
     canApproveIOU,
+    canUnapproveIOU,
     cancelPayment,
     canIOUBePaid,
+    canCancelPayment,
     cleanUpMoneyRequest,
     clearMoneyRequest,
     completeSplitBill,
