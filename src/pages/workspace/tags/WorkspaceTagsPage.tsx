@@ -42,6 +42,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     getCleanedTagName,
+    getCountOfEnabledTagsOfList,
     getCurrentConnectionName,
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
@@ -72,6 +73,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const [showCannotDisableLastTagModal, setShowCannotDisableLastTagModal] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
@@ -109,12 +111,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     });
 
     const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
-        if (!policyTagList) {
+        if (!policyTagList ?? !policyTagList.tags) {
             return undefined;
         }
-        return (policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
-            : undefined;
+
+        return (
+            (policyTagList.pendingAction as PendingAction) ??
+            (Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined)
+        );
     };
 
     const updateWorkspaceTagEnabled = useCallback(
@@ -156,6 +160,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             accessibilityLabel={translate('workspace.tags.requiresTag')}
                             onToggle={(newValue: boolean) => updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight)}
                             disabled={isSwitchDisabled}
+                            showLockIcon={getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && policy?.requiresTag && isSwitchEnabled}
                         />
                     ),
                 };
@@ -176,11 +181,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     isOn={tag.enabled}
                     disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                     accessibilityLabel={translate('workspace.tags.enableTag')}
-                    onToggle={(newValue: boolean) => updateWorkspaceTagEnabled(newValue, tag.name)}
+                    onToggle={(newValue: boolean) => {
+                        if (policy?.requiresTag && getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && !newValue) {
+                            setShowCannotDisableLastTagModal(true);
+                            return;
+                        }
+                        updateWorkspaceTagEnabled(newValue, tag.name);
+                    }}
+                    showLockIcon={getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && policy?.requiresTag && tag.enabled}
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
+    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled, policy?.requiresTag]);
 
     const tagListKeyedByName = useMemo(
         () =>
@@ -303,11 +315,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         if (enabledTagCount > 0) {
+            const tagsToDisableCount = Object.keys(tagsToDisable).length;
+            const enabledTagsCount = getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags);
             options.push({
                 icon: Expensicons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
+                    if (tagsToDisableCount === enabledTagsCount && policy?.requiresTag) {
+                        setShowCannotDisableLastTagModal(true);
+                        return;
+                    }
                     setSelectedTags({});
                     setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
                 },
@@ -337,6 +355,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTagsArray.length}
+                testID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
             />
         );
     };
@@ -487,6 +506,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         showScrollIndicator={false}
                     />
                 )}
+
+                <ConfirmModal
+                    isVisible={showCannotDisableLastTagModal}
+                    onConfirm={() => setShowCannotDisableLastTagModal(false)}
+                    onCancel={() => setShowCannotDisableLastTagModal(false)}
+                    title={translate('workspace.tags.cannotDisableAllTags.title')}
+                    prompt={translate('workspace.tags.cannotDisableAllTags.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
 
                 <ConfirmModal
                     isVisible={isOfflineModalVisible}
