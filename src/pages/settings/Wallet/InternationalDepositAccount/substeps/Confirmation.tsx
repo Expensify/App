@@ -12,6 +12,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -91,7 +92,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         },
         {
             description: translate('common.currency'),
-            title: formValues.bankCurrency,
+            title: `${formValues.bankCurrency} - ${getCurrencySymbol(formValues.bankCurrency)}`,
             shouldShowRightIcon: !isOffline,
             onPress: () => {
                 onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS);
