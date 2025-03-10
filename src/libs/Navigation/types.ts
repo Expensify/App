@@ -1764,6 +1764,12 @@ type SharedScreensParamList = {
     };
 };
 
+type ShareNavigatorParamList = {
+    [SCREENS.SHARE.ROOT]: undefined;
+    [SCREENS.SHARE.SHARE_DETAILS]: {reportOrAccountID: string};
+    [SCREENS.SHARE.SUBMIT_DETAILS]: {reportOrAccountID: string};
+};
+
 type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
@@ -1823,6 +1829,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         isFromReviewDuplicates?: string;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
+    [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
 };
 
@@ -1963,6 +1970,7 @@ export type {
     ReportSettingsNavigatorParamList,
     ReportsSplitNavigatorParamList,
     RestrictedActionParamList,
+    ShareNavigatorParamList,
     RightModalNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootNavigatorParamList,
