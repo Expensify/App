@@ -74,9 +74,10 @@ function getContextualSearchQuery(item: SearchQueryItem) {
 type SearchRouterProps = {
     onRouterClose: () => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
+    isSearchRouterDisplayed?: boolean;
 };
 
-function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, ref: React.Ref<View>) {
+function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
@@ -110,6 +111,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
 
             // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
+                return undefined;
+            }
+
+            if (!isSearchRouterDisplayed) {
                 return undefined;
             }
 
@@ -159,7 +164,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate],
+        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed],
     );
 
     const searchQueryItem = textInputValue
@@ -269,14 +274,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                     submitSearch(item.searchQuery);
                 }
             } else {
-                onRouterClose();
-
                 KeyboardUtils.dismiss().then(() => {
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
                     } else if ('login' in item) {
                         navigateToAndOpenReport(item.login ? [item.login] : [], false);
                     }
+                    setTimeout(() => {
+                        onRouterClose();
+                    }, 0);
                 });
             }
         },
