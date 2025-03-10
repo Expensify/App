@@ -553,6 +553,7 @@ type TransactionDetails = {
     billable: boolean;
     tag: string;
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+    description?: string;
     cardID: number;
     originalAmount: number;
     originalCurrency: string;
@@ -3507,6 +3508,7 @@ function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, creat
 function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comment {
     return {
         ...transaction?.comment,
+        comment: Parser.htmlToMarkdown(transaction?.comment?.comment ?? ''),
         waypoints: getWaypoints(transaction),
     };
 }
@@ -4454,6 +4456,14 @@ function getReportNameInternal({
         return getIOUUnapprovedMessage(parentReportAction);
     }
 
+    if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
+        return translateLocal('parentReportAction.deletedTask');
+    }
+
+    if (isTaskReport(report)) {
+        return Parser.htmlToText(report?.reportName ?? '');
+    }
+
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
@@ -4512,15 +4522,11 @@ function getReportNameInternal({
         return translateLocal('parentReportAction.deletedReport');
     }
 
-    if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
-        return translateLocal('parentReportAction.deletedTask');
-    }
-
     if (isGroupChat(report)) {
         return getGroupChatName(undefined, true, report) ?? '';
     }
 
-    if (isChatRoom(report) || isTaskReport(report)) {
+    if (isChatRoom(report)) {
         formattedName = report?.reportName;
     }
 
@@ -6363,7 +6369,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: changelog,
-                html: description ? getParsedComment(changelog) : changelog,
+                html: getParsedComment(changelog),
             },
         ],
         person: [
@@ -6715,7 +6721,7 @@ function buildOptimisticTaskReport(
 
     return {
         reportID: generateReportID(),
-        reportName: title,
+        reportName: getParsedComment(title ?? ''),
         description: getParsedComment(description ?? ''),
         ownerAccountID,
         participants,
