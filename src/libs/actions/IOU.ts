@@ -72,6 +72,7 @@ import {
     getTrackExpenseActionableWhisper,
     isActionableTrackExpense,
     isCreatedAction,
+    isDeletedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
     isReportPreviewAction,
@@ -712,7 +713,7 @@ function getReportPreviewAction(chatReportID: string | undefined, iouReportID: s
     return (
         Object.values(reportActions).find(
             (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> =>
-                reportAction && isReportPreviewAction(reportAction) && getOriginalMessage(reportAction)?.linkedReportID === iouReportID,
+                reportAction && isReportPreviewAction(reportAction) && getOriginalMessage(reportAction)?.linkedReportID === iouReportID && !isDeletedAction(reportAction),
         ) ?? null
     );
 }
