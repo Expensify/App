@@ -13,7 +13,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -211,8 +210,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         isCreateMenuActive && (!shouldUseNarrowLayout || isFocused),
     );
 
-    const {activeWorkspaceID} = useActiveWorkspace();
-    const defaultWorkspace = allPolicies?.[activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID];
     const groupPoliciesWithChatEnabled = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies as OnyxCollection<OnyxTypes.Policy>), []);
 
     /**
@@ -486,8 +483,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                               }
 
                               // If the users default workspace is paid group workspace with chat enabled, we create a report with it by default
-                              if (defaultWorkspace && defaultWorkspace.isPolicyExpenseChatEnabled && isPaidGroupPolicy(defaultWorkspace as OnyxTypes.Policy)) {
-                                  const createdReportID = createNewReport(currentUserPersonalDetails, defaultWorkspace?.id);
+                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                  const createdReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
                                   Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                   return;
                               }
