@@ -27,6 +27,10 @@ export default {
         margin: 20,
     },
 
+    mAuto: {
+        margin: 'auto',
+    },
+
     mh0: {
         marginHorizontal: 0,
     },

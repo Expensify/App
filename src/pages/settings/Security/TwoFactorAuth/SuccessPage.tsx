@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {openLink} from '@userActions/Link';
@@ -20,6 +21,14 @@ function SuccessPage({route}: SuccessPageProps) {
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 
+    const goBack = useCallback(() => {
+        if (route.params?.backTo === ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
+            Navigation.dismissModal();
+            return;
+        }
+        quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
+    }, [route.params?.backTo]);
+
     return (
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS}
@@ -28,6 +37,7 @@ function SuccessPage({route}: SuccessPageProps) {
                 step: 3,
                 text: translate('twoFactorAuth.stepSuccess'),
             }}
+            onBackButtonPress={goBack}
         >
             <ConfirmationPage
                 illustration={LottieAnimations.Fireworks}
@@ -36,8 +46,7 @@ function SuccessPage({route}: SuccessPageProps) {
                 shouldShowButton
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={() => {
-                    quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
-
+                    goBack();
                     if (route.params?.forwardTo) {
                         openLink(route.params.forwardTo, environmentURL);
                     }
