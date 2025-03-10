@@ -11,11 +11,30 @@ import DateUtils from './DateUtils';
 import Navigation from './Navigation/Navigation';
 import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from './Navigation/types';
-import * as ReportActionsUtils from './ReportActionsUtils';
-import * as ReportUtils from './ReportUtils';
+import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
+import {canEditMoneyRequest, isIOUReport, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import * as TransactionUtils from './TransactionUtils';
+import {
+    compareDuplicateTransactionFields,
+    getFormattedCreated,
+    hasMissingSmartscanFields,
+    hasNoticeTypeViolation,
+    hasPendingRTERViolation,
+    hasReceipt,
+    hasViolation,
+    hasWarningTypeViolation,
+    isAmountMissing,
+    isCardTransaction,
+    isCreatedMissing,
+    isDistanceRequest,
+    isFetchingWaypointsFromServer,
+    isMerchantMissing,
+    isOnHold,
+    isPending,
+    isPerDiemRequest,
+    isReceiptBeingScanned,
+} from './TransactionUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
@@ -34,7 +53,7 @@ function getIOUData(managerID: number, ownerAccountID: number, reportID: string 
     return {
         from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
         to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
-        isIOU: reportID ? ReportUtils.isIOUReport(reportID) : false,
+        isIOU: reportID ? isIOUReport(reportID) : false,
     };
 }
 
@@ -46,13 +65,13 @@ const navigateToReviewFields = (
 ) => {
     const backTo = route.params.backTo;
 
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const reviewingTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const reviewingTransactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
     // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
     abandonReviewDuplicateTransactions();
-    const comparisonResult = TransactionUtils.compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
+    const comparisonResult = compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
     setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
 
     if ('merchant' in comparisonResult.change) {
@@ -93,27 +112,24 @@ function createTransactionPreviewText({
     isBillSplit: boolean;
     shouldShowRBR: boolean;
 }) {
-    const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
-    const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
-    const isSettled = ReportUtils.isSettled(iouReport?.reportID);
+    const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
+    const isTransactionOnHold = isOnHold(transaction);
+    const isTransactionMadeWithCard = isCardTransaction(transaction);
+    const isMoneyRequestSettled = isSettled(iouReport?.reportID);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
-    const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const isPerDiemRequest = TransactionUtils.isPerDiemRequest(transaction);
+    const isPartialHold = isSettlementOrApprovalPartial && isTransactionOnHold;
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
-    const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
-    const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
-    const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
-    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
-    const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID, violations, true) && ReportUtils.isPaidGroupPolicy(iouReport);
+    const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
+    const showCashOrCard = isTransactionMadeWithCard ? translate('iou.card') : translate('iou.cash');
+    const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
+    const hasFieldErrors = hasMissingSmartscanFields(transaction);
+    const isIOUActionType = isMoneyRequestAction(action);
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction?.transactionID, violations, true) && isPaidGroupPolicy(iouReport);
 
     const {amount: requestAmount, currency: requestCurrency} = transactions;
 
     const getSettledMessage = (): string => {
-        if (isCardTransaction) {
+        if (isTransactionMadeWithCard) {
             return translate('common.done');
         }
         return translate('iou.settledExpensify');
@@ -131,7 +147,7 @@ function createTransactionPreviewText({
         const firstViolation = violations?.at(0);
 
         if (firstViolation) {
-            const canEdit = isMoneyRequestAction && ReportUtils.canEditMoneyRequest(action, transaction);
+            const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction);
             const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
             const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
             const isTooLong = violationsCount > 1 || violationMessage.length > 15;
@@ -141,15 +157,15 @@ function createTransactionPreviewText({
         }
 
         if (hasFieldErrors) {
-            const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
-            const isAmountMissing = TransactionUtils.isAmountMissing(transaction);
-            if (isAmountMissing && isMerchantMissing) {
+            const merchantMissing = isMerchantMissing(transaction);
+            const amountMissing = isAmountMissing(transaction);
+            if (amountMissing && merchantMissing) {
                 return translate('violations.reviewRequired');
             }
-            if (isAmountMissing) {
+            if (amountMissing) {
                 return translate('iou.missingAmount');
             }
-            if (isMerchantMissing) {
+            if (merchantMissing) {
                 return translate('iou.missingMerchant');
             }
         }
@@ -160,9 +176,9 @@ function createTransactionPreviewText({
     const getPreviewHeaderText = (): string => {
         let message = showCashOrCard;
 
-        if (isDistanceRequest) {
+        if (isDistanceRequest(transaction)) {
             message = translate('common.distance');
-        } else if (isPerDiemRequest) {
+        } else if (isPerDiemRequest(transaction)) {
             message = translate('common.perDiem');
         } else if (isScanning) {
             message = translate('common.receipt');
@@ -170,21 +186,21 @@ function createTransactionPreviewText({
             message = translate('iou.split');
         }
 
-        if (!TransactionUtils.isCreatedMissing(transaction)) {
-            const created = TransactionUtils.getFormattedCreated(transaction);
+        if (!isCreatedMissing(transaction)) {
+            const created = getFormattedCreated(transaction);
             const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
             message = `${date} ${CONST.DOT_SEPARATOR} ${message}`;
         }
 
-        if (TransactionUtils.isPending(transaction)) {
+        if (isPending(transaction)) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
 
-        if (TransactionUtils.hasPendingRTERViolation(violations)) {
+        if (hasPendingRTERViolation(violations)) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
         }
 
-        if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
+        if (isMoneyRequestSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
             return message;
         }
@@ -193,14 +209,9 @@ function createTransactionPreviewText({
             return message;
         }
 
-        if (hasNoticeTypeViolations && transaction && !ReportUtils.isReportApproved({report: iouReport}) && !ReportUtils.isSettled(iouReport?.reportID)) {
+        if (hasViolationsOfTypeNotice && transaction && !isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID)) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.reviewRequired')}`;
-        } else if (
-            ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) &&
-            ReportUtils.isReportApproved({report: iouReport}) &&
-            !ReportUtils.isSettled(iouReport?.reportID) &&
-            !isPartialHold
-        ) {
+        } else if (isPaidGroupPolicyExpenseReport(iouReport) && isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID) && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
@@ -215,7 +226,7 @@ function createTransactionPreviewText({
             return translate('iou.receiptStatusTitle');
         }
 
-        if (isFetchingWaypointsFromServer && !requestAmount) {
+        if (isFetchingWaypoints && !requestAmount) {
             return translate('iou.fieldPending');
         }
 
@@ -223,9 +234,7 @@ function createTransactionPreviewText({
     };
 
     const getDisplayDeleteAmountText = (): string => {
-        const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = ReportActionsUtils.isMoneyRequestAction(action)
-            ? ReportActionsUtils.getOriginalMessage(action) ?? undefined
-            : undefined;
+        const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = isMoneyRequestAction(action) ? getOriginalMessage(action) ?? undefined : undefined;
         return convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency);
     };
 
@@ -246,7 +255,7 @@ function createTransactionPreviewConditionals({
     violations,
     transactions,
     isBillSplit,
-    isPolicyExpenseChat,
+    isReportAPolicyExpenseChat,
     areThereDuplicates,
 }: {
     iouReport: OnyxInputValue<OnyxTypes.Report> | undefined;
@@ -256,39 +265,41 @@ function createTransactionPreviewConditionals({
     violations: OnyxTypes.TransactionViolations;
     transactions: Partial<TransactionDetails>;
     isBillSplit: boolean;
-    isPolicyExpenseChat: boolean;
+    isReportAPolicyExpenseChat: boolean;
     areThereDuplicates: boolean;
 }) {
     const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactions;
 
-    const hasReceipt = TransactionUtils.hasReceipt(transaction);
-    const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    // const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
 
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
 
-    const isSettled = ReportUtils.isSettled(iouReport?.reportID);
-    const isApproved = ReportUtils.isReportApproved({report: iouReport});
+    const isMoneyRequestSettled = isSettled(iouReport?.reportID);
+    const isApproved = isReportApproved({report: iouReport});
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
 
-    const hasViolations = TransactionUtils.hasViolation(transaction, violations, true);
-    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID, violations, true) && iouReport && ReportUtils.isPaidGroupPolicy(iouReport);
-    const hasWarningTypeViolations = TransactionUtils.hasWarningTypeViolation(transaction?.transactionID, violations, true);
-    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction?.transactionID, violations, true) && iouReport && isPaidGroupPolicy(iouReport);
+    const hasFieldErrors = hasMissingSmartscanFields(transaction);
 
-    const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
-    const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
+    const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
+    const isTransactionMadeWithCard = isCardTransaction(transaction);
 
-    const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
+    const isTransactionOnHold = isOnHold(transaction);
+    const isFullySettled = isMoneyRequestSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
-    const shouldShowSkeleton = isEmptyObject(transaction) && !ReportActionsUtils.isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const shouldShowTag = !!tag && isPolicyExpenseChat;
-    const shouldShowCategory = !!category && isPolicyExpenseChat;
-    const shouldShowRBR = (hasNoticeTypeViolations ?? hasWarningTypeViolations) || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
-    const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
+    const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
+    const shouldShowCategory = !!category && isReportAPolicyExpenseChat;
+
+    const hasAnyViolations = (hasViolationsOfTypeNotice ?? hasWarningTypeViolation(transaction?.transactionID, violations, true)) || hasViolation(transaction, violations, true);
+    const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
+    const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold;
+
+    const showCashOrCard = isTransactionMadeWithCard ? translate('iou.card') : translate('iou.cash');
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = areThereDuplicates;
     const shouldShowSplitShare = isBillSplit && !!requestAmount && requestAmount > 0;
@@ -303,7 +314,7 @@ function createTransactionPreviewConditionals({
         !!requestMerchant &&
         requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
         requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
-        !(isFetchingWaypointsFromServer && !requestAmount);
+        !(isFetchingWaypoints && !requestAmount);
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning;
 
     return {
