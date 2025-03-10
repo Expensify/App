@@ -17,6 +17,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePane from '@hooks/useSidePane';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -76,6 +77,7 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isScreenFocused, setIsScreenFocused] = useState(false);
+    const {shouldHideHelpButton} = useSidePane();
 
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
@@ -350,7 +352,7 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
             />
         ) : (
             <EducationalTooltip
-                shouldRender={shouldShowProductTrainingTooltip}
+                shouldRender={shouldShowProductTrainingTooltip && !shouldHideHelpButton}
                 anchorAlignment={{
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -370,17 +372,18 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
         );
     }, [
         headerButtonsOptions,
-        onFiltersButtonPress,
-        renderProductTrainingTooltip,
+        shouldUseNarrowLayout,
+        selectionMode?.isEnabled,
+        translate,
         selectedTransactionsKeys.length,
         shouldShowProductTrainingTooltip,
-        styles.bgTransparent,
-        styles.borderNone,
+        shouldHideHelpButton,
         styles.productTrainingTooltipWrapper,
         styles.searchAutocompleteInputResults,
-        translate,
-        selectionMode,
-        shouldUseNarrowLayout,
+        styles.borderNone,
+        styles.bgTransparent,
+        renderProductTrainingTooltip,
+        onFiltersButtonPress,
     ]);
 
     if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
