@@ -40,7 +40,7 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
-    const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionID);
+    const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
 
     const {
         amount: transactionAmount,

@@ -4720,7 +4720,7 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 2,
             borderColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
-            height: 200,
+            height: 180,
             maxWidth: 400,
         },
 

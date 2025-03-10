@@ -1,11 +1,11 @@
 import {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
 import * as MCCIcons from '@components/Icon/MCCIcons';
+import type {TransactionListItemType} from '@components/SelectionList/types';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getTripEReceiptIcon} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 import useStyleUtils from './useStyleUtils';
 
 const backgroundImages = {
@@ -17,19 +17,18 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-export default function useEReceipt(transactionID: string | undefined, fileExtension?: string, isReceiptThumbnail?: boolean) {
+export default function useEReceipt(transactionData: Transaction | TransactionListItemType | undefined, fileExtension?: string, isReceiptThumbnail?: boolean) {
     const StyleUtils = useStyleUtils();
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction);
+    const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transactionData);
     const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
     const titleColor = colorStyles?.titleColor;
-    const transactionDetails = getTransactionDetails(transaction);
+    const transactionDetails = getTransactionDetails(transactionData);
     const transactionMCCGroup = transactionDetails?.mccGroup;
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
-    const tripIcon = getTripEReceiptIcon(transaction);
+    const tripIcon = getTripEReceiptIcon(transactionData);
 
     const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
 
