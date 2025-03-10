@@ -20,19 +20,23 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     const {translate} = useLocalize();
 
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop} = useSidePane();
 
     const {route, isInNarrowPaneModal} = useNavigationState((state) => {
         const params = (findFocusedRoute(state)?.params as Record<string, string>) ?? {};
         const activeRoute = Navigation.getActiveRouteWithoutParams();
         return {route: substituteRouteParameters(activeRoute, params), isInNarrowPaneModal: state.routes.some((r) => r.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)};
     });
+    const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop, sidePane} = useSidePane();
 
     const onClose = useCallback(
         (shouldUpdateNarrow = false) => {
+            if (!sidePane) {
+                return;
+            }
+
             triggerSidePane(false, {shouldOnlyUpdateNarrowLayout: !isExtraLargeScreenWidth || shouldUpdateNarrow});
         },
-        [isExtraLargeScreenWidth],
+        [isExtraLargeScreenWidth, sidePane],
     );
 
     const sizeChangedFromLargeToNarrow = useRef(!isExtraLargeScreenWidth);
