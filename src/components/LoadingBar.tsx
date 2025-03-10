@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
+import CONST from '@src/CONST';
 
 type LoadingBarProps = {
     // Whether to show the loading bar
@@ -18,17 +19,17 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
     useEffect(() => {
         if (shouldShow && !isAnimating.get()) {
             isAnimating.set(true);
-            opacity.set(withTiming(1, {duration: 300}));
+            opacity.set(withTiming(1, {duration: CONST.TIMING.SKELETON_FADE_DURATION}));
 
             left.set(
-                withTiming(100, {duration: 1200}, () => {
+                withTiming(100, {duration: CONST.TIMING.SKELETON_SLIDE_DURATION}, () => {
                     requestAnimationFrame(() => {
                         if (shouldShow) {
                             left.set(-30);
-                            left.set(withTiming(100, {duration: 1200}));
+                            left.set(withTiming(100, {duration: CONST.TIMING.SKELETON_SLIDE_DURATION}));
                         } else {
                             opacity.set(
-                                withTiming(0, {duration: 300}, () => {
+                                withTiming(0, {duration: CONST.TIMING.SKELETON_FADE_DURATION}, () => {
                                     isAnimating.set(false);
                                 }),
                             );
@@ -38,7 +39,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
             );
         } else if (!shouldShow) {
             opacity.set(
-                withTiming(0, {duration: 300}, () => {
+                withTiming(0, {duration: CONST.TIMING.SKELETON_FADE_DURATION}, () => {
                     isAnimating.set(false);
                 }),
             );
@@ -61,5 +62,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
         </View>
     );
 }
+
+LoadingBar.displayName = 'LoadingBar';
 
 export default LoadingBar;
