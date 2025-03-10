@@ -259,7 +259,7 @@ function createTransactionPreviewConditionals({
     areThereDuplicates,
 }: {
     iouReport: OnyxInputValue<OnyxTypes.Report> | undefined;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
     translate: LocaleContextProps['translate'];
     action: OnyxTypes.ReportAction;
     violations: OnyxTypes.TransactionViolations;
@@ -270,7 +270,6 @@ function createTransactionPreviewConditionals({
 }) {
     const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactions;
 
-    // const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
 
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -295,7 +294,8 @@ function createTransactionPreviewConditionals({
     const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
     const shouldShowCategory = !!category && isReportAPolicyExpenseChat;
 
-    const hasAnyViolations = (hasViolationsOfTypeNotice ?? hasWarningTypeViolation(transaction?.transactionID, violations, true)) || hasViolation(transaction, violations, true);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const hasAnyViolations = hasViolationsOfTypeNotice || hasWarningTypeViolation(transaction?.transactionID, violations, true) || hasViolation(transaction, violations, true);
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold;
 
