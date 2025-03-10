@@ -14,7 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyFeeds} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -95,12 +95,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
 
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
+    const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
+
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {
             return;
         }
         setIsOrganizeWarningModalOpen(true);
     }, [hasAccountingConnection]);
+
+    const onDisabledWorkflowPress = useCallback(() => {}, []);
 
     const spendItems: Item[] = [
         {
@@ -184,6 +190,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enablePolicyWorkflows(policyID, isEnabled);
             },
+            disabled: isSmartLimitEnabled,
+            disabledAction: onDisabledWorkflowPress,
         },
         {
             icon: Illustrations.Rules,
