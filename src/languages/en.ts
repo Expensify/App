@@ -1966,8 +1966,8 @@ const translations = {
         noAccess: "That chat doesn't exist or you don't have access to it. Try using search to find a chat.",
         goBackHome: 'Go back to home page',
     },
-    pageError: {
-        title: 'Oops... Something went wrong.',
+    errorPage: {
+        title: ({isBreakline}: {isBreakline: boolean}) => `Oops... ${isBreakline ? '\n' : ''}Something went wrong`,
         subtitle: 'Your request could not be completed. Please try again later.',
     },
     setPasswordPage: {

@@ -9,6 +9,7 @@ import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -157,6 +158,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const previousReportActions = usePrevious(reportActions);
+    const {translate} = useLocalize();
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -389,6 +391,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
                 <FullPageErrorView
                     shouldShow
                     subtitleStyle={styles.textSupporting}
+                    title={translate('errorPage.title', {isBreakline: !!shouldUseNarrowLayout})}
+                    subtitle={translate('errorPage.subtitle')}
                 />
             </View>
         );

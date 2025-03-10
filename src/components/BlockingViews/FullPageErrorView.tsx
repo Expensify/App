@@ -2,10 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle} from 'react-native';
 import * as Illustrations from '@components/Icon/Illustrations';
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import type {TranslationPaths} from '@src/languages/types';
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
@@ -19,11 +17,15 @@ type FullPageErrorViewProps = {
     /** If true, child components are replaced with a blocking "error page" view */
     shouldShow?: boolean;
 
-    /** The key in the translations file to use for the title */
-    titleKey?: TranslationPaths;
+    /**
+     * The title text to be displayed.
+     */
+    title?: string;
 
-    /** The key in the translations file to use for the subtitle. Pass an empty key to not show the subtitle. */
-    subtitleKey?: TranslationPaths | '';
+    /**
+     * The subtitle text to be displayed.
+     */
+    subtitle?: string;
 
     /** Whether we should force the full page view */
     shouldForceFullScreen?: boolean;
@@ -33,17 +35,8 @@ type FullPageErrorViewProps = {
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function FullPageErrorView({
-    testID,
-    children = null,
-    shouldShow = false,
-    titleKey = 'pageError.title',
-    subtitleKey = 'pageError.subtitle',
-    shouldForceFullScreen = false,
-    subtitleStyle,
-}: FullPageErrorViewProps) {
+function FullPageErrorView({testID, children = null, shouldShow = false, title = '', subtitle = '', shouldForceFullScreen = false, subtitleStyle}: FullPageErrorViewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
 
     if (shouldShow) {
         return (
@@ -56,8 +49,8 @@ function FullPageErrorView({
                         icon={Illustrations.BrokenMagnifyingGlass}
                         iconWidth={variables.errorPageIconWidth}
                         iconHeight={variables.errorPageIconHeight}
-                        title={translate(titleKey)}
-                        subtitle={subtitleKey && translate(subtitleKey)}
+                        title={title}
+                        subtitle={subtitle}
                         subtitleStyle={subtitleStyle}
                     />
                 </View>

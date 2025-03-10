@@ -1971,8 +1971,8 @@ const translations = {
         goBackHome: 'Volver a la página principal',
     },
     pageError: {
-        title: 'Uy... Algo salió mal.',
-        subtitle: 'No se ha podido completar su solicitud. Vuelva a intentarlo más tarde.',
+        title: 'Uy... Algo salió mal',
+        subtitle: 'No se ha podido completar su solicitud. Vuelva a intentarlo más tarde',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
