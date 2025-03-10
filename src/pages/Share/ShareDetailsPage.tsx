@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {showErrorAlert} from './ShareRootPage';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 
@@ -152,6 +153,9 @@ function ShareDetailsPage({
                                             source={currentAttachment?.content ?? ''}
                                             aspectRatio={currentAttachment?.aspectRatio}
                                             onPress={show}
+                                            onLoadError={() => {
+                                                showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                                            }}
                                         />
                                     )}
                                 </AttachmentModal>

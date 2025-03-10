@@ -27,6 +27,7 @@ function showErrorAlert(title: string, message: string) {
             },
         },
     ]);
+    Navigation.navigate(ROUTES.HOME);
 }
 
 function ShareRootPage() {

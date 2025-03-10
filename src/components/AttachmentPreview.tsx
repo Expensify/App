@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import {ResizeMode, Video} from 'expo-av';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -9,6 +9,7 @@ import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmen
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import ImageView from './ImageView';
+import PDFThumbnail from './PDFThumbnail';
 import {PressableWithFeedback} from './Pressable';
 
 type AttachmentPreviewProps = {
@@ -20,13 +21,17 @@ type AttachmentPreviewProps = {
 
     /** Function to call when pressing thumbnail */
     onPress: () => void;
+
+    /** The attachment load error callback */
+    onLoadError?: () => void;
 };
 
-function AttachmentPreview({source, aspectRatio = 1, onPress}: AttachmentPreviewProps) {
+function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: AttachmentPreviewProps) {
     const styles = useThemeStyles();
 
     const fileName = source.split('/').pop() ?? undefined;
     const fillStyle = aspectRatio < 1 ? styles.h100 : styles.w100;
+    const [isEncryptedPDF, setIsEncryptedPDF] = useState(false);
 
     if (typeof source === 'string' && Str.isVideo(source)) {
         return (
@@ -46,6 +51,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress}: AttachmentPreview
                     useNativeControls={false}
                     resizeMode={ResizeMode.CONTAIN}
                     isLooping={false}
+                    onError={onLoadError}
                 />
                 <View style={[styles.h100, styles.w100, styles.pAbsolute, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <View style={styles.videoThumbnailPlayButton}>
@@ -79,6 +85,16 @@ function AttachmentPreview({source, aspectRatio = 1, onPress}: AttachmentPreview
                     />
                 </View>
             </PressableWithFeedback>
+        );
+    }
+
+    if (typeof source === 'string' && Str.isPDF(source) && !isEncryptedPDF) {
+        return (
+            <PDFThumbnail
+                previewSourceURL={source}
+                onLoadError={onLoadError}
+                onPassword={() => setIsEncryptedPDF(true)}
+            />
         );
     }
 
