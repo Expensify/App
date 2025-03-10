@@ -1,6 +1,6 @@
 import {createNavigatorFactory} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/native';
-import TopLevelBottomTabBar from '@components/Navigation/TopLevelBottomTabBar';
+import RootNavigatorExtraContent from '@components/Navigation/RootNavigatorExtraContent';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
@@ -21,7 +21,7 @@ const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('RootS
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomEffects: useNavigationResetOnLayoutChange,
     useCustomState: useCustomRootStackNavigatorState,
-    ExtraContent: TopLevelBottomTabBar,
+    ExtraContent: RootNavigatorExtraContent,
 });
 
 function createRootStackNavigator<ParamList extends ParamListBase>() {

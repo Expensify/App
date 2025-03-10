@@ -8,6 +8,8 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {CardFeedNamesWithType} from './CardFeedUtils';
+import {getWorkspaceCardFeedKey} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import localeCompare from './LocaleCompare';
@@ -55,6 +57,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     tag: 'tag',
     taxRate: 'tax-rate',
     cardID: 'card',
+    feed: 'feed',
     reportID: 'reportid',
     keyword: 'keyword',
     in: 'in',
@@ -367,6 +370,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
                     filterKey === FILTER_KEYS.TO ||
+                    filterKey === FILTER_KEYS.FEED ||
                     filterKey === FILTER_KEYS.IN) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
@@ -427,6 +431,9 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
             filtersForm[filterKey] = filterValues.filter((card) => cardList[card]);
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+            filtersForm[filterKey] = filterValues.filter((feed) => feed);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
             const allTaxRates = new Set(Object.values(taxRates).flat());
@@ -539,6 +546,7 @@ function getFilterDisplayValue(
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     cardList: OnyxTypes.CardList,
+    cardFeedNamesWithType: CardFeedNamesWithType,
 ) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         // login can be an empty string
@@ -562,6 +570,20 @@ function getFilterDisplayValue(
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
         return getCleanedTagName(filterValue);
     }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+        const workspaceFeedKey = getWorkspaceCardFeedKey(filterValue);
+
+        const workspaceValue = cardFeedNamesWithType[workspaceFeedKey];
+        const domainValue = cardFeedNamesWithType[filterValue];
+
+        if (workspaceValue && workspaceValue.type === 'workspace') {
+            return workspaceValue.name;
+        }
+
+        if (domainValue && domainValue.type === 'domain') {
+            return domainValue.name;
+        }
+    }
     return filterValue;
 }
 
@@ -577,6 +599,7 @@ function buildUserReadableQueryString(
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
     cardList: OnyxTypes.CardList,
+    cardFeedNamesWithType: CardFeedNamesWithType,
 ) {
     const {type, status} = queryJSON;
     const filters = queryJSON.flatFilters;
@@ -608,7 +631,7 @@ function buildUserReadableQueryString(
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
-                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList),
+                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList, cardFeedNamesWithType),
             }));
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
