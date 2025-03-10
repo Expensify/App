@@ -29,7 +29,7 @@ jest.mock('@react-native-community/geolocation', () => ({
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-const renderPage = (initialRouteName = SCREENS.SETTINGS.PROFILE.ADDRESS) => {
+const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ADDRESS) => {
     return render(
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
