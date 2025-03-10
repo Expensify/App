@@ -37,6 +37,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     overLimit: () => 'amount',
     overLimitAttendee: () => 'amount',
     perDayLimit: () => 'amount',
+    prohibitedExpense: () => 'receipt',
     receiptNotSmartScanned: () => 'receipt',
     receiptRequired: () => 'receipt',
     customRules: (violation) => {

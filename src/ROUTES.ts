@@ -1667,6 +1667,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/rules/billable',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/billable` as const,
     },
+    RULES_PROHIBITED_DEFAULT: {
+        route: 'settings/workspaces/:policyID/rules/prohibited',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/prohibited` as const,
+    },
     RULES_CUSTOM: {
         route: 'settings/workspaces/:policyID/rules/custom',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/custom` as const,
