@@ -1,6 +1,6 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useState} from 'react';
-import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -13,6 +13,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -79,13 +80,13 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 ?.then(() => {
                     // When a user selects "Trips" in the Expensify Classic menu, the HybridApp opens the ManageTrips page in NewDot.
                     // The wasNewDotLaunchedJustForTravel flag indicates if NewDot was launched solely for this purpose.
-                    if (!NativeModules.HybridAppModule || !wasNewDotLaunchedJustForTravel) {
+                    if (!CONFIG.IS_HYBRID_APP || !wasNewDotLaunchedJustForTravel) {
                         return;
                     }
 
                     // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+                    HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
                     setRootStatusBarEnabled(false);
                 })
                 ?.catch(() => {

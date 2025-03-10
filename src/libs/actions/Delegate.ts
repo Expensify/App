@@ -1,4 +1,4 @@
-import {NativeModules} from 'react-native';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -8,6 +8,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
@@ -157,14 +158,17 @@ function connect(email: string) {
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
-                    openApp().then(() =>
-                        NativeModules.HybridAppModule?.switchAccount({
+                    openApp().then(() => {
+                        if (!CONFIG.IS_HYBRID_APP) {
+                            return;
+                        }
+                        HybridAppModule.switchAccount({
                             newDotCurrentAccountEmail: email,
                             authToken: restrictedToken,
                             policyID,
                             accountID: String(previousAccountID),
-                        }),
-                    );
+                        });
+                    });
                 });
         })
         .catch((error) => {
@@ -248,14 +252,17 @@ function disconnect() {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
 
                     confirmReadyToOpenApp();
-                    openApp().then(() =>
-                        NativeModules.HybridAppModule?.switchAccount({
+                    openApp().then(() => {
+                        if (!CONFIG.IS_HYBRID_APP) {
+                            return;
+                        }
+                        HybridAppModule.switchAccount({
                             newDotCurrentAccountEmail: requesterEmail,
                             authToken,
                             policyID: '',
                             accountID: '',
-                        }),
-                    );
+                        });
+                    });
                 });
         })
         .catch((error) => {
