@@ -117,7 +117,7 @@ function getPayActionCallback(hash: number, item: TransactionListItemType | Repo
     goToItem();
 }
 
-function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
+function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]; successData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -126,6 +126,13 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                 search: {
                     isLoading: true,
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                errors: null,
             },
         },
     ];
@@ -152,11 +159,22 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                     status: queryJSON?.status,
                     type: queryJSON?.type,
                 },
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
 
-    return {optimisticData, finallyData, failureData};
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                errors: null,
+            },
+        },
+    ];
+
+    return {optimisticData, finallyData, failureData, successData};
 }
 
 function saveSearch({queryJSON, newName}: {queryJSON: SearchQueryJSON; newName?: string}) {
@@ -247,7 +265,7 @@ function openSearchFiltersCardPage() {
 }
 
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
+    const {optimisticData, finallyData, failureData, successData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const queryWithOffset = {
         ...queryJSONWithoutFlatFilters,
@@ -255,7 +273,7 @@ function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: numbe
     };
     const jsonQuery = JSON.stringify(queryWithOffset);
 
-    API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData, successData});
 }
 
 /**

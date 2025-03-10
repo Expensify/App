@@ -3,11 +3,13 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -156,6 +158,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const previousReportActions = usePrevious(reportActions);
+    const {translate} = useLocalize();
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -257,7 +260,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             ? searchResults?.search?.status === status.join(',')
             : searchResults?.search?.status === status;
 
-    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+    const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!searchResults?.search.isLoading);
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
@@ -379,7 +382,21 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
+    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowEmptyState = !isDataLoaded || data.length === 0;
+
+    if (hasErrors) {
+        return (
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+                <FullPageErrorView
+                    shouldShow
+                    subtitleStyle={styles.textSupporting}
+                    title={translate('errorPage.title', {isBreakline: !!shouldUseNarrowLayout})}
+                    subtitle={translate('errorPage.subtitle')}
+                />
+            </View>
+        );
+    }
 
     if (shouldShowEmptyState) {
         return (
