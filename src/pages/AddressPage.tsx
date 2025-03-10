@@ -59,7 +59,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
             return;
         }
-        if (addressPartKey === INPUT_IDS.COUNTRY) {
+        if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
             setCurrentCountry(addressPart as Country | '');
             setState('');
             setCity('');
