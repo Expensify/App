@@ -22,7 +22,6 @@ As Locations are only configurable as tags, you cannot export expense reports as
 {% include end-info.html %}
            <li><b>Taxes</b>: Choose whether to import tax rates and defaults.</li>
        </ul>
-   </li>
    <li><b>Disabling Imported Accounts and Tags</b>:  
        <ul>
            <li>Admins can <b>toggle individual items on or off</b> using the switch on the right side of each row.</li>
