@@ -53,28 +53,43 @@ const story: Meta<typeof TransactionItemComponent> = {
     component: TransactionItemComponent,
     args: {
         transactionItem: transactionItemList.at(0),
-        isLargeScreenWidth: false,
+        shouldUseNarrowLayout: false,
         isSelected: false,
+        showTooltip: true,
     },
     argTypes: {
         transactionItem: {
             control: 'object',
         },
-        isLargeScreenWidth: {
+        shouldUseNarrowLayout: {
             control: 'boolean',
         },
         isSelected: {
             control: 'boolean',
         },
+        showTooltip: {
+            control: 'boolean',
+        },
     },
 };
 
-function Template({transactionItem, isLargeScreenWidth, isSelected}: {transactionItem: Transaction; isLargeScreenWidth: boolean; isSelected: boolean}) {
+function Template({
+    transactionItem,
+    shouldUseNarrowLayout,
+    isSelected,
+    showTooltip,
+}: {
+    transactionItem: Transaction;
+    shouldUseNarrowLayout: boolean;
+    isSelected: boolean;
+    showTooltip: boolean;
+}) {
     return (
         <TransactionItemComponent
             transactionItem={transactionItem}
-            isLargeScreenWidth={isLargeScreenWidth}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
             isSelected={isSelected}
+            showTooltip={showTooltip}
         />
     );
 }
@@ -82,8 +97,9 @@ function Template({transactionItem, isLargeScreenWidth, isSelected}: {transactio
 const Default: TransactionItemComponentStory = Template.bind({});
 Default.args = {
     transactionItem: transactionItemList.at(0),
-    isLargeScreenWidth: false,
+    shouldUseNarrowLayout: false,
     isSelected: false,
+    showTooltip: true,
 };
 
 export default story;

@@ -6,7 +6,7 @@ import {getCreated as getTransactionCreated} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-function DateCell({transactionItem, showTooltip}: TransactionDataCellProps) {
+function DateCell({transactionItem, showTooltip, shouldUseNarrowLayout}: TransactionDataCellProps) {
     const styles = useThemeStyles();
 
     const created = getTransactionCreated(transactionItem);
@@ -16,7 +16,7 @@ function DateCell({transactionItem, showTooltip}: TransactionDataCellProps) {
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={date}
-            style={[styles.pre, styles.justifyContentCenter, styles.textLabelSupporting]}
+            style={[styles.pre, styles.justifyContentCenter, shouldUseNarrowLayout ? styles.textLabelSupporting : undefined]}
         />
     );
 }

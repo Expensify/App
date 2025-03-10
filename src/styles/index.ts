@@ -5491,9 +5491,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeXLarge,
             color: theme.textSupporting,
         },
-        expenseWidgetMargin: {
-            padding: 12,
-        },
 
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,

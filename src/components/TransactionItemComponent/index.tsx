@@ -14,16 +14,25 @@ import TagCell from './DataCeils/TagCell';
 import TotalCell from './DataCeils/TotalCell';
 import TypeCell from './DataCeils/TypeCell';
 
-function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelected}: {transactionItem: Transaction; isLargeScreenWidth: boolean; isSelected: boolean}) {
+function TransactionItemComponent({
+    transactionItem,
+    shouldUseNarrowLayout,
+    isSelected,
+    showTooltip,
+}: {
+    transactionItem: Transaction;
+    shouldUseNarrowLayout: boolean;
+    isSelected: boolean;
+    showTooltip: boolean;
+}) {
     const styles = useThemeStyles();
-    const showTooltip = true;
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const backgroundColor = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : styles.buttonDefaultBG;
 
     return (
         <View style={styles.flex1}>
-            {!isLargeScreenWidth ? (
+            {shouldUseNarrowLayout ? (
                 <View style={[backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly]}>
                     <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.mb3, styles.ml3]}>
                         <View style={[]}>
@@ -37,20 +46,20 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
                                 <DateCell
                                     transactionItem={transactionItem}
                                     showTooltip={showTooltip}
-                                    isLargeScreenWidth={isLargeScreenWidth}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                                 <Text style={[styles.expenseWidgetSeparator]}>•</Text>
                                 <TypeCell
                                     transactionItem={transactionItem}
                                     showTooltip={showTooltip}
-                                    isLargeScreenWidth={isLargeScreenWidth}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                             </View>
                             <View style={[styles.flex1, {maxHeight: variables.fontSizeLarge}]}>
                                 <MerchantCell
                                     transactionItem={transactionItem}
                                     showTooltip={showTooltip}
-                                    isLargeScreenWidth={isLargeScreenWidth}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                             </View>
                         </View>
@@ -58,7 +67,7 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
                             <TotalCell
                                 transactionItem={transactionItem}
                                 showTooltip={showTooltip}
-                                isLargeScreenWidth={isLargeScreenWidth}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
                             />
                         </View>
                     </View>
@@ -66,12 +75,12 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
                         <CategoryCell
                             transactionItem={transactionItem}
                             showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <TagCell
                             transactionItem={transactionItem}
                             showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                     </View>
                 </View>
@@ -85,33 +94,33 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
                         <TypeCell
                             transactionItem={transactionItem}
                             showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <DateCell
                             transactionItem={transactionItem}
                             showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
 
                         <MerchantCell
                             transactionItem={transactionItem}
                             showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <CategoryCell
                             transactionItem={transactionItem}
                             showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <TagCell
                             transactionItem={transactionItem}
                             showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <TotalCell
                             transactionItem={transactionItem}
                             showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                     </View>
                 </View>
