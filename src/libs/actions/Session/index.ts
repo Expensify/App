@@ -293,7 +293,14 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         .then((response) => {
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
-                asyncOpenURL(redirectToSignIn(), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
+                asyncOpenURL(
+                    redirectToSignIn().then(() => {
+                        Onyx.multiSet(onyxSetParams);
+                    }),
+                    `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`,
+                    true,
+                    true,
+                );
             } else {
                 redirectToSignIn().then(() => {
                     Onyx.multiSet(onyxSetParams);
