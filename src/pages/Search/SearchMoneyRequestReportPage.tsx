@@ -12,6 +12,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -52,7 +53,9 @@ function TemporaryMoneyRequestReportView({report, policy}: TemporaryMoneyRequest
                 policy={policy}
                 reportActions={[]}
                 transactionThreadReportID={undefined}
-                onBackButtonPress={() => {}}
+                onBackButtonPress={() => {
+                    Navigation.goBack();
+                }}
             />
         </View>
     );
