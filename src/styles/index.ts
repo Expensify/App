@@ -5455,7 +5455,9 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
-
+        tooltipButton: {
+            width: 139,
+        },
         sidePaneOverlay: (isOverlayVisible: boolean) => ({
             ...positioning.pFixed,
             top: 0,

@@ -24,6 +24,18 @@ type ProductTrainingContextType = {
     unregisterTooltip: (tooltipName: ProductTrainingTooltipName) => void;
 };
 
+type ProductTrainingContextConfig = {
+    /**
+     * Callback to be called when the tooltip is dismissed
+     */
+    onDismiss?: () => void;
+
+    /**
+     * Callback to be called when the tooltip is confirmed
+     */
+    onConfirm?: () => void;
+};
+
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
     shouldRenderTooltip: () => false,
     registerTooltip: () => {},
@@ -160,7 +172,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     return <ProductTrainingContext.Provider value={contextValue}>{children}</ProductTrainingContext.Provider>;
 }
 
-const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldShow = true) => {
+const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldShow = true, config: ProductTrainingContextConfig = {}) => {
     const context = useContext(ProductTrainingContext);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -196,7 +208,17 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                 fsClass={CONST.FULL_STORY.UNMASK}
                 testID={CONST.FULL_STORY.UNMASK}
             >
-                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap3, styles.p2]}>
+                <View
+                    style={[
+                        styles.alignItemsCenter,
+                        styles.flexRow,
+                        tooltip?.shouldRenderActionButtons ? styles.justifyContentStart : styles.justifyContentCenter,
+                        styles.flexWrap,
+                        styles.textAlignCenter,
+                        styles.gap3,
+                        styles.p2,
+                    ]}
+                >
                     <Icon
                         src={Expensicons.Lightbulb}
                         fill={theme.tooltipHighlightText}
@@ -217,21 +239,25 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     </Text>
                 </View>
                 {!!tooltip?.shouldRenderActionButtons && (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph1, styles.pv2]}>
+                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph2, styles.pv2, styles.gap2]}>
                         <Button
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
-                            style={[styles.flex1, styles.ph1]}
+                            style={[styles.flex1, styles.tooltipButton]}
+                            onPress={config.onConfirm}
                         />
                         <Button
                             text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
-                            style={[styles.flex1, styles.ph1]}
+                            style={[styles.flex1, styles.tooltipButton]}
+                            onPress={config.onDismiss}
                         />
                     </View>
                 )}
             </View>
         );
     }, [
+        config.onConfirm,
+        config.onDismiss,
         styles.alignItemsCenter,
         styles.flex1,
         styles.flexRow,
@@ -241,12 +267,15 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.justifyContentCenter,
         styles.mw100,
         styles.p2,
-        styles.ph1,
         styles.productTrainingTooltipText,
         styles.pv2,
         styles.textAlignCenter,
         styles.textBold,
         styles.textWrap,
+        styles.gap2,
+        styles.justifyContentStart,
+        styles.ph2,
+        styles.tooltipButton,
         theme.tooltipHighlightText,
         tooltipName,
         translate,
