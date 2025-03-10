@@ -10,6 +10,7 @@ import {useOnyx} from 'react-native-onyx';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -61,7 +62,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
@@ -617,10 +617,12 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
-            <View onLayout={(event) => {
-                const height = event.nativeEvent.layout.height;
-                setMessagesHeight((prev) => prev + height);
-            }}>
+            <View
+                onLayout={(event) => {
+                    const height = event.nativeEvent.layout.height;
+                    setMessagesHeight((prev) => prev + height);
+                }}
+            >
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
                     reportActions={sortedReportActions}
@@ -681,7 +683,7 @@ function ReportActionsList({
         [onContentSizeChange],
     );
 
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     const renderFooter = useMemo(() => {
         if (!shouldShowSkeleton) {
@@ -690,8 +692,10 @@ function ReportActionsList({
 
         const skeletonContentItems = Math.floor(blankSpace / CONST.CHAT_SKELETON_VIEW.HEIGHT_FOR_ROW_COUNT[3]);
         return (
-            <ReportActionsSkeletonView shouldAnimate={false} possibleVisibleContentItems={skeletonContentItems} />
-
+            <ReportActionsSkeletonView
+                shouldAnimate={false}
+                possibleVisibleContentItems={skeletonContentItems}
+            />
         );
     }, [blankSpace, shouldShowSkeleton]);
 
