@@ -112,7 +112,7 @@ const selfGuidedTourTask: OnboardingTask = {
 const createWorkspaceTask: OnboardingTask = {
     type: 'createWorkspace',
     autoCompleted: true,
-    title: 'Create a workspace',
+    title: ({workspaceSettingsLink}) => `Create a [workspace](${workspaceSettingsLink})`,
     description: ({workspaceSettingsLink}) =>
         '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
         '\n' +
@@ -267,6 +267,7 @@ type OnboardingTask = {
         | ((
               params: Partial<{
                   integrationName: string;
+                  workspaceSettingsLink: string;
               }>,
           ) => string);
     description:
