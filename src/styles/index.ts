@@ -5474,6 +5474,17 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
+
+        expenseWidgetSeparator: {
+            marginHorizontal: 8,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeXLarge,
+            color: theme.textSupporting,
+        },
+
+        expenseWidgetRadius: {
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
