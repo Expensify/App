@@ -44,7 +44,10 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Callback for displaying payment animation on IOU preview component */
     startAnimation?: () => void;
-};
+
+    /** Method that triggers search to avoid held expense disappearing (https://github.com/Expensify/App/issues/57605) */
+    triggerSearch?: () => void;
+}
 
 function ProcessMoneyReportHoldMenu({
     requestType,
@@ -57,6 +60,7 @@ function ProcessMoneyReportHoldMenu({
     moneyRequestReport,
     transactionCount,
     startAnimation,
+    triggerSearch
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
@@ -79,6 +83,8 @@ function ProcessMoneyReportHoldMenu({
             }
             IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
         }
+
+        triggerSearch?.();
         onClose();
     };
 
