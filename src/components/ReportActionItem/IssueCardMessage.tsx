@@ -5,10 +5,9 @@ import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPolicy, getWorkspaceAccountID, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getCardIssuedMessage, getOriginalMessage, isActionOfType, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
-import CONST from '@src/CONST';
+import {getCardIssuedMessage, getOriginalMessage, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
@@ -23,21 +22,9 @@ type IssueCardMessageProps = {
 function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const assigneeAccountID = (getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
-    const cardIssuedActionOriginalMessage = isActionOfType(
-        action,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-    )
-        ? getOriginalMessage(action)
-        : undefined;
-    const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    const card = isPolicyAdmin(getPolicy(policyID)) ? cardsList?.[cardID] : cardList[cardID];
+    const card = getExpensifyCardFromReportAction({reportAction: action, policyID});
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
     const shouldShowAddMissingDetailsButton = isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, card);
 
