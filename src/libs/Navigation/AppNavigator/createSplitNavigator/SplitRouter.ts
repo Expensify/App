@@ -5,7 +5,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {shouldDisplayPolicyNotFoundPage} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SplitNavigatorRouterOptions} from './types';
@@ -26,21 +26,26 @@ function getRoutePolicyID(route: NavigationPartialRoute): string | undefined {
 
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     const isNarrowLayout = getIsNarrowLayout();
+    const rootState = navigationRef.getRootState();
 
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
     const routePolicyID = getRoutePolicyID(lastRoute);
 
     // If invalid policy page is displayed on narrow layout, sidebar screen should not be pushed to the navigation state to avoid adding reduntant not found page
     if (isNarrowLayout && !!routePolicyID) {
-        if (PolicyUtils.shouldDisplayPolicyNotFoundPage(routePolicyID)) {
+        if (shouldDisplayPolicyNotFoundPage(routePolicyID)) {
             return;
         }
     }
 
+    // When initializing the app on a small screen with the center screen as the initial screen, the sidebar must also be split to allow users to swipe back.
+    const isInitialRoute = !rootState || rootState.routes.length === 1;
+    const shouldSplitHaveSidebar = isInitialRoute || !isNarrowLayout;
+
     // If the screen is wide, there should be at least two screens inside:
     // - sidebarScreen to cover left pane.
     // - defaultCentralScreen to cover central pane.
-    if (!isAtLeastOneInState(state, sidebarScreen)) {
+    if (!isAtLeastOneInState(state, sidebarScreen) && shouldSplitHaveSidebar) {
         const paramsFromRoute = getParamsFromRoute(sidebarScreen);
         const copiedParams = pick(lastRoute?.params, paramsFromRoute);
 
@@ -65,8 +70,6 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     // - defaultCentralScreen to cover central pane.
     if (!isNarrowLayout) {
         if (state.routes.length === 1 && state.routes[0].name === sidebarScreen) {
-            const rootState = navigationRef.getRootState();
-
             const previousSameNavigator = rootState?.routes.filter((route) => route.name === parentRoute.name).at(-2);
 
             // If we have optimization for not rendering all split navigators, then last selected option may not be in the state. In this case state has to be read from the preserved state.
