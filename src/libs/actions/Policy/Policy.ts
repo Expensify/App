@@ -817,7 +817,7 @@ function leaveWorkspace(policyID?: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingAction: policy?.pendingAction,
+                pendingAction: policy?.pendingAction ?? null,
                 employeeList: {
                     [sessionEmail]: {
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove'),
