@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -44,7 +45,7 @@ function NewReportWorkspaceSelectionPage() {
             if (!policyID) {
                 return;
             }
-            const createdReportID = createNewReport(policyID, currentUserPersonalDetails);
+            const createdReportID = createNewReport(currentUserPersonalDetails, policyID);
             Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}), {forceReplace: true});
         },
         [currentUserPersonalDetails],
@@ -72,7 +73,8 @@ function NewReportWorkspaceSelectionPage() {
                 keyForList: policy?.id,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
-            }));
+            }))
+            .sort((a, b) => a.text.localeCompare(b.text.toLowerCase()));
     }, [policies, isOffline, currentUserPersonalDetails?.login]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
@@ -90,8 +92,8 @@ function NewReportWorkspaceSelectionPage() {
         return options;
     }, [filteredAndSortedUserWorkspaces]);
 
-    const areNoResultsFound = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length;
-    const headerMessage = areNoResultsFound ? translate('common.noResultsFound') : '';
+    const areResultsFound = filteredAndSortedUserWorkspaces.length > 0;
+    const headerMessage = getHeaderMessageForNonUserList(areResultsFound, debouncedSearchTerm);
 
     return (
         <ScreenWrapper
@@ -109,7 +111,7 @@ function NewReportWorkspaceSelectionPage() {
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     ) : (
                         <>
-                            <Text style={[styles.ph5, styles.mb3]}>{translate('report.newReport.createReport')}</Text>
+                            <Text style={[styles.ph5, styles.mb3]}>{translate('report.newReport.chooseWorkspace')}</Text>
                             <SelectionList<WorkspaceListItem>
                                 ListItem={UserListItem}
                                 sections={sections}

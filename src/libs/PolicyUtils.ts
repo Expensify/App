@@ -1213,12 +1213,12 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     );
 }
 
-function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
-    const groupPolicies = Object.values(policies ?? {}).filter((policy) => isPaidGroupPolicy(policy));
-    if (groupPolicies.length === 0) {
-        return false;
+function getGroupPoliciesWithExpenseChatEnabledLength(policies: OnyxCollection<Policy> | null = allPolicies): number {
+    if (isEmptyObject(policies)) {
+        return 0;
     }
-    return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+    const groupPolicies = Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
+    return groupPolicies.length;
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -1509,7 +1509,7 @@ export {
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
-    areAllGroupPoliciesExpenseChatDisabled,
+    getGroupPoliciesWithExpenseChatEnabledLength,
     shouldDisplayPolicyNotFoundPage,
     hasOtherControlWorkspaces,
     getManagerAccountEmail,

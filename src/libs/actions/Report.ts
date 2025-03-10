@@ -2404,7 +2404,7 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
-function createNewReport(policyID: string, creatorPersonalDetails: PersonalDetails) {
+function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string) {
     const policy = getPolicy(policyID);
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();

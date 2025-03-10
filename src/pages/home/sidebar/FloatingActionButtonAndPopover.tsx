@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/prefer-at */
 import {useIsFocused} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
@@ -211,7 +210,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         isCreateMenuActive && (!shouldUseNarrowLayout || isFocused),
     );
 
-    const paidworkspacesWithChatEnabled = useMemo(
+    const paidWorkspacesWithChatEnabled = useMemo(
         () => Object.values((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {}).filter((policy) => policy?.isPolicyExpenseChatEnabled && isPaidGroupPolicy(policy)),
         [allPolicies],
     );
@@ -222,8 +221,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
      * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
      */
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return paidworkspacesWithChatEnabled.length === 0;
-    }, [paidworkspacesWithChatEnabled.length]);
+        return paidWorkspacesWithChatEnabled.length === 0;
+    }, [paidWorkspacesWithChatEnabled.length]);
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
 
@@ -486,17 +485,15 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   return;
                               }
 
-                              // If the user has more than one paid group workspace with chat enabled, we need to redirect him to workspace selection
-                              if (paidworkspacesWithChatEnabled.length > 1) {
+                              // If the user has more than one paid group workspace with chat enabled, we need to redirect them to workspace selection
+                              if (paidWorkspacesWithChatEnabled.length > 1) {
                                   Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
                                   return;
                               }
 
-                              const defaultWorkspace = paidworkspacesWithChatEnabled[0];
-                              if (paidworkspacesWithChatEnabled.length === 1 && defaultWorkspace) {
-                                  const createdReportID = createNewReport(defaultWorkspace.id, currentUserPersonalDetails);
-                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                              }
+                              const defaultWorkspace = paidWorkspacesWithChatEnabled.at(0);
+                              const createdReportID = createNewReport(currentUserPersonalDetails, defaultWorkspace?.id);
+                              Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                           });
                       },
                   },

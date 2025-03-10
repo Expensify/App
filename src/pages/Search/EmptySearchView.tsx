@@ -1,7 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -24,13 +23,12 @@ import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
+import {getGroupPoliciesWithExpenseChatEnabledLength} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
@@ -57,7 +55,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const [modalVisible, setModalVisible] = useState(false);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
+        return getGroupPoliciesWithExpenseChatEnabledLength(allPolicies) === 0;
     }, [allPolicies]);
 
     const tripViewChildren = useMemo(() => {
