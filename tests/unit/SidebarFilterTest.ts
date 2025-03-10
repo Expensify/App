@@ -1,12 +1,12 @@
 import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {getNavigateToChatHintRegex} from 'tests/utils/TestHelper';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {getNavigateToChatHintRegex} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
