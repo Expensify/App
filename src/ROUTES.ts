@@ -70,12 +70,36 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
+        getRoute: ({
+            reportID,
+            reportActionID,
+            backTo,
+            moneyRequestReportActionID,
+            transactionID,
+        }: {
+            reportID: string | undefined;
+            reportActionID?: string;
+            backTo?: string;
+            moneyRequestReportActionID?: string;
+            transactionID?: string;
+        }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
             }
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
-            return getUrlWithBackToParam(baseRoute, backTo);
+
+            // Add the moneyRequestReportActionID and transactionID as query parameters if they exist
+            const queryParams = [];
+            if (moneyRequestReportActionID) {
+                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+            }
+            if (transactionID) {
+                queryParams.push(`transactionID=${transactionID}`);
+            }
+
+            const queryString = queryParams.length > 0 ? `${baseRoute}?${queryParams.join('&')}` : baseRoute;
+
+            return getUrlWithBackToParam(queryString, backTo);
         },
     },
     SEARCH_MONEY_REQUEST_REPORT: {
@@ -317,13 +341,26 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
-            const referrerParam = referrer ? `?referrer=${encodeURIComponent(referrer)}` : '';
-            return `${baseRoute}${referrerParam}` as const;
+
+            const queryParams: string[] = [];
+            if (referrer) {
+                queryParams.push(`referrer=${encodeURIComponent(referrer)}`);
+            }
+            if (moneyRequestReportActionID) {
+                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+            }
+            if (transactionID) {
+                queryParams.push(`transactionID=${transactionID}`);
+            }
+
+            const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+
+            return `${baseRoute}${queryString}` as const;
         },
     },
     REPORT_AVATAR: {
