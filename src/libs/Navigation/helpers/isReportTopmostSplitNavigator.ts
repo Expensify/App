@@ -4,6 +4,10 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import {isFullScreenName} from './isNavigatorName';
 
 const isReportTopmostSplitNavigator = (): boolean => {
+    if (!navigationRef.isReady()) {
+        return false;
+    }
+
     const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
 
     if (!rootState) {
