@@ -1970,8 +1970,8 @@ const translations = {
         noAccess: 'Ese chat no existe o no tienes acceso a él. Intenta usar la búsqueda para encontrar un chat.',
         goBackHome: 'Volver a la página principal',
     },
-    pageError: {
-        title: 'Uy... Algo salió mal',
+    errorPage: {
+        title: ({isBreakline}: {isBreakline: boolean}) => `Uy... ${isBreakline ? '\n' : ''}Algo salió mal`,
         subtitle: 'No se ha podido completar su solicitud. Vuelva a intentarlo más tarde',
     },
     setPasswordPage: {
