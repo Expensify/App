@@ -437,7 +437,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
         const transactionID: string | undefined = route.params?.transactionID;
 
-        // If we have moneyRequestReportActionID and transactionID, we're creating a new thread
+        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the trasaction thread created yet
+        // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
         if (moneyRequestReportActionID && transactionID && currentUserEmail) {
             openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID);
             return;

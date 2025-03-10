@@ -88,12 +88,11 @@ const ROUTES = {
             }
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
 
-            // Add the moneyRequestReportActionID and transactionID as query parameters if they exist
             const queryParams = [];
-            if (moneyRequestReportActionID) {
+
+            // When we are opening a transaction thread but don't have the transaction report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
+            if (moneyRequestReportActionID && transactionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
-            }
-            if (transactionID) {
                 queryParams.push(`transactionID=${transactionID}`);
             }
 
@@ -351,10 +350,10 @@ const ROUTES = {
             if (referrer) {
                 queryParams.push(`referrer=${encodeURIComponent(referrer)}`);
             }
-            if (moneyRequestReportActionID) {
+
+            // When we are opening a transaction thread but don't have the transaction report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
+            if (moneyRequestReportActionID && transactionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
-            }
-            if (transactionID) {
                 queryParams.push(`transactionID=${transactionID}`);
             }
 

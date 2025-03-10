@@ -262,9 +262,7 @@ function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: numbe
  * It's possible that we return legacy transactions that don't have a transaction thread created yet.
  * In that case, when users select the search result row, we need to create the transaction thread on the fly and update the search result with the new transactionThreadReport
  */
-function createTransactionThread(hash: number, transactionID: string, reportID: string, moneyRequestReportActionID: string) {
-    openReport(reportID, '', [currentUserEmail], undefined, moneyRequestReportActionID);
-
+function updateSearchResultsWithTransactionThreadReportID(hash: number, transactionID: string, reportID: string) {
     const onyxUpdate: Record<string, Record<string, Partial<SearchTransaction>>> = {
         data: {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
@@ -422,7 +420,7 @@ function clearAdvancedFilters() {
 export {
     saveSearch,
     search,
-    createTransactionThread,
+    updateSearchResultsWithTransactionThreadReportID,
     deleteMoneyRequestOnSearch,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
