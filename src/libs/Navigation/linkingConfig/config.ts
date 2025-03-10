@@ -29,9 +29,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.SEARCH.ROOT]: {
-            path: ROUTES.SEARCH_ROOT.route,
-        },
 
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
@@ -872,9 +869,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
                         },
-                        [SCREENS.GET_ASSISTANCE]: {
-                            path: ROUTES.GET_ASSISTANCE.route,
-                        },
                         [SCREENS.KEYBOARD_SHORTCUTS]: {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
                         },
@@ -1627,6 +1621,17 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.RULES]: {
                     path: ROUTES.WORKSPACE_RULES.route,
+                },
+            },
+        },
+
+        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: {
+            screens: {
+                [SCREENS.SEARCH.ROOT]: {
+                    path: ROUTES.SEARCH_ROOT.route,
+                },
+                [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
+                    path: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                 },
             },
         },
