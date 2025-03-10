@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -19,7 +20,7 @@ type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNa
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID;
-    const [workspaceAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: (policy) => policy?.workspaceAccountID});
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const styles = useThemeStyles();
     const theme = useTheme();
