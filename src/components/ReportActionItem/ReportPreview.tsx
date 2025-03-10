@@ -76,6 +76,7 @@ import {
     getMerchant,
     hasPendingUI,
     isCardTransaction,
+    isPartial,
     isPartialMerchant,
     isPending,
     isReceiptBeingScanned,

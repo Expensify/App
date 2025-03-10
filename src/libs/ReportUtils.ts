@@ -197,6 +197,7 @@ import {
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense,
     isPending,
+    isPartial,
     isPerDiemRequest,
     isReceiptBeingScanned,
 } from './TransactionUtils';
@@ -3786,7 +3787,7 @@ function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, report
     if (getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
     }
-    return transactionsWithReceipts.every((transaction) => isReceiptBeingScanned(transaction));
+    return transactionsWithReceipts.every((transaction) => isPartial(transaction) && isReceiptBeingScanned(transaction));
 }
 
 /**
