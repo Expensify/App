@@ -365,7 +365,7 @@ function DiagnosticData({styles, route, children, isExactMatch}: DiagnosticDataP
     const diagnosticTitle = isExactMatch ? 'Help content found for route:' : 'Missing help content for route:';
 
     return (
-        <ScrollView style={[styles.ph5, styles.pb5]}>
+        <ScrollView style={[styles.ph5, styles.pb8]}>
             <Text style={[styles.textHeadlineH1, styles.mb4]}>{diagnosticTitle}</Text>
             <Text style={styles.textNormal}>{route}</Text>
             {!!children && (
