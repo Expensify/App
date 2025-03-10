@@ -20,6 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
+import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -30,6 +31,7 @@ import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 
@@ -60,6 +62,9 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const {clearSelectedTransactions} = useSearchContext();
+    const cardFeedNamesWithType = useMemo(() => {
+        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
+    }, [translate, workspaceCardFeeds, userCardList]);
 
     const typeMenuItems: SearchTypeMenuItem[] = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
 
@@ -69,12 +74,16 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards);
+                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
             }
 
             const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, hash);
             return {
                 ...baseMenuItem,
+                onPress: () => {
+                    clearAllFilters();
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+                },
                 rightComponent: (
                     <SavedSearchItemThreeDotMenu
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
@@ -96,19 +105,20 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
             };
         },
         [
+            allCards,
             hash,
             getOverflowMenu,
-            shouldShowProductTrainingTooltip,
-            hideProductTrainingTooltip,
             styles.alignItemsCenter,
             styles.mh4,
             styles.pv2,
             styles.productTrainingTooltipWrapper,
-            renderProductTrainingTooltip,
             personalDetails,
             reports,
             taxRates,
-            allCards,
+            shouldShowProductTrainingTooltip,
+            hideProductTrainingTooltip,
+            renderProductTrainingTooltip,
+            cardFeedNamesWithType,
         ],
     );
 
@@ -172,6 +182,7 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
         <ScrollView
             onScroll={onScroll}
             ref={scrollViewRef}
+            showsVerticalScrollIndicator={false}
         >
             <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                 {typeMenuItems.map((item, index) => {
