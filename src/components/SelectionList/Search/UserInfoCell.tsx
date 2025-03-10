@@ -5,15 +5,18 @@ import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
+import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 
 type UserInfoCellProps = {
-    participant: SearchPersonalDetails;
+    participant: SearchPersonalDetails | PersonalDetails;
     displayName: string;
+    avatarSize?: AvatarSizeName;
 };
 
-function UserInfoCell({participant, displayName}: UserInfoCellProps) {
+function UserInfoCell({participant, displayName, avatarSize}: UserInfoCellProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const avatarURL = participant?.avatar;
@@ -26,7 +29,7 @@ function UserInfoCell({participant, displayName}: UserInfoCellProps) {
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
-                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                size={avatarSize ?? CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                 source={avatarURL}
                 name={displayName}
                 type={CONST.ICON_TYPE_AVATAR}
