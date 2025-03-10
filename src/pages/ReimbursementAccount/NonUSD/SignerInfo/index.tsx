@@ -200,6 +200,8 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
         } else if (currentSubStep === SUBSTEP.HANG_TIGHT) {
             Navigation.goBack();
+        } else if (currentSubStep === SUBSTEP.ARE_YOU_DIRECTOR) {
+            setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
         } else {
             setCurrentSubStep((subStep) => subStep - 1);
         }
