@@ -15,13 +15,12 @@ import CONST from '@src/CONST';
 type SelectionListWithModalProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
     onTurnOnSelectionMode?: (item: TItem | null) => void;
-    shouldAutoTurnOff?: boolean;
     isSelected?: (item: TItem) => boolean;
     isScreenFocused?: boolean;
 };
 
 function SelectionListWithModal<TItem extends ListItem>(
-    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, isScreenFocused = false, sections, shouldAutoTurnOff, isSelected, ...rest}: SelectionListWithModalProps<TItem>,
+    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, isScreenFocused = false, sections, isSelected, ...rest}: SelectionListWithModalProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -33,7 +32,7 @@ function SelectionListWithModal<TItem extends ListItem>(
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
 
-    const {selectionMode} = useMobileSelectionMode(shouldAutoTurnOff);
+    const {selectionMode} = useMobileSelectionMode();
     // Check if selection should be on when the modal is opened
     const wasSelectionOnRef = useRef(false);
     // Keep track of the number of selected items to determine if we should turn off selection mode
