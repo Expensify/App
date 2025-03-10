@@ -35,6 +35,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import KeyboardUtils from '@src/utils/keyboard';
 import SearchTypeMenuPopover from './SearchTypeMenuPopover';
 
 // When counting absolute positioning, we need to account for borders
@@ -252,7 +253,7 @@ function SearchPageHeaderInput({
                                 onSearchQueryChange={onSearchQueryChange}
                                 isFullWidth
                                 onSubmit={() => {
-                                    submitSearch(textInputValue);
+                                    KeyboardUtils.dismiss().then(() => submitSearch(textInputValue));
                                 }}
                                 autoFocus={false}
                                 onFocus={onFocus}
