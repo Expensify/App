@@ -282,6 +282,9 @@ export default {
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
 
+    errorPageIconWidth: 117,
+    errorPageIconHeight: 168,
+
     h20: 20,
     h28: 28,
     h36: 36,

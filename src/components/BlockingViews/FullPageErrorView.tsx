@@ -54,8 +54,8 @@ function FullPageErrorView({
                 >
                     <BlockingView
                         icon={Illustrations.BrokenMagnifyingGlass}
-                        iconWidth={variables.modalTopIconWidth}
-                        iconHeight={variables.modalTopIconHeight}
+                        iconWidth={variables.errorPageIconWidth}
+                        iconHeight={variables.errorPageIconHeight}
                         title={translate(titleKey)}
                         subtitle={subtitleKey && translate(subtitleKey)}
                         subtitleStyle={subtitleStyle}
