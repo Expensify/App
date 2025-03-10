@@ -97,6 +97,15 @@ const companyCardsSettingsWithoutExpensifyBank = {
     ...companyCardsDirectFeedSettings,
 };
 
+const companyCardsSettingsWithOnePendingFeed = {
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
+        pending: true,
+    },
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: {
+        pending: false,
+    },
+};
+
 const oAuthAccountDetails = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: {
         accountList: ['CREDIT CARD...6607', 'CREDIT CARD...5501'],
@@ -235,6 +244,13 @@ const cardFeedsCollection: OnyxCollection<CardFeeds> = {
     FAKE_ID_5: {
         settings: {
             companyCards: companyCardsCustomVisaFeedSettingsWithNumbers,
+        },
+    },
+
+    // Policy with one pending feed
+    FAKE_ID_6: {
+        settings: {
+            companyCards: companyCardsSettingsWithOnePendingFeed,
         },
     },
 };
@@ -378,6 +394,11 @@ describe('CardUtils', () => {
         it('Should return empty object if undefined is passed', () => {
             const companyFeeds = getCompanyFeeds(undefined);
             expect(companyFeeds).toStrictEqual({});
+        });
+
+        it('Should return only feeds that are not pending', () => {
+            const companyFeeds = getCompanyFeeds(cardFeedsCollection.FAKE_ID_6, false, true);
+            expect(Object.keys(companyFeeds).length).toStrictEqual(1);
         });
     });
 
