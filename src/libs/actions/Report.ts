@@ -61,6 +61,7 @@ import * as Environment from '@libs/Environment/Environment';
 import getEnvironment from '@libs/Environment/getEnvironment';
 import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
@@ -2411,6 +2412,7 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
     const {firstName, accountID} = creatorPersonalDetails;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportName = `${firstName || 'User'}'s report`;
+    const currentTime = DateUtils.getDBTime();
 
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
 
@@ -2425,7 +2427,7 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
         total: 0,
         nonReimbursableTotal: 0,
         participants: {},
-        lastVisibleActionCreated: DateUtils.getDBTime(),
+        lastVisibleActionCreated: currentTime,
     };
 
     if (accountID) {
@@ -2437,18 +2439,51 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
         optimisticDataValue.ownerAccountID = accountID;
     }
 
+    const optimisticCreateAction = {
+        accountEmail: creatorPersonalDetails.login,
+        accountID: creatorPersonalDetails.accountID,
+        action: CONST.REPORT.ACTIONS.TYPE.CREATED,
+        created: currentTime,
+        message: {
+            isNewDot: true,
+            lastModified: currentTime,
+        },
+        reportActionID,
+        reportID: optimisticReportID,
+        sequenceNumber: 0,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
             value: optimisticDataValue,
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
+            value: {[reportActionID]: optimisticCreateAction},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+            value: {errorFields: {create: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`,
+            value: {[reportActionID]: {errorFields: {create: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
+        },
     ];
 
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
         {reportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID},
-        {optimisticData, successData: [], failureData: []},
+        {optimisticData, successData: [], failureData},
     );
     return optimisticReportID;
 }
