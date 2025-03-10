@@ -433,13 +433,22 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             return;
         }
 
+        const backTo = Navigation.getActiveRoute();
+
         // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
         if (isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
             reportID = generateReportID();
-            createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
-        }
 
-        const backTo = Navigation.getActiveRoute();
+            Navigation.navigate(
+                ROUTES.SEARCH_REPORT.getRoute({
+                    reportID,
+                    backTo,
+                    moneyRequestReportActionID: item.moneyRequestReportActionID,
+                    transactionID: item.transactionID,
+                }),
+            );
+            return;
+        }
 
         if (isReportActionListItemType(item)) {
             const reportActionID = item.reportActionID;
