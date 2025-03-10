@@ -43,7 +43,7 @@ function OnboardingWelcomeVideo() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isModalVisible, setIsModalVisible] = useState(true);
+    const [isModalDisabled, setIsModalDisabled] = useState(true);
 
     const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
         selector: tryNewDotOnyxSelector,
@@ -59,10 +59,10 @@ function OnboardingWelcomeVideo() {
         if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
             return;
         }
-        setIsModalVisible(false);
+        setIsModalDisabled(false);
         const defaultCannedQuery = buildCannedSearchQuery();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultCannedQuery}));
-    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalVisible, tryNewDotdMetadata, dismissedProductTrainingMetadata, tryNewDot]);
+    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotdMetadata, dismissedProductTrainingMetadata, tryNewDot]);
 
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
@@ -89,7 +89,7 @@ function OnboardingWelcomeVideo() {
             contentInnerContainerStyles={[styles.mb5, styles.gap2]}
             contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
             modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
-            isVisible={isModalVisible}
+            isModalDisabled={isModalDisabled}
         >
             <View
                 style={[styles.gap3, styles.pt1, styles.pl1]}

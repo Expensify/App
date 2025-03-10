@@ -94,8 +94,8 @@ type BaseFeatureTrainingModalProps = {
     /** Modal width */
     width?: number;
 
-    /** Whether the modal is visible */
-    isVisible?: boolean;
+    /** Whether to disable the modal */
+    isModalDisabled?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -143,7 +143,7 @@ function FeatureTrainingModal({
     contentInnerContainerStyles,
     contentOuterContainerStyles,
     modalInnerContainerStyle,
-    isVisible: isVisibleProp = true,
+    isModalDisabled = true,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -159,13 +159,13 @@ function FeatureTrainingModal({
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
-            if (!isVisibleProp) {
+            if (!isModalDisabled) {
                 setIsModalVisible(false);
                 return;
             }
             setIsModalVisible(true);
         });
-    }, [isVisibleProp]);
+    }, [isModalDisabled]);
 
     useEffect(() => {
         if (isVideoStatusLocked) {
