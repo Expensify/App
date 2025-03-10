@@ -96,15 +96,8 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                             ...rest,
                         }),
                     );
-                } else {
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query: q,
-                            ...rest,
-                        }),
-                    );
+                    return;
                 }
-                return;
             }
             // when navigating to search we might have an activePolicyID set from workspace switcher
             const query = activeWorkspaceID ? `${defaultCannedQuery} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultCannedQuery;
