@@ -2,8 +2,8 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, GestureResponderEvent, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
+import useOnyx from '@hooks/useOnyx';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding} from '@libs/actions/IOU';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';

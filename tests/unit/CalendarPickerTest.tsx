@@ -36,6 +36,8 @@ jest.mock('../../src/hooks/useLocalize', () =>
     })),
 );
 
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
 describe('CalendarPicker', () => {
     test('renders calendar component', () => {
         render(<CalendarPicker />);

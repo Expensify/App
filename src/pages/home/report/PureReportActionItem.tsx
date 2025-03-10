@@ -34,6 +34,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchState from '@hooks/useSearchState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -366,7 +367,7 @@ function PureReportActionItem({
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const reportID = report?.reportID;
+    const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -409,6 +410,7 @@ function PureReportActionItem({
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
 
+    const {isOnSearch, hashKey} = useSearchState();
     const onClose = () => {
         let transactionID;
         if (isMoneyRequestAction(action)) {
@@ -578,7 +580,12 @@ function PureReportActionItem({
         [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs],
     );
 
-    const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
+    const attachmentContextValue = useMemo(() => {
+        if (isOnSearch) {
+            return {type: CONST.ATTACHMENT_TYPE.SEARCH, hashKey};
+        }
+        return {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
+    }, [reportID, isOnSearch, hashKey]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID, exactlyMatch: true}), [report?.reportID]);
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
@@ -1011,7 +1018,7 @@ function PureReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction);
+        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
@@ -1031,7 +1038,7 @@ function PureReportActionItem({
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemEmojiReactions
                             reportAction={action}
-                            emojiReactions={emojiReactions}
+                            emojiReactions={isOnSearch ? {} : emojiReactions}
                             shouldBlockReactions={hasErrors}
                             toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
                                 if (isAnonymousUser()) {
@@ -1096,6 +1103,7 @@ function PureReportActionItem({
                     hasBeenFlagged={
                         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action)
                     }
+                    onPress={onPress}
                 >
                     {content}
                 </ReportActionItemSingle>
