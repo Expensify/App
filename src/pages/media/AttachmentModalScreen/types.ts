@@ -1,6 +1,7 @@
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
+import type ModalType from '@src/types/utils/ModalType';
 import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent';
 
 /**
@@ -19,18 +20,14 @@ type ImagePickerResponse = {
 
 type FileObject = Partial<File | ImagePickerResponse>;
 
-type AttachmentModalChildrenProps = {
-    displayFileInModal: (data: FileObject) => void;
-    show: () => void;
-};
-
-type AttachmentModalScreenCallbacks = {
+type AttachmentModalModalProps = {
+    modalType?: ModalType;
     onShow?: () => void;
     onClose?: () => void;
 };
 
 type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
-    AttachmentModalScreenCallbacks & {
+    AttachmentModalModalProps & {
         attachmentId?: string;
         reportID?: string;
         policyID?: string;
@@ -41,4 +38,4 @@ type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
 
 type AttachmentModalScreenProps = PlatformStackScreenProps<RootNavigatorParamList, typeof SCREENS.ATTACHMENTS>;
 
-export type {AttachmentModalScreenParams, AttachmentModalScreenCallbacks, AttachmentModalScreenProps, AttachmentModalChildrenProps, FileObject, ImagePickerResponse};
+export type {AttachmentModalScreenParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};

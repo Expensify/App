@@ -9,10 +9,10 @@ function AttachmentModalContainer({contentProps, navigation, onShow, onClose}: A
     const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : contentProps.source?.toString() ?? '';
 
-    const handleClose = useCallback(() => {
+    const closeScreen = useCallback(() => {
+        onClose?.();
         attachmentsContext.setCurrentAttachment(undefined);
         Navigation.goBack(contentProps.fallbackRoute);
-        onClose?.();
     }, [attachmentsContext, contentProps.fallbackRoute, onClose]);
 
     useEffect(() => {
@@ -27,7 +27,7 @@ function AttachmentModalContainer({contentProps, navigation, onShow, onClose}: A
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...contentProps}
-                onClose={handleClose}
+                onClose={closeScreen}
             />
         </ScreenWrapper>
     );

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {openReport} from '@libs/actions/Report';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -15,7 +15,14 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AttachmentModalRouteProps from './types';
 
-function TransactionReceiptModalContent({navigation, reportID, transactionID, readonly: readonlyProp, isFromReviewDuplicates: isFromReviewDuplicatesProp}: AttachmentModalRouteProps) {
+function TransactionReceiptModalContent({
+    navigation,
+    reportID,
+    transactionID,
+    readonly: readonlyProp,
+    isFromReviewDuplicates: isFromReviewDuplicatesProp,
+    isReceiptAttachment,
+}: AttachmentModalRouteProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
@@ -33,6 +40,9 @@ function TransactionReceiptModalContent({navigation, reportID, transactionID, re
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
 
+    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+
     useEffect(() => {
         if (report && transaction) {
             return;
@@ -42,7 +52,26 @@ function TransactionReceiptModalContent({navigation, reportID, transactionID, re
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const onModalClose = useCallback(() => {
+    /**
+     * Close the confirm modals.
+     */
+    const closeConfirmModal = useCallback(() => {
+        setIsAttachmentInvalid(false);
+        setIsDeleteReceiptConfirmModalVisible(false);
+    }, [setIsAttachmentInvalid]);
+
+    const isOverlayModalVisible = useMemo(
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        () => (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid),
+        [isReceiptAttachment, isDeleteReceiptConfirmModalVisible, isAttachmentInvalid],
+    );
+
+    const onClose = useCallback(() => {
+        if (isOverlayModalVisible) {
+            closeConfirmModal?.();
+            return;
+        }
+
         // Receipt Page can be opened either from Reports or from Search RHP view
         // We have to handle going back to correct screens, if it was opened from RHP just close the modal, otherwise go to Report Page
         const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
@@ -53,7 +82,7 @@ function TransactionReceiptModalContent({navigation, reportID, transactionID, re
             const isOneTransactionThreadValue = isOneTransactionThread(report?.reportID, report?.parentReportID, parentReportAction);
             Navigation.dismissModal(isOneTransactionThreadValue ? report?.parentReportID : report?.reportID);
         }
-    }, [parentReportAction, report?.parentReportID, report?.reportID]);
+    }, [closeConfirmModal, isOverlayModalVisible, parentReportAction, report?.parentReportID, report?.reportID]);
 
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
     const isTrackExpenseReportValue = isTrackExpenseReport(report);
@@ -69,6 +98,7 @@ function TransactionReceiptModalContent({navigation, reportID, transactionID, re
                 isAuthTokenRequired: !isLocalFile,
                 report,
                 isReceiptAttachment: true,
+                isDeleteReceiptConfirmModalVisible,
                 canEditReceipt: canEditReceipt && !readonly,
                 canDeleteReceipt: canDeleteReceipt && !readonly,
                 allowDownload: !isEReceipt,
@@ -76,11 +106,14 @@ function TransactionReceiptModalContent({navigation, reportID, transactionID, re
                 originalFileName: receiptURIs?.filename,
                 isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
                 shouldShowNotFoundPage,
+                onRequestDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(true),
+                onDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(false),
             } satisfies Partial<AttachmentModalBaseContentProps>),
         [
             canDeleteReceipt,
             canEditReceipt,
             imageSource,
+            isDeleteReceiptConfirmModalVisible,
             isEReceipt,
             isLocalFile,
             isTrackExpenseActionValue,
@@ -97,7 +130,7 @@ function TransactionReceiptModalContent({navigation, reportID, transactionID, re
         <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
-            onClose={onModalClose}
+            onClose={onClose}
         />
     );
 }

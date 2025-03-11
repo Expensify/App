@@ -1,13 +1,14 @@
 import React, {useCallback, useContext, useEffect} from 'react';
 import Modal from '@components/Modal';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import CONST from '@src/CONST';
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer({contentProps, modalType, closeConfirmModal, isOverlayModalVisible, onShow, onClose}: AttachmentModalContainerProps) {
+function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
 
     /**
@@ -37,11 +38,28 @@ function AttachmentModalContainer({contentProps, modalType, closeConfirmModal, i
         onShow?.();
     }, [onShow]);
 
+    // Close the modal when the escape key is pressed
+    useEffect(() => {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                closeModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
+
+        return unsubscribeEscapeKey;
+    }, [closeModal]);
+
     return (
         <Modal
             isVisible
             type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            onClose={isOverlayModalVisible ? () => closeConfirmModal?.() : () => closeModal?.()}
+            onClose={onClose}
             propagateSwipe
             initialFocus={() => {
                 if (!contentProps.submitRef?.current) {
@@ -54,7 +72,6 @@ function AttachmentModalContainer({contentProps, modalType, closeConfirmModal, i
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...contentProps}
                 onClose={closeModal}
-                onConfirmModalClose={closeConfirmModal}
             />
         </Modal>
     );

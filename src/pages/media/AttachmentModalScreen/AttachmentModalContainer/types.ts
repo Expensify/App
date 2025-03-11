@@ -1,15 +1,9 @@
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
-import type {AttachmentModalScreenCallbacks, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
-import type ModalType from '@src/types/utils/ModalType';
+import type {AttachmentModalModalProps, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 
-type AttachmentModalContainerProps = AttachmentModalScreenCallbacks & {
+type AttachmentModalContainerProps = AttachmentModalModalProps & {
     navigation: AttachmentModalScreenProps['navigation'];
     contentProps: Partial<AttachmentModalBaseContentProps>;
-    modalType?: ModalType;
-    setModalType?: (modalType: ModalType) => void;
-    setShouldLoadAttachment?: (shouldLoadAttachment: boolean) => void;
-    closeConfirmModal?: () => void;
-    isOverlayModalVisible?: boolean;
 };
 
 export default AttachmentModalContainerProps;

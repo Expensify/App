@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
@@ -42,6 +42,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 import type {FileObject} from './types';
+
+type OnValidateFileCallback = (file: FileObject | undefined, setFile: (file: FileObject | undefined) => void) => void;
 
 type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
@@ -106,14 +108,10 @@ type AttachmentModalBaseContentProps = {
     onRequestDeleteReceipt?: () => void;
     /** Callback triggered when the delete receipt is confirmed */
     onDeleteReceipt?: () => void;
-    /** Callback triggered when the pdf load error occurs */
-    onPdfLoadError?: (closeModal?: (shouldCallDirectly?: boolean) => void) => void;
-    /** Callback triggered when the invalid reason modal is hidden */
-    onInvalidReasonModalHide?: () => void;
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
     /** Optional callback to fire when we want to validate the file. */
-    onValidateFile?: (file: FileObject | undefined, setFile: (file: FileObject | undefined) => void) => void;
+    onValidateFile?: OnValidateFileCallback;
 };
 
 function AttachmentModalBaseContent({
@@ -148,8 +146,6 @@ function AttachmentModalBaseContent({
     onConfirmModalClose,
     onRequestDeleteReceipt,
     onDeleteReceipt,
-    onPdfLoadError,
-    onInvalidReasonModalHide,
     onCarouselAttachmentChange = () => {},
     onValidateFile,
 }: AttachmentModalBaseContentProps) {
@@ -159,7 +155,6 @@ function AttachmentModalBaseContent({
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
-    // const isPDFLoadError = useRef(false);
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
@@ -184,14 +179,14 @@ function AttachmentModalBaseContent({
         }
     }, [fileProp, fallbackFile, onValidateFile]);
 
+    useEffect(() => {
+        setFile(fallbackFile);
+    }, [fallbackFile]);
+
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     const isLocalSource = typeof sourceState === 'string' && /^file:|^blob:/.test(sourceState);
-
-    useEffect(() => {
-        setFile(originalFileName ? {name: originalFileName} : undefined);
-    }, [originalFileName]);
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
@@ -342,6 +337,19 @@ function AttachmentModalBaseContent({
         type,
     ]);
 
+    const isPDFLoadError = useRef(false);
+    const onPdfLoadError = useCallback(() => {
+        isPDFLoadError.current = true;
+        onClose?.();
+    }, [isPDFLoadError, onClose]);
+
+    const onInvalidReasonModalHide = useCallback(() => {
+        if (!isPDFLoadError.current) {
+            return;
+        }
+        isPDFLoadError.current = false;
+    }, [isPDFLoadError]);
+
     const context = useMemo(
         () => ({
             pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
@@ -355,6 +363,8 @@ function AttachmentModalBaseContent({
         }),
         [onClose, nope, sourceForAttachmentView],
     );
+
+    console.log({isLoading});
 
     return (
         <>
@@ -387,7 +397,7 @@ function AttachmentModalBaseContent({
                             subtitle={translate('notFound.pageNotFound')}
                             linkKey="notFound.goBackHome"
                             shouldShowLink
-                            onLinkPress={() => Navigation.dismissModal()}
+                            onLinkPress={onClose}
                         />
                     )}
                     {!shouldShowNotFoundPage &&
@@ -412,7 +422,7 @@ function AttachmentModalBaseContent({
                                         isAuthTokenRequired={isAuthTokenRequiredState}
                                         file={file}
                                         onToggleKeyboard={setIsConfirmButtonDisabled}
-                                        onPDFLoadError={() => onPdfLoadError?.(onClose)}
+                                        onPDFLoadError={() => onPdfLoadError?.()}
                                         isWorkspaceAvatar={isWorkspaceAvatar}
                                         maybeIcon={maybeIcon}
                                         fallbackSource={fallbackSource}
@@ -478,4 +488,4 @@ function AttachmentModalBaseContent({
 
 export default memo(AttachmentModalBaseContent);
 
-export type {AttachmentModalBaseContentProps};
+export type {AttachmentModalBaseContentProps, OnValidateFileCallback};

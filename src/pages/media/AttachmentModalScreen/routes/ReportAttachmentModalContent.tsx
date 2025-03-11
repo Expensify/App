@@ -4,10 +4,9 @@ import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
 import validateAttachmentFile from '@libs/AttachmentUtils';
-import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {translateLocal} from '@libs/Localize';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import Navigation from '@libs/Navigation/Navigation';
+import type {AttachmentModalBaseContentProps, OnValidateFileCallback} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
@@ -28,12 +27,10 @@ function ReportAttachmentModalContent({
     originalFileName,
     accountID = CONST.DEFAULT_NUMBER_ID,
     reportID,
-    isReceiptAttachment = false,
     shouldDisableSendButton,
     headerTitle,
     onConfirm,
-    onShow: onShowParam,
-    onClose: onCloseParam,
+    onShow,
 }: AttachmentModalRouteProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -41,12 +38,7 @@ function ReportAttachmentModalContent({
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
-    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
-
-    const isPDFLoadError = useRef(false);
     const submitRef = useRef<View | HTMLElement>(null);
-
-    const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
@@ -65,50 +57,6 @@ function ReportAttachmentModalContent({
     );
 
     /**
-     * Close the confirm modals.
-     */
-    const closeConfirmModal = useCallback(() => {
-        setIsAttachmentInvalid(false);
-        setIsDeleteReceiptConfirmModalVisible(false);
-    }, [setIsAttachmentInvalid]);
-
-    // const onModalHide = useCallback(() => {
-    //     if (!isPDFLoadError.current) {
-    //         onModalHideParam?.();
-    //     }
-    //     setShouldLoadAttachment(false);
-    //     if (isPDFLoadError.current) {
-    //         setIsAttachmentInvalid(true);
-    //         setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-    //         setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
-    //     }
-    // }, [onModalHideParam]);
-
-    const onPdfLoadError = useCallback(
-        (closeModal?: (shouldCallDirectly?: boolean) => void) => {
-            isPDFLoadError.current = true;
-            closeModal?.();
-        },
-        [isPDFLoadError],
-    );
-
-    const onInvalidReasonModalHide = useCallback(() => {
-        if (!isPDFLoadError.current) {
-            return;
-        }
-        isPDFLoadError.current = false;
-        // onModalHide?.();
-    }, [isPDFLoadError]);
-
-    // const onModalClose = useCallback(() => {
-    //     Navigation.dismissModal();
-    //     // This enables Composer refocus when the attachments modal is closed by the browser navigation
-    //     ComposerFocusManager.setReadyToFocus();
-
-    //     onCloseParam?.();
-    // }, [onCloseParam]);
-
-    /**
      * If our attachment is a PDF, return the unswipeablge Modal type.
      */
     const getModalType = useCallback(
@@ -123,8 +71,8 @@ function ReportAttachmentModalContent({
     const [source, setSource] = useState(() => Number(sourceParam) || sourceParam);
 
     // Validates the attachment file and renders the appropriate modal type or errors
-    const validateFile = useCallback(
-        (file: FileObject | undefined, setFile: (file: FileObject | undefined) => void) => {
+    const validateFile: OnValidateFileCallback = useCallback(
+        (file, setFile) => {
             if (!file) {
                 return;
             }
@@ -196,14 +144,9 @@ function ReportAttachmentModalContent({
             isAttachmentInvalid,
             attachmentInvalidReasonTitle,
             attachmentInvalidReason,
-            isDeleteReceiptConfirmModalVisible,
             shouldDisableSendButton,
             submitRef,
             onCarouselAttachmentChange,
-            onRequestDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(true),
-            onDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(false),
-            onPdfLoadError,
-            onInvalidReasonModalHide,
         }),
         [
             accountID,
@@ -212,11 +155,8 @@ function ReportAttachmentModalContent({
             contentTypeProps,
             headerTitle,
             isAttachmentInvalid,
-            isDeleteReceiptConfirmModalVisible,
             onCarouselAttachmentChange,
             onConfirm,
-            onInvalidReasonModalHide,
-            onPdfLoadError,
             shouldDisableSendButton,
             source,
         ],
@@ -242,11 +182,7 @@ function ReportAttachmentModalContent({
             navigation={navigation}
             contentProps={contentProps}
             modalType={modalType}
-            setModalType={setModalType}
-            isOverlayModalVisible={isOverlayModalVisible}
-            closeConfirmModal={closeConfirmModal}
-            onShow={onShowParam}
-            onClose={onCloseParam}
+            onShow={onShow}
         />
     );
 }
