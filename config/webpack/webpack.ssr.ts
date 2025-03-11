@@ -1,3 +1,4 @@
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 import path from 'path';
 import type {Configuration} from 'webpack';
 import {merge} from 'webpack-merge';
@@ -40,6 +41,12 @@ const ssrConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
             },
         ],
     },
+    plugins: [
+        // copy static files to dist/
+        new CopyWebpackPlugin({
+            patterns: [{from: 'static', to: 'static'}],
+        }),
+    ],
 });
 
 export default ssrConfig;

@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import ReactDOMServer from 'react-dom/server';
 import Onyx from 'react-native-onyx';
 import {AppRegistry} from 'react-native-web';
@@ -13,6 +14,9 @@ import LiveReloadServer from './LiveReloadServer';
 
 const app = express();
 const url = `http://localhost:${CONFIG.EXPRESS_PORT}`;
+
+console.log('Serving static files from:', path.join(__dirname, 'static'));
+app.use(express.static(path.join(__dirname, 'static')));
 
 // TODO: only send live reload connection snippet for dev bundle. For production bundle don't include it
 app.get('/', (req, res) => {
@@ -48,6 +52,7 @@ app.get('/', (req, res) => {
   <head>
     <meta charset="utf-8" />
     <title>Email Preview</title>
+    <link rel="icon" href="favicon.png">
     ${css}
     ${LiveReloadServer.clientConnectionScript}
   </head>
