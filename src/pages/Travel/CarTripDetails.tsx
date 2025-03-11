@@ -44,8 +44,8 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                         {pickUpDate.date} {CONST.DOT_SEPARATOR} {pickUpDate.hour}
                     </Text>
                 }
-                interactive={false}
                 helperText={reservation.start.location}
+                copyValue={reservation.start.location}
                 helperTextStyle={[styles.pb3, styles.mtn2]}
             />
             <MenuItemWithTopDescription
@@ -55,8 +55,8 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                         {dropOffDate.date} {CONST.DOT_SEPARATOR} {dropOffDate.hour}
                     </Text>
                 }
-                interactive={false}
                 helperText={reservation.end.location}
+                copyValue={reservation.end.location}
                 helperTextStyle={[styles.pb3, styles.mtn2]}
             />
             {!!reservation.carInfo?.name && (
@@ -77,7 +77,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 <MenuItemWithTopDescription
                     description={translate('travel.carDetails.confirmation')}
                     title={reservation.reservationID}
-                    interactive={false}
+                    copyValue={reservation.reservationID}
                 />
             )}
             {!!displayName && (
