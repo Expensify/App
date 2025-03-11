@@ -40,7 +40,6 @@ import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionMo
 import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import variables from '@styles/variables';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
-import {openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 import {
     clearWorkspaceOwnerChangeFlow,
     isApprover as isApproverUserAction,
@@ -106,10 +105,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             }),
         [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
     );
-
-    useEffect(() => {
-        openPolicyCompanyCardsPage(policyID, workspaceAccountID);
-    }, [policyID, workspaceAccountID, accountID]);
 
     useEffect(() => {
         openPolicyMemberProfilePage(policyID, accountID);

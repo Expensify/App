@@ -462,12 +462,19 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
+function filterClosedCards(cards: CardList | undefined): CardList {
+    const closedStates: number[] = [CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED];
+    const filteredCards = Object.entries(cards ?? {}).filter(([, card]) => !closedStates.includes(card.state));
+    return Object.fromEntries(filteredCards);
+}
+
 function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): CardList {
     const cards = {};
     for (const [key, values] of Object.entries(allCardList ?? {})) {
         if (key.includes(workspaceAccountID.toString()) && values) {
             const {cardList, ...rest} = values;
-            Object.assign(cards, rest);
+            const filteredCards = filterClosedCards(rest);
+            Object.assign(cards, filteredCards);
         }
     }
     return cards;
@@ -515,7 +522,8 @@ function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, work
             return acc;
         }
         const {cardList, ...feedCards} = cards ?? {};
-        Object.assign(acc, feedCards);
+        const filteredCards = filterClosedCards(feedCards);
+        Object.assign(acc, filteredCards);
         return acc;
     }, {});
 }
@@ -596,4 +604,5 @@ export {
     hasIssuedExpensifyCard,
     hasCardListObject,
     isExpensifyCardFullySetUp,
+    filterClosedCards,
 };
