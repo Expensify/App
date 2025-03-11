@@ -25,7 +25,7 @@ function TestToolsModal() {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isTestToolsModalOpen = false] = useOnyx(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN);
     const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -38,7 +38,7 @@ function TestToolsModal() {
         >
             <ScrollView
                 contentContainerStyle={[StyleUtils.getTestToolsModalStyle(windowWidth), isSmallScreenWidth && {...styles.w100, ...styles.pv0}]}
-                style={[isSmallScreenWidth && styles.mh85vh]}
+                style={{maxHeight: windowHeight - 250}}
             >
                 <Text
                     style={[styles.textLabelSupporting, styles.mt4, styles.mb3]}
