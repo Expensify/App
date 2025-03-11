@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
-import {cleanPreservedSplitNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
+import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import {linkingConfig} from './linkingConfig';
@@ -209,7 +209,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
-        cleanPreservedSplitNavigatorStates(state);
+        cleanPreservedNavigatorStates(state);
     };
 
     return (
