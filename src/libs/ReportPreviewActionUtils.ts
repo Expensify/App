@@ -6,6 +6,7 @@ import {isApprover as isApprovedMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
 import {
+    hasViolations as hasAnyViolations,
     hasReportViolations,
     isClosedReport,
     isCurrentUserSubmitter,
@@ -21,33 +22,33 @@ import {
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 
-function canSubmit(report: Report, policy: Policy) {
+function canSubmit(report: Report, policy: Policy, violations: OnyxCollection<TransactionViolation[]>) {
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpen = isOpenReport(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
-    const hasViolations = hasReportViolations(report.reportID);
+    const hasViolations = hasAnyViolations(report.reportID, violations);
 
     return isExpense && isSubmitter && isOpen && isManualSubmitEnabled && !hasViolations;
 }
 
-function canApprove(report: Report, policy: Policy) {
+function canApprove(report: Report, policy: Policy, violations: OnyxCollection<TransactionViolation[]>) {
     const isExpense = isExpenseReport(report);
     const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    const hasViolations = hasReportViolations(report.reportID);
+    const hasViolations = hasAnyViolations(report.reportID, violations);
 
     return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasViolations;
 }
 
-function canPay(report: Report, policy: Policy) {
+function canPay(report: Report, policy: Policy, violations: OnyxCollection<TransactionViolation[]>) {
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isApproved = isReportApproved({report});
     const isClosed = isClosedReport(report);
-    const hasViolations = hasReportViolations(report.reportID);
+    const hasViolations = hasAnyViolations(report.reportID, violations);
     const isInvoice = isInvoiceReport(report);
     const isIOU = isIOUReport(report);
     const isProcessing = isProcessingReport(report);
@@ -55,7 +56,7 @@ function canPay(report: Report, policy: Policy) {
     return isReportPayer && ((isExpense && isPaymentsEnabled && (isApproved || isClosed) && !hasViolations) || ((isInvoice || isIOU) && isReportPayer && isProcessing));
 }
 
-function canExport(report: Report, policy: Policy) {
+function canExport(report: Report, policy: Policy, violations: OnyxCollection<TransactionViolation[]>) {
     const isExpense = isExpenseReport(report);
     const isExporter = isPrefferedExporter(policy);
     const isApproved = isReportApproved({report});
@@ -63,28 +64,29 @@ function canExport(report: Report, policy: Policy) {
     const isClosed = isClosedReport(report);
     const hasAccountingConnection = hasAccountingConnections(policy);
     const syncEnabled = isAutoSyncEnabled(policy);
-    const hasViolations = hasReportViolations(report.reportID);
+    const hasViolations = hasAnyViolations(report.reportID, violations);
 
     return isExpense && isExporter && (isApproved || isReimbursed || isClosed) && hasAccountingConnection && !syncEnabled && !hasViolations;
 }
 
-function canRemoveHold(report: Report, policy: Policy, reportTransactions: Transaction[]) {
+function canRemoveHold(report: Report, policy: Policy, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>) {
     // remove policy from here (unused)
     const isExpense = isExpenseReport(report);
     const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, report.reportID));
     const isOpen = isOpenReport(report);
     const isProcessing = isProcessingReport(report);
     const isApproved = isReportApproved({report});
-    const hasViolations = hasReportViolations(report.reportID);
+    const hasViolations = hasAnyViolations(report.reportID, violations);
 
     return isExpense && isHolder && (isOpen || isProcessing || isApproved) && !hasViolations;
 }
 
-function canReview(report: Report, policy: Policy) {
-    const hasViolations = hasReportViolations(report.reportID);
+function canReview(report: Report, policy: Policy, violations: OnyxCollection<TransactionViolation[]>) {
+    const hasViolations = hasAnyViolations(report.reportID, violations);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
     const areWorkflowsEnabled = policy.areWorkflowsEnabled;
+    console.log(hasViolations, isSubmitter, isApprover, areWorkflowsEnabled);
     return hasViolations && (isSubmitter || isApprover) && areWorkflowsEnabled;
 }
 
@@ -92,24 +94,25 @@ function getReportPreviewAction(
     report: Report,
     policy: Policy,
     reportTransactions: Transaction[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     violations: OnyxCollection<TransactionViolation[]>,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
-    if (canSubmit(report, policy)) {
+    if (canSubmit(report, policy, violations)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (canApprove(report, policy)) {
+    if (canApprove(report, policy, violations)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, policy)) {
+    if (canPay(report, policy, violations)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, policy)) {
+    if (canExport(report, policy, violations)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
-    if (canRemoveHold(report, policy, reportTransactions)) {
+    if (canRemoveHold(report, policy, reportTransactions, violations)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REMOVE_HOLD;
     }
-    if (canReview(report, policy)) {
+    if (canReview(report, policy, violations)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 
