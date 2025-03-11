@@ -1322,6 +1322,11 @@ const CONST = {
             },
             THREAD_DISABLED: ['CREATED'],
         },
+        TRANSACTION_LIST: {
+            COLUMNS: {
+                COMMENTS: 'comments',
+            },
+        },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
         },
