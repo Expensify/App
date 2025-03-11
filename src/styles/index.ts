@@ -4243,7 +4243,7 @@ const styles = (theme: ThemeColors) =>
         eReceiptContentWrapper: {
             ...sizing.w100,
             ...spacing.ph5,
-            ...spacing.pt8,
+            ...spacing.pt10,
             ...spacing.pb4,
             ...sizing.h100,
             position: 'absolute',

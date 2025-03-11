@@ -86,7 +86,7 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
                                         styles.justifyContentCenter,
                                         styles.borderRadiusComponentNormal,
                                         secondaryBgcolorStyle,
-                                        styles.mb4,
+                                        styles.mb3,
                                     ]}
                                 >
                                     <View>
