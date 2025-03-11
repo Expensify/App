@@ -15,7 +15,7 @@ type EmailWrapperProps = {
     children: ReactNode;
 };
 
-const EmailPreview = ({children}: EmailWrapperProps): React.FC<EmailWrapperProps> => {
+const EmailPreview = ({children}: EmailWrapperProps) => {
     return (
         <ComposeProviders components={[OnyxProvider, ThemeProvider, ThemeStylesProvider, ThemeIllustrationsProvider, LocaleContextProvider, HTMLEngineProvider]}>{children}</ComposeProviders>
     );

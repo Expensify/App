@@ -7,7 +7,7 @@ import 'source-map-support/register';
 import CONST from '../src/CONST';
 import initOnyxDerivedValues from '../src/libs/actions/OnyxDerived';
 import ONYXKEYS from '../src/ONYXKEYS';
-import initializeLastVisitedPath from '../src/setup/initializeLastVisitedPath';
+import waitForBatchedUpdates from '../tests/utils/waitForBatchedUpdates';
 import SampleEmail from './components/SampleEmail';
 import CONFIG from './CONFIG';
 import LiveReloadServer from './LiveReloadServer';
@@ -19,7 +19,7 @@ console.log('Serving static files from:', path.join(__dirname, 'static'));
 app.use(express.static(path.join(__dirname, 'static')));
 
 // TODO: only send live reload connection snippet for dev bundle. For production bundle don't include it
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
     Onyx.init({
         keys: ONYXKEYS,
 
@@ -38,10 +38,13 @@ app.get('/', (req, res) => {
                 willAlertModalBecomeVisible: false,
             },
             [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.EN,
+            [ONYXKEYS.PREFERRED_THEME]: CONST.THEME.LIGHT,
+            [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: {},
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
     initOnyxDerivedValues();
+    await waitForBatchedUpdates();
 
     AppRegistry.registerComponent('SampleEmail', () => SampleEmail);
     const {element, getStyleElement} = AppRegistry.getApplication('SampleEmail');
