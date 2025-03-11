@@ -493,14 +493,17 @@ function BaseVideoPlayer({
                                             isLooping={isLooping}
                                             onReadyForDisplay={(e) => {
                                                 isReadyForDisplayRef.current = true;
-                                                if (isCurrentlyURLSet && !isUploading) {
-                                                    playVideo();
-                                                }
                                                 onVideoLoaded?.(e);
                                                 if (shouldUseNewRate) {
                                                     return;
                                                 }
                                                 videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
+                                            }}
+                                            onLoad={() => {
+                                                if (!isCurrentlyURLSet || isUploading) {
+                                                    return;
+                                                }
+                                                playVideo();
                                             }}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
