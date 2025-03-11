@@ -35,14 +35,18 @@ function SidePane() {
     });
 
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop} = useSidePane();
+    const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop, sidePane} = useSidePane();
     const {paddingTop} = useStyledSafeAreaInsets();
 
     const onClose = useCallback(
         (shouldUpdateNarrow = false) => {
+            if (!sidePane) {
+                return;
+            }
+
             triggerSidePane(false, {shouldOnlyUpdateNarrowLayout: !isExtraLargeScreenWidth || shouldUpdateNarrow});
         },
-        [isExtraLargeScreenWidth],
+        [isExtraLargeScreenWidth, sidePane],
     );
 
     const sizeChangedFromLargeToNarrow = useRef(!isExtraLargeScreenWidth);

@@ -200,6 +200,7 @@ const SCREENS = {
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
     },
+    PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
     },
@@ -661,7 +662,6 @@ const SCREENS = {
     },
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
-    GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     TRANSACTION_RECEIPT: 'TransactionReceipt',

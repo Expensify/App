@@ -1211,7 +1211,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(report?.reportID, '', [], newChat, '0', false, participantAccountIDs);
-    Navigation.dismissModalWithReport(report);
+    Navigation.navigateToReportWithPolicyCheck({report});
 }
 
 /**
@@ -3764,6 +3764,7 @@ function prepareOnboardingOnyxData(
                 taskDescription,
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                task.mediaAttributes,
             );
             const emailCreatingAction =
                 engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE : CONST.EMAIL.CONCIERGE;
