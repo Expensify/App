@@ -4794,11 +4794,6 @@ const translations = {
                 unlockFeatureGoToSubtitle: 'Ir a',
                 unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `y habilita flujos de trabajo, luego agrega ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `y habilita ${featureName} para desbloquear esta función.`,
-                preventSelfApprovalsModalText: ({managerEmail}: {managerEmail: string}) =>
-                    `Todos los miembros que actualmente estén aprobando sus propios gastos serán eliminados y reemplazados con el aprobador predeterminado de este espacio de trabajo (${managerEmail}).`,
-                preventSelfApprovalsConfirmButton: 'Evitar autoaprobaciones',
-                preventSelfApprovalsModalTitle: '¿Evitar autoaprobaciones?',
-                preventSelfApprovalsDisabledSubtitle: 'Las aprobaciones propias no pueden habilitarse hasta que este espacio de trabajo tenga al menos dos miembros.',
             },
             categoryRules: {
                 title: 'Reglas de categoría',

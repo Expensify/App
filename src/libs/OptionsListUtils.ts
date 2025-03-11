@@ -215,7 +215,7 @@ type GetOptionsConfig = {
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Attendee[];
-    excludeHiddenReports?: boolean;
+    excludeHiddenThreads?: boolean;
     canShowManagerMcTest?: boolean;
 } & GetValidReportsConfig;
 
@@ -1477,7 +1477,7 @@ function getValidOptions(
         selectedOptions = [],
         shouldSeparateSelfDMChat = false,
         shouldSeparateWorkspaceChat = false,
-        excludeHiddenReports = false,
+        excludeHiddenThreads = false,
         canShowManagerMcTest = false,
         ...config
     }: GetOptionsConfig = {},
@@ -1572,8 +1572,8 @@ function getValidOptions(
         }
     }
 
-    if (excludeHiddenReports) {
-        recentReportOptions = recentReportOptions.filter((option) => option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+    if (excludeHiddenThreads) {
+        recentReportOptions = recentReportOptions.filter((option) => !option.isThread || option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     }
 
     return {
@@ -1606,7 +1606,7 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
         includeTasks: true,
         includeSelfDM: true,
         shouldBoldTitleByDefault: !isUsedInChatFinder,
-        excludeHiddenReports: true,
+        excludeHiddenThreads: true,
     });
     const orderedOptions = orderOptions(optionList);
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
