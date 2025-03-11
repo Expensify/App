@@ -8247,8 +8247,7 @@ function canApproveIOU(
         reportTransactions.every(
             (transaction) =>
                 (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
-                (isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction)) ||
-                (isScanRequestTransactionUtils(transaction) && isReceiptBeingScannedTransactionUtils(transaction)),
+                (isScanRequestTransactionUtils(transaction) && (isAmountMissing(transaction) || isReceiptBeingScannedTransactionUtils(transaction))),
         );
     if (hasOnlyPendingCardOrScanningTransactions) {
         return false;

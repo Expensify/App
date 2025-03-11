@@ -394,7 +394,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const hasOnlyPendingCardOrScanningTransactions =
         allReportTransactions.length > 0 &&
         allReportTransactions.every(
-            (t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || (isScanRequest(t) && isReceiptBeingScanned(t)),
+            (t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isScanRequest(t) && (isAmountMissing(t) || isReceiptBeingScanned(t))),
         );
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
