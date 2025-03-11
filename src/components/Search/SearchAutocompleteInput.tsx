@@ -13,6 +13,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
@@ -104,6 +105,7 @@ function SearchAutocompleteInput(
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const currencyAutocompleteList = Object.keys(currencyList ?? {});
@@ -191,7 +193,7 @@ function SearchAutocompleteInput(
         <View style={[outerWrapperStyle]}>
             <Animated.View
                 style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}
-                layout={LinearTransition}
+                layout={shouldUseNarrowLayout && rightComponent ? LinearTransition : undefined}
             >
                 <View
                     style={styles.flex1}

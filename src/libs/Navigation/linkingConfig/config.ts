@@ -29,15 +29,20 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.SEARCH.ROOT]: {
-            path: ROUTES.SEARCH_ROOT.route,
-        },
 
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
                     path: ROUTES.WORKSPACE_SWITCHER,
+                },
+            },
+        },
+        [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
+                    path: ROUTES.PUBLIC_CONSOLE_DEBUG.route,
+                    exact: true,
                 },
             },
         },
@@ -872,9 +877,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
                         },
-                        [SCREENS.GET_ASSISTANCE]: {
-                            path: ROUTES.GET_ASSISTANCE.route,
-                        },
                         [SCREENS.KEYBOARD_SHORTCUTS]: {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
                         },
@@ -1546,7 +1548,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             screens: {
                 [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
                 [SCREENS.SETTINGS.WORKSPACES]: {
-                    path: ROUTES.SETTINGS_WORKSPACES,
+                    path: ROUTES.SETTINGS_WORKSPACES.route,
                     exact: true,
                 },
                 [SCREENS.SETTINGS.PROFILE.ROOT]: {
@@ -1627,6 +1629,17 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.RULES]: {
                     path: ROUTES.WORKSPACE_RULES.route,
+                },
+            },
+        },
+
+        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: {
+            screens: {
+                [SCREENS.SEARCH.ROOT]: {
+                    path: ROUTES.SEARCH_ROOT.route,
+                },
+                [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
+                    path: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                 },
             },
         },

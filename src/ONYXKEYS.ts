@@ -479,6 +479,9 @@ const ONYXKEYS = {
     /** Information about travel provisioning process */
     TRAVEL_PROVISIONING: 'travelProvisioning',
 
+    /** Stores the information about the state of side panel */
+    NVP_SIDE_PANE: 'nvp_sidePanel',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1081,6 +1084,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
+    [ONYXKEYS.NVP_SIDE_PANE]: OnyxTypes.SidePane;
 };
 
 type OnyxDerivedValuesMapping = {
