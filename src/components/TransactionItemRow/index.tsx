@@ -91,48 +91,48 @@ function TransactionItemRow({
                     {(hovered) => (
                         <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
                                         isSelected
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
                                     <TypeCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, false)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE)]}>
                                     <DateCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
                                     <MerchantCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
                                     <CategoryCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
                                     <TagCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                                     <TotalCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
