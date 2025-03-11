@@ -1353,4 +1353,5 @@ export {
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
     resetSMSDeliveryFailureStatus,
+    clearDisableTwoFactorAuthErrors,
 };
