@@ -2,9 +2,7 @@ import React, {forwardRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import useStyleUtils from '@hooks/useStyleUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ValuePickerItem, ValuePickerProps} from './types';
 import ValueSelectionList from './ValueSelectionList';
@@ -14,7 +12,6 @@ function ValuePicker(
     {value, label, items, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, shouldShowModal = true}: ValuePickerProps,
     forwardedRef: ForwardedRef<View>,
 ) {
-    const StyleUtils = useStyleUtils();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
@@ -32,7 +29,6 @@ function ValuePicker(
         hidePickerModal();
     };
 
-    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
     const selectedItem = items?.find((item) => item.value === value);
 
     return (
@@ -44,7 +40,6 @@ function ValuePicker(
                         shouldShowRightIcon
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         title={selectedItem?.label || placeholder || ''}
-                        descriptionTextStyle={descStyle}
                         description={label}
                         onPress={showPickerModal}
                         furtherDetails={furtherDetails}

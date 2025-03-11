@@ -315,7 +315,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             {
                 translationKey: 'workspace.common.profile',
                 icon: Building,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID)))),
                 brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.PROFILE,
             },
@@ -442,7 +442,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS_WORKSPACES.route)}
                     policyAvatar={policyAvatar}
                     style={styles.headerBarDesktopHeight}
                 />
