@@ -232,7 +232,6 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
             </ScrollView>
             {shouldShowSelectedDropdown && (
                 <ButtonWithDropdownMenu
-                    success={false}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
