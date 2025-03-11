@@ -4,7 +4,7 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
@@ -53,19 +53,18 @@ function showContextMenuForReport(
         return;
     }
 
-    ReportActionContextMenu.showContextMenu(
-        CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+    showContextMenu({
+        type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,
-        '',
-        anchor,
+        selection: '',
+        contextMenuAnchor: anchor,
         reportID,
-        action?.reportActionID,
-        reportID ? ReportUtils.getOriginalReportID(reportID, action) : undefined,
-        undefined,
-        checkIfContextMenuActive,
-        checkIfContextMenuActive,
+        reportActionID: action?.reportActionID,
+        originalReportID: reportID ? ReportUtils.getOriginalReportID(reportID, action) : undefined,
+        onShow: checkIfContextMenuActive,
+        onHide: checkIfContextMenuActive,
         isArchivedRoom,
-    );
+    });
 }
 
 export {ShowContextMenuContext, showContextMenuForReport};

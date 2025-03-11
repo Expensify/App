@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
-import * as ReportActionContextMenu from './home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu';
 
 type ReferralDetailsPageOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -95,7 +95,14 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
                 disabled={isExecuting}
                 shouldBlockSelection
                 onPress={singleExecution(() => Link.openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}
-                onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK, popoverAnchor.current)}
+                onSecondaryInteraction={(e) =>
+                    showContextMenu({
+                        type: CONST.CONTEXT_MENU_TYPES.LINK,
+                        event: e,
+                        selection: CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK,
+                        contextMenuAnchor: popoverAnchor.current,
+                    })
+                }
             />
         </HeaderPageLayout>
     );

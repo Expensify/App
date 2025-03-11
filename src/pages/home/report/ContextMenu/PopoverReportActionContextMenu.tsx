@@ -156,27 +156,28 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
      * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
      * @param isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
      */
-    const showContextMenu: ReportActionContextMenu['showContextMenu'] = (
-        type,
-        event,
-        selection,
-        contextMenuAnchor,
-        reportID,
-        reportActionID,
-        originalReportID,
-        draftMessage,
-        onShow = () => {},
-        onHide = () => {},
-        isArchivedRoom = false,
-        isChronosReport = false,
-        isPinnedChat = false,
-        isUnreadChat = false,
-        disabledOptions = [],
-        shouldCloseOnTarget = false,
-        setIsEmojiPickerActive = () => {},
-        isOverflowMenu = false,
-        isThreadReportParentActionParam = false,
-    ) => {
+    const showContextMenu: ReportActionContextMenu['showContextMenu'] = (showContextMenuParams) => {
+        const {
+            type,
+            event,
+            selection,
+            contextMenuAnchor,
+            reportID,
+            reportActionID,
+            originalReportID,
+            draftMessage,
+            onShow = () => {},
+            onHide = () => {},
+            isArchivedRoom = false,
+            isChronosReport = false,
+            isPinnedChat = false,
+            isUnreadChat = false,
+            disabledOptions = [],
+            shouldCloseOnTarget = false,
+            setIsEmojiPickerActive = () => {},
+            isOverflowMenu = false,
+            isThreadReportParentAction: isThreadReportParentActionParam = false,
+        } = showContextMenuParams;
         setIsContextMenuOpening(true);
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;

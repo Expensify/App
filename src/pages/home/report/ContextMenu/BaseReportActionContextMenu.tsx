@@ -285,30 +285,27 @@ function BaseReportActionContextMenu({
     useRestoreInputFocus(isVisible);
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
-        showContextMenu(
-            CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+        showContextMenu({
+            type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
-            anchorRef?.current as ViewType | RNText | null,
+            contextMenuAnchor: anchorRef?.current as ViewType | RNText | null,
             reportID,
-            reportAction?.reportActionID,
+            reportActionID: reportAction?.reportActionID,
             originalReportID,
             draftMessage,
-            checkIfContextMenuActive,
-            () => {
+            onShow: checkIfContextMenuActive,
+            onHide: () => {
                 checkIfContextMenuActive?.();
                 setShouldKeepOpen(false);
             },
-            isArchivedNonExpenseReportWithID(originalReportID),
-            chatIncludesChronosWithID(originalReportID),
-            undefined,
-            undefined,
-            filteredContextMenuActions,
-            true,
-            () => {},
-            true,
+            isArchivedRoom: isArchivedNonExpenseReportWithID(originalReportID),
+            isChronosReport: chatIncludesChronosWithID(originalReportID),
+            disabledOptions: filteredContextMenuActions,
+            shouldCloseOnTarget: true,
+            isOverflowMenu: true,
             isThreadReportParentAction,
-        );
+        });
     };
 
     const cardIssuedActionOriginalMessage = isActionOfType(

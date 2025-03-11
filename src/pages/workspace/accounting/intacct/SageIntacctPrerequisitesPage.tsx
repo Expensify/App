@@ -17,7 +17,7 @@ import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -43,7 +43,12 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                     fileDownload(CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME, '', true);
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
-                    ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, popoverAnchor.current),
+                    showContextMenu({
+                        type: CONST.CONTEXT_MENU_TYPES.LINK,
+                        event,
+                        selection: CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT,
+                        contextMenuAnchor: popoverAnchor.current,
+                    }),
                 numberOfLinesTitle: 2,
             },
             {
@@ -56,7 +61,12 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                     Link.openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
-                    ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT, popoverAnchor.current),
+                    showContextMenu({
+                        type: CONST.CONTEXT_MENU_TYPES.LINK,
+                        event,
+                        selection: CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT,
+                        contextMenuAnchor: popoverAnchor.current,
+                    }),
                 numberOfLinesTitle: 3,
             },
         ],

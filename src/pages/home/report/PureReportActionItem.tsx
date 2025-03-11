@@ -522,27 +522,23 @@ function PureReportActionItem({
 
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
-            showContextMenu(
-                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+            showContextMenu({
+                type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
                 event,
                 selection,
-                popoverAnchorRef.current,
+                contextMenuAnchor: popoverAnchorRef.current,
                 reportID,
-                action.reportActionID,
+                reportActionID: action.reportActionID,
                 originalReportID,
-                draftMessage ?? '',
-                () => setIsContextMenuActive(true),
-                toggleContextMenuFromActiveReportAction,
+                draftMessage,
+                onShow: toggleContextMenuFromActiveReportAction,
+                onHide: toggleContextMenuFromActiveReportAction,
                 isArchivedRoom,
                 isChronosReport,
-                false,
-                false,
-                disabledActions,
-                false,
-                setIsEmojiPickerActive as () => void,
-                undefined,
+                disabledOptions: disabledActions,
+                setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                 isThreadReportParentAction,
-            );
+            });
         },
         [
             draftMessage,
