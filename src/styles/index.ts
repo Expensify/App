@@ -3753,11 +3753,22 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
+        searchListHeaderContainerStyle: {
+            width: '100%',
+            flexDirection: 'row',
+            alignItems: 'center',
+            ...userSelect.userSelectNone,
+            paddingBottom: 12,
+            paddingHorizontal: 32,
+            paddingTop: 12,
+            backgroundColor: theme.appBG,
+            justifyContent: 'flex-start',
+        },
+
         narrowSearchHeaderStyle: {
             flex: 1,
             paddingTop: 12,
             backgroundColor: theme.appBG,
-            flex: 1,
         },
 
         narrowSearchRouterInactiveStyle: {

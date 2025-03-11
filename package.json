@@ -62,7 +62,6 @@
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
     "symbolicate-release:ios": "./scripts/release-profile.ts --platform=ios",
     "symbolicate-release:android": "./scripts/release-profile.ts --platform=android",
-    "testSearchList": "./scripts/testScript.js",
     "symbolicate-release:web": "./scripts/release-profile.ts --platform=web",
     "symbolicate-profile": "./scripts/symbolicate-profile.ts",
     "combine-web-sourcemaps": "./scripts/combine-web-sourcemaps.ts",

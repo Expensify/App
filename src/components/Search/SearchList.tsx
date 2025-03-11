@@ -1,10 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {ContentStyle, FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
-import {FlashList} from '@shopify/flash-list';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {FlatList, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -30,7 +28,7 @@ import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/Keyboar
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-const AnimatedFlashList = Animated.createAnimatedComponent<FlashListProps<SearchListItem>>(FlashList<SearchListItem>);
+// const AnimatedFlashList = Animated.createAnimatedComponent<FlatListProps<any, any>>(FlatList);
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem;
 
@@ -63,7 +61,7 @@ type SearchListProps = {
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Additional styles to apply to scrollable content */
-    contentContainerStyle?: StyleProp<ContentStyle>;
+    contentContainerStyle?: StyleProp<ViewStyle>;
 
     /**
      * How far from the end (in units of visible length of the list) the bottom edge of the
@@ -106,26 +104,25 @@ function SearchList(
     ref: ForwardedRef<SearchListHandle>,
 ) {
     const styles = useThemeStyles();
-    const selectedItemsLength = data.reduce((acc, item) => (item.isSelected ? acc + 1 : acc), 0);
+    const selectedItemsLength = data.reduce((acc, item) => {
+        return item.isSelected ? acc + 1 : acc;
+    }, 0);
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
-    const listRef = useRef<FlashList<SearchListItem>>(null);
+    const listRef = useRef<FlatList<SearchListItem>>(null);
     const hasKeyBeenPressed = useRef(false);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
-
-    // _______________________________________ selection modal logic _______________________________________
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const {selectionMode} = useMobileSelectionMode();
+    const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
     // Check if selection should be on when the modal is opened
     const wasSelectionOnRef = useRef(false);
     // Keep track of the number of selected items to determine if we should turn off selection mode
@@ -184,9 +181,6 @@ function SearchList(
             onCheckboxPress?.(longPressedItem);
         }
     };
-    // _______________________________________ selection modal logic _______________________________________
-
-    // _______________________________________ arrow navigation logic _______________________________________
 
     /**
      * Scrolls to the desired item index in the section list
@@ -252,10 +246,6 @@ function SearchList(
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    // _______________________________________ arrow navigation logic _______________________________________
-
-    // _______________________________________ arrow navigation logic _______________________________________
-
     /**
      * Highlights the items and scrolls to the first item present in the items list.
      *
@@ -292,8 +282,6 @@ function SearchList(
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
 
-    // _______________________________________ arrow navigation logic _______________________________________
-
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<SearchListItem>) => {
             const isItemFocused = focusedIndex === index;
@@ -328,9 +316,9 @@ function SearchList(
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {canSelectMultiple && (
-                <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, styles.ph8, styles.pt3, styles.selectionListStickyHeader, styles.justifyContentStart]}>
+                <View style={[styles.searchListHeaderContainerStyle]}>
                     <Checkbox
-                        accessibilityLabel="TODO"
+                        accessibilityLabel={translate('workspace.people.selectAll')}
                         isChecked={selectedItemsLength === data.length}
                         onPress={() => {
                             listRef.current?.scrollToIndex({index: 0, animated: true});
@@ -350,20 +338,19 @@ function SearchList(
                     )}
                 </View>
             )}
-            <AnimatedFlashList
+            <Animated.FlatList
                 data={data}
                 renderItem={renderItem}
                 keyExtractor={(item, index) => item.keyForList ?? `${index}`}
-                estimatedItemSize={108}
                 onScroll={onScroll}
-                contentContainerStyle={StyleSheet.flatten(contentContainerStyle)} // We have to use flatten, because FlashList doesn't handle array styles
+                contentContainerStyle={contentContainerStyle}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 extraData={focusedIndex}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
-                removeClippedSubviews // TODO measure how it helps performance
+                removeClippedSubviews
             />
             <Modal
                 isVisible={isModalVisible}
@@ -382,4 +369,3 @@ function SearchList(
 }
 
 export default forwardRef(SearchList);
-// TODO fix styles in Header VIew
