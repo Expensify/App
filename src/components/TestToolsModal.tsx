@@ -6,6 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,7 +39,7 @@ function TestToolsModal() {
         >
             <ScrollView
                 contentContainerStyle={[StyleUtils.getTestToolsModalStyle(windowWidth), isSmallScreenWidth && {...styles.w100, ...styles.pv0}]}
-                style={{maxHeight: windowHeight - 250}}
+                style={{maxHeight: windowHeight - variables.modalBackdropMinHeight}}
             >
                 <Text
                     style={[styles.textLabelSupporting, styles.mt4, styles.mb3]}

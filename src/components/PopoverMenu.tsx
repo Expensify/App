@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -393,7 +394,7 @@ function PopoverMenu({
             shouldUseNewModal={shouldUseNewModal}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
+                <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - variables.modalBackdropMinHeight} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
