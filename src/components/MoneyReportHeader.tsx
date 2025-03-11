@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -15,12 +15,10 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getOriginalMessage, getReportAction, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import getPrimaryAction from '@libs/ReportPrimaryActionUtils';
 import getSecondaryActions from '@libs/ReportSecondaryActionUtils';
 import {
-    canBeExported,
-    canDeleteTransaction,
     changeMoneyRequestHoldStatus,
     getArchiveReason,
     getBankAccountRoute,
@@ -32,45 +30,26 @@ import {
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
     isAllowedToApproveExpenseReport,
-    isAllowedToSubmitDraftExpenseReport,
     isArchivedReportWithID,
     isInvoiceReport,
-    isReportApproved,
-    navigateBackOnDeleteTransaction,
     navigateToDetailsPage,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
-    checkIfShouldShowMarkAsCashButton,
-    isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
-    shouldShowRTERViolationMessage,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {
-    approveMoneyRequest,
-    canApproveIOU,
-    cancelPayment,
-    canIOUBePaid as canIOUBePaidAction,
-    canSubmitReport,
-    deleteMoneyRequest,
-    deleteTrackExpense,
-    payInvoice,
-    payMoneyRequest,
-    submitReport,
-    unapproveExpenseReport,
-} from '@userActions/IOU';
+import {approveMoneyRequest, canApproveIOU, cancelPayment, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest, submitReport, unapproveExpenseReport} from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -80,8 +59,9 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import {DropdownOption} from './ButtonWithDropdownMenu/types';
+import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
+import DecisionModal from './DecisionModal';
 import DelegateNoAccessModal from './DelegateNoAccessModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -91,7 +71,6 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
-import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
 import SettlementButton from './SettlementButton';
 
 type MoneyReportHeaderProps = {
@@ -122,7 +101,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID || CONST.DEFAULT_NUMBER_ID}`);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
@@ -137,6 +115,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
 
+    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
+    const [isCancelPaymentModalVisible, setIsCancelPaymentModalVisible] = useState(false);
+
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation} = usePaymentAnimations();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -144,20 +125,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {isOffline} = useNetwork();
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID) && (!isReportApproved({report: moneyRequestReport}) || isApprovedAnimationRunning);
 
-    // Only the requestor can delete the request, admins can only edit it.
-    const isActionOwner =
-        typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
-    const canDeleteRequest = isActionOwner && canDeleteTransaction(moneyRequestReport) && !isDeletedParentAction;
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const connectedIntegration = getConnectedIntegration(policy);
-    const navigateBackToAfterDelete = useRef<Route>();
     const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = useMemo(() => {
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
@@ -186,9 +160,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
-    const shouldShowMarkAsCashButton =
-        !!transactionThreadReportID && checkIfShouldShowMarkAsCashButton(hasAllPendingRTERViolations, shouldShowBrokenConnectionViolation, moneyRequestReport, policy);
-
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const shouldShowApproveButton = useMemo(
@@ -198,21 +169,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-
-    const filteredTransactions = transactions?.filter((t) => t) ?? [];
-    const shouldShowSubmitButton = canSubmitReport(moneyRequestReport, policy, filteredTransactions, violations);
-
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
-
-    const shouldShowSettlementButton =
-        !shouldShowSubmitButton &&
-        (shouldShowPayButton || shouldShowApproveButton) &&
-        !shouldShowRTERViolationMessage(transactions) &&
-        !shouldShowExportIntegrationButton &&
-        !shouldShowBrokenConnectionViolation;
-
-    const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
@@ -223,20 +179,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const optimisticNextStep = policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
     const shouldShowNextStep = transactions?.length !== 0 && isFromPaidPolicy && !!optimisticNextStep?.message?.length && !shouldShowStatusBar;
-    const shouldShowAnyButton =
-        isDuplicate ||
-        shouldShowSettlementButton ||
-        shouldShowApproveButton ||
-        shouldShowSubmitButton ||
-        shouldShowNextStep ||
-        shouldShowMarkAsCashButton ||
-        shouldShowExportIntegrationButton;
+
     const bankAccountRoute = getBankAccountRoute(chatReport);
     const formattedAmount = convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const displayedAmount = isAnyTransactionOnHold && canAllowSettlement && hasValidNonHeldAmount ? nonHeldAmount : formattedAmount;
-    const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
+    const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || shouldUseNarrowLayout;
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
@@ -335,16 +284,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     };
 
     const statusBarProps = getStatusBarProps();
-    const shouldAddGapToContents =
-        shouldUseNarrowLayout &&
-        (isDuplicate || shouldShowSettlementButton || !!shouldShowExportIntegrationButton || shouldShowSubmitButton || shouldShowMarkAsCashButton) &&
-        (!!statusBarProps || shouldShowNextStep);
-
-    // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
-    const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled,
-        [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
-    );
+    const shouldAddGapToContents = shouldUseNarrowLayout && (!!statusBarProps || shouldShowNextStep);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -353,17 +293,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
-
-    const unholdAction = () => {
-        const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
-
-        const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
-        if (!moneyRequestAction) {
-            throw new Error('boom');
-        }
-
-        changeMoneyRequestHoldStatus(moneyRequestAction);
-    };
 
     if (!moneyRequestReport) {
         return null;
@@ -377,18 +306,16 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const primaryActions = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
             <Button
-                success={isWaitingForSubmissionFromCurrentUser}
+                success
                 text={translate('common.submit')}
-                style={[styles.mnw120, styles.pv2, styles.pr0]}
                 onPress={() => submitReport(moneyRequestReport)}
-                isDisabled={shouldDisableSubmitButton}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
             <Button
                 success
                 onPress={confirmApproval}
-                text="Approve"
+                text={translate('iou.approve')}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
@@ -405,7 +332,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 shouldHidePaymentOptions={!shouldShowPayButton}
                 shouldShowApproveButton={shouldShowApproveButton}
                 shouldDisableApproveButton={shouldDisableApproveButton}
-                style={[styles.pv2]}
                 formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
                 isDisabled={isOffline && !canAllowSettlement}
                 isLoading={!isOffline && !canAllowSettlement}
@@ -414,9 +340,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING]: (
             <Button
                 success
-                text={translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegration})}
-                style={styles.p0}
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                text={translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegration!})}
                 onPress={() => {
+                    if (!connectedIntegration) {
+                        return;
+                    }
                     exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
                 }}
             />
@@ -425,14 +354,22 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             <Button
                 success
                 text="Unhold"
-                onPress={unholdAction}
+                onPress={() => {
+                    const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
+
+                    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+                    if (!moneyRequestAction) {
+                        return;
+                    }
+
+                    changeMoneyRequestHoldStatus(moneyRequestAction);
+                }}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES]: (
             <Button
                 success
                 text={translate('iou.reviewDuplicates')}
-                style={styles.p0}
                 onPress={() => {
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
                 }}
@@ -442,7 +379,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             <Button
                 success
                 text={translate('iou.markAsCash')}
-                style={[styles.pv2, styles.pr0]}
                 onPress={markAsCash}
             />
         ),
@@ -469,7 +405,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 }
 
                 exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs}, () => {
-                    console.log('Ups');
+                    setDownloadErrorModalVisible(true);
                 });
             },
         },
@@ -499,20 +435,21 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
             text: translate('iou.cancelPayment'),
-            icon: Expensicons.Trashcan, // Todo change icon
+            icon: Expensicons.Clear,
             value: CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT,
             onSelected: () => {
-                if (!chatReport) {
-                    return;
-                }
-                cancelPayment(moneyRequestReport, chatReport);
+                setIsCancelPaymentModalVisible(true);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING]: {
-            text: translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegration}),
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            text: translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegration!}),
             icon: getIntegrationIcon(connectedIntegration),
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING,
             onSelected: () => {
+                if (!connectedIntegration) {
+                    return;
+                }
                 exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
             },
         },
@@ -521,6 +458,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.CheckCircle,
             value: CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED,
             onSelected: () => {
+                if (!connectedIntegration) {
+                    return;
+                }
                 markAsManuallyExported(moneyRequestReport.reportID, connectedIntegration);
             },
         },
@@ -533,7 +473,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
                 const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
                 if (!moneyRequestAction) {
-                    throw new Error('boom');
+                    return;
                 }
 
                 changeMoneyRequestHoldStatus(moneyRequestAction);
@@ -544,7 +484,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             onSelected: () => {
-                console.log('To be implemented');
+                // TODO waiting for https://github.com/Expensify/App/pull/57553
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
@@ -552,12 +492,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
-                // deleteMoneyRequest();
+                // TODO waiting for https://github.com/Expensify/App/pull/58020/files
             },
         },
     };
 
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImpl[action]).filter((p) => !!p);
+    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImpl[action]);
 
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
@@ -589,7 +529,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <View style={[styles.flexGrow4]}>{!!primaryAction && primaryActions[primaryAction]}</View>
+                    {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActions[primaryAction]}</View>}
                     {!!secondaryActions.length && (
                         <ButtonWithDropdownMenu
                             success={false}
@@ -637,6 +577,31 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={downloadErrorModalVisible}
+                onClose={() => setDownloadErrorModalVisible(false)}
+            />
+            <ConfirmModal
+                title={translate('iou.cancelPayment')}
+                isVisible={isCancelPaymentModalVisible}
+                onConfirm={() => {
+                    if (!chatReport) {
+                        return;
+                    }
+                    cancelPayment(moneyRequestReport, chatReport);
+                }}
+                onCancel={() => setIsCancelPaymentModalVisible(false)}
+                prompt={translate('iou.cancelPaymentConfirmation')}
+                confirmText={translate('iou.cancelPayment')}
+                cancelText={translate('common.dismiss')}
+                danger
+                shouldEnableNewFocusManagement
             />
         </View>
     );
