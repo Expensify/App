@@ -433,7 +433,7 @@ function ReportActionCompose({
                 onClose: onAttachmentPreviewClose,
                 shouldDisableSendButton: !!exceededMaxLength,
             });
-            Navigation.navigate(ROUTES.REPORT_WITH_ID_ADD_ATTACHMENT.getRoute(reportID));
+            Navigation.navigate(ROUTES.REPORT_ADD_ATTACHMENT.getRoute(reportID));
         },
         [addAttachment, exceededMaxLength, onAttachmentPreviewClose, reportAttachmentsContext, reportID, translate],
     );

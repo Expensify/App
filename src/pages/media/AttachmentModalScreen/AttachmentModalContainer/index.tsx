@@ -22,9 +22,9 @@ function AttachmentModalContainer({contentProps, modalType, closeConfirmModal, i
             if (typeof onClose === 'function') {
                 if (shouldCallDirectly) {
                     onClose();
-                    return;
+                } else {
+                    attachmentModalHandler.handleModalClose(onClose);
                 }
-                attachmentModalHandler.handleModalClose(onClose);
             }
 
             attachmentsContext.setCurrentAttachment(undefined);

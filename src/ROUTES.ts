@@ -347,7 +347,7 @@ const ROUTES = {
             return `${baseRoute}${referrerParam}` as const;
         },
     },
-    REPORT_WITH_ID_ADD_ATTACHMENT: {
+    REPORT_ADD_ATTACHMENT: {
         route: 'r/:reportID/attachment/add',
         getRoute: (reportID: string, params?: AttachmentRouteParams) => {
             // eslint-disable-next-line @typescript-eslint/naming-convention

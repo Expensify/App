@@ -364,6 +364,7 @@ function AttachmentModalBaseContent({
                     title={headerTitle}
                     shouldShowBorderBottom
                     shouldShowDownloadButton={shouldShowDownloadButton}
+                    shouldDisplayHelpButton={false}
                     onDownloadButtonPress={() => downloadAttachment()}
                     shouldShowCloseButton={!shouldUseNarrowLayout}
                     shouldShowBackButton={shouldUseNarrowLayout}
