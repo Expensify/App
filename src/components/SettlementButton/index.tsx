@@ -90,6 +90,9 @@ function SettlementButton({
         selector: (paymentMethod) => getLastPolicyPaymentMethod(policyIDKey, paymentMethod, iouReport?.type as keyof LastPaymentMethodType),
     });
 
+    console.log('lastPaymentMethod', lastPaymentMethod)
+
+
     const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -123,6 +126,11 @@ function SettlementButton({
     }
 
     const latestBankItem = getLatestBankAccountItem();
+
+
+    const savePreferredPaymentMethod = (id: string, value: string) => {
+        savePreferredPaymentMethodIOU(id, value, undefined);
+    };
 
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -210,6 +218,10 @@ function SettlementButton({
                     shouldUpdateSelectedIndex: true,
                     onSelected: () => {
                         onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType, undefined);
+                        if (!formattedPaymentMethod.accountType) {
+                            return;
+                        }
+                        savePreferredPaymentMethod(policyIDKey, formattedPaymentMethod.accountType);
                     },
                 }));
 
@@ -235,6 +247,7 @@ function SettlementButton({
                             text: translate('iou.payElsewhere', {formattedAmount: ''}),
                             icon: Expensicons.Cash,
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                            shouldUpdateSelectedIndex: true,
                             onSelected: () => {
                                 onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
                                 savePreferredPaymentMethod(policyIDKey, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
@@ -265,8 +278,8 @@ function SettlementButton({
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: Expensicons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        shouldUpdateSelectedIndex: true,
                         onSelected: () => {
-                            console.log('onSelected', CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
                             onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true);
                             savePreferredPaymentMethod(policyIDKey, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
                         },
@@ -346,10 +359,6 @@ function SettlementButton({
         }
     };
 
-    const savePreferredPaymentMethod = (id: string, value: string) => {
-        savePreferredPaymentMethodIOU(id, value, undefined);
-    };
-
     const getCustomText = () => {
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             return translate('iou.payElsewhere', {formattedAmount: ''});
@@ -362,6 +371,7 @@ function SettlementButton({
     };
 
     const getSecondLineText = (): string | undefined => {
+
         if (shouldUseShortForm || lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             return undefined;
         }
