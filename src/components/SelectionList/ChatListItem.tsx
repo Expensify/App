@@ -70,7 +70,6 @@ function ChatListItem<TItem extends ListItem>({
                 action={reportActionItem}
                 report={report}
                 onPress={() => onSelectRow(item)}
-                reportActions={[]}
                 parentReportAction={undefined}
                 displayAsGroup={false}
                 isMostRecentIOUReportAction={false}
