@@ -788,8 +788,8 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
 /**
  * Whether to show the empty state or not
  */
-function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, searchResults: SearchResults) {
-    return !isDataLoaded || dataLength === 0 || !Object.hasOwn(SearchColumns, searchResults?.search.type);
+function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes) {
+    return !isDataLoaded || dataLength === 0 || !Object.hasOwn(SearchColumns, type);
 }
 
 export {

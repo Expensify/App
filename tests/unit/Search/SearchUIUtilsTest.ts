@@ -1391,10 +1391,10 @@ describe('SearchUIUtils', () => {
     });
 
     test('Should return true if the search result has valid type', () => {
-        expect(SearchUIUtils.shouldShowEmptyState(false, reportsListItems.length, searchResults)).toBe(true);
-        expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults)).toBe(true);
-        const inValidSearchResults: OnyxTypes.SearchResults = {...searchResults, search: {...searchResults.search, type: 'expensse' as SearchDataTypes}};
-        expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, inValidSearchResults)).toBe(true);
-        expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, searchResults)).toBe(false);
+        expect(SearchUIUtils.shouldShowEmptyState(false, reportsListItems.length, searchResults.search.type)).toBe(true);
+        expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search.type)).toBe(true);
+        const inValidSearchType: SearchDataTypes = 'expensse' as SearchDataTypes;
+        expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, inValidSearchType)).toBe(true);
+        expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, searchResults.search.type)).toBe(false);
     });
 });

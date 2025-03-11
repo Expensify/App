@@ -379,10 +379,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
-    console.log('shouldShowEmptyState', searchResults);
-    console.log('shouldShowEmptyState1', isDataLoaded);
-    console.log('shouldShowEmptyState2', data.length);
-    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults)) {
+
+    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type)) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
