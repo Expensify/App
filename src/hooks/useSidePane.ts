@@ -53,8 +53,9 @@ function useSidePane() {
     useEffect(() => {
         if (!isPaneHidden) {
             setShouldHideSidePane(false);
+            setIsAnimating(true);
         }
-        setIsAnimating(true);
+
         Animated.parallel([
             Animated.timing(sidePaneOffset.current, {
                 toValue: shouldApplySidePaneOffset ? variables.sideBarWidth : 0,
