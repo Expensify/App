@@ -6,18 +6,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTagForDisplay} from '@libs/TransactionUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-function TagCell({shouldUseNarrowLayout, showTooltip, transactionItem}: TransactionDataCellProps) {
+function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
     const styles = useThemeStyles();
     return shouldUseNarrowLayout ? (
         <TextWithIconCell
             icon={Expensicons.Tag}
-            showTooltip={showTooltip}
+            showTooltip={shouldShowTooltip}
             text={getTagForDisplay(transactionItem)}
             textStyle={[styles.textMicro, styles.mnh0]}
         />
     ) : (
         <TextWithTooltip
-            shouldShowTooltip={showTooltip}
+            shouldShowTooltip={shouldShowTooltip}
             text={getTagForDisplay(transactionItem)}
             style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
         />

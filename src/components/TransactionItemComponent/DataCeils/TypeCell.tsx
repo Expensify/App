@@ -29,7 +29,7 @@ const getTypeText = (type?: string) => {
     }
 };
 
-function TypeCell({transactionItem, shouldUseNarrowLayout, showTooltip}: TransactionDataCellProps) {
+function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
     const theme = useTheme();
     const typeIcon = getTypeIcon(transactionItem.cardName);
     const typeText = getTypeText(transactionItem.cardName);
@@ -37,7 +37,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, showTooltip}: Transac
 
     return shouldUseNarrowLayout ? (
         <TextWithTooltip
-            shouldShowTooltip={showTooltip}
+            shouldShowTooltip={shouldShowTooltip}
             text={typeText}
             style={[styles.textMicroSupporting, styles.pre, styles.justifyContentCenter]}
         />

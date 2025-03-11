@@ -6,7 +6,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getCurrency as getTransactionCurrency, hasReceipt, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-function TotalCell({showTooltip, transactionItem}: TransactionDataCellProps) {
+function TotalCell({shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currency = getTransactionCurrency(transactionItem);
@@ -19,7 +19,7 @@ function TotalCell({showTooltip, transactionItem}: TransactionDataCellProps) {
 
     return (
         <TextWithTooltip
-            shouldShowTooltip={showTooltip}
+            shouldShowTooltip={shouldShowTooltip}
             text={amount}
             style={[styles.optionDisplayName, styles.justifyContentCenter]}
         />

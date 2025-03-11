@@ -18,12 +18,12 @@ function TransactionItemComponent({
     transactionItem,
     shouldUseNarrowLayout,
     isSelected,
-    showTooltip,
+    shouldShowTooltip,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
-    showTooltip: boolean;
+    shouldShowTooltip: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -45,25 +45,25 @@ function TransactionItemComponent({
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
                                 <DateCell
                                     transactionItem={transactionItem}
-                                    showTooltip={showTooltip}
+                                    shouldShowTooltip={shouldShowTooltip}
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                                 <Text style={[styles.textMicroSupporting]}> • </Text>
                                 <TypeCell
                                     transactionItem={transactionItem}
-                                    showTooltip={showTooltip}
+                                    shouldShowTooltip={shouldShowTooltip}
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                             </View>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.minHeight5, styles.maxHeight5]}>
                                 <MerchantCell
                                     transactionItem={transactionItem}
-                                    showTooltip={showTooltip}
+                                    shouldShowTooltip={shouldShowTooltip}
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                                 <TotalCell
                                     transactionItem={transactionItem}
-                                    showTooltip={showTooltip}
+                                    shouldShowTooltip={shouldShowTooltip}
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                                 {/* </View> */}
@@ -73,12 +73,12 @@ function TransactionItemComponent({
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.minHeight3, styles.ml3, styles.mt0, styles.mb3]}>
                         <CategoryCell
                             transactionItem={transactionItem}
-                            showTooltip={showTooltip}
+                            shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <TagCell
                             transactionItem={transactionItem}
-                            showTooltip={showTooltip}
+                            shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                     </View>
@@ -95,42 +95,42 @@ function TransactionItemComponent({
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
                             <TypeCell
                                 transactionItem={transactionItem}
-                                showTooltip={showTooltip}
+                                shouldShowTooltip={shouldShowTooltip}
                                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                             />
                         </View>
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, false)]}>
                             <DateCell
                                 transactionItem={transactionItem}
-                                showTooltip={showTooltip}
+                                shouldShowTooltip={shouldShowTooltip}
                                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                             />
                         </View>
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
                             <MerchantCell
                                 transactionItem={transactionItem}
-                                showTooltip={showTooltip}
+                                shouldShowTooltip={shouldShowTooltip}
                                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                             />
                         </View>
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
                             <CategoryCell
                                 transactionItem={transactionItem}
-                                showTooltip={showTooltip}
+                                shouldShowTooltip={shouldShowTooltip}
                                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                             />
                         </View>
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
                             <TagCell
                                 transactionItem={transactionItem}
-                                showTooltip={showTooltip}
+                                shouldShowTooltip={shouldShowTooltip}
                                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                             />
                         </View>
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                             <TotalCell
                                 transactionItem={transactionItem}
-                                showTooltip={showTooltip}
+                                shouldShowTooltip={shouldShowTooltip}
                                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                             />
                         </View>

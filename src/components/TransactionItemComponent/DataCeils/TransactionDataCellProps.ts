@@ -2,7 +2,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 
 type TransactionDataCellProps = {
     transactionItem: Transaction;
-    showTooltip: boolean;
+    shouldShowTooltip: boolean;
     shouldUseNarrowLayout?: boolean;
 };
 
