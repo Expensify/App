@@ -69,6 +69,12 @@ type BackToParams = {
     backTo?: Routes;
 };
 
+type ConsoleNavigatorParamList = {
+    [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
+        backTo: Routes;
+    };
+};
+
 type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: undefined;
@@ -786,9 +792,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.MULTI_CONNECTION_SELECTOR]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
-    };
-    [SCREENS.GET_ASSISTANCE]: {
-        backTo: Routes;
     };
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
@@ -1777,6 +1780,7 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.SAML_SIGN_IN]: undefined;
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
+    [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<ConsoleNavigatorParamList>;
 };
 
 type AuthScreensParamList = SharedScreensParamList & {
@@ -1994,4 +1998,5 @@ export type {
     MigratedUserModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
+    ConsoleNavigatorParamList,
 };
