@@ -1630,6 +1630,10 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: {
+        policyID: string;
+        feed: string;
+    };
     [SCREENS.WORKSPACE.PER_DIEM]: {
         policyID: string;
     };
