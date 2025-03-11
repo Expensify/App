@@ -5,9 +5,9 @@ import React, {forwardRef, useCallback, useEffect} from 'react';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
+import toggleSelectionFormat from '@libs/FormatSelectionUtils';
 import {parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
-import toggleSelectionFormat from '@libs/FormatSelectionUtils';
 import CONST from '@src/CONST';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
@@ -20,7 +20,7 @@ type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & 
     parser?: MarkdownTextInputProps['parser'];
 };
 
-function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
+function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTextInputWithRefProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
     const theme = useTheme();
 
     const {mentionsList, currentUserMention} = useShortMentionsList();
