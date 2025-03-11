@@ -127,7 +127,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                     {(isDocumentNeededStatus.isAddressProofNeeded ||
                         isDocumentNeededStatus.isProofOfDirecorsNeeded ||
                         isDocumentNeededStatus.isCodiceFiscaleNeeded ||
-                        isDocumentNeededStatus.isPRDandFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                        isDocumentNeededStatus.isPRDandFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
                 </View>
             )}
             {isDocumentNeededStatus.isAddressProofNeeded && (
@@ -152,7 +152,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
                     {(isDocumentNeededStatus.isProofOfDirecorsNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && (
-                        <View style={[styles.sectionDividerLine, styles.mh0]} />
+                        <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />
                     )}
                 </View>
             )}
@@ -177,7 +177,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         }}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.proofOfDirectorsDescription')}</Text>
-                    {(isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {(isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
                 </View>
             )}
             {isDocumentNeededStatus.isCodiceFiscaleNeeded && (
@@ -200,8 +200,8 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                             setUploadError(error, `${SIGNER_PREFIX}_${CODICE_FISCALE}`);
                         }}
                     />
-                    <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('ownershipInfoStep.codiceFiscaleDescription')}</Text>
-                    {isDocumentNeededStatus.isPRDandFSGNeeded && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.codiceFiscaleDescription')}</Text>
+                    {isDocumentNeededStatus.isPRDandFSGNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
                 </View>
             )}
             {isDocumentNeededStatus.isPRDandFSGNeeded && (
