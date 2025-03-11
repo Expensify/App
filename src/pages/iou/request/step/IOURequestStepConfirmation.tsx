@@ -274,7 +274,7 @@ function IOURequestStepConfirmation({
             });
     }
 
-    const hideRecieptModal = () => {
+    const hideReceiptModal = () => {
         setIsAttachmentInvalid(false);
     };
 
@@ -907,8 +907,8 @@ function IOURequestStepConfirmation({
                     />
                     <ConfirmModal
                         title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                        onConfirm={hideRecieptModal}
-                        onCancel={hideRecieptModal}
+                        onConfirm={hideReceiptModal}
+                        onCancel={hideReceiptModal}
                         isVisible={isAttachmentInvalid}
                         prompt={confirmModalPrompt}
                         confirmText={translate('common.close')}
