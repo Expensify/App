@@ -30,16 +30,12 @@ const ssrConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
                 test: /\.css$/,
                 use: [
                     {
-                        loader: 'isomorphic-style-loader-react18',
-                    },
-                    {
                         loader: 'css-loader',
                         options: {
                             modules: false,
                             importLoaders: 1,
                         },
                     },
-                    'postcss-loader',
                 ],
             },
         ],

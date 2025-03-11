@@ -1,6 +1,7 @@
 import express from 'express';
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
+import {AppRegistry} from 'react-native-web';
 import 'source-map-support/register';
 import SampleEmail from './components/SampleEmail';
 import CONFIG from './CONFIG';
@@ -11,16 +12,20 @@ const url = `http://localhost:${CONFIG.EXPRESS_PORT}`;
 
 // TODO: only send live reload connection snippet for dev bundle. For production bundle don't include it
 app.get('/', (req, res) => {
-    const emailContent = ReactDOMServer.renderToStaticMarkup(React.createElement(SampleEmail));
+    AppRegistry.registerComponent('SampleEmail', () => SampleEmail);
+    const {element, getStyleElement} = AppRegistry.getApplication('SampleEmail');
+    const html = ReactDOMServer.renderToString(element);
+    const css = ReactDOMServer.renderToStaticMarkup(getStyleElement());
     res.send(`<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
     <title>Email Preview</title>
+    ${css}
     ${LiveReloadServer.clientConnectionScript}
   </head>
   <body>
-    ${emailContent}
+    ${html}
   </body>
 </html>`);
 });
