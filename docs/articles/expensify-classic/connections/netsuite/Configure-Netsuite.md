@@ -376,9 +376,7 @@ Next, ensure that Tax Groups can be applied to expenses:
 
 NetSuite has a pre-made list of tax groups for specific locations, but you can also create your own. We'll import both your custom tax groups and the default ones. It's important not to deactivate the default NetSuite tax groups because we rely on them for exporting specific types of expenses.
 
-For example, there's a default Canadian tax group called CA-Zero, which we use when exporting mileage and per diem expenses that don't have any taxes applied in 
-
-Expensify. If you deactivate this group in NetSuite, it will lead to export errors.
+For example, there's a default Canadian tax group called CA-Zero, which we use when exporting mileage and per diem expenses that don't have any taxes applied in Expensify. If you deactivate this group in NetSuite, it will lead to export errors.
 
 Additionally, some tax nexuses in NetSuite have specific settings that need to be configured in a certain way to work seamlessly with the Expensify integration:
 - ​​In the Tax Code Lists Include field, choose "Tax Groups" or "Tax Groups and Tax Codes." This setting determines how tax information is handled.
