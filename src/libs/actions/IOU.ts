@@ -4758,7 +4758,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     }
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    if (isSearchTopmostFullScreenRoute()) {
+    if (isSearchTopmostFullScreenRoute() || !activeReportID) {
         Navigation.dismissModal();
     } else {
         Navigation.dismissModalWithReport({reportID: activeReportID});
@@ -4846,7 +4846,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    if (isSearchTopmostFullScreenRoute()) {
+    if (isSearchTopmostFullScreenRoute() || !activeReportID) {
         Navigation.dismissModal();
     } else {
         Navigation.dismissModalWithReport({reportID: activeReportID});
@@ -5144,7 +5144,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    if (isSearchTopmostFullScreenRoute()) {
+    if (isSearchTopmostFullScreenRoute() || !activeReportID) {
         Navigation.dismissModal();
     } else {
         Navigation.dismissModalWithReport({reportID: activeReportID});
@@ -5731,7 +5731,7 @@ function splitBill({
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    if (isSearchTopmostFullScreenRoute()) {
+    if (isSearchTopmostFullScreenRoute() || !existingSplitChatReportID) {
         Navigation.dismissModal();
     } else {
         Navigation.dismissModalWithReport({reportID: existingSplitChatReportID});
@@ -6581,7 +6581,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
-    if (isSearchTopmostFullScreenRoute()) {
+    if (isSearchTopmostFullScreenRoute() || !activeReportID) {
         Navigation.dismissModal();
     } else {
         Navigation.dismissModalWithReport({reportID: activeReportID});

@@ -229,6 +229,10 @@ function NewChatPage() {
     const selectOption = useCallback(
         (option?: Option) => {
             if (option?.isSelfDM) {
+                if (!option.reportID) {
+                    Navigation.dismissModal();
+                    return;
+                }
                 Navigation.dismissModalWithReport({reportID: option.reportID});
                 return;
             }

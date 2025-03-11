@@ -471,7 +471,7 @@ function waitForProtectedRoutes() {
 }
 
 // It should not be possible to pass a report and a reportID at the same time.
-type NavigateToReportWithPolicyCheckPayload = MergeExclusive<{report?: OnyxEntry<Report>}, {reportID?: string}> & {
+type NavigateToReportWithPolicyCheckPayload = MergeExclusive<{report: OnyxEntry<Report>}, {reportID: string}> & {
     reportActionID?: string;
     referrer?: string;
     policyIDToCheck?: string;
