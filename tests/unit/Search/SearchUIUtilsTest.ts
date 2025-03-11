@@ -9,6 +9,7 @@ import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const adminAccountID = 18439984;
@@ -1392,6 +1393,8 @@ describe('SearchUIUtils', () => {
     test('Should return true if the search result has valid type', () => {
         expect(SearchUIUtils.shouldShowEmptyState(false, reportsListItems.length, searchResults)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults)).toBe(true);
-        expect(SearchUIUtils.shouldShowEmptyState(false, reportsListItems.length, searchResults)).toBe(true);
+        const inValidSearchResults: OnyxTypes.SearchResults = {...searchResults, search: {...searchResults.search, type: 'expensse' as SearchDataTypes}};
+        expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, inValidSearchResults)).toBe(true);
+        expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, searchResults)).toBe(false);
     });
 });
