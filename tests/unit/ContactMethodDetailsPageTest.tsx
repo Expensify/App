@@ -59,7 +59,7 @@ describe('ContactMethodDetailsPage', () => {
         );
     }
 
-    it('should not call resetContactMethodValidateCodeSentState when contact method is validated', async () => {
+    it('should not call resetContactMethodValidateCodeSentState when we got a delete pending field', async () => {
         // Given a login list with a validated contact method
         Onyx.merge(ONYXKEYS.LOGIN_LIST, mockLoginList);
         await waitForBatchedUpdates();
