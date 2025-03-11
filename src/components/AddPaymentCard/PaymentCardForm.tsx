@@ -171,6 +171,11 @@ function PaymentCardForm({
         // See issue: https://github.com/Expensify/App/issues/55493#issuecomment-2616349754
         if (values.addressZipCode && !isValidPaymentZipCode(values.addressZipCode)) {
             errors.addressZipCode = translate('addPaymentCardPage.error.addressZipCode');
+        } else if (values.addressZipCode.length > CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE) {
+            errors.addressZipCode = translate('common.error.characterLimitExceedCounter', {
+                length: values.addressZipCode.length,
+                limit: CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE,
+            });
         }
 
         if (!values.acceptTerms) {
@@ -290,7 +295,6 @@ function PaymentCardForm({
                     label={translate('common.zipPostCode')}
                     aria-label={translate('common.zipPostCode')}
                     role={CONST.ROLE.PRESENTATION}
-                    maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     containerStyles={[styles.mt5]}
                 />
                 {!!showStateSelector && (
