@@ -460,11 +460,11 @@ function ReportActionsList({
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
                     return;
                 }
-                reportScrollManager.scrollToBottom();
+
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [reportScrollManager, report.reportID],
+        [report.reportID],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
