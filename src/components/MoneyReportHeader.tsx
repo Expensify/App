@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
@@ -74,7 +75,6 @@ import DelegateNoAccessModal from './DelegateNoAccessModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import LoadingBar from './LoadingBar';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
@@ -207,7 +207,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
-    const shouldShowNextStep = transactions?.length !== 0 && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
+
+    // When prevent self-approval is enabled, we need to show the optimistic next step
+    // We should always show this optimistic message for policies with preventSelfApproval
+    // to avoid any flicker during transitions between online/offline states
+    const optimisticNextStep = policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
+
+    const shouldShowNextStep = transactions?.length !== 0 && isFromPaidPolicy && !!optimisticNextStep?.message?.length && !shouldShowStatusBar;
     const shouldShowAnyButton =
         isDuplicate ||
         shouldShowSettlementButton ||
@@ -224,7 +230,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
@@ -510,7 +515,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             />
                         )}
                     </View>
-                    {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={nextStep} />}
+                    {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
                     {!!statusBarProps && (
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}
@@ -519,7 +524,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                 </View>
             )}
-            <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
