@@ -1,3 +1,4 @@
+import declassify from 'declassify';
 import express from 'express';
 import juice from 'juice';
 import path from 'path';
@@ -68,8 +69,9 @@ app.get('/', async (req, res) => {
 </html>`;
 
     const htmlWithInlinedStyles = juice(html);
+    const htmlWithUnusedClassesRemoved = declassify.process(htmlWithInlinedStyles);
 
-    res.send(htmlWithInlinedStyles);
+    res.send(htmlWithUnusedClassesRemoved);
 });
 
 // Custom error handler works with live reload server
