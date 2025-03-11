@@ -1,6 +1,7 @@
 import React, {useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
+import {isMobileChrome} from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
 import Text from './Text';
 import type {TextProps} from './Text';
@@ -18,6 +19,7 @@ function TextWithCopy({children, copyText, ...rest}: TextWithCopyProps) {
             onPress={() => {
                 Clipboard.setString(copyText);
             }}
+            selectable={!isMobileChrome()}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
