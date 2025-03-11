@@ -3,7 +3,7 @@ import {useEffect, useRef, useState} from 'react';
 import {isMobile} from '@libs/Browser';
 import shouldPreventDeeplinkPrompt from '@libs/Navigation/helpers/shouldPreventDeeplinkPrompt';
 import Navigation from '@navigation/Navigation';
-import navigationRef from '@navigation/Navigation/navigationRef';
+import navigationRef from '@navigation/navigationRef';
 import {beginDeepLinkRedirect, beginDeepLinkRedirectAfterTransition} from '@userActions/App';
 import {getInternalNewExpensifyPath} from '@userActions/Link';
 import {isAnonymousUser} from '@userActions/Session';

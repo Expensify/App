@@ -19,7 +19,7 @@ jest.mock('@navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
 }));
-jest.mock('@navigation/Navigation/navigationRef', () => ({
+jest.mock('@navigation/navigationRef', () => ({
     getState: () => ({
         routes: [{name: 'Report'}],
     }),

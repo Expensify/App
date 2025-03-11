@@ -85,7 +85,7 @@ jest.mock('@navigation/Navigation', () => ({
     getReportRouteByID: jest.fn(),
 }));
 
-jest.mock('@navigation/Navigation/navigationRef', () => ({
+jest.mock('@navigation/navigationRef', () => ({
     getRootState: () => ({
         routes: [],
     }),

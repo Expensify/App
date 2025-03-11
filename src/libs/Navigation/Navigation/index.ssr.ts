@@ -1,3 +1,4 @@
+import navigationRef from '@navigation/navigationRef';
 import type NavigationType from './types';
 
 const Navigation: NavigationType = {
@@ -32,3 +33,4 @@ const Navigation: NavigationType = {
 };
 
 export default Navigation;
+export {navigationRef};

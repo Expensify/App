@@ -30,8 +30,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
-import Navigation from '@navigation/Navigation';
-import navigationRef from '@navigation/Navigation/navigationRef';
 import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
@@ -41,6 +39,8 @@ import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsRep
 import * as SessionUtils from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
+import Navigation from '@navigation/Navigation';
+import navigationRef from '@navigation/navigationRef';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {KEYS_TO_PRESERVE, openApp, reconnectApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';

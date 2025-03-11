@@ -1,5 +1,5 @@
-import navigationRef from '@navigation/Navigation/navigationRef';
 import type {NavigationPartialRoute, SplitNavigatorBySidebar, SplitNavigatorSidebarScreen} from '@libs/Navigation/types';
+import navigationRef from '@navigation/navigationRef';
 import CONST from '@src/CONST';
 
 function replaceWithSplitNavigator<T extends SplitNavigatorSidebarScreen>(splitNavigatorState: NavigationPartialRoute<SplitNavigatorBySidebar<T>>) {

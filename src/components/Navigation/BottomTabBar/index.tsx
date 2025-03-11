@@ -24,7 +24,7 @@ import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getPreservedSplitNavigatorState} from '@navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
-import navigationRef from '@navigation/Navigation/navigationRef';
+import navigationRef from '@navigation/navigationRef';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';

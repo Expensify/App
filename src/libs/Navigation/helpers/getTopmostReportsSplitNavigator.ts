@@ -1,4 +1,4 @@
-import navigationRef from '@navigation/Navigation/navigationRef';
+import navigationRef from '@navigation/navigationRef';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 function getTopmostReportsSplitNavigator() {

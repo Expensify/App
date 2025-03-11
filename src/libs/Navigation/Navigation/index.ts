@@ -25,6 +25,7 @@ import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, Root
 import {shallowCompare} from '@libs/ObjectUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {doesReportBelongToWorkspace, generateReportID} from '@libs/ReportUtils';
+import navigationRef from '@navigation/navigationRef';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +34,6 @@ import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import navigationRef from './navigationRef';
 import type NavigationType from './types';
 
 let allReports: OnyxCollection<Report>;
@@ -108,7 +108,7 @@ function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
  * Returns the current active route.
  */
 function getActiveRoute(): string {
-    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRoute = navigationRef.current?.getCurrentRoute();
     if (!currentRoute?.name) {
         return '';
     }

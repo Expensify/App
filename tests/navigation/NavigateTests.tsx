@@ -3,7 +3,7 @@ import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@navigation/Navigation';
-import navigationRef from '@navigation/Navigation/navigationRef';
+import navigationRef from '@navigation/navigationRef';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
