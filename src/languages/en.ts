@@ -134,6 +134,7 @@ import type {
     RemoveMemberPromptParams,
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
+    ReplyOrOpenInNewDotParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -5976,7 +5977,7 @@ const translations = {
         confirmText: 'Discard changes',
     },
     notifications: {
-        replyOrOpenInExpensify: (url: string) => `Reply to this message or <a href="${url}" target="_blank">open it in Expensify.</a>`,
+        replyOrOpenInExpensify: ({url}: ReplyOrOpenInNewDotParams) => `Reply to this message or <a href="${url}" target="_blank">open it in Expensify.</a>`,
     },
 };
 

@@ -69,9 +69,6 @@ const getBaseConfiguration = ({file = '.env', platform = 'web'}: Environment): C
     },
     plugins: [
         new CleanWebpackPlugin(),
-        new ProvidePlugin({
-            process: 'process/browser',
-        }),
         new IgnorePlugin({
             resourceRegExp: /^\.\/locale$/,
             contextRegExp: /moment$/,
@@ -84,7 +81,6 @@ const getBaseConfiguration = ({file = '.env', platform = 'web'}: Environment): C
               ]
             : []),
         new DefinePlugin({
-            ...(platform === 'desktop' ? {} : {process: {env: {}}}),
             // eslint-disable-next-line @typescript-eslint/naming-convention
             __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
 
@@ -181,11 +177,6 @@ const getBaseConfiguration = ({file = '.env', platform = 'web'}: Environment): C
         },
 
         extensions: getFileExtensions(platform),
-        fallback: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'process/browser': require.resolve('process/browser'),
-            crypto: false,
-        },
     },
 });
 

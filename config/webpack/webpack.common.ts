@@ -5,7 +5,7 @@ import path from 'path';
 import TerserPlugin from 'terser-webpack-plugin';
 import type {Class} from 'type-fest';
 import type {Configuration, WebpackPluginInstance} from 'webpack';
-import {EnvironmentPlugin} from 'webpack';
+import {DefinePlugin, EnvironmentPlugin, ProvidePlugin} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import {merge} from 'webpack-merge';
 import CustomVersionFilePlugin from './CustomVersionFilePlugin';
@@ -54,6 +54,12 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             publicPath: '/',
         },
         plugins: [
+            new ProvidePlugin({
+                process: 'process/browser',
+            }),
+            new DefinePlugin({
+                ...(platform === 'desktop' ? {} : {process: {env: {}}}),
+            }),
             new HtmlWebpackPlugin({
                 template: 'web/index.html',
                 filename: 'index.html',
@@ -132,6 +138,13 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     },
                 },
             ],
+        },
+        resolve: {
+            fallback: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'process/browser': require.resolve('process/browser'),
+                crypto: false,
+            },
         },
         optimization: {
             minimizer: [

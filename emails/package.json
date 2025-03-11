@@ -15,7 +15,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "juice": "^11.0.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",

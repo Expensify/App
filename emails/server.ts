@@ -1,4 +1,5 @@
 import express from 'express';
+import juice from 'juice';
 import path from 'path';
 import ReactDOMServer from 'react-dom/server';
 import Onyx from 'react-native-onyx';
@@ -48,9 +49,11 @@ app.get('/', async (req, res) => {
 
     AppRegistry.registerComponent('SampleEmail', () => SampleEmail);
     const {element, getStyleElement} = AppRegistry.getApplication('SampleEmail');
-    const html = ReactDOMServer.renderToString(element);
+    const renderedHTML = ReactDOMServer.renderToString(element);
     const css = ReactDOMServer.renderToStaticMarkup(getStyleElement());
-    res.send(`<!DOCTYPE html>
+
+    const html = `
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -60,9 +63,13 @@ app.get('/', async (req, res) => {
     ${LiveReloadServer.clientConnectionScript}
   </head>
   <body>
-    ${html}
+    ${renderedHTML}
   </body>
-</html>`);
+</html>`;
+
+    const htmlWithInlinedStyles = juice(html);
+
+    res.send(htmlWithInlinedStyles);
 });
 
 // Custom error handler works with live reload server
