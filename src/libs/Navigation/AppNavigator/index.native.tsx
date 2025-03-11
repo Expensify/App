@@ -10,7 +10,7 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
-    const {initialURL, setInitialURL} = useContext(InitialURLContext);
+    const {initialURL} = useContext(InitialURLContext);
 
     useEffect(() => {
         if (!NativeModules.HybridAppModule || !initialURL) {
@@ -19,9 +19,8 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
 
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(Navigation.parseHybridAppUrl(initialURL));
-            setInitialURL(undefined);
         });
-    }, [initialURL, setInitialURL]);
+    }, [initialURL]);
 
     if (authenticated) {
         const AuthScreens = require<ReactComponentModule>('./AuthScreens').default;
