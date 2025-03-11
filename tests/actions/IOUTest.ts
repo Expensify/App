@@ -4848,7 +4848,7 @@ describe('actions/IOU', () => {
             expect(calculateDiffAmount(fakeReport, updatedTransaction, fakeTransaction)).toBe(-100);
         });
 
-        it('should return null when the currency of the updated and current transactions have the same currency', () => {
+        it('should return null when the currency of the updated and current transactions have different values', () => {
             const fakeReport: Report = {
                 ...createRandomReport(1),
                 type: CONST.REPORT.TYPE.EXPENSE,
