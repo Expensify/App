@@ -32,6 +32,7 @@ import {
     isAllowedToApproveExpenseReport,
     isArchivedReportWithID,
     isInvoiceReport,
+    isReportOwner,
     navigateToDetailsPage,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
@@ -45,7 +46,17 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canApproveIOU, cancelPayment, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest, submitReport, unapproveExpenseReport} from '@userActions/IOU';
+import {
+    approveMoneyRequest,
+    canApproveIOU,
+    cancelPayment,
+    canIOUBePaid as canIOUBePaidAction,
+    getNextApproverAccountID,
+    payInvoice,
+    payMoneyRequest,
+    submitReport,
+    unapproveExpenseReport,
+} from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
@@ -173,10 +184,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
 
-    // When prevent self-approval is enabled, we need to show the optimistic next step
+    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to theirself, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    const optimisticNextStep = policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
+    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
+    const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
+    const optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
     const shouldShowNextStep = transactions?.length !== 0 && isFromPaidPolicy && !!optimisticNextStep?.message?.length && !shouldShowStatusBar;
 

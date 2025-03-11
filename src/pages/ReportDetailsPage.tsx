@@ -1,19 +1,22 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import DisplayNames from '@components/DisplayNames';
+import Header from '@components/Header';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Modal from '@components/Modal';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -27,7 +30,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -91,6 +96,8 @@ import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
     clearReportFieldKeyErrors,
+    downloadReportPDF,
+    exportReportToPDF,
     getReportPrivateNote,
     hasErrorInPrivateNotes,
     leaveGroupChat,
@@ -137,12 +144,16 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUsePDFExport} = usePermissions();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
+
+    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`) ?? null;
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`, {
         selector: (actions) => (report?.parentReportActionID ? actions?.[report.parentReportActionID] : undefined),
     });
@@ -165,6 +176,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
+    const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
@@ -202,6 +214,17 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
         return '';
     }, [report]);
+
+    const messagePDF = useMemo(() => {
+        if (!reportPDFFilename) {
+            return translate('reportDetailsPage.waitForPDF');
+        }
+        if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
+            return translate('reportDetailsPage.errorPDF');
+        }
+        return translate('reportDetailsPage.generatedPDF');
+    }, [reportPDFFilename, translate]);
+
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
     const isRootGroupChat = useMemo(() => isRootGroupChatUtil(report), [report]);
@@ -317,6 +340,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowNotificationPref = !isMoneyRequestReport && !isHiddenForCurrentUser(report);
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
+
+    const beginPDFExport = useCallback(() => {
+        setIsPDFModalVisible(true);
+        exportReportToPDF({reportID: report.reportID});
+    }, [report]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
@@ -447,6 +475,22 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             }
         }
 
+        if (canUsePDFExport) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_PDF,
+                translationKey: 'common.downloadAsPDF',
+                icon: Expensicons.Document,
+                isAnonymousAction: false,
+                action: () => {
+                    if (isOffline) {
+                        setOfflineModalVisible(true);
+                    } else {
+                        beginPDFExport();
+                    }
+                },
+            });
+        }
+
         if (shouldShowGoToWorkspace) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
@@ -511,9 +555,10 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isInvoiceReport,
         isTaskReport,
         isCanceledTaskReport,
+        canUsePDFExport,
+        shouldShowGoToWorkspace,
         shouldShowLeaveButton,
         isDebugModeEnabled,
-        shouldShowGoToWorkspace,
         activeChatMembers.length,
         shouldOpenRoomMembersPage,
         backTo,
@@ -523,6 +568,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         session,
         canModifyTask,
         canActionTask,
+        isOffline,
+        beginPDFExport,
         isRootGroupChat,
         leaveChat,
     ]);
@@ -920,6 +967,47 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     isVisible={offlineModalVisible}
                     onClose={() => setOfflineModalVisible(false)}
                 />
+
+                <Modal
+                    onClose={() => setIsPDFModalVisible(false)}
+                    isVisible={isPDFModalVisible}
+                    type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+                >
+                    <View style={[styles.m5]}>
+                        <View>
+                            <View style={[styles.flexRow, styles.mb4]}>
+                                <Header
+                                    title={translate('reportDetailsPage.generatingPDF')}
+                                    containerStyles={[styles.alignItemsCenter]}
+                                />
+                            </View>
+                            <View>
+                                <Text>{messagePDF}</Text>
+                                {!reportPDFFilename && (
+                                    <ActivityIndicator
+                                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                        color={theme.textSupporting}
+                                        style={styles.mt3}
+                                    />
+                                )}
+                            </View>
+                        </View>
+                        {!!reportPDFFilename && reportPDFFilename !== 'error' && (
+                            <Button
+                                style={[styles.mt3, styles.noSelect]}
+                                onPress={() => downloadReportPDF(reportPDFFilename ?? '', reportName)}
+                                text={translate('common.download')}
+                            />
+                        )}
+                        {(!reportPDFFilename || reportPDFFilename === 'error') && (
+                            <Button
+                                style={[styles.mt3, styles.noSelect]}
+                                onPress={() => setIsPDFModalVisible(false)}
+                                text={translate('common.close')}
+                            />
+                        )}
+                    </View>
+                </Modal>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
