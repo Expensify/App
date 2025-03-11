@@ -74,7 +74,7 @@ function ExportWithDropdownMenu({
             },
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
-                text: translate('workspace.common.markAsExported'),
+                text: translate('workspace.common.markAsEntered'),
                 ...optionTemplate,
             },
         ];
