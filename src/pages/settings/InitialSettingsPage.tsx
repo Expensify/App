@@ -12,7 +12,6 @@ import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndB
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
 import MenuItem from '@components/MenuItem';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
 import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
@@ -102,7 +101,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
-    const {setInitialURL} = useContext(InitialURLContext);
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
@@ -252,7 +250,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                         ? {
                               action: () => {
                                   NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                                  setInitialURL(undefined);
                                   setRootStatusBarEnabled(false);
                               },
                           }
@@ -299,7 +296,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, setInitialURL, setRootStatusBarEnabled, isActingAsDelegate, shouldOpenBookACall, signOut]);
+    }, [styles.pt4, setRootStatusBarEnabled, isActingAsDelegate, shouldOpenBookACall, signOut]);
 
     /**
      * Retuns JSX.Element with menu items

@@ -16,4 +16,5 @@ export default {
     WORKSPACE_SPLIT_NAVIGATOR: 'WorkspaceSplitNavigator',
     SEARCH_FULLSCREEN_NAVIGATOR: 'SearchFullscreenNavigator',
     SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
+    PUBLIC_RIGHT_MODAL_NAVIGATOR: 'PublicRightModalNavigator',
 } as const;
