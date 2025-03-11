@@ -776,6 +776,7 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
+        NEWDOT_PDF_EXPORT: 'newDotPDFExport',
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NSQS: 'nsqs',
         CUSTOM_RULES: 'customRules',
@@ -3384,20 +3385,7 @@ const CONST = {
         PREFIX: '__predefined_',
         SELF_SELECT: '__predefined_selfSelect',
     },
-    GUIDES_CALL_TASK_IDS: {
-        CONCIERGE_DM: 'NewExpensifyConciergeDM',
-        WORKSPACE_INITIAL: 'WorkspaceHome',
-        WORKSPACE_OVERVIEW: 'WorkspaceOverview',
-        WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
-        WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
-        WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
-        WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
-        WORKSPACE_COMPANY_CARDS: 'WorkspaceCompanyCards',
-        WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
-        WORKSPACE_SETTINGS: 'WorkspaceSettings',
-        WORKSPACE_FEATURES: 'WorkspaceFeatures',
-        WORKSPACE_RULES: 'WorkspaceRules',
-    },
+
     EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce((prev, [, email]) => {
         // eslint-disable-next-line no-param-reassign
         prev[email] = true;
@@ -3507,7 +3495,8 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
-        DOWNLOAD: 'download',
+        DOWNLOAD_CSV: 'downloadCSV',
+        DOWNLOAD_PDF: 'downloadPDF',
         EXPORT: 'export',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
@@ -3515,6 +3504,7 @@ const CONST = {
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
         GO_TO_WORKSPACE: 'goToWorkspace',
+        ERROR: 'error',
         TRACK: {
             SUBMIT: 'submit',
             CATEGORIZE: 'categorize',
