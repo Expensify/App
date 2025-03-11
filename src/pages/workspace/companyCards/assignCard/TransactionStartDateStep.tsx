@@ -16,14 +16,16 @@ import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
 type TransactionStartDateStepProps = {
     policyID: string | undefined;
     feed: CompanyCardFeed;
+    backTo?: Route;
 };
 
-function TransactionStartDateStep({policyID, feed}: TransactionStartDateStepProps) {
+function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDateStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -110,7 +112,7 @@ function TransactionStartDateStep({policyID, feed}: TransactionStartDateStepProp
                                     if (!policyID) {
                                         return;
                                     }
-                                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.getRoute(policyID, feed));
+                                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.getRoute(policyID, feed, backTo));
                                 }}
                             />
                         ) : null

@@ -73,6 +73,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 <TransactionStartDateStep
                     policyID={policyID}
                     feed={feed}
+                    backTo={backTo}
                 />
             );
         case CONST.COMPANY_CARD.STEP.CARD_NAME:
