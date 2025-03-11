@@ -1,8 +1,8 @@
+import isEmpty from 'lodash/isEmpty';
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import isEmpty from 'lodash/isEmpty';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
@@ -10,9 +10,9 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import {getLastPolicyPaymentMethod} from '@libs/actions/Search';
-import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
@@ -34,7 +34,6 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type SettlementButtonProps from './types';
-
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
@@ -120,7 +119,6 @@ function SettlementButton({
             onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, true),
             value: formattedPaymentMethod?.methodID,
         }));
-
     }
 
     const latestBankItem = getLatestBankAccountItem();
@@ -350,7 +348,6 @@ function SettlementButton({
         }
 
         return translate('iou.settlePayment', {formattedAmount});
-
     };
 
     const getSecondLineText = (): string | undefined => {
