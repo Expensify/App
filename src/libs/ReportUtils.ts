@@ -8796,13 +8796,18 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
     return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
-function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report>, report: OnyxEntry<Report>): number | undefined {
+function getReportActionActorAccountID(
+    reportAction: OnyxEntry<ReportAction>,
+    iouReport: OnyxEntry<Report>,
+    report: OnyxEntry<Report>,
+    delegatePersonalDetails?: PersonalDetails | undefined | null,
+): number | undefined {
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
             const ownerAccountID = iouReport?.ownerAccountID ?? reportAction?.childOwnerAccountID;
             const actorAccountID = iouReport?.managerID ?? reportAction?.childManagerAccountID;
 
-            if (isPolicyExpenseChat(report)) {
+            if (isPolicyExpenseChat(report) || delegatePersonalDetails) {
                 return ownerAccountID;
             }
 
