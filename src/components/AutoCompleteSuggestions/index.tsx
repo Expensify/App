@@ -100,28 +100,25 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     : xCoordinatesOfCursor;
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
-
-            // Use the parent container's y position if cursor coordinates are not available
             let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
             const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({
                 y,
-                cursorCoordinates: {x: cursorCoordinates.x, y: cursorCoordinates.y},
+                cursorCoordinates,
                 scrollValue,
                 contentHeight: contentMaxHeight,
                 topInset,
             });
             const isEnoughSpaceToRenderMenuAboveForSmall = isEnoughSpaceToRenderMenuAboveCursor({
                 y,
-                cursorCoordinates: {x: cursorCoordinates.x, y: cursorCoordinates.y},
+                cursorCoordinates,
                 scrollValue,
                 contentHeight: contentMinHeight,
                 topInset,
             });
 
             const newLeftOffset = shouldUseNarrowLayout ? x : bigScreenLeftOffset;
-
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
             const isAdjustmentNeeded = Math.abs(prevLeftValue.current - bigScreenLeftOffset) > 150;
             if (isInitialRender.current || isAdjustmentNeeded) {
