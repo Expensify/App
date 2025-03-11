@@ -49,6 +49,3 @@ If your company uses a **central purchasing account**, you can forward all Egenc
   - Is **non-reimbursable**.
   - **Will not be exported** to an integrated accounting system.
 
----
-
-Need help? Reach out to Concierge for assistance!
