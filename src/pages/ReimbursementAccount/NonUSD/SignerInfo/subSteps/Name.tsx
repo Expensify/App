@@ -11,12 +11,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type NameProps = SubStepProps & {directorID?: string};
+type NameProps = SubStepProps & {directorID?: string; isDirectorFlow?: boolean};
 
 const {SIGNER_FULL_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {DIRECTOR_PREFIX, DIRECTOR_FULL_NAME} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
-function Name({onNext, onMove, isEditing, directorID}: NameProps) {
+function Name({onNext, onMove, isEditing, directorID, isDirectorFlow}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
@@ -49,7 +49,7 @@ function Name({onNext, onMove, isEditing, directorID}: NameProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('signerInfoStep.whatsYourName')}
+            formTitle={isDirectorFlow ? "What is director's name" : translate('signerInfoStep.whatsYourName')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={inputID}

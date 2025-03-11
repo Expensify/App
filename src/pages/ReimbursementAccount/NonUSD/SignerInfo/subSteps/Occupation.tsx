@@ -10,11 +10,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
 
-type OccupationProps = SubStepProps & {directorID?: string};
+type OccupationProps = SubStepProps & {directorID?: string; isDirectorFlow?: boolean};
 
 const {DIRECTOR_PREFIX, DIRECTOR_OCCUPATION} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
-function Occupation({onNext, onMove, isEditing, directorID}: OccupationProps) {
+function Occupation({onNext, onMove, isEditing, directorID, isDirectorFlow}: OccupationProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
@@ -46,7 +46,7 @@ function Occupation({onNext, onMove, isEditing, directorID}: OccupationProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('signerInfoStep.whatsYourOccupation')}
+            formTitle={isDirectorFlow ? "What is director's occupation" : translate('signerInfoStep.whatsYourOccupation')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={inputID}

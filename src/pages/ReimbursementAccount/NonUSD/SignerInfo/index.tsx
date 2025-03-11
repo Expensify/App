@@ -33,7 +33,7 @@ type SignerInfoProps = {
 };
 
 type SignerDetailsFormProps = SubStepProps & {directorID?: string};
-type DirectorDetailsFormProps = SubStepProps & {directorID?: string};
+type DirectorDetailsFormProps = SubStepProps & {directorID?: string; isDirectorFlow?: boolean};
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
 const SUBSTEP: Record<string, number> = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUBSTEP;
@@ -264,6 +264,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                     onNext={directorsNextScreen}
                     onMove={directorsMoveTo}
                     directorID={directorBeingModifiedID}
+                    isDirectorFlow
                 />
             )}
 

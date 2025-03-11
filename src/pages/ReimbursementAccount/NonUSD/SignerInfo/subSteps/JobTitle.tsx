@@ -11,12 +11,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type JobTitleProps = SubStepProps & {directorID?: string};
+type JobTitleProps = SubStepProps & {directorID?: string; isDirectorFlow?: boolean};
 
 const {SIGNER_JOB_TITLE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {DIRECTOR_PREFIX, DIRECTOR_JOB_TITLE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
-function JobTitle({onNext, onMove, isEditing, directorID}: JobTitleProps) {
+function JobTitle({onNext, onMove, isEditing, directorID, isDirectorFlow}: JobTitleProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -43,7 +43,7 @@ function JobTitle({onNext, onMove, isEditing, directorID}: JobTitleProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('signerInfoStep.whatsYourJobTitle')}
+            formTitle={isDirectorFlow ? "What is director's job title" : translate('signerInfoStep.whatsYourJobTitle')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={inputID}
