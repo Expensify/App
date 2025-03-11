@@ -39,11 +39,11 @@ function useSidePane() {
     const [shouldHideSidePane, setShouldHideSidePane] = useState(true);
     const shouldHideSidePaneBackdrop = isPaneHidden || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 
-    // The help button is hidden in production if the side pane nvp is not present or the language is unsupported.
-    const shouldHideOnProduction = isProduction && (!sidePaneNVP || isLanguageUnsupported);
+    // The help button is hidden in production if the side pane nvp is not present
+    const shouldHideOnProduction = isProduction && !sidePaneNVP;
 
-    // The help button is also hidden if the side pane is displayed currently.
-    const shouldHideHelpButton = shouldHideOnProduction || !isPaneHidden;
+    // The help button is also hidden if the side pane is displayed currently or the language is unsupported.
+    const shouldHideHelpButton = shouldHideOnProduction || !isPaneHidden || isLanguageUnsupported;
 
     const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
     const sidePaneTranslateX = useRef(new Animated.Value(isPaneHidden ? sidePaneWidth : 0));
