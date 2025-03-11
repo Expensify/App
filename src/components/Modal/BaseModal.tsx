@@ -126,10 +126,8 @@ function BaseModal(
         let removeOnCloseListener: () => void;
         if (isVisible) {
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
-            if (onClose) {
-                // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-                removeOnCloseListener = setCloseModal(onClose);
-            }
+            // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
+            removeOnCloseListener = setCloseModal(onClose);
         }
 
         return () => {
@@ -167,7 +165,7 @@ function BaseModal(
         if (onBackdropPress) {
             onBackdropPress();
         } else {
-            onClose?.();
+            onClose();
         }
     };
 
@@ -259,7 +257,7 @@ function BaseModal(
                     onModalHide={hideModal}
                     onModalWillShow={saveFocusState}
                     onDismiss={handleDismissModal}
-                    onSwipeComplete={() => onClose?.()}
+                    onSwipeComplete={onClose}
                     swipeDirection={swipeDirection}
                     swipeThreshold={swipeThreshold}
                     isVisible={isVisible}

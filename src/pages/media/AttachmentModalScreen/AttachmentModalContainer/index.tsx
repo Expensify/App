@@ -8,6 +8,8 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import CONST from '@src/CONST';
 import type AttachmentModalContainerProps from './types';
 
+const onCloseNoop = () => {};
+
 function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
 
@@ -59,7 +61,7 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
         <Modal
             isVisible
             type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            onClose={onClose}
+            onClose={onClose ?? onCloseNoop}
             propagateSwipe
             initialFocus={() => {
                 if (!contentProps.submitRef?.current) {

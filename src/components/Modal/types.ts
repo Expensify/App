@@ -30,7 +30,7 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         shouldSetModalVisibility?: boolean;
 
         /** Callback method fired when the user requests to close the modal */
-        onClose?: () => void;
+        onClose: () => void;
 
         /** Function to call when the user presses on the modal backdrop */
         onBackdropPress?: () => void;
