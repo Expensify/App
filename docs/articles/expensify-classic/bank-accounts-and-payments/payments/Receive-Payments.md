@@ -42,7 +42,8 @@ For employees outside the U.S., Expensify partners with **Wise (formerly Transfe
 1. Confirm with your employer if **USD expenses** can be submitted.  
 2. Open a **Wise Borderless Account** and complete **verification** (may take up to **3 days**).  
 3. Add your **Wise USD account and ACH routing number** to Expensify.  
-   > **Important:** Use the **ACH routing number**, *not* the wire transfer routing number.
+
+**Important:** Use the **ACH routing number**, *not* the wire transfer routing number.
 
 Expensify will **automatically convert non-USD expenses** to USD before submission.
 
