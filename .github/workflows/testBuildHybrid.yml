@@ -73,7 +73,7 @@ jobs:
         run: |
           set -e
 
-          if [[ ! -z "${{ inputs.APP_REF }}" ]]; then
+          if [[ -n "${{ inputs.APP_REF }}" ]]; then
             echo "REF=${{ inputs.APP_REF }}" >> "$GITHUB_OUTPUT"
             exit 0
           fi 
