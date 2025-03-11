@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
 import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
@@ -11,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
@@ -36,9 +38,10 @@ type SearchPageNarrowProps = {
     policyID?: string;
     searchName?: string;
     shouldGroupByReports?: boolean;
+    headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
 };
 
-function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports, headerButtonsOptions}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -158,6 +161,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                                             setSearchRouterListVisible(true);
                                         }}
                                         shouldGroupByReports={shouldGroupByReports}
+                                        headerButtonsOptions={headerButtonsOptions}
                                     />
                                 </View>
                                 <View style={[styles.appBG]}>
@@ -167,6 +171,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                                             onStatusChange={() => {
                                                 topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
                                             }}
+                                            headerButtonsOptions={headerButtonsOptions}
                                         />
                                     )}
                                 </View>
@@ -186,6 +191,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                             queryJSON={queryJSON}
                             searchName={searchName}
                             shouldGroupByReports={shouldGroupByReports}
+                            headerButtonsOptions={headerButtonsOptions}
                         />
                     </>
                 )}
