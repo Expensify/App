@@ -13,6 +13,10 @@ on:
         default: ''
   workflow_call:
     inputs:
+      APP_PR_NUMBER:
+        description: Pull Request number from App repo needed for download link construction
+        type: string
+        required: true
       APP_REF:
         description: Git ref to checkout in App
         type: string
@@ -35,7 +39,7 @@ on:
  
 env:
   # This variable is needed for fastlane to construct correct path
-  PULL_REQUEST_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER || github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER }}
+  PULL_REQUEST_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER || github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || inputs.APP_PR_NUMBER}}
 
 jobs:
   prep:
