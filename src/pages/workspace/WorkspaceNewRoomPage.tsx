@@ -105,7 +105,7 @@ function WorkspaceNewRoomPage() {
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
             description: parsedDescription,
         });
-        
+
         setNewRoomReportID(policyReport.reportID);
         addPolicyReport(policyReport);
     };
