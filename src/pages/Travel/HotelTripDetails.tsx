@@ -42,7 +42,6 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
             <MenuItemWithTopDescription
                 description={translate('common.address')}
                 title={reservation.start.address}
-                interactive
                 numberOfLinesTitle={2}
                 copyValue={reservation.start.address}
             />
