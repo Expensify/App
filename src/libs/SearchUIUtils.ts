@@ -48,13 +48,11 @@ import {
 } from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
 import {
-    getMerchant,
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     isAmountMissing,
     isExpensifyCardTransaction,
-    isPartialMerchant,
     isPending,
     isReceiptBeingScanned,
     isScanRequest,
