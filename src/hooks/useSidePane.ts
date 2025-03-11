@@ -37,7 +37,7 @@ function useSidePane() {
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;
 
     const [shouldHideSidePane, setShouldHideSidePane] = useState(true);
-    const [isAnimating, setIsAnimating] = useState(false);
+    const [isAnimatingExtraLargeScree, setIsAnimatingExtraLargeScreen] = useState(false);
 
     const shouldHideSidePaneBackdrop = isPaneHidden || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 
@@ -53,7 +53,9 @@ function useSidePane() {
     useEffect(() => {
         if (!isPaneHidden) {
             setShouldHideSidePane(false);
-            setIsAnimating(true);
+        }
+        if (isExtraLargeScreenWidth) {
+            setIsAnimatingExtraLargeScreen(true);
         }
 
         Animated.parallel([
@@ -69,11 +71,11 @@ function useSidePane() {
             }),
         ]).start(() => {
             setShouldHideSidePane(isPaneHidden);
-            setIsAnimating(false);
+            setIsAnimatingExtraLargeScreen(false);
         });
-    }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth]);
+    }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth, isExtraLargeScreenWidth]);
 
-    const shouldHideToolTip = isExtraLargeScreenWidth ? isAnimating : !shouldHideSidePane;
+    const shouldHideToolTip = isExtraLargeScreenWidth ? isAnimatingExtraLargeScree : !shouldHideSidePane;
     return {
         sidePane: sidePaneNVP,
         shouldHideSidePane,
