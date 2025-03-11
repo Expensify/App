@@ -1,15 +1,9 @@
+import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
+import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import CONST from '@src/CONST';
@@ -29,6 +23,7 @@ const {
     BUSINESS_CONTACT_NUMBER,
     BUSINESS_CONFIRMATION_EMAIL,
     FORMATION_INCORPORATION_COUNTRY_CODE,
+    FORMATION_INCORPORATION_STATE,
     ANNUAL_VOLUME,
     APPLICANT_TYPE_ID,
     TRADE_VOLUME,
@@ -43,9 +38,15 @@ const displayAddress = (street: string, city: string, state: string, zipCode: st
     return country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA ? `${street}, ${city}, ${state}, ${zipCode}, ${country}` : `${street}, ${city}, ${zipCode}, ${country}`;
 };
 
-function Confirmation({onNext, onMove}: SubStepProps) {
+const displayIncorporationLocation = (country: string, state: string) => {
+    const countryFullName = CONST.ALL_COUNTRIES[country as keyof typeof CONST.COUNTRY];
+    const stateFullName = COMMON_CONST.STATES[state as keyof typeof COMMON_CONST.STATES]?.stateName ?? COMMON_CONST.PROVINCES[state as keyof typeof COMMON_CONST.PROVINCES]?.provinceName;
+
+    return country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA ? `${stateFullName}, ${countryFullName}` : `${countryFullName}`;
+};
+
+function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -71,122 +72,111 @@ function Confirmation({onNext, onMove}: SubStepProps) {
         [corpayOnboardingFields?.picklists.TradeVolumeRange, values],
     );
 
+    const summaryItems = useMemo(
+        () => [
+            {
+                title: values[COMPANY_NAME],
+                description: translate('businessInfoStep.legalBusinessName'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(0);
+                },
+            },
+            {
+                title: values[BUSINESS_REGISTRATION_INCORPORATION_NUMBER],
+                description: translate('businessInfoStep.registrationNumber'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(3);
+                },
+            },
+            {
+                title: values[TAX_ID_EIN_NUMBER],
+                description: translate('businessInfoStep.taxIDEIN'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(4);
+                },
+            },
+            {
+                title: displayAddress(values[COMPANY_STREET], values[COMPANY_CITY], values[COMPANY_STATE], values[COMPANY_POSTAL_CODE], values[COMPANY_COUNTRY_CODE]),
+                description: translate('businessInfoStep.businessAddress'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(1);
+                },
+            },
+            {
+                title: values[BUSINESS_CONTACT_NUMBER],
+                description: translate('common.phoneNumber'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(2);
+                },
+            },
+            {
+                title: values[BUSINESS_CONFIRMATION_EMAIL],
+                description: translate('common.email'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(2);
+                },
+            },
+            {
+                title: businessType,
+                description: translate('businessInfoStep.businessType'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(6);
+                },
+            },
+            {
+                title: displayIncorporationLocation(values[FORMATION_INCORPORATION_COUNTRY_CODE], values[FORMATION_INCORPORATION_STATE]),
+                description: translate('businessInfoStep.incorporation'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(5);
+                },
+            },
+            {
+                title: businessCategory,
+                description: translate('businessInfoStep.businessCategory'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(6);
+                },
+            },
+            {
+                title: paymentVolume,
+                description: translate('businessInfoStep.annualPaymentVolume'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(7);
+                },
+            },
+            {
+                title: tradeVolumeRange,
+                description: translate('businessInfoStep.averageReimbursementAmount'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(8);
+                },
+            },
+        ],
+        [businessCategory, businessType, onMove, paymentVolume, tradeVolumeRange, translate, values],
+    );
+
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <ScrollView
-                    style={styles.pt0}
-                    contentContainerStyle={[styles.flexGrow1, safeAreaPaddingBottomStyle]}
-                >
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('businessInfoStep.letsDoubleCheck')}</Text>
-                    <MenuItemWithTopDescription
-                        description={translate('businessInfoStep.legalBusinessName')}
-                        title={values[COMPANY_NAME]}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(0);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('businessInfoStep.registrationNumber')}
-                        title={values[BUSINESS_REGISTRATION_INCORPORATION_NUMBER]}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(3);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('businessInfoStep.taxIDEIN')}
-                        title={values[TAX_ID_EIN_NUMBER]}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(4);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('businessInfoStep.businessAddress')}
-                        title={displayAddress(values[COMPANY_STREET], values[COMPANY_CITY], values[COMPANY_STATE], values[COMPANY_POSTAL_CODE], values[COMPANY_COUNTRY_CODE])}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(1);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('common.phoneNumber')}
-                        title={values[BUSINESS_CONTACT_NUMBER]}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(2);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('common.email')}
-                        title={values[BUSINESS_CONFIRMATION_EMAIL]}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(2);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('businessInfoStep.businessType')}
-                        title={businessType}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(6);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('businessInfoStep.incorporation')}
-                        title={values[FORMATION_INCORPORATION_COUNTRY_CODE]}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(5);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('businessInfoStep.businessCategory')}
-                        title={businessCategory}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(6);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('businessInfoStep.annualPaymentVolume')}
-                        title={paymentVolume}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(7);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('businessInfoStep.averageReimbursementAmount')}
-                        title={tradeVolumeRange}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(8);
-                        }}
-                    />
-                    <View style={[styles.p5, styles.flexGrow1, styles.justifyContentEnd]}>
-                        {!!error && error.length > 0 && (
-                            <DotIndicatorMessage
-                                textStyles={[styles.formError]}
-                                type="error"
-                                messages={{error}}
-                            />
-                        )}
-                        <Button
-                            success
-                            isLoading={reimbursementAccount?.isSavingCorpayOnboardingCompanyFields}
-                            style={[styles.w100, styles.mt2]}
-                            onPress={onNext}
-                            large
-                            text={translate('common.confirm')}
-                        />
-                    </View>
-                </ScrollView>
-            )}
-        </SafeAreaConsumer>
+        <ConfirmationStep
+            isEditing={isEditing}
+            error={error}
+            onNext={onNext}
+            onMove={onMove}
+            pageTitle={translate('businessInfoStep.letsDoubleCheck')}
+            summaryItems={summaryItems}
+            isLoading={reimbursementAccount?.isSavingCorpayOnboardingCompanyFields}
+            showOnfidoLinks={false}
+        />
     );
 }
 
