@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
