@@ -9,10 +9,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import Performance from '@libs/Performance';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {addAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -27,7 +27,7 @@ type TextCommentFragmentProps = {
     source: OriginalMessageSource;
 
     /** The report action's id */
-    reportActionID: string;
+    reportActionID?: string;
 
     /** The message fragment needing to be displayed */
     fragment: Message | undefined;
@@ -52,13 +52,13 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const theme = useTheme();
     const styles = useThemeStyles();
     const {html = ''} = fragment ?? {};
-    const text = ReportActionsUtils.getTextFromHtml(html);
+    const text = getTextFromHtml(html);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
-    const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(message), [message]);
+    const processedTextArray = useMemo(() => splitTextWithEmojis(message), [message]);
 
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
@@ -68,7 +68,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
-    const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
+    const containsOnlyEmojis = containsOnlyEmojisUtil(text ?? '');
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
@@ -87,7 +87,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
-        htmlWithTag = ReportActionsUtils.addAttachmentID(htmlWithTag, reportActionID);
+        htmlWithTag = addAttachmentID(htmlWithTag, reportActionID);
 
         return (
             <RenderCommentHTML
@@ -112,7 +112,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                         style,
                         styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
-                        !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
+                        !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                     ]}
                 />
             ) : (
@@ -123,7 +123,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                         style,
                         styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
-                        !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
+                        !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                     ]}
                 >
                     {convertToLTR(message ?? '')}

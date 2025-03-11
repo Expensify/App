@@ -21,7 +21,7 @@ type ReportActionItemFragmentProps = {
     accountID: number;
 
     /** The report action's id */
-    reportActionID: string;
+    reportActionID?: string;
 
     /** The message fragment needing to be displayed */
     fragment: Message | undefined;

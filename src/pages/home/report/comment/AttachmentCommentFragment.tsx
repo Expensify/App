@@ -9,7 +9,7 @@ type AttachmentCommentFragmentProps = {
     source: OriginalMessageSource;
     html: string;
     addExtraMargin: boolean;
-    reportActionID: string;
+    reportActionID?: string;
     styleAsDeleted: boolean;
 };
 
