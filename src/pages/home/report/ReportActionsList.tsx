@@ -178,6 +178,7 @@ function ReportActionsList({
     const participantsContext = useContext(PersonalDetailsContext);
     const [messagesHeight, setMessagesHeight] = useState(0);
     const blankSpace = Math.max(0, windowHeight - messagesHeight);
+    const [scrollOffset, setScrollOffset] = useState(0);
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -220,6 +221,7 @@ function ReportActionsList({
     }, [report.reportID]);
 
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
+
     /**
      * Whether a message is NOT from the active user and it was received while the user was offline.
      */
@@ -513,6 +515,7 @@ function ReportActionsList({
     };
 
     const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        setScrollOffset(event.nativeEvent.contentOffset.y);
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         handleUnreadFloatingButton();
         onScroll?.(event);
@@ -625,7 +628,6 @@ function ReportActionsList({
             >
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
-                    reportActions={sortedReportActions}
                     parentReportAction={parentReportAction}
                     parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                     index={index}
@@ -652,7 +654,6 @@ function ReportActionsList({
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             parentReportAction,
-            sortedReportActions,
             transactionThreadReport,
             parentReportActionForTransactionThread,
             shouldUseThreadDividerLine,
@@ -710,6 +711,14 @@ function ReportActionsList({
 
     const onEndReached = useCallback(() => {
         loadOlderChats(false);
+
+        requestAnimationFrame(() => {
+            reportScrollManager.ref?.current?.scrollToOffset({
+                offset: scrollingVerticalOffset.current - scrollOffset,
+                animated: false,
+            });
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [loadOlderChats]);
 
     // Parse Fullstory attributes on initial render

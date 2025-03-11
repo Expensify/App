@@ -1,12 +1,15 @@
-import React, {useEffect, useRef} from 'react';
+import isEmpty from 'lodash/isEmpty';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearDisableTwoFactorAuthErrors} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +32,13 @@ function DisablePage() {
 
         Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLED, {forceReplace: true});
     }, [account?.requiresTwoFactorAuth]);
+
+    const closeModal = useCallback(() => {
+        clearDisableTwoFactorAuthErrors();
+
+        // Go back to the previous page because the user can't disable 2FA and this page is no longer relevant
+        Navigation.goBack();
+    }, []);
 
     return (
         <TwoFactorAuthWrapper
@@ -60,6 +70,16 @@ function DisablePage() {
                     }}
                 />
             </FixedFooter>
+            <ConfirmModal
+                title={translate('twoFactorAuth.twoFactorAuthCannotDisable')}
+                prompt={translate('twoFactorAuth.twoFactorAuthRequired')}
+                confirmText={translate('common.buttonConfirm')}
+                onConfirm={closeModal}
+                shouldShowCancelButton={false}
+                onBackdropPress={closeModal}
+                onCancel={closeModal}
+                isVisible={!isEmpty(account?.errorFields?.requiresTwoFactorAuth ?? {})}
+            />
         </TwoFactorAuthWrapper>
     );
 }
