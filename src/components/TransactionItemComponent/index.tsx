@@ -4,7 +4,7 @@ import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 import CategoryCell from './DataCeils/CategoryCell';
 import DateCell from './DataCeils/DateCell';
@@ -35,43 +35,42 @@ function TransactionItemComponent({
             {shouldUseNarrowLayout ? (
                 <View style={[backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly]}>
                     <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.mb3, styles.ml3]}>
-                        <View style={[]}>
+                        <View style={[styles.mr3]}>
                             <ReceiptCell
                                 transactionItem={transactionItem}
-                                isSelected={isSelected}
+                                isSelected
                             />
                         </View>
                         <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, {maxHeight: variables.fontSizeLabel}]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
                                 <DateCell
                                     transactionItem={transactionItem}
                                     showTooltip={showTooltip}
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
-                                <Text style={[styles.expenseWidgetSeparator]}>•</Text>
+                                <Text style={[styles.textMicroSupporting]}> • </Text>
                                 <TypeCell
                                     transactionItem={transactionItem}
                                     showTooltip={showTooltip}
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                             </View>
-                            <View style={[styles.flex1, {maxHeight: variables.fontSizeLarge}]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.minHeight5, styles.maxHeight5]}>
                                 <MerchantCell
                                     transactionItem={transactionItem}
                                     showTooltip={showTooltip}
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
+                                <TotalCell
+                                    transactionItem={transactionItem}
+                                    showTooltip={showTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                                {/* </View> */}
                             </View>
                         </View>
-                        <View style={[styles.flex2, styles.alignItemsEnd, styles.justifyContentEnd]}>
-                            <TotalCell
-                                transactionItem={transactionItem}
-                                showTooltip={showTooltip}
-                                shouldUseNarrowLayout={shouldUseNarrowLayout}
-                            />
-                        </View>
                     </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.minHeight3, styles.ml4half, styles.mt0, styles.mb3]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.minHeight3, styles.ml3, styles.mt0, styles.mb3]}>
                         <CategoryCell
                             transactionItem={transactionItem}
                             showTooltip={showTooltip}
@@ -85,43 +84,56 @@ function TransactionItemComponent({
                     </View>
                 </View>
             ) : (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1, backgroundColor, styles.p6, styles.expenseWidgetRadius]}>
-                    <View style={[styles.justifyContentBetween, styles.flex1, styles.flexRow, styles.flex1, styles.alignItemsCenter]}>
-                        <ReceiptCell
-                            transactionItem={transactionItem}
-                            isSelected={isSelected}
-                        />
-                        <TypeCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                        />
-                        <DateCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                        />
-
-                        <MerchantCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                        />
-                        <CategoryCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                        />
-                        <TagCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                        />
-                        <TotalCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                        />
+                <View style={[backgroundColor, styles.p2, styles.expenseWidgetRadius]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
+                            <ReceiptCell
+                                transactionItem={transactionItem}
+                                isSelected
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
+                            <TypeCell
+                                transactionItem={transactionItem}
+                                showTooltip={showTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, false)]}>
+                            <DateCell
+                                transactionItem={transactionItem}
+                                showTooltip={showTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
+                            <MerchantCell
+                                transactionItem={transactionItem}
+                                showTooltip={showTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
+                            <CategoryCell
+                                transactionItem={transactionItem}
+                                showTooltip={showTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
+                            <TagCell
+                                transactionItem={transactionItem}
+                                showTooltip={showTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                            <TotalCell
+                                transactionItem={transactionItem}
+                                showTooltip={showTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
                     </View>
                 </View>
             )}

@@ -16,7 +16,7 @@ function DateCell({transactionItem, showTooltip, shouldUseNarrowLayout}: Transac
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={date}
-            style={[styles.pre, styles.justifyContentCenter, shouldUseNarrowLayout ? styles.textLabelSupporting : undefined]}
+            style={[styles.pre, styles.justifyContentCenter, shouldUseNarrowLayout ? styles.textMicroSupporting : undefined]}
         />
     );
 }

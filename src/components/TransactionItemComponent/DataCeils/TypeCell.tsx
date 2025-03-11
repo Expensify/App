@@ -39,7 +39,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, showTooltip}: Transac
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={typeText}
-            style={[styles.textLabelSupporting, styles.pre, styles.justifyContentCenter]}
+            style={[styles.textMicroSupporting, styles.pre, styles.justifyContentCenter]}
         />
     ) : (
         <Icon
