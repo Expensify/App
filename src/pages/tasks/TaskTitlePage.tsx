@@ -17,9 +17,12 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
-import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
+import Parser from '@libs/Parser';
+import {getCommentLength, getParsedComment, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
+import variables from '@styles/variables';
 import {canModifyTask as canModifyTaskAction, editTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,10 +41,13 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
 
-            if (!title) {
+            const parsedTitle = getParsedComment(title);
+            const parsedTitleLength = getCommentLength(parsedTitle);
+
+            if (!parsedTitle) {
                 addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
-            } else if (title.length > CONST.TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+            } else if (parsedTitleLength > CONST.TASK_TITLE_CHARACTER_LIMIT) {
+                addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: parsedTitleLength, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
             }
 
             return errors;
@@ -51,7 +57,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            if (values.title !== report?.reportName && !isEmptyObject(report)) {
+            if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '') && !isEmptyObject(report)) {
                 // Set the title of the report in the store and then call EditTask API
                 // to update the title of the report on the server
                 editTask(report, {title: values.title});
@@ -105,16 +111,20 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
-                                defaultValue={report?.reportName ?? ''}
+                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '')}
                                 ref={(element: AnimatedTextInputRef) => {
                                     if (!element) {
                                         return;
                                     }
                                     if (!inputRef.current && didScreenTransitionEnd) {
-                                        element.focus();
+                                        updateMultilineInputRange(inputRef.current);
                                     }
                                     inputRef.current = element;
                                 }}
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                shouldSubmitForm={false}
+                                type="markdown"
                             />
                         </View>
                     </FormProvider>

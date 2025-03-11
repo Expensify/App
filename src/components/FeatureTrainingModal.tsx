@@ -93,6 +93,9 @@ type BaseFeatureTrainingModalProps = {
 
     /** Modal width */
     width?: number;
+
+    /** Whether to disable the modal */
+    isModalDisabled?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -140,6 +143,7 @@ function FeatureTrainingModal({
     contentInnerContainerStyles,
     contentOuterContainerStyles,
     modalInnerContainerStyle,
+    isModalDisabled = true,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -154,8 +158,14 @@ function FeatureTrainingModal({
     const {isOffline} = useNetwork();
 
     useEffect(() => {
-        InteractionManager.runAfterInteractions(() => setIsModalVisible(true));
-    }, []);
+        InteractionManager.runAfterInteractions(() => {
+            if (!isModalDisabled) {
+                setIsModalVisible(false);
+                return;
+            }
+            setIsModalVisible(true);
+        });
+    }, [isModalDisabled]);
 
     useEffect(() => {
         if (isVideoStatusLocked) {

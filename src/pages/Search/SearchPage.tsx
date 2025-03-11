@@ -63,8 +63,6 @@ function SearchPage({route}: SearchPageProps) {
     return (
         <ScreenWrapper
             testID={Search.displayName}
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
             headerGapStyles={styles.searchHeaderGap}
         >

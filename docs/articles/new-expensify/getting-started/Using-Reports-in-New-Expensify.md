@@ -24,8 +24,6 @@ Expensify's Reports feature introduces a powerful way to access and manage finan
 - **Cross-platform consistency** - Enjoy a seamless experience across desktop and mobile platforms.
 - **Saved reports** - Save and revisit frequently used report queries for recurring tasks.
 
-![A photo of the Reports page]({{site.url}}/assets/images/ExpensifyHelp-Reports-1-v2.png){:width="100%"}
-
 ---
 
 # Report Filters
@@ -38,8 +36,6 @@ Expensify’s report filters help users narrow down results to find specific dat
   - Invoices: Outstanding, Paid
   - Trips: Drafts, Upcoming, In Progress, Past
 - **Advanced filters** - Enable precise reports using query syntax (e.g., `type:expenses status:approved`).
-
-![A photo of common report filter]({{site.url}}/assets/images/ExpensifyHelp-SearchFormat.png){:width="100%"}
 
 ---
 
