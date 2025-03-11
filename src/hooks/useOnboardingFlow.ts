@@ -1,11 +1,11 @@
 import {useEffect} from 'react';
 import {InteractionManager, NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {isUserOnPrivateDomain} from '@libs/actions/Session';
+import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isUserOnPrivateDomain} from '@userActions/Session';
-import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -49,7 +49,7 @@ function useOnboardingFlowRouter() {
             if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
                 const defaultCannedQuery = buildCannedSearchQuery();
                 const query = defaultCannedQuery;
-                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
                 return;
             }

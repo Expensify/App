@@ -5,33 +5,32 @@ import Breadcrumbs from '@components/Breadcrumbs';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
+import HelpButton from '@components/SidePane/HelpButton';
 import Text from '@components/Text';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SignInButton from '@pages/home/sidebar/SignInButton';
-import * as Session from '@userActions/Session';
+import {isAnonymousUser as isAnonymousUserUtil} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 type TopBarProps = {
     breadcrumbLabel: string;
     activeWorkspaceID?: string;
     shouldDisplaySearch?: boolean;
-    shouldDisplayCancelSearch?: boolean;
+    shouldDisplaySidePane?: boolean;
+    cancelSearch?: () => void;
 };
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancelSearch = false}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplaySidePane = true, cancelSearch}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const isAnonymousUser = Session.isAnonymousUser(session);
+    const isAnonymousUser = isAnonymousUserUtil(session);
 
     const headerBreadcrumb = policy?.name
         ? {type: CONST.BREADCRUMB_TYPE.STRONG, text: policy.name}
@@ -43,12 +42,12 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
 
     return (
-        <View style={styles.w100}>
+        <View style={[styles.w100, styles.zIndex10]}>
             <View
-                style={[styles.flexRow, styles.gap4, styles.mh3, styles.mv5, styles.alignItemsCenter, styles.justifyContentBetween]}
+                style={[styles.flexRow, styles.gap4, styles.mh5, styles.mv5, styles.alignItemsCenter, styles.justifyContentBetween]}
                 dataSet={{dragArea: true}}
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ml2]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                     <WorkspaceSwitcherButton policy={policy} />
 
                     <View style={[styles.ml3, styles.flex1]}>
@@ -63,17 +62,18 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                     </View>
                 </View>
                 {displaySignIn && <SignInButton />}
-                {shouldDisplayCancelSearch && (
+                {!!cancelSearch && (
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('common.cancel')}
                         style={[styles.textBlue]}
                         onPress={() => {
-                            Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: SearchQueryUtils.buildCannedSearchQuery()}));
+                            cancelSearch();
                         }}
                     >
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
+                {shouldDisplaySidePane && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
             <LoadingBar shouldShow={isLoadingReportData ?? false} />

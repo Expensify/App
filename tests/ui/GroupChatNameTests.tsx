@@ -131,10 +131,11 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
 describe('Tests for group chat name', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        Onyx.clear();
 
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
+
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     const participantAccountIDs4 = [USER_A_ACCOUNT_ID, USER_B_ACCOUNT_ID, USER_C_ACCOUNT_ID, USER_D_ACCOUNT_ID];
@@ -176,7 +177,7 @@ describe('Tests for group chat name', () => {
             return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D'));
         }));
 
-    it('Should show limited names in LHN when 8 participants are present', () =>
+    it('Should show limited names with ellipsis in LHN when 8 participants are present', () =>
         signInAndGetApp('', participantAccountIDs8).then(() => {
             // Verify the sidebar links are rendered
             const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
@@ -191,7 +192,7 @@ describe('Tests for group chat name', () => {
             const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
 
-            return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E'));
+            return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E...'));
         }));
 
     it('Check if group name shows fine for report header', () =>
@@ -222,7 +223,7 @@ describe('Tests for group chat name', () => {
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
             }));
 
-    it('Should show only 5 names when there are 8 participants in the report header', () =>
+    it('Should show only 5 names with ellipsis when there are 8 participants in the report header', () =>
         signInAndGetApp('', participantAccountIDs8)
             .then(() => {
                 // Verify the sidebar links are rendered
@@ -238,14 +239,14 @@ describe('Tests for group chat name', () => {
                 const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
 
-                expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E');
+                expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E...');
 
                 return navigateToSidebarOption(0);
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
                 await act(() => transitionEndCB?.());
-                const name = 'A, B, C, D, E';
+                const name = 'A, B, C, D, E...';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
             }));

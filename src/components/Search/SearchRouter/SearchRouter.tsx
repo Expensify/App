@@ -26,6 +26,7 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -188,11 +189,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
             if (autoScrollToRight) {
                 shouldScrollRef.current = true;
             }
-            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
+            const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
+            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
 
-            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
+            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
             if (!isEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
                 setAutocompleteSubstitutions(updatedSubstitutionsMap);
             }
@@ -215,7 +217,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
             }
 
             onRouterClose();
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: updatedQuery}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
@@ -331,9 +333,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                         caretHidden={shouldHideInputCaret}
                         autocompleteListRef={listRef}
                         shouldShowOfflineMessage
-                        wrapperStyle={[styles.border, styles.alignItemsCenter]}
+                        wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
                         outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
-                        wrapperFocusedStyle={[styles.borderColorFocus]}
+                        wrapperFocusedStyle={styles.borderColorFocus}
                         isSearchingForReports={isSearchingForReports}
                         selection={selection}
                         substitutionMap={autocompleteSubstitutions}
