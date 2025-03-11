@@ -34,6 +34,7 @@ function ProfileAvatarModalContent({navigation, accountID = CONST.DEFAULT_NUMBER
                 headerTitle: formatPhoneNumber(displayName),
                 originalFileName: personalDetail?.originalFileName ?? '',
                 shouldShowNotFoundPage: !avatarURL,
+                maybeIcon: true,
             } satisfies Partial<AttachmentModalBaseContentProps>),
         [accountID, avatarURL, displayName, isLoadingApp, personalDetail, personalDetailsMetadata],
     );

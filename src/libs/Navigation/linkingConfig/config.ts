@@ -38,6 +38,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
             },
         },
+        [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
+                    path: ROUTES.PUBLIC_CONSOLE_DEBUG.route,
+                    exact: true,
+                },
+            },
+        },
         [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.FEATURE_TRAINING_ROOT]: {
@@ -868,9 +876,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
-                        },
-                        [SCREENS.GET_ASSISTANCE]: {
-                            path: ROUTES.GET_ASSISTANCE.route,
                         },
                         [SCREENS.KEYBOARD_SHORTCUTS]: {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
