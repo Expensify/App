@@ -213,7 +213,6 @@ function MoneyRequestAmountForm(
      */
     const submitAndNavigateToNextPage = useCallback(
         (iouPaymentType?: PaymentMethodType | undefined) => {
-            console.log('run 1231');
             const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
             // Skip the check for tax amount form as 0 is a valid input
@@ -328,6 +327,7 @@ function MoneyRequestAmountForm(
                         />
                     ) : (
                         <Button
+                            success
                             // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
                             allowBubble={!isEditing}
                             pressOnEnter
