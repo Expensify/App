@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelectionList';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -21,8 +22,9 @@ function TagApproverPage({route}: TagApproverPageProps) {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const policy = usePolicy(policyID);
 
-    const tagApprover = PolicyUtils.getTagApproverRule(policyID, tagName)?.approver;
+    const tagApprover = PolicyUtils.getTagApproverRule(policy, tagName)?.approver;
     const isQuickSettingsFlow = !!backTo;
 
     const goBack = () => {
