@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import HorizontalRule from './HorizontalRule';
 
 type EmailWrapperProps = {
     children: ReactNode;
@@ -18,19 +19,21 @@ const EmailWrapper: React.FC<EmailWrapperProps> = ({children}) => {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
-        <View style={[styles.alignItemsCenter, styles.p5]}>
+        <View style={[styles.p5]}>
             <Icon
                 src={ExpensifyWordmark}
                 width={variables.modalWordmarkWidth}
                 height={variables.modalWordmarkHeight}
             />
-            <hr />
+            <HorizontalRule />
             {children}
-            <hr />
+            <HorizontalRule />
             <RenderHTML html={translate('notifications.replyOrOpenInExpensify', {url: 'https://dev.new.expensify.com:8082/'})} />
             <Icon
                 src={ExpensifyWordmark}
                 fill={theme.icon}
+                width={variables.eReceiptWordmarkWidth}
+                height="auto"
             />
             {/* TODO: address and unsubscribe link */}
         </View>
