@@ -5,7 +5,7 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import omit from 'lodash/omit';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {Writable} from 'type-fest';
+import type {MergeExclusive, Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -470,7 +470,12 @@ function waitForProtectedRoutes() {
     });
 }
 
-type NavigateToReportWithPolicyCheckPayload = {report?: OnyxEntry<Report>; reportID?: string; reportActionID?: string; referrer?: string; policyIDToCheck?: string; forceReplace?: boolean};
+// It should not be possible to pass a report and a reportID at the same time.
+type NavigateToReportWithPolicyCheckPayload = MergeExclusive<{report?: OnyxEntry<Report>}, {reportID?: string}> & {
+    reportActionID?: string;
+    referrer?: string;
+    policyIDToCheck?: string;
+};
 
 /**
  * Navigates to a report passed as a param (as an id or report object) and checks whether the target object belongs to the currently selected workspace.
