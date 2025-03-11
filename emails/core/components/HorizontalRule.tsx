@@ -1,5 +1,5 @@
 import React from 'react';
-import useThemeStyles from '../../src/hooks/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 function HorizontalRule() {
     const {hr: hrStyle} = useThemeStyles();

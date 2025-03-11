@@ -9,12 +9,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import HorizontalRule from './HorizontalRule';
 
-type EmailWrapperProps = {
+type EmailTemplateProps = {
     children: ReactNode;
     newDotLink: string;
 };
 
-const EmailWrapper: React.FC<EmailWrapperProps> = ({children}) => {
+/**
+ * This is the general layout/template shared by all our different email notifications.
+ */
+function EmailTemplate({children}: EmailTemplateProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -38,8 +41,8 @@ const EmailWrapper: React.FC<EmailWrapperProps> = ({children}) => {
             {/* TODO: address and unsubscribe link */}
         </View>
     );
-};
+}
 
-EmailWrapper.displayName = 'EmailWrapper';
+EmailTemplate.displayName = 'EmailTemplate';
 
-export default EmailWrapper;
+export default EmailTemplate;
