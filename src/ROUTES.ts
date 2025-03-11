@@ -21,8 +21,9 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string, 
     return `${url}${backToParam}` as `${TUrl}`;
 }
 
+type AttachmentsRoute = 'attachment' | `r/${string}/attachment/add`;
 type AttachmentRouteParams = ReportsSplitNavigatorParamList[typeof SCREENS.ATTACHMENTS];
-function getAttachmentRoute(url: string, params?: AttachmentRouteParams) {
+function getAttachmentRoute(url: AttachmentsRoute, params?: AttachmentRouteParams) {
     if (!params?.source) {
         return url;
     }
@@ -37,7 +38,7 @@ function getAttachmentRoute(url: string, params?: AttachmentRouteParams) {
     const fileNameParam = fileName ? `&fileName=${fileName}` : '';
     const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
 
-    return `${url}${sourceParam}${typeParam}${reportIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
+    return `${url}${sourceParam}${typeParam}${reportIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;
 }
 
 const PUBLIC_SCREENS_ROUTES = {
