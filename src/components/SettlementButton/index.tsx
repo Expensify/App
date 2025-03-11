@@ -2,7 +2,7 @@ import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
@@ -10,9 +10,9 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getBankAccountList} from '@libs/actions/ReimbursementAccount/store';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import {getLastPolicyPaymentMethod} from '@libs/actions/Search';
+import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
@@ -78,6 +78,7 @@ function SettlementButton({
     shouldUseShortForm = false,
     hasOnlyHeldExpenses = false,
 }: SettlementButtonProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
@@ -89,8 +90,7 @@ function SettlementButton({
     const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
         selector: (paymentMethod) => getLastPolicyPaymentMethod(policyIDKey, paymentMethod, iouReport?.type as keyof LastPaymentMethodType),
     });
-    const styles = useThemeStyles();
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const currentUserAccountID = getCurrentUserAccountID().toString();
@@ -101,11 +101,12 @@ function SettlementButton({
     const policy = policies?.[policyID];
     const isLastPaymentPolicy = !Object.values({...CONST.PAYMENT_METHODS, ...CONST.IOU.PAYMENT_TYPE}).includes(lastPaymentMethod as PaymentMethod);
     const lastPaymentPolicy = isLastPaymentPolicy ? getPolicy(lastPaymentMethod) : undefined;
-    const bankAccountList = getBankAccountList() ?? {};
+    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const bankAccount = Object.values(bankAccountList).at(0);
     // whether the user has single policy and the expense isn't inside a workspace
     const hasSinglePolicy = !policy && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !policy && activeAdminPolicies.length > 1;
+
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
     const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
@@ -200,6 +201,16 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
+            const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
+            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency);
+            const getPaymentSubitems = (payAsBusiness: boolean) =>
+                formattedPaymentMethods.map((formattedPaymentMethod) => ({
+                    text: formattedPaymentMethod?.title ?? '',
+                    description: formattedPaymentMethod?.description ?? '',
+                    icon: formattedPaymentMethod?.icon,
+                    onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType, undefined),
+                }));
+
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
@@ -207,6 +218,17 @@ function SettlementButton({
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: [
+                        ...(isCurrencySupported ? getPaymentSubitems(false) : []),
+                        {
+                            text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                            icon: Expensicons.Bank,
+                            onSelected: () => Navigation.navigate(addBankAccountRoute),
+                        },
+                        {
+                            text: translate('workspace.invoices.paymentMethods.addDebitOrCreditCard'),
+                            icon: Expensicons.CreditCard,
+                            onSelected: () => Navigation.navigate(addDebitCardRoute),
+                        },
                         {
                             text: translate('iou.payElsewhere', {formattedAmount: ''}),
                             icon: Expensicons.Cash,
@@ -223,6 +245,17 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
+                    ...(isCurrencySupported ? getPaymentSubitems(true) : []),
+                    {
+                        text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                        icon: Expensicons.Bank,
+                        onSelected: () => Navigation.navigate(addBankAccountRoute),
+                    },
+                    {
+                        text: translate('workspace.invoices.paymentMethods.addCorporateCard'),
+                        icon: Expensicons.CreditCard,
+                        onSelected: () => Navigation.navigate(addDebitCardRoute),
+                    },
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: Expensicons.Cash,
@@ -277,7 +310,7 @@ function SettlementButton({
             return;
         }
 
-        onPress(iouPaymentType);
+        onPress(iouPaymentType, false);
     };
 
     const selectPaymentMethod = (event: KYCFlowEvent, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, usedPolicy?: Policy) => {
@@ -342,9 +375,6 @@ function SettlementButton({
 
     const customText = getCustomText();
     const secondlineText = getSecondLineText();
-    console.log('secondlineText', secondlineText)
-    console.log('customText', customText)
-
 
     return (
         <KYCWall
@@ -366,7 +396,7 @@ function SettlementButton({
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu={isInvoiceReport}
-                    customText={getCustomText()}
+                    customText={customText}
                     menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
                     isSplitButton={(!isInvoiceReport && hasPreferredPaymentMethod) || !!lastPaymentPolicy || (!!bankAccount && isExpenseReportUtil(iouReport))}
                     isDisabled={isDisabled}
@@ -382,7 +412,7 @@ function SettlementButton({
                         selectPaymentType(event, iouPaymentType as PaymentMethodType);
                     }}
                     success={!hasOnlyHeldExpenses}
-                    secondLineText={getSecondLineText()}
+                    secondLineText={secondlineText}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
                     onOptionSelected={(option) => {
