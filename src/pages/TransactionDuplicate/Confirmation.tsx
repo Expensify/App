@@ -66,7 +66,7 @@ function Confirmation() {
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal(reportAction?.childReportID);
+        Navigation.dismissModalWithReport({reportID: reportAction?.childReportID});
     }, [transactionsMergeParams, reportAction?.childReportID]);
 
     const contextValue = useMemo(

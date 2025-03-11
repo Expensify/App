@@ -339,7 +339,7 @@ function createTaskAndNavigate(
         InteractionManager.runAfterInteractions(() => {
             clearOutTaskInfo();
         });
-        Navigation.dismissModal(parentReportID);
+        Navigation.dismissModalWithReport({reportID: parentReportID});
     }
     notifyNewAction(parentReportID, currentUserAccountID);
 }

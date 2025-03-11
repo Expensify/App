@@ -213,7 +213,7 @@ function RoomInvitePage({
 
     const goBack = useCallback(() => {
         if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {
-            Navigation.dismissModal(reportID);
+            Navigation.dismissModalWithReport({reportID});
             return;
         }
         Navigation.goBack(backRoute);

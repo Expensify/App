@@ -71,14 +71,22 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             if (value !== '') {
                 ReportActions.updateReportField(report.reportID, {...reportField, value}, reportField);
             }
-            Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : report?.reportID);
+            if (isSearchTopmostFullScreenRoute()) {
+                Navigation.dismissModal();
+                return;
+            }
+            Navigation.dismissModalWithReport({reportID: report?.reportID});
         }
     };
 
     const handleReportFieldDelete = () => {
         ReportActions.deleteReportField(report.reportID, reportField);
         setIsDeleteModalVisible(false);
-        Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : report?.reportID);
+        if (isSearchTopmostFullScreenRoute()) {
+            Navigation.dismissModal();
+            return;
+        }
+        Navigation.dismissModalWithReport({reportID: report?.reportID});
     };
 
     const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;
