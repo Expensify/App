@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -27,8 +26,8 @@ function TransactionItemComponent({
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-    const backgroundColor = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : styles.buttonDefaultBG;
+
+    const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
 
     return (
         <View style={styles.flex1}>

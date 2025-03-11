@@ -13,7 +13,7 @@ type TransactionItemComponentProps = {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
-    showTooltip: boolean;
+    shouldShowTooltip: boolean;
 };
 
 const story: Meta<typeof TransactionItemComponent> = {
@@ -23,7 +23,7 @@ const story: Meta<typeof TransactionItemComponent> = {
         transactionItem: transaction,
         shouldUseNarrowLayout: false,
         isSelected: false,
-        showTooltip: true,
+        shouldShowTooltip: true,
     },
     argTypes: {
         transactionItem: {
@@ -35,7 +35,7 @@ const story: Meta<typeof TransactionItemComponent> = {
         isSelected: {
             control: 'boolean',
         },
-        showTooltip: {
+        shouldShowTooltip: {
             control: 'boolean',
         },
     },
@@ -44,7 +44,7 @@ const story: Meta<typeof TransactionItemComponent> = {
     },
 };
 
-function Template({transactionItem, shouldUseNarrowLayout, isSelected, showTooltip}: TransactionItemComponentProps, {parameters}: {parameters: {useLightTheme?: boolean}}) {
+function Template({transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip}: TransactionItemComponentProps, {parameters}: {parameters: {useLightTheme?: boolean}}) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
 
     return (
@@ -54,7 +54,7 @@ function Template({transactionItem, shouldUseNarrowLayout, isSelected, showToolt
                     transactionItem={transactionItem}
                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                     isSelected={isSelected}
-                    showTooltip={showTooltip}
+                    shouldShowTooltip={shouldShowTooltip}
                 />
             </ThemeStylesProvider>
         </ThemeProvider>
