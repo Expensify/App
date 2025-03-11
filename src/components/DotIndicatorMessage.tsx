@@ -1,5 +1,5 @@
 /* eslint-disable react/no-array-index-key */
-import React from 'react';
+import React, {ReactElement} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -22,7 +22,7 @@ type DotIndicatorMessageProps = {
      *      timestamp: 'message',
      *  }
      */
-    messages: Record<string, string | ReceiptError | null>;
+    messages: Record<string, string | ReceiptError | ReactElement | null>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -53,7 +53,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
 
     const isErrorMessage = type === 'error';
 
-    const renderMessage = (message: string | ReceiptError, index: number) => {
+    const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
             return (
                 <Text
