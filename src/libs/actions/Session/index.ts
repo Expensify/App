@@ -1090,10 +1090,6 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
     API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData, failureData});
 }
 
-function clearDisableTwoFactorAuthErrors() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {requiresTwoFactorAuth: null}});
-}
-
 function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
     // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
     updateSessionAuthTokens(authToken, encryptedAuthToken);
@@ -1353,5 +1349,4 @@ export {
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
     resetSMSDeliveryFailureStatus,
-    clearDisableTwoFactorAuthErrors,
 };

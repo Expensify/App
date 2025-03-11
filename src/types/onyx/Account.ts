@@ -137,9 +137,6 @@ type Account = {
     /** Authentication failure errors */
     errors?: OnyxCommon.Errors | null;
 
-    /** Errors related to specific account fields */
-    errorFields?: OnyxCommon.ErrorFields;
-
     /** Authentication success message */
     success?: string;
 
