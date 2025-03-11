@@ -41,9 +41,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Content to be added as fixed footer */
         footer?: ReactNode;
 
-        /** The guides call task ID to associate with the workspace page being shown */
-        guidesCallTaskID: string;
-
         /** The route where we navigate when the user press the back button */
         backButtonRoute?: Route;
 
@@ -101,7 +98,6 @@ function WorkspacePageWithSections({
     children = () => null,
     footer = null,
     icon = undefined,
-    guidesCallTaskID = '',
     headerText,
     policy,
     policyDraft,
@@ -183,7 +179,6 @@ function WorkspacePageWithSections({
             >
                 <HeaderWithBackButton
                     title={headerText}
-                    guidesCallTaskID={guidesCallTaskID}
                     onBackButtonPress={() => (onBackButtonPress ? onBackButtonPress() : Navigation.goBack(backButtonRoute))}
                     shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     icon={icon ?? undefined}

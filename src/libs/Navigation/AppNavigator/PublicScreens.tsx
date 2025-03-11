@@ -14,10 +14,13 @@ import ValidateLoginPage from '@pages/ValidateLoginPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
+import PublicRightModalNavigator from './Navigators/PublicRightModalNavigator';
+import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
 function PublicScreens() {
+    const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     return (
         <RootStack.Navigator screenOptions={defaultScreenOptions}>
             {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR. */}
@@ -58,6 +61,11 @@ function PublicScreens() {
             <RootStack.Screen
                 name={SCREENS.SAML_SIGN_IN}
                 component={SAMLSignInPage}
+            />
+            <RootStack.Screen
+                name={NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR}
+                component={PublicRightModalNavigator}
+                options={rootNavigatorScreenOptions.rightModalNavigator}
             />
         </RootStack.Navigator>
     );
