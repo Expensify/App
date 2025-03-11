@@ -391,9 +391,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     }
     const hasOnlyPendingCardOrScanningTransactions =
         allReportTransactions.length > 0 &&
-        allReportTransactions.every(
-            (t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isScanRequest(t) && (isAmountMissing(t) || isReceiptBeingScanned(t))),
-        );
+        allReportTransactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isScanRequest(t) && (isAmountMissing(t) || isReceiptBeingScanned(t))));
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
     if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
