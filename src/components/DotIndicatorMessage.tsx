@@ -1,5 +1,6 @@
 /* eslint-disable react/no-array-index-key */
-import React, {ReactElement} from 'react';
+import type {ReactElement} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
