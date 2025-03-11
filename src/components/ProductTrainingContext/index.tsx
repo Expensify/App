@@ -275,7 +275,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.gap2,
         styles.justifyContentStart,
         styles.ph2,
-        styles.tooltipButton,
         theme.tooltipHighlightText,
         tooltipName,
         translate,
