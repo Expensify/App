@@ -71,12 +71,12 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
 
             // Prevent opening a new Report page if the user quickly taps on another conversation
             // before the first one is displayed.
-            const shouldOpenReportInNarrowLayout = Navigation.getActiveRoute() !== '/home' && shouldUseNarrowLayout;
+            const shouldBlockReportNavigation = Navigation.getActiveRoute() !== '/home' && shouldUseNarrowLayout;
 
             if (
                 (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
                 (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
-                shouldOpenReportInNarrowLayout
+                shouldBlockReportNavigation
             ) {
                 return;
             }
