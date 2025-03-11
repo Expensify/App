@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getPolicyExpenseReportOption} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -114,7 +115,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 selectedParticipants={participantsExcludingPayee}
                                 iouAmount={splitAmount ?? 0}
                                 iouCurrencyCode={splitCurrency}
-                                iouComment={splitComment}
+                                iouComment={Parser.htmlToMarkdown(splitComment ?? '')}
                                 iouCreated={splitCreated}
                                 shouldDisplayReceipt
                                 iouMerchant={splitMerchant}
