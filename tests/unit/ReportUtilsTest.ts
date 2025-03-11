@@ -1779,7 +1779,9 @@ describe('ReportUtils', () => {
 
     describe('buildOptimisticChatReport', () => {
         it('should always set isPinned to false', () => {
-            const result = buildOptimisticChatReport([1, 2, 3]);
+            const result = buildOptimisticChatReport({
+                participantList: [1, 2, 3],
+            });
             expect(result.isPinned).toBe(false);
         });
     });
