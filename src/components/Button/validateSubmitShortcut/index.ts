@@ -11,7 +11,13 @@ import type ValidateSubmitShortcut from './types';
 
 const validateSubmitShortcut: ValidateSubmitShortcut = (isDisabled, isLoading, event) => {
     const eventTarget = event?.target as HTMLInputElement;
-    if (isDisabled || isLoading || eventTarget.nodeName === 'TEXTAREA' || (eventTarget.nodeName === 'INPUT' && eventTarget.autocomplete === 'one-time-code') || (eventTarget?.contentEditable === 'true' && eventTarget.ariaMultiLine)) {
+    if (
+        isDisabled ||
+        isLoading ||
+        eventTarget.nodeName === 'TEXTAREA' ||
+        (eventTarget.nodeName === 'INPUT' && eventTarget.autocomplete === 'one-time-code') ||
+        (eventTarget?.contentEditable === 'true' && eventTarget.ariaMultiLine)
+    ) {
         return false;
     }
     event?.preventDefault();
