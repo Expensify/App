@@ -1297,7 +1297,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
                     lastMessageText: getReportActionText(optimisticIOUReportAction),
                     lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
-                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                     hasOutstandingChildRequest: false,
                     pendingFields: {
                         preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
