@@ -17,14 +17,10 @@ type FullPageErrorViewProps = {
     /** If true, child components are replaced with a blocking "error page" view */
     shouldShow?: boolean;
 
-    /**
-     * The title text to be displayed.
-     */
+    /** The title text to be displayed */
     title?: string;
 
-    /**
-     * The subtitle text to be displayed.
-     */
+    /** The subtitle text to be displayed */
     subtitle?: string;
 
     /** Whether we should force the full page view */
