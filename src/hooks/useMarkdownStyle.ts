@@ -60,6 +60,7 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 paddingHorizontal: 5,
                 borderColor: theme.border,
                 backgroundColor: theme.textBackground,
+                h1NestedFontSize: 15,
             },
             pre: {
                 ...FontUtils.fontFamily.platform.MONOSPACE,
