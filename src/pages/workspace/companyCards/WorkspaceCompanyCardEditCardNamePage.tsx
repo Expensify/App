@@ -27,7 +27,8 @@ import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 type WorkspaceCompanyCardEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_NAME>;
 
 function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditCardNamePageProps) {
-    const {policyID, cardID, bank} = route.params;
+    const {policyID, cardID} = route.params;
+    const bank = decodeURIComponent(route.params.bank);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const defaultValue = customCardNames?.[cardID];
