@@ -26,6 +26,9 @@ type TextCommentFragmentProps = {
     /** The reportAction's source */
     source: OriginalMessageSource;
 
+    /** The report action's id */
+    reportActionID: string;
+
     /** The message fragment needing to be displayed */
     fragment: Message | undefined;
 
@@ -45,7 +48,7 @@ type TextCommentFragmentProps = {
     iouMessage?: string;
 };
 
-function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
+function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsMuted = false, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {html = ''} = fragment ?? {};
@@ -83,6 +86,8 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
         if (styleAsMuted) {
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
+
+        htmlWithTag = ReportActionsUtils.addAttachmentID(htmlWithTag, reportActionID);
 
         return (
             <RenderCommentHTML

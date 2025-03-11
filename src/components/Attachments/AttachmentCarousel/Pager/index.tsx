@@ -88,7 +88,7 @@ function AttachmentCarouselPager(
         [activePageIndex, items],
     );
 
-    const extractItemKey = useCallback((item: Attachment, index: number) => `reportActionID-${item.reportActionID}-${index}`, []);
+    const extractItemKey = useCallback((item: Attachment, index: number) => `attachmentID-${item.attachmentID}-${index}`, []);
 
     const contextValue = useMemo(
         () => ({
@@ -129,7 +129,7 @@ function AttachmentCarouselPager(
         >
             <CarouselItem
                 item={item}
-                isFocused={index === activePageIndex && activeAttachmentID === (item.reportActionID ?? item.source)}
+                isFocused={index === activePageIndex && activeAttachmentID === (item.attachmentID ?? item.source)}
                 reportID={reportID}
             />
         </View>

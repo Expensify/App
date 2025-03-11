@@ -25,10 +25,11 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
     const isDeleted = isDeletedNode(tnode);
+    const attachmentID = htmlAttribs['data-attachment-id'];
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({report, action}) => (
+            {({report}) => (
                 <AttachmentContext.Consumer>
                     {({accountID, type}) => (
                         <VideoPlayerPreview
@@ -45,7 +46,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                                     return;
                                 }
                                 const isAuthTokenRequired = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, action?.reportActionID, type, sourceURL, accountID, isAuthTokenRequired);
+                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, attachmentID, type, sourceURL, accountID, isAuthTokenRequired);
                                 Navigation.navigate(route);
                             }}
                         />

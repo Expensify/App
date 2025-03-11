@@ -18,7 +18,7 @@ import AttachmentCarouselPager from './Pager';
 import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, source, reportActionID, onNavigate, setDownloadButtonVisibility, onClose, type, accountID}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownloadButtonVisibility, onClose, type, accountID}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
@@ -27,8 +27,8 @@ function AttachmentCarousel({report, source, reportActionID, onNavigate, setDown
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | string>(reportActionID ?? source);
-    const compareImage = useCallback((attachment: Attachment) => (reportActionID ? attachment.reportActionID === reportActionID : attachment.source === source), [reportActionID, source]);
+    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | string>(attachmentID ?? source);
+    const compareImage = useCallback((attachment: Attachment) => (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source), [attachmentID, source]);
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
@@ -82,7 +82,7 @@ function AttachmentCarousel({report, source, reportActionID, onNavigate, setDown
 
             setPage(newPageIndex);
             if (newPageIndex >= 0 && item) {
-                setActiveAttachmentID(item.reportActionID ?? item.source);
+                setActiveAttachmentID(item.attachmentID ?? item.source);
                 if (onNavigate) {
                     onNavigate(item);
                 }

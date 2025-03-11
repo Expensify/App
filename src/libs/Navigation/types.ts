@@ -1782,7 +1782,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.SUBMIT_EXPENSE]: undefined;
     [SCREENS.ATTACHMENTS]: {
         reportID: string;
-        reportActionID?: string;
+        attachmentID?: string;
         source: string;
         type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
         accountID: string;

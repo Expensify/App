@@ -15,7 +15,7 @@ type ReportAttachmentsProps = PlatformStackScreenProps<AuthScreensParamList, typ
 
 function ReportAttachments({route}: ReportAttachmentsProps) {
     const reportID = route.params.reportID;
-    const reportActionID = route.params.reportActionID;
+    const attachmentID = route.params.attachmentID;
     const type = route.params.type;
     const accountID = route.params.accountID;
     const isAuthTokenRequired = route.params.isAuthTokenRequired;
@@ -31,7 +31,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
         (attachment: Attachment) => {
             const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(
                 reportID,
-                attachment.reportActionID,
+                attachment.attachmentID,
                 type,
                 String(attachment.source),
                 Number(accountID),
@@ -51,7 +51,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
             allowDownload
             defaultOpen
             report={report}
-            reportActionID={reportActionID}
+            attachmentID={attachmentID}
             source={source}
             onModalClose={() => {
                 Navigation.dismissModal();

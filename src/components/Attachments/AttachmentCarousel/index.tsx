@@ -51,7 +51,7 @@ function DeviceAwareGestureDetector({canUseTouchScreen, gesture, children}: Devi
     return canUseTouchScreen ? <GestureDetector gesture={gesture}>{children}</GestureDetector> : children;
 }
 
-function AttachmentCarousel({report, reportActionID, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -72,7 +72,7 @@ function AttachmentCarousel({report, reportActionID, source, onNavigate, setDown
     );
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
-    const [activeAttachmentID, setActiveAttachmentID] = useState<string | AttachmentSource | null>(reportActionID ?? source);
+    const [activeAttachmentID, setActiveAttachmentID] = useState<string | AttachmentSource | null>(attachmentID ?? source);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
@@ -85,8 +85,8 @@ function AttachmentCarousel({report, reportActionID, source, onNavigate, setDown
 
     const compareImage = useCallback(
         (attachment: Attachment) =>
-            (reportActionID ? attachment.reportActionID === reportActionID : attachment.source === source) && (!attachmentLink || attachment.attachmentLink === attachmentLink),
-        [attachmentLink, reportActionID, source],
+            (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source) && (!attachmentLink || attachment.attachmentLink === attachmentLink),
+        [attachmentLink, attachmentID, source],
     );
 
     useEffect(() => {
@@ -169,7 +169,7 @@ function AttachmentCarousel({report, reportActionID, source, onNavigate, setDown
             const item = entry.item as Attachment;
             if (entry.index !== null) {
                 setPage(entry.index);
-                setActiveAttachmentID(item.reportActionID ?? item.source);
+                setActiveAttachmentID(item.attachmentID ?? item.source);
             }
 
             if (onNavigate) {
@@ -200,8 +200,8 @@ function AttachmentCarousel({report, reportActionID, source, onNavigate, setDown
 
     const extractItemKey = useCallback(
         (item: Attachment) =>
-            !!item.reportActionID || (typeof item.source !== 'string' && typeof item.source !== 'number')
-                ? `reportActionID-${item.reportActionID}`
+            !!item.attachmentID || (typeof item.source !== 'string' && typeof item.source !== 'number')
+                ? `attachmentID-${item.attachmentID}`
                 : `source-${item.source}|${item.attachmentLink}`,
         [],
     );
@@ -236,7 +236,7 @@ function AttachmentCarousel({report, reportActionID, source, onNavigate, setDown
             <View style={[styles.h100, {width: cellWidth}]}>
                 <CarouselItem
                     item={item}
-                    isFocused={activeAttachmentID === (item.reportActionID ?? item.source)}
+                    isFocused={activeAttachmentID === (item.attachmentID ?? item.source)}
                     onPress={canUseTouchScreen ? handleTap : undefined}
                     isModalHovered={shouldShowArrows}
                     reportID={report.reportID}

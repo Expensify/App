@@ -7,6 +7,9 @@ type Attachment = {
     /** Report action ID of the attachment */
     reportActionID?: string;
 
+    /** The attachment id, which is the id of the report action it is in appended with its attachment index. */
+    attachmentID?: string;
+
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 

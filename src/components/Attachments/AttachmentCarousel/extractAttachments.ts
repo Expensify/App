@@ -29,7 +29,7 @@ function extractAttachments(
     const canUserPerformAction = canUserPerformWriteAction(report);
 
     let currentLink = '';
-
+    let attachmentIndex = 0;
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
             if (name === 'a' && attribs.href) {
@@ -41,6 +41,7 @@ function extractAttachments(
                 const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${source}`);
                 attachments.unshift({
                     reportActionID: attribs['data-id'],
+                    attachmentID: `${attribs['data-id']}_${++attachmentIndex}`,
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
                     file: {name: fileName},
@@ -73,6 +74,7 @@ function extractAttachments(
                 // we ensure correct order of attachments even across actions with multiple attachments.
                 attachments.unshift({
                     reportActionID: attribs['data-id'],
+                    attachmentID: `${attribs['data-id']}_${++attachmentIndex}`,
                     source,
                     previewSource,
                     isAuthTokenRequired: !!expensifySource,
@@ -115,8 +117,10 @@ function extractAttachments(
         const decision = getReportActionMessage(action)?.moderationDecision?.decision;
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
         const html = getReportActionHtml(action)
-            .replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`)
-            .replace('<video ', `<video data-id="${action.reportActionID}" `);
+            .replaceAll('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`)
+            .replaceAll('<video ', `<video data-id="${action.reportActionID}" `);
+        // We need to reset attachment index before starting parsing each report actions.
+        attachmentIndex = 0;
         htmlParser.write(html);
     });
     htmlParser.end();
