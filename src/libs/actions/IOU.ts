@@ -902,9 +902,9 @@ function setSplitPayer(transactionID: string, payerAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitPayerAccountIDs: [payerAccountID]});
 }
 
-function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>) {
+function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        receipt: {source, type: type ?? '', state},
+        receipt: {source, type: type ?? ''},
         filename,
     });
 }
@@ -1318,7 +1318,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                value: {...transaction, amount: isScanRequest ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount, currency: isScanRequest ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency},
+                value: {
+                    ...transaction,
+                    amount: isScanRequest ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
+                    currency: isScanRequest ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
+                    receipt: {...transaction.receipt, state: CONST.IOU.RECEIPT_STATE.SCANCOMPLETE},
+                },
             },
         );
     }

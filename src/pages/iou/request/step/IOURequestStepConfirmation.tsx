@@ -268,13 +268,7 @@ function IOURequestStepConfirmation({
 
         const onSuccess = (file: File) => {
             const receipt: Receipt = file;
-            if (participants.some((participant) => isSelectedManagerMcTest(participant.login))) {
-                receipt.state = CONST.IOU.RECEIPT_STATE.SCANCOMPLETE;
-            } else if (file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
-                receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
-            } else {
-                receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
-            }
+            receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
 
             setReceiptFile(receipt);
         };

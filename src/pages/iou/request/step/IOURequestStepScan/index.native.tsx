@@ -507,7 +507,7 @@ function IOURequestStepScan({
                         return;
                     }
 
-                    setMoneyRequestReceipt(transactionID, file.uri, filename, !isEditing, file.type, CONST.IOU.RECEIPT_STATE.SCANCOMPLETE);
+                    setMoneyRequestReceipt(transactionID, file.uri, filename, !isEditing, file.type);
                     navigateToConfirmationStep(file, file.uri, false, true);
                 })
                 .catch((error) => {
@@ -691,7 +691,7 @@ function IOURequestStepScan({
             <View
                 style={styles.flex1}
                 onLayout={(e) => {
-                    setElementTop(e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + 12) * 2);
+                    setElementTop(e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding) * 2);
                 }}
             >
                 {isLoadingReceipt && <FullScreenLoadingIndicator />}
