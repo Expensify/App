@@ -482,7 +482,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   return;
                               }
 
-                              // If the users default workspace is paid group workspace with chat enabled, we create a report with it by default
+                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
                               if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
                                   const createdReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
                                   Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
@@ -495,7 +495,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   return;
                               }
 
-                              // If the users default workspace is personal and user has more than one group workspace which is paid and has chat enabled, we need to redirect them to workspace selection screen
+                              // If the user's default workspace is personal and the user has more than one group workspace which is paid and has chat enabled, we need to redirect them to the workspace selection screen
                               Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
                           });
                       },

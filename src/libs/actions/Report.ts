@@ -2508,7 +2508,33 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         },
     ];
 
-    return {optimisticData, failureData};
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingAction: null,
+                errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    pendingAction: null,
+                    errorFields: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+            value: {[reportActionID]: {pendingAction: null}},
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
 }
 
 function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string) {
@@ -2518,12 +2544,12 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportName = `${creatorPersonalDetails.firstName || 'User'}'s report`;
 
-    const {optimisticData, failureData} = buildNewReportOptimisticData(policy, optimisticReportID, reportActionID, reportName, creatorPersonalDetails);
+    const {optimisticData, successData, failureData} = buildNewReportOptimisticData(policy, optimisticReportID, reportActionID, reportName, creatorPersonalDetails);
 
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
         {reportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID},
-        {optimisticData, successData: [], failureData},
+        {optimisticData, successData, failureData},
     );
     return optimisticReportID;
 }
