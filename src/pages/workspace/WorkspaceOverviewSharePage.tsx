@@ -89,7 +89,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                                         if (!adminRoom?.reportID) {
                                             return;
                                         }
-                                        Navigation.dismissModal(adminRoom.reportID);
+                                        Navigation.dismissModalWithReport({reportID: adminRoom.reportID});
                                     }}
                                 >
                                     {CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
