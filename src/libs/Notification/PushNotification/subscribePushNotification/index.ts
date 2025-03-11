@@ -26,6 +26,17 @@ Onyx.connect({
     },
 });
 
+let isSingleNewDotEntry: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        isSingleNewDotEntry = value;
+    },
+});
+
 function getLastUpdateIDAppliedToClient(): Promise<number> {
     return new Promise((resolve) => {
         Onyx.connect({
@@ -106,7 +117,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
             try {
                 // When transitioning to the new experience via the singleNewDotEntry flow, the navigation
                 // is handled elsewhere. So we cancel here to prevent double navigation.
-                if (Navigation.getActiveRoute().includes(CONST.HYBRID_APP.SINGLE_NEW_DOT_ENTRY)) {
+                if (isSingleNewDotEntry) {
                     Log.info('[PushNotification] Not navigating because this is a singleNewDotEntry flow', false, {reportID, reportActionID});
                     return;
                 }

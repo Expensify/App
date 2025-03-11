@@ -7,6 +7,7 @@ import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
 import {parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
+import toggleSelectionFormat from '@libs/FormatSelectionUtils';
 import CONST from '@src/CONST';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
@@ -19,18 +20,7 @@ type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & 
     parser?: MarkdownTextInputProps['parser'];
 };
 
-function handleFormatSelection(selectedText: string, formatCommand: string) {
-    switch (formatCommand) {
-        case 'formatBold':
-            return `*${selectedText}*`;
-        case 'formatItalic':
-            return `_${selectedText}_`;
-        default:
-            return selectedText;
-    }
-}
-
-function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTextInputWithRefProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
+function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
     const theme = useTheme();
 
     const {mentionsList, currentUserMention} = useShortMentionsList();
@@ -70,7 +60,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
                 }
                 ref(refHandle as AnimatedMarkdownTextInputRef);
             }}
-            formatSelection={handleFormatSelection}
+            formatSelection={toggleSelectionFormat}
             // eslint-disable-next-line
             {...props}
             /**

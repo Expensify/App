@@ -1,4 +1,5 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import lodashDebounce from 'lodash/debounce';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
@@ -6,18 +7,50 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
+import Visibility from '@libs/Visibility';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import CONST from '@src/CONST';
 import type {LocationPermissionModalProps} from './types';
 
-function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
+function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+
+    const checkPermission = useCallback(() => {
+        getLocationPermission().then((status) => {
+            if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+                return;
+            }
+            onGrant();
+        });
+    }, [onGrant]);
+
+    const debouncedCheckPermission = useMemo(() => lodashDebounce(checkPermission, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY), [checkPermission]);
+
+    useEffect(() => {
+        if (!showModal) {
+            return;
+        }
+
+        const unsubscribe = Visibility.onVisibilityChange(() => {
+            debouncedCheckPermission();
+        });
+
+        const intervalId = setInterval(() => {
+            debouncedCheckPermission();
+        }, CONST.TIMING.LOCATION_UPDATE_INTERVAL);
+
+        return () => {
+            unsubscribe();
+            clearInterval(intervalId);
+        };
+    }, [showModal, debouncedCheckPermission]);
 
     useEffect(() => {
         if (!startPermissionFlow) {
@@ -25,6 +58,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         }
 
         getLocationPermission().then((status) => {
+            onInitialGetLocationCompleted?.();
             if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                 return onGrant();
             }
@@ -36,11 +70,19 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     }, [startPermissionFlow]);
 
     const handledBlockedPermission = (cb: () => void) => () => {
+        setIsLoading(true);
         if (hasError) {
             if (Linking.openSettings) {
                 Linking.openSettings();
             } else {
-                onDeny?.();
+                // check one more time in case user enabled location before continue
+                getLocationPermission().then((status) => {
+                    if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
+                        onGrant();
+                    } else {
+                        onDeny?.();
+                    }
+                });
             }
             setShowModal(false);
             return;
@@ -58,6 +100,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 }
             })
             .finally(() => {
+                setIsLoading(false);
                 setShowModal(false);
                 setHasError(false);
             });
@@ -108,6 +151,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             shouldCenterIcon
             shouldReverseStackedButtons
             prompt={translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage')}
+            isConfirmLoading={isLoading}
         />
     );
 }
