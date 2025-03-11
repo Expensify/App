@@ -1,5 +1,4 @@
 import express from 'express';
-import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import {AppRegistry} from 'react-native-web';
 import 'source-map-support/register';
