@@ -27,7 +27,7 @@ const EmailWrapper: React.FC<EmailWrapperProps> = ({children}) => {
             <hr />
             {children}
             <hr />
-            <RenderHTML html={translate('notifications.replyOrOpenInExpensify')} />
+            <RenderHTML html={translate('notifications.replyOrOpenInExpensify', {url: 'https://dev.new.expensify.com:8082/'})} />
             <Icon
                 src={ExpensifyWordmark}
                 fill={theme.icon}
