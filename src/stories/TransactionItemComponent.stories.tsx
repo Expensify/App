@@ -1,90 +1,76 @@
 import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
+import ThemeProvider from '@components/ThemeProvider';
+import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import TransactionItemComponent from '@components/TransactionItemComponent';
+import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
+import transaction from './objects/Transaction';
 
 type TransactionItemComponentStory = StoryFn<typeof TransactionItemComponent>;
 
-const transactionItemList: Array<Transaction & {mcc: string; modifiedMCC: string}> = [
-    {
-        amount: -769900,
-        bank: '',
-        billable: false,
-        cardID: 0,
-        cardName: 'Cash Expense',
-        cardNumber: '',
-        category: 'CARS',
-        comment: {
-            comment: '',
-        },
-        created: '2025-02-18',
-        currency: 'PLN',
-        filename: '',
-        hasEReceipt: false,
-        inserted: '2025-02-18 14:23:29',
-        managedCard: false,
-        mcc: '',
-        merchant: "Mario's",
-        modifiedAmount: 0,
-        modifiedCreated: '',
-        modifiedCurrency: '',
-        modifiedMCC: '',
-        modifiedMerchant: '',
-        originalAmount: 0,
-        originalCurrency: '',
-        parentTransactionID: '',
-        posted: '',
-        receipt: {},
-        reimbursable: false,
-        reportID: '0',
-        status: 'Posted',
-        tag: 'private',
-        transactionID: '1564303948126109676',
-    },
-];
+type TransactionItemComponentProps = {
+    transactionItem: Transaction;
+    shouldUseNarrowLayout: boolean;
+    isSelected: boolean;
+    showTooltip: boolean;
+};
 
-/**
- * We use the Component Story Format for writing stories. Follow the docs here:
- *
- * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
- */
 const story: Meta<typeof TransactionItemComponent> = {
     title: 'Components/TransactionItemComponent',
     component: TransactionItemComponent,
     args: {
-        transactionItem: transactionItemList.at(0),
-        isLargeScreenWidth: false,
+        transactionItem: transaction,
+        shouldUseNarrowLayout: false,
         isSelected: false,
+        showTooltip: true,
     },
     argTypes: {
         transactionItem: {
             control: 'object',
         },
-        isLargeScreenWidth: {
+        shouldUseNarrowLayout: {
             control: 'boolean',
         },
         isSelected: {
             control: 'boolean',
         },
+        showTooltip: {
+            control: 'boolean',
+        },
+    },
+    parameters: {
+        useLightTheme: true,
     },
 };
 
-function Template({transactionItem, isLargeScreenWidth, isSelected}: {transactionItem: Transaction; isLargeScreenWidth: boolean; isSelected: boolean}) {
+function Template({transactionItem, shouldUseNarrowLayout, isSelected, showTooltip}: TransactionItemComponentProps, {parameters}: {parameters: {useLightTheme?: boolean}}) {
+    const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
+
     return (
-        <TransactionItemComponent
-            transactionItem={transactionItem}
-            isLargeScreenWidth={isLargeScreenWidth}
-            isSelected={isSelected}
-        />
+        <ThemeProvider theme={theme}>
+            <ThemeStylesProvider>
+                <TransactionItemComponent
+                    transactionItem={transactionItem}
+                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                    isSelected={isSelected}
+                    showTooltip={showTooltip}
+                />
+            </ThemeStylesProvider>
+        </ThemeProvider>
     );
 }
 
-const Default: TransactionItemComponentStory = Template.bind({});
-Default.args = {
-    transactionItem: transactionItemList.at(0),
-    isLargeScreenWidth: false,
-    isSelected: false,
+const LightTheme: TransactionItemComponentStory = Template.bind({});
+const DarkTheme: TransactionItemComponentStory = Template.bind({});
+
+LightTheme.parameters = {
+    useLightTheme: true,
+};
+
+DarkTheme.parameters = {
+    useLightTheme: false,
 };
 
 export default story;
-export {Default};
+export {LightTheme, DarkTheme};

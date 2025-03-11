@@ -4,23 +4,22 @@ import TextWithIconCell from '@components/SelectionList/Search/TextWithIconCell'
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTagForDisplay} from '@libs/TransactionUtils';
-import colors from '@styles/theme/colors';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-function TagCell({isLargeScreenWidth, showTooltip, transactionItem}: TransactionDataCellProps) {
+function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
     const styles = useThemeStyles();
-    return isLargeScreenWidth ? (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={getTagForDisplay(transactionItem)}
-            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
-        />
-    ) : (
+    return shouldUseNarrowLayout ? (
         <TextWithIconCell
             icon={Expensicons.Tag}
-            showTooltip={showTooltip}
+            showTooltip={shouldShowTooltip}
             text={getTagForDisplay(transactionItem)}
             textStyle={[styles.textMicro, styles.mnh0]}
+        />
+    ) : (
+        <TextWithTooltip
+            shouldShowTooltip={shouldShowTooltip}
+            text={getTagForDisplay(transactionItem)}
+            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
         />
     );
 }

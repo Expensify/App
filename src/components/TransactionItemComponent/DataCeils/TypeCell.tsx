@@ -29,24 +29,24 @@ const getTypeText = (type?: string) => {
     }
 };
 
-function TypeCell({transactionItem, isLargeScreenWidth, showTooltip}: TransactionDataCellProps) {
+function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
     const theme = useTheme();
     const typeIcon = getTypeIcon(transactionItem.cardName);
     const typeText = getTypeText(transactionItem.cardName);
     const styles = useThemeStyles();
 
-    return isLargeScreenWidth ? (
+    return shouldUseNarrowLayout ? (
+        <TextWithTooltip
+            shouldShowTooltip={shouldShowTooltip}
+            text={typeText}
+            style={[styles.textMicroSupporting, styles.pre, styles.justifyContentCenter]}
+        />
+    ) : (
         <Icon
             src={typeIcon}
             fill={theme.icon}
-            height={isLargeScreenWidth ? 20 : 12}
-            width={isLargeScreenWidth ? 20 : 12}
-        />
-    ) : (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={typeText}
-            style={[styles.textLabelSupporting, styles.pre, styles.justifyContentCenter]}
+            height={20}
+            width={20}
         />
     );
 }

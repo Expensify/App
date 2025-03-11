@@ -10,16 +10,16 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
+import {hasAccountingConnections} from '@libs/PolicyUtils';
+import {getReportFieldKey} from '@libs/ReportUtils';
+import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {addReportFieldListValue, createReportFieldsListValue} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -41,7 +41,7 @@ function ReportFieldsAddListValuePage({
     const listValues = useMemo(() => {
         let reportFieldListValues: string[];
         if (reportFieldID) {
-            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+            const reportFieldKey = getReportFieldKey(reportFieldID);
             reportFieldListValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
         } else {
             reportFieldListValues = formDraft?.[INPUT_IDS.LIST_VALUES] ?? [];
@@ -51,16 +51,16 @@ function ReportFieldsAddListValuePage({
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
-            WorkspaceReportFieldUtils.validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', listValues, INPUT_IDS.VALUE_NAME),
+            validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', listValues, INPUT_IDS.VALUE_NAME),
         [listValues],
     );
 
     const createValue = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             if (reportFieldID) {
-                ReportField.addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME]);
+                addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME]);
             } else {
-                ReportField.createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
+                createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
             }
             Keyboard.dismiss();
             Navigation.goBack();
@@ -73,7 +73,7 @@ function ReportFieldsAddListValuePage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
-            shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
+            shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
@@ -95,7 +95,6 @@ function ReportFieldsAddListValuePage({
                 >
                     <InputWrapper
                         InputComponent={TextInput}
-                        maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                         label={translate('common.value')}
                         accessibilityLabel={translate('common.value')}
                         inputID={INPUT_IDS.VALUE_NAME}

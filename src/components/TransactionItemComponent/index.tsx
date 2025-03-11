@@ -4,6 +4,7 @@ import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 import CategoryCell from './DataCeils/CategoryCell';
 import DateCell from './DataCeils/DateCell';
@@ -13,105 +14,126 @@ import TagCell from './DataCeils/TagCell';
 import TotalCell from './DataCeils/TotalCell';
 import TypeCell from './DataCeils/TypeCell';
 
-function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelected}: {transactionItem: Transaction; isLargeScreenWidth: boolean; isSelected: boolean}) {
+function TransactionItemComponent({
+    transactionItem,
+    shouldUseNarrowLayout,
+    isSelected,
+    shouldShowTooltip,
+}: {
+    transactionItem: Transaction;
+    shouldUseNarrowLayout: boolean;
+    isSelected: boolean;
+    shouldShowTooltip: boolean;
+}) {
     const styles = useThemeStyles();
-    const showTooltip = true;
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const backgroundColor = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : styles.buttonDefaultBG;
 
     return (
         <View style={styles.flex1}>
-            {!isLargeScreenWidth ? (
-                <View style={[backgroundColor, styles.expenseWidgetRadius]}>
-                    <View style={[styles.flexRow]}>
-                        <View style={[styles.expenseWidgetMargin]}>
+            {shouldUseNarrowLayout ? (
+                <View style={[backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly]}>
+                    <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.mb3, styles.ml3]}>
+                        <View style={[styles.mr3]}>
                             <ReceiptCell
                                 transactionItem={transactionItem}
-                                isSelected={isSelected}
+                                isSelected
                             />
                         </View>
-                        <View style={[styles.flex2, styles.flexColumn]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
                                 <DateCell
                                     transactionItem={transactionItem}
-                                    showTooltip={showTooltip}
-                                    isLargeScreenWidth={isLargeScreenWidth}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
-                                <Text style={[styles.expenseWidgetSeparator]}>•</Text>
+                                <Text style={[styles.textMicroSupporting]}> • </Text>
                                 <TypeCell
                                     transactionItem={transactionItem}
-                                    showTooltip={showTooltip}
-                                    isLargeScreenWidth={isLargeScreenWidth}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                             </View>
-                            <View style={[styles.flex1, styles.justifyContentCenter]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.minHeight5, styles.maxHeight5]}>
                                 <MerchantCell
                                     transactionItem={transactionItem}
-                                    showTooltip={showTooltip}
-                                    isLargeScreenWidth={isLargeScreenWidth}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
+                                <TotalCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                                {/* </View> */}
                             </View>
                         </View>
-                        <View style={[styles.flex2, styles.expenseWidgetMargin, styles.alignItemsCenter, styles.justifyContentEnd]}>
-                            <TotalCell
-                                transactionItem={transactionItem}
-                                showTooltip={showTooltip}
-                                isLargeScreenWidth={isLargeScreenWidth}
-                            />
-                        </View>
                     </View>
-                    <View style={[styles.expenseWidgetMargin, styles.flexRow, styles.alignItemsCenter, styles.gap6,styles.minHeight3]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.minHeight3, styles.ml3, styles.mt0, styles.mb3]}>
                         <CategoryCell
                             transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <TagCell
                             transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                     </View>
                 </View>
             ) : (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1, backgroundColor, styles.p6, styles.expenseWidgetRadius]}>
-                    <View style={[styles.justifyContentBetween, styles.flex1, styles.flexRow, styles.flex1, styles.alignItemsCenter]}>
-                        <ReceiptCell
-                            transactionItem={transactionItem}
-                            isSelected={isSelected}
-                        />
-                        <TypeCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
-                        />
-                        <DateCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
-                        />
-
-                        <MerchantCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
-                        />
-                        <CategoryCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
-                        />
-                        <TagCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
-                        />
-                        <TotalCell
-                            transactionItem={transactionItem}
-                            showTooltip={showTooltip}
-                            isLargeScreenWidth={isLargeScreenWidth}
-                        />
+                <View style={[backgroundColor, styles.p2, styles.expenseWidgetRadius]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
+                            <ReceiptCell
+                                transactionItem={transactionItem}
+                                isSelected
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
+                            <TypeCell
+                                transactionItem={transactionItem}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, false)]}>
+                            <DateCell
+                                transactionItem={transactionItem}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
+                            <MerchantCell
+                                transactionItem={transactionItem}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
+                            <CategoryCell
+                                transactionItem={transactionItem}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
+                            <TagCell
+                                transactionItem={transactionItem}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                            <TotalCell
+                                transactionItem={transactionItem}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                        </View>
                     </View>
                 </View>
             )}
