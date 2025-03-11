@@ -5000,7 +5000,6 @@ const CONST = {
         CONTENT_TYPES: {
             SUBMIT_EXPENSE: 'submitExpense',
             START_CHAT: 'startChat',
-            PAY_SOMEONE: 'paySomeone',
             REFER_FRIEND: 'referralFriend',
             SHARE_CODE: 'shareCode',
         },

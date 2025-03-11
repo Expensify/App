@@ -18,7 +18,6 @@ type ReferralProgramCTAProps = {
     referralContentType:
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
     style?: StyleProp<ViewStyle>;
     onDismiss?: () => void;
