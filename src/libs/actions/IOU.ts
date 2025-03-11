@@ -336,8 +336,9 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     comment?: string;
 };
 
-type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode'> & {
+type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
     customUnit: TransactionCustomUnit;
+    comment?: string;
 };
 
 type BasePolicyParams = {
@@ -438,10 +439,9 @@ type CreateDistanceRequestInformation = {
     policyParams?: BasePolicyParams;
 };
 
-type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID' | 'comment'> & {
+type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
     splitShares: SplitShares;
     iouRequestType?: IOURequestType;
-    comment: string;
 };
 
 type CreateSplitsAndOnyxDataParams = {
