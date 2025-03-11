@@ -6,22 +6,42 @@ on:
       PULL_REQUEST_NUMBER:
         description: Pull Request number for correct placement of apps
         required: true
-  pull_request_target:
-    types: [opened, synchronize, labeled]
-    branches: ['*ci-test/**']
+      WEB:
+        description: Should build web app?
+        type: boolean
+        default: true
+      DESKTOP:
+        description: Should build desktop app?
+        type: boolean
+        default: true
+      IOS:
+        description: Should build iOS app?
+        type: boolean
+        default: true
+      IOS_HYBRID:
+        description: Should build iOS hybrid app? 
+        type: boolean
+        default: true
+      ANDROID:
+        description: Should build android app? 
+        type: boolean
+        default: true
+      ANDROID_HYBRID:
+        description: Should build android hybrid app? 
+        type: boolean
+        default: true
 
 env:
-  PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+  # This variable is needed for fastlane to construct correct path
+  PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
 jobs:
   prep:
     runs-on: ubuntu-latest
     outputs:
-      REF: ${{ github.event.pull_request.head.sha || steps.getHeadRef.outputs.REF }}
-      READY_TO_BUILD: ${{ steps.readyToBuild.outputs.READY_TO_BUILD }}
+      REF: ${{ steps.getHeadRef.outputs.REF }}
     steps:
       - name: Checkout
-        if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/checkout@v4
 
       - name: Validate that user is an Expensify employee
@@ -29,21 +49,6 @@ jobs:
         with:
           REQUIRE_APP_DEPLOYER: false
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
-      - name: Check if PR has Ready to Build label
-        id: readyToBuild
-        run: |
-          LABELS=$(gh pr view "${{ env.PULL_REQUEST_NUMBER }}" --repo Expensify/App --json labels --jq '.labels[].name')
-          if echo "$LABELS" | grep -q 'Ready To Build'; then
-            echo "::notice::✅ PR ${{ env.PULL_REQUEST_NUMBER }} has 'Ready to Build' label"
-            echo "READY_TO_BUILD=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::error::❌ PR ${{ env.PULL_REQUEST_NUMBER }} does not have 'Ready to Build' label"
-            echo "READY_TO_BUILD=false" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Check if pull request number is correct
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -55,31 +60,23 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
   postGitHubCommentBuildStarted:
-    runs-on: ubuntu-latest
+    name: Post build started comment
+    uses: ./.github/workflows/postBuildStartedComment.yml
     needs: [prep]
-    steps:
-      - name: Add build start comment
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ github.token }}
-          script: |
-            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: process.env.PULL_REQUEST_NUMBER,
-              body: `🚧 @${{ github.actor }} has triggered a test build. You can view the [workflow run here](${workflowURL}).`
-            });
+    secrets: inherit
+    with:
+      APP_PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
 
   buildAndroid:
     name: Build Android app for testing
+    if: ${{ inputs.ANDROID }}
     uses: ./.github/workflows/buildAndroid.yml
     needs: [prep]
     secrets: inherit
     with:
       type: adhoc
       ref: ${{ needs.prep.outputs.REF }}
-      pull_request_number: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+      pull_request_number: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
   uploadAndroid:
     name: Upload Android app to S3
@@ -127,6 +124,7 @@ jobs:
 
   iOS:
     name: Build and deploy iOS for testing
+    if: ${{ inputs.IOS }}
     needs: [prep]
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
@@ -215,6 +213,7 @@ jobs:
 
   desktop:
     name: Build and deploy Desktop for testing
+    if: ${{ inputs.DESKTOP }}
     needs: [prep]
     runs-on: macos-14-large
     steps:
@@ -265,6 +264,7 @@ jobs:
 
   web:
     name: Build and deploy Web
+    if: ${{ inputs.WEB }}
     needs: [prep]
     runs-on: ubuntu-latest-xl
     steps:
@@ -295,11 +295,21 @@ jobs:
       - name: Deploy to S3 for internal testing
         run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
 
+  buildHybridApps:
+    name: Build hybrid adhoc apps
+    uses: ./.github/workflows/testBuildHybrid.yml
+    needs: [prep]
+    secrets: inherit
+    with:
+      APP_REF: ${{ needs.prep.outputs.REF }}
+      IOS_HYBRID: ${{ inputs.IOS_HYBRID }}
+      ANDROID_HYBRID: ${{ inputs.ANDROID_HYBRID }}
+
   postGithubComment:
     runs-on: ubuntu-latest
+    if: always()
     name: Post a GitHub comment with app download links for testing
-    needs: [prep, uploadAndroid, iOS, desktop, web]
-    if: ${{ always() && needs.prep.outputs.READY_TO_BUILD == 'true' }}
+    needs: [prep, uploadAndroid, iOS, desktop, web, buildHybridApps]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -323,13 +333,17 @@ jobs:
       - name: Publish links to apps for download
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
-          PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
+          PR_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.uploadAndroid.result }}
+          ANDROID_HYBRID: ${{ needs.buildHybridApps.result }}
           DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iOS.result }}
+          IOS_HYBRID: ${{ needs.buildHybridApps.result }}
           WEB: ${{ needs.web.result }}
           ANDROID_LINK: ${{ needs.uploadAndroid.outputs.S3_APK_PATH }}
-          DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ env.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
+          ANDROID_HYBRID_LINK: ${{ needs.buildHybridApps.outputs.ANDROID_LINK }}
+          DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ github.event.inputs.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
           IOS_LINK: ${{ steps.get_ios_path.outputs.ios_path }}
-          WEB_LINK: https://${{ env.PULL_REQUEST_NUMBER }}.pr-testing.expensify.com
+          IOS_HYBRID_LINK: ${{ needs.buildHybridApps.outputs.IOS_LINK }}
+          WEB_LINK: https://${{ github.event.inputs.PULL_REQUEST_NUMBER }}.pr-testing.expensify.com

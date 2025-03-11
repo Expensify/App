@@ -2,9 +2,10 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {buildCardFeedsData, buildCardsData} from '@libs/CardFeedUtils';
 // eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {buildCardFeedsData, buildCardsData} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage';
+import type IllustrationsType from '@styles/theme/illustrations/types';
 import type {CardList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 
 // Use jest.spyOn to mock the implementation
@@ -276,9 +277,26 @@ const domainFeedDataMock = {testDomain: {domainName: 'testDomain', bank: 'Expens
 
 const translateMock = jest.fn();
 
-describe('buildCardsData individual cards', () => {
+const illustrationsMock = {
+    EmptyStateBackgroundImage: jest.fn(),
+    ExampleCheckES: jest.fn(),
+    ExampleCheckEN: jest.fn(),
+    WorkspaceProfile: jest.fn(),
+    ExpensifyApprovedLogo: jest.fn(),
+    GenericCompanyCard: jest.fn(),
+    GenericCompanyCardLarge: jest.fn(),
+    GenericCSVCompanyCardLarge: jest.fn(),
+};
+
+describe('buildIndividualCardsData', () => {
     it("Builds all individual cards and doesn't generate duplicates", () => {
-        const result = buildCardsData(workspaceCardFeeds as unknown as Record<string, WorkspaceCardsList | undefined>, cardList as unknown as CardList, {}, ['21588678']);
+        const result = buildCardsData(
+            workspaceCardFeeds as unknown as Record<string, WorkspaceCardsList | undefined>,
+            cardList as unknown as CardList,
+            {},
+            ['21588678'],
+            illustrationsMock as IllustrationsType,
+        );
 
         expect(result.unselected.length + result.selected.length).toEqual(11);
 
@@ -297,14 +315,27 @@ describe('buildCardsData individual cards', () => {
         });
     });
     it("Doesn't include physical cards that haven't been issued or haven't been activated", () => {
-        const result = buildCardsData(workspaceCardFeedsHiddenOnSearch as unknown as Record<string, WorkspaceCardsList | undefined>, cardListHiddenOnSearch as unknown as CardList, {}, []);
+        const result = buildCardsData(
+            workspaceCardFeedsHiddenOnSearch as unknown as Record<string, WorkspaceCardsList | undefined>,
+            cardListHiddenOnSearch as unknown as CardList,
+            {},
+            [],
+            illustrationsMock as IllustrationsType,
+        );
         expect(result.unselected.length + result.selected.length).toEqual(0);
     });
 });
 
 describe('buildCardsData closed cards', () => {
     it("Builds all closed cards and doesn't generate duplicates", () => {
-        const result = buildCardsData(workspaceCardFeedsClosed as unknown as Record<string, WorkspaceCardsList | undefined>, cardListClosed as unknown as CardList, {}, ['21539012'], true);
+        const result = buildCardsData(
+            workspaceCardFeedsClosed as unknown as Record<string, WorkspaceCardsList | undefined>,
+            cardListClosed as unknown as CardList,
+            {},
+            ['21539012'],
+            illustrationsMock as IllustrationsType,
+            true,
+        );
         expect(result.unselected.length + result.selected.length).toEqual(4);
 
         // Check if Expensify card was built correctly
@@ -325,7 +356,7 @@ describe('buildCardsData closed cards', () => {
 
 describe('buildCardsData with empty argument objects', () => {
     it('Returns empty array when cardList and workspaceCardFeeds are empty', () => {
-        const result = buildCardsData({}, {}, {}, []);
+        const result = buildCardsData({}, {}, {}, [], illustrationsMock as IllustrationsType);
         expect(result).toEqual({selected: [], unselected: []});
     });
 });
@@ -336,6 +367,7 @@ describe('buildCardFeedsData', () => {
         domainFeedDataMock,
         [],
         translateMock as LocaleContextProps['translate'],
+        illustrationsMock as IllustrationsType,
     );
 
     it('Buids domain card feed properly', () => {
@@ -369,7 +401,7 @@ describe('buildCardFeedsData', () => {
 
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Return empty array when domainCardFeeds and workspaceCardFeeds are empty', () => {
-        const result = buildCardFeedsData({}, {}, [], translateMock as LocaleContextProps['translate']);
+        const result = buildCardFeedsData({}, {}, [], translateMock as LocaleContextProps['translate'], illustrationsMock as IllustrationsType);
         expect(result).toEqual({selected: [], unselected: []});
     });
 });

@@ -74,11 +74,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         return;
                     }
                     setOnboardingCompanySize(selectedCompanySize);
-
-                    // Redirect is disabled on desktop
-                    if (getPlatform() !== CONST.PLATFORM.DESKTOP) {
-                        switchToOldDotOnNonMicroCompanySize(selectedCompanySize);
-                    }
+                    switchToOldDotOnNonMicroCompanySize(selectedCompanySize);
 
                     const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
@@ -115,7 +111,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     }
 
                     if (NativeModules.HybridAppModule) {
-                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                        NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                         setRootStatusBarEnabled(false);
                     } else {
                         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
