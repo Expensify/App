@@ -2,8 +2,9 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {FlatList, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
+import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -28,7 +29,6 @@ import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/Keyboar
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-// const AnimatedFlashList = Animated.createAnimatedComponent<FlatListProps<any, any>>(FlatList);
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem;
 
@@ -37,7 +37,7 @@ type SearchListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
 };
 
-type SearchListProps = {
+type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' | 'contentContainerStyle' | 'onEndReached' | 'onEndReachedThreshold' | 'ListFooterComponent'> & {
     data: SearchListItem[];
 
     /** Default renderer for every item in the list */
@@ -52,33 +52,13 @@ type SearchListProps = {
     canSelectMultiple: boolean;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: SearchListItem) => void;
+    onCheckboxPress: (item: SearchListItem) => void;
 
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
-    onAllCheckboxPress?: () => void;
-
-    /** Callback to fire when the list is scrolled */
-    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-    /** Additional styles to apply to scrollable content */
-    contentContainerStyle?: StyleProp<ViewStyle>;
-
-    /**
-     * How far from the end (in units of visible length of the list) the bottom edge of the
-     * list must be from the end of the content to trigger the `onEndReached` callback.
-     * Thus a value of 0.5 will trigger `onEndReached` when the end of the content is
-     * within half the visible length of the list.
-     */
-    onEndReachedThreshold?: number;
-
-    /** Called once when the scroll position gets within onEndReachedThreshold of the rendered content. */
-    onEndReached?: () => void;
+    onAllCheckboxPress: () => void;
 
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
-
-    /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
-    ListFooterComponent?: React.JSX.Element | null;
 
     /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
@@ -164,7 +144,6 @@ function SearchList(
         (item: SearchListItem) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (!isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
-                // TODO: check if it works I deleted some conditions
                 return;
             }
             setLongPressedItem(item);
@@ -173,14 +152,14 @@ function SearchList(
         [isFocused, isSmallScreenWidth],
     );
 
-    const turnOnSelectionMode = () => {
+    const turnOnSelectionMode = useCallback(() => {
         turnOnMobileSelectionMode();
         setIsModalVisible(false);
 
         if (onCheckboxPress && longPressedItem) {
             onCheckboxPress?.(longPressedItem);
         }
-    };
+    }, [longPressedItem, onCheckboxPress]);
 
     /**
      * Scrolls to the desired item index in the section list
@@ -222,7 +201,7 @@ function SearchList(
         isFocused,
     });
 
-    const selectFocusedOption = () => {
+    const selectFocusedOption = useCallback(() => {
         const focusedItem = data.at(focusedIndex);
 
         if (!focusedItem) {
@@ -230,7 +209,7 @@ function SearchList(
         }
 
         onSelectRow(focusedItem);
-    };
+    }, [data, focusedIndex, onSelectRow]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
@@ -321,6 +300,7 @@ function SearchList(
                         accessibilityLabel={translate('workspace.people.selectAll')}
                         isChecked={selectedItemsLength === data.length}
                         onPress={() => {
+                            onAllCheckboxPress();
                             listRef.current?.scrollToIndex({index: 0, animated: true});
                         }}
                     />
