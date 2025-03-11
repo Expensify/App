@@ -5220,19 +5220,15 @@ function createSplitsAndOnyxData({
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
-    const splitIOUReportAction = buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+    const splitIOUReportAction = buildOptimisticIOUReportAction({
+        type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         amount,
         currency,
         comment,
         participants,
-        splitTransaction.transactionID,
-        undefined,
-        '',
-        false,
-        false,
+        transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
-    );
+    });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
     splitChatReport.lastMessageText = getReportActionText(splitIOUReportAction);
@@ -5816,19 +5812,15 @@ function startSplitBill({
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitChatCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
-    const splitIOUReportAction = buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        0,
-        CONST.CURRENCY.USD,
-        parsedComment,
+    const splitIOUReportAction = buildOptimisticIOUReportAction({
+        type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+        amount: 0,
+        currency: CONST.CURRENCY.USD,
+        comment: parsedComment,
         participants,
-        splitTransaction.transactionID,
-        undefined,
-        '',
-        false,
-        false,
+        transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
-    );
+    });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
     splitChatReport.lastMessageText = getReportActionText(splitIOUReportAction);
@@ -7962,17 +7954,17 @@ function getPayMoneyRequestParams(
         total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
     }
 
-    const optimisticIOUReportAction = buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        isExpenseReport(iouReport) ? -total : total,
-        iouReport?.currency ?? '',
-        '',
-        [recipient],
-        '',
-        paymentMethodType,
-        iouReport?.reportID,
-        true,
-    );
+    const optimisticIOUReportAction = buildOptimisticIOUReportAction({
+        type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        amount: isExpenseReport(iouReport) ? -total : total,
+        currency: iouReport?.currency ?? '',
+        comment: '',
+        participants: [recipient],
+        transactionID: '',
+        paymentType: paymentMethodType,
+        iouReportID: iouReport?.reportID,
+        isSettlingUp: true,
+    });
 
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
     // hence we need to make the updates to the action safely.

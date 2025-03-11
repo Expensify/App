@@ -160,20 +160,16 @@ function ReportActionsView({
         });
 
         if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
-            const optimisticIOUAction = buildOptimisticIOUReportAction(
-                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                0,
-                CONST.CURRENCY.USD,
-                '',
-                [],
-                rand64(),
-                undefined,
-                report.reportID,
-                false,
-                false,
-                false,
-                DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
-            ) as OnyxTypes.ReportAction;
+            const optimisticIOUAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 0,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [],
+                transactionID: rand64(),
+                iouReportID: report.reportID,
+                created: DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
+            }) as OnyxTypes.ReportAction;
             moneyRequestActions.push(optimisticIOUAction);
             actions.splice(actions.length - 1, 0, optimisticIOUAction);
         }

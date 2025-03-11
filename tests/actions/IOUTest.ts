@@ -2389,7 +2389,16 @@ describe('actions/IOU', () => {
             };
             const iouActions: ReportAction[] = [];
             [transaction1, transaction2].forEach((transaction) =>
-                iouActions.push(buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, transaction.amount, transaction.currency, '', [], transaction.transactionID)),
+                iouActions.push(
+                    buildOptimisticIOUReportAction({
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: transaction.amount,
+                        currency: transaction.currency,
+                        comment: '',
+                        participants: [],
+                        transactionID: transaction.transactionID,
+                    }),
+                ),
             );
             const actions: OnyxInputValue<ReportActions> = {};
             iouActions.forEach((iouAction) => (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction));
@@ -3847,7 +3856,16 @@ describe('actions/IOU', () => {
             };
             const iouActions: ReportAction[] = [];
             [transaction1, transaction2].forEach((transaction) =>
-                iouActions.push(buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, transaction.amount, transaction.currency, '', [], transaction.transactionID)),
+                iouActions.push(
+                    buildOptimisticIOUReportAction({
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: transaction.amount,
+                        currency: transaction.currency,
+                        comment: '',
+                        participants: [],
+                        transactionID: transaction.transactionID,
+                    }),
+                ),
             );
             const actions: OnyxInputValue<ReportActions> = {};
             iouActions.forEach((iouAction) => (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction));
@@ -3899,7 +3917,14 @@ describe('actions/IOU', () => {
             const transactionCollectionDataSet: TransactionCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
-            const iouAction: ReportAction = buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, transaction.amount, transaction.currency, '', [], transaction.transactionID);
+            const iouAction: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                comment: '',
+                participants: [],
+                transactionID: transaction.transactionID,
+            });
             const transactionThread = buildTransactionThread(iouAction, iouReport);
 
             const actions: OnyxInputValue<ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
@@ -3957,7 +3982,14 @@ describe('actions/IOU', () => {
             const transactionCollectionDataSet: TransactionCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
-            const iouAction: ReportAction = buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, transaction.amount, transaction.currency, '', [], transaction.transactionID);
+            const iouAction: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                comment: '',
+                participants: [],
+                transactionID: transaction.transactionID,
+            });
             const transactionThread = buildTransactionThread(iouAction, iouReport);
 
             const actions: OnyxInputValue<ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
