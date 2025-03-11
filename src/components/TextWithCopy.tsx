@@ -2,8 +2,6 @@ import React, {useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 import Clipboard from '@libs/Clipboard';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import CONST from '@src/CONST';
 import Text from './Text';
 import type {TextProps} from './Text';
 
@@ -19,9 +17,6 @@ function TextWithCopy({children, copyText, ...rest}: TextWithCopyProps) {
             ref={textRef}
             onPress={() => {
                 Clipboard.setString(copyText);
-            }}
-            onLongPress={(event) => {
-                showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, copyText, textRef.current);
             }}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
