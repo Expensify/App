@@ -1,5 +1,5 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -30,6 +30,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingWorkEmailProps} from './types';
+import { is } from '@babel/types';
 
 type Item = {
     icon: IconAsset;
@@ -40,6 +41,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    console.log('onboardingValues::::', onboardingValues)
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -55,6 +57,24 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     useEffect(() => {
         setOnboardingErrorMessage('');
     }, []);
+
+    useEffect(() => {
+        if (onboardingValues?.shouldValidate === undefined) {
+            return;
+        }
+
+        if (onboardingValues?.shouldValidate) {
+            Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            return;
+        }
+
+        if (isVsb) {
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            return;
+        }
+
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+    }, [onboardingValues?.shouldValidate, isVsb, formValue?.isLoading]);
 
     const validatePrivateDomain = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);

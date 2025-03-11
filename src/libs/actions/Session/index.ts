@@ -1324,29 +1324,15 @@ function AddWorkEmail(workEmail: string) {
     ];
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(
-        SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
+    API.write(
+        WRITE_COMMANDS.ADD_WORK_EMAIL,
         {workEmail},
         {
             optimisticData,
             successData,
             failureData,
         },
-    ).then((response) => {
-        if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && onboarding?.shouldValidate) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
-            return;
-        }
-
-        const isVsb = onboarding && 'signupQualifier' in onboarding && onboarding.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-
-        if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
-            return;
-        }
-
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-    });
+    );
 }
 
 function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
