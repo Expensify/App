@@ -243,12 +243,12 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         <Button
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
-                            style={[styles.flex1, styles.tooltipButton]}
+                            style={[styles.flex1]}
                             onPress={config.onConfirm}
                         />
                         <Button
                             text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
-                            style={[styles.flex1, styles.tooltipButton]}
+                            style={[styles.flex1]}
                             onPress={config.onDismiss}
                         />
                     </View>
