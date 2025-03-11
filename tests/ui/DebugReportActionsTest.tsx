@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
