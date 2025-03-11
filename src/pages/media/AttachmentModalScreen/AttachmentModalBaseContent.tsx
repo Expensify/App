@@ -364,8 +364,6 @@ function AttachmentModalBaseContent({
         [onClose, nope, sourceForAttachmentView],
     );
 
-    console.log({isLoading});
-
     return (
         <>
             <GestureHandlerRootView style={styles.flex1}>
