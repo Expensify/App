@@ -30,6 +30,7 @@ import {
     getDescription as getTransactionDescription,
     hasReceipt,
     isExpensifyCardTransaction,
+    isPartial,
     isPending,
     isReceiptBeingScanned,
 } from '@libs/TransactionUtils';
@@ -152,7 +153,7 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     }
     let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(Parser.replace(description));
 
-    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
+    if (hasReceipt(transactionItem) && isPartial(transactionItem) && isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
     }
     const merchantToDisplay = StringUtils.getFirstLine(merchant);
@@ -171,7 +172,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCell
     const currency = getTransactionCurrency(transactionItem);
     let amount = convertToDisplayString(transactionItem.formattedTotal, currency);
 
-    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem)) {
+    if (hasReceipt(transactionItem) && isPartial(transactionItem) && isReceiptBeingScanned(transactionItem)) {
         amount = translate('iou.receiptStatusTitle');
     }
 
