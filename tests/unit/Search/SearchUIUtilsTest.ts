@@ -9,7 +9,7 @@ import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const adminAccountID = 18439984;
