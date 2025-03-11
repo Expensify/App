@@ -1,7 +1,12 @@
 import express from 'express';
 import ReactDOMServer from 'react-dom/server';
+import Onyx from 'react-native-onyx';
 import {AppRegistry} from 'react-native-web';
 import 'source-map-support/register';
+import CONST from '../src/CONST';
+import initOnyxDerivedValues from '../src/libs/actions/OnyxDerived';
+import ONYXKEYS from '../src/ONYXKEYS';
+import initializeLastVisitedPath from '../src/setup/initializeLastVisitedPath';
 import SampleEmail from './components/SampleEmail';
 import CONFIG from './CONFIG';
 import LiveReloadServer from './LiveReloadServer';
@@ -11,6 +16,29 @@ const url = `http://localhost:${CONFIG.EXPRESS_PORT}`;
 
 // TODO: only send live reload connection snippet for dev bundle. For production bundle don't include it
 app.get('/', (req, res) => {
+    Onyx.init({
+        keys: ONYXKEYS,
+
+        // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
+        maxCachedKeysCount: 100000,
+        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        initialKeyStates: {
+            // Clear any loading and error messages so they do not appear on app startup
+            [ONYXKEYS.SESSION]: {loading: false},
+            [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
+            [ONYXKEYS.NETWORK]: CONST.DEFAULT_NETWORK_DATA,
+            [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
+            [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+            [ONYXKEYS.MODAL]: {
+                isVisible: false,
+                willAlertModalBecomeVisible: false,
+            },
+            [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.EN,
+        },
+        skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
+    });
+    initOnyxDerivedValues();
+
     AppRegistry.registerComponent('SampleEmail', () => SampleEmail);
     const {element, getStyleElement} = AppRegistry.getApplication('SampleEmail');
     const html = ReactDOMServer.renderToString(element);

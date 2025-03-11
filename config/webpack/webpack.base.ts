@@ -49,7 +49,7 @@ function getFileExtensions(platform: Environment['platform']) {
             extensions.push('.desktop.js', '.desktop.ts', '.desktop.tsx');
             break;
         case 'ssr':
-            extensions.push('.ssr.ts', '.ssr.tsx');
+            extensions.push('.ssr.js', '.ssr.ts', '.ssr.tsx');
             break;
         case 'web':
         default:
