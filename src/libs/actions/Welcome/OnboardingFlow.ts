@@ -78,7 +78,6 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean): string {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
-
     if (isPrivateDomain) {
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
