@@ -13,12 +13,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -58,7 +58,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 iconRight: Expensicons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    Link.openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
+                    openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
                     showContextMenu({

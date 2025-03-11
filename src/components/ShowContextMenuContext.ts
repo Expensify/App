@@ -2,8 +2,8 @@ import {createContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as ReportUtils from '@libs/ReportUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getOriginalReportID} from '@libs/ReportUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -49,7 +49,7 @@ function showContextMenuForReport(
     checkIfContextMenuActive: () => void,
     isArchivedRoom = false,
 ) {
-    if (!DeviceCapabilities.canUseTouchScreen()) {
+    if (!canUseTouchScreen()) {
         return;
     }
 
@@ -60,7 +60,7 @@ function showContextMenuForReport(
         contextMenuAnchor: anchor,
         reportID,
         reportActionID: action?.reportActionID,
-        originalReportID: reportID ? ReportUtils.getOriginalReportID(reportID, action) : undefined,
+        originalReportID: reportID ? getOriginalReportID(reportID, action) : undefined,
         onShow: checkIfContextMenuActive,
         onHide: checkIfContextMenuActive,
         isArchivedRoom,
