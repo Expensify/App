@@ -22,7 +22,7 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {generateReportID, getBankAccountRoute} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';

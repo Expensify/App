@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import AccountUtils from '@libs/AccountUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';

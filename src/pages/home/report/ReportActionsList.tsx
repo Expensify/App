@@ -23,7 +23,7 @@ import DateUtils from '@libs/DateUtils';
 import {getChatFSAttributes, parseFSAttributes} from '@libs/Fullstory';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
     getFirstVisibleReportActionID,

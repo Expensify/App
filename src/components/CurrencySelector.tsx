@@ -5,7 +5,7 @@ import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';

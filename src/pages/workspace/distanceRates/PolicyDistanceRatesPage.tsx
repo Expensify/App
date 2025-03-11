@@ -32,7 +32,7 @@ import {
 } from '@libs/actions/Policy/DistanceRate';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';

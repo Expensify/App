@@ -11,7 +11,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Tag from '@libs/actions/Policy/Tag';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';

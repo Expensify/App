@@ -14,7 +14,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import TaxExemptActions from '@pages/settings/Subscription/TaxExemptActions';
 import variables from '@styles/variables';
 import * as Subscription from '@userActions/Subscription';

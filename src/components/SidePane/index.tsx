@@ -13,7 +13,7 @@ import useSidePane from '@hooks/useSidePane';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {triggerSidePane} from '@libs/actions/SidePane';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {substituteRouteParameters} from '@libs/SidePaneUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';

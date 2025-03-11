@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type {ConnectToNSQSFlowProps} from './types';
 

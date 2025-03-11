@@ -43,7 +43,7 @@ import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';

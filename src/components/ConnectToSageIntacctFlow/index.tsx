@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {useAccountingContext} from '@pages/workspace/accounting/AccountingContext';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';

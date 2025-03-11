@@ -33,7 +33,7 @@ import {
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';

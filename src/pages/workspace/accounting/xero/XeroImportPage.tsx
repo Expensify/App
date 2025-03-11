@@ -5,7 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';

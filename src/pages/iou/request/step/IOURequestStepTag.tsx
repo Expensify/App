@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftSplitTransaction, setMoneyRequestTag, updateMoneyRequestTag} from '@libs/actions/IOU';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getTagListName, getTagLists, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';

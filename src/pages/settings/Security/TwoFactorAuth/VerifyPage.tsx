@@ -13,7 +13,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {getContactMethod} from '@libs/UserUtils';

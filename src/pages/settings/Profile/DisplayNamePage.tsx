@@ -14,7 +14,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';

@@ -14,7 +14,7 @@ import useThemePreference from '@hooks/useThemePreference';
 import DateUtils from '@libs/DateUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {addTrailingForwardSlash} from '@libs/Url';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';

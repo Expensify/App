@@ -16,7 +16,7 @@ import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/Save
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

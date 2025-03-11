@@ -8,7 +8,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import Navigation from './Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getReportTransactions} from './ReportUtils';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 

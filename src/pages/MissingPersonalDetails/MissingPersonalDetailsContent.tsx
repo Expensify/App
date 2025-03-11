@@ -11,7 +11,7 @@ import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';

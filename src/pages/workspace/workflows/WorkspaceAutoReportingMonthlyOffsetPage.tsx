@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';

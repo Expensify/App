@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateGeneralSettings} from '@libs/actions/Policy/Policy';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -36,7 +36,7 @@ jest.mock('@src/libs/API', () => ({
     read: jest.fn(),
 }));
 
-jest.mock('@src/libs/Navigation/Navigation', () => ({
+jest.mock('@navigation/Navigation', () => ({
     dismissModalWithReport: jest.fn(),
     getTopmostReportId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),

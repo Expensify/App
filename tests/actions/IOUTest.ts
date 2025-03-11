@@ -73,7 +73,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 const topMostReportID = '23423423';
-jest.mock('@src/libs/Navigation/Navigation', () => ({
+jest.mock('@navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
@@ -85,7 +85,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getReportRouteByID: jest.fn(),
 }));
 
-jest.mock('@src/libs/Navigation/navigationRef', () => ({
+jest.mock('@navigation/Navigation/navigationRef', () => ({
     getRootState: () => ({
         routes: [],
     }),

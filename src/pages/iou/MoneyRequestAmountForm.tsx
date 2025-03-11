@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString, convertToFrontendAmountAsInteger, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {addLeadingZero} from '@libs/MoneyRequestUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';

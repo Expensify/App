@@ -6,7 +6,7 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {clearPersonalDetailsErrors} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';

@@ -7,7 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import * as IOUUtils from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';

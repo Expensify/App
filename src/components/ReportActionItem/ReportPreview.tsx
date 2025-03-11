@@ -28,7 +28,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';

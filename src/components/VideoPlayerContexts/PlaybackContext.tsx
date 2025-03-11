@@ -5,7 +5,7 @@ import type {View} from 'react-native';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import usePrevious from '@hooks/usePrevious';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import Visibility from '@libs/Visibility';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext, StatusCallback} from './types';

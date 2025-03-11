@@ -26,7 +26,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';

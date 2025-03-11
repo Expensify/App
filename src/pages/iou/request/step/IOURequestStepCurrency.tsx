@@ -6,7 +6,7 @@ import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import {appendParam} from '@libs/Url';
 import * as IOU from '@userActions/IOU';

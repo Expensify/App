@@ -4,7 +4,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 function WorkspaceCardCreateAWorkspace() {

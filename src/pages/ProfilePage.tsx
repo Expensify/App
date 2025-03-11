@@ -22,7 +22,7 @@ import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';

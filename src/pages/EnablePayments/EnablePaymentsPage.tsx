@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

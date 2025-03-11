@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountStep} from '@src/types/onyx/ReimbursementAccount';

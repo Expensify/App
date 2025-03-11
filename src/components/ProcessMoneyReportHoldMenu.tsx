@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';

@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {
     isDeletedParentAction as isDeletedParentActionReportActionsUtils,
     isReversedTransaction as isReversedTransactionReportActionsUtils,

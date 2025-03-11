@@ -20,7 +20,7 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
 import type {Country} from '@src/CONST';

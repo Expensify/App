@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
 import type {Tax, TaxRatesOption} from '@libs/TaxOptionsListUtils';

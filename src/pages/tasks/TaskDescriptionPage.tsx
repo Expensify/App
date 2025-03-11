@@ -14,7 +14,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';

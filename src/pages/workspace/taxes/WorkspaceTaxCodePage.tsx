@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyTaxCode, validateTaxCode} from '@libs/actions/TaxRate';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';

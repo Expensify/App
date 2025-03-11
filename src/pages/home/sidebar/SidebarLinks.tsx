@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp, setSidebarLoaded} from '@libs/actions/App';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';

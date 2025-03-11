@@ -32,7 +32,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';

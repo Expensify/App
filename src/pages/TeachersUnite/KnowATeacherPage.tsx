@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {isValidDisplayName} from '@libs/ValidationUtils';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';

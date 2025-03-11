@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';

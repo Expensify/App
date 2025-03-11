@@ -11,7 +11,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportActions from '@libs/actions/Report';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';

@@ -26,7 +26,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getActivePolicies} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
 import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';

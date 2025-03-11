@@ -2,7 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';

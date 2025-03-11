@@ -12,7 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';

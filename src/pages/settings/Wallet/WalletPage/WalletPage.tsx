@@ -34,7 +34,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';

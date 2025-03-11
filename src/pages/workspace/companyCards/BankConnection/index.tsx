@@ -13,7 +13,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs/CardUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';

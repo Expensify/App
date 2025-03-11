@@ -4,7 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';

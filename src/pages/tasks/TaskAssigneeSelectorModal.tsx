@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';

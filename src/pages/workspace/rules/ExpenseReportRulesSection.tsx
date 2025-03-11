@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {canEnablePreventSelfApprovals, getAllSelfApprovers, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';

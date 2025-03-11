@@ -37,7 +37,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearPolicyTagErrors, deletePolicyTags, downloadTagsCSV, openPolicyTagsPage, setPolicyTagsRequired, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {

@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';

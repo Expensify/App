@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route as Routes} from '@src/ROUTES';

@@ -31,7 +31,7 @@ import {
 } from '@libs/actions/Policy/ReportField';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';

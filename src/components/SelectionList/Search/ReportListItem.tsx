@@ -13,7 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';

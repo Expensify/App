@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';

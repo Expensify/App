@@ -15,7 +15,7 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
 import {cleanFileName, getFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserUtils';

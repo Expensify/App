@@ -8,6 +8,20 @@ import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import originalCloseRHPFlow from '@libs/Navigation/helpers/closeRHPFlow';
+import getPolicyIDFromState from '@libs/Navigation/helpers/getPolicyIDFromState';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
+import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
+import linkTo from '@libs/Navigation/helpers/linkTo';
+import getMinimalAction from '@libs/Navigation/helpers/linkTo/getMinimalAction';
+import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
+import replaceWithSplitNavigator from '@libs/Navigation/helpers/replaceWithSplitNavigator';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
+import switchPolicyID from '@libs/Navigation/helpers/switchPolicyID';
+import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, RootNavigatorParamList, State} from '@libs/Navigation/types';
 import {shallowCompare} from '@libs/ObjectUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {doesReportBelongToWorkspace, generateReportID} from '@libs/ReportUtils';
@@ -19,21 +33,8 @@ import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import originalCloseRHPFlow from './helpers/closeRHPFlow';
-import getPolicyIDFromState from './helpers/getPolicyIDFromState';
-import getStateFromPath from './helpers/getStateFromPath';
-import getTopmostReportParams from './helpers/getTopmostReportParams';
-import isReportOpenInRHP from './helpers/isReportOpenInRHP';
-import linkTo from './helpers/linkTo';
-import getMinimalAction from './helpers/linkTo/getMinimalAction';
-import type {LinkToOptions} from './helpers/linkTo/types';
-import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
-import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
-import switchPolicyID from './helpers/switchPolicyID';
-import {linkingConfig} from './linkingConfig';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
+import type NavigationType from './types';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -586,7 +587,7 @@ function removeScreenByKey(key: string) {
     });
 }
 
-export default {
+const Navigation: NavigationType = {
     setShouldPopAllStateOnUP,
     navigate,
     setParams,
@@ -616,5 +617,7 @@ export default {
     switchPolicyID,
     replaceWithSplitNavigator,
 };
+
+export default Navigation;
 
 export {navigationRef};

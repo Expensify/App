@@ -27,7 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {clearOnyxAndResetApp} from '@userActions/App';
 import * as Report from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';

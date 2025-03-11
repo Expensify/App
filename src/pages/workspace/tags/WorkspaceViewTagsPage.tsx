@@ -34,7 +34,7 @@ import {
 } from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getCleanedTagName, getTagListName, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';

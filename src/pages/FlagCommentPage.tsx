@@ -11,7 +11,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList} from '@libs/Navigation/types';
 import {canFlagReportAction, isChatThread, shouldShowFlagComment} from '@libs/ReportUtils';

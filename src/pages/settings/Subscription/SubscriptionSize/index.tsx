@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import * as FormActions from '@userActions/FormActions';

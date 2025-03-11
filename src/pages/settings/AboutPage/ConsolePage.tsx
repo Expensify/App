@@ -24,7 +24,7 @@ import {createLog, parseStringifiedMessages, sanitizeConsoleInput} from '@libs/C
 import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
 import localFileDownload from '@libs/localFileDownload';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';

@@ -16,7 +16,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as MemberAction from '@userActions/Policy/Member';

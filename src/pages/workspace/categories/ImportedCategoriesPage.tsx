@@ -10,7 +10,7 @@ import usePolicy from '@hooks/usePolicy';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyCategories} from '@libs/actions/Policy/Category';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';

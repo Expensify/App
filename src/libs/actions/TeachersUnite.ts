@@ -3,7 +3,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {getPolicy} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';

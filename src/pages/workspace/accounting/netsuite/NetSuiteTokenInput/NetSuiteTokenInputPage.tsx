@@ -9,7 +9,7 @@ import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {isAuthenticationError} from '@libs/actions/connections';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {SubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';

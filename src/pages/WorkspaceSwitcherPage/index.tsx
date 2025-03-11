@@ -12,7 +12,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';

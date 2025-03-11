@@ -8,7 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';

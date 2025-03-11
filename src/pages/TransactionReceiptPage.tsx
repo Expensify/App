@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import {openReport} from '@libs/actions/Report';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RootNavigatorParamList, State} from '@libs/Navigation/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -15,7 +15,7 @@ import {
 } from '@libs/ReportUtils';
 import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import navigationRef from '@navigation/navigationRef';
+import navigationRef from '@navigation/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';

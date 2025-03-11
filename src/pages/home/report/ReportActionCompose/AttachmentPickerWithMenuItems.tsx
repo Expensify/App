@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {canCreateTaskInReport, getPayeeName, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {startMoneyRequest} from '@userActions/IOU';

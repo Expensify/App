@@ -32,7 +32,7 @@ import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
-import Navigation from './Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {canSendInvoice} from './PolicyUtils';
 import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
 import {

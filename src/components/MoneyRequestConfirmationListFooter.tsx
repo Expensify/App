@@ -11,7 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
 import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';

@@ -15,7 +15,7 @@ import {isMobile} from '@libs/Browser';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import getTopmostReportsSplitNavigator from '@libs/Navigation/helpers/getTopmostReportsSplitNavigator';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import Performance from '@libs/Performance';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';

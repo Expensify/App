@@ -14,7 +14,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';

@@ -19,7 +19,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import * as LoginUtils from '@libs/LoginUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';

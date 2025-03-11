@@ -33,7 +33,7 @@ import {setSelfTourViewed} from '@libs/actions/Welcome';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled, canSendInvoice as canSendInvoicePolicyUtils, shouldShowPolicy} from '@libs/PolicyUtils';
 import {canCreateRequest, generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';

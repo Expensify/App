@@ -30,7 +30,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions, isSelectedManagerMcTest} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';

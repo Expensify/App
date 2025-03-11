@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteReceivableAccount} from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getNetSuiteReceivableAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';

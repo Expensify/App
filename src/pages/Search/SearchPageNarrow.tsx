@@ -20,7 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';

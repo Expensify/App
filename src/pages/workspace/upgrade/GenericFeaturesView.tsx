@@ -8,7 +8,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 

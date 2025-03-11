@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';

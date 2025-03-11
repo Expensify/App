@@ -3,7 +3,7 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
-import {navigationRef} from '@libs/Navigation/Navigation';
+import {navigationRef} from '@navigation/Navigation';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';

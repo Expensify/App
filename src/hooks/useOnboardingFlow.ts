@@ -3,7 +3,7 @@ import {InteractionManager, NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {isUserOnPrivateDomain} from '@libs/actions/Session';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';

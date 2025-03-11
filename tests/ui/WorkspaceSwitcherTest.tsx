@@ -3,7 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import * as Localize from '@libs/Localize';
-import type Navigation from '@libs/Navigation/Navigation';
+import type Navigation from '@navigation/Navigation';
 import * as AppActions from '@userActions/App';
 import * as User from '@userActions/User';
 import App from '@src/App';

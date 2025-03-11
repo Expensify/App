@@ -7,7 +7,7 @@ import waitForKeyboard from '@libs/E2E/actions/waitForKeyboard';
 import E2EClient from '@libs/E2E/client';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import getPromiseWithResolve from '@libs/E2E/utils/getPromiseWithResolve';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getRerenderCount, resetRerenderCount} from '@pages/home/report/ReportActionCompose/ComposerWithSuggestions/index.e2e';
 import {onSubmitAction} from '@pages/home/report/ReportActionCompose/ReportActionCompose';

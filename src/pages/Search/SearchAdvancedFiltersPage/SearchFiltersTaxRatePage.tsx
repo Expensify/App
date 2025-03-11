@@ -7,7 +7,7 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import type {SearchMultipleSelectionPickerItem} from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';

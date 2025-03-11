@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateWorkspaceDescription} from '@libs/actions/Policy/Policy';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import Parser from '@libs/Parser';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';

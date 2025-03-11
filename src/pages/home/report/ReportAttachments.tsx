@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import type {Attachment} from '@components/Attachments/types';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';

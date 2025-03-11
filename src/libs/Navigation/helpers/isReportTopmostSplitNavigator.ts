@@ -1,4 +1,4 @@
-import {navigationRef} from '@libs/Navigation/Navigation';
+import {navigationRef} from '@navigation/Navigation';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import {isFullScreenName} from './isNavigatorName';

@@ -13,7 +13,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReferralDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as Link from '@userActions/Link';

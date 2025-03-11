@@ -1,4 +1,4 @@
-import navigationRef from '@libs/Navigation/navigationRef';
+import navigationRef from '@navigation/Navigation/navigationRef';
 import CONST from '@src/CONST';
 
 export default function switchPolicyID(newPolicyID: string | undefined) {

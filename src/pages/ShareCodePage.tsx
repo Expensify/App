@@ -18,7 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
@@ -138,8 +138,8 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}
                     />
-                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done. 
-                    We shouldn't introduce platform specific code in our codebase. 
+                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done.
+                    We shouldn't introduce platform specific code in our codebase.
                     This is a temporary solution while Web is not supported for the QR code download feature */}
                     {shouldAllowDownloadQRCode && (
                         <MenuItem

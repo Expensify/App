@@ -9,7 +9,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

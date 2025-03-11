@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';

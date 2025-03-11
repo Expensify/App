@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import BlockingView from './BlockingView';

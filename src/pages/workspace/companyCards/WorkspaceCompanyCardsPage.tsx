@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';

@@ -7,7 +7,7 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

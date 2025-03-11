@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getPolicyExpenseReportOption} from '@libs/OptionsListUtils';

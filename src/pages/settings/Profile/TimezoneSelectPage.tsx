@@ -8,7 +8,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';

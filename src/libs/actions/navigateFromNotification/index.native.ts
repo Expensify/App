@@ -1,4 +1,4 @@
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 
 const navigateFromNotification = (reportID: string, policyIDToCheck?: string) => {
     Navigation.navigateToReportWithPolicyCheck({reportID, policyIDToCheck});

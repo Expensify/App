@@ -4,7 +4,7 @@ import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPage
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type NotFoundPageProps = {

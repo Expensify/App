@@ -14,7 +14,7 @@ import {useReportIDs} from '@hooks/useReportIDs';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getRouteForCurrentStep as getReimbursementAccountRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoadReport} from '@libs/WorkspacesSettingsUtils';

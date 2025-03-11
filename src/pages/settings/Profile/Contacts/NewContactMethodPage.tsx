@@ -18,7 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage, getLatestErrorField} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';

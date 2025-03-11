@@ -3,7 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import usePrevious from '@hooks/usePrevious';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PublicScreensParamList} from '@navigation/types';
 import * as Session from '@userActions/Session';

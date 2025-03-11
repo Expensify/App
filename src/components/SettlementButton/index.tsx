@@ -7,7 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {
     doesReportBelongToWorkspace,

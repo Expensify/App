@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openLink} from '@libs/actions/Link';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';

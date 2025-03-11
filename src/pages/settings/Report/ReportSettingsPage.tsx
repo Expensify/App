@@ -9,7 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';

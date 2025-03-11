@@ -20,7 +20,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU';
 import CONST from '@src/CONST';

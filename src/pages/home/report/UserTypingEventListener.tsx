@@ -2,7 +2,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as Report from '@userActions/Report';

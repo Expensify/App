@@ -5,7 +5,7 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';

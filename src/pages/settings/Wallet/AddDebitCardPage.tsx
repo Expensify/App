@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import type {PaymentCardParams} from '@libs/API/parameters';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';

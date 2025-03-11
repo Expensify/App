@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';

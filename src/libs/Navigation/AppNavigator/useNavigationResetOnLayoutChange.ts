@@ -1,7 +1,7 @@
 import type {ParamListBase} from '@react-navigation/native';
 import {useEffect} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import navigationRef from '@libs/Navigation/navigationRef';
+import navigationRef from '@navigation/Navigation/navigationRef';
 import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 /**

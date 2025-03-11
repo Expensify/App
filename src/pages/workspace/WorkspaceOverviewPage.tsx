@@ -23,7 +23,7 @@ import {clearInviteDraft} from '@libs/actions/Policy/Member';
 import {clearAvatarErrors, clearPolicyErrorField, deleteWorkspace, deleteWorkspaceAvatar, openPolicyProfilePage, updateWorkspaceAvatar} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';

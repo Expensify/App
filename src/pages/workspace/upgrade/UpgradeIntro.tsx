@@ -17,7 +17,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';

@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import {Star} from '@components/Icon/Expensicons';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getFreeTrialText} from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

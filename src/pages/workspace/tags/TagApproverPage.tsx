@@ -4,7 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';

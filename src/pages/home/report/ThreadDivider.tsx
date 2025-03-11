@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import type {Ancestor} from '@libs/ReportUtils';

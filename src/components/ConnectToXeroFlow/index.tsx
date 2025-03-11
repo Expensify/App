@@ -4,7 +4,7 @@ import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAut
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {openLink} from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

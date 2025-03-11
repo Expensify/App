@@ -18,7 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
 import {setDisplayName} from '@userActions/PersonalDetails';

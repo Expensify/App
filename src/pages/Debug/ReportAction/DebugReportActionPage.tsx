@@ -10,7 +10,7 @@ import DebugUtils from '@libs/DebugUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
 import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import {getLinkedTransactionID} from '@libs/ReportActionsUtils';

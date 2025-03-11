@@ -24,7 +24,7 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';

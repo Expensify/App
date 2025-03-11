@@ -17,7 +17,7 @@ import {
 } from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {
     areSettingsInErrorFields,
     findSelectedBankAccountWithDefaultSelect,

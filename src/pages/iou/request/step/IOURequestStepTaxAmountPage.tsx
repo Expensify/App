@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {CurrentMoney} from '@pages/iou/MoneyRequestAmountForm';

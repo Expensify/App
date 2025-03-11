@@ -15,7 +15,7 @@ import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';

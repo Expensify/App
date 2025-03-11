@@ -10,7 +10,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {createDraftWorkspaceAndNavigateToConfirmationScreen, findSelfDMReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';

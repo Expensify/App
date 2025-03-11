@@ -3,7 +3,7 @@ import React, {Fragment, useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import CurrencySelectionList from './CurrencySelectionList';

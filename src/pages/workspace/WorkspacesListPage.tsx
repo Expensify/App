@@ -35,7 +35,7 @@ import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/S
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicy, getPolicyBrickRoadIndicatorStatus, getWorkspaceAccountID, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';

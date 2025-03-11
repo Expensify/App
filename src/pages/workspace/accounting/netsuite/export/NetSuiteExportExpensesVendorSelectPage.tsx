@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteDefaultVendor} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getNetSuiteVendorOptions, settingsPendingAction} from '@libs/PolicyUtils';

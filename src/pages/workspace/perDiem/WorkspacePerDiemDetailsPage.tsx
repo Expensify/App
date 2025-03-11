@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithoutCurrency, getCurrencySymbol} from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';

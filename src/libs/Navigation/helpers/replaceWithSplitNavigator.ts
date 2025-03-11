@@ -1,4 +1,4 @@
-import navigationRef from '@libs/Navigation/navigationRef';
+import navigationRef from '@navigation/Navigation/navigationRef';
 import type {NavigationPartialRoute, SplitNavigatorBySidebar, SplitNavigatorSidebarScreen} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 

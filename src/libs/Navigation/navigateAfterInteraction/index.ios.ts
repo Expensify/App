@@ -1,5 +1,5 @@
 import {InteractionManager} from 'react-native';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 
 /**
  * On iOS, the navigation transition can sometimes break other animations, such as the closing modal.

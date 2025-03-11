@@ -3,7 +3,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
-import navigationRef from '@libs/Navigation/navigationRef';
+import navigationRef from '@navigation/Navigation/navigationRef';
 import type {AuthScreensParamList, ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import createPlatformStackNavigator from '@navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import CONST from '@src/CONST';

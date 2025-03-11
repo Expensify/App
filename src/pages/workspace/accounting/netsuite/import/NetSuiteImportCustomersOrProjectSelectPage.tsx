@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCustomersJobsMapping} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';

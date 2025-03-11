@@ -23,7 +23,7 @@ import {canActionTask, completeTask, getTaskAssigneeAccountID, reopenTask} from 
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';

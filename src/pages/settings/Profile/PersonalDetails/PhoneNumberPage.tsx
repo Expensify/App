@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEarliestErrorField} from '@libs/ErrorUtils';
 import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
 import {clearPhoneNumberError, updatePhoneNumber as updatePhone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';

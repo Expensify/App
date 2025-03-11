@@ -15,7 +15,7 @@ import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';

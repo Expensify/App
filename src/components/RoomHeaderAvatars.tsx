@@ -2,7 +2,7 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Icon} from '@src/types/onyx/OnyxCommon';

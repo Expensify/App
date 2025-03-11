@@ -11,7 +11,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('@libs/Permissions');
 jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
-jest.mock('../../src/libs/Navigation/Navigation', () => ({
+jest.mock('@navigation/Navigation', () => ({
     navigate: jest.fn(),
     isActiveRoute: jest.fn(),
     getTopmostReportId: jest.fn(),
@@ -19,7 +19,7 @@ jest.mock('../../src/libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
 }));
-jest.mock('../../src/libs/Navigation/navigationRef', () => ({
+jest.mock('@navigation/Navigation/navigationRef', () => ({
     getState: () => ({
         routes: [{name: 'Report'}],
     }),

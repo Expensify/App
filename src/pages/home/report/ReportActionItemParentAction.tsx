@@ -5,7 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import {isTripPreview, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';

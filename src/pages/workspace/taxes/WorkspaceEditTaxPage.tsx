@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canEditTaxRate as canEditTaxRateUtil, getCurrentTaxID, hasAccountingConnections, isControlPolicy} from '@libs/PolicyUtils';

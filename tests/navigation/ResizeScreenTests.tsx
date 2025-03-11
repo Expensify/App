@@ -6,7 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
-import navigationRef from '@libs/Navigation/navigationRef';
+import navigationRef from '@navigation/Navigation/navigationRef';
 import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import InitialSettingsPage from '@pages/settings/InitialSettingsPage';

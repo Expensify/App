@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {getCardFeedIcon, isExpensifyCard, maskCardNumber} from '@libs/CardUtils';
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import variables from '@styles/variables';

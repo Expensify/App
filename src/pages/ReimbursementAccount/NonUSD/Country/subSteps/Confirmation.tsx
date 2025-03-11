@@ -12,7 +12,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import mapCurrencyToCountry from '@pages/ReimbursementAccount/utils/mapCurrencyToCountry';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';

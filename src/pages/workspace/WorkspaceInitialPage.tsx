@@ -43,7 +43,7 @@ import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {checkIfFeedConnectionIsBroken, flatAllCardsList} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
     shouldShowPolicy as checkIfShouldShowPolicy,

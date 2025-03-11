@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFiltersParticipantsSelector from '@components/Search/SearchFiltersParticipantsSelector';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

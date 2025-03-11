@@ -28,7 +28,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';

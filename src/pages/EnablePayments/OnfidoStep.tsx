@@ -7,7 +7,7 @@ import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
 import useLocalize from '@hooks/useLocalize';
 import Growl from '@libs/Growl';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';

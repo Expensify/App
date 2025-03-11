@@ -5,7 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';

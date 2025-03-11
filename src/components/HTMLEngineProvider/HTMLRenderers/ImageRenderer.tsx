@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFileName, getFileType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';

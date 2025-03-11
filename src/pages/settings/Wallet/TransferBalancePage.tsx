@@ -18,7 +18,7 @@ import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';

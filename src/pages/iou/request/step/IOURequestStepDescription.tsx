@@ -13,7 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';

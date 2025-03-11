@@ -16,7 +16,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getAccountIDsByLogins, getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';

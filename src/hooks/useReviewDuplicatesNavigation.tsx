@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 

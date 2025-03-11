@@ -14,7 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
 import {getCompanyFeeds, getCustomOrFormattedFeedName, getSelectedFeed} from '@libs/CardUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';

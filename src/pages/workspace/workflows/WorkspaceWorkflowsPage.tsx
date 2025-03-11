@@ -31,7 +31,7 @@ import {
 import {setApprovalWorkflow} from '@libs/actions/Workflow';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';

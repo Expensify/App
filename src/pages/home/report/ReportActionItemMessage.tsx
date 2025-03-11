@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {
     getLinkedTransactionID,
     getMemberChangeMessageFragment,

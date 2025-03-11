@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addSageIntacctUserDimensions} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';

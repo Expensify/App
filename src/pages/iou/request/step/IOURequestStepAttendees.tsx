@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {setMoneyRequestAttendees, updateMoneyRequestAttendees} from '@libs/actions/IOU';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getAttendees} from '@libs/TransactionUtils';
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
 import CONST from '@src/CONST';

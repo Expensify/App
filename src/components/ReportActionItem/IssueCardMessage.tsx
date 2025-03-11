@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getPolicy, getWorkspaceAccountID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getCardIssuedMessage, getOriginalMessage, isActionOfType, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';

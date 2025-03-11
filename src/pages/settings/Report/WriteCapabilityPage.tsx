@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';

@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DebugUtils from '@libs/DebugUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';

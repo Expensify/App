@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';

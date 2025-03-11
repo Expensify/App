@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';

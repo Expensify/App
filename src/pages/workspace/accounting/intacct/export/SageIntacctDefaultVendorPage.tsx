@@ -12,7 +12,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSageIntacctNonReimbursableActiveDefaultVendor, getSageIntacctVendors, settingsPendingAction} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';

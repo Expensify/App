@@ -5,7 +5,7 @@ import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDistanceTaxRate} from '@libs/actions/Policy/DistanceRate';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';

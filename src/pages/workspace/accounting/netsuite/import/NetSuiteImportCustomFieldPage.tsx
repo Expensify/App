@@ -14,7 +14,7 @@ import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';

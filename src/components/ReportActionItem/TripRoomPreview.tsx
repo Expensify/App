@@ -19,7 +19,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import type {ReservationData} from '@libs/TripReservationUtils';
 import {getReservationsFromTripTransactions, getTripReservationIcon} from '@libs/TripReservationUtils';

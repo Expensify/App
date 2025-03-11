@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';

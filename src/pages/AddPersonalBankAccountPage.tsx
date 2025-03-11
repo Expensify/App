@@ -13,7 +13,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@navigation/Navigation';
 import {addPersonalBankAccount, clearPersonalBankAccount, validatePlaidSelection} from '@userActions/BankAccounts';
 import {continueSetup} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';

@@ -2,7 +2,7 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';

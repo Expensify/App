@@ -32,7 +32,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';

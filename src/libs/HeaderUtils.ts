@@ -5,7 +5,7 @@ import type OnyxReport from '@src/types/onyx/Report';
 import {togglePinnedState} from './actions/Report';
 import {callFunctionIfActionIsAllowed} from './actions/Session';
 import {translateLocal} from './Localize';
-import Navigation from './Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 
 function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
     const isPinned = !!report.isPinned;

@@ -6,7 +6,7 @@ import AccountingConnectionConfirmationModal from '@components/AccountingConnect
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {removePolicyConnection} from '@libs/actions/connections';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';

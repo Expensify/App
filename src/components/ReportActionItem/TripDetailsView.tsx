@@ -12,7 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';

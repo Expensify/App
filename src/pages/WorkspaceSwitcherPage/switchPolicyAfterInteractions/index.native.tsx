@@ -1,5 +1,5 @@
 import {InteractionManager} from 'react-native';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 
 function switchPolicyAfterInteractions(newPolicyID: string | undefined) {
     InteractionManager.runAfterInteractions(() => {

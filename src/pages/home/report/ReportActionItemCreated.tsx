@@ -8,7 +8,7 @@ import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getIcons, isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';

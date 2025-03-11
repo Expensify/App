@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteInvoiceItem} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getNetSuiteInvoiceItemOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';

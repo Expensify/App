@@ -7,7 +7,7 @@ import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import CONST from '@src/CONST';

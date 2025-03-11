@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import type {ValueOf} from 'type-fest';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 

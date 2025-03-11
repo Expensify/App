@@ -2,7 +2,7 @@ import React, {forwardRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import type {ValuePickerItem, ValuePickerProps} from './types';
 import ValueSelectorModal from './ValueSelectorModal';

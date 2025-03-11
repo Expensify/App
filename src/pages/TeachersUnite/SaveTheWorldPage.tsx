@@ -12,7 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';

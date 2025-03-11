@@ -9,7 +9,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteAllowForeignCurrency, updateNetSuiteExportToNextOpenPeriod} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {
     areSettingsInErrorFields,
     findSelectedBankAccountWithDefaultSelect,

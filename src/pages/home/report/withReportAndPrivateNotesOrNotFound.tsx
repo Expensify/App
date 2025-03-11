@@ -10,7 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import {getReportPrivateNote} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {isArchivedReport, isSelfDM} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import LoadingPage from '@pages/LoadingPage';

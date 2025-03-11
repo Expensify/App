@@ -25,7 +25,7 @@ import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {clearAllFilters} from '@libs/actions/Search';
 import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';

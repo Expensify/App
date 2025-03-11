@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
 import {measureRenders} from 'reassure';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
-import type Navigation from '@libs/Navigation/Navigation';
+import type Navigation from '@navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import OnyxProvider from '@src/components/OnyxProvider';
@@ -23,7 +23,7 @@ jest.mock('react-native-reanimated', () => ({
     useAnimatedRef: jest.fn(),
 }));
 
-jest.mock('../../src/libs/Navigation/Navigation', () => ({
+jest.mock('@navigation/Navigation', () => ({
     navigate: jest.fn(),
     getReportRHPActiveRoute: jest.fn(),
 }));
