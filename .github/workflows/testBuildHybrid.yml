@@ -38,8 +38,8 @@ on:
   
  
 env:
-  # This variable is needed for fastlane to construct correct path
-  PULL_REQUEST_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER || github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || inputs.APP_PR_NUMBER}}
+  # This variable is needed for fastlane to construct correct path, -hybrid suffix is needed to distinguish hybrid apps from standalone New Dot 
+  PULL_REQUEST_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER || github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || inputs.APP_PR_NUMBER}}-hybrid
 
 jobs:
   prep:
