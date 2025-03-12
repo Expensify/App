@@ -7,6 +7,7 @@ import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
+import {SearchColumns} from '@components/SelectionList/SearchTableHeader';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -784,6 +785,13 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
     };
 }
 
+/**
+ * Whether to show the empty state or not
+ */
+function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes) {
+    return !isDataLoaded || dataLength === 0 || !Object.hasOwn(SearchColumns, type);
+}
+
 export {
     getListItem,
     getSections,
@@ -801,5 +809,6 @@ export {
     getAction,
     createTypeMenuItems,
     createBaseSavedSearchMenuItem,
+    shouldShowEmptyState,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};
