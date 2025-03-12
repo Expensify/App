@@ -1,8 +1,9 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useIsFocused} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -40,6 +41,7 @@ import {canCreateRequest, generateReportID, getDisplayNameForParticipant, getIco
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import variables from '@styles/variables';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -604,8 +606,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 isVisible={modalVisible}
                 onConfirm={() => {
                     setModalVisible(false);
-                    if (NativeModules.HybridAppModule) {
-                        NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                    if (CONFIG.IS_HYBRID_APP) {
+                        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                         setRootStatusBarEnabled(false);
                         return;
                     }
