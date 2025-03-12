@@ -2961,7 +2961,7 @@ function openReportFromDeepLink(url: string) {
                             // Check if the report exists in the collection
                             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
-                            if (!report) {
+                            if (reportID && !report) {
                                 const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
