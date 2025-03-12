@@ -2554,6 +2554,9 @@ const translations = {
         PRDandFSGDescription: 'Please provide PRD and FSG documents (Needs to be verified).',
         regulationRequiresUsToCollectAtLeastOneDirector: 'Regulations requires us to collect information about at least one director of the company.'
         directors: 'Directors',
+        whatsDirectorsName: "What is director's name?",
+        whatsDirectorsJobTitle: "What is director's job title?",
+        whatsDirectorsOccupation: "What is director's occupation?",
     },
     agreementsStep: {
         agreements: 'Acuerdos',

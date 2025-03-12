@@ -49,7 +49,7 @@ function Name({onNext, onMove, isEditing, directorID, isDirectorFlow}: NameProps
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={isDirectorFlow ? "What is director's name" : translate('signerInfoStep.whatsYourName')}
+            formTitle={isDirectorFlow ? translate('signerInfoStep.whatsDirectorsName') : translate('signerInfoStep.whatsYourName')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={inputID}

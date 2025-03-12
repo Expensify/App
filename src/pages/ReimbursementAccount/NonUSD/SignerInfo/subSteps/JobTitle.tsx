@@ -43,7 +43,7 @@ function JobTitle({onNext, onMove, isEditing, directorID, isDirectorFlow}: JobTi
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={isDirectorFlow ? "What is director's job title" : translate('signerInfoStep.whatsYourJobTitle')}
+            formTitle={isDirectorFlow ? translate('signerInfoStep.whatsDirectorsJobTitle') : translate('signerInfoStep.whatsYourJobTitle')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={inputID}

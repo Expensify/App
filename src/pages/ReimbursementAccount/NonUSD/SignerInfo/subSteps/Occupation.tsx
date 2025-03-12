@@ -46,7 +46,7 @@ function Occupation({onNext, onMove, isEditing, directorID, isDirectorFlow}: Occ
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={isDirectorFlow ? "What is director's occupation" : translate('signerInfoStep.whatsYourOccupation')}
+            formTitle={isDirectorFlow ? translate('signerInfoStep.whatsDirectorsOccupation') : translate('signerInfoStep.whatsYourOccupation')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={inputID}
