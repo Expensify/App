@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
+import RenderHTML from './RenderHTML';
 
 type ReceiptAuditProps = {
     /** List of audit notes */
@@ -58,7 +59,7 @@ function ReceiptAuditMessages({notes = []}: {notes?: string[]}) {
                         style={[styles.textLabelError]}
                         key={message}
                     >
-                        {message}
+                        <RenderHTML html={`<alert-text>${message}</alert-text>`} />
                     </Text>
                 ))}
         </View>
