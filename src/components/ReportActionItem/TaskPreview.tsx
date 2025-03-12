@@ -87,10 +87,10 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
 
     const getTaskHTML = () => {
         if (isTaskCompleted) {
-            return `<del><comment>${taskReport?.reportName ?? action?.childReportName ?? ''}</comment></del>`;
+            return `<del><comment>${action?.childReportName ?? taskReport?.reportName ?? ''}</comment></del>`;
         }
 
-        return `<comment>${taskReport?.reportName ?? action?.childReportName ?? ''}</comment>`;
+        return `<comment>${action?.childReportName ?? taskReport?.reportName ?? ''}</comment>`;
     };
 
     return (
