@@ -1,0 +1,58 @@
+import React from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Animated, Dimensions} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePane from '@hooks/useSidePane';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
+import HelpContent from './HelpContent';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+
+function Help() {
+    const styles = useThemeStyles();
+    const {sidePaneTranslateX, closeSidePane} = useSidePane();
+    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {paddingTop, paddingBottom} = useStyledSafeAreaInsets();
+
+    // SidePane isn't a native screen, this simulates the 'close swipe gesture' on iOS
+    const panGesture = Gesture.Pan()
+        .hitSlop({left: 0, width: 20})
+        .onUpdate((event) => {
+            if (event.translationX <= 0) {
+                return;
+            }
+            sidePaneTranslateX.current.setValue(event.translationX);
+        })
+        .onEnd((event) => {
+            if (event.translationX > 100) {
+                // If swiped far enough, animate out and close
+                Animated.timing(sidePaneTranslateX.current, {
+                    toValue: SCREEN_WIDTH,
+                    duration: CONST.ANIMATED_TRANSITION,
+                    useNativeDriver: false,
+                }).start(() => closeSidePane());
+            } else {
+                // Otherwise, animate back to original position
+                Animated.spring(sidePaneTranslateX.current, {
+                    toValue: 0,
+                    useNativeDriver: false,
+                }).start();
+            }
+        });
+
+    return (
+        <GestureDetector gesture={panGesture}>
+            <Animated.View
+                style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop, paddingBottom}]}
+            >
+                <HelpContent />
+            </Animated.View>
+        </GestureDetector>
+    );
+}
+
+Help.displayName = 'Help';
+export default Help;
