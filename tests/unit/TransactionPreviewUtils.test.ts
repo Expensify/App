@@ -1,5 +1,5 @@
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
-import {createTransactionPreviewConditionals, createTransactionPreviewText} from '@libs/TransactionPreviewUtils';
+import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 
@@ -26,9 +26,9 @@ const basicProps = {
 };
 
 describe('TransactionPreviewUtils', () => {
-    describe('createTransactionPreviewText', () => {
+    describe('getTransactionPreviewTextAndTranslationPaths', () => {
         it('should return an empty RBR message when shouldShowRBR is false and no transaction is given', () => {
-            const result = createTransactionPreviewText({...basicProps, shouldShowRBR: false});
+            const result = getTransactionPreviewTextAndTranslationPaths({...basicProps, shouldShowRBR: false});
             expect(result.RBRmessage.text).toEqual('');
         });
 
@@ -39,7 +39,7 @@ describe('TransactionPreviewUtils', () => {
                 shouldShowRBR: true,
             };
 
-            const result = createTransactionPreviewText(testInput);
+            const result = getTransactionPreviewTextAndTranslationPaths(testInput);
             expect(result.RBRmessage.translationPath).toContain('violations.hold');
         });
     });

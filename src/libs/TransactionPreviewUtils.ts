@@ -111,7 +111,7 @@ type TranslationPathOrText = {
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
 
-function createTransactionPreviewText({
+function getTransactionPreviewTextAndTranslationPaths({
     iouReport,
     transaction,
     action,
@@ -322,5 +322,5 @@ function createTransactionPreviewConditionals({
     };
 }
 
-export {getReviewNavigationRoute, getIOUData, createTransactionPreviewText, createTransactionPreviewConditionals};
+export {getReviewNavigationRoute, getIOUData, getTransactionPreviewTextAndTranslationPaths, createTransactionPreviewConditionals};
 export type {TranslationPathOrText};

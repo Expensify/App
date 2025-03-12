@@ -27,7 +27,7 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {createTransactionPreviewConditionals, createTransactionPreviewText, getIOUData} from '@libs/TransactionPreviewUtils';
+import {createTransactionPreviewConditionals, getIOUData, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {hasReceipt as hasReceiptTransactionUtils, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
@@ -112,7 +112,7 @@ function TransactionPreviewContent({
 
     const previewText = useMemo(
         () =>
-            createTransactionPreviewText({
+            getTransactionPreviewTextAndTranslationPaths({
                 ...creationalData,
                 shouldShowRBR,
                 violationMessage,
@@ -231,7 +231,7 @@ function TransactionPreviewContent({
                                         {!isBillSplit && !shouldShowDescription && !shouldShowMerchant && (
                                             <Text
                                                 fontSize={variables.fontSizeNormal}
-                                                style={[isDeleted && styles.lineThrough]}
+                                                style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
                                                 numberOfLines={1}
                                             >
                                                 {displayAmount}
@@ -260,7 +260,7 @@ function TransactionPreviewContent({
                                                 {(shouldShowMerchant || shouldShowDescription || isBillSplit) && (
                                                     <Text
                                                         fontSize={variables.fontSizeNormal}
-                                                        style={[isDeleted && styles.lineThrough]}
+                                                        style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
                                                         numberOfLines={1}
                                                     >
                                                         {displayAmount}
@@ -277,7 +277,7 @@ function TransactionPreviewContent({
                                         </View>
                                     </View>
                                     {shouldShowCategoryOrTag && (
-                                        <View style={[styles.flexRow, styles.pt1, styles.alignItemsCenter]}>
+                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {shouldShowCategory && (
                                                 <View
                                                     style={[

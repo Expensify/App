@@ -11,7 +11,15 @@ import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {action, chatReport, iouReport, personalDetails, transaction, violations} from './mockData/transactions';
 
-const transactionWithModifiedCategoryAndTag = (category: string, tag: string) => ({...transaction, category, tag});
+const veryLongString = 'W'.repeat(1000);
+const veryBigNumber = Number('9'.repeat(12));
+const modifiedTransaction = ({category, tag, merchant = '', amount = 1000}: {category?: string; tag?: string; merchant?: string; amount?: number}) => ({
+    ...transaction,
+    category,
+    tag,
+    merchant,
+    amount,
+});
 const iouReportWithModifiedType = (type: string) => ({...iouReport, type});
 const actionWithModifiedPendingAction = (pendingAction: PendingAction) => ({...action, pendingAction});
 
@@ -46,9 +54,10 @@ const generateArgTypes = (mapping: Record<string, unknown>): InputType => ({
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const transactionsMap = {
-    Food: transactionWithModifiedCategoryAndTag('Burgers', 'Yummm'),
-    Grocery: transactionWithModifiedCategoryAndTag('Shopping', 'Tesco'),
-    Cars: transactionWithModifiedCategoryAndTag('Porsche', 'Car shop'),
+    Food: modifiedTransaction({category: 'Food', tag: 'Yummm', merchant: 'Burgers'}),
+    Grocery: modifiedTransaction({category: 'Shopping', tag: 'Tesco', merchant: 'Supermarket'}),
+    Cars: modifiedTransaction({category: 'Porsche', tag: 'Car shop', merchant: 'Merchant'}),
+    'Too Long': modifiedTransaction({category: veryLongString, tag: veryLongString, merchant: veryLongString, amount: veryBigNumber}),
 };
 
 const violationsMap = {
@@ -134,7 +143,7 @@ const KeepButtonIOURBRCategoriesAndTag: TransactionPreviewStory = Template.bind(
 
 CategoriesAndTag.args = {
     ...Default.args,
-    transaction: transactionWithModifiedCategoryAndTag('Grocery stores', 'Food'),
+    transaction: modifiedTransaction({category: 'Grocery stores', tag: 'Food', merchant: 'Acme'}),
 };
 
 KeepButtonCategoriesAndTag.args = {
