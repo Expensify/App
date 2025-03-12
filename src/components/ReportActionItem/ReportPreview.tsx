@@ -592,7 +592,7 @@ function ReportPreview({
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (
             <Button
                 text={translate('common.review')}
-                onPress={() => openReportFromPreview()}
+                onPress={() => openReportFromPreview}
                 isDisabled={shouldDisableSubmitButton}
             />
         ),
