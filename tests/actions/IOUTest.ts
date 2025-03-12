@@ -3,6 +3,7 @@ import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {
+    calculateDiffAmount,
     canApproveIOU,
     canCancelPayment,
     cancelPayment,
@@ -2060,9 +2061,10 @@ describe('actions/IOU', () => {
                                     payIOUAction = Object.values(reportActionsForIOUReport ?? {}).find(
                                         (reportAction) => isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                     );
-                                    expect(payIOUAction).toBeTruthy();
-
                                     resolve();
+
+                                    expect(payIOUAction).toBeTruthy();
+                                    expect(payIOUAction?.pendingAction).toBeFalsy();
                                 },
                             });
                         }),
@@ -4789,6 +4791,85 @@ describe('actions/IOU', () => {
                 total: 100, // positive amount in the DB means negative amount in the UI
             };
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy)).toBeFalsy();
+        });
+    });
+
+    describe('calculateDiffAmount', () => {
+        it('should return 0 if iouReport is undefined', () => {
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: '1',
+                amount: 100,
+                currency: 'USD',
+            };
+
+            expect(calculateDiffAmount(undefined, fakeTransaction, fakeTransaction)).toBe(0);
+        });
+
+        it('should return 0 when the currency and amount of the transactions are the same', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: fakeReport.reportID,
+                amount: 100,
+                currency: 'USD',
+            };
+
+            expect(calculateDiffAmount(fakeReport, fakeTransaction, fakeTransaction)).toBe(0);
+        });
+
+        it('should return the difference between the updated amount and the current amount when the currency of the updated and current transactions have the same currency', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+                currency: 'USD',
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                amount: 100,
+                currency: 'USD',
+            };
+            const updatedTransaction = {
+                ...fakeTransaction,
+                amount: 200,
+                currency: 'USD',
+            };
+
+            expect(calculateDiffAmount(fakeReport, updatedTransaction, fakeTransaction)).toBe(-100);
+        });
+
+        it('should return null when the currency of the updated and current transactions have different values', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                amount: 100,
+                currency: 'USD',
+            };
+            const updatedTransaction = {
+                ...fakeTransaction,
+                amount: 200,
+                currency: 'EUR',
+            };
+
+            expect(calculateDiffAmount(fakeReport, updatedTransaction, fakeTransaction)).toBeNull();
         });
     });
 });

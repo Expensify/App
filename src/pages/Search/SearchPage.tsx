@@ -65,7 +65,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
 
-    const {q, name, groupBy} = route.params;
+    const {q, name} = route.params;
 
     const {queryJSON, policyID} = useMemo(() => {
         const parsedQuery = buildSearchQueryJSON(q);
@@ -313,8 +313,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
-
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
 
@@ -324,7 +322,6 @@ function SearchPage({route}: SearchPageProps) {
                 <SearchPageNarrow
                     queryJSON={queryJSON}
                     policyID={policyID}
-                    shouldGroupByReports={shouldGroupByReports}
                     searchName={searchName}
                     headerButtonsOptions={headerButtonsOptions}
                 />
@@ -389,10 +386,7 @@ function SearchPage({route}: SearchPageProps) {
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
                                     />
-                                    <SearchTypeMenu
-                                        queryJSON={queryJSON}
-                                        shouldGroupByReports={shouldGroupByReports}
-                                    />
+                                    <SearchTypeMenu queryJSON={queryJSON} />
                                 </View>
                             ) : (
                                 <HeaderWithBackButton
@@ -412,7 +406,6 @@ function SearchPage({route}: SearchPageProps) {
                         >
                             <SearchPageHeader
                                 queryJSON={queryJSON}
-                                shouldGroupByReports={shouldGroupByReports}
                                 headerButtonsOptions={headerButtonsOptions}
                             />
                             <SearchStatusBar
@@ -422,7 +415,6 @@ function SearchPage({route}: SearchPageProps) {
                             <Search
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}
-                                shouldGroupByReports={shouldGroupByReports}
                             />
                         </ScreenWrapper>
                     </View>
