@@ -28,6 +28,7 @@ type RequestMoneyParams = {
     transactionThreadReportID: string;
     createdReportActionIDForThread: string | undefined;
     reimbursible?: boolean;
+    description?: string;
 };
 
 export default RequestMoneyParams;
