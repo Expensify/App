@@ -3758,6 +3758,7 @@ function prepareOnboardingOnyxData(
                 typeof task.title === 'function'
                     ? task.title({
                           integrationName,
+                          workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID)}`,
                       })
                     : task.title;
             const currentTask = buildOptimisticTaskReport(

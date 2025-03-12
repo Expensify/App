@@ -33,6 +33,7 @@ import {
     isReportListItemType,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTransactionListItemType,
+    shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {isOnHold} from '@libs/TransactionUtils';
@@ -383,7 +384,6 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     });
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
-    const shouldShowEmptyState = !isDataLoaded || data.length === 0;
 
     if (hasErrors) {
         return (
@@ -398,7 +398,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         );
     }
 
-    if (shouldShowEmptyState) {
+    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type)) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
