@@ -109,7 +109,9 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
                         shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                         onPress={menuItem?.onPress}
                         brickRoadIndicator={
-                            areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) || shouldShowQBOReimbursableExportDestinationAccountError(policy)
+                            areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ||
+                            (menuItem.subscribedSettings?.some((setting) => setting === CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION) &&
+                                shouldShowQBOReimbursableExportDestinationAccountError(policy))
                                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                 : undefined
                         }
