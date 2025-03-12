@@ -1,5 +1,6 @@
 import type {CustomTagRendererRecord} from 'react-native-render-html';
 import AnchorRenderer from './AnchorRenderer';
+import BlockQuoteRenderer from './BlockQuotesRenderer';
 import CodeRenderer from './CodeRenderer';
 import DeletedActionRenderer from './DeletedActionRenderer';
 import EditedRenderer from './EditedRenderer';
@@ -28,6 +29,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     h1: HeadingRenderer,
     strong: StrongRenderer,
     em: EMRenderer,
+    blockquote: BlockQuoteRenderer,
 
     // Custom tag renderers
     edited: EditedRenderer,
