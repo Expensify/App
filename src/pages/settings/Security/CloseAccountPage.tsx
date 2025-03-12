@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {parseFSAttributes} from '@libs/Fullstory';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import variables from '@styles/variables';
@@ -36,6 +37,14 @@ function CloseAccountPage() {
     // TODO: We should refactor this so that the data in instead passed directly as a prop instead of "side loading" the data
     // here, we left this as is during refactor to limit the breaking changes.
     useEffect(() => () => CloseAccount.clearError(), []);
+
+    /**
+     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
+     * to ensure necessary properties are available for further processing.
+     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
+     * updated attribute values.
+     */
+    useLayoutEffect(parseFSAttributes, []);
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
@@ -88,7 +97,11 @@ function CloseAccountPage() {
                     style={[styles.flexGrow1, styles.mh5]}
                     isSubmitActionDangerous
                 >
-                    <View style={[styles.flexGrow1]}>
+                    <View
+                        fsClass={CONST.FULL_STORY.UNMASK}
+                        testID={CONST.FULL_STORY.UNMASK}
+                        style={[styles.flexGrow1]}
+                    >
                         <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
