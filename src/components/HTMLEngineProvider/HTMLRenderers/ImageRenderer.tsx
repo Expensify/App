@@ -2,9 +2,10 @@ import React, {memo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import {AttachmentContext} from '@components/AttachmentContext';
 import {getButtonRole} from '@components/Button/utils';
-import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
+import {isChildOfTaskTitle, isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -33,9 +34,25 @@ type ImageRendererProps = ImageRendererWithOnyxProps & CustomRendererProps<TBloc
 function ImageRenderer({tnode}: ImageRendererProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const theme = useTheme();
 
     const htmlAttribs = tnode.attributes;
     const isDeleted = isDeletedNode(tnode);
+    const isTaskTitleChild = isChildOfTaskTitle(tnode);
+    const attrHref = htmlAttribs.src;
+
+    if (isTaskTitleChild) {
+        return (
+            <AnchorForCommentsOnly
+                href={attrHref}
+                target={htmlAttribs.target || '_blank'}
+                rel={htmlAttribs.rel || 'noopener noreferrer'}
+                style={[styles.link, styles.underlineLine, styles.textUnderlinePositionUnder, styles.textDecorationSkipInkNone, styles.taskTitleMenuItem]}
+            >
+                {htmlAttribs.alt}
+            </AnchorForCommentsOnly>
+        );
+    }
 
     // There are two kinds of images that need to be displayed:
     //
@@ -73,14 +90,12 @@ function ImageRenderer({tnode}: ImageRendererProps) {
 
     const fileType = getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
-    const theme = useTheme();
 
     let fileName = htmlAttribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src}`);
     const fileInfo = splitExtensionFromFileName(fileName);
     if (!fileInfo.fileExtension) {
         fileName = `${fileInfo?.fileName || CONST.DEFAULT_IMAGE_FILE_NAME}.jpg`;
     }
-
     const thumbnailImageComponent = (
         <ThumbnailImage
             previewSourceURL={processedPreviewSource}
