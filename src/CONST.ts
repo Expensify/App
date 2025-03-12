@@ -5004,7 +5004,6 @@ const CONST = {
             REFER_FRIEND: 'referralFriend',
             SHARE_CODE: 'shareCode',
         },
-        REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/expenses/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },
