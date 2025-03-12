@@ -376,7 +376,7 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
             setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
             return false;
         });
-}
+};
 
 export {
     showGeneralErrorAlert,
