@@ -2396,6 +2396,7 @@ function buildOptimisticRecentlyUsedCurrencies(currency?: string) {
  *
  * @returns policyID of the workspace we have created
  */
+// eslint-disable-next-line rulesdir/no-call-actions-from-actions
 function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!ReportUtils.isIOUReportUsingReport(iouReport)) {

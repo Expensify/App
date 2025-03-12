@@ -36,7 +36,6 @@ import {getReportActionText} from '@libs/ReportActionsUtils';
 import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
-    canBeExported,
     getArchiveReason,
     getBankAccountRoute,
     getDisplayNameForParticipant,
@@ -75,7 +74,6 @@ import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
-    getTransactionID,
     hasPendingUI,
     isCardTransaction,
     isPartialMerchant,
