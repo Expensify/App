@@ -8,7 +8,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubStep from '@hooks/useSubStep';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';

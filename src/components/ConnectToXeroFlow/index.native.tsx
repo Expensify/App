@@ -9,7 +9,7 @@ import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAut
 import useLocalize from '@hooks/useLocalize';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import getUAForWebView from '@libs/getUAForWebView';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

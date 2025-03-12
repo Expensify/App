@@ -1,4 +1,4 @@
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 const navigateFromNotification = (reportID: string, policyIDToCheck?: string) => {

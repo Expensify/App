@@ -5,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import * as Subscription from '@userActions/Subscription';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

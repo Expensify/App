@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
 import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
 import {setLocale} from '@userActions/App';

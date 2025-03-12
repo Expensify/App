@@ -1,6 +1,6 @@
 import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 

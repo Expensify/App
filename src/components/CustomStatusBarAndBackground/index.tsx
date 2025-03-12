@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect, useRef, useState} from 'react
 import {interpolateColor, runOnJS, useAnimatedReaction, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
-import {navigationRef} from '@navigation/Navigation';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import type {StatusBarStyle} from '@styles/index';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';

@@ -7,7 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteSyncTaxConfiguration} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {areSettingsInErrorFields, canUseTaxNetSuite, settingsPendingAction} from '@libs/PolicyUtils';
 import {getImportCustomFieldsSettings} from '@pages/workspace/accounting/netsuite/utils';

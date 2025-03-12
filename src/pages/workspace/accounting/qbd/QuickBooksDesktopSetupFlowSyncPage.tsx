@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';

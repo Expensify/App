@@ -1,6 +1,6 @@
 import React from 'react';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import * as Report from '@userActions/Report';
 import ROUTES from '@src/ROUTES';
 import BaseShareLogList from './BaseShareLogList';

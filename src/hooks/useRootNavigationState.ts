@@ -1,6 +1,6 @@
 import type {NavigationState} from '@react-navigation/routers';
 import {useEffect, useRef, useState} from 'react';
-import navigationRef from '@navigation/navigationRef';
+import navigationRef from '@libs/Navigation/navigationRef';
 
 type Selector<T> = (state: NavigationState) => T;
 

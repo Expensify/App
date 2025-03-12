@@ -1,6 +1,6 @@
 import ROUTES from '@src/ROUTES';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
 
 const navigateAfterOnboarding = (

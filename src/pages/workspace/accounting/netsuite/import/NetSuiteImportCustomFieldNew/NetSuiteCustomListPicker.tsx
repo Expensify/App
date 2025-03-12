@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';

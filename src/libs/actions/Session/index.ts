@@ -39,8 +39,8 @@ import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsRep
 import * as SessionUtils from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
-import Navigation from '@navigation/Navigation';
-import navigationRef from '@navigation/navigationRef';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {KEYS_TO_PRESERVE, openApp, reconnectApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';

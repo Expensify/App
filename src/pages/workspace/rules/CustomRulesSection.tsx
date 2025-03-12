@@ -5,7 +5,7 @@ import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import {getParsedComment} from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
 

@@ -21,7 +21,7 @@ import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionSt
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,

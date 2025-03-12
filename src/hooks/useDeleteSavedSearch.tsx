@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {clearAdvancedFilters, deleteSavedSearch} from '@libs/actions/Search';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import useLocalize from './useLocalize';

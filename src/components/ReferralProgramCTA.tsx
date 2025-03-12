@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import {getButtonRole} from './Button/utils';
 import Icon from './Icon';

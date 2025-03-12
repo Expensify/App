@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type {ConnectToQuickbooksDesktopFlowProps} from './types';
 

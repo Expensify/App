@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import {setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';

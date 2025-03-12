@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import {generateReportID, getDefaultGroupAvatar, getGroupChatName} from '@libs/ReportUtils';
 import {navigateToAndOpenReport, setGroupDraft} from '@userActions/Report';

@@ -4,7 +4,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
-import navigationRef from '@navigation/navigationRef';
+import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';

@@ -5,7 +5,7 @@ import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import {clearDelegateErrorsByField, updateDelegateRole} from '@libs/actions/Delegate';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

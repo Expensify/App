@@ -5,7 +5,7 @@ import {setIsUsingImportedState, setPreservedUserSession} from '@libs/actions/Ap
 import {setShouldForceOffline} from '@libs/actions/Network';
 import {rollbackOngoingRequest} from '@libs/actions/PersistedRequests';
 import {cleanAndTransformState, importState} from '@libs/ImportOnyxStateUtils';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

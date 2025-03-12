@@ -1,4 +1,4 @@
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {AutoAuthState} from '@src/types/onyx/Session';
 
