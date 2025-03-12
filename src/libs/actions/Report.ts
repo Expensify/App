@@ -3659,7 +3659,7 @@ function prepareOnboardingOnyxData(
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     userReportedIntegration?: OnboardingAccounting,
-    wasInvited?: boolean,
+    wasInvited: boolean = true,
 ) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
