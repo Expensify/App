@@ -6233,6 +6233,7 @@ const CONST = {
     },
 
     DOT_SEPARATOR: '•',
+    BULLET: '●',
 
     DEFAULT_TAX: {
         defaultExternalID: 'id_TAX_EXEMPT',
