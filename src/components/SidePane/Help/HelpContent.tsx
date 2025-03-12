@@ -24,17 +24,17 @@ function HelpContent() {
         return substituteRouteParameters(activeRoute, params);
     });
 
-    const sizeChangedFromLargeToNarrow = useRef(!isExtraLargeScreenWidth);
+    const wasPreviousNarrowScreen = useRef(!isExtraLargeScreenWidth);
     useEffect(() => {
         // Close the side pane when the screen size changes from large to small
-        if (!isExtraLargeScreenWidth && !sizeChangedFromLargeToNarrow.current) {
+        if (!isExtraLargeScreenWidth && !wasPreviousNarrowScreen.current) {
             closeSidePane(true);
-            sizeChangedFromLargeToNarrow.current = true;
+            wasPreviousNarrowScreen.current = true;
         }
 
         // Reset the trigger when the screen size changes back to large
         if (isExtraLargeScreenWidth) {
-            sizeChangedFromLargeToNarrow.current = false;
+            wasPreviousNarrowScreen.current = false;
         }
     }, [isExtraLargeScreenWidth, closeSidePane]);
 
