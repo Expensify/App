@@ -106,6 +106,9 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         defaultValue={defaultValue}
                         maxLength={maxLength}
                         shouldSaveDraft={!isEditing}
+                        shouldUseDefaultValue={shouldUseDefaultValue}
+                        disabled={disabled}
+                        placeholder={placeholder}
                         autoFocus
                         shouldUseDefaultValue={shouldUseDefaultValue}
                         disabled={disabled}

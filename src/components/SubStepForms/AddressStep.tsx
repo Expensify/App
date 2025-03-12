@@ -65,12 +65,6 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
     /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
 
-    /** Indicates if country can be changed by user */
-    shouldAllowCountryChange?: boolean;
-
-    /** Indicates if zip code format should be validated */
-    shouldValidateZipCodeFormat?: boolean;
-
     /** Translation key of street field */
     streetTranslationKey?: TranslationPaths;
 };
@@ -92,8 +86,6 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
     onCountryChange,
-    shouldAllowCountryChange = true,
-    shouldValidateZipCodeFormat = true,
     streetTranslationKey = 'common.streetAddress',
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
@@ -117,14 +109,14 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (shouldValidateZipCodeFormat && zipCode && (shouldDisplayCountrySelector ? !isValidZipCodeInternational(zipCode as string) : !isValidZipCode(zipCode as string))) {
+            if (zipCode && (shouldDisplayCountrySelector ? !isValidZipCodeInternational(zipCode as string) : !isValidZipCode(zipCode as string))) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
 
             return errors;
         },
-        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, shouldValidateZipCodeFormat, stepFields, translate],
+        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, stepFields, translate],
     );
 
     return (
@@ -150,8 +142,6 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
                     stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
                     onCountryChange={onCountryChange}
-                    shouldAllowCountryChange={shouldAllowCountryChange}
-                    shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
                 />
                 {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
             </View>
