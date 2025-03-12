@@ -18,6 +18,7 @@ function Help({sidePaneTranslateX, closeSidePane}: HelpProps) {
 
     // SidePane isn't a native screen, this simulates the 'close swipe gesture' on iOS
     const panGesture = Gesture.Pan()
+        .runOnJS(true)
         .hitSlop({left: 0, width: 20})
         .onUpdate((event) => {
             if (event.translationX <= 0) {
