@@ -1,8 +1,6 @@
 import React from 'react';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
-import EmailRoot from '../EmailRoot';
-import EmailTemplate from '../EmailTemplate';
 
 const SampleEmail: React.FC = () => {
     const theme = useTheme();
