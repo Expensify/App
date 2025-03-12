@@ -21,6 +21,7 @@ import {createTransactionThread, search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import memoize from '@libs/memoize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {generateReportID} from '@libs/ReportUtils';
@@ -33,6 +34,7 @@ import {
     isReportListItemType,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTransactionListItemType,
+    shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {isOnHold} from '@libs/TransactionUtils';
@@ -69,6 +71,10 @@ const ITEM_HEIGHTS = {
     },
     HEADER: variables.optionRowSearchHeaderHeight,
 };
+
+const transactionItemMobileHeight = 100;
+const reportItemTransactionHeight = 52;
+const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
     return [
@@ -226,25 +232,48 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         search({queryJSON, offset});
     }, [isOffline, offset, queryJSON]);
 
-    const getDefaultItemHeight = useCallback(
+    const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
             const isTransactionItem = isTransactionListItemType(item);
-            const isItemBig = isTransactionItem && item.action === 'pay';
-            switch (platform) {
-                case CONST.PLATFORM.IOS:
-                case CONST.PLATFORM.ANDROID:
-                case CONST.PLATFORM.MOBILEWEB:
-                    return isItemBig ? ITEM_HEIGHTS.MOBILE.WITH_BUTTON : ITEM_HEIGHTS.MOBILE.STANDARD;
-                case CONST.PLATFORM.WEB: {
-                    const webHeight = isItemBig ? ITEM_HEIGHTS.WEB.WITH_BUTTON : ITEM_HEIGHTS.WEB.STANDARD;
-                    return isLargeScreenWidth ? ITEM_HEIGHTS.WEB.COMPACT : webHeight;
-                }
-                default:
-                    return ITEM_HEIGHTS.MOBILE.STANDARD;
+            if (isTransactionItem || isReportActionListItemType(item)) {
+                const isItemActionView = isTransactionItem && item.action === CONST.SEARCH.ACTION_TYPES.VIEW;
+
+                const mobileHeight = isItemActionView ? ITEM_HEIGHTS.MOBILE.STANDARD : ITEM_HEIGHTS.MOBILE.WITH_BUTTON;
+                const webHeight = isItemActionView ? ITEM_HEIGHTS.WEB.STANDARD : ITEM_HEIGHTS.WEB.WITH_BUTTON;
+
+                const PLATFORM_HEIGHTS = {
+                    [CONST.PLATFORM.IOS]: mobileHeight,
+                    [CONST.PLATFORM.ANDROID]: mobileHeight,
+                    [CONST.PLATFORM.MOBILEWEB]: mobileHeight,
+                    [CONST.PLATFORM.WEB]: isLargeScreenWidth ? ITEM_HEIGHTS.WEB.COMPACT : webHeight,
+                    [CONST.PLATFORM.DESKTOP]: isLargeScreenWidth ? ITEM_HEIGHTS.WEB.COMPACT : webHeight,
+                };
+
+                return PLATFORM_HEIGHTS[platform as keyof typeof PLATFORM_HEIGHTS] ?? ITEM_HEIGHTS.MOBILE.STANDARD;
             }
+
+            if (item.transactions.length === 0) {
+                return 0;
+            }
+
+            if (item.transactions.length === 1) {
+                return isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
+            }
+
+            const baseReportItemHeight = isLargeScreenWidth ? 72 : 108;
+            return baseReportItemHeight + item.transactions.length * reportItemTransactionHeight + listItemPadding;
         },
         [isLargeScreenWidth, platform],
     );
+
+    const getItemHeightMemoized = memoize(getItemHeight, {
+        transformKey: ([item]) => {
+            // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
+            // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
+            const screenSizeHash = isLargeScreenWidth ? 'L' : 'N';
+            return `${hash}-${item.keyForList}-${screenSizeHash}`;
+        },
+    });
 
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
@@ -534,8 +563,6 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     );
     const sectionsData = useMemo(() => [{data: sortedSelectedData, isDisabled: false}], [sortedSelectedData]);
 
-    const shouldShowEmptyState = !isDataLoaded || data.length === 0;
-
     const fetchMoreResults = useCallback(() => {
         if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
@@ -556,7 +583,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         Log.alert('[Search] Undefined search type');
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
-    if (shouldShowEmptyState) {
+    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults?.search?.type)) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
@@ -566,6 +593,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             </View>
         );
     }
+
     const DEFAULT_ITEM_HEIGHT = shouldUseNarrowLayout ? ITEM_HEIGHTS.WEB.COMPACT : ITEM_HEIGHTS.MOBILE.TRANSACTION;
 
     if (searchResults === undefined) {
@@ -601,7 +629,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             updateCellsBatchingPeriod={200}
             ListItem={ListItem}
             onSelectRow={openReport}
-            getItemHeight={getDefaultItemHeight}
+            getItemHeight={getItemHeightMemoized}
             shouldSingleExecuteRowSelect
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             shouldPreventDefault={false}
@@ -612,7 +640,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             onEndReached={fetchMoreResults}
             listFooterContent={listFooterContent}
             contentContainerStyle={[contentContainerStyle, styles.pb3]}
-            scrollEventThrottle={1}
+            scrollEventThrottle={16}
             shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
             isScreenFocused={isSearchScreenFocused}
             initialNumToRender={initialNumToRender}
