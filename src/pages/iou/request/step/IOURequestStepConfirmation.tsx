@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -23,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isLocalFile as isLocalFileFileUtils, resizeImageIfNeeded, splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {isLocalFile as isLocalFileFileUtils, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -244,45 +243,15 @@ function IOURequestStepConfirmation({
         setPdfFile(null);
     };
 
-    function validateReceipt(file: FileObject) {
-        return validateImageForCorruption(file)
-            .then(() => {
-                const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-                if (
-                    !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-                    )
-                ) {
-                    setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-                    return false;
-                }
-
-                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
-                    return false;
-                }
-
-                if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-                    return false;
-                }
-                return true;
-            })
-            .catch(() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                return false;
-            });
-    }
-
     const hideReceiptModal = () => {
         setIsAttachmentInvalid(false);
     };
 
     /**
-     * Sets the Receipt objects and navigates the user to the next page
+     * Sets the Receipt object when dragging and dropping a file
      */
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(originalFile).then((isFileValid) => {
+    const setReceiptOnDrop = (originalFile: FileObject, isPdfValidated?: boolean) => {
+        validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
             if (!isFileValid) {
                 return;
             }
@@ -854,7 +823,7 @@ function IOURequestStepConfirmation({
             onLoadSuccess={() => {
                 setPdfFile(null);
                 setIsLoadingReceipt(false);
-                setReceiptAndNavigate(pdfFile, true);
+                setReceiptOnDrop(pdfFile, true);
             }}
             onPassword={() => {
                 setIsLoadingReceipt(false);
@@ -901,7 +870,7 @@ function IOURequestStepConfirmation({
                             const file = e?.dataTransfer?.files[0];
                             if (file) {
                                 file.uri = URL.createObjectURL(file);
-                                setReceiptAndNavigate(file);
+                                setReceiptOnDrop(file);
                             }
                         }}
                     />
