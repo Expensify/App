@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
@@ -45,12 +45,42 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     singleExecution,
     titleContainerStyles,
 }: BaseSelectionListItemRendererProps<TItem>) {
-    const handleOnCheckboxPress = () => {
+    const handleOnCheckboxPress = useCallback(() => {
         if (isReportListItemType(item)) {
             return onCheckboxPress;
         }
         return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
-    };
+    }, [item, onCheckboxPress]);
+
+    // Memoized row selection handler
+    const handleSelectRow = useCallback(() => {
+        if (shouldSingleExecuteRowSelect) {
+            singleExecution(() => selectRow(item, index))();
+        } else {
+            selectRow(item, index);
+        }
+    }, [shouldSingleExecuteRowSelect, singleExecution, selectRow, item, index]);
+
+    // Memoized error dismiss handler
+    const handleDismissError = useCallback(() => {
+        onDismissError?.(item);
+    }, [onDismissError, item]);
+
+    // Memoized focus handler
+    const handleFocus = useCallback(
+        (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if (shouldIgnoreFocus || isDisabled) {
+                return;
+            }
+            // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+            if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
+                return;
+            }
+            setFocusedIndex(normalizedIndex);
+        },
+        [shouldIgnoreFocus, isDisabled, normalizedIndex, setFocusedIndex],
+    );
 
     return (
         <>
@@ -61,41 +91,24 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onLongPressRow={onLongPressRow}
-                onSelectRow={() => {
-                    if (shouldSingleExecuteRowSelect) {
-                        singleExecution(() => selectRow(item, index))();
-                    } else {
-                        selectRow(item, index);
-                    }
-                }}
+                onSelectRow={handleSelectRow}
                 onCheckboxPress={handleOnCheckboxPress()}
-                onDismissError={() => onDismissError?.(item)}
+                onDismissError={handleDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
                 shouldPreventEnterKeySubmit
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
-                onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    if (shouldIgnoreFocus || isDisabled) {
-                        return;
-                    }
-                    // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                    if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
-                        return;
-                    }
-                    setFocusedIndex(normalizedIndex);
-                }}
+                onFocus={handleFocus}
                 shouldSyncFocus={shouldSyncFocus}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 wrapperStyle={wrapperStyle}
                 titleStyles={titleStyles}
                 titleContainerStyles={titleContainerStyles}
             />
-            {item.footerContent && item.footerContent}
+            {!!item.footerContent && item.footerContent}
         </>
     );
 }
