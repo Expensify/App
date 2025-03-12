@@ -23,10 +23,6 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
-function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
-}
-
 /**
  * Link previews are temporarily disabled.
  */
@@ -36,6 +32,10 @@ function canUseLinkPreviews(): boolean {
 
 function canUseMergeAccounts(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS) || canUseAllBetas(betas);
+}
+
+function canUsePDFExport(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_PDF_EXPORT) || canUseAllBetas(betas);
 }
 
 function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
@@ -60,7 +60,7 @@ export default {
     canUseSpotnanaTravel,
     isBlockedFromSpotnanaTravel,
     canUseNetSuiteUSATax,
-    canUsePerDiem,
+    canUsePDFExport,
     canUseMergeAccounts,
     canUseManagerMcTest,
     canUseInternationalBankAccount,

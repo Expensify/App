@@ -45,7 +45,7 @@ function WorkspaceSwitcherPage() {
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies, reportActions), [reports, policies, reportActions]);
-    const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports), [reports]);
+    const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports, reportActions), [reports, reportActions]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const getIndicatorTypeForPolicy = useCallback(
@@ -151,6 +151,7 @@ function WorkspaceSwitcherPage() {
                     <HeaderWithBackButton
                         title={translate('workspace.switcher.headerTitle')}
                         onBackButtonPress={Navigation.goBack}
+                        shouldDisplayHelpButton={false}
                     />
                     {shouldShowLoadingIndicator ? (
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
