@@ -1,7 +1,8 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-import {InteractionManager, Linking, NativeModules} from 'react-native';
+import {InteractionManager, Linking} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -243,8 +244,8 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     }
 
     // In the HybridApp, we want the Old Dot to handle the sign out process
-    if (NativeModules.HybridAppModule && killHybridApp) {
-        NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: true, shouldSetNVP: false});
+    if (CONFIG.IS_HYBRID_APP && killHybridApp) {
+        HybridAppModule.closeReactNativeApp({shouldSignOut: true, shouldSetNVP: false});
         return;
     }
     // We'll only call signOut if we're not stashing the session and this is not a supportal session,
@@ -1090,6 +1091,10 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
     API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData, failureData});
 }
 
+function clearDisableTwoFactorAuthErrors() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {requiresTwoFactorAuth: null}});
+}
+
 function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
     // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
     updateSessionAuthTokens(authToken, encryptedAuthToken);
@@ -1179,7 +1184,7 @@ function handleExitToNavigation(exitTo: Route | HybridAppRoute) {
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
-                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
+                const url = CONFIG.IS_HYBRID_APP ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
                 Navigation.goBack();
                 Navigation.navigate(url);
             });
@@ -1349,4 +1354,5 @@ export {
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
     resetSMSDeliveryFailureStatus,
+    clearDisableTwoFactorAuthErrors,
 };

@@ -1,8 +1,9 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
+import {Keyboard, PanResponder, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
@@ -14,10 +15,12 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CustomDevMenu from './CustomDevMenu';
@@ -26,6 +29,7 @@ import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
 import ImportedStateIndicator from './ImportedStateIndicator';
+import {InitialURLContext} from './InitialURLContextProvider';
 import {useInputBlurContext} from './InputBlurContext';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import ModalContext from './Modal/ModalContext';
@@ -160,6 +164,8 @@ function ScreenWrapper(
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const {initialURL} = useContext(InitialURLContext);
+
     const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
@@ -174,8 +180,11 @@ function ScreenWrapper(
 
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
-    UNSTABLE_usePreventRemove(isSingleNewDotEntry ?? false, () => {
-        NativeModules.HybridAppModule?.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+    UNSTABLE_usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
+        if (!CONFIG.IS_HYBRID_APP) {
+            return;
+        }
+        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
         setRootStatusBarEnabled(false);
     });
 
