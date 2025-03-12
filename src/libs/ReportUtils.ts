@@ -1272,9 +1272,9 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string 
     }
 
     // In case the payment is scheduled and we are waiting for the payee to set up their wallet,
-    // consider the report as paid as well.
+    // consider the report as unpaid.
     if (report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
-        return true;
+        return false;
     }
 
     return report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
