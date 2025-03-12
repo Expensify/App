@@ -4932,7 +4932,6 @@ const styles = (theme: ThemeColors) =>
         searchStatusBarContainer: {
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
         },
 
         walletIllustration: {

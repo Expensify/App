@@ -188,49 +188,8 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     }
 
     return (
-        <View style={[styles.pr5, styles.mb2, styles.searchStatusBarContainer]}>
-            <ScrollView
-                style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
-                ref={scrollRef}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-            >
-                {options.map((item, index) => {
-                    const onPress = singleExecution(() => {
-                        onStatusChange?.();
-                        const query = buildSearchQueryString({...queryJSON, status: item.status});
-                        Navigation.setParams({q: query});
-                    });
-                    const isActive = Array.isArray(queryJSON.status) ? queryJSON.status.includes(item.status) : queryJSON.status === item.status;
-                    const isFirstItem = index === 0;
-                    const isLastItem = index === options.length - 1;
-
-                    return (
-                        <Button
-                            key={item.status}
-                            onLayout={(e) => {
-                                if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
-                                    return;
-                                }
-                                isScrolledRef.current = true;
-                                scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
-                            }}
-                            text={translate(item.text)}
-                            onPress={onPress}
-                            icon={item.icon}
-                            iconFill={isActive ? theme.success : undefined}
-                            iconHoverFill={theme.success}
-                            innerStyles={!isActive && styles.bgTransparent}
-                            hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
-                            textStyles={!isActive && StyleUtils.getTextColorStyle(theme.textSupporting)}
-                            textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
-                            // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
-                            style={[isFirstItem && styles.pl5, isLastItem && !shouldShowSelectedDropdown && styles.pr5]}
-                        />
-                    );
-                })}
-            </ScrollView>
-            {shouldShowSelectedDropdown && (
+        <View style={[shouldShowSelectedDropdown ? styles.ph5 : styles.pr5, styles.mb2, styles.searchStatusBarContainer]}>
+            {shouldShowSelectedDropdown ? (
                 <ButtonWithDropdownMenu
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
@@ -238,9 +197,54 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
                     customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
                     options={headerButtonsOptions}
                     isSplitButton={false}
-                    shouldUseStyleUtilityForAnchorPosition
-                    wrapperStyle={styles.pl5}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                    popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
                 />
+            ) : (
+                <ScrollView
+                    style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
+                    ref={scrollRef}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                >
+                    {options.map((item, index) => {
+                        const onPress = singleExecution(() => {
+                            onStatusChange?.();
+                            const query = buildSearchQueryString({...queryJSON, status: item.status});
+                            Navigation.setParams({q: query});
+                        });
+                        const isActive = Array.isArray(queryJSON.status) ? queryJSON.status.includes(item.status) : queryJSON.status === item.status;
+                        const isFirstItem = index === 0;
+                        const isLastItem = index === options.length - 1;
+
+                        return (
+                            <Button
+                                key={item.status}
+                                onLayout={(e) => {
+                                    if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
+                                        return;
+                                    }
+                                    isScrolledRef.current = true;
+                                    scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
+                                }}
+                                text={translate(item.text)}
+                                onPress={onPress}
+                                icon={item.icon}
+                                iconFill={isActive ? theme.success : undefined}
+                                iconHoverFill={theme.success}
+                                innerStyles={!isActive && styles.bgTransparent}
+                                hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
+                                textStyles={!isActive && StyleUtils.getTextColorStyle(theme.textSupporting)}
+                                textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
+                                // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
+                                style={[isFirstItem && styles.pl5, isLastItem && styles.pr5]}
+                            />
+                        );
+                    })}
+                </ScrollView>
             )}
         </View>
     );
