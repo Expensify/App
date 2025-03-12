@@ -486,8 +486,8 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
         return;
     }
 
-    const params: Record<string, string> = {
-        reportID: targetReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+    const params: Record<string, string | undefined> = {
+        reportID: targetReport?.reportID,
     };
 
     if (reportActionID) {
@@ -574,6 +574,11 @@ function removeScreenFromNavigationState(screen: string) {
     });
 }
 
+function isTopmostRouteModalScreen() {
+    const topmostRouteName = navigationRef.getRootState()?.routes?.at(-1)?.name;
+    return isSideModalNavigator(topmostRouteName);
+}
+
 function removeScreenByKey(key: string) {
     isNavigationReady().then(() => {
         navigationRef.current?.dispatch((state) => {
@@ -616,6 +621,7 @@ const Navigation: NavigationType = {
     getReportRouteByID,
     switchPolicyID,
     replaceWithSplitNavigator,
+    isTopmostRouteModalScreen,
 };
 
 export default Navigation;

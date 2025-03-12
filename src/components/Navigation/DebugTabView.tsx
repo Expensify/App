@@ -170,7 +170,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
                 {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
             </View>
             <Button
-                text="View"
+                text={translate('common.view')}
                 onPress={navigateTo}
             />
         </View>

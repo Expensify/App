@@ -529,6 +529,9 @@ const styles = (theme: ThemeColors) =>
         textBold: {
             fontWeight: FontUtils.fontWeight.bold,
         },
+        textItalic: {
+            ...FontUtils.fontFamily.platform.MONOSPACE_ITALIC,
+        },
 
         textVersion: {
             color: theme.iconColorfulBackground,
@@ -5441,17 +5444,7 @@ const styles = (theme: ThemeColors) =>
 
         progressBarWrapper: {
             height: 2,
-            width: '100%',
-            backgroundColor: theme.transparent,
             overflow: 'hidden',
-            position: 'absolute',
-            bottom: -1,
-        },
-
-        progressBar: {
-            height: '100%',
-            backgroundColor: theme.success,
-            width: '100%',
         },
 
         accountSwitcherAnchorPosition: {

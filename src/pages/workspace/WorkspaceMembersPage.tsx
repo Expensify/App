@@ -55,7 +55,7 @@ import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTea
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import {close} from '@userActions/Modal';
-import {dismissAddedWithPrimaryLoginMessages, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
+import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -239,10 +239,8 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return;
         }
 
-        const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         // Remove the admin from the list
         const accountIDsToRemove = session?.accountID ? selectedEmployees.filter((id) => id !== session.accountID) : selectedEmployees;
-        const newEmployeesCount = previousEmployeesCount - accountIDsToRemove.length;
 
         // Check if any of the account IDs are approvers
         const hasApprovers = accountIDsToRemove.some((accountID) => isApprover(policy, accountID));
@@ -274,10 +272,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
             removeMembers(accountIDsToRemove, route.params.policyID);
-            if (newEmployeesCount === 1 && policy?.preventSelfApproval) {
-                // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
-                setPolicyPreventSelfApproval(route.params.policyID, false);
-            }
         });
     };
 
@@ -671,7 +665,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         <WorkspacePageWithSections
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
             icon={!selectionModeHeader ? ReceiptWrangler : undefined}
             headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             testID={WorkspaceMembersPage.displayName}

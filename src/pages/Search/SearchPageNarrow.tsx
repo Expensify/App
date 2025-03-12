@@ -13,6 +13,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {SearchQueryJSON} from '@components/Search/types';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -25,7 +26,6 @@ import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtil
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useHandleBackButton from './useHandleBackButton';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -35,10 +35,9 @@ type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     policyID?: string;
     searchName?: string;
-    shouldGroupByReports?: boolean;
 };
 
-function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -146,7 +145,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                         </View>
                         <View style={[styles.flex1]}>
                             <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
-                                <View style={[styles.narrowSearchHeaderStyle]}>
+                                <View style={[styles.narrowSearchHeaderStyle, styles.flex1]}>
                                     <SearchPageHeader
                                         queryJSON={queryJSON}
                                         searchRouterListVisible={searchRouterListVisible}
@@ -157,7 +156,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                                             topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                                             setSearchRouterListVisible(true);
                                         }}
-                                        shouldGroupByReports={shouldGroupByReports}
                                     />
                                 </View>
                                 <View style={[styles.appBG]}>
@@ -185,7 +183,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                         <SearchPageHeader
                             queryJSON={queryJSON}
                             searchName={searchName}
-                            shouldGroupByReports={shouldGroupByReports}
                         />
                     </>
                 )}
@@ -197,7 +194,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                             onSearchListScroll={scrollHandler}
                             onContentSizeChange={onContentSizeChange}
                             contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
-                            shouldGroupByReports={shouldGroupByReports}
                         />
                     </View>
                 )}
