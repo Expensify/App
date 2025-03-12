@@ -197,6 +197,20 @@ type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
 
+type BaseTransactionParams = {
+    amount: number;
+    currency: string;
+    created: string;
+    merchant: string;
+    comment: string;
+    category?: string;
+    tag?: string;
+    taxCode?: string;
+    taxAmount?: number;
+    billable?: boolean;
+    customUnitRateID?: string;
+};
+
 type MoneyRequestInformation = {
     payerAccountID: number;
     payerEmail: string;
@@ -227,22 +241,15 @@ type TrackExpenseInformation = {
     actionableWhisperReportActionIDParam?: string;
     onyxData: OnyxData;
 };
-type TrackedExpenseTransactionParams = {
+
+type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount'> & {
+    waypoints?: string;
     transactionID: string | undefined;
-    amount: number;
-    currency: string;
-    comment: string;
-    merchant: string;
-    created: string;
+    receipt?: Receipt;
     taxCode: string;
     taxAmount: number;
-    category?: string;
-    tag?: string;
-    billable?: boolean;
-    receipt?: Receipt;
-    waypoints?: string;
-    customUnitRateID?: string;
 };
+
 type TrackedExpensePolicyParams = {
     policyID: string | undefined;
     isDraftPolicy?: boolean;
@@ -319,34 +326,19 @@ type GPSPoint = {
     long: number;
 };
 
-type RequestMoneyTransactionParams = {
+type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     attendees?: Attendee[];
-    amount: number;
-    currency: string;
-    comment?: string;
-    receipt?: Receipt;
-    category?: string;
-    tag?: string;
-    taxCode?: string;
-    taxAmount?: number;
-    billable?: boolean;
-    merchant: string;
-    created: string;
     actionableWhisperReportActionID?: string;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
+    receipt?: Receipt;
     waypoints?: WaypointCollection;
-    customUnitRateID?: string;
+    comment?: string;
 };
 
-type PerDiemExpenseTransactionParams = {
-    currency: string;
-    comment?: string;
-    category?: string;
-    tag?: string;
-    created: string;
+type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
     customUnit: TransactionCustomUnit;
-    billable?: boolean;
+    comment?: string;
 };
 
 type BasePolicyParams = {
@@ -431,21 +423,11 @@ type BuildOnyxDataForMoneyRequestParams = {
     optimisticParams: MoneyRequestOptimisticParams;
 };
 
-type DistanceRequestTransactionParams = {
-    comment: string;
-    created: string;
-    category?: string;
-    tag?: string;
-    taxCode?: string;
-    taxAmount?: number;
-    amount: number;
-    currency: string;
-    merchant: string;
-    billable?: boolean;
+type DistanceRequestTransactionParams = BaseTransactionParams & {
     validWaypoints: WaypointCollection;
-    customUnitRateID?: string;
     splitShares?: SplitShares;
 };
+
 type CreateDistanceRequestInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
     participants: Participant[];
@@ -457,19 +439,9 @@ type CreateDistanceRequestInformation = {
     policyParams?: BasePolicyParams;
 };
 
-type CreateSplitsTransactionParams = {
-    amount: number;
-    comment: string;
-    currency: string;
-    merchant: string;
-    created: string;
-    category: string;
-    tag: string;
+type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
     splitShares: SplitShares;
-    billable?: boolean;
     iouRequestType?: IOURequestType;
-    taxCode?: string;
-    taxAmount?: number;
 };
 
 type CreateSplitsAndOnyxDataParams = {
