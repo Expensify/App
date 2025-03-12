@@ -21,9 +21,7 @@ import TestToolRow from './TestToolRow';
 import Text from './Text';
 
 function TestToolsModal() {
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isTestToolsModalOpen = false] = useOnyx(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN);
     const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -34,11 +32,11 @@ function TestToolsModal() {
     return (
         <Modal
             isVisible={!!isTestToolsModalOpen}
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
+            type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
             onClose={toggleTestToolsModal}
         >
             <ScrollView
-                contentContainerStyle={[StyleUtils.getTestToolsModalStyle(windowWidth), isSmallScreenWidth && {...styles.w100, ...styles.pv0}]}
+                contentContainerStyle={[StyleUtils.getTestToolsModalStyle(windowWidth), shouldUseNarrowLayout && {...styles.w100, ...styles.pv0}]}
                 style={{maxHeight: windowHeight - variables.modalBackdropMinHeight}}
             >
                 <Text
