@@ -24,6 +24,8 @@ app.get('/:notification', async (req, res, next) => {
     try {
         const {notification} = req.params;
         let onyxData = req.query.onyxData ? JSON.parse(req.query.onyxData) : [];
+
+        // TODO: This is only here as a placeholder for now to demo the ExpenseSubmitted notification
         if (notification === 'ExpenseSubmitted') {
             onyxData = [
                 {
