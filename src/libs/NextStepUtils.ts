@@ -102,7 +102,7 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
                 type: 'next-step-email',
             },
             {
-                text: ' by your policy. Please submit this report to someone else or contact your admin to change the person you submit to.',
+                text: ' by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.',
             },
         ],
     };
