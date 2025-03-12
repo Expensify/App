@@ -75,11 +75,18 @@ A CSV upload is a manual method for importing credit card transactions into Expe
 
 ---
 # CSV Upload: How do I import credit card transactions using a CSV?
-1. Download your card transactions in a CSV, OFX, QFX, or XLS format from your bank.
-2. Format the file to include the card number, date, merchant, amount, and currency.
+1. Download your card transactions from your bank in CSV, OFX, QFX, or XLS format.
+2. Format the CSV for upload using [this template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) as a guide -- be sure to include the card number, date, merchant, amount, and currency.
+     - You can also add mapping for Categories and Tags, but those parameters are optional.
+       
+![Your CSV template should include, at a minimum, a column for the card number, posted date, merchant, posted amount, and posted currency.](https://help.expensify.com/assets/images/csv-01.png){:width="100%"}
+
 3. Go to **Settings > Domains > [Domain Name] > Company Cards > Manage/Import CSV**.
 4. Upload the file and map the fields to Expensify’s requirements.
 5. Review the Output Preview for errors and submit the file.
+
+
+![Click Manage/Import CSV located in the top right between the Issue Virtual Card button and the Import Card button.](https://help.expensify.com/assets/images/csv-02.png){:width="100%"}
 
 ---
 # Assign Cards: How do I assign cards to employees?
@@ -89,6 +96,10 @@ A CSV upload is a manual method for importing credit card transactions into Expe
 4. (Optional) Set a transaction start date.
 5. Click **Assign** to complete the process.
 
+![Click the dropdown located right below the Imported Cards title near the top of the page. Then select a card from the list.](https://help.expensify.com/assets/images/csv-03.png){:width="100%"}
+
+![Under the Company Cards tab on the left, you'll use the dropdown menu to select a card and beneath that, you'll click Assign New Cards]({{site.url}}/assets/images/CompanyCards_Assign.png){:width="100%"}
+
 ---
 # Unassign Cards: How do I unassign cards?
 1. Go to **Settings > Domains > [Domain Name] > Company Cards**.
@@ -97,18 +108,43 @@ A CSV upload is a manual method for importing credit card transactions into Expe
 
 _**Note: Unassigning a card deletes all open or unreported expenses linked to it.**_
 
+![Click the Actions button to the right of the card and select Unassign.]({{site.url}}/assets/images/CompanyCards_Unassign.png){:width="100%"}
+
 ---
 # Configure Company Card Settings
 1. Go to **Settings > Domains > [Domain Name] > Company Cards > Settings**.
 2. Adjust preferences for:
    - **Preferred Workspace**: Ensures transactions are reported to a specific workspace.
    - **Reimbursable Preference**: Controls whether expenses are flagged as reimbursable or non-reimbursable.
-   - **Liability Type**: Sets corporate or personal liability for expenses. Corporate liability prevents users from deleting company card expenses, while personal liability allows users to manage and delete expenses directly.
+   - **Liability Type**: Set the corporate or personal liability settings for company card expenses. Corporate liability prevents users from deleting company card expenses, while personal liability allows users to manage and delete their company card expenses.
 3. Save the settings to apply changes.
 
-**Tip**: For businesses using accounting integrations like QuickBooks or NetSuite, connect the cards to export expenses to specific general ledger (GL) accounts via the "Edit Exports" option.
+![Near the top right, click the Settings tab that is located between the Card List and Reconciliation tabs.](https://help.expensify.com/assets/images/compcard-01.png){:width="100%"} 
+
+## Export Company Card Expenses to a Connected Accounting Integration: Centralized General Ledger Account
+
+For businesses using accounting integrations like QuickBooks or NetSuite, connect the cards to export expenses to specific general ledger (GL) accounts via the "Edit Exports" option.
+
+![Find the desired card in the table. In that same row, click Edit Exports.](https://help.expensify.com/assets/images/cardfeeds-02.png){:width="100%"} 
+
+**To export credit card expenses to a pooled GL account:**
+1. Navigate to **Settings > Workspaces**.  
+2. Select the appropriate **Workspace**.  
+3. Open the **Connections** tab.  
+4. Under **Accounting Integrations**, click **Configure** next to the relevant integration.  
+5. In the **Non-reimbursable Export** section, select **Credit Card / Charge Card / Bank Transaction**.  
+6. Review the **Export Settings** page to ensure proper expense report export to NetSuite.  
+7. Choose the **Vendor/Liability Account** for exporting all non-reimbursable expenses.  
+
+## Exporting to Individual General Ledger Accounts 
+
+1. Navigate to **Settings > Domains**.  
+2. Select the appropriate **Domain**.  
+3. Click **Edit Exports** next to the relevant card.  
+4. Select the **General Ledger (GL) Account** for expense exports.  
 
 ---
+
 # FAQ
 
 ## Missing Transactions: Why aren’t all transactions appearing?

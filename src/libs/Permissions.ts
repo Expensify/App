@@ -14,16 +14,13 @@ function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
 
+function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
+    // Don't check for all betas or nobody can use test travel on dev
+    return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+}
+
 function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
-}
-
-function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
-}
-
-function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
 }
 
 /**
@@ -35,6 +32,10 @@ function canUseLinkPreviews(): boolean {
 
 function canUseMergeAccounts(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS) || canUseAllBetas(betas);
+}
+
+function canUsePDFExport(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_PDF_EXPORT) || canUseAllBetas(betas);
 }
 
 function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
@@ -49,15 +50,20 @@ function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NSQS) || canUseAllBetas(betas);
 }
 
+function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseSpotnanaTravel,
+    isBlockedFromSpotnanaTravel,
     canUseNetSuiteUSATax,
-    canUseCategoryAndTagApprovers,
-    canUsePerDiem,
+    canUsePDFExport,
     canUseMergeAccounts,
     canUseManagerMcTest,
     canUseInternationalBankAccount,
     canUseNSQS,
+    canUseCustomRules,
 };

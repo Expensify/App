@@ -636,4 +636,212 @@ describe('ReportActionsUtils', () => {
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
         });
     });
+
+    describe('shouldShowAddMissingDetails', () => {
+        it('should return true if personal detail is not completed', async () => {
+            const card = {
+                cardID: 1,
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                bank: 'vcf',
+                domainName: 'expensify',
+                lastUpdated: '2022-11-09 22:27:01.825',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            };
+            const mockPersonalDetail = {
+                address: {
+                    street: '123 Main St',
+                    city: 'New York',
+                    state: 'NY',
+                    postalCode: '10001',
+                },
+            };
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            expect(res).toEqual(true);
+        });
+        it('should return true if card state is STATE_NOT_ISSUED', async () => {
+            const card = {
+                cardID: 1,
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                bank: 'vcf',
+                domainName: 'expensify',
+                lastUpdated: '2022-11-09 22:27:01.825',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            };
+            const mockPersonalDetail = {
+                addresses: [
+                    {
+                        street: '123 Main St',
+                        city: 'New York',
+                        state: 'NY',
+                        postalCode: '10001',
+                    },
+                ],
+                legalFirstName: 'John',
+                legalLastName: 'David',
+                phoneNumber: '+162992973',
+                dob: '9-9-2000',
+            };
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            expect(res).toEqual(true);
+        });
+        it('should return false if no condition is matched', async () => {
+            const card = {
+                cardID: 1,
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                bank: 'vcf',
+                domainName: 'expensify',
+                lastUpdated: '2022-11-09 22:27:01.825',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            };
+            const mockPersonalDetail = {
+                addresses: [
+                    {
+                        street: '123 Main St',
+                        city: 'New York',
+                        state: 'NY',
+                        postalCode: '10001',
+                    },
+                ],
+                legalFirstName: 'John',
+                legalLastName: 'David',
+                phoneNumber: '+162992973',
+                dob: '9-9-2000',
+            };
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            expect(res).toEqual(false);
+        });
+    });
+
+    describe('isDeletedAction', () => {
+        it('should return true if reportAction is undefined', () => {
+            expect(ReportActionsUtils.isDeletedAction(undefined)).toBe(true);
+        });
+
+        it('should return false for POLICY_CHANGE_LOG.INVITE_TO_ROOM action', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
+                originalMessage: {
+                    html: '',
+                    whisperedTo: [],
+                },
+                reportActionID: '1',
+                created: '1',
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
+        it('should return true if message is an empty array', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(true);
+        });
+
+        it('should return true if message html is empty', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: {
+                    html: '',
+                    type: 'Action type',
+                    text: 'Action text',
+                },
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(true);
+        });
+
+        it('should return true if message is not an array and deleted is not empty', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: {
+                    html: 'Hello world',
+                    deleted: 'deleted',
+                    type: 'Action type',
+                    text: 'Action text',
+                },
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(true);
+        });
+
+        it('should return true if message an array and first element deleted is not empty', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        deleted: 'deleted',
+                        type: 'Action type',
+                        text: 'Action text',
+                    },
+                ],
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(true);
+        });
+
+        it('should return true if message is an object with html field with empty string as value is empty', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: [
+                    {
+                        html: '',
+                        type: 'Action type',
+                        text: 'Action text',
+                    },
+                ],
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(true);
+        });
+
+        it('should return false otherwise', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        type: 'Action type',
+                        text: 'Action text',
+                    },
+                ],
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+    });
 });

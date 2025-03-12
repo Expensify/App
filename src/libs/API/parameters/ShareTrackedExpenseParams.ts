@@ -11,7 +11,7 @@ type ShareTrackedExpenseParams = {
     moneyRequestPreviewReportActionID: string | undefined;
     moneyRequestReportID: string | undefined;
     moneyRequestCreatedReportActionID: string | undefined;
-    actionableWhisperReportActionID: string;
+    actionableWhisperReportActionID: string | undefined;
     modifiedExpenseReportActionID: string;
     reportPreviewReportActionID: string | undefined;
     category?: string;
@@ -26,6 +26,9 @@ type ShareTrackedExpenseParams = {
     policyExpenseCreatedReportActionID?: string;
     adminsChatReportID?: string;
     adminsCreatedReportActionID?: string;
+    engagementChoice?: string;
+    guidedSetupData?: string;
+    description?: string;
 };
 
 export default ShareTrackedExpenseParams;

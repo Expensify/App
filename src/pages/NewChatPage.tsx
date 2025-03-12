@@ -45,6 +45,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
+import KeyboardUtils from '@src/utils/keyboard';
 
 const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
@@ -210,11 +211,11 @@ function NewChatPage() {
                 newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
                 newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`}];
+                selectionListRef?.current?.scrollToIndex(0, true);
             }
 
             selectionListRef?.current?.clearInputAfterSelect?.();
             selectionListRef.current?.focusTextInput();
-            selectionListRef?.current?.scrollToIndex(Math.max(newSelectedOptions.length - 1, 0), true);
             setSelectedOptions(newSelectedOptions);
         },
         [selectedOptions, setSelectedOptions],
@@ -247,7 +248,7 @@ function NewChatPage() {
                 Log.warn('Tried to create chat with empty login');
                 return;
             }
-            navigateToAndOpenReport([login]);
+            KeyboardUtils.dismiss().then(() => navigateToAndOpenReport([login]));
         },
         [selectedOptions, toggleOption],
     );

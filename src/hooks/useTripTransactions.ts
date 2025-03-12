@@ -19,16 +19,19 @@ function useTripTransactions(reportID: string | undefined): Transaction[] {
                 .filter((report) => report && report.chatReportID === reportID)
                 .map((report) => report?.reportID),
     });
-    const [tripTransactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => {
-            if (!tripTransactionReportIDs.length) {
-                return [];
-            }
+    const [tripTransactions = []] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        {
+            selector: (transactions) => {
+                if (!tripTransactionReportIDs.length) {
+                    return [];
+                }
 
-            return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && tripTransactionReportIDs.includes(transaction.reportID));
+                return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && tripTransactionReportIDs.includes(transaction.reportID));
+            },
         },
-    });
-
+        [tripTransactionReportIDs],
+    );
     return tripTransactions;
 }
 

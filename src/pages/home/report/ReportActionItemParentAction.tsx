@@ -7,7 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
-import {shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {isTripPreview, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, getAllAncestorReportActionIDs, getAllAncestorReportActions} from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
@@ -36,9 +36,6 @@ type ReportActionItemParentActionProps = {
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** Array of report actions for this report */
-    reportActions: OnyxTypes.ReportAction[];
-
     /** Report actions belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -55,7 +52,6 @@ type ReportActionItemParentActionProps = {
 function ReportActionItemParentAction({
     report,
     transactionThreadReport,
-    reportActions,
     parentReportAction,
     index = 0,
     shouldHideThreadDividerLine = false,
@@ -111,6 +107,8 @@ function ReportActionItemParentAction({
             {allAncestors.map((ancestor) => {
                 const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
                 const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport);
+                const shouldDisplayThreadDivider = !isTripPreview(ancestor.reportAction);
+
                 return (
                     <OfflineWithFeedback
                         key={ancestor.reportAction.reportActionID}
@@ -120,10 +118,12 @@ function ReportActionItemParentAction({
                         errorRowStyles={[styles.ml10, styles.mr2]}
                         onClose={() => navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
                     >
-                        <ThreadDivider
-                            ancestor={ancestor}
-                            isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])}
-                        />
+                        {shouldDisplayThreadDivider && (
+                            <ThreadDivider
+                                ancestor={ancestor}
+                                isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])}
+                            />
+                        )}
                         <ReportActionItem
                             onPress={
                                 canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])
@@ -140,7 +140,6 @@ function ReportActionItemParentAction({
                             }
                             parentReportAction={parentReportAction}
                             report={ancestor.report}
-                            reportActions={reportActions}
                             transactionThreadReport={transactionThreadReport}
                             action={ancestor.reportAction}
                             displayAsGroup={false}

@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -8,7 +8,6 @@ import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -17,16 +16,17 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearAllFilters} from '@libs/actions/Search';
+import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 
 type SavedSearchMenuItem = MenuItemWithLink & {
@@ -38,9 +38,11 @@ type SavedSearchMenuItem = MenuItemWithLink & {
 
 type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;
+    searchName?: string;
+    shouldGroupByReports?: boolean;
 };
 
-function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
+function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -53,10 +55,13 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const personalDetails = usePersonalDetails();
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const {unmodifiedPaddings} = useStyledSafeAreaInsets();
+    const cardFeedNamesWithType = useMemo(() => {
+        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
+    }, [translate, workspaceCardFeeds, userCardList]);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
@@ -65,13 +70,17 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     }, []);
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
 
+    // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
+    const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
+    useEffect(() => {
+        setTimeout(() => {
+            setDelayPopoverMenuFirstRender(false);
+        }, 100);
+    }, []);
+
     const typeMenuItems = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
-    const activeCentralPaneRoute = useActiveCentralPaneRoute();
-    const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-    const isSearchNameModified = searchParams?.name === searchParams?.q;
-    const searchName = isSearchNameModified ? undefined : searchParams?.name;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
-    const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards));
+    const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType));
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === queryJSON.type) : -1;
 
     const getOverflowMenu = useCallback(
@@ -84,14 +93,17 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
             let savedSearchTitle = item.name;
             if (savedSearchTitle === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards);
+                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
             }
 
             const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, savedSearchTitle, hash);
 
             return {
                 ...baseMenuItem,
-                onSelected: baseMenuItem.onPress,
+                onSelected: () => {
+                    clearAllFilters();
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+                },
                 rightComponent: (
                     <ThreeDotsMenu
                         menuItems={getOverflowMenu(baseMenuItem.title ?? '', Number(baseMenuItem.hash ?? ''), item.query ?? '')}
@@ -106,9 +118,13 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                 styles: [styles.textSupporting],
                 isSelected: false,
                 shouldCallAfterModalHide: true,
+                icon: Expensicons.Bookmark,
+                iconWidth: variables.iconSizeNormal,
+                iconHeight: variables.iconSizeNormal,
+                shouldIconUseAutoWidthStyle: false,
             };
         },
-        [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards],
+        [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType],
     );
 
     const savedSearchItems = useMemo(() => {
@@ -122,7 +138,14 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
 
     const popoverMenuItems = useMemo(() => {
         const items = typeMenuItems.map((item, index) => {
-            const isSelected = title ? false : index === activeItemIndex;
+            let isSelected = false;
+            if (!title) {
+                if (shouldGroupByReports) {
+                    isSelected = item.translationPath === 'common.expenseReports';
+                } else {
+                    isSelected = index === activeItemIndex;
+                }
+            }
 
             return {
                 text: translate(item.translationPath),
@@ -157,7 +180,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
         }
 
         return items;
-    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, policyID, closeMenu]);
+    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, policyID, closeMenu, shouldGroupByReports]);
 
     const allMenuItems = useMemo(() => {
         const items = [];
@@ -177,21 +200,24 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     return (
         <>
             <Button
-                innerStyles={[styles.searchRouterInputResults, styles.borderNone]}
+                innerStyles={[{backgroundColor: theme.sidebarHover}]}
                 icon={Expensicons.Bookmark}
                 onPress={openMenu}
             />
-            <PopoverMenu
-                menuItems={allMenuItems as PopoverMenuItem[]}
-                isVisible={isPopoverVisible}
-                anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
-                onClose={closeMenu}
-                onItemSelected={closeMenu}
-                anchorRef={buttonRef}
-                shouldUseScrollView
-                shouldUseModalPaddingStyle={false}
-                innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
-            />
+            {!delayPopoverMenuFirstRender && (
+                <PopoverMenu
+                    menuItems={allMenuItems as PopoverMenuItem[]}
+                    isVisible={isPopoverVisible}
+                    anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
+                    onClose={closeMenu}
+                    onItemSelected={closeMenu}
+                    anchorRef={buttonRef}
+                    shouldUseScrollView
+                    shouldUseModalPaddingStyle={false}
+                    innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
+                    shouldAvoidSafariException
+                />
+            )}
             <DeleteConfirmModal />
         </>
     );

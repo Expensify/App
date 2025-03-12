@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -20,17 +21,24 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const cancellationMapping: Record<string, string> = {
+        [CONST.CANCELLATION_POLICY.UNKNOWN]: translate('travel.hotelDetails.cancellationPolicies.unknown'),
+        [CONST.CANCELLATION_POLICY.NON_REFUNDABLE]: translate('travel.hotelDetails.cancellationPolicies.nonRefundable'),
+        [CONST.CANCELLATION_POLICY.FREE_CANCELLATION_UNTIL]: translate('travel.hotelDetails.cancellationPolicies.freeCancellationUntil'),
+        [CONST.CANCELLATION_POLICY.PARTIALLY_REFUNDABLE]: translate('travel.hotelDetails.cancellationPolicies.partiallyRefundable'),
+    };
+
     const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
     const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
     const cancellationText = reservation.cancellationDeadline
         ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedTransportDateAndHour(new Date(reservation.cancellationDeadline)).date}`
-        : reservation.cancellationPolicy;
+        : cancellationMapping[reservation.cancellationPolicy ?? CONST.CANCELLATION_POLICY.UNKNOWN];
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
 
     return (
         <>
-            <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{reservation.start.longName}</Text>
+            <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{Str.recapitalize(reservation.start.longName ?? '')}</Text>
             <MenuItemWithTopDescription
                 description={translate('common.address')}
                 title={reservation.start.address}

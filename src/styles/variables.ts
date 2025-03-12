@@ -92,6 +92,7 @@ export default {
     extraSmallMobileResponsiveHeightBreakpoint: 667,
     mobileResponsiveWidthBreakpoint: 800,
     tabletResponsiveWidthBreakpoint: 1024,
+    sidePanelResponsiveWidthBreakpoint: 1300,
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
@@ -274,11 +275,12 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -106,
+    minimalTopBarOffset: -124,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 116,
+    searchListContentMarginTop: 124,
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
+    searchRouterInputMargin: 52,
 
     h20: 20,
     h28: 28,

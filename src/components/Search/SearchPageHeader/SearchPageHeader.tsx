@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -22,6 +23,7 @@ import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
+    getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
     updateAdvancedFilters,
@@ -38,11 +40,18 @@ import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON; searchRouterListVisible?: boolean; onSearchRouterFocus?: () => void};
+type SearchPageHeaderProps = {
+    queryJSON: SearchQueryJSON;
+    searchName?: string;
+    searchRouterListVisible?: boolean;
+    hideSearchRouterList?: () => void;
+    onSearchRouterFocus?: () => void;
+    shouldGroupByReports?: boolean;
+};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFocus}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, shouldGroupByReports}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -56,9 +65,9 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -66,12 +75,23 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
 
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
+        isScreenFocused,
     );
 
     const {status, hash} = queryJSON;
+
+    useFocusEffect(
+        useCallback(() => {
+            setIsScreenFocused(true);
+            return () => {
+                setIsScreenFocused(false);
+            };
+        }, []),
+    );
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -130,9 +150,12 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
             !isOffline &&
             !isAnyTransactionOnHold &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
+                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
                 : selectedTransactionsKeys.every(
-                      (id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY && selectedTransactions[id].policyID && lastPaymentMethods[selectedTransactions[id].policyID],
+                      (id) =>
+                          selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                          selectedTransactions[id].policyID &&
+                          getLastPolicyPaymentMethod(selectedTransactions[id].policyID, lastPaymentMethods),
                   ));
 
         if (shouldShowPayOption) {
@@ -153,7 +176,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
 
                     for (const item of items) {
                         const policyID = item.policyID;
-                        const lastPolicyPaymentMethod = policyID ? lastPaymentMethods?.[policyID] : null;
+                        const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(policyID, lastPaymentMethods);
 
                         if (!lastPolicyPaymentMethod) {
                             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
@@ -170,11 +193,15 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
 
                     const paymentData = (
                         selectedReports.length
-                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[report.policyID]}))
+                            ? selectedReports.map((report) => ({
+                                  reportID: report.reportID,
+                                  amount: report.total,
+                                  paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+                              }))
                             : Object.values(selectedTransactions).map((transaction) => ({
                                   reportID: transaction.reportID,
                                   amount: transaction.amount,
-                                  paymentType: lastPaymentMethods[transaction.policyID],
+                                  paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods),
                               }))
                     ) as PaymentData[];
 
@@ -311,7 +338,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
     }, [allCards, currencyList, hideProductTrainingTooltip, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
     const InputRightComponent = useMemo(() => {
-        return headerButtonsOptions.length > 0 ? (
+        return headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || selectionMode?.isEnabled) ? (
             <ButtonWithDropdownMenu
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
@@ -325,16 +352,17 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
             <EducationalTooltip
                 shouldRender={shouldShowProductTrainingTooltip}
                 anchorAlignment={{
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 }}
                 shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 renderTooltipContent={renderProductTrainingTooltip}
                 onTooltipPress={onFiltersButtonPress}
+                shouldHideOnScroll
             >
                 <Button
-                    innerStyles={[styles.searchRouterInputResults, styles.borderNone, styles.bgTransparent]}
+                    innerStyles={[styles.searchAutocompleteInputResults, styles.borderNone, styles.bgTransparent]}
                     icon={Expensicons.Filters}
                     onPress={onFiltersButtonPress}
                 />
@@ -349,8 +377,10 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
         styles.bgTransparent,
         styles.borderNone,
         styles.productTrainingTooltipWrapper,
-        styles.searchRouterInputResults,
+        styles.searchAutocompleteInputResults,
         translate,
+        selectionMode,
+        shouldUseNarrowLayout,
     ]);
 
     if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
@@ -400,7 +430,10 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
                 searchRouterListVisible={searchRouterListVisible}
                 onSearchRouterFocus={onSearchRouterFocus}
                 queryJSON={queryJSON}
+                searchName={searchName}
+                hideSearchRouterList={hideSearchRouterList}
                 inputRightComponent={InputRightComponent}
+                shouldGroupByReports={shouldGroupByReports}
             />
             <ConfirmModal
                 isVisible={isDeleteExpensesConfirmModalVisible}

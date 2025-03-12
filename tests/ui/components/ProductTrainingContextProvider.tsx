@@ -15,6 +15,14 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: jest.fn(),
 }));
 
+// Mock Fullstory library dependency
+jest.mock('@libs/Fullstory', () => ({
+    default: {
+        consentAndIdentify: jest.fn(),
+    },
+    parseFSAttributes: jest.fn(),
+}));
+
 const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE = {
     shouldUseNarrowLayout: true,
     isSmallScreenWidth: true,
@@ -25,6 +33,7 @@ const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE = {
     isExtraSmallScreenWidth: false,
     isSmallScreen: false,
     onboardingIsMediumOrLargerScreenWidth: false,
+    isExtraLargeScreenWidth: false,
 };
 
 const TEST_USER_ACCOUNT_ID = 1;

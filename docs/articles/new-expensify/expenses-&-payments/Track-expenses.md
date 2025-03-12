@@ -1,45 +1,33 @@
 ---
 title: Track Expenses
-description: Create, store, or share non-reimbursable expenses
+description: Easily learn how to track, manage, and take action on your expenses in Expensify with this step-by-step guide
 ---
-<div id="new-expensify" markdown="1">
+Tracking an expense in Expensify is simple and can be done in just a few steps. Follow the guide below to track an expense without submitting it.
 
-Create, store, or share non-reimbursable expenses with the Track Expenses feature.
+## Steps to Track an Expense
 
-{% include selector.html values="desktop, mobile" %}
+1. Press the **big green + button**
+2. Choose **Create Expense**
+3. Select how you would like to create the expense:
+   - Scan a receipt
+   - Enter mileage
+   - Enter manually
+4. Follow the prompts to enter the required information (this will vary depending on your selection in step 3)
+5. Click **Next**
+6. Choose **Just track it (don’t submit it)**
+7. Enter or modify details in the fields shown (these fields will vary depending on how your Workspace is configured)
+8. Click **Create Expense**
 
-{% include option.html value="desktop" %}
-1. Click the + icon in the bottom left menu and select **Track Expense**.
-2. Create the expense manually, scan the receipt, or add a distance expense. 
+## Where to Find Tracked Expenses
 
-{% include info.html %}
-For an in-depth walkthrough on how to create an expense, check out the [create an expense](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense) article.
-{% include end-info.html %}
+Once the expense is created, it will appear in your **Workspace Chat** in the left-hand navigation. Within the workspace chat, you can take the following further actions on the expense at any time:
 
-3. Choose the next steps for the expense:
-   - **Submit it to someone**: Select this option to request payment from other members of your Expensify workspace. 
-   - **Categorize it**: Select this option to choose a category and additional details to code the expense for a specific workspace. The expense will then be placed on a report and can be submitted to the workspace for approval. 
-   - **Share it with my accountant**: Select this option to share the expense with your accountant. The expense will then be placed on a report under the workspace for your accountant to review.
-   - **Nothing for now**: Select this option to store the expense. Expensify will keep the expense until you are ready to take action on it—it won’t expire. When you’re ready, you can then select one of the above options for the expense at a later time.
-{% include end-option.html %}
+- **Submit it to someone** – Send the expense for approval or processing.
+- **Categorize it** – Assign the expense to a category for better organization.
+- **Share it with my accountant** – Provide access to relevant financial contacts.
+- **Nothing for now** – Leave the expense in your records for future action.
 
-{% include option.html value="mobile" %}
-1. Tap the + icon in the bottom menu and select **Track Expense**.
-2. Create the expense manually, scan the receipt, or add a distance expense. 
-
-{% include info.html %}
-For an in-depth walkthrough on how to create an expense, check out the [create an expense](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense) article.
-{% include end-info.html %}
-
-3. Choose the next steps for the expense:
-   - **Submit it to someone**: Select this option to request payment from a contact in your phone’s contact list or from other members of your Expensify workspace.  
-   - **Categorize it**: Select this option to choose a category and additional details to code the expense for a specific workspace. The expense will then be placed on a report and can be submitted to the workspace for approval. 
-   - **Share it with my accountant**: Select this option to share the expense with your accountant. The expense will then be placed on a report under the workspace for your accountant to review.
-   - **Nothing for now**: Select this option to store the expense. Expensify will keep the expense until you are ready to take action on it—it won’t expire. When you’re ready, you can then select one of the above options for the expense at a later time.
-{% include end-option.html %}
-
-{% include end-selector.html %}
-
-![The New Expensify page is open with the FAB (big + button) clicked and the option to Track Expenses is highlighted.]({{site.url}}/assets/images/FAB_track_expense.png){:width="100%"}
-
-</div>
+You can also view your tracked expenses by doing the following:
+1. Click on Reports
+2. Click on Expenses
+3. Use the filters to help you locate your expenses
