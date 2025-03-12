@@ -85,6 +85,14 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />;
     }
 
+    const getTaskHTML = () => {
+        if (isTaskCompleted) {
+            return `<del><comment>${taskReport?.reportName ?? action?.childReportName ?? ''}</comment></del>`;
+        }
+
+        return `<comment>${taskReport?.reportName ?? action?.childReportName ?? ''}</comment>`;
+    };
+
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
@@ -127,7 +135,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                         </UserDetailsTooltip>
                     )}
                     <View style={[styles.alignSelfCenter, styles.flex1]}>
-                        <RenderHTML html={`<comment>${taskReport?.reportName ?? action?.childReportName ?? ''}</comment>`} />
+                        <RenderHTML html={getTaskHTML()} />
                     </View>
                 </View>
                 {shouldShowGreenDotIndicator && (
