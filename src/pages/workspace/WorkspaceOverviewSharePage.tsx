@@ -43,13 +43,13 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const adminEmail = session?.email ?? '';
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
 
-    const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(policyID ?? '', adminEmail)}`;
+    const url = policyID ? `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(policyID, adminEmail)}` : '';
 
     const hasAvatar = !!policy?.avatarURL;
     const logo = hasAvatar ? (policy?.avatarURL as ImageSourcePropType) : undefined;
 
     const defaultWorkspaceAvatar = getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
-    const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyID ?? '');
+    const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyID);
 
     const svgLogo = !hasAvatar ? defaultWorkspaceAvatar : undefined;
     const logoBackgroundColor = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
