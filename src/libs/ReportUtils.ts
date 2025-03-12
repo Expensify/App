@@ -8682,6 +8682,8 @@ function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, rep
     return !hasCreditBankAccount() ? 'bankAccount' : undefined;
 }
 
+window.getIndicatedMissingPaymentMethod = getIndicatedMissingPaymentMethod;
+
 /**
  * Checks if report chat contains missing payment method
  */
