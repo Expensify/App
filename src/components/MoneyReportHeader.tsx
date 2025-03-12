@@ -366,7 +366,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD]: (
             <Button
                 success
-                text="Unhold"
+                text={translate('iou.unhold')}
                 onPress={() => {
                     const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
 
