@@ -1,30 +1,31 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import { findFocusedRoute } from '@react-navigation/native';
+import React, { useCallback, useEffect, useRef } from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, View} from 'react-native';
+import { Animated, View } from 'react-native';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScrollView from '@components/ScrollView';
 import useEnvironment from '@hooks/useEnvironment';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSidePane from '@hooks/useSidePane';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {triggerSidePane} from '@libs/actions/SidePane';
+import { triggerSidePane } from '@libs/actions/SidePane';
 import Navigation from '@libs/Navigation/Navigation';
-import {substituteRouteParameters} from '@libs/SidePaneUtils';
+import { substituteRouteParameters } from '@libs/SidePaneUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import getHelpContent from './getHelpContent';
 import SidePaneOverlay from './SidePaneOverlay';
 
 function SidePane() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {isProduction} = useEnvironment();
-    const {route, isInNarrowPaneModal} = useRootNavigationState((state) => {
+    const { translate } = useLocalize();
+    const { isProduction } = useEnvironment();
+    const { route, isInNarrowPaneModal } = useRootNavigationState((state) => {
         const params = (findFocusedRoute(state)?.params as Record<string, string>) ?? {};
         const activeRoute = Navigation.getActiveRouteWithoutParams();
 
@@ -34,9 +35,9 @@ function SidePane() {
         };
     });
 
-    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop, sidePane} = useSidePane();
-    const {paddingTop} = useStyledSafeAreaInsets();
+    const { isExtraLargeScreenWidth, shouldUseNarrowLayout } = useResponsiveLayout();
+    const { sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop, sidePane } = useSidePane();
+    const { paddingTop } = useSafeAreaPaddings();
 
     const onClose = useCallback(
         (shouldUpdateNarrow = false) => {
@@ -44,7 +45,11 @@ function SidePane() {
                 return;
             }
 
-            triggerSidePane(false, {shouldOnlyUpdateNarrowLayout: !isExtraLargeScreenWidth || shouldUpdateNarrow});
+            const shouldOnlyUpdateNarrowLayout = !isExtraLargeScreenWidth || shouldUpdateNarrow;
+            triggerSidePane({
+                isOpen: shouldOnlyUpdateNarrowLayout ? undefined : false,
+                isOpenNarrowScreen: shouldOnlyUpdateNarrowLayout ? false : undefined,
+            });
         },
         [isExtraLargeScreenWidth, sidePane],
     );
@@ -63,7 +68,7 @@ function SidePane() {
         }
     }, [isExtraLargeScreenWidth, onClose]);
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => onClose(), {shouldBubble: shouldHideSidePane, isActive: !isExtraLargeScreenWidth});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => onClose(), { shouldBubble: shouldHideSidePane, isActive: !isExtraLargeScreenWidth });
 
     if (shouldHideSidePane) {
         return null;
@@ -79,7 +84,9 @@ function SidePane() {
                     />
                 )}
             </View>
-            <Animated.View style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop}]}>
+            <Animated.View
+                style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), { transform: [{ translateX: sidePaneTranslateX.current }], paddingTop }]}
+            >
                 <HeaderGap />
                 <HeaderWithBackButton
                     title={translate('common.help')}
@@ -90,7 +97,7 @@ function SidePane() {
                     shouldShowCloseButton={isExtraLargeScreenWidth}
                     shouldDisplayHelpButton={false}
                 />
-                {getHelpContent(styles, route, isProduction)}
+                <ScrollView style={[styles.ph5, styles.pb5]} addBottomSafeAreaPadding>{getHelpContent(styles, route, isProduction)}</ScrollView>
             </Animated.View>
         </>
     );
