@@ -6361,6 +6361,7 @@ const CONST = {
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             POLICY_ID: 'policyID',
+            GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
             DATE: 'date',
@@ -6397,6 +6398,7 @@ const CONST = {
             SORT_BY: 'sort-by',
             SORT_ORDER: 'sort-order',
             POLICY_ID: 'workspace',
+            GROUP_BY: 'group-by',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expense-type',
