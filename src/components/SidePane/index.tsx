@@ -10,6 +10,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSidePane from '@hooks/useSidePane';
 import useThemeStyles from '@hooks/useThemeStyles';
 import { triggerSidePane } from '@libs/actions/SidePane';
@@ -17,7 +18,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import { substituteRouteParameters } from '@libs/SidePaneUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import getHelpContent from './getHelpContent';
 import SidePaneOverlay from './SidePaneOverlay';
 
@@ -84,9 +84,7 @@ function SidePane() {
                     />
                 )}
             </View>
-            <Animated.View
-                style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), { transform: [{ translateX: sidePaneTranslateX.current }], paddingTop }]}
-            >
+            <Animated.View style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), { transform: [{ translateX: sidePaneTranslateX.current }], paddingTop }]}>
                 <HeaderGap />
                 <HeaderWithBackButton
                     title={translate('common.help')}
@@ -97,7 +95,12 @@ function SidePane() {
                     shouldShowCloseButton={isExtraLargeScreenWidth}
                     shouldDisplayHelpButton={false}
                 />
-                <ScrollView style={[styles.ph5, styles.pb5]} addBottomSafeAreaPadding>{getHelpContent(styles, route, isProduction)}</ScrollView>
+                <ScrollView
+                    style={[styles.ph5, styles.pb5]}
+                    addBottomSafeAreaPadding
+                >
+                    {getHelpContent(styles, route, isProduction)}
+                </ScrollView>
             </Animated.View>
         </>
     );
