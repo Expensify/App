@@ -19,7 +19,7 @@ async function main() {
     }
 
     const notificationName = args[notificationArgIndex + 1];
-    let onyxData = {};
+    let onyxData = [];
     if (onyxDataArgIndex > -1 && onyxDataArgIndex < args.length - 1) {
         onyxData = JSON.parse(args[onyxDataArgIndex + 1]);
     }

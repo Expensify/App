@@ -12,9 +12,19 @@ const url = `http://localhost:${CONFIG.EXPRESS_PORT}`;
 console.log('Serving static files from:', path.join(__dirname, 'static'));
 app.use(express.static(path.join(__dirname, 'static')));
 
-app.get('/', async (req, res) => {
-    const html = await renderEmail({env: SSR_CONST.ENV.SERVER, notificationName: 'SampleEmail'});
-    res.send(html);
+app.get('/', (req, res) => {
+    res.redirect('/SampleEmail');
+});
+
+app.get('/:notification', async (req, res) => {
+    try {
+        const {notification} = req.params;
+        const onyxData = req.query.onyxData ? JSON.parse(req.query.onyxData) : [];
+        const html = await renderEmail({env: SSR_CONST.ENV.SERVER, notificationName: notification, onyxData});
+        res.send(html);
+    } catch (error) {
+        res.status(500).send(`Error: ${error.message}`);
+    }
 });
 
 // Custom error handler works with live reload server
