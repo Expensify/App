@@ -768,7 +768,7 @@ function ReportActionsList({
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
+                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold && !reportActionID}
                     initialScrollKey={reportActionID}
                 />
             </View>
