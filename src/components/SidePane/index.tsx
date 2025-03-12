@@ -7,7 +7,7 @@ import Help from './Help';
 import SidePaneOverlay from './SidePaneOverlay';
 
 function SidePane() {
-    const {shouldHideSidePane, shouldHideSidePaneBackdrop, closeSidePane} = useSidePane();
+    const {shouldHideSidePane, sidePaneTranslateX, shouldHideSidePaneBackdrop, closeSidePane} = useSidePane();
     const isInNarrowPaneModal = useRootNavigationState((state) => state?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
     if (shouldHideSidePane) {
@@ -24,7 +24,10 @@ function SidePane() {
                     />
                 )}
             </View>
-            <Help />
+            <Help
+                sidePaneTranslateX={sidePaneTranslateX}
+                closeSidePane={closeSidePane}
+            />
         </>
     );
 }

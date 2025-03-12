@@ -3,15 +3,14 @@ import React from 'react';
 import {Animated} from 'react-native';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePane from '@hooks/useSidePane';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import HelpContent from './HelpContent';
+import type HelpProps from './types';
 
-function Help() {
+function Help({sidePaneTranslateX, closeSidePane}: HelpProps) {
     const styles = useThemeStyles();
-    const {sidePaneTranslateX, closeSidePane} = useSidePane();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom} = useStyledSafeAreaInsets();
 
