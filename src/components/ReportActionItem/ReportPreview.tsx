@@ -4,6 +4,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
@@ -508,18 +509,15 @@ function ReportPreview({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
     }, [iouReportID]);
 
-    if (!iouReport) {
-        return null;
-    }
-    if (!policy) {
-        return null;
-    }
-    if (!transactions) {
-        return null;
-    }
+    const [reportPreviewAction, setReportPreviewAction] = useState<ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>>(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    useEffect(() => {
+        if (!iouReport || !policy || !transactions) {
+            return;
+        }
 
-    const reportPreviewAction = getReportPreviewAction(iouReport, policy, transactions, violations);
-
+        const newReportPreviewAction = getReportPreviewAction(iouReport, policy, transactions, violations);
+        setReportPreviewAction(newReportPreviewAction);
+    }, [iouReport, policy, transactions, violations]);
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
             <Button
@@ -592,14 +590,16 @@ function ReportPreview({
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (
             <Button
                 text={translate('common.review')}
-                onPress={() => openReportFromPreview}
+                onPress={() => openReportFromPreview()}
                 isDisabled={shouldDisableSubmitButton}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button
                 text={translate('common.view')}
-                onPress={() => navigateToDetailsPage(iouReport)}
+                onPress={() => {
+                    navigateToDetailsPage(iouReport);
+                }}
                 isDisabled={shouldDisableSubmitButton}
             />
         ),
