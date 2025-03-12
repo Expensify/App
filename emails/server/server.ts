@@ -1,9 +1,9 @@
 import express from 'express';
 import path from 'path';
 import 'source-map-support/register';
+import SSR_CONST from '../core/CONST';
+import renderEmail from '../core/renderEmail';
 import CONFIG from './CONFIG';
-import SSR_CONST from './core/CONST';
-import renderEmail from './core/renderEmail';
 import LiveReloadServer from './LiveReloadServer';
 
 const app = express();

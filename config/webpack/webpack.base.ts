@@ -1,15 +1,8 @@
-/**
- * This file contains a base webpack config that's shared by:
- *
- * - NewDot web
- * - NewDot desktop
- * - NewDot's email renderer
- */
 import {CleanWebpackPlugin} from 'clean-webpack-plugin';
 import dotenv from 'dotenv';
 import path from 'path';
 import type {Configuration} from 'webpack';
-import {DefinePlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
+import {DefinePlugin, IgnorePlugin} from 'webpack';
 import type Environment from './types';
 
 dotenv.config();
@@ -59,6 +52,13 @@ function getFileExtensions(platform: Environment['platform']) {
     return extensions;
 }
 
+/**
+ * This base config is shared by all webpack builds:
+ *
+ * - NewDot web
+ * - NewDot desktop
+ * - NewDot's email renderer
+ */
 const getBaseConfiguration = ({file = '.env', platform = 'web'}: Environment): Configuration => ({
     mode: 'production',
     devtool: 'source-map',

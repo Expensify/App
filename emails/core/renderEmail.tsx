@@ -9,7 +9,7 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../../tests/utils/waitForBatchedUpdates';
-import LiveReloadServer from '../LiveReloadServer';
+import LiveReloadServer from '../server/LiveReloadServer';
 import EmailRoot from './components/EmailRoot';
 import EmailTemplate from './components/EmailTemplate';
 import NotificationRegistry from './components/notifications/NotificationRegistry';

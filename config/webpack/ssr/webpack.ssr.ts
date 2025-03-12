@@ -1,8 +1,6 @@
-import CopyWebpackPlugin from 'copy-webpack-plugin';
-import path from 'path';
 import type {Configuration} from 'webpack';
 import {merge} from 'webpack-merge';
-import baseConfig from './webpack.base';
+import baseConfig from '../webpack.base';
 
 process.env.IS_SSR_BUILD = 'true';
 
@@ -10,12 +8,6 @@ process.env.IS_SSR_BUILD = 'true';
  * Webpack configuration for server-side rendering emails.
  */
 const ssrConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
-    mode: 'development',
-    entry: '../emails/server.ts',
-    output: {
-        filename: 'server.bundle.js',
-        path: path.resolve('../emails', 'dist'),
-    },
     target: 'node',
     externals: {
         express: 'commonjs express',
@@ -41,12 +33,6 @@ const ssrConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
             },
         ],
     },
-    plugins: [
-        // copy static files to dist/
-        new CopyWebpackPlugin({
-            patterns: [{from: 'static', to: 'static'}],
-        }),
-    ],
 });
 
 export default ssrConfig;

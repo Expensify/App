@@ -8,9 +8,9 @@ import type {Configuration, WebpackPluginInstance} from 'webpack';
 import {DefinePlugin, EnvironmentPlugin, ProvidePlugin} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import {merge} from 'webpack-merge';
-import CustomVersionFilePlugin from './CustomVersionFilePlugin';
-import type Environment from './types';
-import getBaseConfiguration from './webpack.base';
+import CustomVersionFilePlugin from '../CustomVersionFilePlugin';
+import type Environment from '../types';
+import getBaseConfiguration from '../webpack.base';
 
 type Options = {
     rel: string;

@@ -7,7 +7,7 @@ import type {Configuration} from 'webpack';
 import {DefinePlugin} from 'webpack';
 import type {Configuration as DevServerConfiguration} from 'webpack-dev-server';
 import {merge} from 'webpack-merge';
-import type Environment from './types';
+import type Environment from '../types';
 import getCommonConfiguration from './webpack.common';
 
 const BASE_PORT = 8082;
