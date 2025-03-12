@@ -1,7 +1,8 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {canApprove, canExport, canPay, canRemoveHold, canReview, canSubmit} from '@libs/ReportPreviewActionUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+// eslint-disable-next-line no-restricted-syntax
+import type * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportViolations, Transaction, TransactionViolation} from '@src/types/onyx';
