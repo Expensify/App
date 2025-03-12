@@ -1,12 +1,12 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {TextStyle, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { TextStyle, ViewStyle } from 'react-native';
+import { useOnyx } from 'react-native-onyx';
 import Button from '@components/Button';
-import type {MenuItemWithLink} from '@components/MenuItemList';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import type { MenuItemWithLink } from '@components/MenuItemList';
+import { usePersonalDetails } from '@components/OnyxProvider';
 import PopoverMenu from '@components/PopoverMenu';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type { PopoverMenuItem } from '@components/PopoverMenu';
+import type { SearchQueryJSON } from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
@@ -15,19 +15,19 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {clearAllFilters} from '@libs/actions/Search';
-import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import { clearAllFilters } from '@libs/actions/Search';
+import { getCardFeedNamesWithType } from '@libs/CardFeedUtils';
+import { mergeCardListWithWorkspaceFeeds } from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, isCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import { getAllTaxRates } from '@libs/PolicyUtils';
+import { buildSearchQueryJSON, buildUserReadableQueryString, isCannedSearchQuery } from '@libs/SearchQueryUtils';
+import { createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil } from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+import type { SaveSearchItem } from '@src/types/onyx/SaveSearch';
 
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
@@ -39,17 +39,16 @@ type SavedSearchMenuItem = MenuItemWithLink & {
 type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;
     searchName?: string;
-    shouldGroupByReports?: boolean;
 };
 
-function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: SearchTypeMenuNarrowProps) {
+function SearchTypeMenuPopover({ queryJSON, searchName }: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {singleExecution} = useSingleExecution();
-    const {windowHeight} = useWindowDimensions();
-    const {translate} = useLocalize();
-    const {hash, policyID} = queryJSON;
-    const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
+    const { singleExecution } = useSingleExecution();
+    const { windowHeight } = useWindowDimensions();
+    const { translate } = useLocalize();
+    const { hash, policyID, groupBy } = queryJSON;
+    const { showDeleteModal, DeleteConfirmModal } = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const personalDetails = usePersonalDetails();
@@ -58,9 +57,10 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
-    const {unmodifiedPaddings} = useSafeAreaPaddings();
+    const { unmodifiedPaddings } = useSafeAreaPaddings();
+    const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
+        return getCardFeedNamesWithType({ workspaceCardFeeds, userCardList, translate });
     }, [translate, workspaceCardFeeds, userCardList]);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -102,12 +102,12 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                 ...baseMenuItem,
                 onSelected: () => {
                     clearAllFilters();
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({ query: item?.query ?? '', name: item?.name }));
                 },
                 rightComponent: (
                     <ThreeDotsMenu
                         menuItems={getOverflowMenu(baseMenuItem.title ?? '', Number(baseMenuItem.hash ?? ''), item.query ?? '')}
-                        anchorPosition={{horizontal: 0, vertical: 380}}
+                        anchorPosition={{ horizontal: 0, vertical: 380 }}
                         anchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -159,7 +159,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                 iconRight: Expensicons.Checkmark,
                 shouldShowRightIcon: isSelected,
                 success: isSelected,
-                containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+                containerStyle: isSelected ? [{ backgroundColor: theme.border }] : undefined,
                 shouldCallAfterModalHide: true,
             };
         });
@@ -200,7 +200,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
     return (
         <>
             <Button
-                innerStyles={[{backgroundColor: theme.sidebarHover}]}
+                innerStyles={[{ backgroundColor: theme.sidebarHover }]}
                 icon={Expensicons.Bookmark}
                 onPress={openMenu}
             />
@@ -214,7 +214,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                     anchorRef={buttonRef}
                     shouldUseScrollView
                     shouldUseModalPaddingStyle={false}
-                    innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
+                    innerContainerStyle={{ paddingBottom: unmodifiedPaddings.bottom }}
                     shouldAvoidSafariException
                 />
             )}
