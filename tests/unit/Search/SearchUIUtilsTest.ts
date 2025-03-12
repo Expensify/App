@@ -9,6 +9,7 @@ import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const adminAccountID = 18439984;
@@ -1387,5 +1388,13 @@ describe('SearchUIUtils', () => {
             action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID2}`);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
+    });
+
+    test('Should return true if the search result has valid type', () => {
+        expect(SearchUIUtils.shouldShowEmptyState(false, reportsListItems.length, searchResults.search.type)).toBe(true);
+        expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search.type)).toBe(true);
+        const inValidSearchType: SearchDataTypes = 'expensse' as SearchDataTypes;
+        expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, inValidSearchType)).toBe(true);
+        expect(SearchUIUtils.shouldShowEmptyState(true, reportsListItems.length, searchResults.search.type)).toBe(false);
     });
 });

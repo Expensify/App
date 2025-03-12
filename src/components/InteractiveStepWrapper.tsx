@@ -38,9 +38,6 @@ type InteractiveStepWrapperProps = {
     // Should enable picker avoiding
     shouldEnablePickerAvoiding?: boolean;
 
-    // Call task ID for the guides
-    guidesCallTaskID?: string;
-
     // Offline indicator style
     offlineIndicatorStyle?: StyleProp<ViewStyle>;
 
@@ -70,7 +67,6 @@ function InteractiveStepWrapper(
         shouldEnableMaxHeight,
         shouldShowOfflineIndicator,
         shouldEnablePickerAvoiding = false,
-        guidesCallTaskID,
         offlineIndicatorStyle,
         shouldKeyboardOffsetBottomSafeAreaPadding,
         enableEdgeToEdgeBottomSafeAreaPadding,
@@ -95,7 +91,6 @@ function InteractiveStepWrapper(
                 title={headerTitle}
                 subtitle={headerSubtitle}
                 onBackButtonPress={handleBackButtonPress}
-                guidesCallTaskID={guidesCallTaskID}
             />
             {!!stepNames && (
                 <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
