@@ -23,16 +23,12 @@ function getIOUData(
     const from = personalDetails ? personalDetails[fromID] : emptyPersonalDetails;
     const to = personalDetails ? personalDetails[toID] : emptyPersonalDetails;
 
-    if (!reportOrID) {
-        return {from, to, isIOU: false};
+    if (reportOrID && (typeof reportOrID === 'string' || reportOrID.type === CONST.REPORT.TYPE.IOU)) {
+        return {from, to};
     }
 
-    if (typeof reportOrID === 'string') {
-        return {from, to, isIOU: true};
-    }
-
-    return {from, to, isIOU: reportOrID.type === CONST.REPORT.TYPE.IOU};
+    return undefined;
 }
 
-export {createTransactionPreviewText, createTransactionPreviewConditionals, navigateToReviewFields} from '../TransactionPreviewUtils';
+export {createTransactionPreviewText, createTransactionPreviewConditionals, getReviewNavigationRoute} from '../TransactionPreviewUtils';
 export {getIOUData};

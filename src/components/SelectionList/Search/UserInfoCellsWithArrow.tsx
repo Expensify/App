@@ -2,17 +2,15 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {ThemeColors} from '@styles/theme/types';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSizeName} from '@styles/utils';
 import variables from '@styles/variables';
-import type {ThemeStyles} from '@src/styles';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import UserInfoCell from './UserInfoCell';
 
 function UserInfoCellsWithArrow({
-    styles,
-    theme,
     shouldDisplayArrowIcon,
     participantFrom,
     participantFromDisplayName,
@@ -20,8 +18,6 @@ function UserInfoCellsWithArrow({
     participantToDisplayName,
     avatarSize,
 }: {
-    styles: ThemeStyles;
-    theme: ThemeColors;
     shouldDisplayArrowIcon: boolean;
     participantFrom: SearchPersonalDetails | PersonalDetails;
     participantFromDisplayName: string;
@@ -29,11 +25,15 @@ function UserInfoCellsWithArrow({
     participantToDisplayName: string;
     avatarSize?: AvatarSizeName;
 }) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+
     return (
         <>
             <View style={[styles.mw50]}>
                 <UserInfoCell
-                    participant={participantFrom}
+                    accountID={participantFrom.accountID}
+                    avatar={participantFrom.avatar}
                     displayName={participantFromDisplayName}
                     avatarSize={avatarSize}
                 />
@@ -48,7 +48,8 @@ function UserInfoCellsWithArrow({
             )}
             <View style={[styles.flex1, styles.mw50]}>
                 <UserInfoCell
-                    participant={participantTo}
+                    accountID={participantTo.accountID}
+                    avatar={participantTo.avatar}
                     displayName={participantToDisplayName}
                     avatarSize={avatarSize}
                 />

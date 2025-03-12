@@ -3,7 +3,7 @@ import {createTransactionPreviewConditionals, createTransactionPreviewText} from
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 
-const basicInput = {
+const basicProps = {
     iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
     transaction: buildOptimisticTransaction({
         transactionParams: {
@@ -28,26 +28,26 @@ const basicInput = {
 describe('TransactionPreviewUtils', () => {
     describe('createTransactionPreviewText', () => {
         it('should return an empty RBR message when shouldShowRBR is false and no transaction is given', () => {
-            const result = createTransactionPreviewText({...basicInput, shouldShowRBR: false});
-            expect(result.RBRmessage).toEqual('');
+            const result = createTransactionPreviewText({...basicProps, shouldShowRBR: false});
+            expect(result.RBRmessage.text).toEqual('');
         });
 
         it('returns correct hold message when the transaction is on hold', () => {
             const testInput = {
-                ...basicInput,
-                transaction: {...basicInput.transaction, comment: {hold: 'true'}},
+                ...basicProps,
+                transaction: {...basicProps.transaction, comment: {hold: 'true'}},
                 shouldShowRBR: true,
             };
 
             const result = createTransactionPreviewText(testInput);
-            expect(result.RBRmessage).toContain('violations.hold');
+            expect(result.RBRmessage.translationPath).toContain('violations.hold');
         });
     });
 
     describe('createTransactionPreviewConditionals', () => {
         it('should determine RBR visibility according to violation and hold conditions', () => {
             const input = {
-                ...basicInput,
+                ...basicProps,
                 violations: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, transactionID: 123, showInReview: true}],
             };
             const result = createTransactionPreviewConditionals(input);
@@ -55,19 +55,19 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it("should disable onPress when it's a bill split with empty transaction data", () => {
-            const input = {...basicInput, isBillSplit: true, transaction: undefined};
+            const input = {...basicProps, isBillSplit: true, transaction: undefined};
             const result = createTransactionPreviewConditionals(input);
             expect(result.shouldDisableOnPress).toBeTruthy();
         });
 
         it("should not show category if it's not a policy expense chat", () => {
-            const input = {...basicInput, isReportAPolicyExpenseChat: false};
+            const input = {...basicProps, isReportAPolicyExpenseChat: false};
             const result = createTransactionPreviewConditionals(input);
             expect(result.shouldShowCategory).toBeFalsy();
         });
 
         it('should show keep button when there are duplicates', () => {
-            const input = {...basicInput, areThereDuplicates: true};
+            const input = {...basicProps, areThereDuplicates: true};
             const result = createTransactionPreviewConditionals(input);
             expect(result.shouldShowKeepButton).toBeTruthy();
         });

@@ -78,8 +78,6 @@ function ExpenseItemHeaderNarrow({
                     </PressableWithFeedback>
                 )}
                 <UserInfoCellsWithArrow
-                    styles={styles}
-                    theme={theme}
                     shouldDisplayArrowIcon={!!shouldDisplayArrowIcon}
                     participantFrom={participantFrom}
                     participantFromDisplayName={participantFromDisplayName}

@@ -107,8 +107,8 @@ type TransactionPreviewContentProps = {
     /** Name of the route where the transaction preview is being displayed */
     routeName: string;
 
-    /** Whether to hide the component on delete */
-    hideOnDelete: boolean;
+    /** Determine whether to hide the component's children if deletion is pending */
+    shouldHideOnDelete?: boolean;
 };
 
 export type {TransactionPreviewProps, TransactionPreviewContentProps};

@@ -98,7 +98,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
         sessionAccountID: 11111111,
         walletTermsErrors: undefined,
         routeName: SCREENS.TRANSACTION_DUPLICATE.REVIEW,
-        hideOnDelete: false,
+        shouldHideOnDelete: false,
     },
     argTypes: {
         ...disabledProperties,

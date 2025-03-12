@@ -24,10 +24,12 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getTransactionDetails, getWorkspaceIcon, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
+import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, createTransactionPreviewText, getIOUData} from '@libs/TransactionPreviewUtils';
 import {hasReceipt as hasReceiptTransactionUtils, isReceiptBeingScanned} from '@libs/TransactionUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
@@ -52,7 +54,7 @@ function TransactionPreviewContent({
     sessionAccountID,
     walletTermsErrors,
     routeName,
-    hideOnDelete = true,
+    shouldHideOnDelete = true,
 }: TransactionPreviewContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -101,21 +103,38 @@ function TransactionPreviewContent({
         shouldShowDescription,
         shouldShowKeepButton,
         shouldDisableOnPress,
-        showCashOrCard,
     } = conditionals;
 
-    const {RBRmessage, displayAmountText, displayDeleteAmountText, previewHeaderText} = useMemo(
+    const firstViolation = violations.at(0);
+    const isIOUActionType = isMoneyRequestAction(action);
+    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction);
+    const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit) : undefined;
+
+    const previewText = useMemo(
         () =>
             createTransactionPreviewText({
                 ...creationalData,
                 shouldShowRBR,
+                violationMessage,
             }),
-        [creationalData, shouldShowRBR],
+        [creationalData, shouldShowRBR, violationMessage],
     );
+    const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? '');
 
-    const {from, to, isIOU} = getIOUData(managerID, ownerAccountID, iouReport, personalDetails, (transaction && transaction.amount) ?? 0);
+    const previewHeaderText = previewText.previewHeaderText.reduce((text, currentKey) => {
+        return `${text}${getTranslatedText(currentKey)}`;
+    }, '');
+
+    const RBRmessage = getTranslatedText(previewText.RBRmessage);
+    const displayAmountText = getTranslatedText(previewText.displayAmountText);
+    const showCashOrCard = getTranslatedText(previewText.showCashOrCard);
+    const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
+
+    const iouData = getIOUData(managerID, ownerAccountID, iouReport, personalDetails, (transaction && transaction.amount) ?? 0);
+    const {from, to} = iouData ?? {from: null, to: null};
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
+    const shouldShowIOUHeader = !!from && !!to;
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = hasReceiptTransactionUtils(transaction);
@@ -153,7 +172,7 @@ function TransactionPreviewContent({
         ],
     );
 
-    const childContainer = (
+    const transactionContent = (
         <View>
             <OfflineWithFeedback
                 errors={walletTermsErrors}
@@ -163,7 +182,7 @@ function TransactionPreviewContent({
                 pendingAction={action?.pendingAction}
                 shouldDisableStrikeThrough={isDeleted}
                 shouldDisableOpacity={isDeleted}
-                shouldHideOnDelete={hideOnDelete}
+                shouldHideOnDelete={shouldHideOnDelete}
             >
                 <View
                     style={[
@@ -185,11 +204,9 @@ function TransactionPreviewContent({
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
-                                    {isIOU && !!from && !!to && (
+                                    {shouldShowIOUHeader && (
                                         <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
                                             <UserInfoCellsWithArrow
-                                                styles={styles}
-                                                theme={theme}
                                                 shouldDisplayArrowIcon
                                                 participantFrom={from}
                                                 participantFromDisplayName={from.displayName ?? from.login ?? ''}
@@ -330,7 +347,7 @@ function TransactionPreviewContent({
     );
 
     if (!onPreviewPressed) {
-        return childContainer;
+        return transactionContent;
     }
 
     return (
@@ -350,7 +367,7 @@ function TransactionPreviewContent({
                 (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
             ]}
         >
-            {childContainer}
+            {transactionContent}
             {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && shouldShowKeepButton && (
                 <Button
                     text={translate('violations.keepThisOne')}

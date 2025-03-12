@@ -5,8 +5,9 @@ import {useOnyx} from 'react-native-onyx';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
-import {navigateToReviewFields} from '@libs/TransactionPreviewUtils';
+import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
 import {clearWalletTermsError} from '@userActions/PaymentMethods';
@@ -35,8 +36,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const allDuplicates = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
     const duplicates = useMemo(() => removeSettledAndApprovedTransactions(allDuplicates), [allDuplicates]);
-    const areThereDuplicates = !!(allDuplicates.length && duplicates.length && allDuplicates.length === duplicates.length);
     const sessionAccountID = session?.accountID;
+    const areThereDuplicates = allDuplicates.length > 0 && duplicates.length > 0 && allDuplicates.length === duplicates.length;
 
     const showContextMenu = (event: GestureResponderEvent) => {
         if (!shouldDisplayContextMenu) {
@@ -50,8 +51,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
         clearIOUError(chatReportID);
     }, [chatReportID]);
 
-    const navigate = useCallback(() => {
-        navigateToReviewFields(route, report, transaction, duplicates);
+    const navigateToReviewFields = useCallback(() => {
+        Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
     }, [duplicates, report, route, transaction]);
 
     return (
@@ -65,7 +66,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             violations={violations}
             showContextMenu={showContextMenu}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
-            navigateToReviewFields={navigate}
+            navigateToReviewFields={navigateToReviewFields}
             areThereDuplicates={areThereDuplicates}
             sessionAccountID={sessionAccountID}
             walletTermsErrors={walletTerms?.errors}

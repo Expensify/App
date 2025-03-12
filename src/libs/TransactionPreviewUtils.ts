@@ -1,18 +1,17 @@
 import truncate from 'lodash/truncate';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './actions/Transaction';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import Navigation from './Navigation/Navigation';
 import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from './Navigation/types';
 import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
-import {canEditMoneyRequest, isIOUReport, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isSettled} from './ReportUtils';
+import {isIOUReport, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -35,7 +34,6 @@ import {
     isPerDiemRequest,
     isReceiptBeingScanned,
 } from './TransactionUtils';
-import ViolationsUtils from './Violations/ViolationsUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -56,14 +54,15 @@ function getIOUData(
     const fromID = chooseIdBasedOnAmount(amount, managerID, ownerAccountID);
     const toID = chooseIdBasedOnAmount(amount, ownerAccountID, managerID);
 
-    return {
-        from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
-        to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
-        isIOU: reportOrID ? isIOUReport(reportOrID) : false,
-    };
+    return reportOrID && isIOUReport(reportOrID)
+        ? {
+              from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
+              to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
+          }
+        : undefined;
 }
 
-const navigateToReviewFields = (
+const getReviewNavigationRoute = (
     route: PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, 'Transaction_Duplicate_Review'>,
     report: OnyxEntry<OnyxTypes.Report>,
     transaction: OnyxEntry<OnyxTypes.Transaction>,
@@ -80,43 +79,56 @@ const navigateToReviewFields = (
     const comparisonResult = compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
     setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
 
-    if ('merchant' in comparisonResult.change) {
-        Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo));
-    } else if ('category' in comparisonResult.change) {
-        Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID, backTo));
-    } else if ('tag' in comparisonResult.change) {
-        Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID, backTo));
-    } else if ('description' in comparisonResult.change) {
-        Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID, backTo));
-    } else if ('taxCode' in comparisonResult.change) {
-        Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(route.params?.threadReportID, backTo));
-    } else if ('billable' in comparisonResult.change) {
-        Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(route.params?.threadReportID, backTo));
-    } else if ('reimbursable' in comparisonResult.change) {
-        Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(route.params?.threadReportID, backTo));
-    } else {
-        Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(route.params?.threadReportID, backTo));
+    if (comparisonResult.change.merchant) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo);
     }
+    if (comparisonResult.change.category) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+    if (comparisonResult.change.tag) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+    if (comparisonResult.change.description) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+    if (comparisonResult.change.taxCode) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+    if (comparisonResult.change.billable) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+    if (comparisonResult.change.reimbursable) {
+        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(route.params?.threadReportID, backTo);
+    }
+
+    return ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(route.params?.threadReportID, backTo);
 };
+
+type TranslationPathOrText = {
+    translationPath?: TranslationPaths;
+    text?: string;
+};
+
+const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
 
 function createTransactionPreviewText({
     iouReport,
     transaction,
-    translate,
     action,
     violations,
     transactions,
     isBillSplit,
     shouldShowRBR,
+    violationMessage,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-    translate: LocaleContextProps['translate'];
     action: OnyxTypes.ReportAction;
     violations: OnyxTypes.TransactionViolations;
     transactions: Partial<TransactionDetails>;
     isBillSplit: boolean;
     shouldShowRBR: boolean;
+    violationMessage?: string;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -126,137 +138,114 @@ function createTransactionPreviewText({
     const isPartialHold = isSettlementOrApprovalPartial && isTransactionOnHold;
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
-    const showCashOrCard = isTransactionMadeWithCard ? translate('iou.card') : translate('iou.cash');
+    const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
     const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
-    const isIOUActionType = isMoneyRequestAction(action);
     const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction?.transactionID, violations, true) && isPaidGroupPolicy(iouReport);
 
     const {amount: requestAmount, currency: requestCurrency} = transactions;
 
-    const getSettledMessage = (): string => {
-        if (isTransactionMadeWithCard) {
-            return translate('common.done');
+    let RBRmessage: TranslationPathOrText | undefined;
+
+    if (!shouldShowRBR || !transaction) {
+        RBRmessage = {text: ''};
+    }
+
+    if (shouldShowHoldMessage && RBRmessage === undefined) {
+        RBRmessage = {translationPath: 'violations.hold'};
+    }
+
+    if (violationMessage && RBRmessage === undefined) {
+        const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
+        const isTooLong = violationsCount > 1 || violationMessage.length > 15;
+        const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
+
+        RBRmessage = isTooLong || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
+    }
+
+    if (hasFieldErrors && RBRmessage === undefined) {
+        const merchantMissing = isMerchantMissing(transaction);
+        const amountMissing = isAmountMissing(transaction);
+        if (amountMissing && merchantMissing) {
+            RBRmessage = {translationPath: 'violations.reviewRequired'};
+        } else if (amountMissing) {
+            RBRmessage = {translationPath: 'iou.missingAmount'};
+        } else if (merchantMissing) {
+            RBRmessage = {translationPath: 'iou.missingMerchant'};
         }
-        return translate('iou.settledExpensify');
-    };
+    }
 
-    const getRBRmessage = () => {
-        if (!shouldShowRBR || !transaction) {
-            return '';
-        }
+    RBRmessage ??= {text: ''};
 
-        if (shouldShowHoldMessage) {
-            return translate('violations.hold');
-        }
+    let previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
 
-        const firstViolation = violations?.at(0);
+    if (isDistanceRequest(transaction)) {
+        previewHeaderText = [{translationPath: 'common.distance'}];
+    } else if (isPerDiemRequest(transaction)) {
+        previewHeaderText = [{translationPath: 'common.perDiem'}];
+    } else if (isScanning) {
+        previewHeaderText = [{translationPath: 'common.receipt'}];
+    } else if (isBillSplit) {
+        previewHeaderText = [{translationPath: 'iou.split'}];
+    }
 
-        if (firstViolation) {
-            const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction);
-            const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
-            const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
-            const isTooLong = violationsCount > 1 || violationMessage.length > 15;
-            const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
+    if (!isCreatedMissing(transaction)) {
+        const created = getFormattedCreated(transaction);
+        const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        previewHeaderText.unshift({text: date}, dotSeparator);
+    }
 
-            return isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage;
-        }
+    if (isPending(transaction)) {
+        previewHeaderText.push(dotSeparator, {translationPath: 'iou.pending'});
+    }
 
-        if (hasFieldErrors) {
-            const merchantMissing = isMerchantMissing(transaction);
-            const amountMissing = isAmountMissing(transaction);
-            if (amountMissing && merchantMissing) {
-                return translate('violations.reviewRequired');
-            }
-            if (amountMissing) {
-                return translate('iou.missingAmount');
-            }
-            if (merchantMissing) {
-                return translate('iou.missingMerchant');
-            }
-        }
+    if (hasPendingRTERViolation(violations)) {
+        previewHeaderText.push(dotSeparator, {translationPath: 'iou.pendingMatch'});
+    }
 
-        return '';
-    };
+    let isPreviewHeaderTextComplete = false;
 
-    const getPreviewHeaderText = (): string => {
-        let message = showCashOrCard;
+    if (isMoneyRequestSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
+        previewHeaderText.push(dotSeparator, {translationPath: isTransactionMadeWithCard ? 'common.done' : 'iou.settledExpensify'});
+        isPreviewHeaderTextComplete = true;
+    }
 
-        if (isDistanceRequest(transaction)) {
-            message = translate('common.distance');
-        } else if (isPerDiemRequest(transaction)) {
-            message = translate('common.perDiem');
-        } else if (isScanning) {
-            message = translate('common.receipt');
-        } else if (isBillSplit) {
-            message = translate('iou.split');
-        }
+    if (shouldShowRBR && transaction) {
+        isPreviewHeaderTextComplete = true;
+    }
 
-        if (!isCreatedMissing(transaction)) {
-            const created = getFormattedCreated(transaction);
-            const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-            message = `${date} ${CONST.DOT_SEPARATOR} ${message}`;
-        }
-
-        if (isPending(transaction)) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-        }
-
-        if (hasPendingRTERViolation(violations)) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
-        }
-
-        if (isMoneyRequestSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
-            message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
-            return message;
-        }
-
-        if (shouldShowRBR && transaction) {
-            return message;
-        }
-
+    if (!isPreviewHeaderTextComplete) {
         if (hasViolationsOfTypeNotice && transaction && !isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID)) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.reviewRequired')}`;
+            previewHeaderText.push(dotSeparator, {translationPath: 'violations.reviewRequired'});
         } else if (isPaidGroupPolicyExpenseReport(iouReport) && isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID) && !isPartialHold) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
+            previewHeaderText.push(dotSeparator, {translationPath: 'iou.approved'});
         } else if (iouReport?.isCancelledIOU) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
+            previewHeaderText.push(dotSeparator, {translationPath: 'iou.canceled'});
         } else if (shouldShowHoldMessage) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
+            previewHeaderText.push(dotSeparator, {translationPath: 'violations.hold'});
         }
-        return message;
-    };
+    }
 
-    const getDisplayAmountText = (): string => {
-        if (isScanning) {
-            return translate('iou.receiptStatusTitle');
-        }
+    let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(requestAmount, requestCurrency)};
+    if (isFetchingWaypoints && !requestAmount) {
+        displayAmountText = {translationPath: 'iou.fieldPending'};
+    }
 
-        if (isFetchingWaypoints && !requestAmount) {
-            return translate('iou.fieldPending');
-        }
+    const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = isMoneyRequestAction(action) ? getOriginalMessage(action) ?? undefined : undefined;
+    const displayDeleteAmountText: TranslationPathOrText = {text: convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency)};
 
-        return convertToDisplayString(requestAmount, requestCurrency);
-    };
-
-    const getDisplayDeleteAmountText = (): string => {
-        const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = isMoneyRequestAction(action) ? getOriginalMessage(action) ?? undefined : undefined;
-        return convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency);
-    };
-
-    // const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();
     return {
-        RBRmessage: getRBRmessage(),
-        displayAmountText: getDisplayAmountText(),
-        displayDeleteAmountText: getDisplayDeleteAmountText(),
-        previewHeaderText: getPreviewHeaderText(),
+        RBRmessage,
+        displayAmountText,
+        displayDeleteAmountText,
+        previewHeaderText,
+        showCashOrCard,
     };
 }
 
 function createTransactionPreviewConditionals({
     iouReport,
     transaction,
-    translate,
     action,
     violations,
     transactions,
@@ -266,7 +255,6 @@ function createTransactionPreviewConditionals({
 }: {
     iouReport: OnyxInputValue<OnyxTypes.Report> | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
-    translate: LocaleContextProps['translate'];
     action: OnyxTypes.ReportAction;
     violations: OnyxTypes.TransactionViolations;
     transactions: Partial<TransactionDetails>;
@@ -289,7 +277,6 @@ function createTransactionPreviewConditionals({
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
-    const isTransactionMadeWithCard = isCardTransaction(transaction);
 
     const isTransactionOnHold = isOnHold(transaction);
     const isFullySettled = isMoneyRequestSettled && !isSettlementOrApprovalPartial;
@@ -305,7 +292,6 @@ function createTransactionPreviewConditionals({
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold;
 
-    const showCashOrCard = isTransactionMadeWithCard ? translate('iou.card') : translate('iou.cash');
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = areThereDuplicates;
     const shouldShowSplitShare = isBillSplit && !!requestAmount && requestAmount > 0;
@@ -327,7 +313,6 @@ function createTransactionPreviewConditionals({
         shouldDisableOnPress,
         shouldShowSkeleton,
         shouldShowTag,
-        showCashOrCard,
         shouldShowRBR,
         shouldShowCategory,
         shouldShowKeepButton,
@@ -337,4 +322,5 @@ function createTransactionPreviewConditionals({
     };
 }
 
-export {navigateToReviewFields, getIOUData, createTransactionPreviewText, createTransactionPreviewConditionals};
+export {getReviewNavigationRoute, getIOUData, createTransactionPreviewText, createTransactionPreviewConditionals};
+export type {TranslationPathOrText};
