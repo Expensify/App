@@ -5485,13 +5485,6 @@ const styles = (theme: ThemeColors) =>
             borderLeftColor: theme.border,
         }),
 
-        expenseWidgetSeparator: {
-            marginHorizontal: 8,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeXLarge,
-            color: theme.textSupporting,
-        },
-
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
         },

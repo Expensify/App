@@ -1,9 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Hoverable from '@components/Hoverable';
-import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
-import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -59,7 +57,7 @@ function TransactionItemComponent({
                                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                                         />
                                     </View>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.minHeight5, styles.maxHeight5]}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
                                         <MerchantCell
                                             transactionItem={transactionItem}
                                             shouldShowTooltip={shouldShowTooltip}
@@ -70,11 +68,10 @@ function TransactionItemComponent({
                                             shouldShowTooltip={shouldShowTooltip}
                                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                                         />
-                                        {/* </View> */}
                                     </View>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.minHeight3, styles.ml3, styles.mt0, styles.mb3]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ml3, styles.mt0, styles.mb3]}>
                                 <CategoryCell
                                     transactionItem={transactionItem}
                                     shouldShowTooltip={shouldShowTooltip}
