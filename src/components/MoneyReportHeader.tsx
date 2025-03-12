@@ -443,6 +443,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE,
             onSelected: () => {
+                if (isDelegateAccessRestricted) {
+                    setIsNoDelegateAccessMenuVisible(true);
+                }
+
                 unapproveExpenseReport(moneyRequestReport);
             },
         },
