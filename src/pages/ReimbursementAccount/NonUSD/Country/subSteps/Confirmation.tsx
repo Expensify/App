@@ -112,8 +112,6 @@ function Confirmation({onNext}: SubStepProps) {
                             shouldAllowChange={shouldAllowChange}
                             value={selectedCountry}
                             inputID={COUNTRY}
-                            // inputID={BANK_CURRENCY}
-                            // shouldSaveDraft
                         />
                     </FormProvider>
                 </ScrollView>
