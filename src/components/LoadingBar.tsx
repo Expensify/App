@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import React, {useEffect} from 'react';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
@@ -47,7 +47,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
     }, [shouldShow]);
 
     const wrapperStyle = useAnimatedStyle(() => ({
-        height: withTiming(shouldShow ? 2 : 0, { duration: CONST.TIMING.SKELETON_FADE_DURATION }), // Płynna zmiana wysokości
+        height: withTiming(shouldShow ? 2 : 0, {duration: CONST.TIMING.SKELETON_FADE_DURATION}),
     }));
 
     const barStyle = useAnimatedStyle(() => ({
