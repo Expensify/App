@@ -5432,7 +5432,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         progressBarWrapper: {
-            height: 2,
             overflow: 'hidden',
         },
 
