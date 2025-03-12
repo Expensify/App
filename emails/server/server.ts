@@ -33,7 +33,7 @@ app.get('/:notification', async (req, res, next) => {
                     value: {
                         // Chat report (e.g. policyExpenseChat linking to a workspace policy)
                         [`${ONYXKEYS.COLLECTION.REPORT}67890`]: {
-                            reportID: 67890,
+                            reportID: '67890',
                             policyID: 1001,
                             // Mark this report as an invoice receiver for a policy
                             invoiceReceiver: {policyID: 1001},
@@ -41,7 +41,7 @@ app.get('/:notification', async (req, res, next) => {
                         },
                         // Expense report (the actual IOU/money request report)
                         [`${ONYXKEYS.COLLECTION.REPORT}12345`]: {
-                            reportID: 12345,
+                            reportID: '12345',
                             policyID: 1001,
                             ownerAccountID: 111, // accountID of the user who submitted the report
                             currency: 'USD',
@@ -59,12 +59,36 @@ app.get('/:notification', async (req, res, next) => {
                     value: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}TX1001`]: {
                             transactionID: 'TX1001',
-                            reportID: 12345,
+                            reportID: '12345',
                             amount: 4500, // amount in cents matching the report total
                             currency: 'USD',
                             merchant: 'Subway', // merchant name for the expense
                             comment: 'Team Lunch', // description or comment for the transaction
-                            // (Optional) receipt URL, category, etc., if needed
+                            bank: 'Expensify Card',
+                            billable: false,
+                            cardID: 19071628,
+                            cardName: 'Expensify Card - 1370',
+                            cardNumber: '455594XXXXXX1370',
+                            category: 'Employee Meals Remote (Fringe Benefit)',
+                            comment: {comment: '', forceReimbursable: false, liabilityType: 'corporate'},
+                            created: '2025-02-18 22:00:47',
+                            filename: '',
+                            inserted: '2025-02-19 07:36:58',
+                            managedCard: true,
+                            modifiedAmount: 0,
+                            modifiedCreated: '2025-02-18 22:00:47',
+                            modifiedCurrency: '',
+                            modifiedMerchant: 'Subway',
+                            originalAmount: 0,
+                            originalCurrency: '',
+                            parentTransactionID: '1665219143489105858',
+                            posted: '20250219',
+                            receipt: {},
+                            reimbursable: false,
+                            status: 'Posted',
+                            tag: '',
+                            mccGroup: 'Meals',
+                            hasEReceipt: true,
                         },
                     },
                 },
