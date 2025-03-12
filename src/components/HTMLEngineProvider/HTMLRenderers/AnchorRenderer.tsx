@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import type {StyleProp, TextStyle} from 'react-native';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
@@ -35,13 +36,14 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const linkHasImage = tnode.tagName === 'a' && tnode.children.some((child) => child.tagName === 'img');
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
+    const isChildOfAlertText = HTMLEngineUtils.isChildOfAlertText(tnode);
     const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
 
     // Define link style based on context
-    let linkStyle = styles.link;
+    let linkStyle: StyleProp<TextStyle> = styles.link;
 
     // Special handling for links in alert-text to maintain consistent font size
-    if (HTMLEngineUtils.isChildOfAlertText(tnode)) {
+    if (isChildOfAlertText) {
         linkStyle = [
             styles.link,
             // Use the parent's font properties but keep link color
