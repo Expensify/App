@@ -5139,6 +5139,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
     if (participants.length > 1) {
         const splitChatReport = buildOptimisticChatReport({
             participantList: allParticipantsAccountIDs,
+            reportName: '',
             chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         });

@@ -812,6 +812,7 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report, isOptimisticReport 
 function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number) {
     const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport({
         participantList: [assigneeAccountID, currentUserAccountID],
+        reportName: '',
         policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
         ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,

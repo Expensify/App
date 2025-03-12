@@ -87,6 +87,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
 
     const expenseChatData = ReportUtils.buildOptimisticChatReport({
         participantList: [sessionAccountID],
+        reportName: '',
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         policyID,
         ownerAccountID: sessionAccountID,
