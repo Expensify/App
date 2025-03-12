@@ -1,9 +1,8 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, PanResponder, View} from 'react-native';
+import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
@@ -20,7 +19,6 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CustomDevMenu from './CustomDevMenu';
@@ -181,10 +179,7 @@ function ScreenWrapper(
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
     UNSTABLE_usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
-        if (!CONFIG.IS_HYBRID_APP) {
-            return;
-        }
-        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+        NativeModules.HybridAppModule?.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
         setRootStatusBarEnabled(false);
     });
 

@@ -1,9 +1,8 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app/src';
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
@@ -44,7 +43,6 @@ import {buildOldDotURL, openExternalLink, openOldDotLink} from '@userActions/Lin
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {openInitialSettingsPage} from '@userActions/Wallet';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -248,10 +246,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.ExpensifyLogoNew,
-                    ...(CONFIG.IS_HYBRID_APP
+                    ...(NativeModules.HybridAppModule
                         ? {
                               action: () => {
-                                  HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                                  NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                                   setRootStatusBarEnabled(false);
                               },
                           }
