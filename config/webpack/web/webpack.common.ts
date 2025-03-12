@@ -112,6 +112,20 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         ],
         module: {
             rules: [
+                // Gives the ability to load local images
+                {
+                    test: /\.(png|jpe?g|gif)$/i,
+                    type: 'asset',
+                },
+                // TODO: add support for custom fonts in apple mail clients (i.e: by injecting links into the HTML head to download our custom fonts, similar to what we do for NewDot web with the Preload plugins), always fallback on system fonts
+                {
+                    test: /\.(woff|woff2)$/i,
+                    type: 'asset',
+                },
+                {
+                    test: /\.lottie$/,
+                    type: 'asset/resource',
+                },
                 {
                     test: /\.css$/i,
                     use: ['style-loader', 'css-loader'],

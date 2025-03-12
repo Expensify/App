@@ -111,11 +111,6 @@ const getBaseConfiguration = ({file = '.env', platform = 'web'}: Environment): C
                  */
                 exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`)],
             },
-            // Gives the ability to load local images
-            {
-                test: /\.(png|jpe?g|gif)$/i,
-                type: 'asset',
-            },
             // Load svg images
             {
                 test: /\.svg$/,
@@ -128,16 +123,8 @@ const getBaseConfiguration = ({file = '.env', platform = 'web'}: Environment): C
                 ],
             },
             {
-                test: /\.(woff|woff2)$/i,
-                type: 'asset',
-            },
-            {
                 resourceQuery: /raw/,
                 type: 'asset/source',
-            },
-            {
-                test: /\.lottie$/,
-                type: 'asset/resource',
             },
         ],
     },

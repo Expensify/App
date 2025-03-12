@@ -19,6 +19,12 @@ const ssrConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
     },
     module: {
         rules: [
+            // Load images inline as base64
+            // TODO: to support outlook, we'd need the CLI config to use CID (content-id) images and send the images as attachments. For previewing in the browser and all other email clients, base64 images work. Note that CID images only work in email clients, not in the browser
+            {
+                test: /\.(png|jpe?g|gif)$/i,
+                type: 'asset/inline',
+            },
             {
                 test: /\.css$/,
                 use: [
