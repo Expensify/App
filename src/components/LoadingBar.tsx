@@ -57,7 +57,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
     }));
 
     return (
-        <View style={[styles.progressBarWrapper, { height: shouldShow ? 2 : 0 }]}>
+        <View style={[styles.progressBarWrapper, {height: shouldShow ? 2 : 0}]}>
             <Animated.View style={barStyle} />
         </View>
     );
