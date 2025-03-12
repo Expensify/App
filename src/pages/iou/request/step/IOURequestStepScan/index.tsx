@@ -588,7 +588,7 @@ function IOURequestStepScan({
      */
     const setTestReceiptAndNavigate = useCallback(() => {
         try {
-            const filename = `test_receipt_${Date.now()}.png`;
+            const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.png`;
 
             readFileAsync(
                 TestReceipt as string,

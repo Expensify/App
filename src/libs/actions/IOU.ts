@@ -1269,10 +1269,11 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     if (isMoneyRequestToManagerMcTest) {
         const date = new Date();
+        const isTestReceipt = transaction.filename?.includes(CONST.TEST_RECEIPT.FILENAME) && isScanRequest;
         const optimisticIOUReportAction = buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.PAY,
-            isScanRequest ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total ?? 0,
-            isScanRequest ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency ?? '',
+            isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total ?? 0,
+            isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency ?? '',
             '',
             transaction.participants ?? [],
             '',
@@ -1292,8 +1293,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
                 value: {
                     ...iou.report,
-                    total: isScanRequest ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total,
-                    currency: isScanRequest ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency,
+                    total: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total,
+                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency,
                     lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
                     lastMessageText: getReportActionText(optimisticIOUReportAction),
                     lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
@@ -1320,8 +1321,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                 value: {
                     ...transaction,
-                    amount: isScanRequest ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
-                    currency: isScanRequest ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
+                    amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
+                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
                     receipt: {...transaction.receipt, state: CONST.IOU.RECEIPT_STATE.SCANCOMPLETE},
                 },
             },

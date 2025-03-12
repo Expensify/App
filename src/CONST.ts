@@ -3472,6 +3472,7 @@ const CONST = {
     TEST_RECEIPT: {
         AMOUNT: 1800,
         CURRENCY: 'USD',
+        FILENAME: 'test_receipt',
     },
 
     AVATAR_CROP_MODAL: {
