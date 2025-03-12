@@ -17,7 +17,7 @@ const serverConfig: Configuration = merge(ssrConfig, {
     plugins: [
         // copy static files to dist/
         new CopyWebpackPlugin({
-            patterns: [{from: 'static', to: 'static'}],
+            patterns: [{from: 'server/static', to: 'static'}],
         }),
     ],
 });

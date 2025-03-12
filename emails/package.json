@@ -8,7 +8,7 @@
     "build:cli": "webpack --config ../config/webpack/ssr/webpack.cli.ts",
     "build:server": "webpack --config ../config/webpack/ssr/webpack.server.ts",
     "dev": "./scripts/start.sh",
-    "serve": "nodemon --watch dist/server.bundle.js --exec 'node dist/server.bundle.js'",
+    "serve": "nodemon --watch server/dist/server.bundle.js --exec 'node server/dist/server.bundle.js'",
     "test": "echo 'Error: no test specified' && exit 1",
     "watch": "npm run build:server -- --watch",
     "ws": "ts-node server/LiveReloadServer.ts"
