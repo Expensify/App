@@ -61,9 +61,12 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
         [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID, prdAndSfgInputID],
     );
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return getFieldRequiredErrors(values, STEP_FIELDS);
-    }, [STEP_FIELDS]);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            return getFieldRequiredErrors(values, STEP_FIELDS);
+        },
+        [STEP_FIELDS],
+    );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
