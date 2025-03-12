@@ -5432,13 +5432,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         progressBarWrapper: {
-            height: 2,
             overflow: 'hidden',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 2,
         },
 
         accountSwitcherAnchorPosition: {

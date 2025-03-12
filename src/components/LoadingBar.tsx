@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
@@ -47,6 +46,10 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShow]);
 
+    const wrapperStyle = useAnimatedStyle(() => ({
+        height: withTiming(shouldShow ? 2 : 0, {duration: CONST.TIMING.SKELETON_FADE_DURATION}),
+    }));
+
     const barStyle = useAnimatedStyle(() => ({
         left: `${left.get()}%`,
         width: '30%',
@@ -56,10 +59,11 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
         borderRadius: 2,
     }));
 
+
     return (
-        <View style={[styles.progressBarWrapper, {opacity: shouldShow ? 1 : 0}]}>
+        <Animated.View style={[styles.progressBarWrapper, wrapperStyle]}>
             <Animated.View style={barStyle} />
-        </View>
+        </Animated.View>
     );
 }
 
