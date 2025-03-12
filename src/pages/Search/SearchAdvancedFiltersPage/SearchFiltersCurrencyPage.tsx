@@ -25,6 +25,10 @@ function SearchFiltersCurrencyPage() {
         const currencies: SearchMultipleSelectionPickerItem[] = [];
 
         Object.keys(currencyList ?? {}).forEach((currencyCode) => {
+            if (currencyList?.[currencyCode]?.retired) {
+                return;
+            }
+
             if (selectedCurrenciesCodes?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
                 selectedCurrencies.push({name: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`, value: currencyCode});
             }
