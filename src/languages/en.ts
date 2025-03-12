@@ -1943,6 +1943,34 @@ const translations = {
             `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours. Please try validating your number:`,
         validationFailed: 'Validation failed because it hasn’t been 24 hours since your last attempt.',
         validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
+        pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number, hours?: number, minutes?: number}}) => {
+            if (!timeData) {
+                return 'Please wait a moment before trying again.';
+            }
+            
+            const parts = [];
+            if (timeData.days) {
+                parts.push(`${timeData.days} ${timeData.days === 1 ? 'day' : 'days'}`);
+            }
+            if (timeData.hours) {
+                parts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hour' : 'hours'}`);
+            }
+            if (timeData.minutes) {
+                parts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minute' : 'minutes'}`);
+            }
+            
+            let timeText;
+            if (parts.length === 1) {
+                timeText = parts.at(0);
+            } else if (parts.length === 2) {
+                timeText = parts.join(' and ');
+            } else {
+                const lastPart = parts.pop();
+                timeText = `${parts.join(', ')} and ${lastPart}`;
+            }
+            
+            return `Please wait ${timeText} before trying again.`;
+        },
     },
     welcomeSignUpForm: {
         join: 'Join',
