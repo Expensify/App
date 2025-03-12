@@ -123,6 +123,7 @@ import {
     getReportActionMessage as getReportActionMessageReportUtils,
     getReportActionMessageText,
     getReportActionText,
+    getWorkspaceCurrencyUpdateMessage,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
@@ -4444,6 +4445,9 @@ function getReportNameInternal({
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         return getDowngradeWorkspaceMessage();
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
+        return getWorkspaceCurrencyUpdateMessage(parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
