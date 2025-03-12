@@ -5433,6 +5433,11 @@ const styles = (theme: ThemeColors) =>
 
         progressBarWrapper: {
             overflow: 'hidden',
+            width: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            zIndex: 222,
         },
 
         accountSwitcherAnchorPosition: {
