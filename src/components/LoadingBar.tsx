@@ -59,7 +59,6 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
         borderRadius: 2,
     }));
 
-
     return (
         <Animated.View style={[styles.progressBarWrapper, wrapperStyle]}>
             <Animated.View style={barStyle} />
