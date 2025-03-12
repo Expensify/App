@@ -246,7 +246,7 @@ function ReportPreview({
     }
 
     const isArchived = isArchivedReportWithID(iouReport?.reportID);
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    // const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
     const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations);
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
@@ -592,7 +592,7 @@ function ReportPreview({
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (
             <Button
                 text={translate('common.review')}
-                onPress={() => openReportFromPreview}
+                onPress={() => openReportFromPreview()}
                 isDisabled={shouldDisableSubmitButton}
             />
         ),
