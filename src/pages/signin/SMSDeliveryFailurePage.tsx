@@ -41,9 +41,8 @@ function SMSDeliveryFailurePage() {
             return null;
         }
         return JSON.parse(SMSDeliveryFailureMessage) as TimeData;
+    }, [SMSDeliveryFailureMessage]);
 
-    }, [SMSDeliveryFailureMessage]);    
-    
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
     const isReset = account?.smsDeliveryFailureStatus?.isReset;
