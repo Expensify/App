@@ -1,16 +1,16 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {getBrowser, isChromeIOS} from '@libs/Browser';
 import Navigation from '@navigation/Navigation';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import { getBrowser, isChromeIOS } from '@libs/Browser';
 import Button from './Button';
 import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
 import Modal from './Modal';
@@ -27,16 +27,16 @@ function TestToolsModal() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const shouldShowProfileTool = () => {
+    const shouldShowProfileTool = useMemo(() => {
         const browser = getBrowser();
         const isSafariOrFirefox = browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.FIREFOX;
 
-        if(isSafariOrFirefox || isChromeIOS()){
+        if (isSafariOrFirefox || isChromeIOS()) {
             return false;
         }
 
         return true;
-    };
+    }, []);
 
     return (
         <Modal
@@ -51,7 +51,7 @@ function TestToolsModal() {
                 >
                     {translate('initialSettingsPage.troubleshoot.releaseOptions')}
                 </Text>
-                {shouldShowProfileTool() && <ProfilingToolMenu />}
+                {shouldShowProfileTool && <ProfilingToolMenu />}
                 <ClientSideLoggingToolMenu />
                 {!!shouldStoreLogs && (
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
