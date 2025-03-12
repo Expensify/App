@@ -93,7 +93,7 @@ After the bank account is verified for international payments, set the correct b
 
 ---
 
-# Requirements for international Reimbursement
+# Requirements for International Reimbursement
 
 ## U.S.
 **Requirements:**
@@ -172,7 +172,7 @@ Expensify's Compliance Team must send a PDS FSG to company directors before onbo
 
 ## Can multiple people send reimbursements internationally?
 
-Once your company is authorized to send international payments, the individual who verified the bank account can share it with additional admins on the workspace, enabling them to send global reimbursements.
+Yes, once your company is authorized to send international payments, the individual who verified the bank account can share it with additional admins on the workspace, enabling them to send global reimbursements.
 
 ## How long does it take to verify an account for global payments?
 
@@ -180,7 +180,7 @@ The verification process can take anywhere from a few business days to several w
 
 ## Why can't my employee add a non-USD bank account?
 
-Have the employee double-check that their [[default workspace](https://help.expensify.com/articles/expensify-classic/workspaces/Navigate-multiple-workspaces)](https://help.expensify.com/articles/expensify-classic/workspaces/Navigate-multiple-workspaces) is set as the workspace that’s connected to the bank you’re using to send global payments. 
+Make sure your employee's default workspace is set to the one linked to the bank you're using for global payments. They can confirm their default workspace by following [these steps](https://help.expensify.com/articles/expensify-classic/workspaces/Navigate-multiple-workspaces).
 
 ## Who are the “Authorized User” and the “User” on the International Reimbursement DocuSign form?
 
