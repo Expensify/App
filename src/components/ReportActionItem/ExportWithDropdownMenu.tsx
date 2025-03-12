@@ -9,6 +9,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {savePreferredExportMethod as savePreferredExportMethodUtils} from '@libs/actions/Policy/Policy';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {hasIntegrationAutoSync as hasIntegrationAutoSyncUtils} from '@libs/PolicyUtils';
 import {canBeExported as canBeExportedUtils, getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
@@ -19,7 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import { savePreferredExportMethod as savePreferredExportMethodUtils } from '@libs/actions/Policy/Policy';
 
 type ExportWithDropdownMenuProps = {
     policy: OnyxEntry<Policy>;
