@@ -5353,8 +5353,8 @@ const translations = {
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText1: 'Start a chat, ',
-            buttonText2: `refer a friend.`,
-            header: `Start a chat, refer a friend`,
+            buttonText2: 'refer a friend.',
+            header: 'Start a chat, refer a friend',
             body: "Want your friends to use Expensify, too? Just start a chat with them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
