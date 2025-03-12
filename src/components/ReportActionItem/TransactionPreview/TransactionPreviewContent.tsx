@@ -1,3 +1,5 @@
+import lodashSortBy from 'lodash/sortBy';
+import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -10,70 +12,146 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/SelectionList/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {calculateAmount} from '@libs/IOUUtils';
+import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
+import {getTransactionDetails, getWorkspaceIcon, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
+import {createTransactionPreviewConditionals, createTransactionPreviewText, getIOUData} from '@libs/TransactionPreviewUtils';
+import {hasReceipt as hasReceiptTransactionUtils, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import type {TransactionPreviewUIProps} from './types';
+import CONST from '@src/CONST';
+import SCREENS from '@src/SCREENS';
+import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
-    isDeleted,
-    isScanning,
+    action,
     isWhisper,
     isHovered,
-    isSettled,
-    isBillSplit,
-    isApproved,
-    isSettlementOrApprovalPartial,
-    isReviewDuplicateTransactionPage,
-    shouldShowSkeleton,
-    shouldShowRBR,
-    shouldDisableOnPress,
-    shouldShowKeepButton,
-    shouldShowDescription,
-    shouldShowMerchant,
-    shouldShowCategory,
-    shouldShowTag,
-    displayAmount,
-    category,
-    showCashOrCard,
-    tag,
-    requestCurrency,
-    merchantOrDescription,
-    previewHeaderText,
-    requestAmount,
-    splitShare,
-    receiptImages,
-    sortedParticipantAvatars,
-    containerStyles,
-    walletTermsErrors,
-    pendingAction,
+    chatReport,
+    personalDetails,
+    iouReport,
+    transaction,
+    violations,
     showContextMenu,
     offlineWithFeedbackOnClose,
-    translate,
     navigateToReviewFields,
     onPreviewPressed,
-    RBRmessage,
-    from,
-    to,
-    isIOU,
-}: TransactionPreviewUIProps) {
+    containerStyles,
+    isBillSplit,
+    areThereDuplicates,
+    sessionAccountID,
+    walletTermsErrors,
+    routeName,
+    hideOnDelete = true,
+}: TransactionPreviewContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
-    const themeStyles = useMemo(
-        () => [
-            {
-                backgroundColor: theme.cardBG,
-            },
-        ],
-        [theme.cardBG],
+    const themeStyles = {
+        backgroundColor: theme.cardBG,
+    };
+
+    const transactions = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const ownerAccountID = iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
+    const {amount: requestAmount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactions;
+
+    const creationalData = useMemo(
+        () => ({
+            iouReport,
+            transaction,
+            translate,
+            action,
+            isBillSplit,
+            violations,
+            transactions,
+        }),
+        [action, iouReport, isBillSplit, transaction, transactions, translate, violations],
     );
 
+    const conditionals = useMemo(
+        () =>
+            createTransactionPreviewConditionals({
+                ...creationalData,
+                areThereDuplicates,
+                isReportAPolicyExpenseChat,
+            }),
+        [areThereDuplicates, creationalData, isReportAPolicyExpenseChat],
+    );
+
+    const {
+        shouldShowRBR,
+        shouldShowMerchant,
+        shouldShowSplitShare,
+        shouldShowTag,
+        shouldShowCategory,
+        shouldShowSkeleton,
+        shouldShowDescription,
+        shouldShowKeepButton,
+        shouldDisableOnPress,
+        showCashOrCard,
+    } = conditionals;
+
+    const {RBRmessage, displayAmountText, displayDeleteAmountText, previewHeaderText} = useMemo(
+        () =>
+            createTransactionPreviewText({
+                ...creationalData,
+                shouldShowRBR,
+            }),
+        [creationalData, shouldShowRBR],
+    );
+
+    const {from, to, isIOU} = getIOUData(managerID, ownerAccountID, iouReport, personalDetails, (transaction && transaction.amount) ?? 0);
+    const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
+    const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const hasReceipt = hasReceiptTransactionUtils(transaction);
+    const isApproved = isReportApproved({report: iouReport});
+    const isIOUSettled = isSettled(iouReport?.reportID);
+    const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
+    const isScanning = hasReceipt && isReceiptBeingScanned(transaction);
+    const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
+    const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
+    const merchantOrDescription = shouldShowMerchant ? requestMerchant : description || '';
+    const isReviewDuplicateTransactionPage = routeName === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
+    const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
+    const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
+    const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
+    if (isReportAPolicyExpenseChat && isBillSplit) {
+        sortedParticipantAvatars.push(getWorkspaceIcon(chatReport));
+    }
+
+    // If available, retrieve the split share from the splits object of the transaction, if not, display an even share.
+    const splitShare = useMemo(
+        () =>
+            shouldShowSplitShare
+                ? transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
+                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount ?? 0, requestCurrency ?? '', action.actorAccountID === sessionAccountID)
+                : 0,
+        [
+            shouldShowSplitShare,
+            isReportAPolicyExpenseChat,
+            action.actorAccountID,
+            participantAccountIDs.length,
+            transaction?.comment?.splits,
+            requestAmount,
+            requestCurrency,
+            sessionAccountID,
+        ],
+    );
 
     const childContainer = (
         <View>
@@ -82,9 +160,10 @@ function TransactionPreviewContent({
                 onClose={() => offlineWithFeedbackOnClose}
                 errorRowStyles={[styles.mbn1]}
                 needsOffscreenAlphaCompositing
-                pendingAction={pendingAction}
+                pendingAction={action?.pendingAction}
                 shouldDisableStrikeThrough={isDeleted}
                 shouldDisableOpacity={isDeleted}
+                shouldHideOnDelete={hideOnDelete}
             >
                 <View
                     style={[
@@ -95,6 +174,7 @@ function TransactionPreviewContent({
                     {!isDeleted && (
                         <ReportActionItemImages
                             images={receiptImages}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             isHovered={isHovered || isScanning}
                             size={1}
                         />
@@ -225,7 +305,7 @@ function TransactionPreviewContent({
                                         </View>
                                     )}
                                 </View>
-                                {!isSettled && shouldShowRBR && (
+                                {!isIOUSettled && shouldShowRBR && (
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                                         <Icon
                                             src={DotIndicator}
@@ -267,11 +347,11 @@ function TransactionPreviewContent({
                 containerStyles,
                 themeStyles,
                 shouldDisableOnPress && styles.cursorDefault,
-                (isSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
+                (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
             ]}
         >
             {childContainer}
-            {isReviewDuplicateTransactionPage && !isSettled && !isApproved && shouldShowKeepButton && (
+            {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && shouldShowKeepButton && (
                 <Button
                     text={translate('violations.keepThisOne')}
                     success
