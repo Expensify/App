@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
@@ -13,8 +13,10 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {SearchQueryJSON} from '@components/Search/types';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -24,20 +26,19 @@ import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtil
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useHandleBackButton from './useHandleBackButton';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
 const ANIMATION_DURATION_IN_MS = 300;
 
-type SearchPageBottomTabProps = {
+type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     policyID?: string;
     searchName?: string;
     shouldGroupByReports?: boolean;
 };
 
-function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports}: SearchPageBottomTabProps) {
+function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -46,6 +47,10 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
+
+    // Controls the visibility of the educational tooltip based on user scrolling.
+    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const handleBackButtonPress = useCallback(() => {
         if (!selectionMode?.isEnabled) {
@@ -65,6 +70,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
 
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
+            runOnJS(triggerScrollEvent)();
             const {contentOffset, layoutMeasurement, contentSize} = event;
             if (windowHeight > contentSize.height) {
                 return;
@@ -72,6 +78,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
             const currentOffset = contentOffset.y;
             const isScrollingDown = currentOffset > scrollOffset.get();
             const distanceScrolled = currentOffset - scrollOffset.get();
+
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
                 topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
@@ -139,7 +146,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                         </View>
                         <View style={[styles.flex1]}>
                             <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
-                                <View style={[styles.narrowSearchHeaderStyle]}>
+                                <View style={[styles.narrowSearchHeaderStyle, styles.flex1]}>
                                     <SearchPageHeader
                                         queryJSON={queryJSON}
                                         searchRouterListVisible={searchRouterListVisible}
