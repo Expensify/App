@@ -164,6 +164,7 @@ const SCREENS = {
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
+        NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
         REPORT_DETAILS: 'Report_Details',
         REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
@@ -327,6 +328,10 @@ const SCREENS = {
     PRIVATE_NOTES: {
         LIST: 'PrivateNotes_List',
         EDIT: 'PrivateNotes_Edit',
+    },
+
+    NEW_REPORT_WORKSPACE_SELECTION: {
+        ROOT: 'NewReportWorkspaceSelection_Root',
     },
 
     REPORT_DETAILS: {

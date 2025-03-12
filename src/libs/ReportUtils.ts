@@ -284,6 +284,24 @@ type OptimisticExpenseReport = Pick<
     | 'fieldList'
 >;
 
+type OptimisticNewReport = Pick<
+    Report,
+    | 'reportID'
+    | 'policyID'
+    | 'type'
+    | 'ownerAccountID'
+    | 'reportName'
+    | 'stateNum'
+    | 'statusNum'
+    | 'total'
+    | 'nonReimbursableTotal'
+    | 'parentReportID'
+    | 'lastVisibleActionCreated'
+    | 'parentReportActionID'
+    | 'participants'
+    | 'managerID'
+>;
+
 type OptimisticIOUReportAction = Pick<
     ReportAction,
     | 'actionName'
@@ -3729,7 +3747,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
     const isDeletedParentActionLocal = isEmptyObject(parentReportAction) || isDeletedAction(parentReportAction);
 
-    const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentActionLocal && !isClosed;
+    const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentActionLocal && !isClosed && !isDeletedParentAction(reportAction);
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning;
     const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && !isDuplicate(transaction.transactionID, true) && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 
@@ -9651,6 +9669,7 @@ export {
     getReportSubtitlePrefix,
     buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,
+    getExpenseReportStateAndStatus,
 };
 
 export type {
@@ -9667,4 +9686,5 @@ export type {
     PartialReportAction,
     ParsingDetails,
     MissingPaymentMethod,
+    OptimisticNewReport,
 };
