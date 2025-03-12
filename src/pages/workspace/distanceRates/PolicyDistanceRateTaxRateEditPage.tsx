@@ -10,7 +10,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {getWorkspaceTaxesSettingsName} from '@libs/TransactionUtils';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';

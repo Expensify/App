@@ -4,10 +4,10 @@ import {AttachmentContext} from '@components/AttachmentContext';
 import VideoRenderer from '@components/HTMLEngineProvider/HTMLRenderers/VideoRenderer';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
-jest.mock('@navigation/Navigation', () => ({
+jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 

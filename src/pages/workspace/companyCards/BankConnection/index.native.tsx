@@ -17,8 +17,8 @@ import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import {getWorkspaceAccountID} from '@libs/PolicyUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';

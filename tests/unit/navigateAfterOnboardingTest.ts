@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
-import Navigation from '@navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';

@@ -17,8 +17,8 @@ import {
     findSelectedTaxAccountWithDefaultSelect,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import {
     shouldHideExportForeignCurrencyAmount,

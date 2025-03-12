@@ -52,7 +52,7 @@ import {
     isUnread,
 } from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
-import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import {PersonalDetailsContext} from '@src/components/OnyxProvider';

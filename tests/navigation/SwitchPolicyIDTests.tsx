@@ -2,7 +2,7 @@ import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import navigationRef from '@navigation/navigationRef';
+import navigationRef from '@libs/Navigation/navigationRef';
 import switchPolicyAfterInteractions from '@pages/WorkspaceSwitcherPage/switchPolicyAfterInteractions';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';

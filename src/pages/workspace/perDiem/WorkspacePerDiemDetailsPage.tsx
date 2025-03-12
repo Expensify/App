@@ -16,7 +16,7 @@ import {convertToDisplayStringWithoutCurrency, getCurrencySymbol} from '@libs/Cu
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {deleteWorkspacePerDiemRates} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';

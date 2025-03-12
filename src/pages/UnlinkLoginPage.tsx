@@ -5,7 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {PublicScreensParamList} from '@libs/Navigation/types';
+import type {PublicScreensParamList} from '@navigation/types';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';

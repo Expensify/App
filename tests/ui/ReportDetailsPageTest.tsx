@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import {translateLocal} from '@libs/Localize';
-import type Navigation from '@navigation/Navigation';
+import type Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import ReportDetailsPage from '@pages/ReportDetailsPage';

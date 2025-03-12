@@ -25,7 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
+import type {TaskDetailsNavigatorParamList} from '@navigation/types';
 import * as TaskActions from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

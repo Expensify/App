@@ -17,7 +17,7 @@ import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {addTrailingForwardSlash} from '@libs/Url';
-import type {WalletStatementNavigatorParamList} from '@libs/Navigation/types';
+import type {WalletStatementNavigatorParamList} from '@navigation/types';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -1,4 +1,3 @@
-import {isNavigatorAvailable, isWindowAvailable} from 'expensify-common/dist/utils';
 import type {Merge} from 'type-fest';
 import type CanUseTouchScreen from './types';
 
@@ -11,10 +10,6 @@ type ExtendedNavigator = Merge<Navigator, {msMaxTouchPoints: number}>;
  */
 const canUseTouchScreen: CanUseTouchScreen = () => {
     let hasTouchScreen = false;
-
-    if (!isWindowAvailable() || !isNavigatorAvailable()) {
-        return false;
-    }
 
     // TypeScript removed support for msMaxTouchPoints, this doesn't mean however that
     // this property doesn't exist - hence the use of ExtendedNavigator to ensure

@@ -3,7 +3,7 @@ import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import type Navigation from '@navigation/Navigation';
+import type Navigation from '@libs/Navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import OnyxProvider from '@src/components/OnyxProvider';
