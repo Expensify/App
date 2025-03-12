@@ -15,7 +15,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getReportFieldKey, isInvoiceReport, isPaidGroupPolicyExpenseReport, isReportFieldDisabled, isReportFieldOfTypeTitle} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as ReportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,16 +31,16 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {backTo, reportID, policyID} = route.params;
-    const fieldKey = ReportUtils.getReportFieldKey(route.params.fieldID);
+    const fieldKey = getReportFieldKey(route.params.fieldID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
-    const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
+    const isDisabled = isReportFieldDisabled(report, reportField, policy);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const isReportFieldTitle = ReportUtils.isReportFieldOfTypeTitle(reportField);
-    const reportFieldsEnabled = ((ReportUtils.isPaidGroupPolicyExpenseReport(report) || ReportUtils.isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
+    const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
+    const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
 
     if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
         return (
