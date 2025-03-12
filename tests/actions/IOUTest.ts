@@ -6,6 +6,7 @@ import {
     canApproveIOU,
     canCancelPayment,
     cancelPayment,
+    canIOUBePaid,
     canUnapproveIOU,
     deleteMoneyRequest,
     payMoneyRequest,
@@ -2059,9 +2060,10 @@ describe('actions/IOU', () => {
                                     payIOUAction = Object.values(reportActionsForIOUReport ?? {}).find(
                                         (reportAction) => isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                     );
-                                    expect(payIOUAction).toBeTruthy();
-
                                     resolve();
+
+                                    expect(payIOUAction).toBeTruthy();
+                                    expect(payIOUAction?.pendingAction).toBeFalsy();
                                 },
                             });
                         }),
@@ -4766,6 +4768,28 @@ describe('actions/IOU', () => {
                 managerID: RORY_ACCOUNT_ID,
             };
             expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID})).toBeTruthy();
+        });
+    });
+
+    describe('canIOUBePaid', () => {
+        it('should return false if the report has negative total', () => {
+            const policyChat = createRandomReport(1);
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number('AA')),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+                total: 100, // positive amount in the DB means negative amount in the UI
+            };
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy)).toBeFalsy();
         });
     });
 });
