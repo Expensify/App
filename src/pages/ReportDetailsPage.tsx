@@ -232,6 +232,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMUtil(parentReport);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report), [report]);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
+    const base62ReportID = getBase62ReportID(Number(report.reportID));
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => {
         const subtitle = getChatRoomSubtitle(report);
@@ -1071,10 +1072,10 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 <TextWithCopy
-                                    copyText={getBase62ReportID(Number(report.reportID))}
+                                    copyText={base62ReportID}
                                     style={[styles.textMicroSupporting]}
                                 >
-                                    {translate('common.reportID')}: {getBase62ReportID(Number(report.reportID))}
+                                    {translate('common.reportID')}: {base62ReportID}
                                 </TextWithCopy>
                             </View>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
