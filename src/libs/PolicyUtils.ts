@@ -1090,7 +1090,7 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: Work
 /**
  * Determines whether the report can be moved to the workspace.
  */
-const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, currentUserLogin: string | undefined): boolean => {
+const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, oldPolicy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean => {
     const currentUserAccountID = getCurrentUserAccountID();
     const isCurrentUserMember = !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
     if (!isCurrentUserMember) {
@@ -1104,7 +1104,7 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
     }
 
     // Approvers: workspaces where both the approver AND submitter are members of
-    const reportApproverAccountID = getManagerAccountID(newPolicy, report);
+    const reportApproverAccountID = getSubmitToAccountID(oldPolicy, report);
     const isCurrentUserApprover = currentUserAccountID === reportApproverAccountID;
     if (isCurrentUserApprover) {
         const reportSubmitterLogin = report?.ownerAccountID ? getLoginByAccountID(report?.ownerAccountID) : undefined;
