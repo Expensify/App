@@ -5201,6 +5201,10 @@ const translations = {
         },
     },
     report: {
+        newReport: {
+            createReport: 'Crear informe',
+            chooseWorkspace: 'Elige un espacio de trabajo para este informe.',
+        },
         genericCreateReportFailureMessage: 'Error inesperado al crear el chat. Por favor, inténtalo más tarde.',
         genericAddCommentFailureMessage: 'Error inesperado al añadir el comentario. Por favor, inténtalo más tarde.',
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
