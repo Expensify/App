@@ -1,3 +1,4 @@
+import path from 'path';
 import type {Configuration} from 'webpack';
 import {merge} from 'webpack-merge';
 import baseConfig from '../webpack.base';
@@ -31,6 +32,12 @@ const ssrConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
                 ],
             },
         ],
+    },
+    resolve: {
+        alias: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'react-native-safe-area-context': path.resolve(__dirname, '..', '..', '..', 'emails', 'stubs', 'react-native-safe-area-context.tsx'),
+        },
     },
 });
 

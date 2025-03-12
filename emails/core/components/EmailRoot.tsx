@@ -1,4 +1,5 @@
 import React, {ReactNode} from 'react';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -17,7 +18,9 @@ type EmailRootProps = {
  */
 function EmailRoot({children}: EmailRootProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, ThemeProvider, ThemeStylesProvider, ThemeIllustrationsProvider, LocaleContextProvider, HTMLEngineProvider]}>{children}</ComposeProviders>
+        <ComposeProviders components={[OnyxProvider, ThemeProvider, ThemeStylesProvider, ThemeIllustrationsProvider, SafeAreaProvider, LocaleContextProvider, HTMLEngineProvider]}>
+            {children}
+        </ComposeProviders>
     );
 }
 
