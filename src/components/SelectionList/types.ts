@@ -22,6 +22,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type ChatListItem from './ChatListItem';
@@ -343,6 +344,8 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** The React element that will be shown as a footer */
     FooterComponent?: ReactElement;
 };
+
+type TransactionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
@@ -725,6 +728,7 @@ export type {
     TableListItemProps,
     TransactionListItemProps,
     TransactionListItemType,
+    TransactionListItem,
     UserListItemProps,
     ValidListItem,
     ReportActionListItemType,
