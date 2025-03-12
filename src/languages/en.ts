@@ -70,6 +70,7 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
+    ExpenseSubmittedParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -5978,6 +5979,7 @@ const translations = {
     },
     notifications: {
         replyOrOpenInExpensify: ({url}: ReplyOrOpenInNewDotParams) => `Reply to this message or <a href="${url}" target="_blank">open it in Expensify.</a>`,
+        expenseSubmitted: ({submitter}: ExpenseSubmittedParams) => `${submitter} just sent you an expense with Expensify, the easy way to manage receipts and expenses.`,
     },
 };
 
