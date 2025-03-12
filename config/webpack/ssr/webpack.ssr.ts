@@ -16,7 +16,6 @@ const ssrConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
         minimize: false,
         concatenateModules: false, // Ensures modules are not tree-shaken for easier debugging
     },
-    watch: true,
     module: {
         rules: [
             {

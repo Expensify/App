@@ -5,14 +5,14 @@ import {merge} from 'webpack-merge';
 import ssrConfig from './webpack.ssr';
 
 /**
- * Configuration for the email preview development server
+ * Configuration for the email rendering CLI
  */
 const serverConfig: Configuration = merge(ssrConfig, {
-    mode: 'development',
-    entry: path.resolve(__dirname, '..', '..', '..', 'emails', 'server', 'server.ts'),
+    mode: 'production',
+    entry: path.resolve(__dirname, '..', '..', '..', 'emails', 'cli', 'cli.ts'),
     output: {
-        filename: 'server.bundle.js',
-        path: path.resolve(__dirname, '..', '..', '..', 'emails', 'server', 'dist'),
+        filename: 'cli.bundle.js',
+        path: path.resolve(__dirname, '..', '..', '..', 'emails', 'cli', 'dist'),
     },
     plugins: [
         // copy static files to dist/

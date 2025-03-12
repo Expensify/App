@@ -9,7 +9,8 @@ set -e
 #       because that server reboots with each updated webpack build,
 #       so keeping track of connected browser tabs would be impossible
 # 3. Express server, running the code in dist/server.bundle.js. This uses nodemon to reboot when the source code changes.
-concurrently -k \
+concurrently \
+  --kill-others \
   --names 'WEBPACK,EXPRESS,HOT-REF' \
   --pad-prefix \
   --prefix '[{name}]' \
