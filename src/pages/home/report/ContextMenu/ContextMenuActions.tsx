@@ -116,6 +116,7 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction, User} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -180,6 +181,8 @@ type ContextMenuActionPayload = {
     anchorRef?: MutableRefObject<View | null>;
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
+    backTo?: Route;
+    isInNarrowPaneModal?: boolean;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -274,17 +277,17 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
             return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction);
         },
-        onPress: (closePopover, {reportAction, reportID}) => {
+        onPress: (closePopover, {reportAction, reportID, backTo, isInNarrowPaneModal}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
+                        navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID, backTo, isInNarrowPaneModal);
                     });
                 });
                 return;
             }
-            navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
+            navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID, backTo, isInNarrowPaneModal);
         },
         getDescription: () => {},
     },
