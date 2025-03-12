@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
-import {cleanPreservedSplitNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
+import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import {linkingConfig} from './linkingConfig';
@@ -110,9 +110,12 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
             return;
         }
 
+        const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        // We also make sure that the user is authenticated, isn't part of a group workspace, & wasn't invited to NewDot.
-        if (!NativeModules.HybridAppModule && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !shouldShowRequire2FAModal) {
+        // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
+        if (!NativeModules.HybridAppModule && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning && !shouldShowRequire2FAModal) {
             return getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
         }
 
@@ -121,8 +124,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         if (!lastVisitedPath || NativeModules.HybridAppModule) {
             return undefined;
         }
-
-        const path = initialUrl ? getPathFromURL(initialUrl) : null;
 
         // If the user opens the root of app "/" it will be parsed to empty string "".
         // If the path is defined and different that empty string we don't want to modify the default behavior.
@@ -208,7 +209,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
-        cleanPreservedSplitNavigatorStates(state);
+        cleanPreservedNavigatorStates(state);
     };
 
     return (
