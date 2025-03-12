@@ -42,6 +42,7 @@ import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
+    getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
     isExpenseReport,
@@ -176,6 +177,8 @@ function ReportActionsList({
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
     const participantsContext = useContext(PersonalDetailsContext);
 
+    const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
+
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
             setIsVisible(Visibility.isVisible());
@@ -202,13 +205,6 @@ function ReportActionsList({
 
     const reportLastReadTime = report.lastReadTime ?? '';
 
-    // In a one-expense report, the report actions from the expense report and transaction thread are combined.
-    // If the transaction thread has a newer action, it will show an unread marker if we compare it with the expense report lastReadTime.
-    // - expense report action A <- expense report lastReadTime
-    // - transaction thread action A <- transaction thread lastReadTime
-    // So, we use whichever lastReadTime that is bigger.
-    const lastReadTime = transactionThreadReport?.lastReadTime && transactionThreadReport.lastReadTime > reportLastReadTime ? transactionThreadReport.lastReadTime : reportLastReadTime;
-
     /**
      * The timestamp for the unread marker.
      *
@@ -217,14 +213,15 @@ function ReportActionsList({
      * - marks a message as read/unread
      * - reads a new message as it is received
      */
-    const [unreadMarkerTime, setUnreadMarkerTime] = useState(lastReadTime);
+    const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
     useEffect(() => {
-        setUnreadMarkerTime(lastReadTime);
+        setUnreadMarkerTime(reportLastReadTime);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
+
     /**
      * Whether a message is NOT from the active user and it was received while the user was offline.
      */
@@ -362,10 +359,7 @@ function ReportActionsList({
 
     const lastActionIndex = lastAction?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const lastVisibleActionCreated =
-        (transactionThreadReport?.lastVisibleActionCreated ?? '') > (report.lastVisibleActionCreated ?? '')
-            ? transactionThreadReport?.lastVisibleActionCreated
-            : report.lastVisibleActionCreated;
+    const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     // eslint-disable-next-line react-compiler/react-compiler
@@ -409,7 +403,7 @@ function ReportActionsList({
             return;
         }
 
-        if (isUnread(report)) {
+        if (isUnread(report, transactionThreadReport)) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
@@ -424,7 +418,7 @@ function ReportActionsList({
             }
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, report.reportID, isVisible]);
+    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
 
     useEffect(() => {
         if (linkedReportActionID) {
@@ -467,10 +461,11 @@ function ReportActionsList({
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
                     return;
                 }
-                reportScrollManager.scrollToBottom();
+
+                setIsScrollToBottomEnabled(true);
             });
         },
-        [reportScrollManager, report.reportID],
+        [report.reportID],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -627,7 +622,6 @@ function ReportActionsList({
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
             <ReportActionsListItemRenderer
                 reportAction={reportAction}
-                reportActions={sortedReportActions}
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 index={index}
@@ -653,7 +647,6 @@ function ReportActionsList({
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             parentReportAction,
-            sortedReportActions,
             transactionThreadReport,
             parentReportActionForTransactionThread,
             shouldUseThreadDividerLine,
@@ -676,8 +669,12 @@ function ReportActionsList({
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
             onLayout(event);
+            if (isScrollToBottomEnabled) {
+                reportScrollManager.scrollToBottom();
+                setIsScrollToBottomEnabled(false);
+            }
         },
-        [onLayout],
+        [isScrollToBottomEnabled, onLayout, reportScrollManager],
     );
     const onContentSizeChangeInner = useCallback(
         (w: number, h: number) => {

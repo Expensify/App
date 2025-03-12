@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {TeleScope} from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
@@ -10,14 +10,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteDefaultVendor} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getNetSuiteVendorOptions, settingsPendingAction} from '@libs/PolicyUtils';
-import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -25,8 +27,9 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
 
     const policyID = policy?.id;
 
-    const route = useRoute();
-    const params = route.params as ExpenseRouteParams;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT>>();
+    const params = route.params;
+    const backTo = params.backTo;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
     const config = policy?.connections?.netsuite?.options.config;
@@ -34,20 +37,24 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
 
     const initiallyFocusedOptionKey = useMemo(() => netsuiteVendorOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteVendorOptions]);
 
+    const goBack = useCallback(() => {
+        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
+    }, [backTo, policyID, params.expenseType]);
+
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
             if (config?.defaultVendor !== value && policyID) {
                 updateNetSuiteDefaultVendor(policyID, value, config?.defaultVendor);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
+            goBack();
         },
-        [config?.defaultVendor, policyID, params.expenseType],
+        [config?.defaultVendor, policyID, goBack],
     );
 
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noVendorsFound')}
@@ -68,7 +75,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType))}
+            onBackButtonPress={goBack}
             title="workspace.accounting.defaultVendor"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
