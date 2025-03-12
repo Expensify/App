@@ -25,7 +25,6 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {exportToIntegration} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -76,6 +75,7 @@ import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
+    getTransactionID,
     hasPendingUI,
     isCardTransaction,
     isPartialMerchant,
@@ -471,8 +471,6 @@ function ReportPreview({
      */
     const connectedIntegration = getConnectedIntegration(policy);
 
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(iouReport);
-
     useEffect(() => {
         if (!isPaidAnimationRunning || isApprovedAnimationRunning) {
             return;
@@ -521,29 +519,19 @@ function ReportPreview({
     if (!transactions) {
         return null;
     }
-    if (!connectedIntegration) {
-        return null;
-    }
+
     const reportPreviewAction = getReportPreviewAction(iouReport, policy, transactions, violations);
 
-    function unholdRequest() {
-        // mock just for not having red in ide
-    }
-
-    // TODO check below translationKeys and functions
     const reportPreviewActions = {
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: 
-            (
-                <Button
-                    success={isWaitingForSubmissionFromCurrentUser}
-                    text={translate('common.submit')}
-                    onPress={() => iouReport && submitReport(iouReport)}
-                    isDisabled={shouldDisableSubmitButton}
-                />
-            )
-        ,
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: 
-        (
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
+            <Button
+                success={isWaitingForSubmissionFromCurrentUser}
+                text={translate('common.submit')}
+                onPress={() => iouReport && submitReport(iouReport)}
+                isDisabled={shouldDisableSubmitButton}
+            />
+        ),
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
             <Button
                 text={translate('iou.approve')}
                 onPress={() => confirmApproval()}
@@ -584,7 +572,7 @@ function ReportPreview({
                 isLoading={!isOffline && !canAllowSettlement}
             />
         ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING]: (
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING]: connectedIntegration ? (
             <ExportWithDropdownMenu
                 policy={policy}
                 report={iouReport}
@@ -595,161 +583,158 @@ function ReportPreview({
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
             />
+        ) : null, // maybe return something other than null
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REMOVE_HOLD]: (
+            <Button
+                text={translate('iou.unhold')}
+                onPress={() => unholdRequest(transactionIDList.at(0), iouReport.reportID)} // TODO ask carlos about it
+                isDisabled={shouldDisableSubmitButton}
+            />
         ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REMOVE_HOLD]: 
-            (
-                <Button
-                    text={translate('iou.unhold')}
-                    onPress={() => unholdRequest()}
-                    isDisabled={shouldDisableSubmitButton}
-                />
-            ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: 
-            (
-                <Button
-                    text={translate('common.review')}
-                    onPress={() => {}}
-                    isDisabled={shouldDisableSubmitButton}
-                />
-            ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: 
-            (
-                <Button
-                    text={translate('common.view')}
-                    onPress={() => navigateToDetailsPage(iouReport)}
-                    isDisabled={shouldDisableSubmitButton}
-                />
-            ),
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (
+            <Button
+                text={translate('common.review')}
+                onPress={() => openReportFromPreview}
+                isDisabled={shouldDisableSubmitButton}
+            />
+        ),
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
+            <Button
+                text={translate('common.view')}
+                onPress={() => navigateToDetailsPage(iouReport)}
+                isDisabled={shouldDisableSubmitButton}
+            />
+        ),
     };
 
     return (
-        <OfflineWithFeedback
-            pendingAction={iouReport?.pendingFields?.preview}
-            shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
-            needsOffscreenAlphaCompositing
-        >
-            <View style={[styles.chatItemMessage, containerStyles]}>
-                <PressableWithoutFeedback
-                    onPress={openReportFromPreview}
-                    onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
-                    onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
-                    shouldUseHapticsOnLongPress
-                    // This is added to omit console error about nested buttons as its forbidden on web platform
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
-                    role={getButtonRole(true)}
-                    isNested
-                    accessibilityLabel={translate('iou.viewDetails')}
-                >
-                    <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
-                        {lastThreeReceipts.length > 0 && (
-                            <ReportActionItemImages
-                                images={lastThreeReceipts}
-                                total={numberOfRequests}
-                                size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
-                            />
-                        )}
-                        <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
-                            <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>
-                                <View style={styles.expenseAndReportPreviewTextContainer}>
-                                    <View style={styles.flexRow}>
-                                        <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
-                                            <Text
-                                                style={[styles.textLabelSupporting, styles.lh20]}
-                                                testID="reportPreview-previewMessage"
-                                            >
-                                                {previewMessage}
-                                            </Text>
-                                        </Animated.View>
-                                        {shouldShowRBR && (
-                                            <Icon
-                                                src={Expensicons.DotIndicator}
-                                                fill={theme.danger}
-                                            />
-                                        )}
-                                        {!shouldShowRBR && shouldPromptUserToAddBankAccount && (
-                                            <Icon
-                                                src={Expensicons.DotIndicator}
-                                                fill={theme.success}
-                                            />
-                                        )}
-                                    </View>
-                                    <View style={styles.reportPreviewAmountSubtitleContainer}>
+        <View style={{backgroundColor: 'red'}}>
+            <OfflineWithFeedback
+                pendingAction={iouReport?.pendingFields?.preview}
+                shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
+                needsOffscreenAlphaCompositing
+            >
+                <View style={[styles.chatItemMessage, containerStyles]}>
+                    <PressableWithoutFeedback
+                        onPress={openReportFromPreview}
+                        onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                        onPressOut={() => ControlSelection.unblock()}
+                        onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                        shouldUseHapticsOnLongPress
+                        // This is added to omit console error about nested buttons as its forbidden on web platform
+                        style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
+                        role={getButtonRole(true)}
+                        isNested
+                        accessibilityLabel={translate('iou.viewDetails')}
+                    >
+                        <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                            {lastThreeReceipts.length > 0 && (
+                                <ReportActionItemImages
+                                    images={lastThreeReceipts}
+                                    total={numberOfRequests}
+                                    size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
+                                />
+                            )}
+                            <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
+                                <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>
+                                    <View style={styles.expenseAndReportPreviewTextContainer}>
                                         <View style={styles.flexRow}>
-                                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                                <Text style={styles.textHeadlineH1}>{getDisplayAmount()}</Text>
-                                                {iouSettled && (
-                                                    <Animated.View style={[styles.defaultCheckmarkWrapper, {transform: [{scale: checkMarkScale}]}]}>
-                                                        <Icon
-                                                            src={Expensicons.Checkmark}
-                                                            fill={theme.iconSuccessFill}
-                                                        />
-                                                    </Animated.View>
-                                                )}
-                                                {isApproved && (
-                                                    <Animated.View style={thumbsUpStyle}>
-                                                        <Icon
-                                                            src={Expensicons.ThumbsUp}
-                                                            fill={theme.icon}
-                                                        />
-                                                    </Animated.View>
-                                                )}
-                                            </View>
+                                            <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
+                                                <Text
+                                                    style={[styles.textLabelSupporting, styles.lh20]}
+                                                    testID="reportPreview-previewMessage"
+                                                >
+                                                    {previewMessage}
+                                                </Text>
+                                            </Animated.View>
+                                            {shouldShowRBR && (
+                                                <Icon
+                                                    src={Expensicons.DotIndicator}
+                                                    fill={theme.danger}
+                                                />
+                                            )}
+                                            {!shouldShowRBR && shouldPromptUserToAddBankAccount && (
+                                                <Icon
+                                                    src={Expensicons.DotIndicator}
+                                                    fill={theme.success}
+                                                />
+                                            )}
                                         </View>
-                                        {shouldShowSubtitle && !!supportText && (
+                                        <View style={styles.reportPreviewAmountSubtitleContainer}>
                                             <View style={styles.flexRow}>
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
+                                                    <Text style={styles.textHeadlineH1}>{getDisplayAmount()}</Text>
+                                                    {iouSettled && (
+                                                        <Animated.View style={[styles.defaultCheckmarkWrapper, {transform: [{scale: checkMarkScale}]}]}>
+                                                            <Icon
+                                                                src={Expensicons.Checkmark}
+                                                                fill={theme.iconSuccessFill}
+                                                            />
+                                                        </Animated.View>
+                                                    )}
+                                                    {isApproved && (
+                                                        <Animated.View style={thumbsUpStyle}>
+                                                            <Icon
+                                                                src={Expensicons.ThumbsUp}
+                                                                fill={theme.icon}
+                                                            />
+                                                        </Animated.View>
+                                                    )}
                                                 </View>
                                             </View>
-                                        )}
-                                        {pendingMessageProps.shouldShow && (
-                                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                                                <Icon
-                                                    src={pendingMessageProps.messageIcon}
-                                                    height={variables.iconSizeExtraSmall}
-                                                    width={variables.iconSizeExtraSmall}
-                                                    fill={theme.icon}
-                                                />
-                                                <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
-                                            </View>
-                                        )}
+                                            {shouldShowSubtitle && !!supportText && (
+                                                <View style={styles.flexRow}>
+                                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
+                                                    </View>
+                                                </View>
+                                            )}
+                                            {pendingMessageProps.shouldShow && (
+                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                                                    <Icon
+                                                        src={pendingMessageProps.messageIcon}
+                                                        height={variables.iconSizeExtraSmall}
+                                                        width={variables.iconSizeExtraSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                    <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
+                                                </View>
+                                            )}
+                                        </View>
                                     </View>
+                                    {reportPreviewActions[reportPreviewAction]}
                                 </View>
-                                {shouldShowSettlementButton && }
-                                {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && }
-                                {shouldShowSubmitButton && }
                             </View>
                         </View>
-                    </View>
-                </PressableWithoutFeedback>
-            </View>
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
-
-            {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
-                    fullAmount={fullAmount}
-                    onClose={() => setIsHoldMenuVisible(false)}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    chatReport={chatReport}
-                    moneyRequestReport={iouReport}
-                    transactionCount={numberOfRequests}
-                    startAnimation={() => {
-                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                            startApprovedAnimation();
-                        } else {
-                            startAnimation();
-                        }
-                    }}
+                    </PressableWithoutFeedback>
+                </View>
+                <DelegateNoAccessModal
+                    isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                    onClose={() => setIsNoDelegateAccessMenuVisible(false)}
                 />
-            )}
-        </OfflineWithFeedback>
+
+                {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
+                    <ProcessMoneyReportHoldMenu
+                        nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                        requestType={requestType}
+                        fullAmount={fullAmount}
+                        onClose={() => setIsHoldMenuVisible(false)}
+                        isVisible={isHoldMenuVisible}
+                        paymentType={paymentType}
+                        chatReport={chatReport}
+                        moneyRequestReport={iouReport}
+                        transactionCount={numberOfRequests}
+                        startAnimation={() => {
+                            if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+                                startApprovedAnimation();
+                            } else {
+                                startAnimation();
+                            }
+                        }}
+                    />
+                )}
+            </OfflineWithFeedback>
+        </View>
     );
 }
 

@@ -1,8 +1,10 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {canApprove, canExport, canPay, canRemoveHold, canReview, canSubmit} from '@libs/ReportPreviewActionUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportViolations, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportViolations, Transaction, TransactionViolation} from '@src/types/onyx';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'tester@mail.com';
@@ -18,7 +20,13 @@ const PERSONAL_DETAILS = {
 };
 
 const REPORT_ID = 1;
+const TRANSACTION_ID = 'TRANSACTION_ID';
+const VIOLATIONS = {} as OnyxCollection<TransactionViolation[]>;
 
+jest.mock('@libs/ReportUtils', () => ({
+    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
+    hasViolations: jest.fn().mockReturnValue(false),
+}));
 describe('getReportPreviewAction', () => {
     beforeAll(() => {
         Onyx.init({
@@ -27,7 +35,6 @@ describe('getReportPreviewAction', () => {
     });
 
     beforeEach(async () => {
-        jest.clearAllMocks();
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
@@ -46,7 +53,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(canSubmit(report, policy as Policy)).toBe(true);
+        expect(canSubmit(report, policy as Policy, VIOLATIONS)).toBe(true);
     });
 
     it('canApprove should return true for report being processed', async () => {
@@ -63,7 +70,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(canApprove(report, policy as Policy)).toBe(true);
+        expect(canApprove(report, policy as Policy, VIOLATIONS)).toBe(true);
     });
 
     it('canPay should return true for expense report with payments enabled', async () => {
@@ -78,7 +85,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(canPay(report, policy as Policy)).toBe(true);
+        expect(canPay(report, policy as Policy, VIOLATIONS)).toBe(true);
     });
 
     it('canPay should return true for submitted invoice', async () => {
@@ -94,7 +101,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(canPay(report, policy as Policy)).toBe(true);
+        expect(canPay(report, policy as Policy, VIOLATIONS)).toBe(true);
     });
 
     it('canExport should return true for finished reports', async () => {
@@ -117,7 +124,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(canExport(report, policy as Policy)).toBe(true);
+        expect(canExport(report, policy as Policy, VIOLATIONS)).toBe(true);
     });
 
     it('canRemoveHold should return true for reports where user is the holder', async () => {
@@ -128,7 +135,6 @@ describe('getReportPreviewAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
         } as unknown as Report;
-        const policy = {};
         const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
         const transaction = {
             comment: {
@@ -142,10 +148,11 @@ describe('getReportPreviewAction', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {REPORT_ACTION_ID: reportAction});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(canRemoveHold(report, policy as Policy, [transaction])).toBe(true);
+        expect(canRemoveHold(report, [transaction], VIOLATIONS)).toBe(true);
     });
 
     it('canReview should return true for reports where there are violations, user is submitter or approver and Workflows are enabled', async () => {
+        (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
         const report = {
             reportID: REPORT_ID,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -159,6 +166,12 @@ describe('getReportPreviewAction', () => {
         } as unknown as ReportViolations;
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${REPORT_ID}`, REPORT_VIOLATION);
 
-        expect(canReview(report, policy as Policy)).toBe(true);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
+            {
+                name: CONST.VIOLATIONS.OVER_LIMIT,
+            } as TransactionViolation,
+        ]);
+
+        expect(canReview(report, policy as Policy, VIOLATIONS)).toBe(true);
     });
 });
