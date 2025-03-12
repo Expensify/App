@@ -71,12 +71,6 @@ describe('DebugReportActions', () => {
 
         const input = screen.getByTestId('selection-list-text-input');
         fireEvent.changeText(input, 'testtesttesttest');
-        await waitFor(
-            () =>
-                new Promise<void>((resolve) => {
-                    setTimeout(resolve, 500);
-                }),
-        );
-        expect(screen.getByText('No results found')).toBeOnTheScreen();
+        expect(await screen.findByText('No results found')).toBeOnTheScreen();
     });
 });
