@@ -26,16 +26,22 @@ function useSidePane() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
 
-    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
+    const [sidePaneNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const isPaneHidden = isSidePaneHidden(sidePane, isExtraLargeScreenWidth) || language !== CONST.LOCALES.EN;
+    const isLanguageUnsupported = language !== CONST.LOCALES.EN;
+    const isPaneHidden = isSidePaneHidden(sidePaneNVP, isExtraLargeScreenWidth) || isLanguageUnsupported;
 
     const sidePaneWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;
 
     const [shouldHideSidePane, setShouldHideSidePane] = useState(true);
     const shouldHideSidePaneBackdrop = isPaneHidden || isExtraLargeScreenWidth || shouldUseNarrowLayout;
-    const shouldHideTopLevelBottomBar = !shouldHideSidePaneBackdrop || (!isPaneHidden && shouldUseNarrowLayout);
+
+    // The help button is hidden when:
+    // - side pane nvp is not set
+    // - side pane is displayed currently
+    // - language is unsupported
+    const shouldHideHelpButton = !sidePaneNVP || !isPaneHidden || isLanguageUnsupported;
 
     const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
     const sidePaneTranslateX = useRef(new Animated.Value(isPaneHidden ? sidePaneWidth : 0));
@@ -62,10 +68,10 @@ function useSidePane() {
     }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth]);
 
     return {
-        sidePane,
+        sidePane: sidePaneNVP,
         shouldHideSidePane,
         shouldHideSidePaneBackdrop,
-        shouldHideTopLevelBottomBar,
+        shouldHideHelpButton,
         sidePaneOffset,
         sidePaneTranslateX,
     };
