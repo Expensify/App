@@ -241,8 +241,8 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
 
             {currentSubStep === SUBSTEP.ARE_YOU_DIRECTOR && (
                 <YesNoStep
-                    title="Are you a director?"
-                    description="If you are not director, we need to collect additional information about at least one director in the company"
+                    title={translate('signerInfoStep.areYouDirectorAdditional')}
+                    description={translate('signerInfoStep.weNeedAtLeastOneDirector')}
                     defaultValue={isAnyoneElseDirector}
                     onSelectedValue={handleNextSubStep}
                     isLoading={reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation}

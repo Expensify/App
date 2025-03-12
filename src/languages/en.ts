@@ -2532,6 +2532,8 @@ const translations = {
         whatsDirectorsName: "What is director's name?",
         whatsDirectorsJobTitle: "What is director's job title?",
         whatsDirectorsOccupation: "What is director's occupation?",
+        areYouDirectorAdditional: 'Are you a director?',
+        weNeedAtLeastOneDirector: 'If you are not director, we need to collect additional information about at least one director in the company.',
     },
     agreementsStep: {
         agreements: 'Agreements',
