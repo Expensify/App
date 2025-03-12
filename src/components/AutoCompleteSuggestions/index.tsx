@@ -146,7 +146,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 left: leftValue.current,
                 bottom: bottomValue,
                 width: widthValue,
-                cursorCoordinates: {x: cursorCoordinates.x, y: cursorCoordinates.y},
+                cursorCoordinates,
             });
         });
     }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, shouldUseNarrowLayout, suggestionsLength, bottomInset, topInset, isKeyboardAnimatingRef]);
