@@ -611,7 +611,6 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             onSelectAll={toggleAllTransactions}
             customListHeader={customListHeader}
             isSelected={isSelected}
-            shouldAutoTurnOff={false}
             onScroll={onSearchListScroll}
             onContentSizeChange={onContentSizeChange}
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
