@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
@@ -11,6 +10,7 @@ type LoadingBarProps = {
 };
 
 function LoadingBar({shouldShow}: LoadingBarProps) {
+    const height = useSharedValue(0);
     const left = useSharedValue(-30);
     const opacity = useSharedValue(0);
     const isAnimating = useSharedValue(false);
@@ -20,6 +20,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
         if (shouldShow && !isAnimating.get()) {
             isAnimating.set(true);
             opacity.set(withTiming(1, {duration: CONST.TIMING.SKELETON_FADE_DURATION}));
+            height.set(2);
 
             left.set(
                 withTiming(100, {duration: CONST.TIMING.SKELETON_SLIDE_DURATION}, () => {
@@ -43,9 +44,14 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
                     isAnimating.set(false);
                 }),
             );
+            height.set(0);
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShow]);
+
+    const progressBarWrapperStyle = useAnimatedStyle(() => ({
+        height: height.get()
+    }));
 
     const barStyle = useAnimatedStyle(() => ({
         left: `${left.get()}%`,
@@ -57,9 +63,9 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
     }));
 
     return (
-        <View style={[styles.progressBarWrapper]}>
+        <Animated.View style={[styles.progressBarWrapper, progressBarWrapperStyle]}>
             <Animated.View style={barStyle} />
-        </View>
+        </Animated.View>
     );
 }
 
