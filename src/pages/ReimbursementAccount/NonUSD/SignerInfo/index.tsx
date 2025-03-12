@@ -76,7 +76,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                 directorIDs: `${directorKeys.toString()}`,
             });
         }
-    }, [account?.primaryLogin, bankAccountID, currency, directorKeys, isUserDirector, reimbursementAccountDraft]);
+    }, [account?.primaryLogin, bankAccountID, currency, directorKeys, isUserOwner, reimbursementAccountDraft]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
