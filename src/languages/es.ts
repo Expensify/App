@@ -2552,6 +2552,8 @@ const translations = {
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a signer or director of the business entity.',
         proofOfDirectorsDescription: 'Please provide a proof of being director or senior officer. (Needs to be verified).',
         PRDandFSGDescription: 'Please provide PRD and FSG documents (Needs to be verified).',
+        regulationRequiresUsToCollectAtLeastOneDirector: 'Regulations requires us to collect information about at least one director of the company.'
+        directors: 'Directors',
     },
     agreementsStep: {
         agreements: 'Acuerdos',

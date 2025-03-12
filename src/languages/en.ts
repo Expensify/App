@@ -2513,7 +2513,7 @@ const translations = {
         legalName: 'Legal name',
         proofOf: 'Proof of personal address',
         enterOneEmail: 'Enter the email of director or senior officer at',
-        regulationRequiresOneMoreDirector: 'Regulation requires one more director or senior officer as a signer.',
+        regulationRequiresOneMoreDirector: 'Regulation requires at least more director or senior officer as a signer.',
         hangTight: 'Hang tight...',
         enterTwoEmails: 'Enter the emails of two directors or senior officers at',
         sendReminder: 'Send a reminder',
@@ -2527,6 +2527,8 @@ const translations = {
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director or senior officer of the business entity.',
         proofOfDirectorsDescription: 'Please provide a proof of being director or senior officer. (Needs to be verified).',
         PRDandFSGDescription: 'Please provide PRD and FSG documents (Needs to be verified).',
+        regulationRequiresUsToCollectAtLeastOneDirector: 'Regulations requires us to collect information about at least one director of the company.',
+        directors: 'Directors',
     },
     agreementsStep: {
         agreements: 'Agreements',

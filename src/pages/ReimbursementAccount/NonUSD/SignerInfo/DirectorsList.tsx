@@ -70,12 +70,11 @@ function DirectorsList({directorKeys, onConfirm, onEdit}: DirectorsListProps) {
                     style={styles.pt0}
                     contentContainerStyle={[styles.flexGrow1, styles.ph0, safeAreaPaddingBottomStyle]}
                 >
-                    {/* TODO: change translations */}
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
-                    <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('signerInfoStep.letsDoubleCheck')}</Text>
+                    <Text style={[styles.p5, styles.textSupporting]}>{translate('signerInfoStep.regulationRequiresUsToCollectAtLeastOneDirector')}</Text>
                     {areThereDirectors && (
                         <View>
-                            <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
+                            <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('signerInfoStep.directors')}:`}</Text>
                             {directors}
                         </View>
                     )}
