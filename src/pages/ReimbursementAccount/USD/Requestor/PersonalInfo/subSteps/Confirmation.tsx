@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +20,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
+    const error = getLatestErrorMessage(reimbursementAccount ?? {});
 
     const summaryItems = [
         {
