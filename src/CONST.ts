@@ -129,7 +129,7 @@ const createWorkspaceTask: OnboardingTask = {
     type: 'createWorkspace',
     autoCompleted: true,
     mediaAttributes: {},
-    title: 'Create a workspace',
+    title: ({workspaceSettingsLink}) => `Create a [workspace](${workspaceSettingsLink})`,
     description: ({workspaceSettingsLink}) =>
         '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
         '\n' +
@@ -294,6 +294,7 @@ type OnboardingTask = {
         | ((
               params: Partial<{
                   integrationName: string;
+                  workspaceSettingsLink: string;
               }>,
           ) => string);
     description:
@@ -776,6 +777,7 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
+        NEWDOT_PDF_EXPORT: 'newDotPDFExport',
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NSQS: 'nsqs',
         CUSTOM_RULES: 'customRules',
@@ -3494,7 +3496,8 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
-        DOWNLOAD: 'download',
+        DOWNLOAD_CSV: 'downloadCSV',
+        DOWNLOAD_PDF: 'downloadPDF',
         EXPORT: 'export',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
@@ -3502,6 +3505,7 @@ const CONST = {
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
         GO_TO_WORKSPACE: 'goToWorkspace',
+        ERROR: 'error',
         TRACK: {
             SUBMIT: 'submit',
             CATEGORIZE: 'categorize',
