@@ -283,7 +283,6 @@ type OptimisticExpenseReport = Pick<
     | 'fieldList'
 >;
 
-
 type OptimisticNewReport = Pick<
     Report,
     | 'reportID'
