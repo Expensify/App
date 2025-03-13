@@ -410,6 +410,10 @@ const ROUTES = {
         route: 'r/:reportID/details/export/:connectionName',
         getRoute: (reportID: string, connectionName: ConnectionName, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/export/${connectionName as string}` as const, backTo),
     },
+    REPORT_WITH_ID_CHANGE_WORKSPACE: {
+        route: 'r/:reportID/change-workspace',
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-workspace` as const, backTo),
+    },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
@@ -1176,11 +1180,19 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/account-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/account-selector` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/accounting/quickbooks-online/account-selector` as const,
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC: {
+        route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync',
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: {
+        route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync/accounting-method',
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync/accounting-method` as const,
     },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
@@ -1685,6 +1697,10 @@ const ROUTES = {
         route: 'hold-expense-educational',
         getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),
     },
+    CHANGE_POLICY_EDUCATIONAL: {
+        route: 'change-workspace-educational',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
+    },
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: {
         route: 'travel/terms/:domain/accept',
@@ -2079,11 +2095,11 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
     },
     POLICY_ACCOUNTING_NSQS_SETUP: {
         route: 'settings/workspaces/:policyID/accounting/nsqs/setup',
