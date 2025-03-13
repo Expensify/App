@@ -528,6 +528,17 @@ const translations = {
         help: 'Help',
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
+        leaveWorkspace: 'Leave workspace',
+        leaveWorkspaceConfirmation: "If you leave this workspace, you won't be able to submit expenses to it.",
+        leaveWorkspaceConfirmationForAuditor: "If you leave this workspace, you won't be able to view its reports and settings.",
+        leaveWorkspaceConfirmationForAdmin: "If you leave this workspace, you won't be able to manage its settings.",
+        leaveWorkspaceConfirmationForApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `If you leave this workspace, you'll be replaced in the approval workflow by ${workspaceOwner}, the workspace owner.`,
+        cannotRemoveUserDueToProcessingReport: ({approverName}: {approverName: string}) =>
+            `${approverName} has an outstanding processing report to take action on. Please ask them to complete the required action before removing them from the workspace.`,
+        leaveWorkspaceConfirmationForExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `If you leave this workspace, you'll be replaced as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
+        leaveWorkspaceReimburser: "You can't leave this workspace as the reimburser. Please set a new reimburser in Workspaces > Make or track payments, then try again.",
     },
     supportalNoAccess: {
         title: 'Not so fast',
