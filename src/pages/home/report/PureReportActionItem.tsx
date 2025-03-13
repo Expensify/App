@@ -84,6 +84,7 @@ import {
     isActionableTrackExpense,
     isActionOfType,
     isChronosOOOListAction,
+    isConciergeCategoryOptions,
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
@@ -128,7 +129,7 @@ import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {expandURLPreview} from '@userActions/Report';
+import {addComment, expandURLPreview} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {getLastModifiedExpense, revert} from '@userActions/Transaction';
@@ -596,6 +597,17 @@ function PureReportActionItem({
             ];
         }
 
+        if (isConciergeCategoryOptions(action)) {
+            console.log(">>>> originalReportID", originalReportID);
+            const options = getOriginalMessage(action)?.options;
+            return options.map((option, index) => ({
+                text: `${index + 1} - ${option}`,
+                key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
+                onPress: () => addComment(originalReportID, option),
+            }));
+        }
+
+
         if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
         }
@@ -986,7 +998,8 @@ function PureReportActionItem({
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
-                                            layout={isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
+                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) ? 'vertical' : 'horizontal'}
+                                            shouldUseLocalization={!isConciergeCategoryOptions(action)}
                                         />
                                     )}
                                 </View>
