@@ -1,5 +1,5 @@
 import React from 'react';
-import type {TextStyle} from 'react-native';
+import type {TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -19,6 +19,7 @@ function UserInfoCellsWithArrow({
     participantToDisplayName,
     avatarSize,
     infoCellsTextStyle,
+    infoCellsAvatarStyle,
 }: {
     shouldDisplayArrowIcon: boolean;
     participantFrom: SearchPersonalDetails | PersonalDetails;
@@ -27,6 +28,7 @@ function UserInfoCellsWithArrow({
     participantToDisplayName: string;
     avatarSize?: AvatarSizeName;
     infoCellsTextStyle?: TextStyle;
+    infoCellsAvatarStyle?: ViewStyle;
 }) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -40,6 +42,7 @@ function UserInfoCellsWithArrow({
                     displayName={participantFromDisplayName}
                     avatarSize={avatarSize}
                     textStyle={infoCellsTextStyle}
+                    avatarStyle={infoCellsAvatarStyle}
                 />
             </View>
             {shouldDisplayArrowIcon && (
@@ -57,6 +60,7 @@ function UserInfoCellsWithArrow({
                     displayName={participantToDisplayName}
                     avatarSize={avatarSize}
                     textStyle={infoCellsTextStyle}
+                    avatarStyle={infoCellsAvatarStyle}
                 />
             </View>
         </>

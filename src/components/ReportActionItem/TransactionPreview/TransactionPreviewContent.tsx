@@ -134,6 +134,7 @@ function TransactionPreviewContent({
     const {from, to} = iouData ?? {from: null, to: null};
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
+    const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
     const shouldShowIOUHeader = !!from && !!to;
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -173,7 +174,7 @@ function TransactionPreviewContent({
     );
 
     const transactionContent = (
-        <View>
+        <View style={[styles.border, styles.reportContainerBorderRadius]}>
             <OfflineWithFeedback
                 errors={walletTermsErrors}
                 onClose={() => offlineWithFeedbackOnClose}
@@ -201,9 +202,9 @@ function TransactionPreviewContent({
                     {shouldShowSkeleton ? (
                         <MoneyRequestSkeletonView />
                     ) : (
-                        <View style={[styles.expenseAndReportPreviewBoxBody]}>
+                        <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
-                                <View style={styles.gap2}>
+                                <View style={isBillSplit || shouldShowMerchantOrDescription || shouldShowCategoryOrTag ? styles.gap2 : {}}>
                                     {shouldShowIOUHeader && (
                                         <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
                                             <UserInfoCellsWithArrow
@@ -214,6 +215,7 @@ function TransactionPreviewContent({
                                                 participantToDisplayName={to.displayName ?? to.login ?? ''}
                                                 avatarSize="mid-subscript"
                                                 infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                                                infoCellsAvatarStyle={styles.pr1}
                                             />
                                         </View>
                                     )}
@@ -229,7 +231,7 @@ function TransactionPreviewContent({
                                                 />
                                             </View>
                                         )}
-                                        {!isBillSplit && !shouldShowDescription && !shouldShowMerchant && (
+                                        {!isBillSplit && !shouldShowMerchantOrDescription && (
                                             <Text
                                                 fontSize={variables.fontSizeNormal}
                                                 style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
@@ -246,10 +248,10 @@ function TransactionPreviewContent({
                                                     styles.flex1,
                                                     styles.flexRow,
                                                     styles.alignItemsCenter,
-                                                    !shouldShowMerchant && !shouldShowDescription && isBillSplit ? styles.justifyContentEnd : styles.justifyContentBetween,
+                                                    isBillSplit && !shouldShowMerchantOrDescription ? styles.justifyContentEnd : styles.justifyContentBetween,
                                                 ]}
                                             >
-                                                {(shouldShowMerchant || shouldShowDescription) && (
+                                                {shouldShowMerchantOrDescription && (
                                                     <Text
                                                         fontSize={variables.fontSizeNormal}
                                                         style={[isDeleted && styles.lineThrough]}
@@ -373,7 +375,7 @@ function TransactionPreviewContent({
                 <Button
                     text={translate('violations.keepThisOne')}
                     success
-                    style={[styles.ph4, styles.pb2]}
+                    style={[styles.ph4, styles.pb4]}
                     onPress={navigateToReviewFields}
                 />
             )}
