@@ -35,14 +35,7 @@ const useRootNavigatorScreenOptions = () => {
             animationTypeForReplace: 'pop',
             web: {
                 presentation: Presentation.TRANSPARENT_MODAL,
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                    // This is necessary to cover translated sidebar with overlay.
-                    width: shouldUseNarrowLayout ? '100%' : '200%',
-                    // Excess space should be on the left so we need to position from right.
-                    right: 0,
-                },
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, shouldAnimateSidePane: true}),
             },
         },
         basicModalNavigator: {
@@ -85,9 +78,7 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                },
+                cardStyle: StyleUtils.getNavigationModalCardStyle(),
             },
         },
         fullScreen: {
@@ -95,10 +86,10 @@ const useRootNavigatorScreenOptions = () => {
             // We need to turn off animation for the full screen to avoid delay when closing screens.
             animation: Animations.NONE,
             web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
                 cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
+                    height: '100%',
                 },
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePane: true}),
             },
         },
     } satisfies RootNavigatorScreenOptions;

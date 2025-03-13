@@ -47,12 +47,12 @@ type BaseReportActionContextMenuProps = {
     reportID: string | undefined;
 
     /** The ID of the report action this context menu is attached to. */
-    reportActionID: string;
+    reportActionID: string | undefined;
 
     /** The ID of the original report from which the given reportAction is first created. */
     // originalReportID is used in withOnyx to get the reportActions for the original report
     // eslint-disable-next-line react/no-unused-prop-types
-    originalReportID: string;
+    originalReportID: string | undefined;
 
     /**
      * If true, this component will be a small, row-oriented menu that displays icons but not text.
@@ -153,7 +153,7 @@ function BaseReportActionContextMenu({
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
-        if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1') {
+        if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1' || !reportActionID) {
             return;
         }
         return reportActions[reportActionID];
@@ -207,7 +207,6 @@ function BaseReportActionContextMenu({
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
-            reportID &&
             contextAction.shouldShow({
                 type,
                 reportAction,
@@ -349,7 +348,7 @@ function BaseReportActionContextMenu({
                             openOverflowMenu,
                             setIsEmojiPickerActive,
                             moneyRequestAction,
-                            hasCard: !!card,
+                            card,
                         };
 
                         if ('renderContent' in contextAction) {

@@ -94,6 +94,13 @@ jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () =
     onBackgroundTaskExecution: jest.fn(),
 }));
 
+jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
+    isHybridApp: jest.fn(),
+    closeReactNativeApp: jest.fn(),
+    completeOnboarding: jest.fn(),
+    switchAccount: jest.fn(),
+}));
+
 // This makes FlatList render synchronously for easier testing.
 jest.mock(
     '@react-native/virtualized-lists/Interaction/Batchinator',

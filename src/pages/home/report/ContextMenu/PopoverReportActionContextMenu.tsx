@@ -10,10 +10,11 @@ import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionShee
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useLocalize from '@hooks/useLocalize';
+import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
+import {deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import {deleteMoneyRequest, deleteTrackExpense} from '@userActions/IOU';
-import {deleteReportComment} from '@userActions/Report';
+import CONST from '@src/CONST';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -34,11 +35,11 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
 
 function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
-    const reportIDRef = useRef('-1');
+    const reportIDRef = useRef<string | undefined>();
     const typeRef = useRef<ContextMenuType>();
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
-    const reportActionIDRef = useRef('-1');
-    const originalReportIDRef = useRef('-1');
+    const reportActionIDRef = useRef<string | undefined>();
+    const originalReportIDRef = useRef<string | undefined>();
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string>();
 
@@ -54,7 +55,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     });
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
 
-    const [instanceID, setInstanceID] = useState('');
+    const instanceIDRef = useRef('');
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
@@ -79,6 +80,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     });
 
     const onPopoverShow = useRef(() => {});
+    const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
     const onPopoverHide = useRef(() => {});
     const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>();
     const onCancelDeleteModal = useRef(() => {});
@@ -134,7 +136,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         !!actionID && (reportActionIDRef.current === actionID || reportActionRef.current?.reportActionID === actionID);
 
     const clearActiveReportAction = () => {
-        reportActionIDRef.current = '-1';
+        reportActionIDRef.current = undefined;
         reportActionRef.current = null;
     };
 
@@ -177,6 +179,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         isOverflowMenu = false,
         isThreadReportParentActionParam = false,
     ) => {
+        setIsContextMenuOpening(true);
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLDivElement;
@@ -213,10 +216,10 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         }).then(() => {
             setDisabledActions(disabledOptions);
             typeRef.current = type;
-            reportIDRef.current = reportID ?? '-1';
-            reportActionIDRef.current = reportActionID ?? '-1';
+            reportIDRef.current = reportID;
+            reportActionIDRef.current = reportActionID;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            originalReportIDRef.current = originalReportID || '-1';
+            originalReportIDRef.current = originalReportID || undefined;
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
@@ -231,11 +234,16 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
     /** After Popover shows, call the registered onPopoverShow callback and reset it */
     const runAndResetOnPopoverShow = () => {
-        setInstanceID(Math.random().toString(36).slice(2, 7));
+        instanceIDRef.current = Math.random().toString(36).slice(2, 7);
         onPopoverShow.current();
 
         // After we have called the action, reset it.
         onPopoverShow.current = () => {};
+
+        // After the context menu opening animation ends reset isContextMenuOpening.
+        setTimeout(() => {
+            setIsContextMenuOpening(false);
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     /** Run the callback and return a noop function to reset it */
@@ -246,10 +254,10 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
     /** After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it */
     const runAndResetOnPopoverHide = () => {
-        reportIDRef.current = '-1';
-        reportActionIDRef.current = '-1';
-        originalReportIDRef.current = '-1';
-        setInstanceID('');
+        reportIDRef.current = undefined;
+        reportActionIDRef.current = undefined;
+        originalReportIDRef.current = undefined;
+        instanceIDRef.current = '';
 
         onPopoverHide.current = runAndResetCallback(onPopoverHide.current);
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
@@ -278,9 +286,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID ?? '-1', reportAction);
+                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction);
             } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID ?? '-1', reportAction);
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction);
             }
         } else if (reportAction) {
             deleteReportComment(reportIDRef.current, reportAction);
@@ -318,10 +326,11 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         showDeleteModal,
         hideDeleteModal,
         isActiveReportAction,
-        instanceID,
+        instanceIDRef,
         runAndResetOnPopoverHide,
         clearActiveReportAction,
         contentRef,
+        isContextMenuOpening,
     }));
 
     const reportAction = reportActionRef.current;

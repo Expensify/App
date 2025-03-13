@@ -13,9 +13,9 @@ import TextLink from '@components/TextLink';
 import useCancellationType from '@hooks/useCancellationType';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {navigateToConciergeChat} from '@libs/actions/Report';
+import {cancelBillingSubscription} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Report from '@userActions/Report';
-import * as Subscription from '@userActions/Subscription';
 import type {CancellationType, FeedbackSurveyOptionID} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,7 +31,7 @@ function RequestEarlyCancellationPage() {
 
     const handleSubmit = (cancellationReason: FeedbackSurveyOptionID, cancellationNote = '') => {
         setIsLoading(true);
-        Subscription.cancelBillingSubscription(cancellationReason, cancellationNote);
+        cancelBillingSubscription(cancellationReason, cancellationNote);
     };
 
     const acknowledgementText = useMemo(
@@ -52,7 +52,7 @@ function RequestEarlyCancellationPage() {
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.requestSubmitted.title')}</Text>
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>
                         {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part1')}
-                        <TextLink onPress={() => Report.navigateToConciergeChat()}>{translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.link')}</TextLink>
+                        <TextLink onPress={() => navigateToConciergeChat()}>{translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.link')}</TextLink>
                         {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part2')}
                     </Text>
                 </View>
@@ -78,7 +78,7 @@ function RequestEarlyCancellationPage() {
                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
                     <Text>
                         {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}>
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route)}>
                             {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.link')}
                         </TextLink>
                         {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part2')}

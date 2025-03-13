@@ -140,6 +140,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
     shouldUseModalPaddingStyle?: boolean;
 
+    /** Whether we want to avoid the safari exception of ignoring shouldCallAfterModalHide  */
+    shouldAvoidSafariException?: boolean;
+
     /** Used to locate the component in the tests */
     testID?: string;
 };
@@ -191,6 +194,7 @@ function PopoverMenu({
     shouldUseModalPaddingStyle,
     shouldUseNewModal,
     testID,
+    shouldAvoidSafariException = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -216,7 +220,7 @@ function PopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
-        } else if (selectedItem.shouldCallAfterModalHide && !isSafari()) {
+        } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
             onItemSelected?.(selectedItem, index);
             close(
                 () => {
