@@ -1,6 +1,7 @@
 ---
 title: Billing and Subscriptions
 description: Expensify Billing Overview
+keywords: [Expensify billing, subscription, monthly payment, payment card, billing history]
 ---
 
 At the beginning of each month, the workspace's Billing Owner is billed for the previous month’s activity. 
@@ -10,9 +11,11 @@ Your Expensify bill is determined by the following:
 - Whether you’re on pay-per-use or an annual subscription
 - Whether you’re using the Expensify Visa® Commercial Card
 
-An active member is any member who creates, submits, approves, reimburses, or exports a report in Expensify in a given month. This includes Copilots and automatic actions by Concierge.
+An active member is any member who creates, submits, approves, reimburses, or exports a report in Expensify in a given month. This includes members taking action as Copilots and automatic actions by Concierge.
 
-Your billing receipts can be viewed under **Settings** > **Account** > **Payments** > **Billing History**. We recommend appointing a single billing owner for each Group Workspace.
+Your billing receipts can be viewed under **Settings > Subscription > Subscription details**. We recommend appointing a single billing owner for each Group Workspace.
+
+---
 
 # Save Money on Your Expensify Bill
 
@@ -44,6 +47,8 @@ Rates for pay-per-use plans are applied at full price:
 
 - **Collect plan:** $20 per active member per month
 - **Control plan:** $36 per active member per month
+
+---
 
 # Transfer Ownership of Billing
 
