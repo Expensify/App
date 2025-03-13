@@ -86,7 +86,7 @@ Expensify offers several plans based on your needs: **Track, Submit, Collect, Co
    - If any members were active that month (submitted, approved, or edited reports), you will be billed for their usage.
 
 ## Annual Subscription
-1. If eligible for a refund, go to **Settings > Subscription**.
+1. If eligible for a refund, go to **Settings > Account > Subscription**.
 2. Click **Request a Refund** if:
    - You own a **Collect** or **Control** Group Workspace.
    - You have only been billed once.
