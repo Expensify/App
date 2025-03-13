@@ -1901,7 +1901,13 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
 }
 
 function getWorkspaceCustomUnitUpdatedMessage(action: ReportAction): string {
-    const {oldValue, newValue, customUnitName, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {oldValue, newValue, customUnitName, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT>) ?? {};
+
+    if (customUnitName === 'Distance' && updatedField === 'taxEnabled' && typeof newValue === 'boolean') {
+        return translateLocal('workspaceActions.updateCustomUnitTaxEnabled', {
+            newValue,
+        });
+    }
 
     if (customUnitName && typeof oldValue === 'string' && typeof newValue === 'string' && updatedField) {
         return translateLocal('workspaceActions.updateCustomUnit', {
