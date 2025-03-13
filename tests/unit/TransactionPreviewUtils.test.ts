@@ -40,7 +40,7 @@ describe('TransactionPreviewUtils', () => {
             };
 
             const result = getTransactionPreviewTextAndTranslationPaths(testInput);
-            expect(result.RBRmessage.translationPath).toContain('violations.hold');
+            expect(result.RBRmessage.translationPath).toContain('iou.expenseWasPutOnHold');
         });
     });
 

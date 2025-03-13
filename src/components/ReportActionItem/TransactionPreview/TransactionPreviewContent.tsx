@@ -213,7 +213,7 @@ function TransactionPreviewContent({
                                                 participantTo={to}
                                                 participantToDisplayName={to.displayName ?? to.login ?? ''}
                                                 avatarSize="mid-subscript"
-                                                infoCellsTextStyle={{lineHeight: 14}}
+                                                infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
                                             />
                                         </View>
                                     )}
