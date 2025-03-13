@@ -2,7 +2,7 @@ import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
-import TransactionItemRow from '@components/TransactionItemComponent';
+import TransactionItemRow from '@components/TransactionItemRow';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 import transaction from './objects/Transaction';

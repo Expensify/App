@@ -148,6 +148,6 @@ function TransactionItemRow({
     );
 }
 
-TransactionItemRow.displayName = 'TransactionItemComponent';
+TransactionItemRow.displayName = 'TransactionItemRow';
 
 export default TransactionItemRow;
