@@ -91,7 +91,7 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
         }
     };
 
-    if (corpayFields?.isLoading !== undefined && !corpayFields?.isLoading && corpayFields?.isSuccess !== undefined && !corpayFields?.isSuccess) {
+    if (corpayFields !== undefined && corpayFields?.isLoading === false && corpayFields?.isSuccess === false) {
         return <NotFoundPage />;
     }
 

@@ -110,6 +110,9 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         disabled={disabled}
                         placeholder={placeholder}
                         autoFocus
+                        shouldUseDefaultValue={shouldUseDefaultValue}
+                        disabled={disabled}
+                        placeholder={placeholder}
                     />
                 </View>
                 {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
