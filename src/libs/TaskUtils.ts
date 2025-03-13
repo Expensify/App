@@ -57,7 +57,7 @@ function getTaskTitleFromReport(taskReport: OnyxEntry<Report>, fallbackTitle = '
     // an optimistic report is created with the only property - reportName: 'Chat report',
     // and it will be displayed as the task title without checking for reportID to be present.
     const title = taskReport?.reportID && taskReport.reportName ? taskReport.reportName : fallbackTitle;
-    return shouldReturnMarkdown ? Parser.htmlToMarkdown(title) : Parser.htmlToText(title);
+    return shouldReturnMarkdown ? Parser.htmlToMarkdown(title) : Parser.htmlToText(title).trim();
 }
 
 function getTaskTitle(taskReportID: string | undefined, fallbackTitle = '', shouldReturnMarkdown = false): string {
