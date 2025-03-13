@@ -598,7 +598,7 @@ function PureReportActionItem({
         }
 
         if (isConciergeCategoryOptions(action)) {
-            console.log(">>>> originalReportID", originalReportID);
+            console.log('>>>> originalReportID', originalReportID);
             const options = getOriginalMessage(action)?.options;
             return options.map((option, index) => ({
                 text: `${index + 1} - ${option}`,
@@ -606,7 +606,6 @@ function PureReportActionItem({
                 onPress: () => addComment(originalReportID, option),
             }));
         }
-
 
         if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
