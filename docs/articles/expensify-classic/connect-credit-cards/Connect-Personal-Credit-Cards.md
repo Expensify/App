@@ -3,7 +3,7 @@ Title: Connecting Personal Credit Cards to Expensify
 Description: Learn how to connect or manually import your personal credit card expenses into Expensify for seamless tracking and reimbursement.
 ---
 
-Connecting your personal credit card to Expensify makes it easy to track your expenses and get reimbursed all in one place. You can either set up a direct connection to automatically import transactions or manually upload a CSV file. These methods also merge your expenses with SmartScanned receipts and, if enabled, allow you to generate IRS-compliant eReceipts.
+Connecting a personal credit card to Expensify makes it easy to track your expenses and get reimbursed all in one place. You can either set up a direct connection to automatically import transactions or manually upload a CSV file. These methods also merge your expenses with SmartScanned receipts and, if enabled, allow you to generate IRS-compliant eReceipts.
 
 ---
 # Option 1: Connect Directly to Your Credit Card Account
@@ -11,16 +11,15 @@ Connecting your personal credit card to Expensify makes it easy to track your ex
 Follow these steps to import expenses automatically from your bank or credit card account:
 
 1. Log in to Expensify and navigate to **Settings > Account**.
-2. Select **Credit Card Import**.
-3. Click **Import Bank/Card**.
+2. Select **Wallet**.
+3. Under **Imported Card Feeds**, click **Import Bank/Card**.
 4. Search for and select your bank from the list.
-   - If your bank isn’t listed, proceed to **Option 2** (Manual Import via Spreadsheet).
+   - If your bank isn’t listed, proceed to **Option 2: (Manual Import via Spreadsheet)**.
 5. Choose a transaction start date from the calendar.  
-   _**Note: Most banks allow importing up to 90 days of transactions. If you need older transactions, use a spreadsheet import (details below).**_
-6. Click **Take Me There**.
-7. Enter your online banking credentials.
-8. Select the account(s) to import.
-9. Click **Update** to sync the latest transactions.
+   _**Note:** Most banks allow importing up to 30 to 90 days of transactions. If you need older transactions, use a spreadsheet import (details below)._
+6. Enter your online banking credentials.
+7. Select the account(s) to import.
+8. Click **Update** to sync the latest transactions.
 
 ---
 # Option 2: Import Transactions via Spreadsheet
@@ -32,7 +31,7 @@ Use this method if your bank isn’t supported or you need older transactions. S
 2. Ensure your file includes columns for **Merchant**, **Transaction Date**, and **Amount** (formatted as positive values). 
    - Keep only one header row.
    - Format dates (e.g., `yyyy-mm-dd` or `mm-dd-yyyy`). In Excel, go to **Format Cells > Custom** to update the format.
-3. Log in to Expensify and go to **Settings > Account > Credit Card Import**.
+3. Log in to Expensify and go to **Settings > Account > Wallet > Imported Card Feeds**.
 4. Select **Import Transactions from File** and click **Upload**.
 5. For first-time uploads:
    - Keep the layout set to **Default**.
@@ -50,26 +49,28 @@ Use this method if your bank isn’t supported or you need older transactions. S
 
 You can customize how imported card transactions appear:
 
-1. Navigate to the card’s settings under **Credit Card Import**.
+1. Navigate to the card’s settings under **Settings > Account > Wallet**.
 2. Change the card name or set the default reimbursement option:
    - **Reimbursable**: Expenses you need to be reimbursed for, such as personal card purchases made for work.
    - **Non-Reimbursable**: Expenses incurred with a company card or paid by someone else.
 
 ---
+
 # Removing a Card
 
-_**Important: Removing a card deletes all unsubmitted expenses associated with it. Processed expenses remain unaffected.**_
+**Important:** Removing a card deletes all unsubmitted expenses associated with it, so any card expenses on an Open report or left Unreported will be deleted. Card expenses that were submitted are unaffected (on reports that are Processing, Approved, Reimbursed, or Closed).
 
-1. Go to **Credit Card Import**.
-2. Click the red trashcan icon next to the card.
+1. Go to **Settings > Account > Wallet**.
+2. Under **Imported Card Feeds**, click the red trashcan icon next to the card.
 
 ---
+
 # FAQ
 
 ## Should I Use Direct Import or Spreadsheet Upload?
 
-- **Direct Import**: Ideal for personal or business cards that require regular reporting. If using a company-assigned corporate card, consult your Expensify Admin, as they may handle imports.  
-- **Spreadsheet Upload**: Best for banks not supported by Expensify or when you need to import older transactions.
+- **Direct Import**: This option is ideal for personal or business cards that require regular reporting. If you are using a company-assigned corporate card, consult your Expensify Admin, as they may handle imports.  
+- **Spreadsheet Upload**: This option is best for banks not supported by Expensify or when you need to import older transactions.
 
 ## Why Don’t I See My Imported Transactions?
 
