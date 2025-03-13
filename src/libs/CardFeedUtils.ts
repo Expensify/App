@@ -319,6 +319,10 @@ function buildCardFeedsData(
                 selectedCards,
                 illustrations,
             });
+            const domainName = Object.values(workspaceFeed ?? {}).at(0)?.domainName ?? '';
+            if (Object.keys(domainFeedsData).includes(domainName)) {
+                return;
+            }
             if (feedItem.isSelected) {
                 selectedFeeds.push(feedItem);
             } else {

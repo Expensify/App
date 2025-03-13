@@ -18,6 +18,7 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type { CardList } from '@src/types/onyx';
 
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
@@ -50,8 +51,12 @@ function SearchFiltersCardPage() {
         () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, true),
         [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
     );
+    const flattenedWorkspaceCardFeeds = Object.values(workspaceCardFeeds ?? {}).reduce<CardList>((result, domainCards) => {
+        Object.assign(result, domainCards);
+        return result;
+    }, {});
 
-    const domainFeedsData = useMemo(() => generateDomainFeedData(userCardList), [userCardList]);
+    const domainFeedsData = useMemo(() => generateDomainFeedData(flattenedWorkspaceCardFeeds), [flattenedWorkspaceCardFeeds]);
 
     const cardFeedsSectionData = useMemo(
         () => buildCardFeedsData(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, domainFeedsData, selectedCards, translate, illustrations),
