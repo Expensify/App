@@ -54,7 +54,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
@@ -1243,12 +1243,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     if (isMoneyRequestToManagerMcTest) {
         const date = new Date();
         const isTestReceipt = transaction.filename?.includes(CONST.TEST_RECEIPT.FILENAME) && isScanRequest;
+        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
         const optimisticIOUReportAction = buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.PAY,
             isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total ?? 0,
             isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency ?? '',
             '',
-            transaction.participants ?? [],
+            [managerMcTestParticipant],
             '',
             CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             iou.report?.reportID,
@@ -1256,11 +1257,11 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         );
 
         optimisticData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
-                value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: DateUtils.getDBTime(date.valueOf())},
-            },
+            // {
+            //     onyxMethod: Onyx.METHOD.MERGE,
+            //     key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
+            //     value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: DateUtils.getDBTime(date.valueOf())},
+            // },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
@@ -1268,8 +1269,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     ...iou.report,
                     total: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total,
                     currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency,
-                    lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
-                    lastMessageText: getReportActionText(optimisticIOUReportAction),
                     lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                     statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                     hasOutstandingChildRequest: false,
@@ -1285,7 +1284,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 value: {
                     [optimisticIOUReportAction.reportActionID]: {
                         ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
             },
