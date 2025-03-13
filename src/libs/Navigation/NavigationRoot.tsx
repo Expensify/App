@@ -107,7 +107,15 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
-        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL)) {
+        if (
+            path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL) &&
+            lastVisitedPath &&
+            !CONFIG.IS_HYBRID_APP &&
+            isOnboardingCompleted &&
+            !wasInvitedToNewDot &&
+            authenticated &&
+            !shouldShowRequire2FAModal
+        ) {
             return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         }
 
