@@ -6,7 +6,6 @@ import type {BaseImageProps} from './types';
 function BaseImage({onLoad, ...props}: BaseImageProps) {
     const imageLoadedSuccessfully = useCallback(
         (event: {nativeEvent: ImageLoadEventData}) => {
-            console.log('RORY_DEBUG Image loaded successfully');
             if (!onLoad) {
                 return;
             }
@@ -17,8 +16,6 @@ function BaseImage({onLoad, ...props}: BaseImageProps) {
         },
         [onLoad],
     );
-
-    console.log('RORY_DEBUG rendering image: ', props.source.uri);
 
     return (
         <RNImage

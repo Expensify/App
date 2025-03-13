@@ -1,4 +1,5 @@
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';

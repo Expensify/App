@@ -8,6 +8,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import temp_onyx_dump from '../../temp_onyx_dump.json';
 import waitForBatchedUpdates from '../../tests/utils/waitForBatchedUpdates';
 import LiveReloadServer from '../server/LiveReloadServer';
 import EmailRoot from './components/EmailRoot';
@@ -47,6 +48,12 @@ export default async function renderEmail({env, notificationName, onyxData = []}
 
     // Set provided data and wait for batched updates
     await Onyx.update(onyxData);
+
+    // FIXME: temporary hack for the POC
+    if (notificationName === 'ExpenseSubmitted') {
+        await Onyx.multiSet(temp_onyx_dump);
+    }
+
     await waitForBatchedUpdates();
 
     // Look up the notification component
