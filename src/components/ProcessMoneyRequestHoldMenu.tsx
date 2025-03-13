@@ -1,10 +1,11 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import HoldMenuSectionList from './HoldMenuSectionList';
 import * as Illustrations from './Icon/Illustrations';
@@ -22,15 +23,9 @@ type ProcessMoneyRequestHoldMenuProps = {
 function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const navigation = useNavigation();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
-    useEffect(() => {
-        const unsub = navigation.addListener('beforeRemove', () => {
-            onClose();
-        });
-        return unsub;
-    }, [navigation, onClose]);
+    useBeforeRemove(onClose);
 
     const title = useMemo(
         () => (
@@ -50,7 +45,7 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
             image={Illustrations.HoldExpense}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
-            illustrationAspectRatio={39 / 22}
+            illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
             contentInnerContainerStyles={styles.mb5}
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.p0}

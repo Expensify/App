@@ -39,8 +39,8 @@ const ROUTES = {
 
     SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, name, groupBy}: {query: SearchQueryString; name?: string; groupBy?: string}) => {
-            return `search?q=${encodeURIComponent(query)}${groupBy ? `&groupBy=${groupBy}` : ''}${name ? `&name=${name}` : ''}` as const;
+        getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => {
+            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const;
         },
     },
     SEARCH_SAVED_SEARCH_RENAME: {
@@ -79,9 +79,9 @@ const ROUTES = {
         },
     },
     SEARCH_MONEY_REQUEST_REPORT: {
-        route: 'search/report/:reportID',
+        route: 'search/r/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `search/view/${reportID}` as const;
+            const baseRoute = `search/r/${reportID}` as const;
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
@@ -108,10 +108,6 @@ const ROUTES = {
         getRoute: (accountID: number) => `a/${accountID}/avatar` as const,
     },
 
-    GET_ASSISTANCE: {
-        route: 'get-assistance/:taskID',
-        getRoute: (taskID: string, backTo: string) => getUrlWithBackToParam(`get-assistance/${taskID}`, backTo),
-    },
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
@@ -133,6 +129,10 @@ const ROUTES = {
         },
     },
     WORKSPACE_SWITCHER: 'workspace-switcher',
+    PUBLIC_CONSOLE_DEBUG: {
+        route: 'troubleshoot/console',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
+    },
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
@@ -314,6 +314,7 @@ const ROUTES = {
     NEW_CHAT_EDIT_NAME: 'new/chat/confirm/name/edit',
     NEW_ROOM: 'new/room',
 
+    NEW_REPORT_WORKSPACE_SELECTION: 'new-report-workspace-selection',
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
@@ -408,6 +409,10 @@ const ROUTES = {
     REPORT_WITH_ID_DETAILS_EXPORT: {
         route: 'r/:reportID/details/export/:connectionName',
         getRoute: (reportID: string, connectionName: ConnectionName, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/export/${connectionName as string}` as const, backTo),
+    },
+    REPORT_WITH_ID_CHANGE_WORKSPACE: {
+        route: 'r/:reportID/change-workspace',
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-workspace` as const, backTo),
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
@@ -1683,6 +1688,10 @@ const ROUTES = {
     PROCESS_MONEY_REQUEST_HOLD: {
         route: 'hold-expense-educational',
         getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),
+    },
+    CHANGE_POLICY_EDUCATIONAL: {
+        route: 'change-workspace-educational',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: {
