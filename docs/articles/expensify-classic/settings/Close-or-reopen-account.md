@@ -14,7 +14,7 @@ Once removed from the workspace, the account will downgrade to a free account, a
 
 ---
 
-# Close Your Account
+# Close Account
 
 **On Web:**
 1. Hover over **Settings > Account > Profile**.
