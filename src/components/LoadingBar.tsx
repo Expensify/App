@@ -56,7 +56,6 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
         height: '100%',
         backgroundColor: colors.green,
         opacity: opacity.get(),
-        borderRadius: 2,
     }));
 
     return (
