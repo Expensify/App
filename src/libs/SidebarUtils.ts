@@ -529,7 +529,6 @@ function getOptionData({
 
     const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !result.private_isArchived) {
-        const lastActionName = lastAction?.actionName ?? report.lastActionType;
         const prefix = getReportSubtitlePrefix(report);
 
         if (isRenamedAction(lastAction)) {
@@ -541,10 +540,12 @@ function getOptionData({
             result.alternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';
         } else if (isInviteOrRemovedAction(lastAction)) {
             let actorDetails;
+            let actorDisplayName = lastAction?.person?.[0]?.text;
+
             if (lastAction.actorAccountID) {
                 actorDetails = personalDetails?.[lastAction?.actorAccountID];
             }
-            let actorDisplayName = lastAction?.person?.[0]?.text;
+
             if (!actorDetails && actorDisplayName && lastAction.actorAccountID) {
                 actorDetails = {
                     displayName: actorDisplayName,
@@ -552,23 +553,8 @@ function getOptionData({
                 };
             }
             actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, hasMultipleParticipants) : undefined;
-            const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
-            const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
-            const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0;
-            const verb =
-                lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
-                    ? translate(preferredLocale, 'workspace.invite.invited')
-                    : translate(preferredLocale, 'workspace.invite.removed');
-            const users = translate(preferredLocale, targetAccountIDsLength > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
-            result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]);
-            if (roomName) {
-                const preposition =
-                    lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
-                        ? ` ${translate(preferredLocale, 'workspace.invite.to')}`
-                        : ` ${translate(preferredLocale, 'workspace.invite.from')}`;
-                result.alternateText += `${preposition} ${roomName}`;
-            }
+
+            result.alternateText = `${actorDisplayName ?? lastActorDisplayName} ${getLastMessageTextForReport(report, lastActorDetails)}`;
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
             result.alternateText = `${lastActorDisplayName} ${getUpdateRoomDescriptionMessage(lastAction)}`;
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {

@@ -57,6 +57,7 @@ import {
     isClosedAction,
     isCreatedTaskReportAction,
     isDeletedParentAction,
+    isInviteOrRemovedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isOldDotReportAction,
@@ -730,6 +731,30 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
+    } else if (isInviteOrRemovedAction(lastReportAction)) {
+        const lastActionName = lastReportAction?.actionName;
+        const lastActionOriginalMessage = lastActionName ? getOriginalMessage(lastReportAction) : null;
+        const roomName = lastActionOriginalMessage?.roomName ?? '';
+
+        const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
+        const targetAccountIDsLength = targetAccountIDs.length || report?.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length || 0;
+        const users = translate(preferredLocale, targetAccountIDsLength > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
+
+        const verb =
+            lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
+                ? translate(preferredLocale, 'workspace.invite.invited')
+                : translate(preferredLocale, 'workspace.invite.removed');
+
+        lastMessageTextFromReport = formatReportLastMessageText(`${verb} ${targetAccountIDsLength} ${users}`);
+
+        if (roomName) {
+            const preposition =
+                lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
+                    ? ` ${translate(preferredLocale, 'workspace.invite.to')}`
+                    : ` ${translate(preferredLocale, 'workspace.invite.from')}`;
+
+            lastMessageTextFromReport += `${preposition} ${roomName}`;
+        }
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
@@ -1528,6 +1553,7 @@ function getValidOptions(
             shouldSeparateSelfDMChat,
             shouldSeparateWorkspaceChat,
         });
+
         recentReportOptions = recentReports;
         workspaceChats = workspaceOptions;
         selfDMChat = selfDMOption;
