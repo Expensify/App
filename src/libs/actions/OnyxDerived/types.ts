@@ -4,6 +4,14 @@ import type {OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
 import type ONYXKEYS from '@src/ONYXKEYS';
 
 /**
+ * Context for the compute function
+ */
+type ComputeContext = {
+    currentValue?: OnyxValue<OnyxKey>;
+    sourceValue?: any;
+};
+
+/**
  * A derived value configuration describes:
  *  - a tuple of Onyx keys to subscribe to (dependencies),
  *  - a compute function that derives a value from the dependent Onyx values.
@@ -17,7 +25,7 @@ type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps e
         args: {
             [Index in keyof Deps]: OnyxValue<Deps[Index]>;
         },
-        currentValue: OnyxValue<Key>,
+        context: ComputeContext,
     ) => OnyxDerivedValuesMapping[Key];
 };
 
