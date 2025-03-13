@@ -18,7 +18,7 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type { CardList } from '@src/types/onyx';
+import type {CardList} from '@src/types/onyx';
 
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
