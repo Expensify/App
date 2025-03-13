@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePane from '@hooks/useSidePane';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
@@ -163,6 +164,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const context = useContext(ProductTrainingContext);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldHideToolTip} = useSidePane();
     const {translate} = useLocalize();
 
     if (!context) {
@@ -252,8 +254,8 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     ]);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
-        return shouldShow && shouldRenderTooltip(tooltipName);
-    }, [shouldRenderTooltip, tooltipName, shouldShow]);
+        return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
+    }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
 
     const hideProductTrainingTooltip = useCallback(() => {
         if (!shouldShowProductTrainingTooltip) {

@@ -78,6 +78,11 @@ type DismissedProductTraining = {
      * When user dismisses the gbrRbrChat product training tooltip, we store the timestamp here.
      */
     [GBR_RBR_CHAT]: string;
+
+    /**
+     * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
+     */
+    [CONST.CHANGE_POLICY_TRAINING_MODAL]: string;
 };
 
 export default DismissedProductTraining;
