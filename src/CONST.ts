@@ -6227,6 +6227,8 @@ const CONST = {
         TRAIN: 'train',
     },
 
+    RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
+
     CANCELLATION_POLICY: {
         UNKNOWN: 'UNKNOWN',
         NON_REFUNDABLE: 'NON_REFUNDABLE',
