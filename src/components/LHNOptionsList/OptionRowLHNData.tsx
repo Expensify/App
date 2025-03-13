@@ -51,7 +51,6 @@ function OptionRowLHNData({
             reportNameValuePairs,
             reportActions,
             personalDetails,
-            preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
             hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,

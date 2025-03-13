@@ -73,7 +73,6 @@ describe('SidebarUtils', () => {
 
     test('[SidebarUtils] getOptionData', async () => {
         const report = createRandomReport(1);
-        const preferredLocale = 'en';
         const policy = createRandomPolicy(1);
         const parentReportAction = createRandomReportAction(1);
         const reportNameValuePairs = {};
@@ -86,7 +85,6 @@ describe('SidebarUtils', () => {
                 reportNameValuePairs,
                 reportActions,
                 personalDetails,
-                preferredLocale,
                 policy,
                 parentReportAction,
                 hasViolations: false,
