@@ -46,7 +46,7 @@ type ValidateCodeActionModalProps = {
     isLoading?: boolean;
 
     /** Whether handle navigation back when modal show. */
-    shouldHandleNavigationBack?: boolean;
+    navigationHistoryID?: string;
 
     /** Whether disable the animations */
     disableAnimation?: boolean;

@@ -36,7 +36,7 @@ function SearchRouterModal() {
             fullscreen
             propagateSwipe
             swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
-            shouldHandleNavigationBack={isMobileChrome()}
+            navigationHistoryID={isMobileChrome() ? 'searchRouter' : undefined}
             onClose={closeSearchRouter}
             onModalHide={() => setShouldHideInputCaret(isMobileWebSafari)}
             onModalShow={() => setShouldHideInputCaret(false)}

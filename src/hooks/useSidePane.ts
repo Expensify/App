@@ -87,6 +87,7 @@ function useSidePane() {
         sidePane: sidePaneNVP,
         shouldHideSidePane,
         shouldHideSidePaneBackdrop,
+        isPaneHidden,
         shouldHideHelpButton,
         sidePaneOffset,
         sidePaneTranslateX,

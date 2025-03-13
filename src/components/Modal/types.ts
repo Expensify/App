@@ -15,6 +15,7 @@ type PopoverAnchorPosition = {
 };
 
 type WindowState = {
+    id: string;
     shouldGoBack: boolean;
 };
 
@@ -73,7 +74,8 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         hideModalContentWhileAnimating?: boolean;
 
         /** Whether handle navigation back when modal show. */
-        shouldHandleNavigationBack?: boolean;
+        /** Unique id for the modal */
+        navigationHistoryID?: string;
 
         /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
         shouldUseCustomBackdrop?: boolean;

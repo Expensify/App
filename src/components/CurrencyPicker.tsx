@@ -76,7 +76,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                 useNativeDriver
                 onBackdropPress={Navigation.dismissModal}
                 shouldUseModalPaddingStyle={false}
-                shouldHandleNavigationBack
+                navigationHistoryID="currencyPicker"
             >
                 <ScreenWrapper
                     style={[styles.pb0]}

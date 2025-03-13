@@ -194,7 +194,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
     return (
         <PopoverWithMeasuredContent
-            shouldHandleNavigationBack={Browser.isMobileChrome()}
+            navigationHistoryID={Browser.isMobileChrome() ? 'emojiPicker' : undefined}
             isVisible={isEmojiPickerVisible}
             onClose={hideEmojiPicker}
             onModalShow={focusEmojiSearchInput}

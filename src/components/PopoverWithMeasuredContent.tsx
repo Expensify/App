@@ -23,7 +23,7 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
     shoudSwitchPositionIfOverflow?: boolean;
 
     /** Whether handle navigation back when modal show. */
-    shouldHandleNavigationBack?: boolean;
+    navigationHistoryID?: string;
 };
 
 /**
@@ -58,7 +58,7 @@ function PopoverWithMeasuredContent({
         width: 0,
     },
     shoudSwitchPositionIfOverflow = false,
-    shouldHandleNavigationBack = false,
+    navigationHistoryID,
     shouldEnableNewFocusManagement,
     shouldUseNewModal = false,
     ...props
@@ -137,7 +137,7 @@ function PopoverWithMeasuredContent({
 
     return isContentMeasured ? (
         <Popover
-            shouldHandleNavigationBack={shouldHandleNavigationBack}
+            navigationHistoryID={navigationHistoryID}
             popoverDimensions={{height: popoverHeight, width: popoverWidth}}
             anchorAlignment={anchorAlignment}
             isVisible={isVisible}

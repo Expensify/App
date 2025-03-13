@@ -7,7 +7,7 @@ import BaseModal from './BaseModal';
 import type BaseModalProps from './types';
 import type {WindowState} from './types';
 
-function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, shouldHandleNavigationBack, ...rest}: BaseModalProps) {
+function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, navigationHistoryID, ...rest}: BaseModalProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
@@ -23,12 +23,15 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const hideModal = () => {
         setStatusBarColor(previousStatusBarColor);
         onModalHide();
-        if ((window.history.state as WindowState)?.shouldGoBack) {
+        if ((window.history.state as WindowState)?.id === navigationHistoryID) {
             window.history.back();
         }
     };
 
-    const handlePopStateRef = useRef(() => {
+    const handlePopStateRef = useRef((event: PopStateEvent) => {
+        if ((event.state as WindowState)?.id === navigationHistoryID) {
+            return;
+        }
         rest.onClose();
     });
 
@@ -47,8 +50,8 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
             setStatusBarColor(isFullScreenModal ? theme.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
         }
 
-        if (shouldHandleNavigationBack) {
-            window.history.pushState({shouldGoBack: true}, '', null);
+        if (navigationHistoryID) {
+            window.history.pushState({id: navigationHistoryID}, '', null);
             window.addEventListener('popstate', handlePopStateRef.current);
         }
         onModalShow?.();
