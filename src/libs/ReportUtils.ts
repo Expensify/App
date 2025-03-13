@@ -7430,7 +7430,7 @@ function getPolicyExpenseChat(ownerAccountID: number | undefined, policyID: stri
             return false;
         }
 
-        return report.policyID === policyID && isPolicyExpenseChat(report) && report.ownerAccountID === ownerAccountID;
+        return report.policyID === policyID && isPolicyExpenseChat(report) && !isThread(report) && report.ownerAccountID === ownerAccountID;
     });
 }
 
