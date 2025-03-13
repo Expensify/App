@@ -1,5 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
+import {ScrollView} from 'react-native';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getHelpContent from '@components/SidePane/getHelpContent';
@@ -50,7 +51,7 @@ function HelpContent() {
                 shouldShowCloseButton={isExtraLargeScreenWidth}
                 shouldDisplayHelpButton={false}
             />
-            {getHelpContent(styles, route, isProduction)}
+            <ScrollView style={[styles.ph5, styles.pb5]}>{getHelpContent(styles, route, isProduction)}</ScrollView>
         </>
     );
 }
