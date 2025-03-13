@@ -1,33 +1,44 @@
 ---
-title: Add personal Australian bank account
+title: Add a Personal Australian Bank Account
 description: Receive AUD reimbursements from an Australian employer by adding your banking information
 ---
+
 <div id="expensify-classic" markdown="1">
 
-{% include info.html %}
-The workspace must be set to AUD to use ABA batch reimbursements. For businesses that will also be reimbursing employees in other countries outside of Australia, you’ll need to set up Global Reimbursement instead. 
-{% include end-info.html %}
+Australian employees can connect a personal deposit-only bank account to receive reimbursements for their expense reports.  
 
-Australian employees can connect a personal deposit-only bank account to receive reimbursements for their expense reports. 
+**Important Notes:**
+- The workspace currency must be set to AUD to use ABA batch reimbursements.  
+- If your company reimburses employees in multiple countries, set up **[Global Reimbursement](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Enable-Global-Reimbursements)** instead.  
 
-1. Click your profile picture and select the workspace you want to set as your default workspace. 
-2. Hover over **Settings**, then click **Account**.
-3. Click the **Payments** tab on the left.
-4. Click **Add Deposit-Only Bank Account**.
-5. Enter the company information. 
-   - Enter the account holder’s name, address, city, and country.
-   - Enter the swift code.
-   - Enter the bank’s name, address, and city.
-   - Enter the account number. 
-   - Enter the BSB number.  
+---
 
-{% include info.html %}
-If you don’t know your Bank User ID/Direct Entry ID/APCA Number, contact your bank for this information. 
+# Add the Bank Account  
 
-If your screen does not contain the listed fields, your company hasn’t enabled reimbursements through Expensify. Contact your administrator for next steps. 
-{% include end-info.html %}
+1. Click your profile picture and select the workspace you want set as your default workspace. 
+2. Hover over **Settings**, then click **Account**.  
+3. Click the **Payments** tab.  
+4. Click **Add Deposit-Only Bank Account**.  
+5. Enter the required details:  
+   - **Account Holder Information**: Name, address, city, and country.  
+   - **Bank Details**: SWIFT code, bank name, address, and city.  
+   - **Account Information**: Account number and BSB number.  
+6. Click **Save & Continue**.  
 
-{:start="6"}
-6. Click **Save & Continue**.
+## Troubleshooting Steps
 
-</div>
+- If you don’t know your **Bank User ID/Direct Entry ID/APCA Number**, contact your bank.  
+- If you don’t see the required fields, your company hasn’t enabled reimbursements through Expensify. Contact your administrator for next steps.  
+
+---
+
+# FAQ  
+
+## Why don’t I see the option to add a deposit-only bank account?  
+If your company hasn’t enabled reimbursements in Expensify, you won’t see this option. Contact your administrator for assistance.  
+
+## What if I don’t know my Bank User ID?  
+Your bank can provide this information. Contact them to confirm your **Bank User ID/Direct Entry ID/APCA Number**.  
+
+## Can I add multiple bank accounts?  
+No, you can only add one deposit-only bank account per workspace for reimbursements.

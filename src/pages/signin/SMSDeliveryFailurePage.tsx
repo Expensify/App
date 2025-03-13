@@ -29,7 +29,22 @@ function SMSDeliveryFailurePage() {
     }, [credentials?.login]);
 
     const SMSDeliveryFailureMessage = account?.smsDeliveryFailureStatus?.message;
+
+    type TimeData = {
+        days?: number;
+        hours?: number;
+        minutes?: number;
+    };
+
+    const timeData = useMemo<TimeData | null>(() => {
+        if (!SMSDeliveryFailureMessage) {
+            return null;
+        }
+        return JSON.parse(SMSDeliveryFailureMessage) as TimeData;
+    }, [SMSDeliveryFailureMessage]);
+
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
+
     const isReset = account?.smsDeliveryFailureStatus?.isReset;
 
     const errorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
@@ -48,7 +63,7 @@ function SMSDeliveryFailurePage() {
                 <View style={[styles.mv3, styles.flexRow]}>
                     <View style={[styles.flex1]}>
                         <Text>
-                            {translate('smsDeliveryFailurePage.validationFailed')} {SMSDeliveryFailureMessage}
+                            {translate('smsDeliveryFailurePage.validationFailed')} {timeData && translate('smsDeliveryFailurePage.pleaseWaitBeforeTryingAgain', {timeData})}
                         </Text>
                     </View>
                 </View>
