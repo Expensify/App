@@ -74,7 +74,8 @@ platform :android do
       ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
       gradle(
         project_dir: 'Mobile-Expensify/Android',
-        task: "bundleRelease",
+        task: "bundle",
+        build_type: "Release",
         flags: "--refresh-dependencies",
         flavor: ENV["ANDROID_FLAVOR"],
         properties: {
@@ -85,6 +86,17 @@ platform :android do
         }
       )
       setGradleOutputsInEnv()
+    end
+
+  desc "Generate a production HybridApp AAB"
+    lane :build_hybrid_debug do
+      ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
+      gradle(
+        project_dir: 'Mobile-Expensify/Android',
+          task: "bundle",          # Base Gradle task
+          flavor: "appTestFork",   # Flavor
+          build_type: "Debug",     # Build type
+      )
     end
 
   desc "Generate AdHoc HybridApp apk"
