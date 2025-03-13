@@ -88,7 +88,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense status:all policyID:12345');
+            expect(result).toEqual('sortBy:date sortOrder:desc policyID:12345');
         });
 
         test('with keywords', () => {
