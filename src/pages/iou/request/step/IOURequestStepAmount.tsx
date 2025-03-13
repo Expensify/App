@@ -217,7 +217,7 @@ function IOURequestStepAmount({
                             currency,
                             created: transaction?.created ?? '',
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                            attendees: transaction?.attendees,
+                            attendees: transaction?.comment?.attendees,
                         },
                     });
                     return;

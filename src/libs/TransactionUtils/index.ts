@@ -218,7 +218,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
     const transactionID = existingTransactionID ?? NumberUtils.rand64();
 
-    const commentJSON: Comment = {comment};
+    const commentJSON: Comment = {comment, attendees};
     if (source) {
         commentJSON.source = source;
     }
@@ -256,7 +256,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         taxAmount,
         billable,
         reimbursable,
-        attendees,
         inserted: DateUtils.getDBTime(),
     };
 }
@@ -609,7 +608,7 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
  * Return the list of modified attendees if present otherwise list of attendees
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
-    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.attendees ?? [];
+    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.comment?.attendees ?? [];
 }
 
 /**
