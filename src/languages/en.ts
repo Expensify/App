@@ -5985,7 +5985,7 @@ const translations = {
         GBRRBRChat: {
             part1: 'You’ll see 🟢 on ',
             part2: 'actions to take',
-            part3: ', and 🔴 on ',
+            part3: ',\nand 🔴 on ',
             part4: 'errors to review.',
         },
         expenseReportsFilter: {

@@ -6512,7 +6512,7 @@ const translations = {
         GBRRBRChat: {
             part1: 'Verás 🟢 en ',
             part2: 'acciones a realizar',
-            part3: ', y 🔴 en ',
+            part3: ',\ny 🔴 en ',
             part4: 'errores para revisar.',
         },
         accountSwitcher: {
