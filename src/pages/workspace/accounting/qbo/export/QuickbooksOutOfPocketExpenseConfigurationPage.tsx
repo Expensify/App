@@ -92,13 +92,14 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
             subscribedSettings: account,
             pendingAction: settingsPendingAction(account, qboConfig?.pendingFields),
             brickRoadIndicator: areSettingsInErrorFields(account, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            errors: shouldShowQBOReimbursableExportDestinationAccountError(policy)
-                ? {
-                      [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(
-                          `workspace.qbo.accounts.exportDestinationAccountsMisconfigurationError.${qboConfig?.reimbursableExpensesExportDestination}`,
-                      ),
-                  }
-                : undefined,
+            errors:
+                shouldShowQBOReimbursableExportDestinationAccountError(policy) && qboConfig?.reimbursableExpensesExportDestination
+                    ? {
+                          [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(
+                              `workspace.qbo.accounts.exportDestinationAccountsMisconfigurationError.${qboConfig?.reimbursableExpensesExportDestination}`,
+                          ),
+                      }
+                    : undefined,
         },
     ];
 
