@@ -93,9 +93,9 @@ platform :android do
       ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
       gradle(
         project_dir: 'Mobile-Expensify/Android',
-          task: "bundle",          # Base Gradle task
-          flavor: "appTestFork",   # Flavor
-          build_type: "Debug",     # Build type
+        task: "bundle",
+        build_type: "Debug",
+        flavor: ENV["ANDROID_FLAVOR"],
       )
     end
 
