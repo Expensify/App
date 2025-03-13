@@ -9,6 +9,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
@@ -279,6 +280,7 @@ function AmountForm(
             >
                 <TextInputWithCurrencySymbol
                     formattedAmount={formattedAmount}
+                    autoGrowExtraSpace={variables.w80}
                     onChangeAmount={setNewAmount}
                     onCurrencyButtonPress={onCurrencyButtonPress}
                     placeholder={numberFormat(0)}
