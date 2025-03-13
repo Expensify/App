@@ -734,7 +734,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
-    if (reportID && !isArchivedReport(reportNameValuePairs) && ((lastOriginalReportAction?.reportID && isDeletedAction(lastOriginalReportAction)) || report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
+    if (reportID && !isArchivedReport(reportNameValuePairs) && ((lastOriginalReportAction?.reportActionID && isDeletedAction(lastOriginalReportAction)) || report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
