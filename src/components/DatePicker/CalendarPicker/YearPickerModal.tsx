@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
+import {Keyboard} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -7,7 +8,6 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import KeyboardUtils from '@src/utils/keyboard';
 import type CalendarPickerListItem from './types';
 
 type YearPickerModalProps = {
@@ -75,9 +75,8 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     headerMessage={headerMessage}
                     sections={sections}
                     onSelectRow={(option) => {
-                        KeyboardUtils.dismiss().then(() => {
-                            onYearChange?.(option.value);
-                        });
+                        Keyboard.dismiss();
+                        onYearChange?.(option.value);
                     }}
                     initiallyFocusedOptionKey={currentYear.toString()}
                     showScrollIndicator
