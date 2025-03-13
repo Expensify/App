@@ -75,14 +75,12 @@ function ButtonWithDropdownMenu<IValueType>({
         }
         if ('measureInWindow' in dropdownAnchor.current) {
             dropdownAnchor.current.measureInWindow((x, y, w, h) => {
-                let horizontalPosition;
+                let horizontalPosition = x + w;
 
                 if (popoverHorizontalOffsetType === 'left') {
                     horizontalPosition = x;
                 } else if (popoverHorizontalOffsetType === 'center') {
                     horizontalPosition = x + w / 2;
-                } else {
-                    horizontalPosition = x + w;
                 }
 
                 setPopoverAnchorPosition({
