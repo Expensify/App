@@ -5482,6 +5482,10 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
+
+        expenseWidgetRadius: {
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
