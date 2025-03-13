@@ -26,7 +26,7 @@ keywords: [Expensify Classic, out-of-date billing, billing notification, retry b
 **Note:** Only the **Billing Owner** can complete this step.
 
 1. Ensure the linked card or bank account has sufficient funds.
-2. Hover over **Settings** and click **Subscription**.
+2. Hover over **Settings** and click **Account > Subscription**.
 3. Under **Payments**, choose one of the following:
    - Click **Retry Billing** if the previous payment failed due to insufficient funds.
    - Click **Add Payment Card** to enter a new payment method.
