@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
@@ -31,30 +30,17 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccountList, FundList, UserWallet, WalletTransfer} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type TransferBalancePageOnyxProps = {
-    /** User's wallet information */
-    userWallet: OnyxEntry<UserWallet>;
-
-    /** List of bank accounts */
-    bankAccountList: OnyxEntry<BankAccountList>;
-
-    /** List of user's card objects */
-    fundList: OnyxEntry<FundList>;
-
-    /** Wallet balance transfer props */
-    walletTransfer: OnyxEntry<WalletTransfer>;
-};
-
-type TransferBalancePageProps = TransferBalancePageOnyxProps;
-
 const TRANSFER_TIER_NAMES: string[] = [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM];
 
-function TransferBalancePage({bankAccountList, fundList, userWallet, walletTransfer}: TransferBalancePageProps) {
+function TransferBalancePage() {
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
     const styles = useThemeStyles();
     const {numberFormat, translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -236,17 +222,4 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
 
 TransferBalancePage.displayName = 'TransferBalancePage';
 
-export default withOnyx<TransferBalancePageProps, TransferBalancePageOnyxProps>({
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    walletTransfer: {
-        key: ONYXKEYS.WALLET_TRANSFER,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
-})(TransferBalancePage);
+export default TransferBalancePage;
