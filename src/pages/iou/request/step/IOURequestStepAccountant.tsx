@@ -8,9 +8,10 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {setMoneyRequestAttendees, updateMoneyRequestAttendees} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAttendees} from '@libs/TransactionUtils';
-import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
+import MoneyRequestAccountantSelector from '@pages/iou/request/MoneyRequestAccountantSelector';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
@@ -46,18 +47,15 @@ function IOURequestStepAccountant({
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
 
-    const saveAttendees = useCallback(() => {
-        if (attendees.length <= 0) {
-            return;
-        }
-        if (!lodashIsEqual(previousAttendees, attendees)) {
+    const setAccountant = useCallback(
+        (v: Attendee[]) => {
             setMoneyRequestAttendees(transactionID, attendees, !isEditing);
-            if (isEditing) {
-                updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, transactionViolations ?? undefined);
-            }
-        }
+        },
+        [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, transactionViolations],
+    );
 
-        Navigation.goBack(backTo);
+    const saveAttendees = useCallback(() => {
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, undefined, action));
     }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, transactionViolations]);
 
     const navigateBack = () => {
@@ -71,9 +69,9 @@ function IOURequestStepAccountant({
             shouldShowWrapper
             testID={IOURequestStepAccountant.displayName}
         >
-            <MoneyRequestAttendeeSelector
+            <MoneyRequestAccountantSelector
                 onFinish={saveAttendees}
-                onAttendeesAdded={(v) => setAttendees(v)}
+                onAttendeesAdded={setAccountant}
                 attendees={attendees}
                 iouType={iouType}
                 action={action}
