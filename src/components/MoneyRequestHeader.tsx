@@ -165,19 +165,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         onPress={markAsCash}
                     />
                 )}
-                {isDuplicate && !shouldUseNarrowLayout && (
-                    <Button
-                        success
-                        text={translate('iou.reviewDuplicates')}
-                        style={[styles.p0, styles.ml2]}
-                        onPress={() => {
-                            if (!reportID) {
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
-                        }}
-                    />
-                )}
             </HeaderWithBackButton>
             {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
                 <View style={[styles.ph5, styles.pb3]}>
@@ -186,21 +173,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         text={translate('iou.markAsCash')}
                         style={[styles.w100, styles.pr0]}
                         onPress={markAsCash}
-                    />
-                </View>
-            )}
-            {isDuplicate && shouldUseNarrowLayout && (
-                <View style={[styles.ph5, styles.pb3]}>
-                    <Button
-                        success
-                        text={translate('iou.reviewDuplicates')}
-                        style={[styles.w100, styles.pr0]}
-                        onPress={() => {
-                            if (!reportID) {
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
-                        }}
                     />
                 </View>
             )}

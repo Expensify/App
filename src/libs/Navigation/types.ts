@@ -1488,35 +1488,35 @@ type PrivateNotesNavigatorParamList = {
 
 type TransactionDuplicateNavigatorParamList = {
     [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
-        threadReportID: string;
+        reportID: string;
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: {
-        threadReportID: string;
+        reportID: string;
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: {
-        threadReportID: string;
+        reportID: string;
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.TAG]: {
-        threadReportID: string;
+        reportID: string;
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: {
-        threadReportID: string;
+        reportID: string;
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: {
-        threadReportID: string;
+        reportID: string;
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: {
-        threadReportID: string;
+        reportID: string;
         backTo?: Routes;
     };
     [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: {
-        threadReportID: string;
+        reportID: string;
         backTo?: Routes;
     };
 };
