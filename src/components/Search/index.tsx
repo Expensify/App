@@ -54,7 +54,6 @@ type SearchProps = {
     contentContainerStyle?: StyleProp<ViewStyle>;
     isSearchScreenFocused?: boolean;
     onContentSizeChange?: (w: number, h: number) => void;
-    shouldGroupByReports?: boolean;
 };
 
 const transactionItemMobileHeight = 100;
@@ -129,7 +128,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     };
 }
 
-function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentContainerStyle, onContentSizeChange, shouldGroupByReports}: SearchProps) {
+function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentContainerStyle, onContentSizeChange}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -152,7 +151,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
 
-    const {type, status, sortBy, sortOrder, hash} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -160,6 +159,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
+    const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -270,7 +270,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             return [];
         }
         return getSections(type, status, searchResults.data, searchResults.search, shouldGroupByReports);
-    }, [searchResults, status, type, shouldGroupByReports]);
+    }, [searchResults, type, status, shouldGroupByReports]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
