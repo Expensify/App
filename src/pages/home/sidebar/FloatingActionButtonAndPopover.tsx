@@ -36,7 +36,13 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {canSendInvoice as canSendInvoicePolicyUtils, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {
+    areAllGroupPoliciesExpenseChatDisabled,
+    canSendInvoice as canSendInvoicePolicyUtils,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
+    isPaidGroupPolicy,
+    shouldShowPolicy,
+} from '@libs/PolicyUtils';
 import {canCreateRequest, generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getNavatticURL} from '@libs/TourUtils';
@@ -220,8 +226,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
      * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
      */
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return groupPoliciesWithChatEnabled.length === 0;
-    }, [groupPoliciesWithChatEnabled.length]);
+        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
+    }, [allPolicies]);
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
 

@@ -1213,6 +1213,14 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     );
 }
 
+function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
+    const groupPolicies = Object.values(policies ?? {}).filter((policy) => isPaidGroupPolicy(policy));
+    if (groupPolicies.length === 0) {
+        return false;
+    }
+    return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+}
+
 function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null = allPolicies) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
@@ -1490,6 +1498,7 @@ export {
     getManagerAccountID,
     isPrefferedExporter,
     isAutoSyncEnabled,
+    areAllGroupPoliciesExpenseChatDisabled,
 };
 
 export type {MemberEmailsToAccountIDs};
