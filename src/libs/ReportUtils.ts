@@ -283,6 +283,24 @@ type OptimisticExpenseReport = Pick<
     | 'fieldList'
 >;
 
+type OptimisticNewReport = Pick<
+    Report,
+    | 'reportID'
+    | 'policyID'
+    | 'type'
+    | 'ownerAccountID'
+    | 'reportName'
+    | 'stateNum'
+    | 'statusNum'
+    | 'total'
+    | 'nonReimbursableTotal'
+    | 'parentReportID'
+    | 'lastVisibleActionCreated'
+    | 'parentReportActionID'
+    | 'participants'
+    | 'managerID'
+>;
+
 type OptimisticIOUReportAction = Pick<
     ReportAction,
     | 'actionName'
@@ -3728,7 +3746,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
     const isDeletedParentActionLocal = isEmptyObject(parentReportAction) || isDeletedAction(parentReportAction);
 
-    const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentActionLocal && !isClosed;
+    const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentActionLocal && !isClosed && !isDeletedParentAction(reportAction);
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning;
     const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && !isDuplicate(transaction.transactionID, true) && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 
@@ -5302,7 +5320,7 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function getFormattedAmount(reportAction: ReportAction) {
+function getFormattedAmount(reportAction: ReportAction, report?: Report | null) {
     if (
         !isSubmittedAction(reportAction) &&
         !isForwardedAction(reportAction) &&
@@ -5313,30 +5331,38 @@ function getFormattedAmount(reportAction: ReportAction) {
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const formattedAmount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
+
+    // Expense reports can have a negative amount and we need to display it as negative in the UI
+    // the amount found in originalMessage does not accurately track this so we need to use the total from the report instead
+    const amount = report && isExpenseReport(report) ? (report?.total ?? 0) * -1 : Math.abs(originalMessage?.amount ?? 0);
+    const formattedAmount = convertToDisplayString(amount, originalMessage?.currency);
     return formattedAmount;
 }
 
 function getReportAutomaticallySubmittedMessage(
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>,
+    report?: Report,
 ) {
-    return translateLocal('iou.automaticallySubmittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
+    return translateLocal('iou.automaticallySubmittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
 }
 
-function getIOUSubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>) {
-    return translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
+function getIOUSubmittedMessage(
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>,
+    report?: Report,
+) {
+    return translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
 }
 
-function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
-    return translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction)});
+function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
+    return translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction, report)});
 }
 
-function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>) {
-    return translateLocal('iou.unapprovedAmount', {amount: getFormattedAmount(reportAction)});
+function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>, report?: Report) {
+    return translateLocal('iou.unapprovedAmount', {amount: getFormattedAmount(reportAction, report)});
 }
 
-function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
-    return translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction)});
+function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
+    return translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction, report)});
 }
 
 /**
@@ -5350,7 +5376,7 @@ function getReportAutomaticallyForwardedMessage(reportAction: ReportAction<typeo
 
     // Older FORWARDED action might not have the amount stored in the original message, we'll fallback to getting the amount from the report instead.
     if (originalMessage?.amount) {
-        formattedAmount = getFormattedAmount(reportAction);
+        formattedAmount = getFormattedAmount(reportAction, expenseReport);
     } else {
         formattedAmount = convertToDisplayString(getMoneyRequestSpendBreakdown(expenseReport).totalDisplaySpend, expenseReport?.currency);
     }
@@ -5373,7 +5399,7 @@ function getIOUForwardedMessage(
 
     // Older FORWARDED action might not have the amount stored in the original message, we'll fallback to getting the amount from the report instead.
     if (originalMessage?.amount) {
-        formattedAmount = getFormattedAmount(reportAction);
+        formattedAmount = getFormattedAmount(reportAction, expenseReport);
     } else {
         formattedAmount = convertToDisplayString(getMoneyRequestSpendBreakdown(expenseReport, reports).totalDisplaySpend, expenseReport?.currency);
     }
@@ -6507,6 +6533,32 @@ function buildOptimisticDismissedViolationReportAction(
             },
         ],
         originalMessage,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+    };
+}
+
+function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedViolationReportAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: translateLocal('violations.resolvedDuplicates'),
+            },
+        ],
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         person: [
             {
@@ -8792,13 +8844,18 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
     return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
-function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report>, report: OnyxEntry<Report>): number | undefined {
+function getReportActionActorAccountID(
+    reportAction: OnyxEntry<ReportAction>,
+    iouReport: OnyxEntry<Report>,
+    report: OnyxEntry<Report>,
+    delegatePersonalDetails?: PersonalDetails | undefined | null,
+): number | undefined {
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
             const ownerAccountID = iouReport?.ownerAccountID ?? reportAction?.childOwnerAccountID;
             const actorAccountID = iouReport?.managerID ?? reportAction?.childManagerAccountID;
 
-            if (isPolicyExpenseChat(report)) {
+            if (isPolicyExpenseChat(report) || delegatePersonalDetails) {
                 return ownerAccountID;
             }
 
@@ -9580,7 +9637,9 @@ export {
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
     prepareOnboardingOnyxData,
+    buildOptimisticResolvedDuplicatesReportAction,
     getReportSubtitlePrefix,
+    getExpenseReportStateAndStatus,
 };
 
 export type {
@@ -9597,4 +9656,5 @@ export type {
     PartialReportAction,
     ParsingDetails,
     MissingPaymentMethod,
+    OptimisticNewReport,
 };

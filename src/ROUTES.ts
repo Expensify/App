@@ -39,8 +39,8 @@ const ROUTES = {
 
     SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, name, groupBy}: {query: SearchQueryString; name?: string; groupBy?: string}) => {
-            return `search?q=${encodeURIComponent(query)}${groupBy ? `&groupBy=${groupBy}` : ''}${name ? `&name=${name}` : ''}` as const;
+        getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => {
+            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const;
         },
     },
     SEARCH_SAVED_SEARCH_RENAME: {
@@ -79,9 +79,9 @@ const ROUTES = {
         },
     },
     SEARCH_MONEY_REQUEST_REPORT: {
-        route: 'search/report/:reportID',
+        route: 'search/r/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `search/view/${reportID}` as const;
+            const baseRoute = `search/r/${reportID}` as const;
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
@@ -129,6 +129,10 @@ const ROUTES = {
         },
     },
     WORKSPACE_SWITCHER: 'workspace-switcher',
+    PUBLIC_CONSOLE_DEBUG: {
+        route: 'troubleshoot/console',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
+    },
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
@@ -310,6 +314,7 @@ const ROUTES = {
     NEW_CHAT_EDIT_NAME: 'new/chat/confirm/name/edit',
     NEW_ROOM: 'new/room',
 
+    NEW_REPORT_WORKSPACE_SELECTION: 'new-report-workspace-selection',
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
