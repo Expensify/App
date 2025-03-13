@@ -2144,6 +2144,22 @@ function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPO
     });
 }
 
+function getAddedApprovaRulelMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {name, approverAccountID, approverEmail, field, approverName} =
+        getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE>) ?? {};
+
+    if (name && approverAccountID && approverEmail && field && approverName) {
+        return translateLocal('workspaceActions.addApprovalRule', {
+            approverEmail,
+            approverName,
+            field,
+            name,
+        });
+    }
+
+    return getReportActionText(reportAction);
+}
+
 function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
     const originalMessage = getOriginalMessage(reportAction);
     const submittersNames = getPersonalDetailsByIDs({
@@ -2313,6 +2329,7 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getAddedApprovaRulelMessage,
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
     getReportAction,

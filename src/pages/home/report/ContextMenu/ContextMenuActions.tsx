@@ -23,6 +23,7 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {
     getActionableMentionWhisperMessage,
+    getAddedApprovaRulelMessage,
     getAddedConnectionMessage,
     getCardIssuedMessage,
     getExportIntegrationMessageHTML,
@@ -619,6 +620,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getRemovedConnectionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
                     setClipboardMessage(getUpdatedAuditRateMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE)) {
+                    setClipboardMessage(getAddedApprovaRulelMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
                     setClipboardMessage(getUpdatedManualApprovalThresholdMessage(reportAction));
                 } else if (content) {

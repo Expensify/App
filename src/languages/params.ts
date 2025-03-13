@@ -321,6 +321,8 @@ type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: str
 
 type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
 
+type AddedPolicyApprovalRuleParams = {approverEmail: string; approverName: string; field: string; name: string};
+
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
 type UpdatedPolicyFieldWithNewAndOldValueParams = {oldValue: string; newValue: string};
@@ -906,4 +908,5 @@ export type {
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdatePolicyCustomUnitParams,
     AddOrDeletePolicyCustomUnitRateParams,
+    AddedPolicyApprovalRuleParams,
 };

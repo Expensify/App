@@ -419,6 +419,21 @@ type OriginalMessagePolicyChangeLog = {
 
     /** New limit of manual approval threshold */
     newLimit?: number;
+
+    /** Name for the field of which approver has been updated */
+    name?: string;
+
+    /** Account ID of the approver */
+    approverAccountID?: string;
+
+    /** Email of the approver */
+    approverEmail?: string;
+
+    /** Name of the approver */
+    approverName?: string;
+
+    /** Field of which approver has been updated */
+    field?: string;
 };
 
 /** Model of `join policy` report action */
