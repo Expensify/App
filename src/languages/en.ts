@@ -5364,8 +5364,7 @@ const translations = {
             body: "Want your boss to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
-            buttonText1: 'Invite a friend, ',
-            buttonText2: 'refer a friend.',
+            buttonText1: 'Refer a friend',
             header: 'Refer a friend',
             body: "Want your friends to use Expensify, too? Just chat, pay, or split an expense with them and we'll take care of the rest. Or just share your invite link!",
         },

@@ -5879,8 +5879,7 @@ const translations = {
             body: '¿Quieres que tu jefe también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
-            buttonText1: 'Invita a un amigo y ',
-            buttonText2: 'recomienda a un amigo',
+            buttonText1: 'Recomienda a un amigo',
             header: 'Recomienda a un amigo',
             body: '¿Quieres que tus amigos también usen Expensify? Simplemente chatea, paga o divide un gasto con ellos y nosotros nos encargaremos del resto. ¡O simplemente comparte tu enlace de invitación!',
         },
