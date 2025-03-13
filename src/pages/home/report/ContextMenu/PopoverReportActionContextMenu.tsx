@@ -53,7 +53,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         vertical: 0,
     });
 
-    const [instanceID, setInstanceID] = useState('');
+    const instanceIDRef = useRef('');
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
@@ -232,7 +232,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
     /** After Popover shows, call the registered onPopoverShow callback and reset it */
     const runAndResetOnPopoverShow = () => {
-        setInstanceID(Math.random().toString(36).slice(2, 7));
+        instanceIDRef.current = Math.random().toString(36).slice(2, 7);
         onPopoverShow.current();
 
         // After we have called the action, reset it.
@@ -255,7 +255,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         reportIDRef.current = undefined;
         reportActionIDRef.current = undefined;
         originalReportIDRef.current = undefined;
-        setInstanceID('');
+        instanceIDRef.current = '';
 
         onPopoverHide.current = runAndResetCallback(onPopoverHide.current);
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
@@ -321,7 +321,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         showDeleteModal,
         hideDeleteModal,
         isActiveReportAction,
-        instanceID,
+        instanceIDRef,
         runAndResetOnPopoverHide,
         clearActiveReportAction,
         contentRef,
