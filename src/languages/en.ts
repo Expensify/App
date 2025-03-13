@@ -198,6 +198,7 @@ import type {
     UpdatedPolicyTagParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
+    UpdatePolicyCustomUnitParams,
     UpdateRoleParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -4903,6 +4904,8 @@ const translations = {
             }
             return `updated the tag "${tagName}" on the list "${tagListName}" by adding a ${updatedField} of "${newValue}"`;
         },
+        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+            `updated the ${customUnitName} ${updatedField} from "${oldValue}" to "${newValue}"`,
         addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `added a new "${customUnitName}" rate "${rateName}"`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
             `updated the rate of the ${customUnitName} ${updatedField} "${customUnitRateName}" from "${oldValue}" to "${newValue}"`,

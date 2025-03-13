@@ -48,6 +48,7 @@ import {
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
+    getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -597,6 +598,8 @@ function getOptionData({
             result.alternateText = getWorkspaceCategoryUpdateMessage(lastAction);
         } else if (isTagModificationAction(lastAction?.actionName)) {
             result.alternateText = getCleanedTagName(getWorkspaceTagUpdateMessage(lastAction) ?? '');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT)) {
+            result.alternateText = getWorkspaceCustomUnitUpdatedMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
             result.alternateText = getWorkspaceCustomUnitRateAddedMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {

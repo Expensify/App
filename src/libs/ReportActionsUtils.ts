@@ -1900,6 +1900,21 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
+function getWorkspaceCustomUnitUpdatedMessage(action: ReportAction): string {
+    const {oldValue, newValue, customUnitName, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+
+    if (customUnitName && typeof oldValue === 'string' && typeof newValue === 'string' && updatedField) {
+        return translateLocal('workspaceActions.updateCustomUnit', {
+            customUnitName,
+            newValue,
+            oldValue,
+            updatedField,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
 function getWorkspaceCustomUnitRateAddedMessage(action: ReportAction): string {
     const {customUnitName, rateName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
@@ -2401,6 +2416,7 @@ export {
     getWorkspaceCustomUnitRateDeletedMessage,
     getAddedConnectionMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
+    getWorkspaceCustomUnitUpdatedMessage,
     getReportActions,
 };
 
