@@ -10,15 +10,15 @@ If you need to leave a **Company Workspace** but want to keep your data:
 - Ask the **Workspace Admin** to remove you from the workspace.
 - If you own the workspace, you can delete it.
 
-Once removed from the workspace, the account will downgrade to a **free account**, and you will retain access to your historical data.
+Once removed from the workspace, the account will downgrade to a free account, and you will retain access to your historical data.
 
 ---
 
 # Close Your Account
 
 **On Web:**
-1. Hover over **Settings > Security > Security options**.
-2. Click **Close account**.
+1. Hover over **Settings > Account > Profile**.
+2. Scroll down and click **Close Account**.
 3. Confirm the closure using your phone or email.
 
 If you don't see this option, your account may be domain-controlled. To close it, contact your **Domain Admin**.
@@ -26,7 +26,7 @@ If you don't see this option, your account may be domain-controlled. To close it
 **Mobile:**
 1. Tap the **menu** in the top left.
 2. Tap **Settings**.
-3. Scroll to the **Others** section and tap **Close account**.
+3. Scroll to the **Others** section and tap **Close Account**.
 4. Confirm the closure using your phone or email.
 
 It may be domain-controlled if you don't see the option to close your account. In that case, you can contact your **Domain Admin** to close it.
