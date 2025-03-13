@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useState} from 'react';
 import type {ReactElement} from 'react';
+import React, {useCallback, useContext, useState} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -72,7 +72,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                     <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneErrorIntro')}</Text>{' '}
                     <TextLink
                         style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute())}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
                     >
                         {translate('travel.phoneErrorLink')}
                     </TextLink>
