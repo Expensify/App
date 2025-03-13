@@ -1,4 +1,4 @@
-import type {OnyxValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxValue} from 'react-native-onyx';
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +20,7 @@ type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps e
         context: {
             currentValue?: OnyxValue<OnyxKey>;
             sourceValues?: {
-                [K in Deps[number] as K extends OnyxCollectionKey ? K : never]?: K extends keyof OnyxCollectionValuesMapping ? OnyxCollectionValuesMapping[K] : never;
+                [K in Deps[number] as K extends OnyxCollectionKey ? K : never]?: K extends keyof OnyxCollectionValuesMapping ? OnyxCollection<OnyxCollectionValuesMapping[K]> : never;
             };
         },
     ) => OnyxDerivedValuesMapping[Key];
