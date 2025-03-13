@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import {InteractionManager} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {isUserOnPrivateDomain} from '@libs/actions/Session';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,10 +29,6 @@ function useOnboardingFlowRouter() {
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     const isPrivateDomain = isUserOnPrivateDomain();
-    useEffect(() => {
-        Onyx.merge('betas', ['productTraining'])
-        Onyx.merge('nvp_tryNewDot', {nudgeMigration: {timestamp: Date.now()}})
-    }, []);
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
     useEffect(() => {
