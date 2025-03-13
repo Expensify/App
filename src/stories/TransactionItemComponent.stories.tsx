@@ -2,23 +2,23 @@ import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
-import TransactionItemComponent from '@components/TransactionItemComponent';
+import TransactionItemRow from '@components/TransactionItemComponent';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 import transaction from './objects/Transaction';
 
-type TransactionItemComponentStory = StoryFn<typeof TransactionItemComponent>;
+type TransactionItemRowStory = StoryFn<typeof TransactionItemRow>;
 
-type TransactionItemComponentProps = {
+type TransactionItemRowProps = {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
 };
 
-const story: Meta<typeof TransactionItemComponent> = {
-    title: 'Components/TransactionItemComponent',
-    component: TransactionItemComponent,
+const story: Meta<typeof TransactionItemRow> = {
+    title: 'Components/TransactionItemRow',
+    component: TransactionItemRow,
     args: {
         transactionItem: transaction,
         shouldUseNarrowLayout: false,
@@ -44,13 +44,13 @@ const story: Meta<typeof TransactionItemComponent> = {
     },
 };
 
-function Template({transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip}: TransactionItemComponentProps, {parameters}: {parameters: {useLightTheme?: boolean}}) {
+function Template({transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip}: TransactionItemRowProps, {parameters}: {parameters: {useLightTheme?: boolean}}) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
 
     return (
         <ThemeProvider theme={theme}>
             <ThemeStylesProvider>
-                <TransactionItemComponent
+                <TransactionItemRow
                     transactionItem={transactionItem}
                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                     isSelected={isSelected}
@@ -61,8 +61,8 @@ function Template({transactionItem, shouldUseNarrowLayout, isSelected, shouldSho
     );
 }
 
-const LightTheme: TransactionItemComponentStory = Template.bind({});
-const DarkTheme: TransactionItemComponentStory = Template.bind({});
+const LightTheme: TransactionItemRowStory = Template.bind({});
+const DarkTheme: TransactionItemRowStory = Template.bind({});
 
 LightTheme.parameters = {
     useLightTheme: true,

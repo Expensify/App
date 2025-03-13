@@ -6,15 +6,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
-import CategoryCell from './DataCeils/CategoryCell';
-import DateCell from './DataCeils/DateCell';
-import MerchantCell from './DataCeils/MerchantCell';
-import ReceiptCell from './DataCeils/ReceiptCell';
-import TagCell from './DataCeils/TagCell';
-import TotalCell from './DataCeils/TotalCell';
-import TypeCell from './DataCeils/TypeCell';
+import CategoryCell from './DataCells/CategoryCell';
+import DateCell from './DataCells/DateCell';
+import MerchantCell from './DataCells/MerchantCell';
+import ReceiptCell from './DataCells/ReceiptCell';
+import TagCell from './DataCells/TagCell';
+import TotalCell from './DataCells/TotalCell';
+import TypeCell from './DataCells/TypeCell';
 
-function TransactionItemComponent({
+function TransactionItemRow({
     transactionItem,
     shouldUseNarrowLayout,
     isSelected,
@@ -148,6 +148,6 @@ function TransactionItemComponent({
     );
 }
 
-TransactionItemComponent.displayName = 'TransactionItemComponent';
+TransactionItemRow.displayName = 'TransactionItemComponent';
 
-export default TransactionItemComponent;
+export default TransactionItemRow;

@@ -7,6 +7,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
+// If the transaction is cash, it has the type CONST.EXPENSE.TYPE.CASH_CARD_NAME.
+// If there is no credit card name, it means it couldn't be a card transaction,
+// so we assume it's cash. Any other type is treated as a card transaction.
+// same in getTypeText
+
 const getTypeIcon = (type?: string) => {
     switch (type) {
         case CONST.EXPENSE.TYPE.CASH_CARD_NAME:
