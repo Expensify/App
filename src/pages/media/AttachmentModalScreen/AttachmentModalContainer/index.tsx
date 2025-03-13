@@ -84,6 +84,7 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...contentProps}
+                shouldDisplayHelpButton={false}
                 onClose={closeModal}
             />
         </Modal>

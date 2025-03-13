@@ -84,6 +84,8 @@ type AttachmentModalBaseContentProps = {
     canDeleteReceipt?: boolean;
     /** Determines if the send button should be disabled or not */
     shouldDisableSendButton?: boolean;
+    /** Determines if the help button should be displayed or not */
+    shouldDisplayHelpButton?: boolean;
     /** The link of the attachment */
     attachmentLink?: string;
     /** Fallback route when the modal is closed */
@@ -135,6 +137,7 @@ function AttachmentModalBaseContent({
     isLoading = false,
     shouldShowNotFoundPage = false,
     shouldDisableSendButton = false,
+    shouldDisplayHelpButton = true,
     fallbackRoute,
     isDeleteReceiptConfirmModalVisible = false,
     isAttachmentInvalid = false,
@@ -372,7 +375,7 @@ function AttachmentModalBaseContent({
                     title={headerTitle}
                     shouldShowBorderBottom
                     shouldShowDownloadButton={shouldShowDownloadButton}
-                    shouldDisplayHelpButton={false}
+                    shouldDisplayHelpButton={shouldDisplayHelpButton}
                     onDownloadButtonPress={() => downloadAttachment()}
                     shouldShowCloseButton={!shouldUseNarrowLayout}
                     shouldShowBackButton={shouldUseNarrowLayout}
