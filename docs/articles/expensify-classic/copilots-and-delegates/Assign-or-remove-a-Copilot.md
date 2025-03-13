@@ -1,5 +1,5 @@
 ---
-title: Assign or Remove a Copilot
+title: Understanding the Copilot Function
 description: Safely delegate tasks without sharing login information.
 keywords: Expensify Classic, Copilot, delegate access, expense management
 ---
