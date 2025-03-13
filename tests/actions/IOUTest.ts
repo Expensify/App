@@ -1970,7 +1970,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.pause?.();
                     if (chatReport && iouReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2145,7 +2145,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2274,7 +2274,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (chatReport && expenseReport) {
-                        payMoneyRequest('ACH', chatReport, expenseReport);
+                        payMoneyRequest('ACH', chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2315,7 +2315,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // When paying the IOU report
-            payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
+            payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport, undefined);
 
             await waitForBatchedUpdates();
 
@@ -2405,7 +2405,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     // When partially paying  an iou report from the chat report via the report preview
-                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, false);
+                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, undefined, false);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -2480,7 +2480,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // When the expense report is paid elsewhere (but really, any payment option would work)
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })

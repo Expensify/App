@@ -262,7 +262,7 @@ function ReportPreview({
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const confirmPayment = useCallback(
-        (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+        (type: PaymentMethodType | undefined, payAsBusiness: boolean | undefined, usedPolicyID: string | undefined) => {
             if (!type) {
                 return;
             }
@@ -277,7 +277,7 @@ function ReportPreview({
                 if (isInvoiceReportUtils(iouReport)) {
                     payInvoice(type, chatReport, iouReport, payAsBusiness);
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport);
+                    payMoneyRequest(type, chatReport, iouReport, usedPolicyID);
                 }
             }
         },
@@ -297,10 +297,6 @@ function ReportPreview({
     };
 
     const getSettlementAmount = () => {
-        if (hasOnlyHeldExpenses) {
-            return '';
-        }
-
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
         if (hasHeldExpensesReportUtils(iouReport?.reportID) && canAllowSettlement && hasValidNonHeldAmount) {
             return nonHeldAmount;
@@ -613,6 +609,7 @@ function ReportPreview({
                                         canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                         onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}
+                                        hasOnlyHeldExpenses={hasHeldExpensesReportUtils(iouReport?.reportID)}
                                         currency={iouReport?.currency}
                                         policyID={policyID}
                                         chatReportID={chatReportID}
