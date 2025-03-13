@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
