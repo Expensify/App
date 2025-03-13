@@ -119,7 +119,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageNarrowPro
             testID={SearchPageNarrow.displayName}
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
-            bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
+            bottomContent={!searchRouterListVisible && <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
