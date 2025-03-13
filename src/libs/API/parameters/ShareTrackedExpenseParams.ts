@@ -28,6 +28,7 @@ type ShareTrackedExpenseParams = {
     adminsCreatedReportActionID?: string;
     engagementChoice?: string;
     guidedSetupData?: string;
+    description?: string;
 };
 
 export default ShareTrackedExpenseParams;

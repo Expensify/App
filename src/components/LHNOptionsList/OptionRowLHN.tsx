@@ -200,6 +200,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shiftVertical={shouldShowWokspaceChatTooltip ? 0 : variables.gbrTooltipShiftVertical}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 onTooltipPress={onOptionPress}
+                shouldHideOnScroll
             >
                 <View>
                     <Hoverable>
