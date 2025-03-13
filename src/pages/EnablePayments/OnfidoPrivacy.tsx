@@ -61,7 +61,8 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                     <FormScrollView ref={formRef}>
                         <View style={[styles.mh5, styles.justifyContentCenter]}>
                             <Text style={[styles.mb5]}>
-                                {translate('onfidoStep.acceptTerms')} <TextLink href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}>{translate('onfidoStep.facialScan')}</TextLink>
+                                {translate('onfidoStep.acceptTerms')}
+                                <TextLink href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}>{translate('onfidoStep.facialScan')}</TextLink>
                                 {', '}
                                 <TextLink href={CONST.ONFIDO_PRIVACY_POLICY_URL}>{translate('common.privacy')}</TextLink>
                                 {` ${translate('common.and')} `}
