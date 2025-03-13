@@ -267,7 +267,8 @@ export default {
     savedSearchShiftVertical: 6,
     bottomTabInboxTooltipShiftHorizontal: 36,
     expenseReportsTypeTooltipShiftHorizontal: 10,
-    accountSwitcherTooltipShiftVertical: 5,
+    accountSwitcherTooltipShiftVertical: 7,
+    accountSwitcherTooltipShiftHorizontal: 4,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,

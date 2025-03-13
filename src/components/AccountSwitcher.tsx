@@ -138,44 +138,45 @@ function AccountSwitcher() {
 
     return (
         <>
-            <PressableWithFeedback
-                accessible
-                accessibilityLabel={translate('common.profile')}
-                onPress={onPressSwitcher}
-                ref={buttonRef}
-                interactive={canSwitchAccounts}
-                pressDimmingValue={canSwitchAccounts ? undefined : 1}
-                wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+            <EducationalTooltip
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                shouldRender={shouldShowProductTrainingTooltip}
+                renderTooltipContent={renderProductTrainingTooltip}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+                shiftVertical={variables.accountSwitcherTooltipShiftVertical}
+                shiftHorizontal={variables.accountSwitcherTooltipShiftHorizontal}
+                wrapperStyle={styles.productTrainingTooltipWrapper}
+                onTooltipPress={onPressSwitcher}
             >
-                <View style={[styles.flexRow, styles.gap3]}>
-                    <Avatar
-                        type={CONST.ICON_TYPE_AVATAR}
-                        size={CONST.AVATAR_SIZE.DEFAULT}
-                        avatarID={currentUserPersonalDetails?.accountID}
-                        source={currentUserPersonalDetails?.avatar}
-                        fallbackIcon={currentUserPersonalDetails.fallbackIcon}
-                    />
-                    <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
-                        <View style={[styles.flexRow, styles.gap1]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
-                            >
-                                {processedTextArray.length !== 0 ? getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji) : currentUserPersonalDetails?.displayName}
-                            </Text>
-                            {!!canSwitchAccounts && (
-                                <EducationalTooltip
-                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                    shouldRender={shouldShowProductTrainingTooltip}
-                                    renderTooltipContent={renderProductTrainingTooltip}
-                                    anchorAlignment={{
-                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                    }}
-                                    shiftVertical={variables.accountSwitcherTooltipShiftVertical}
-                                    wrapperStyle={styles.productTrainingTooltipWrapper}
-                                    onTooltipPress={onPressSwitcher}
+                <PressableWithFeedback
+                    accessible
+                    accessibilityLabel={translate('common.profile')}
+                    onPress={onPressSwitcher}
+                    ref={buttonRef}
+                    interactive={canSwitchAccounts}
+                    pressDimmingValue={canSwitchAccounts ? undefined : 1}
+                    wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                >
+                    <View style={[styles.flexRow, styles.gap3]}>
+                        <Avatar
+                            type={CONST.ICON_TYPE_AVATAR}
+                            size={CONST.AVATAR_SIZE.DEFAULT}
+                            avatarID={currentUserPersonalDetails?.accountID}
+                            source={currentUserPersonalDetails?.avatar}
+                            fallbackIcon={currentUserPersonalDetails.fallbackIcon}
+                        />
+                        <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
+                            <View style={[styles.flexRow, styles.gap1]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
                                 >
+                                    {processedTextArray.length !== 0 ? getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji) : currentUserPersonalDetails?.displayName}
+                                </Text>
+                                {!!canSwitchAccounts && (
                                     <View style={styles.justifyContentCenter}>
                                         <Icon
                                             fill={theme.icon}
@@ -184,26 +185,27 @@ function AccountSwitcher() {
                                             width={variables.iconSizeSmall}
                                         />
                                     </View>
-                                </EducationalTooltip>
+                                )}
+                            </View>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.colorMuted, styles.fontSizeLabel]}
+                            >
+                                {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
+                            </Text>
+                            {!!user?.isDebugModeEnabled && (
+                                <Text
+                                    style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
+                                    numberOfLines={1}
+                                >
+                                    AccountID: {session?.accountID}
+                                </Text>
                             )}
                         </View>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.colorMuted, styles.fontSizeLabel]}
-                        >
-                            {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
-                        </Text>
-                        {!!user?.isDebugModeEnabled && (
-                            <Text
-                                style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
-                                numberOfLines={1}
-                            >
-                                AccountID: {session?.accountID}
-                            </Text>
-                        )}
                     </View>
-                </View>
-            </PressableWithFeedback>
+                </PressableWithFeedback>
+            </EducationalTooltip>
+
             {!!canSwitchAccounts && (
                 <PopoverMenu
                     isVisible={shouldShowDelegatorMenu}
