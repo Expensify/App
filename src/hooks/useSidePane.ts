@@ -36,7 +36,10 @@ function useSidePane() {
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;
 
     const [shouldHideSidePane, setShouldHideSidePane] = useState(true);
+    const [isAnimatingExtraLargeScree, setIsAnimatingExtraLargeScreen] = useState(false);
+
     const shouldHideSidePaneBackdrop = isPaneHidden || isExtraLargeScreenWidth || shouldUseNarrowLayout;
+    const shouldHideToolTip = isExtraLargeScreenWidth ? isAnimatingExtraLargeScree : !shouldHideSidePane;
 
     // The help button is hidden when:
     // - side pane nvp is not set
@@ -50,6 +53,9 @@ function useSidePane() {
     useEffect(() => {
         if (!isPaneHidden) {
             setShouldHideSidePane(false);
+        }
+        if (isExtraLargeScreenWidth) {
+            setIsAnimatingExtraLargeScreen(true);
         }
 
         Animated.parallel([
@@ -65,8 +71,9 @@ function useSidePane() {
             }),
         ]).start(() => {
             setShouldHideSidePane(isPaneHidden);
+            setIsAnimatingExtraLargeScreen(false);
         });
-    }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth]);
+    }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth, isExtraLargeScreenWidth]);
 
     const closeSidePane = useCallback(
         (shouldUpdateNarrow = false) => {
@@ -90,6 +97,7 @@ function useSidePane() {
         shouldHideHelpButton,
         sidePaneOffset,
         sidePaneTranslateX,
+        shouldHideToolTip,
         closeSidePane,
     };
 }
