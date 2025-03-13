@@ -1,6 +1,7 @@
 ---
 title: Connect personal bank account
 description: Receive reimbursements for expense reports submitted to your employer
+keyword: [Expensify Classic, deposit account, reimbursement account]
 ---
 
 <div id="expensify-classic" markdown="1">
@@ -12,8 +13,8 @@ Employees can connect a personal deposit-only bank account to receive reimbursem
 # Connect a Deposit-only Bank Account
 
 1. Hover over **Settings**, then click **Account**.
-2. Click the **Payments** tab on the left.
-3. Click **Add Deposit-Only Bank Account**, then click **Connect to your bank**.
+2. Click the **Wallet** tab on the left.
+3. Under **Bank Accounts**, click **Add Deposit-Only Bank Account**, then click **Connect to your bank**.
 4. Click **Continue**.
 5. Search for your bank account in the list of banks
 6. Follow the prompts to sign in to your bank account using the corresponding username and password.
@@ -28,7 +29,7 @@ Once the bank account is connected to your Expensify account, future reimburseme
 
 If your organization has global reimbursement enabled and you want to add a bank account outside the US, follow the steps above.
 
-After clicking **Add Deposit-Only Bank Account**, under **Settings > Accounts > Payments**, click **Switch Country** at the top of the bank selection screen. This will allow you to add a deposit account from a supported country and receive reimbursements in your local currency.
+After clicking **Add Deposit-Only Bank Account**, under **Settings > Accounts > Wallet**, click **Switch Country** at the top of the bank selection screen. This will allow you to add a deposit account from a supported country and receive reimbursements in your local currency.
 
 ---
 
