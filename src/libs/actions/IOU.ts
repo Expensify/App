@@ -157,6 +157,7 @@ import {
     isAmountMissing,
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isDuplicate,
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold,
@@ -7621,8 +7622,11 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
     Object.values(iouReportActions).forEach((action) => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = getTransaction(transactionID);
+        if (!transaction) {
+            return;
+        }
 
-        if (transaction?.comment?.hold) {
+        if (!!transaction?.comment?.hold || isDuplicate(transactionID, true)) {
             holdReportActions.push(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
             holdTransactions.push(transaction);
         }
