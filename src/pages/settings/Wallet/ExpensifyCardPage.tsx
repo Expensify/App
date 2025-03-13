@@ -138,7 +138,6 @@ function ExpensifyCardPage({
     const primaryLogin = account?.primaryLogin ?? '';
     const loginData = loginList?.[primaryLogin];
     const isSignedInAsdelegate = !!account?.delegatedAccess?.delegate || false;
-    console.log('isSignedInAsdelegate', isSignedInAsdelegate);
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
