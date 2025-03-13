@@ -134,6 +134,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                     shouldShowButton
                     buttonText={translate('common.done')}
                     onButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
+                    containerStyle={styles.flex1}
                 />
             </ScreenWrapper>
         );
