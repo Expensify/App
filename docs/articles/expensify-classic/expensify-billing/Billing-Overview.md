@@ -1,7 +1,7 @@
 ---
 title: Billing and Subscriptions
 description: Expensify Billing Overview
-keywords: [Expensify billing, subscription, monthly payment, payment card, billing history]
+keywords: [Expensify Classic, billing, subscription, monthly payment, payment card, billing history]
 ---
 
 At the beginning of each month, the workspace's Billing Owner is billed for the previous month’s activity. 
@@ -13,7 +13,7 @@ Your Expensify bill is determined by the following:
 
 An active member is any member who creates, submits, approves, reimburses, or exports a report in Expensify in a given month. This includes members taking action as Copilots and automatic actions by Concierge.
 
-Your billing receipts can be viewed under **Settings > Subscription > Subscription details**. We recommend appointing a single billing owner for each Group Workspace.
+Your billing receipts can be viewed under **Settings > Account > Subscription**. We recommend appointing a single billing owner for each Group Workspace.
 
 ---
 
