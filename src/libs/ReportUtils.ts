@@ -197,6 +197,7 @@ import {
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense,
     isPending,
+    isPartial,
     isPerDiemRequest,
     isReceiptBeingScanned,
 } from './TransactionUtils';
@@ -3804,7 +3805,7 @@ function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, report
     if (getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
     }
-    return transactionsWithReceipts.every((transaction) => isReceiptBeingScanned(transaction));
+    return transactionsWithReceipts.every((transaction) => isPartial(transaction) && isReceiptBeingScanned(transaction));
 }
 
 /**
@@ -3886,7 +3887,7 @@ function getTransactionReportName({
         return isTrackExpenseAction(reportAction) ? translateLocal('iou.createExpense') : translateLocal('iou.expense');
     }
 
-    if (hasReceiptTransactionUtils(transaction) && isReceiptBeingScanned(transaction)) {
+    if (hasReceiptTransactionUtils(transaction) && isPartial(transaction) && isReceiptBeingScanned(transaction)) {
         return translateLocal('iou.receiptScanning', {count: 1});
     }
 
@@ -3954,7 +3955,7 @@ function getReportPreviewMessage(
         }
 
         if (!isEmptyObject(linkedTransaction)) {
-            if (isReceiptBeingScanned(linkedTransaction)) {
+            if (isReceiptBeingScanned(linkedTransaction) && isPartial(linkedTransaction)) {
                 return translateLocal('iou.receiptScanning', {count: 1});
             }
 
@@ -3976,7 +3977,7 @@ function getReportPreviewMessage(
         }
 
         if (!isEmptyObject(linkedTransaction)) {
-            if (isReceiptBeingScanned(linkedTransaction)) {
+            if (isReceiptBeingScanned(linkedTransaction) && isPartial(linkedTransaction)) {
                 return translateLocal('iou.receiptScanning', {count: 1});
             }
 
@@ -4011,7 +4012,7 @@ function getReportPreviewMessage(
         linkedTransaction = getLinkedTransaction(iouReportAction);
     }
 
-    if (!isEmptyObject(linkedTransaction) && hasReceiptTransactionUtils(linkedTransaction) && isReceiptBeingScanned(linkedTransaction)) {
+    if (!isEmptyObject(linkedTransaction) && hasReceiptTransactionUtils(linkedTransaction) && isPartial(linkedTransaction) && isReceiptBeingScanned(linkedTransaction)) {
         return translateLocal('iou.receiptScanning', {count: numberOfScanningReceipts});
     }
 

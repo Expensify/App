@@ -62,6 +62,7 @@ import {
     isFetchingWaypointsFromServer as isFetchingWaypointsFromServerTransactionUtils,
     isMerchantMissing as isMerchantMissingTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
+    isPartial,
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned,
@@ -142,7 +143,7 @@ function MoneyRequestPreviewContent({
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToMarkdown(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const isScanning = hasReceipt && isReceiptBeingScanned(transaction);
+    const isScanning = hasReceipt && isPartial(transaction) && isReceiptBeingScanned(transaction);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;

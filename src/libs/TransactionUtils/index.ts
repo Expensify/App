@@ -305,6 +305,10 @@ function isAmountMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
 }
 
+function isPartial(transaction: OnyxEntry<Transaction>): boolean {
+    return isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction);
+}
+
 function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
@@ -1513,6 +1517,7 @@ export {
     isAmountMissing,
     isMerchantMissing,
     isPartialMerchant,
+    isPartial,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,

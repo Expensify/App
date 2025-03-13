@@ -2,11 +2,13 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import type {StyleProp, TextStyle} from 'react-native';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -19,6 +21,7 @@ type AnchorRendererProps = CustomRendererProps<TBlock> & {
 
 function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const htmlAttribs = tnode.attributes;
     const {environmentURL} = useEnvironment();
     // An auth token is needed to download Expensify chat attachments
@@ -31,11 +34,27 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const internalExpensifyPath = getInternalExpensifyPath(attrHref);
     const isVideo = attrHref && Str.isVideo(attrHref);
     const linkHasImage = tnode.tagName === 'a' && tnode.children.some((child) => child.tagName === 'img');
-
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
-
+    const isChildOfAlertText = HTMLEngineUtils.isChildOfAlertText(tnode);
     const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
+
+    // Define link style based on context
+    let linkStyle: StyleProp<TextStyle> = styles.link;
+
+    // Special handling for links in alert-text to maintain consistent font size
+    if (isChildOfAlertText) {
+        linkStyle = [
+            styles.link,
+            // Use the parent's font properties but keep link color
+            {
+                fontSize: styles.formError.fontSize,
+                color: theme.link,
+                textDecorationLine: 'underline',
+                textDecorationColor: theme.link
+            }
+        ];
+    }
 
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
@@ -43,7 +62,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
         return (
             <Text
-                style={styles.link}
+                style={linkStyle}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
                 suppressHighlighting
             >
