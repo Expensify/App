@@ -15,10 +15,7 @@ import Text from './Text';
 import Tooltip from './Tooltip';
 
 type ReferralProgramCTAProps = {
-    referralContentType:
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
+    referralContentType: typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT;
     style?: StyleProp<ViewStyle>;
     onDismiss?: () => void;
 };
@@ -59,14 +56,12 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
         >
             <Text>
                 {translate(`referralProgram.${referralContentType}.buttonText1`)}
-                {referralContentType !== CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND && (
-                    <Text
-                        color={theme.success}
-                        style={styles.textStrong}
-                    >
-                        {translate(`referralProgram.${referralContentType}.buttonText2`)}
-                    </Text>
-                )}
+                <Text
+                    color={theme.success}
+                    style={styles.textStrong}
+                >
+                    {translate(`referralProgram.${referralContentType}.buttonText2`)}
+                </Text>
             </Text>
             <Tooltip text={translate('common.close')}>
                 <PressableWithoutFeedback
