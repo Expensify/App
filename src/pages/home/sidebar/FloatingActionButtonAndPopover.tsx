@@ -485,7 +485,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       text: translate('report.newReport.createReport'),
                       onSelected: () => {
                           interceptAnonymousUser(() => {
-                              if (shouldRedirectToExpensifyClassic) {
+                              if (groupPoliciesWithChatEnabled.length === 0) {
                                   setModalVisible(true);
                                   return;
                               }
