@@ -61,6 +61,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                 onSubmit={onSaveSearch}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={TextInput}
