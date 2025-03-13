@@ -1,6 +1,7 @@
 import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import {CompanyCardsPendingState} from '@components/Icon/Illustrations';
+import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -15,20 +16,22 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const styles = useThemeStyles();
 
     return (
-        <EmptyStateComponent
-            SkeletonComponent={CardRowSkeleton}
-            containerStyles={styles.mt5}
-            headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-            headerMedia={CompanyCardsPendingState}
-            headerStyles={[styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]}
-            headerContentStyles={styles.pendingStateCardIllustration}
-            title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
-        >
-            <Text>
-                {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
-                <TextLink onPress={() => navigateToConciergeChat()}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>.
-            </Text>
-        </EmptyStateComponent>
+        <ScrollView>
+            <EmptyStateComponent
+                SkeletonComponent={CardRowSkeleton}
+                containerStyles={styles.mt5}
+                headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                headerMedia={CompanyCardsPendingState}
+                headerStyles={[styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]}
+                headerContentStyles={styles.pendingStateCardIllustration}
+                title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
+            >
+                <Text>
+                    {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
+                    <TextLink onPress={() => navigateToConciergeChat()}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>.
+                </Text>
+            </EmptyStateComponent>
+        </ScrollView>
     );
 }
 
