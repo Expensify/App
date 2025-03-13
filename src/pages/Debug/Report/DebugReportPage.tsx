@@ -12,13 +12,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChatAndDeleteReport} from '@libs/actions/Report';
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
 import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -52,7 +51,6 @@ function DebugReportPage({
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
 
     const metadata = useMemo<Metadata[]>(() => {
@@ -60,11 +58,8 @@ function DebugReportPage({
             return [];
         }
 
-        const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
-        const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
-        const {reason: reasonRBR, reportAction: reportActionRBR} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations) ?? {};
+        const {reason: reasonRBR, reportAction: reportActionRBR} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
@@ -112,7 +107,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, reportActions, reportID, transactionViolations, translate]);
+    }, [report, reportActions, translate]);
 
     const DebugDetailsTab = useCallback(
         () => (
@@ -213,7 +208,7 @@ function DebugReportPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMinHeight={canUseTouchScreen()}
             testID={DebugReportPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
