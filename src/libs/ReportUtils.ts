@@ -5715,6 +5715,55 @@ function buildOptimisticMovedReportAction(fromPolicyID: string | undefined, toPo
 }
 
 /**
+ * Builds an optimistic CHANGEPOLICY report action with a randomly generated reportActionID.
+ * This action is used when we change a report's workspace.
+ */
+function buildOptimisticChangePolicyReportAction(
+    fromPolicyID: string | undefined,
+    toPolicyID: string,
+    newParentReportID: string,
+    oldParentReportID: string,
+    policyName: string,
+    oldPolicyName: string,
+    automaticAction = true,
+) {
+    const originalMessage = {
+        fromPolicyID,
+        toPolicyID,
+        automaticAction,
+    };
+
+    const movedActionMessage = [
+        {
+            html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> (previously <a href='${CONST.NEW_EXPENSIFY_URL}r/${oldParentReportID}' target='_blank' rel='noreferrer noopener'>${oldPolicyName})</a>`,
+            text: `moved the report to the ${policyName} (previously ${oldPolicyName})`,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        },
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        isAttachmentOnly: false,
+        originalMessage,
+        message: movedActionMessage,
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
@@ -9289,6 +9338,7 @@ export {
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedReportAction,
+    buildOptimisticChangePolicyReportAction,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticRoomDescriptionUpdatedReportAction,
