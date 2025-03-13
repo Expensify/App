@@ -90,9 +90,6 @@ function SettlementButton({
         selector: (paymentMethod) => getLastPolicyPaymentMethod(policyIDKey, paymentMethod, iouReport?.type as keyof LastPaymentMethodType),
     });
 
-    console.log('lastPaymentMethod', lastPaymentMethod)
-
-
     const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -126,7 +123,6 @@ function SettlementButton({
     }
 
     const latestBankItem = getLatestBankAccountItem();
-
 
     const savePreferredPaymentMethod = (id: string, value: string) => {
         savePreferredPaymentMethodIOU(id, value, undefined);
@@ -371,7 +367,6 @@ function SettlementButton({
     };
 
     const getSecondLineText = (): string | undefined => {
-
         if (shouldUseShortForm || lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             return undefined;
         }
