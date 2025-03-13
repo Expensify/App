@@ -1,6 +1,7 @@
 ---
 title: Create a Company Workspace
 description: Get started with Expensify by creating a workspace for your company.
+keywords: [Expensify Classic, getting started, new workspace, set up Expensify account]
 ---
 
 A workspace is the set of rules, settings, and spending limits for expense reports in your organization. This includes the unique expense categories and tags, budgets, currency and tax settings, etc. that all workspace members will use. A workspace also defines the approval workflow for your employees and the accounting connection if using an accounting software integration.
@@ -136,7 +137,7 @@ _**Note:** eReceipts are IRS-compliant except for lodging expenses, which requir
 Enable Two-Factor Authentication (2FA) to protect your account.
 
 1. Go to **Settings > Account**.
-2. Under **Account Details**, enable **Two-Factor Authentication**.
+2. Under **Profile**, enable **Two-Factor Authentication**.
 3. Save your backup codes:
    - Click **Download** to save them to your computer.
    - Click **Copy** to store them securely.
