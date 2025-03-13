@@ -76,7 +76,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                         onInputChange={onCurrencySelected}
                         headerContent={currencyHeaderContent}
                         excludeCurrencies={CONST.CORPAY_FIELDS.EXCLUDED_CURRENCIES}
-                        interactive={!isOffline}
+                        disabled={isOffline}
                         shouldShowFullPageOfflineView
                     />
                 </View>
