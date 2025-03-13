@@ -13,7 +13,7 @@ const onCloseNoop = () => {};
 
 function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
-    const [shouldShowAnimationIn, setShouldShowAnimationIn] = useState(true);
+    const [shouldDisableAnimationAfterInitialMount, setShouldDisableAnimationAfterInitialMount] = useState(false);
     /**
      * Closes the modal.
      * @param {boolean} [shouldCallDirectly] If true, directly calls `onModalClose`.
@@ -42,7 +42,7 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
     // when the browser switches to narrow layout.
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
-            setShouldShowAnimationIn(false);
+            setShouldDisableAnimationAfterInitialMount(true);
         });
     }, []);
 
@@ -69,7 +69,7 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
 
     return (
         <Modal
-            disableAnimationIn={!shouldShowAnimationIn}
+            disableAnimationIn={shouldDisableAnimationAfterInitialMount}
             isVisible
             type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             onClose={onClose ?? onCloseNoop}
