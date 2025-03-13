@@ -27,7 +27,7 @@ function init() {
             } else {
                 OnyxUtils.tupleGet(dependencies).then((values) => {
                     dependencyValues = values;
-                    derivedValue = compute(values, {currentValue: derivedValue, sourceValue: undefined});
+                    derivedValue = compute(values, {currentValue: derivedValue});
                     Onyx.set(key, derivedValue ?? null);
                 });
             }
@@ -36,11 +36,20 @@ function init() {
                 dependencyValues[i] = value;
             };
 
-            const recomputeDerivedValue = (sourceValue?: unknown) => {
-                const newDerivedValue = compute(dependencyValues, {
+            const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown) => {
+                const context: Parameters<typeof compute>[1] = {
                     currentValue: derivedValue,
-                    sourceValue,
-                });
+                    sourceValues: undefined,
+                };
+
+                // If we got a source key and value, add it to the sourceValues object
+                if (sourceKey && sourceValue !== undefined) {
+                    context.sourceValues = {
+                        [sourceKey]: sourceValue,
+                    };
+                }
+
+                const newDerivedValue = compute(dependencyValues, context);
 
                 if (newDerivedValue !== derivedValue) {
                     Log.info(`[OnyxDerived] value for key ${key} changed, updating it in Onyx`, false, {old: derivedValue ?? null, new: newDerivedValue ?? null});
@@ -59,7 +68,7 @@ function init() {
                         callback: (value, collectionKey, sourceValue) => {
                             Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(i, value);
-                            recomputeDerivedValue(sourceValue);
+                            recomputeDerivedValue(dependencyOnyxKey, sourceValue);
                         },
                     });
                 } else {
@@ -68,7 +77,7 @@ function init() {
                         callback: (value) => {
                             Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(i, value);
-                            recomputeDerivedValue();
+                            recomputeDerivedValue(dependencyOnyxKey);
                         },
                     });
                 }
