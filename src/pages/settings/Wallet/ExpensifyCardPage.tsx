@@ -137,6 +137,8 @@ function ExpensifyCardPage({
 
     const primaryLogin = account?.primaryLogin ?? '';
     const loginData = loginList?.[primaryLogin];
+    const isSignedInAsdelegate = !!account?.delegatedAccess?.delegate || false;
+    console.log('isSignedInAsdelegate', isSignedInAsdelegate);
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
@@ -212,12 +214,14 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardNumber}
                                             shouldShowRightComponent
                                             rightComponent={
-                                                <Button
-                                                    text={translate('cardPage.cardDetails.revealDetails')}
-                                                    onPress={() => openValidateCodeModal(card.cardID)}
-                                                    isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
-                                                    isLoading={isCardDetailsLoading[card.cardID]}
-                                                />
+                                                !isSignedInAsdelegate ? (
+                                                    <Button
+                                                        text={translate('cardPage.cardDetails.revealDetails')}
+                                                        onPress={() => openValidateCodeModal(card.cardID)}
+                                                        isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
+                                                        isLoading={isCardDetailsLoading[card.cardID]}
+                                                    />
+                                                ) : undefined
                                             }
                                         />
                                         <DotIndicatorMessage
@@ -227,13 +231,15 @@ function ExpensifyCardPage({
                                         />
                                     </>
                                 )}
-                                <MenuItemWithTopDescription
-                                    title={translate('cardPage.reportFraud')}
-                                    titleStyle={styles.walletCardMenuItem}
-                                    icon={Expensicons.Flag}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
-                                />
+                                {!isSignedInAsdelegate && (
+                                    <MenuItemWithTopDescription
+                                        title={translate('cardPage.reportFraud')}
+                                        titleStyle={styles.walletCardMenuItem}
+                                        icon={Expensicons.Flag}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                    />
+                                )}
                             </>
                         ))}
                         {physicalCards.map((card) => {
