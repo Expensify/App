@@ -523,6 +523,8 @@ const translations = {
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
+        downloadAsPDF: 'Download as PDF',
+        downloadAsCSV: 'Download as CSV',
         help: 'Help',
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
@@ -1745,6 +1747,10 @@ const translations = {
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
+        generatingPDF: 'Generating PDF',
+        waitForPDF: 'Please wait while we generate the PDF',
+        errorPDF: 'There was an error when trying to generate your PDF.',
+        generatedPDF: 'Your report PDF has been generated!',
     },
     reportDescriptionPage: {
         roomDescription: 'Room description',
@@ -1937,6 +1943,34 @@ const translations = {
             `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours. Please try validating your number:`,
         validationFailed: 'Validation failed because it hasn’t been 24 hours since your last attempt.',
         validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
+        pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
+            if (!timeData) {
+                return 'Please wait a moment before trying again.';
+            }
+
+            const parts = [];
+            if (timeData.days) {
+                parts.push(`${timeData.days} ${timeData.days === 1 ? 'day' : 'days'}`);
+            }
+            if (timeData.hours) {
+                parts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hour' : 'hours'}`);
+            }
+            if (timeData.minutes) {
+                parts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minute' : 'minutes'}`);
+            }
+
+            let timeText;
+            if (parts.length === 1) {
+                timeText = parts.at(0);
+            } else if (parts.length === 2) {
+                timeText = parts.join(' and ');
+            } else {
+                const lastPart = parts.pop();
+                timeText = `${parts.join(', ')} and ${lastPart}`;
+            }
+
+            return `Please wait ${timeText} before trying again.`;
+        },
     },
     welcomeSignUpForm: {
         join: 'Join',
@@ -2157,7 +2191,7 @@ const translations = {
         noOverdraftOrCredit: 'No overdraft/credit feature.',
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
-        reviewTheFees: 'Please review the fees below.',
+        reviewTheFees: 'Take a look at some fees.',
         checkTheBoxes: 'Please check the boxes below.',
         agreeToTerms: 'Agree to the terms and you’ll be good to go!',
         shortTermsForm: {
@@ -2172,7 +2206,7 @@ const translations = {
             customerService: 'Customer service',
             automatedOrLive: '(automated or live agent)',
             afterTwelveMonths: '(after 12 months with no transactions)',
-            weChargeOneFee: 'We charge one type of fee.',
+            weChargeOneFee: 'We charge 1 other type of fee. It is:',
             fdicInsurance: 'Your funds are eligible for FDIC insurance.',
             generalInfo: 'For general information about prepaid accounts, visit',
             conditionsDetails: 'For details and conditions for all fees and services, visit',
@@ -2182,9 +2216,9 @@ const translations = {
         },
         longTermsForm: {
             listOfAllFees: 'A list of all Expensify Wallet fees',
-            typeOfFeeHeader: 'Type of fee',
-            feeAmountHeader: 'Fee amount',
-            moreDetailsHeader: 'More details',
+            typeOfFeeHeader: 'All fees',
+            feeAmountHeader: 'Amount',
+            moreDetailsHeader: 'Details',
             openingAccountTitle: 'Opening an account',
             openingAccountDetails: "There's no fee to open an account.",
             monthlyFeeDetails: "There's no monthly fee.",
@@ -2204,7 +2238,8 @@ const translations = {
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
                 'Your funds are eligible for FDIC insurance. Your funds will be held at or ' +
                 `transferred to ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, an FDIC-insured institution. Once there, your funds are insured up ` +
-                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails. See`,
+                `to ${amount} by the FDIC in the event ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} fails, if specific deposit insurance requirements ` +
+                `are met and your card is registered. See`,
             fdicInsuranceBancorp2: 'for details.',
             contactExpensifyPayments: `Contact ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} by calling +1 833-400-0904, by email at`,
             contactExpensifyPayments2: 'or sign in at',
@@ -4724,11 +4759,6 @@ const translations = {
                 unlockFeatureGoToSubtitle: 'Go to',
                 unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `and enable workflows, then add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `and enable ${featureName} to unlock this feature.`,
-                preventSelfApprovalsModalText: ({managerEmail}: {managerEmail: string}) =>
-                    `Any members currently approving their own expenses will be removed and replaced with the default approver for this workspace (${managerEmail}).`,
-                preventSelfApprovalsConfirmButton: 'Prevent self-approvals',
-                preventSelfApprovalsModalTitle: 'Prevent self-approvals?',
-                preventSelfApprovalsDisabledSubtitle: "Self approvals can't be enabled until this workspace has at least two members.",
             },
             categoryRules: {
                 title: 'Category rules',
@@ -5144,6 +5174,10 @@ const translations = {
         },
     },
     report: {
+        newReport: {
+            createReport: 'Create report',
+            chooseWorkspace: 'Choose a workspace for this report.',
+        },
         genericCreateReportFailureMessage: 'Unexpected error creating this chat. Please try again later.',
         genericAddCommentFailureMessage: 'Unexpected error posting the comment. Please try again later.',
         genericUpdateReportFieldFailureMessage: 'Unexpected error updating the field. Please try again later.',
