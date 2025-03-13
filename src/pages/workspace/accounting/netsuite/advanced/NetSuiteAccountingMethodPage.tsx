@@ -9,7 +9,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
+import {updateNetSuiteAccountingMethod} from '@libs/actions/connections/NetSuiteCommands';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -24,15 +24,15 @@ type MenuListItem = ListItem & {
 
 function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const data: MenuListItem[] = Object.values(COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD).map((accountingMethodType) => ({
         value: accountingMethodType,
-        text: translate(`workspace.netsuite.advancedConfig.accountingMethods.values.${accountingMethodType}` as TranslationPaths),
-        alternateText: translate(`workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethodType}` as TranslationPaths),
+        text: translate(`workspace.accountingMethods.values.${accountingMethodType}` as TranslationPaths),
+        alternateText: translate(`workspace.accountingMethods.alternateText.${accountingMethodType}` as TranslationPaths),
         keyForList: accountingMethodType,
         isSelected: accountingMethod === accountingMethodType,
     }));
@@ -43,7 +43,7 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const headerContent = useMemo(
         () => (
             <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.accountingMethods.description')}</Text>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.accountingMethods.description')}</Text>
             </View>
         ),
         [translate, styles.pb5, styles.ph5],
@@ -52,7 +52,7 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const selectExpenseReportApprovalLevel = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.accountingMethod) {
-                Connections.updateNetSuiteAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
+                updateNetSuiteAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID));
         },
@@ -62,7 +62,7 @@ function NetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     return (
         <SelectionScreen
             displayName={NetSuiteAccountingMethodPage.displayName}
-            title="workspace.netsuite.advancedConfig.accountingMethods.label"
+            title="workspace.accountingMethods.label"
             headerContent={headerContent}
             sections={[{data}]}
             listItem={RadioListItem}
