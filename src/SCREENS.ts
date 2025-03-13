@@ -164,7 +164,9 @@ const SCREENS = {
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
+        NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
         REPORT_DETAILS: 'Report_Details',
+        REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
@@ -328,10 +330,18 @@ const SCREENS = {
         EDIT: 'PrivateNotes_Edit',
     },
 
+    NEW_REPORT_WORKSPACE_SELECTION: {
+        ROOT: 'NewReportWorkspaceSelection_Root',
+    },
+
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
         SHARE_CODE: 'Report_Details_Share_Code',
         EXPORT: 'Report_Details_Export',
+    },
+
+    REPORT_CHANGE_WORKSPACE: {
+        ROOT: 'ReportChangeWorkspace_Root',
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
@@ -647,6 +657,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
+    CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     REPORT_PARTICIPANTS: {
         ROOT: 'ReportParticipants_Root',
