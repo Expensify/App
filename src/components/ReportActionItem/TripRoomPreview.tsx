@@ -50,6 +50,9 @@ type TripRoomPreviewProps = {
 
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
 type ReservationViewProps = {
@@ -114,7 +117,15 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
     );
 }
 
-function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnchor, isHovered = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
+function TripRoomPreview({
+    action,
+    chatReportID,
+    containerStyles,
+    contextMenuAnchor,
+    isHovered = false,
+    checkIfContextMenuActive = () => {},
+    shouldDisplayContextMenu = true,
+}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
@@ -156,7 +167,12 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
                     onPress={navigateToTrip}
                     onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                    onLongPress={(event) => {
+                        if (!shouldDisplayContextMenu) {
+                            return;
+                        }
+                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                    }}
                     shouldUseHapticsOnLongPress
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role={CONST.ROLE.BUTTON}

@@ -130,6 +130,9 @@ type ReportPreviewProps = {
 
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
 function ReportPreview({
@@ -144,6 +147,7 @@ function ReportPreview({
     checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
+    shouldDisplayContextMenu = true,
 }: ReportPreviewProps) {
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
@@ -524,7 +528,13 @@ function ReportPreview({
                     onPress={openReportFromPreview}
                     onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                    onLongPress={(event) => {
+                        if (!shouldDisplayContextMenu) {
+                            return;
+                        }
+
+                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                    }}
                     shouldUseHapticsOnLongPress
                     // This is added to omit console error about nested buttons as its forbidden on web platform
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, isOnSearch ? styles.borderedContentCardLarge : {}]}

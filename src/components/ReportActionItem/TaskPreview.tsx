@@ -56,9 +56,22 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Style for the task preview container */
     style: StyleProp<ViewStyle>;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
-function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, currentUserPersonalDetails, isHovered = false, style}: TaskPreviewProps) {
+function TaskPreview({
+    taskReportID,
+    action,
+    contextMenuAnchor,
+    chatReportID,
+    checkIfContextMenuActive,
+    currentUserPersonalDetails,
+    isHovered = false,
+    style,
+    shouldDisplayContextMenu = true,
+}: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -91,7 +104,12 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                onLongPress={(event) => {
+                    if (!shouldDisplayContextMenu) {
+                        return;
+                    }
+                    showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                }}
                 shouldUseHapticsOnLongPress
                 style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}

@@ -65,6 +65,7 @@ function TaskView({report}: TaskViewProps) {
             transactionThreadReport: undefined,
             checkIfContextMenuActive: () => {},
             isDisabled: true,
+            shouldDisplayContextMenu: false,
         }),
         [report],
     );

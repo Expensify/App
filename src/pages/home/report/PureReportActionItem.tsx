@@ -576,8 +576,9 @@ function PureReportActionItem({
             transactionThreadReport,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
             isDisabled: false,
+            shouldDisplayContextMenu,
         }),
-        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs],
+        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs, shouldDisplayContextMenu],
     );
 
     const attachmentContextValue = useMemo(() => {
@@ -747,6 +748,7 @@ function PureReportActionItem({
                     contextMenuAnchor={popoverAnchorRef.current}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
@@ -766,6 +768,7 @@ function PureReportActionItem({
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     isWhisper={isWhisper}
+                    shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -782,6 +785,7 @@ function PureReportActionItem({
                         contextMenuAnchor={popoverAnchorRef.current}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                         policyID={report?.policyID}
+                        shouldDisplayContextMenu={shouldDisplayContextMenu}
                     />
                 </ShowContextMenuContext.Provider>
             );
