@@ -1,9 +1,12 @@
 ---
 title: Request the Expensify Card
 description: Learn how to request, activate, and manage the Expensify Card, including virtual card setup, replacement procedures, and eligibility requirements.
+keywords: [Expensify Classic, Expensify Card, request a card, new card]
 ---
 
 This guide provides details on how you and your employees can request and use the Expensify Card.
+
+---
 
 # Requirements for the Expensify Card
 
@@ -13,6 +16,7 @@ The Expensify Card is currently available only to companies that meet the follow
 - **Private Email Domain**: We cannot provision Expensify Cards for users with public domains like gmail.com, hotmail.com, yahoo.com, etc.
 
 ---
+
 # Steps to Request the Expensify Card
 
 ## 1. Enable Expensify Cards (Admin Action)
@@ -36,11 +40,11 @@ When the physical card arrives, activate it by:
 
 - Virtual cards are available immediately once a spending limit is assigned.
 - To view your virtual card details, go to:
-  **Settings > Account > Credit Card Import > Show Details**.
+  **Settings > Account > Wallet > Imported Card Feeds > Show Details**.
 
 ## Security Tip
 [Enable two-factor authentication](https://help.expensify.com/articles/expensify-classic/settings/Enable-two-factor-authentication) to secure your account and card spend:
-1. Navigate to **Settings > Account > Account Details**
+1. Navigate to **Settings > Account > Profile**
 2. Under the Account Details tab, find the Two-Factor Authentication section, and switch on the toggle
 
 ---
@@ -54,7 +58,7 @@ Download the Expensify mobile app and enable push notifications to stay updated 
 # Request a Replacement Expensify Card
 
 ## Lost, Stolen, or Damaged Cards
-1. Go to **Settings > Account > Credit Card Import** and click **Request a New Card**.
+1. Go to **Settings > Account > Wallet** and click **Request a New Card**.
 2. Confirm your shipping information and complete the prompts.
 3. Replacement Timeline:
    - **Lost or Stolen**: The current card is deactivated immediately to prevent fraud.
@@ -76,13 +80,13 @@ If you can’t access the website or app:
 # FAQ
 
 ## What if I haven’t received my card after multiple weeks?
-- Reach out to support for a tracking number.
 
-- If the card is marked as delivered but not received:
-  - Confirm your address.
-  - Order a replacement card.
+Reach out to support for a tracking number.
+
+If the card is marked as delivered but not received:
+- Confirm your address.
+- Order a replacement card.
 
 ## I’m self-employed. Can I set up the Expensify Card as an individual?
-Yes! If you have a business bank account and IRS registration for your company, you can use the Expensify Card as an individual business owner.
 
----
+Yes, if you have a business bank account and IRS registration for your company, you can use the Expensify Card as an individual business owner.
