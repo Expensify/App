@@ -164,6 +164,7 @@ const SCREENS = {
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
+        NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
         REPORT_DETAILS: 'Report_Details',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
@@ -200,6 +201,7 @@ const SCREENS = {
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
     },
+    PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
     },
@@ -325,6 +327,10 @@ const SCREENS = {
     PRIVATE_NOTES: {
         LIST: 'PrivateNotes_List',
         EDIT: 'PrivateNotes_Edit',
+    },
+
+    NEW_REPORT_WORKSPACE_SELECTION: {
+        ROOT: 'NewReportWorkspaceSelection_Root',
     },
 
     REPORT_DETAILS: {
@@ -660,7 +666,6 @@ const SCREENS = {
     },
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
-    GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     TRANSACTION_RECEIPT: 'TransactionReceipt',

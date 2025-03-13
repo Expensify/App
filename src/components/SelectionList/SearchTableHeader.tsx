@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchUIUtils from '@libs/SearchUIUtils';
+import {getShouldShowMerchant} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -39,12 +39,12 @@ const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
-        shouldShow: (data: OnyxTypes.SearchResults['data']) => SearchUIUtils.getShouldShowMerchant(data),
+        shouldShow: (data: OnyxTypes.SearchResults['data']) => getShouldShowMerchant(data),
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
-        shouldShow: (data: OnyxTypes.SearchResults['data']) => !SearchUIUtils.getShouldShowMerchant(data),
+        shouldShow: (data: OnyxTypes.SearchResults['data']) => !getShouldShowMerchant(data),
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
@@ -151,3 +151,4 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
 SearchTableHeader.displayName = 'SearchTableHeader';
 
 export default SearchTableHeader;
+export {SearchColumns};
