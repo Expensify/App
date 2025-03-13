@@ -382,7 +382,6 @@ function getOptionData({
     reportNameValuePairs,
     reportActions,
     personalDetails,
-    preferredLocale,
     policy,
     parentReportAction,
     hasViolations,
@@ -395,7 +394,6 @@ function getOptionData({
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     reportActions: OnyxEntry<ReportActions>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
-    preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
