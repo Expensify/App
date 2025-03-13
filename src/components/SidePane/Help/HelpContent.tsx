@@ -1,8 +1,8 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
-import {ScrollView} from 'react-native';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScrollView from '@components/ScrollView';
 import getHelpContent from '@components/SidePane/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
