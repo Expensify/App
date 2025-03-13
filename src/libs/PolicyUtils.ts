@@ -1221,6 +1221,13 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
 }
 
+function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null = allPolicies) {
+    if (isEmptyObject(policies)) {
+        return CONST.EMPTY_ARRAY;
+    }
+    return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
+}
+
 // eslint-disable-next-line rulesdir/no-negated-variables
 function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
     const policy = getPolicy(policyID);
@@ -1464,6 +1471,7 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
     getForwardsToAccount,
     getSubmitToAccountID,
     getWorkspaceAccountID,
@@ -1478,7 +1486,6 @@ export {
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
-    areAllGroupPoliciesExpenseChatDisabled,
     shouldDisplayPolicyNotFoundPage,
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
@@ -1491,6 +1498,7 @@ export {
     getManagerAccountID,
     isPrefferedExporter,
     isAutoSyncEnabled,
+    areAllGroupPoliciesExpenseChatDisabled,
 };
 
 export type {MemberEmailsToAccountIDs};

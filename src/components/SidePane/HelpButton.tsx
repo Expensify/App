@@ -34,7 +34,10 @@ function HelpButton({style}: HelpButtonProps) {
                 style={[styles.flexRow, styles.touchableButtonImage, styles.mr2, style]}
                 onPress={() => {
                     KeyboardUtils.dismiss();
-                    triggerSidePane(isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen, {shouldUpdateNarrowLayout: !isExtraLargeScreenWidth});
+                    triggerSidePane({
+                        isOpen: isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen,
+                        isOpenNarrowScreen: isExtraLargeScreenWidth ? undefined : !sidePane?.openNarrowScreen,
+                    });
                 }}
             >
                 <Icon
