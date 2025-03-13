@@ -1,4 +1,5 @@
-import React, {useCallback, useContext, useEffect} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import Modal from '@components/Modal';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -12,7 +13,7 @@ const onCloseNoop = () => {};
 
 function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
-
+    const [shouldShowAnimationIn, setShouldShowAnimationIn] = useState(true);
     /**
      * Closes the modal.
      * @param {boolean} [shouldCallDirectly] If true, directly calls `onModalClose`.
@@ -35,6 +36,15 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
         },
         [attachmentsContext, contentProps.fallbackRoute, onClose],
     );
+
+    // After the modal has initially been mounted and animated in,
+    // we don't want to show another animation when the modal type changes or
+    // when the browser switches to narrow layout.
+    useEffect(() => {
+        InteractionManager.runAfterInteractions(() => {
+            setShouldShowAnimationIn(false);
+        });
+    }, []);
 
     useEffect(() => {
         onShow?.();
@@ -59,6 +69,7 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
 
     return (
         <Modal
+            disableAnimationIn={!shouldShowAnimationIn}
             isVisible
             type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             onClose={onClose ?? onCloseNoop}

@@ -76,6 +76,7 @@ function BaseModal(
         swipeThreshold = 150,
         swipeDirection,
         shouldPreventScrollOnFocus = false,
+        disableAnimationIn = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -235,6 +236,21 @@ function BaseModal(
         [isVisible, type],
     );
 
+    const animationInProps = useMemo(() => {
+        if (disableAnimationIn) {
+            return {
+                animationIn: {from: {opacity: 1}, to: {opacity: 1}},
+                animationInTiming: 0,
+            };
+        }
+
+        return {
+            animationIn: animationIn ?? modalStyleAnimationIn,
+            animationInDelay,
+            animationInTiming,
+        };
+    }, [animationIn, animationInDelay, animationInTiming, disableAnimationIn, modalStyleAnimationIn]);
+
     return (
         <ModalContext.Provider value={modalContextValue}>
             <View
@@ -269,14 +285,13 @@ function BaseModal(
                     style={modalStyle}
                     deviceHeight={windowHeight}
                     deviceWidth={windowWidth}
-                    animationIn={animationIn ?? modalStyleAnimationIn}
-                    animationInDelay={animationInDelay}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...animationInProps}
                     animationOut={animationOut ?? modalStyleAnimationOut}
+                    animationOutTiming={animationOutTiming}
                     useNativeDriver={useNativeDriver}
                     useNativeDriverForBackdrop={useNativeDriverForBackdrop}
                     hideModalContentWhileAnimating={hideModalContentWhileAnimating}
-                    animationInTiming={animationInTiming}
-                    animationOutTiming={animationOutTiming}
                     statusBarTranslucent={statusBarTranslucent}
                     navigationBarTranslucent={navigationBarTranslucent}
                     onLayout={onLayout}

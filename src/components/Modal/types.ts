@@ -110,6 +110,9 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
 
         /** Whether to prevent the focus trap from scrolling the element into view. */
         shouldPreventScrollOnFocus?: boolean;
+
+        /** Whether to disable the animation in */
+        disableAnimationIn?: boolean;
     };
 
 export default BaseModalProps;
