@@ -1,12 +1,11 @@
 import {render, screen} from '@testing-library/react-native';
 import {ReservationView} from '@components/ReportActionItem/TripDetailsView';
 import StringUtils from '@libs/StringUtils';
-import type {ReservationData} from '@libs/TripReservationUtils';
 import {getTripReservationCode} from '@libs/TripReservationUtils';
 import HotelTripDetails from '@pages/Travel/HotelTripDetails';
 import CONST from '@src/CONST';
 
-const mockReservationData: ReservationData = {
+const mockReservationData = {
     reservation: {
         cancellationDeadline: '2025-04-02T19:00:00-05:00',
         cancellationPolicy: CONST.CANCELLATION_POLICY.PARTIALLY_REFUNDABLE,
@@ -46,7 +45,7 @@ describe('ReservationAddressTest', () => {
             <ReservationView
                 reservation={mockReservationData.reservation}
                 transactionID={mockReservationData.transactionID}
-                tripRoomReportID={mockReservationData.reportID ?? ''}
+                tripRoomReportID={mockReservationData.reportID}
                 reservationIndex={mockReservationData.reservationIndex}
             />,
         );
