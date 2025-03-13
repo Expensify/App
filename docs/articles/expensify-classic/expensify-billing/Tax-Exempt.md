@@ -1,6 +1,7 @@
 ---
 title: Tax Exempt
 description: How to request tax-exempt status for your Expensify account if your organization is recognized by the IRS or other local tax authorities.
+keywords: [Expensify Classic, tax-exempt, request tax exemption status]
 ---
 
 If your organization is recognized as **tax-exempt** by the IRS or other local tax authorities, you can request tax-exempt status in Expensify to avoid tax charges on your monthly bill. Follow these steps to submit your request.
@@ -9,7 +10,7 @@ If your organization is recognized as **tax-exempt** by the IRS or other local t
 
 # Request Tax-Exempt Status
 
-1. Go to **Settings > Account > Payments**.
+1. Go to **Settings > Account > Subscription**.
 2. Click **Request Tax-Exempt Status**.
 3. Concierge will reach out to you for documentation. Upload a PDF of your tax-exempt certification. Your document should include your **VAT number** (or **RUT** in Chile). Accepted documents include:
    - **501(c)** (for U.S. organizations)
