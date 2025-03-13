@@ -140,6 +140,7 @@ import {getNavatticURL} from '@libs/TourUtils';
 import {addTrailingForwardSlash} from '@libs/Url';
 import {generateAccountID} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
+import {setDownload} from '@userActions/Download';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -182,7 +183,6 @@ import {
 import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
 import {startOnboardingFlow} from './Welcome/OnboardingFlow';
-import {setDownload} from "@userActions/Download";
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
