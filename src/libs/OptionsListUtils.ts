@@ -737,7 +737,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const roomName = lastActionOriginalMessage?.roomName ?? '';
 
         const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
-        const targetAccountIDsLength = targetAccountIDs.length || report?.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length || 0;
+        const targetAccountIDsLength = targetAccountIDs.length !== 0 
+            ? targetAccountIDs.length 
+            : report?.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0;
+            
         const users = translate(preferredLocale, targetAccountIDsLength > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
 
         const verb =
