@@ -1,9 +1,10 @@
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import {triggerSidePane} from '@libs/actions/SidePane';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,6 +68,21 @@ function useSidePane() {
         });
     }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth]);
 
+    const closeSidePane = useCallback(
+        (shouldUpdateNarrow = false) => {
+            if (!sidePaneNVP) {
+                return;
+            }
+
+            const shouldOnlyUpdateNarrowLayout = !isExtraLargeScreenWidth || shouldUpdateNarrow;
+            triggerSidePane({
+                isOpen: shouldOnlyUpdateNarrowLayout ? undefined : false,
+                isOpenNarrowScreen: shouldOnlyUpdateNarrowLayout ? false : undefined,
+            });
+        },
+        [isExtraLargeScreenWidth, sidePaneNVP],
+    );
+
     return {
         sidePane: sidePaneNVP,
         shouldHideSidePane,
@@ -74,6 +90,7 @@ function useSidePane() {
         shouldHideHelpButton,
         sidePaneOffset,
         sidePaneTranslateX,
+        closeSidePane,
     };
 }
 
