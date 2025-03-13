@@ -27,8 +27,8 @@ function extractAttachments(
     const description = report?.description ?? '';
     const attachments: Attachment[] = [];
     const canUserPerformAction = canUserPerformWriteAction(report);
-
     let currentLink = '';
+
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
             if (name === 'a' && attribs.href) {
