@@ -460,7 +460,6 @@ describe('SidebarUtils', () => {
                 await waitForBatchedUpdates();
             });
             it('The text should not contain the policy name at prefix if the report is not related to a workspace', async () => {
-                const preferredLocale = 'en';
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,
