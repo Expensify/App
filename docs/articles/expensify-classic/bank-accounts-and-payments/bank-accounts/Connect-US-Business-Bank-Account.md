@@ -1,7 +1,7 @@
 ---
 title: Connect U.S. business bank account
 description: Learn how to connect a deposit-only or verified business bank account to Expensify for payments and reimbursements.
-keywords: [Expensify Classic, business bank account, verified business bank account, send reimbursement]
+keywords: [Expensify Classic, business bank account, verified business bank account, send reimbursement, disconnect bank account]
 ---
 
 You can connect a **business deposit-only account** (receives payments only) or a **verified business account** (sends and receives payments):
@@ -87,6 +87,18 @@ Expensify will send **three test transactions** within **1-2 business days**. To
 
 ---
 
+# Remove a Bank Account
+
+If you need to remove a bank account, follow the steps below.  
+
+1. Go to **Settings > Account > Wallet**.  
+2. Locate the bank account you want to remove.  
+3. Click **Delete** next to the account.
+
+**Note:** If the bank account is set as the settlement account for your Expensify Cards, you must designate another bank account before removing it. Navigate to **Settings > Domains > Company Cards > Settings** to update your settlement account.
+
+---
+
 # FAQ
 
 ## I received a “something’s gone wrong” error when adding my ID to Onfido.
@@ -163,5 +175,13 @@ Yes, Expensify **cannot process direct payments** for businesses in:
 - Marijuana-related businesses
 - Firearm-related businesses (manufacturing and selling)
 - NFT (non-fungible token) services
+
+## Why can't I delete a bank account?  
+
+You may be unable to remove your bank account if:  
+- It is set as your **Expensify Card settlement account**.  
+- Your account is **locked due to a failed payment**.  
+
+If you're unable to delete your bank account, update the settlement account for the Expensify Cards (if applicable), or resolve any outstanding payment issues.
 
 If your business falls into one of these categories, you won’t be able to connect a business bank account to process reimbursements.
