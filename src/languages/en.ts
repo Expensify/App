@@ -2035,7 +2035,7 @@ const translations = {
             phrase4: 'verify your account here',
         },
         hasPhoneLoginError: {
-            phrase1: 'To add a verified bank account please ',
+            phrase1: 'To add a verified bank account please',
             link: 'ensure your primary login is a valid email',
             phrase2: ' and try again. You can add your phone number as a secondary login.',
         },
