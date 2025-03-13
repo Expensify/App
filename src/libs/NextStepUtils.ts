@@ -92,17 +92,17 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
             },
             {
                 text: 'yourself',
-                type: 'strong',
+                type: 'next-step-email',
             },
             {
                 text: '. Approving your own reports is ',
             },
             {
                 text: 'forbidden',
-                type: 'strong',
+                type: 'next-step-email',
             },
             {
-                text: ' by your policy. Please submit this report to someone else or contact your admin to change the person you submit to.',
+                text: ' by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.',
             },
         ],
     };

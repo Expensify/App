@@ -3,27 +3,22 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type Options = {
-    /** Whether to update the narrow layout along with the large screen layout */
-    shouldUpdateNarrowLayout?: boolean;
+    /** Determines whether the side pane should be open or closed */
+    isOpen?: boolean;
 
-    /** Whether to update only the narrow layout without affecting the large screen layout */
-    shouldOnlyUpdateNarrowLayout?: boolean;
+    /** Determines whether the side pane should be open or closed on narrow screens */
+    isOpenNarrowScreen?: boolean;
 };
 
-/**
- * Updates the side pane state in Onyx.
- *
- * @param isOpen - Determines whether the side pane should be open or closed.
- * @param [options] - Additional options for updating the layout.
- */
-function triggerSidePane(isOpen: boolean, {shouldUpdateNarrowLayout = false, shouldOnlyUpdateNarrowLayout = false}: Options = {}) {
+/** Updates the side pane state in Onyx */
+function triggerSidePane({isOpen, isOpenNarrowScreen}: Options) {
     const value: OnyxMergeInput<typeof ONYXKEYS.NVP_SIDE_PANE> = {};
 
-    if (!shouldOnlyUpdateNarrowLayout) {
+    if (isOpen !== undefined) {
         value.open = isOpen;
     }
-    if (shouldUpdateNarrowLayout || shouldOnlyUpdateNarrowLayout) {
-        value.openNarrowScreen = isOpen;
+    if (isOpenNarrowScreen !== undefined) {
+        value.openNarrowScreen = isOpenNarrowScreen;
     }
 
     Onyx.merge(ONYXKEYS.NVP_SIDE_PANE, value);
