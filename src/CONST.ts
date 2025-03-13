@@ -781,6 +781,7 @@ const CONST = {
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NSQS: 'nsqs',
         CUSTOM_RULES: 'customRules',
+        TABLE_REPORT_VIEW: 'tableReportView',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1026,7 +1027,7 @@ const CONST = {
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
-    FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
+    FEES_URL: `${EXPENSIFY_URL}/fees`,
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
@@ -1311,6 +1312,7 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
+                RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
@@ -2462,7 +2464,7 @@ const CONST = {
         BANCORP_WALLET_PROGRAM_ID: '660',
         PROGRAM_ISSUERS: {
             EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
-            BANCORP_BANK: 'The Bancorp Bank',
+            BANCORP_BANK: 'The Bancorp Bank, N.A.',
         },
     },
 
@@ -3365,7 +3367,7 @@ const CONST = {
             `(?<!^[^\`\n]*(?:\`[^\`\n]*\`[^\`\n]*)*\`[^\`\n]*)@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*|@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\n]*\`)`,
             'gim',
         ),
-        REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
+        REPORT_ID_FROM_PATH: /(?<!\/search)\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
         WHITESPACE: /\s+/g,
 
@@ -6233,6 +6235,7 @@ const CONST = {
     },
 
     DOT_SEPARATOR: '•',
+    BULLET: '●',
 
     DEFAULT_TAX: {
         defaultExternalID: 'id_TAX_EXEMPT',
@@ -6360,6 +6363,7 @@ const CONST = {
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             POLICY_ID: 'policyID',
+            GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
             DATE: 'date',
@@ -6396,6 +6400,7 @@ const CONST = {
             SORT_BY: 'sort-by',
             SORT_ORDER: 'sort-order',
             POLICY_ID: 'workspace',
+            GROUP_BY: 'group-by',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expense-type',
@@ -6421,6 +6426,12 @@ const CONST = {
         DATE_MODIFIERS: {
             BEFORE: 'Before',
             AFTER: 'After',
+        },
+    },
+
+    EXPENSE: {
+        TYPE: {
+            CASH_CARD_NAME: 'Cash Expense',
         },
     },
 
