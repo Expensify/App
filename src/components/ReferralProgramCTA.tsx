@@ -59,12 +59,14 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
         >
             <Text>
                 {translate(`referralProgram.${referralContentType}.buttonText1`)}
-                <Text
-                    color={theme.success}
-                    style={styles.textStrong}
-                >
-                    {translate(`referralProgram.${referralContentType}.buttonText2`)}
-                </Text>
+                {referralContentType !== CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND && (
+                    <Text
+                        color={theme.success}
+                        style={styles.textStrong}
+                    >
+                        {translate(`referralProgram.${referralContentType}.buttonText2`)}
+                    </Text>
+                )}
             </Text>
             <Tooltip text={translate('common.close')}>
                 <PressableWithoutFeedback
