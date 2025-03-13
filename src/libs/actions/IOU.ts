@@ -4905,6 +4905,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     console.log({transactionData}); // s77rt
 
+    // s77rt: check optimistic data (accounant is an admin and invited to the expense report)
+
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
