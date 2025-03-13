@@ -1,6 +1,7 @@
 ---
 title: Close or Reopen an Account
 description: Learn how to close or reopen an Expensify account.
+keywords: [Expensify Classic, close account, reopen account]
 ---
 
 Closing an Expensify account deletes the data tied to it. However, transactions shared with others, including approved and reimbursed company expenses, remain visible to the Admins on the workspace where those reports were submitted. Some transaction records may also be retained for legal compliance.
@@ -16,8 +17,8 @@ Once removed from the workspace, the account will downgrade to a **free account*
 # Close Your Account
 
 **On Web:**
-1. Hover over **Settings**, then click **Account**.
-2. Scroll to the bottom and click **Close Account**.
+1. Hover over **Settings > Security > Security options**.
+2. Click **Close account**.
 3. Confirm the closure using your phone or email.
 
 If you don't see this option, your account may be domain-controlled. To close it, contact your **Domain Admin**.
@@ -25,7 +26,7 @@ If you don't see this option, your account may be domain-controlled. To close it
 **Mobile:**
 1. Tap the **menu** in the top left.
 2. Tap **Settings**.
-3. Scroll to the **Others** section and tap **Close Account**.
+3. Scroll to the **Others** section and tap **Close account**.
 4. Confirm the closure using your phone or email.
 
 It may be domain-controlled if you don't see the option to close your account. In that case, you can contact your **Domain Admin** to close it.
@@ -35,7 +36,7 @@ It may be domain-controlled if you don't see the option to close your account. I
 # Reopen a Closed Account
 
 1. Sign in to your web account with your email or phone number.
-2. Click **Reopen Account**.
+2. Choose **Reopen Account**.
 3. Open your email and click the link from Expensify.
 
 Your account is open, and you can recreate workspaces, adjust settings, and access shared historical data.
