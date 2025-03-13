@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.1.11-3",
+  "version": "9.1.12-6",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -195,7 +195,8 @@
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
-    "react-window": "^1.8.9"
+    "react-window": "^1.8.9",
+    "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
@@ -291,7 +292,7 @@
     "csv-writer": "^1.6.0",
     "diff-so-fancy": "^1.3.0",
     "dotenv": "^16.0.3",
-    "electron": "^32.2.3",
+    "electron": "^32.3.3",
     "electron-builder": "25.0.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
