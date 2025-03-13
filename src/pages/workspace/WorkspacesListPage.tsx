@@ -183,16 +183,16 @@ function WorkspacesListPage() {
 
     const getLeaveWorkspaceConfirmation = () => {
         const qboConfig = policyToLeave?.connections?.quickbooksOnline?.config;
-
+        const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
         if (qboConfig?.export.exporter === session?.email) {
             return translate('common.leaveWorkspaceConfirmationForExporter', {
-                workspaceOwner: personalDetails?.[policyToLeave?.ownerAccountID ?? '']?.displayName ?? '',
+                workspaceOwner: policyOwnerDisplayName,
             });
         }
 
         if (getAllSelfApprovers(policyToLeave).includes(session?.email ?? '')) {
             return translate('common.leaveWorkspaceConfirmationForApprover', {
-                workspaceOwner: personalDetails?.[policyToLeave?.ownerAccountID ?? '']?.displayName ?? '',
+                workspaceOwner: policyOwnerDisplayName,
             });
         }
         if (isPolicyAdmin(policyToLeave)) {
@@ -230,7 +230,7 @@ function WorkspacesListPage() {
             });
 
             const policy = getPolicy(item.policyID);
-            const details = personalDetails?.[item.ownerAccountID ?? ''];
+            const details = personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
 
             // Check if the reimburser matches the login of the owner account
             const isAuthorizedPayer = policy?.achAccount?.reimburser === details?.login;
@@ -606,7 +606,7 @@ function WorkspacesListPage() {
                 prompt={
                     isWorkspaceReimburser
                         ? translate('common.cannotRemoveUserDueToProcessingReport', {
-                              approverName: personalDetails?.[session?.accountID ?? '']?.displayName ?? '',
+                              memberName: personalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '',
                           })
                         : translate('common.leaveWorkspaceReimburser')
                 }

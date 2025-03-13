@@ -534,8 +534,8 @@ const translations = {
         leaveWorkspaceConfirmationForAdmin: "If you leave this workspace, you won't be able to manage its settings.",
         leaveWorkspaceConfirmationForApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
             `If you leave this workspace, you'll be replaced in the approval workflow by ${workspaceOwner}, the workspace owner.`,
-        cannotRemoveUserDueToProcessingReport: ({approverName}: {approverName: string}) =>
-            `${approverName} has an outstanding processing report to take action on. Please ask them to complete the required action before removing them from the workspace.`,
+        cannotRemoveUserDueToProcessingReport: ({memberName}: {memberName: string}) =>
+            `${memberName} has an outstanding processing report to take action on. Please ask them to complete the required action before removing them from the workspace.`,
         leaveWorkspaceConfirmationForExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
             `If you leave this workspace, you'll be replaced as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
         leaveWorkspaceReimburser: "You can't leave this workspace as the reimburser. Please set a new reimburser in Workspaces > Make or track payments, then try again.",

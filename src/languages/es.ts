@@ -525,8 +525,8 @@ const translations = {
         leaveWorkspaceConfirmationForAdmin: 'Si sales de este espacio de trabajo, no podrás gestionar su configuración.',
         leaveWorkspaceConfirmationForApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
             `Si sales de este espacio de trabajo, serás reemplazado en el flujo de aprobación por ${workspaceOwner}, el propietario del espacio de trabajo.`,
-        cannotRemoveUserDueToProcessingReport: ({approverName}: {approverName: string}) =>
-            `${approverName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,
+        cannotRemoveUserDueToProcessingReport: ({memberName}: {memberName: string}) =>
+            `${memberName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,
         leaveWorkspaceConfirmationForExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
             `Si sales de este espacio de trabajo, serás reemplazado como el exportador preferido por ${workspaceOwner}, el propietario del espacio de trabajo.`,
         leaveWorkspaceReimburser:
