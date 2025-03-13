@@ -9,10 +9,10 @@ import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyActions from '@libs/actions/Policy/Policy';
-import * as ReportActions from '@libs/actions/Report';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {savePreferredExportMethod as savePreferredExportMethodUtils} from '@libs/actions/Policy/Policy';
+import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
+import {hasIntegrationAutoSync as hasIntegrationAutoSyncUtils} from '@libs/PolicyUtils';
+import {canBeExported as canBeExportedUtils, getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
 import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -51,10 +51,10 @@ function ExportWithDropdownMenu({
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
-    const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
-    const canBeExported = ReportUtils.canBeExported(report);
-    const isExported = ReportUtils.isExported(reportActions);
-    const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectionName);
+    const iconToDisplay = getIntegrationIcon(connectionName);
+    const canBeExported = canBeExportedUtils(report);
+    const isExported = isExportedUtils(reportActions);
+    const hasIntegrationAutoSync = hasIntegrationAutoSyncUtils(policy, connectionName);
     const flattenedWrapperStyle = StyleSheet.flatten([styles.flex1, wrapperStyle]);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
@@ -74,7 +74,7 @@ function ExportWithDropdownMenu({
             },
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
-                text: translate('workspace.common.markAsExported'),
+                text: translate('workspace.common.markAsEntered'),
                 ...optionTemplate,
             },
         ];
@@ -93,9 +93,9 @@ function ExportWithDropdownMenu({
             return;
         }
         if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-            ReportActions.exportToIntegration(reportID, connectionName);
+            exportToIntegration(reportID, connectionName);
         } else if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            ReportActions.markAsManuallyExported(reportID, connectionName);
+            markAsManuallyExported(reportID, connectionName);
         }
     }, [connectionName, modalStatus, reportID]);
 
@@ -103,7 +103,7 @@ function ExportWithDropdownMenu({
         if (!report?.policyID) {
             return;
         }
-        PolicyActions.savePreferredExportMethod(report?.policyID, value);
+        savePreferredExportMethodUtils(report?.policyID, value);
     };
 
     return (
@@ -122,9 +122,9 @@ function ExportWithDropdownMenu({
                         return;
                     }
                     if (value === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                        ReportActions.exportToIntegration(reportID, connectionName);
+                        exportToIntegration(reportID, connectionName);
                     } else if (value === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                        ReportActions.markAsManuallyExported(reportID, connectionName);
+                        markAsManuallyExported(reportID, connectionName);
                     }
                 }}
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}

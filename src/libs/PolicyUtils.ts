@@ -1338,19 +1338,6 @@ function isPrefferedExporter(policy: Policy) {
     return exporters.some((exporter) => exporter && exporter === user);
 }
 
-function isAutoSyncEnabled(policy: Policy) {
-    const values = [
-        policy.connections?.intacct?.config?.autoSync?.enabled,
-        policy.connections?.netsuite?.config?.autoSync?.enabled,
-        policy.connections?.netsuiteQuickStart?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
-        policy.connections?.xero?.config?.autoSync?.enabled,
-    ];
-
-    return values.some((value) => !!value);
-}
-
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1489,7 +1476,6 @@ export {
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
     isPrefferedExporter,
-    isAutoSyncEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
