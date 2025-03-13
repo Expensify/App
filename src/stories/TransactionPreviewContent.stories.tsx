@@ -13,12 +13,15 @@ import {action, chatReport, iouReport, personalDetails, transaction, violations}
 
 const veryLongString = 'W'.repeat(1000);
 const veryBigNumber = Number('9'.repeat(12));
-const modifiedTransaction = ({category, tag, merchant = '', amount = 1000}: {category?: string; tag?: string; merchant?: string; amount?: number}) => ({
+const modifiedTransaction = ({category, tag, merchant = '', amount = 1000, hold = false}: {category?: string; tag?: string; merchant?: string; amount?: number; hold?: boolean}) => ({
     ...transaction,
     category,
     tag,
     merchant,
     amount,
+    comment: {
+        hold: hold ? 'true' : undefined,
+    },
 });
 const iouReportWithModifiedType = (type: string) => ({...iouReport, type});
 const actionWithModifiedPendingAction = (pendingAction: PendingAction) => ({...action, pendingAction});
@@ -141,9 +144,11 @@ const KeepButtonSplitRBRCategoriesAndTag: TransactionPreviewStory = Template.bin
 const DeletedKeepButtonSplitRBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const KeepButtonIOURBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 
+const storiesTransactionData = {category: 'Grocery stores', tag: 'Food', merchant: 'Acme'};
+
 CategoriesAndTag.args = {
     ...Default.args,
-    transaction: modifiedTransaction({category: 'Grocery stores', tag: 'Food', merchant: 'Acme'}),
+    transaction: modifiedTransaction(storiesTransactionData),
 };
 
 KeepButtonCategoriesAndTag.args = {
@@ -154,6 +159,7 @@ KeepButtonCategoriesAndTag.args = {
 KeepButtonRBRCategoriesAndTag.args = {
     ...KeepButtonCategoriesAndTag.args,
     violations,
+    transaction: modifiedTransaction({...storiesTransactionData, hold: true}),
 };
 
 KeepButtonSplitRBRCategoriesAndTag.args = {

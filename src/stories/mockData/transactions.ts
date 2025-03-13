@@ -178,9 +178,7 @@ const transaction: Transaction = {
     cardName: 'Cash Expense',
     cardNumber: '',
     category: '',
-    comment: {
-        comment: '',
-    },
+    comment: {},
     created: '2025-02-14',
     currency,
     filename: 'test.html',

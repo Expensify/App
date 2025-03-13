@@ -152,7 +152,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (shouldShowHoldMessage && RBRmessage === undefined) {
-        RBRmessage = {translationPath: 'violations.hold'};
+        RBRmessage = {translationPath: 'iou.expenseWasPutOnHold'};
     }
 
     if (violationMessage && RBRmessage === undefined) {

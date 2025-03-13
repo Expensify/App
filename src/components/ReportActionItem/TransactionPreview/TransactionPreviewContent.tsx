@@ -201,9 +201,9 @@ function TransactionPreviewContent({
                     {shouldShowSkeleton ? (
                         <MoneyRequestSkeletonView />
                     ) : (
-                        <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
+                        <View style={[styles.expenseAndReportPreviewBoxBody]}>
                             <View style={styles.gap3}>
-                                <View style={styles.expenseAndReportPreviewTextContainer}>
+                                <View style={styles.gap2}>
                                     {shouldShowIOUHeader && (
                                         <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
                                             <UserInfoCellsWithArrow
@@ -212,7 +212,8 @@ function TransactionPreviewContent({
                                                 participantFromDisplayName={from.displayName ?? from.login ?? ''}
                                                 participantTo={to}
                                                 participantToDisplayName={to.displayName ?? to.login ?? ''}
-                                                avatarSize="subscript"
+                                                avatarSize="mid-subscript"
+                                                infoCellsTextStyle={{lineHeight: 14}}
                                             />
                                         </View>
                                     )}

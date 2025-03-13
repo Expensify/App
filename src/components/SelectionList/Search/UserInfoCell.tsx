@@ -1,4 +1,5 @@
 import React from 'react';
+import type {TextStyle} from 'react-native';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Text from '@components/Text';
@@ -14,9 +15,10 @@ type UserInfoCellProps = {
     avatar: AvatarSource | undefined;
     displayName: string;
     avatarSize?: AvatarSizeName;
+    textStyle?: TextStyle;
 };
 
-function UserInfoCell({avatar, accountID, displayName, avatarSize}: UserInfoCellProps) {
+function UserInfoCell({avatar, accountID, displayName, avatarSize, textStyle}: UserInfoCellProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
@@ -37,7 +39,7 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize}: UserInfoCell
             />
             <Text
                 numberOfLines={1}
-                style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold, styles.flexShrink1]}
+                style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold, styles.flexShrink1, textStyle]}
             >
                 {displayName}
             </Text>
