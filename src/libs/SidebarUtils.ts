@@ -11,7 +11,6 @@ import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {extractCollectionItemID} from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
