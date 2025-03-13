@@ -4903,6 +4903,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         customUnitRateID,
     } = transactionData;
 
+    console.log({transactionData}); // s77rt
+
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';

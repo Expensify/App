@@ -40,23 +40,18 @@ function IOURequestStepAccountant({
     policyTags,
     policyCategories,
 }: IOURequestStepAccountantProps) {
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || CONST.DEFAULT_NUMBER_ID}`);
-    const [attendees, setAttendees] = useState<Attendee[]>(() => getAttendees(transaction));
-    const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
-    const transactionViolations = useTransactionViolations(transactionID);
 
     const setAccountant = useCallback(
         (v: Attendee[]) => {
-            setMoneyRequestAttendees(transactionID, attendees, !isEditing);
+            setMoneyRequestAttendees(transactionID, v, true);
         },
-        [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, transactionViolations],
+        [backTo, policy, policyCategories, policyTags, reportID, transactionID],
     );
 
     const saveAttendees = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, undefined, action));
-    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, transactionViolations]);
+    }, [backTo, policy, policyCategories, policyTags, reportID, transactionID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -72,7 +67,6 @@ function IOURequestStepAccountant({
             <MoneyRequestAccountantSelector
                 onFinish={saveAttendees}
                 onAttendeesAdded={setAccountant}
-                attendees={attendees}
                 iouType={iouType}
                 action={action}
             />

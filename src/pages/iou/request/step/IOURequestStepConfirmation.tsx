@@ -405,6 +405,7 @@ function IOURequestStepConfirmation({
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
+                    attendees: transaction.attendees, // s77rt
                     gpsPoints,
                     validWaypoints: Object.keys(transaction?.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
