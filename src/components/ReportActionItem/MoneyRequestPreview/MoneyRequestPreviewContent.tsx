@@ -137,7 +137,7 @@ function MoneyRequestPreviewContent({
         merchant,
         tag,
         category,
-    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, true) ?? {}, [transaction]);
 
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToMarkdown(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
