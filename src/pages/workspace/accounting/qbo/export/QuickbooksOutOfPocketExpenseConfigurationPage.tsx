@@ -96,7 +96,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                 shouldShowQBOReimbursableExportDestinationAccountError(policy) && qboConfig?.reimbursableExpensesExportDestination
                     ? {
                           [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(
-                              `workspace.qbo.accounts.exportDestinationAccountsMisconfigurationError.${qboConfig.reimbursableExpensesExportDestination}`,
+                              `workspace.qbo.exportDestinationAccountsMisconfigurationError.${qboConfig.reimbursableExpensesExportDestination}`,
                           ),
                       }
                     : undefined,

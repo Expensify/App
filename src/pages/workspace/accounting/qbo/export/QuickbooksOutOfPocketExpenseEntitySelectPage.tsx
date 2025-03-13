@@ -93,7 +93,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
         (row: MenuItem) => {
             if (!row.accounts.at(0)) {
                 setSelectedAccountError({
-                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.accounts.exportDestinationSetupAccountsInfo.${row.value}`),
+                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.exportDestinationSetupAccountsInfo.${row.value}`),
                 });
                 return;
             }
