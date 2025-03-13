@@ -1,6 +1,7 @@
 ---
 title: Deactivate or cancel an Expensify Card
 description: Close an Expensify Card
+keywords: [Expensify Classic, Expensify Card, deactivate, cancel card]
 ---
 
 A cardholder can cancel an Expensify Card themselves, or a Domain Admin can deactivate it. 
