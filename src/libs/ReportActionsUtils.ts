@@ -1900,6 +1900,17 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
+function getTagListNameUpdatedMessage(action: ReportAction): string {
+    const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME>) ?? {};
+    if (newName && oldName) {
+        return translateLocal('workspaceActions.updateTagListName', {
+            oldName,
+            newName,
+        });
+    }
+    return getReportActionText(action);
+}
+
 function getWorkspaceCustomUnitUpdatedMessage(action: ReportAction): string {
     const {oldValue, newValue, customUnitName, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT>) ?? {};
 
@@ -2439,6 +2450,7 @@ export {
     getWorkspaceCustomUnitRateDeletedMessage,
     getAddedConnectionMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
+    getTagListNameUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getReportActions,
 };
