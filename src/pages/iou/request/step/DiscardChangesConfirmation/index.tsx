@@ -1,12 +1,16 @@
 import type {NavigationAction} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type DiscardChangesConfirmationProps from './types';
 
 function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfirmationProps) {
+    const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction>();
@@ -28,24 +32,19 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
     );
 
     useEffect(() => {
-        const handlePopState = (event: PopStateEvent) => {
+        const unsubscribe = navigation.addListener('transitionStart', () => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (!getHasUnsavedChanges() || blockedNavigationAction.current || shouldNavigateBack.current) {
                 return;
             }
 
-            event.preventDefault();
             window.history.go(1);
             setIsVisible(true);
             shouldNavigateBack.current = true;
-        };
+        });
 
-        window.addEventListener('popstate', handlePopState);
-
-        return () => {
-            window.removeEventListener('popstate', handlePopState);
-        };
-    }, [getHasUnsavedChanges]);
+        return unsubscribe;
+    }, [navigation, getHasUnsavedChanges]);
 
     return (
         <ConfirmModal
