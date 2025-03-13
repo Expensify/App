@@ -261,7 +261,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             ? searchResults?.search?.status === status.join(',')
             : searchResults?.search?.status === status;
 
-    const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!searchResults?.search.isLoading);
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
