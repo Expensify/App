@@ -6429,6 +6429,12 @@ const CONST = {
         },
     },
 
+    EXPENSE: {
+        TYPE: {
+            CASH_CARD_NAME: 'Cash Expense',
+        },
+    },
+
     REFERRER: {
         NOTIFICATION: 'notification',
     },
