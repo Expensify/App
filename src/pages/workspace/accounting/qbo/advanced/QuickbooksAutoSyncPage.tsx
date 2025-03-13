@@ -1,14 +1,12 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
-import Accordion from '@components/Accordion';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteAutoSync} from '@libs/actions/connections/NetSuiteCommands';
+import {updateQuickbooksOnlineAutoSync} from '@libs/actions/connections/QuickbooksOnline';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -16,22 +14,19 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearNetSuiteAutoSyncErrorField} from '@userActions/Policy/Policy';
+import {clearQuickbooksOnlineAutoSyncErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
-function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
+function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const config = policy?.connections?.netsuite?.options?.config;
-    const autoSyncConfig = policy?.connections?.netsuite?.config;
+    const config = policy?.connections?.quickbooksOnline?.config;
     const policyID = route.params.policyID;
-    const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
+    const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction =
-        settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ?? settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
-
-    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!autoSyncConfig?.autoSync?.enabled);
+        settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
     return (
         <AccessOrNotFoundWrapper
@@ -42,31 +37,25 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={NetSuiteAutoSyncPage.displayName}
-                offlineIndicatorStyle={styles.mtAuto}
+                testID={QuickbooksAutoSyncPage.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))}
                 />
                 <ToggleSettingOptionRow
                     title={translate('workspace.accounting.autoSync')}
-                    // wil be converted to translate and spanish translation too
-                    subtitle={translate('workspace.accounting.autoSyncDescription')}
-                    isActive={!!autoSyncConfig?.autoSync?.enabled}
+                    subtitle={translate('workspace.qbo.autoSyncDescription')}
+                    isActive={!!config?.autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
-                    switchAccessibilityLabel={translate('workspace.netsuite.advancedConfig.autoSyncDescription')}
+                    switchAccessibilityLabel={translate('workspace.qbo.advancedConfig.autoSyncDescription')}
                     shouldPlaceSubtitleBelowSwitch
-                    onCloseError={() => clearNetSuiteAutoSyncErrorField(policyID)}
-                    onToggle={(isEnabled) => updateNetSuiteAutoSync(policyID, isEnabled)}
+                    onCloseError={() => clearQuickbooksOnlineAutoSyncErrorField(policyID)}
+                    onToggle={(isEnabled) => updateQuickbooksOnlineAutoSync(policyID, isEnabled)}
                     pendingAction={pendingAction}
-                    errors={getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC)}
+                    errors={getLatestErrorField(config, CONST.QUICKBOOKS_CONFIG.AUTO_SYNC)}
                 />
-
-                <Accordion
-                    isExpanded={isAccordionExpanded}
-                    isToggleTriggered={shouldAnimateAccordionSection}
-                >
+                {!!config?.autoSync?.enabled && (
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemWithTopDescription
                             title={
@@ -76,15 +65,15 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                             }
                             description={translate('workspace.accountingMethods.label')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD.getRoute(policyID))}
                         />
                     </OfflineWithFeedback>
-                </Accordion>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
 
-NetSuiteAutoSyncPage.displayName = 'NetSuiteAutoSyncPage';
+QuickbooksAutoSyncPage.displayName = 'QuickbooksAutoSyncPage';
 
-export default withPolicyConnections(NetSuiteAutoSyncPage);
+export default withPolicyConnections(QuickbooksAutoSyncPage);
