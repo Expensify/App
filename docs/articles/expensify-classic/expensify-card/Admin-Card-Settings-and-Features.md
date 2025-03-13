@@ -50,7 +50,7 @@ Ensure your **Domain Limit** is accurate:
 - **Pending Expenses:** Large pending transactions reduce available funds.
 - **Processing Settlements:** Settlements take about three business days, dynamically adjusting your Domain Limit.
 
-> **Note:** If your Domain Limit is $0, cardholders cannot make purchases.
+**Note:** If your Domain Limit is $0, cardholders cannot make purchases.
 
 ---
 
@@ -107,7 +107,10 @@ Settlements occur **daily** by default but can be switched to **monthly** if nee
 3. Toggle **Receive real-time alerts** on.
 
 ## Common Reasons for Declines
-- **Insufficient Card Limit:** The transaction exceeded the card's Smart Limit. You can check the balance of your Expensify Card under **Settings > Account > Wallet**.
+- **Insufficient Card Limit:** The transaction exceeded the card's Smart Limit.
+  - Employees can check the balance of their Expensify Card under **Settings > Account > Wallet**.
+  - Domain Admins can review employee Smart Limits under **Settings > Domains > Company Cards**.
+  - Domain Admins can view the total Expensify Card available limit under **Settings > Domains > Company Cards**.
 - **Card Not Activated or Canceled:** Ensure the card is active under **Settings > Account > Wallet**.
 - **Incorrect Card Information:** Mistyped CVC, ZIP code, or expiration date will result in a decline.
 - **Suspicious Activity:** Expensify may block flagged transactions.
