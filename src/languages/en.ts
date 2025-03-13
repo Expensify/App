@@ -4111,6 +4111,14 @@ const translations = {
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Added by secondary login ${secondaryLogin}.`,
             membersListTitle: 'Directory of all workspace members.',
             importMembers: 'Import members',
+            removeMemberPromptForApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `If you remove ${approver} from this workspace, we'll replace them in the approval workflow with ${workspaceOwner}, the workspace owner.`,
+            removeMemberPromptForProcessingReport: ({memberName}: {memberName: string}) =>
+                `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
+            removeMemberPromptForReimburser: ({memberName}: {memberName: string}) =>
+                `You can't remove ${memberName} from this workspace. Please set a new reimburser in Workflows > Make or track payments, then try again.`,
+            removeMemberPromptForExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner. You can change the preferred exporter in Accounting > Export.`,
         },
         card: {
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
