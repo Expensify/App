@@ -140,7 +140,7 @@ import {getNavatticURL} from '@libs/TourUtils';
 import {addTrailingForwardSlash} from '@libs/Url';
 import {generateAccountID} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
-import {setDownload} from '@userActions/Download';
+import * as Download from '@userActions/Download';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -4842,9 +4842,9 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
 function downloadReportPDF(fileName: string, reportName: string) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
-    setDownload(fileName, true);
+    Download.setDownload(fileName, true);
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
-    fileDownload(addEncryptedAuthTokenToURL(pdfURL), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
+    fileDownload(addEncryptedAuthTokenToURL(pdfURL), downloadFileName, '', Browser.isMobileSafari()).then(() => Download.setDownload(fileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
