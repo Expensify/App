@@ -1,3 +1,4 @@
+import {isNavigatorAvailable, isWindowAvailable} from 'expensify-common/dist/utils';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -9,6 +10,10 @@ let isOpenRouteInDesktop = false;
  *
  */
 const getBrowser: GetBrowser = () => {
+    if (!isWindowAvailable()) {
+        return CONST.BROWSER.OTHER;
+    }
+
     const {userAgent} = window.navigator;
     const match = userAgent.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))/i) ?? [];
     let temp: RegExpMatchArray | null;
@@ -39,13 +44,21 @@ const getBrowser: GetBrowser = () => {
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent
  *
  */
-const isMobile: IsMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Silk|Opera Mini/i.test(navigator.userAgent);
+const isMobile: IsMobile = () => {
+    if (!isWindowAvailable()) {
+        return false;
+    }
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Silk|Opera Mini/i.test(navigator.userAgent);
+};
 
 /**
  * Checks if requesting user agent is Safari browser on a mobile device
  *
  */
 const isMobileSafari: IsMobileSafari = () => {
+    if (!isWindowAvailable()) {
+        return false;
+    }
     const userAgent = navigator.userAgent;
     return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent);
 };
@@ -55,6 +68,9 @@ const isMobileSafari: IsMobileSafari = () => {
  *
  */
 const isMobileChrome: IsMobileChrome = () => {
+    if (!isWindowAvailable()) {
+        return false;
+    }
     const userAgent = navigator.userAgent;
     return /Android/i.test(userAgent) && /chrome|chromium|crios/i.test(userAgent);
 };
@@ -63,6 +79,9 @@ const isMobileChrome: IsMobileChrome = () => {
  * Checks if the requesting user agent is a WebKit-based browser on an iOS mobile device.
  */
 const isMobileWebKit: IsMobileWebKit = () => {
+    if (!isWindowAvailable()) {
+        return false;
+    }
     const userAgent = navigator.userAgent;
     return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent);
 };
@@ -71,6 +90,9 @@ const isMobileWebKit: IsMobileWebKit = () => {
  * Checks if the requesting user agent is a Chrome browser on an iOS mobile device.
  */
 const isChromeIOS: IsChromeIOS = () => {
+    if (!isWindowAvailable()) {
+        return false;
+    }
     const userAgent = navigator.userAgent;
     return /iP(ad|od|hone)/i.test(userAgent) && /CriOS/i.test(userAgent);
 };
@@ -81,6 +103,9 @@ const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
  * Checks if the requesting user agent is a modern version of Safari on iOS (version 18 or higher).
  */
 const isModernSafari: IsModernSafari = (): boolean => {
+    if (!isWindowAvailable()) {
+        return false;
+    }
     const version = navigator.userAgent.match(/OS (\d+_\d+)/);
     const iosVersion = version ? version[1].replace('_', '.') : '';
 
@@ -91,6 +116,10 @@ const isModernSafari: IsModernSafari = (): boolean => {
  * The session information needs to be passed to the Desktop app, and the only way to do that is by using query params. There is no other way to transfer the data.
  */
 const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', email = '', initialRoute = '') => {
+    if (!isWindowAvailable()) {
+        return;
+    }
+
     const params = new URLSearchParams();
     // If the user is opening the desktop app through a third party signin flow, we need to manually add the exitTo param
     // so that the desktop app redirects to the correct home route after signin is complete.

@@ -70,6 +70,7 @@ import type {
     EditDestinationSubtitleParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
+    ExpenseSubmittedParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -134,6 +135,7 @@ import type {
     RemoveMemberPromptParams,
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
+    ReplyOrOpenInNewDotParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -6018,6 +6020,10 @@ const translations = {
         title: 'Discard changes?',
         body: 'Are you sure you want to discard the changes you made?',
         confirmText: 'Discard changes',
+    },
+    notifications: {
+        replyOrOpenInExpensify: ({url}: ReplyOrOpenInNewDotParams) => `Reply to this message or <a href="${url}" target="_blank">open it in Expensify.</a>`,
+        expenseSubmitted: ({submitter}: ExpenseSubmittedParams) => `${submitter} just sent you an expense with Expensify, the easy way to manage receipts and expenses.`,
     },
 };
 

@@ -656,6 +656,14 @@ type PolicyExpenseChatNameParams = {
     displayName: string;
 };
 
+type ReplyOrOpenInNewDotParams = {
+    url: string;
+};
+
+type ExpenseSubmittedParams = {
+    submitter: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -891,4 +899,6 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
+    ReplyOrOpenInNewDotParams,
+    ExpenseSubmittedParams,
 };

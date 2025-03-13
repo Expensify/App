@@ -278,6 +278,14 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
+        hr: {
+            width: '100%',
+            height: 1,
+            backgroundColor: theme.border,
+            border: 'none',
+            alignSelf: 'stretch',
+        },
+
         strong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
             fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
