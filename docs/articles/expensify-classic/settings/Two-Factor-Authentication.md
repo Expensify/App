@@ -25,8 +25,8 @@ Ensure you have an authenticator app installed before proceeding.
 
 # Enable Two-Factor Authentication
 
-1. Go to **Settings > Security**.
-2. Under **Security options** choose to enable **Two-factor authentication**
+1. Go to **Settings > Account > Profile**.
+2. Enable **Two-factor authentication**.
 3. Save a copy of your backup codes:
    - Click **Download** to save them to your computer.
    - Click **Copy** to store them in a secure location.
@@ -71,10 +71,12 @@ If no Domain Admin is available, follow [this guide](https://help.expensify.com/
 
 # Troubleshooting
 
-- Ensure your phone’s time is set to **automatic update**. A manual time difference can cause issues.
-- If you are still logged in on another device:
-  1. Go to **Settings > Security**.
-  2. Under **Security options**, disable **Two-factor authentication**.
-  3. Try logging in again, then re-enable 2FA.
+Ensure your phone’s time is set to **automatic update**. A manual time difference can cause issues when entering the authentication code. See this resource for more details on [setting the timezone in your account](https://help.expensify.com/articles/expensify-classic/settings/Set-Time-Zone).
+
+Make sure you're not still logged in on another device. If you are, do the following:
+  1. Go to **Settings > Account > Profile**.
+  2. Toggle **Two-factor authentication** to off.
+  3. Try logging in again.
+  4. Once logged in, you can re-enable 2FA.
 
 Following these steps ensures your account remains secure while preventing access issues.
