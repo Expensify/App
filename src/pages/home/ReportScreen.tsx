@@ -10,6 +10,7 @@ import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import * as Expensicons from '@components/Icon/Expensicons';
+import LoadingBar from '@components/LoadingBar';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -682,6 +683,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         return null;
     }
 
+    const {isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions} = reportMetadata as OnyxTypes.ReportMetadata;
+    const showLoadingBar = !!isLoadingOlderReportActions || !!isLoadingNewerReportActions || (reportActions.length > 0 && !!isLoadingInitialReportActions);
+
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
@@ -707,8 +711,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             errors={reportErrors}
                             shouldShowErrorMessages={false}
                             needsOffscreenAlphaCompositing
+                            style={[styles.zIndex10]}
                         >
                             {headerView}
+                            <LoadingBar shouldShow={showLoadingBar} />
                         </OfflineWithFeedback>
                         {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
                             <Banner
