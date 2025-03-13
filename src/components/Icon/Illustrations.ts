@@ -9,7 +9,6 @@ import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-master
 import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
-import OtherCompanyCardDetail from '@assets/images/companyCards/card=-generic.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
 import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
@@ -17,7 +16,6 @@ import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-b
 import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
 import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
 import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
-import OtherCompanyCardDetailLarge from '@assets/images/companyCards/large/card-generic-large.svg';
 import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
 import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
 import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-visa-large.svg';
@@ -57,6 +55,7 @@ import ReceiptYellow from '@assets/images/product-illustrations/receipt--yellow.
 import ReceiptsSearchYellow from '@assets/images/product-illustrations/receipts-search--yellow.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketOrange from '@assets/images/product-illustrations/rocket--orange.svg';
+import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
 import SafeBlue from '@assets/images/product-illustrations/safe.svg';
 import SmartScan from '@assets/images/product-illustrations/simple-illustration__smartscan.svg';
 import TadaBlue from '@assets/images/product-illustrations/tada--blue.svg';
@@ -65,6 +64,7 @@ import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import ReportReceipt from '@assets/images/simple-illustration__report-receipt.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
@@ -186,6 +186,7 @@ export {
     ReceiptYellow,
     ReceiptWrangler,
     RocketBlue,
+    RocketDude,
     RocketOrange,
     SanFrancisco,
     SafeBlue,
@@ -289,7 +290,6 @@ export {
     CapitalOneCompanyCardDetail,
     ChaseCompanyCardDetail,
     CitibankCompanyCardDetail,
-    OtherCompanyCardDetail,
     StripeCompanyCardDetail,
     WellsFargoCompanyCardDetail,
     PerDiem,
@@ -299,11 +299,11 @@ export {
     CapitalOneCompanyCardDetailLarge,
     ChaseCompanyCardDetailLarge,
     CitibankCompanyCardDetailLarge,
-    OtherCompanyCardDetailLarge,
     MasterCardCompanyCardDetailLarge,
     StripeCompanyCardDetailLarge,
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,
     Flash,
     ExpensifyMobileApp,
+    ReportReceipt,
 };

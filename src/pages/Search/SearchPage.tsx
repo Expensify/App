@@ -9,23 +9,22 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageHeader from '@components/Search/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchStatusBar';
+import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchTypeMenu from './SearchTypeMenu';
 
-type SearchPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.ROOT>;
+type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
@@ -41,7 +40,7 @@ function SearchPage({route}: SearchPageProps) {
         return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
 
     const isSearchNameModified = name === q;
@@ -49,18 +48,20 @@ function SearchPage({route}: SearchPageProps) {
 
     if (shouldUseNarrowLayout) {
         return (
-            <FreezeWrapper>
-                <SearchPageNarrow
-                    queryJSON={queryJSON}
-                    policyID={policyID}
-                    searchName={searchName}
-                />
-            </FreezeWrapper>
+            <SearchPageNarrow
+                queryJSON={queryJSON}
+                policyID={policyID}
+                searchName={searchName}
+            />
         );
     }
 
     return (
-        <FreezeWrapper>
+        <ScreenWrapper
+            testID={Search.displayName}
+            shouldEnableMaxHeight
+            headerGapStyles={styles.searchHeaderGap}
+        >
             <FullPageNotFoundView
                 shouldForceFullScreen
                 shouldShow={!queryJSON}
@@ -75,13 +76,10 @@ function SearchPage({route}: SearchPageProps) {
                                     <HeaderGap />
                                     <TopBar
                                         activeWorkspaceID={policyID}
-                                        breadcrumbLabel={translate('common.search')}
+                                        breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
                                     />
-                                    <SearchTypeMenu
-                                        queryJSON={queryJSON}
-                                        searchName={searchName}
-                                    />
+                                    <SearchTypeMenu queryJSON={queryJSON} />
                                 </View>
                             ) : (
                                 <HeaderWithBackButton
@@ -109,7 +107,7 @@ function SearchPage({route}: SearchPageProps) {
                     </View>
                 )}
             </FullPageNotFoundView>
-        </FreezeWrapper>
+        </ScreenWrapper>
     );
 }
 

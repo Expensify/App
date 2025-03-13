@@ -30,6 +30,7 @@ type VideoPlayerProps = {
     controlsStatus?: ValueOf<typeof CONST.VIDEO_PLAYER.CONTROLS_STATUS>;
     shouldPlay?: boolean;
     isPreview?: boolean;
+    reportID?: string;
 };
 
 export type {VideoPlayerProps, VideoWithOnFullScreenUpdate};

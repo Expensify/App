@@ -7,11 +7,12 @@ import type {
     MeasureInWindowOnSuccessCallback,
     NativeSyntheticEvent,
     TextInput,
+    TextInputContentSizeChangeEventData,
     TextInputFocusEventData,
     TextInputKeyPressEventData,
     TextInputScrollEventData,
 } from 'react-native';
-import {AppState, DeviceEventEmitter, findNodeHandle, InteractionManager, Keyboard, NativeModules, View} from 'react-native';
+import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -28,7 +29,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileSafari, isMobileWebKit} from '@libs/Browser';
+import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
@@ -87,6 +88,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** Whether the composer is full size */
     isComposerFullSize: boolean;
 
+    /** Function to set whether the full composer is available */
+    setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
+
     /** Whether the menu is visible */
     isMenuVisible: boolean;
 
@@ -138,12 +142,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** policy ID of the report */
     policyID?: string;
 
-    /** Whether to show the keyboard on focus */
-    showSoftInputOnFocus: boolean;
-
-    /** A method to update showSoftInputOnFocus */
-    setShowSoftInputOnFocus: (value: boolean) => void;
-
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 };
@@ -186,6 +184,10 @@ const debouncedBroadcastUserIsTyping = lodashDebounce(
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
+// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
+// prevent auto focus for mobile device
+const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
 /**
  * This component holds the value and selection state.
  * If a component really needs access to these state values it should be put here.
@@ -208,6 +210,7 @@ function ComposerWithSuggestions(
 
         // Composer
         isComposerFullSize,
+        setIsFullComposerAvailable,
         isMenuVisible,
         inputPlaceholder,
         displayFileInModal,
@@ -228,8 +231,6 @@ function ComposerWithSuggestions(
 
         // For testing
         children,
-        showSoftInputOnFocus,
-        setShowSoftInputOnFocus,
         didHideComposerInput,
     }: ComposerWithSuggestionsProps,
     ref: ForwardedRef<ComposerRef>,
@@ -267,7 +268,7 @@ function ComposerWithSuggestions(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = shouldFocusInputOnScreenFocus && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -662,14 +663,7 @@ function ComposerWithSuggestions(
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (
-            !(
-                (willBlurTextInputOnTapOutside || (shouldAutoFocus && canFocusInputOnScreenFocus())) &&
-                !isNextModalWillOpenRef.current &&
-                !isModalVisible &&
-                (!!prevIsModalVisible || !prevIsFocused)
-            )
-        ) {
+        if (!((willBlurTextInputOnTapOutside || shouldAutoFocus) && !isNextModalWillOpenRef.current && !isModalVisible && (!!prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
@@ -679,13 +673,6 @@ function ComposerWithSuggestions(
         }
         focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
-
-    useEffect(() => {
-        if (prevIsFocused || !isFocused || showSoftInputOnFocus) {
-            return;
-        }
-        setShowSoftInputOnFocus(true);
-    }, [isFocused, prevIsFocused, showSoftInputOnFocus, setShowSoftInputOnFocus]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -737,21 +724,6 @@ function ComposerWithSuggestions(
         tag.set(findNodeHandle(textInputRef.current) ?? -1);
     }, [tag]);
 
-    useEffect(() => {
-        const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
-            if (!nextAppState.match(/inactive|background/)) {
-                focus(true);
-                return;
-            }
-
-            Keyboard.dismiss();
-        });
-
-        return () => {
-            appStateSubscription.remove();
-        };
-    }, [focus]);
-
     useFocusedInputHandler(
         {
             onSelectionChange: (event) => {
@@ -786,11 +758,23 @@ function ComposerWithSuggestions(
     );
 
     const isTouchEndedRef = useRef(false);
+    const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
+
+    const updateIsFullComposerAvailable = useCallback(
+        (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+            const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
+            const inputHeight = e.nativeEvent.contentSize.height;
+            const totalHeight = inputHeight + paddingTopAndBottom;
+            const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
+            setIsFullComposerAvailable?.(isFullComposerAvailable);
+        },
+        [setIsFullComposerAvailable, containerComposeStyles],
+    );
 
     return (
         <>
             <View
-                style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}
+                style={[containerComposeStyles, styles.textInputComposeBorder]}
                 onTouchEndCapture={() => {
                     isTouchEndedRef.current = true;
                 }}
@@ -823,6 +807,7 @@ function ComposerWithSuggestions(
                     selection={selection}
                     onSelectionChange={onSelectionChange}
                     isComposerFullSize={isComposerFullSize}
+                    onContentSizeChange={updateIsFullComposerAvailable}
                     value={value}
                     testID="composer"
                     shouldCalculateCaretPosition
@@ -830,25 +815,6 @@ function ComposerWithSuggestions(
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
-                    showSoftInputOnFocus={showSoftInputOnFocus}
-                    onTouchStart={() => {
-                        if (showSoftInputOnFocus) {
-                            return;
-                        }
-                        if (isMobileWebKit()) {
-                            isTouchEndedRef.current = false;
-                            // In iOS browsers, open the keyboard after a timeout, or it will close briefly.
-                            setTimeout(() => {
-                                if (!isTouchEndedRef.current) {
-                                    // Don't open the keyboard on long press so the callout menu can show.
-                                    return;
-                                }
-                                setShowSoftInputOnFocus(true);
-                            }, CONST.ANIMATED_TRANSITION);
-                            return;
-                        }
-                        setShowSoftInputOnFocus(true);
-                    }}
                 />
             </View>
 

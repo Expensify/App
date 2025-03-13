@@ -1,19 +1,15 @@
 import React, {memo, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isChatThread, isInvoiceRoom, isPolicyExpenseChat, isTripRoom} from '@libs/ReportUtils';
+import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
-import TripSummary from './TripSummary';
 
 type ReportActionsListItemRendererProps = {
     /** All the data of the action item */
     reportAction: ReportAction;
-
-    /** Array of report actions for the report */
-    reportActions: ReportAction[];
 
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
@@ -57,7 +53,6 @@ type ReportActionsListItemRendererProps = {
 
 function ReportActionsListItemRenderer({
     reportAction,
-    reportActions = [],
     parentReportAction,
     index,
     report,
@@ -144,11 +139,6 @@ function ReportActionsListItemRenderer({
 
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
-    const shouldDisplayTripSummary = shouldDisplayParentAction && isTripRoom(report);
-
-    if (shouldDisplayTripSummary) {
-        return <TripSummary report={report} />;
-    }
 
     if (shouldDisplayParentAction && isChatThread(report)) {
         return (
@@ -158,7 +148,6 @@ function ReportActionsListItemRenderer({
                 parentReportAction={parentReportAction}
                 reportID={report.reportID}
                 report={report}
-                reportActions={reportActions}
                 transactionThreadReport={transactionThreadReport}
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
@@ -175,7 +164,6 @@ function ReportActionsListItemRenderer({
             transactionThreadReport={transactionThreadReport}
             parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}
-            reportActions={reportActions}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}

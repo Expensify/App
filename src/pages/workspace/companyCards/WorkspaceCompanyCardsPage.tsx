@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -65,9 +64,11 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     }, [policyID, workspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
-    const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && !cardsList));
+    const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
 
-    useFocusEffect(fetchCompanyCards);
+    useEffect(() => {
+        fetchCompanyCards();
+    }, [fetchCompanyCards]);
 
     useEffect(() => {
         if (isLoading || !selectedFeed || isPending) {
@@ -143,7 +144,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     icon={Illustrations.CompanyCard}
                     headerText={translate('workspace.common.companyCards')}
                     route={route}
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
                     shouldShowOfflineIndicatorInWideScreen
                     includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}
