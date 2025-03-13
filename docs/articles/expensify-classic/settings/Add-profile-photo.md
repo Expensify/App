@@ -1,7 +1,7 @@
 ---
 title: Add-Profile-Photo.md
 description: Learn how to add, change, or remove your profile photo in Expensify.
-keywords: [profile photo, account settings, update photo, remove photo]
+keywords: [Expensify Classic, profile photo, account settings, update photo, remove photo]
 ---
 
 # Add a Profile Photo
