@@ -2054,7 +2054,7 @@ const translations = {
             phrase4: 'verifica aquí tu cuenta',
         },
         hasPhoneLoginError: {
-            phrase1: 'Para añadir una cuenta bancaria verificada, ',
+            phrase1: 'Para añadir una cuenta bancaria verificada,',
             link: 'asegúrate de que tu nombre de usuario principal sea un correo electrónico válido',
             phrase2: ' y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
         },
