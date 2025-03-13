@@ -57,6 +57,7 @@ const generateArgTypes = (mapping: Record<string, unknown>): InputType => ({
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const transactionsMap = {
+    'No Merchant': modifiedTransaction({}),
     Food: modifiedTransaction({category: 'Food', tag: 'Yummm', merchant: 'Burgers'}),
     Grocery: modifiedTransaction({category: 'Shopping', tag: 'Tesco', merchant: 'Supermarket'}),
     Cars: modifiedTransaction({category: 'Porsche', tag: 'Car shop', merchant: 'Merchant'}),
@@ -137,6 +138,7 @@ function Template(props: TransactionPreviewContentProps) {
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default: TransactionPreviewStory = Template.bind({});
+const NoMerchant: TransactionPreviewStory = Template.bind({});
 const CategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const KeepButtonCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const KeepButtonRBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
@@ -145,6 +147,11 @@ const DeletedKeepButtonSplitRBRCategoriesAndTag: TransactionPreviewStory = Templ
 const KeepButtonIOURBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 
 const storiesTransactionData = {category: 'Grocery stores', tag: 'Food', merchant: 'Acme'};
+
+NoMerchant.args = {
+    ...Default.args,
+    transaction: modifiedTransaction({}),
+};
 
 CategoriesAndTag.args = {
     ...Default.args,
@@ -180,6 +187,7 @@ DeletedKeepButtonSplitRBRCategoriesAndTag.args = {
 export default story;
 export {
     Default,
+    NoMerchant,
     CategoriesAndTag,
     KeepButtonCategoriesAndTag,
     KeepButtonRBRCategoriesAndTag,
