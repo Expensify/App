@@ -60,7 +60,7 @@ function ConfirmationPage({
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     return (
-        <View style={containerStyle}>
+        <View style={[styles.flex1, styles.pb4, containerStyle]}>
             <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
                 {isLottie ? (
                     <Lottie
