@@ -13,7 +13,6 @@ import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
 import {addTrailingForwardSlash} from './libs/Url';
 import SCREENS from './SCREENS';
-import variables from './styles/variables';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
@@ -6843,7 +6842,7 @@ const CONST = {
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
     ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 
-    OFFLINE_INDICATOR_HEIGHT: variables.offlineIndicatorHeight + variables.offlineIndicatorVerticalPadding * 2,
+    OFFLINE_INDICATOR_HEIGHT: 25,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
