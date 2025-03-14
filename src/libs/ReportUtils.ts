@@ -33,6 +33,7 @@ import type {
     PolicyReportField,
     Report,
     ReportAction,
+    ReportAttributes,
     ReportMetadata,
     ReportNameValuePairs,
     ReportViolationName,
@@ -955,6 +956,17 @@ let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
+});
+
+let reportAttributes: OnyxEntry<Record<string, ReportAttributes>>;
+Onyx.connect({
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        reportAttributes = value;
+    },
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
@@ -4389,6 +4401,13 @@ function buildReportNameFromParticipantNames({report, personalDetails}: {report:
         .join(', ');
 }
 
+function generateReportName(report: OnyxEntry<Report>): string {
+    if (!report) {
+        return '';
+    }
+    return getReportNameInternal({report});
+}
+
 /**
  * Get the title for a report.
  */
@@ -4399,6 +4418,10 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
+    // Basic report name is generated in derived value, so if only report was passed to the function and it's cached, we can immediately return the cached value
+    if (report && !policy && !parentReportActionParam && !personalDetails && !invoiceReceiverPolicy && reportAttributes?.[report.reportID]) {
+        return reportAttributes[report.reportID].reportName;
+    }
     return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
 }
 
@@ -9697,6 +9720,7 @@ export {
     buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    generateReportName,
 };
 
 export type {
