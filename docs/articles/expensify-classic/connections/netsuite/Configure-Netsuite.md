@@ -147,5 +147,3 @@ Check that the **Expense Categories** in NetSuite are properly set up as Expense
 - **Custom Lists**: Provide static dropdown options for simple selections.
 
 ---
-
-This guide outlines the steps and best practices to efficiently configure NetSuite integration with Expensify. Following these steps will optimize your expense management and accounting workflows, ensuring a seamless sync between both platforms.
