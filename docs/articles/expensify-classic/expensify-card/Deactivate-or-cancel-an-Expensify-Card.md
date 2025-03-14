@@ -3,6 +3,7 @@ title: Deactivate or cancel an Expensify Card
 description: Close an Expensify Card
 keywords: [Expensify Classic, Expensify Card, deactivate, cancel card]
 ---
+<div id="expensify-classic" markdown="1">
 
 A cardholder can cancel an Expensify Card themselves, or a Domain Admin can deactivate it. 
 
@@ -36,3 +37,5 @@ To deactivate an employee's Expensify Card:
 6. Click **Save**.  
 
 **Important:** If you suspect fraudulent access to a Domain Admin account, contact Concierge Support via the in-app chat or email at concierge@expensify.com. If necessary, we can temporarily manually suspend cards outside of the Expensify Domain.
+
+</div>
