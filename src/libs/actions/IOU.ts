@@ -1250,17 +1250,16 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         const date = new Date();
         const isTestReceipt = transaction.filename?.includes(CONST.TEST_RECEIPT.FILENAME) && isScanRequest;
         const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
-        const optimisticIOUReportAction = buildOptimisticIOUReportAction(
-            CONST.IOU.REPORT_ACTION_TYPE.PAY,
-            isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total ?? 0,
-            isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency ?? '',
-            '',
-            [managerMcTestParticipant],
-            '',
-            CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-            iou.report?.reportID,
-            true,
-        );
+        const optimisticIOUReportAction = buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total ?? 0,
+            currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency ?? '',
+            comment: '',
+            participants: [managerMcTestParticipant],
+            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            iouReportID: iou.report.reportID,
+            transactionID: transaction.transactionID,
+        });
 
         optimisticData.push(
             {
