@@ -22,11 +22,14 @@ type EnterEmailProps = {
 
     /** Whether the user is a director */
     isUserDirector: boolean;
+
+    /** Whether the page is in loading state or not */
+    isLoading?: boolean;
 };
 
 const {SIGNER_EMAIL, SECOND_SIGNER_EMAIL} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
+function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -57,6 +60,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate('common.next')}
             onSubmit={onSubmit}
+            isLoading={isLoading}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             shouldHideFixErrorsAlert={!shouldGatherBothEmails}

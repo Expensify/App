@@ -211,6 +211,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are saving the signer info data via the API */
     isSavingCorpayOnboardingDirectorInformation?: boolean;
 
+    /** Whather we are asking for corpay signer information via the API */
+    isAskingForCorpaySignerInformation?: boolean;
+
     /** Where the request is successful */
     isSuccess?: boolean;
 

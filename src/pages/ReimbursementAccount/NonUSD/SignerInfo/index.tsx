@@ -189,6 +189,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                 <EnterEmail
                     onSubmit={handleEmailSubmit}
                     isUserDirector={isUserDirector}
+                    isLoading={reimbursementAccount?.isAskingForCorpaySignerInformation}
                 />
             )}
 
