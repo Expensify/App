@@ -37,6 +37,7 @@ import {
 import {
     allHavePendingRTERViolation,
     checkIfShouldShowMarkAsCashButton,
+    hasDuplicateTransactions,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
@@ -208,8 +209,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
+
+    const hasDuplicate = hasDuplicateTransactions(moneyRequestReport?.reportID);
     const shouldShowStatusBar =
-        hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
+        hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions || hasDuplicate;
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to theirself, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
@@ -249,7 +252,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 setIsNoDelegateAccessMenuVisible(true);
-            } else if (isAnyTransactionOnHold) {
+            } else if (isAnyTransactionOnHold || hasDuplicate) {
                 setIsHoldMenuVisible(true);
             } else if (isInvoiceReport(moneyRequestReport)) {
                 startAnimation();
@@ -259,14 +262,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport, startAnimation],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport, startAnimation, hasDuplicate],
     );
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
             setIsNoDelegateAccessMenuVisible(true);
-        } else if (isAnyTransactionOnHold) {
+        } else if (isAnyTransactionOnHold || hasDuplicate) {
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
@@ -341,6 +344,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         if (hasScanningReceipt) {
             return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+        }
+
+        if (hasDuplicate) {
+            return {icon: getStatusIcon(Expensicons.Hourglass), description: 'Potential duplicate expenses identified. Review duplicates to enable submission.'};
         }
     };
 
