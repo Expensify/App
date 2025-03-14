@@ -157,7 +157,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             isCombinedReport
                             pendingAction={action?.pendingAction}
                             shouldShowTotal={transaction ? transactionCurrency !== report?.currency : false}
-                            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                            shouldHideThreadDividerLine={false}
                         />
                         <ShowContextMenuContext.Provider value={contextMenuValue}>
                             <View>

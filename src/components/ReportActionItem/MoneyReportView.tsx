@@ -99,18 +99,18 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
     const renderThreadDivider = useMemo(
         () =>
-            shouldHideThreadDividerLine && !isCombinedReport ? (
+            shouldHideThreadDividerLine ? (
                 <UnreadActionIndicator
                     reportActionID={report?.reportID}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 />
             ) : (
                 <SpacerView
-                    shouldShow={!shouldHideThreadDividerLine}
-                    style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
+                    shouldShow
+                    style={styles.reportHorizontalRule}
                 />
             ),
-        [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule, isCombinedReport],
+        [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
     );
 
     return (
