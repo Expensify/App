@@ -3,7 +3,8 @@ title: Close or Reopen an Account
 description: Learn how to close or reopen an Expensify account.
 keywords: [Expensify Classic, close account, reopen account]
 ---
-
+<div id="expensify-classic" markdown="1">
+  
 Closing an Expensify account deletes the data tied to it. However, transactions shared with others, including approved and reimbursed company expenses, remain visible to the Admins on the workspace where those reports were submitted. Some transaction records may also be retained for legal compliance.
 
 If you need to leave a **Company Workspace** but want to keep your data:
@@ -73,3 +74,5 @@ If you encounter an error or the **Close Account** button is unavailable, check 
 ## How can I reopen a domain member's account?
 
 A domain admin can reopen closed accounts under **Settings > Domain Members > Entering the employee's email address > Clicking Invite**.
+
+</div>
