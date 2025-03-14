@@ -15,6 +15,7 @@ import type {
     CreateWorkspaceParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
+    MergeDuplicatesParams,
     PayInvoiceParams,
     PayMoneyRequestParams,
     ReplaceReceiptParams,
@@ -28,7 +29,6 @@ import type {
     StartSplitBillParams,
     SubmitReportParams,
     TrackExpenseParams,
-    TransactionMergeParams,
     UnapproveExpenseReportParams,
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
@@ -95,6 +95,7 @@ import {
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticResolvedDuplicatesReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
     buildOptimisticUnHoldReportAction,
@@ -197,6 +198,20 @@ type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
 
+type BaseTransactionParams = {
+    amount: number;
+    currency: string;
+    created: string;
+    merchant: string;
+    comment: string;
+    category?: string;
+    tag?: string;
+    taxCode?: string;
+    taxAmount?: number;
+    billable?: boolean;
+    customUnitRateID?: string;
+};
+
 type MoneyRequestInformation = {
     payerAccountID: number;
     payerEmail: string;
@@ -227,22 +242,15 @@ type TrackExpenseInformation = {
     actionableWhisperReportActionIDParam?: string;
     onyxData: OnyxData;
 };
-type TrackedExpenseTransactionParams = {
+
+type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount'> & {
+    waypoints?: string;
     transactionID: string | undefined;
-    amount: number;
-    currency: string;
-    comment: string;
-    merchant: string;
-    created: string;
+    receipt?: Receipt;
     taxCode: string;
     taxAmount: number;
-    category?: string;
-    tag?: string;
-    billable?: boolean;
-    receipt?: Receipt;
-    waypoints?: string;
-    customUnitRateID?: string;
 };
+
 type TrackedExpensePolicyParams = {
     policyID: string | undefined;
     isDraftPolicy?: boolean;
@@ -319,34 +327,19 @@ type GPSPoint = {
     long: number;
 };
 
-type RequestMoneyTransactionParams = {
+type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     attendees?: Attendee[];
-    amount: number;
-    currency: string;
-    comment?: string;
-    receipt?: Receipt;
-    category?: string;
-    tag?: string;
-    taxCode?: string;
-    taxAmount?: number;
-    billable?: boolean;
-    merchant: string;
-    created: string;
     actionableWhisperReportActionID?: string;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
+    receipt?: Receipt;
     waypoints?: WaypointCollection;
-    customUnitRateID?: string;
+    comment?: string;
 };
 
-type PerDiemExpenseTransactionParams = {
-    currency: string;
-    comment?: string;
-    category?: string;
-    tag?: string;
-    created: string;
+type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
     customUnit: TransactionCustomUnit;
-    billable?: boolean;
+    comment?: string;
 };
 
 type BasePolicyParams = {
@@ -431,21 +424,11 @@ type BuildOnyxDataForMoneyRequestParams = {
     optimisticParams: MoneyRequestOptimisticParams;
 };
 
-type DistanceRequestTransactionParams = {
-    comment: string;
-    created: string;
-    category?: string;
-    tag?: string;
-    taxCode?: string;
-    taxAmount?: number;
-    amount: number;
-    currency: string;
-    merchant: string;
-    billable?: boolean;
+type DistanceRequestTransactionParams = BaseTransactionParams & {
     validWaypoints: WaypointCollection;
-    customUnitRateID?: string;
     splitShares?: SplitShares;
 };
+
 type CreateDistanceRequestInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
     participants: Participant[];
@@ -457,19 +440,9 @@ type CreateDistanceRequestInformation = {
     policyParams?: BasePolicyParams;
 };
 
-type CreateSplitsTransactionParams = {
-    amount: number;
-    comment: string;
-    currency: string;
-    merchant: string;
-    created: string;
-    category: string;
-    tag: string;
+type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
     splitShares: SplitShares;
-    billable?: boolean;
     iouRequestType?: IOURequestType;
-    taxCode?: string;
-    taxAmount?: number;
 };
 
 type CreateSplitsAndOnyxDataParams = {
@@ -9766,7 +9739,7 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
 }
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
-function mergeDuplicates(params: TransactionMergeParams) {
+function mergeDuplicates(params: MergeDuplicatesParams) {
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
     const optimisticTransactionData: OnyxUpdate = {
@@ -9895,6 +9868,25 @@ function mergeDuplicates(params: TransactionMergeParams) {
         }, {}),
     };
 
+    const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
+
+    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
+    const optimisticReportActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [optimisticReportAction.reportActionID]: optimisticReportAction,
+        },
+    };
+
+    const failureReportActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [optimisticReportAction.reportActionID]: null,
+        },
+    };
+
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
@@ -9904,10 +9896,18 @@ function mergeDuplicates(params: TransactionMergeParams) {
         ...optimisticTransactionViolations,
         expenseReportOptimisticData,
         expenseReportActionsOptimisticData,
+        optimisticReportActionData,
     );
-    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, expenseReportFailureData, expenseReportActionsFailureData);
+    failureData.push(
+        failureTransactionData,
+        ...failureTransactionDuplicatesData,
+        ...failureTransactionViolations,
+        expenseReportFailureData,
+        expenseReportActionsFailureData,
+        failureReportActionData,
+    );
 
-    API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.MERGE_DUPLICATES, {...params, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, failureData});
 }
 
 function updateLastLocationPermissionPrompt() {
@@ -9915,7 +9915,7 @@ function updateLastLocationPermissionPrompt() {
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
-function resolveDuplicates(params: TransactionMergeParams) {
+function resolveDuplicates(params: MergeDuplicatesParams) {
     if (!params.transactionID) {
         return;
     }
