@@ -81,7 +81,7 @@ function CreateReportFieldsPage({
                 errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
             }
 
-            if (type === CONST.REPORT_FIELD_TYPES.TEXT && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+            if (type === CONST.REPORT_FIELD_TYPES.TEXT && !!formInitialValue && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
                     length: formInitialValue.length,
                     limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
