@@ -300,7 +300,7 @@ type HeldRequestParams = {comment: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
-type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
+type ChangeReportPolicyParams = {fromPolicyName?: string; toPolicyName: string};
 
 type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: string};
 
@@ -836,7 +836,7 @@ export type {
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     ChangeFieldParams,
-    ChangePolicyParams,
+    ChangeReportPolicyParams,
     ChangeTypeParams,
     ExportedToIntegrationParams,
     DelegateSubmitParams,
