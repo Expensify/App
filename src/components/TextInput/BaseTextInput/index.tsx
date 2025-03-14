@@ -68,6 +68,7 @@ function BaseTextInput(
         type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
+        shouldAlwaysShowClearButton = false,
         shouldUseDisabledStyles = true,
         prefixContainerStyle = [],
         prefixStyle = [],
@@ -77,6 +78,7 @@ function BaseTextInput(
         loadingSpinnerStyle,
         uncontrolled = false,
         placeholderTextColor,
+        onClearInput,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -404,7 +406,7 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && (
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || shouldAlwaysShowClearButton) && !!value && (
                                 <View
                                     onLayout={() => {
                                         if (didScrollToEndRef.current || !input.current) {
@@ -414,7 +416,12 @@ function BaseTextInput(
                                         didScrollToEndRef.current = true;
                                     }}
                                 >
-                                    <TextInputClearButton onPressButton={() => setValue('')} />
+                                    <TextInputClearButton
+                                        onPressButton={() => {
+                                            setValue('');
+                                            onClearInput?.();
+                                        }}
+                                    />
                                 </View>
                             )}
                             {!!inputProps.isLoading && (

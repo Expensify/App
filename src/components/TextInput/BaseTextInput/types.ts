@@ -165,6 +165,12 @@ type CustomBaseTextInputProps = {
 
     /** Whether the input should be enforced to be uncontrolled. Default is `false` */
     uncontrolled?: boolean;
+
+    /** Whether the clear button should always be displayed */
+    shouldAlwaysShowClearButton?: boolean;
+
+    /** Callback when the input is cleared using the clear button */
+    onClearInput?: () => void;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

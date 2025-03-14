@@ -51,6 +51,7 @@ function CalendarPicker({
     onSelected,
 }: CalendarPickerProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale, translate} = useLocalize();
@@ -145,7 +146,7 @@ function CalendarPicker({
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
 
-    const webOnlyMarginStyle = getPlatform(true) === CONST.PLATFORM.WEB && !shouldUseNarrowLayout ? {marginHorizontal: 4} : {};
+    const webOnlyMarginStyle = shouldUseNarrowLayout ? {} : styles.mh1;
 
     return (
         <View style={[themeStyles.pb4]}>

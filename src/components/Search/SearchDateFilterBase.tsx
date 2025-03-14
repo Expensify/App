@@ -68,6 +68,7 @@ function SearchDateFilterBase({dateKey, titleKey}: SearchDateFilterBaseProps) {
                     defaultValue={dateAfter}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                    shouldAlwaysShowClearButton
                 />
                 <InputWrapper
                     InputComponent={DatePicker}
@@ -76,6 +77,7 @@ function SearchDateFilterBase({dateKey, titleKey}: SearchDateFilterBaseProps) {
                     defaultValue={dateBefore}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                    shouldAlwaysShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>

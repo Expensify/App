@@ -1,8 +1,7 @@
-import {setYear} from 'date-fns';
-import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import {format, setYear} from 'date-fns';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +28,7 @@ function DatePicker({
     shouldSaveDraft = false,
     formID,
     autoFocus = false,
+    shouldAlwaysShowClearButton = false,
 }: DateInputWithPickerProps) {
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
@@ -81,6 +81,12 @@ function DatePicker({
         closeDatePicker();
     };
 
+    const handleClear = () => {
+        onTouched?.();
+        onInputChange?.('');
+        setSelectedDate('');
+    };
+
     useEffect(() => {
         calculatePopoverPosition();
     }, [calculatePopoverPosition, windowWidth]);
@@ -94,42 +100,46 @@ function DatePicker({
         });
     }, [handlePress, autoFocus]);
 
+    const getValidDateForCalendar = useMemo(() => {
+        if (!selectedDate) {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return defaultValue || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+        }
+        return selectedDate;
+    }, [selectedDate, defaultValue]);
+
     return (
         <>
-            <PressableWithoutFeedback
+            <View
                 ref={anchorRef}
                 style={styles.mv2}
-                onPress={handlePress}
-                accessibilityLabel={label}
-                role={CONST.ROLE.BUTTON}
-                accessible={false}
             >
-                <View style={styles.pointerEventsNone}>
-                    <TextInput
-                        ref={textInputRef}
-                        inputID={inputID}
-                        forceActiveLabel
-                        icon={Expensicons.Calendar}
-                        label={label}
-                        accessibilityLabel={label}
-                        role={CONST.ROLE.PRESENTATION}
-                        value={selectedDate}
-                        placeholder={placeholder ?? translate('common.dateFormat')}
-                        errorText={errorText}
-                        inputStyle={styles.pointerEventsNone}
-                        disabled={disabled}
-                        readOnly
-                        onPress={handlePress}
-                        textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
-                    />
-                </View>
-            </PressableWithoutFeedback>
+                <TextInput
+                    ref={textInputRef}
+                    inputID={inputID}
+                    forceActiveLabel
+                    icon={Expensicons.Calendar}
+                    label={label}
+                    accessibilityLabel={label}
+                    role={CONST.ROLE.PRESENTATION}
+                    value={selectedDate}
+                    placeholder={placeholder ?? translate('common.dateFormat')}
+                    errorText={errorText}
+                    inputStyle={styles.pointerEventsNone}
+                    disabled={disabled}
+                    readOnly
+                    onPress={handlePress}
+                    textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
+                    shouldAlwaysShowClearButton={shouldAlwaysShowClearButton}
+                    onClearInput={handleClear}
+                />
+            </View>
 
             <DatePickerModal
                 inputID={inputID}
                 minDate={minDate}
                 maxDate={maxDate}
-                value={selectedDate}
+                value={getValidDateForCalendar}
                 onSelected={handleDateSelected}
                 isVisible={isModalVisible}
                 onClose={closeDatePicker}

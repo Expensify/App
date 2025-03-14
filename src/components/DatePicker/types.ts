@@ -46,7 +46,13 @@ type DatePickerModalProps = DatePickerBaseProps & {
     onSelected?: (value: string) => void;
 };
 
-type DateInputWithPickerProps = DatePickerBaseProps & BaseTextInputProps;
+type DateInputWithPickerProps = DatePickerBaseProps & BaseTextInputProps & {
+    /**
+     * Whether to always show the clear button, even when the input is not focused
+     * @default false
+     */
+    shouldAlwaysShowClearButton?: boolean;
+};
 
 type DatePickerProps = {
     /**

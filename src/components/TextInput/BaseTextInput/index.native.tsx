@@ -65,6 +65,7 @@ function BaseTextInput(
         type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
+        shouldAlwaysShowClearButton = false,
         prefixContainerStyle = [],
         prefixStyle = [],
         suffixContainerStyle = [],
@@ -73,6 +74,7 @@ function BaseTextInput(
         loadingSpinnerStyle,
         uncontrolled,
         placeholderTextColor,
+        onClearInput,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -399,7 +401,14 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || shouldAlwaysShowClearButton) && !!value && (
+                                <TextInputClearButton
+                                    onPressButton={() => {
+                                        setValue('');
+                                        onClearInput?.();
+                                    }}
+                                />
+                            )}
                             {!!inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
