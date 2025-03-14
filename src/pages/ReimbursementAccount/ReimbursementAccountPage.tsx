@@ -270,6 +270,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         if (achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
         }
+
+        if (achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
+            setUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
+        }
     };
 
     const goBack = () => {
