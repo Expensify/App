@@ -1133,6 +1133,10 @@ const translations = {
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
     },
+    share: {
+        shareToExpensify: 'Compartir para Expensify',
+        messageInputLabel: 'Mensaje',
+    },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
         label: 'Avisar sobre nuevos mensajes',
