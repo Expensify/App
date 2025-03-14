@@ -286,6 +286,10 @@ export default {
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
 
+    offlineIndicatorHeight: 25,
+    offlineIndicatorHorizontalPadding: 20,
+    offlineIndicatorVerticalPadding: 5,
+
     h20: 20,
     h28: 28,
     h36: 36,

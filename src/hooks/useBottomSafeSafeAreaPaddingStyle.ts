@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
 import {StyleSheet} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import CONST from '@src/CONST';
 import useNetwork from './useNetwork';
 import useSafeAreaPaddings from './useSafeAreaPaddings';
 
@@ -42,7 +43,7 @@ function useBottomSafeSafeAreaPaddingStyle(params?: UseBottomSafeAreaPaddingStyl
         }
 
         if (addOfflineIndicatorBottomSafeAreaPadding && isOffline) {
-            totalPaddingBottom += safeAreaPaddingBottom;
+            totalPaddingBottom += CONST.OFFLINE_INDICATOR_HEIGHT;
         }
 
         // If there is no bottom safe area or additional padding, return the style as is

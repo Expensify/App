@@ -1771,9 +1771,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         bottom: isSoftKeyNavigation ? paddingBottom : 0,
         left: 0,
         right: 0,
-        paddingHorizontal: 20,
-        paddingTop: 5,
-        paddingBottom: isSoftKeyNavigation ? 5 : paddingBottom + 5,
+        paddingHorizontal: variables.offlineIndicatorHorizontalPadding,
+        paddingTop: variables.offlineIndicatorVerticalPadding,
+        paddingBottom: isSoftKeyNavigation ? variables.offlineIndicatorVerticalPadding : paddingBottom + variables.offlineIndicatorVerticalPadding,
     }),
 });
 

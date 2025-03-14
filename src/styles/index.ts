@@ -1153,14 +1153,14 @@ const styles = (theme: ThemeColors) =>
         },
 
         offlineIndicatorMobile: {
-            paddingLeft: 20,
-            paddingTop: 5,
-            paddingBottom: 30,
+            paddingLeft: variables.offlineIndicatorHorizontalPadding,
+            paddingTop: variables.offlineIndicatorVerticalPadding,
+            paddingBottom: variables.offlineIndicatorVerticalPadding + 25,
             marginBottom: -25,
         },
 
         offlineIndicatorRow: {
-            height: 25,
+            height: variables.offlineIndicatorHeight,
         },
 
         deletedAttachmentIndicator: {
