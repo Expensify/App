@@ -13,7 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateExpensifyCardLimitType} from '@libs/actions/Card';
 import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
-import {filterClosedCards} from '@libs/CardUtils';
+import {filterInactiveCards} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getApprovalWorkflow, getWorkspaceAccountID} from '@libs/PolicyUtils';
@@ -38,7 +38,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const styles = useThemeStyles();
 
     const policy = usePolicy(policyID);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterClosedCards});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
     const card = cardsList?.[cardID];
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;

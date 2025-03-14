@@ -18,7 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterClosedCards, getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
+import {filterInactiveCards, getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -54,7 +54,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const styles = useThemeStyles();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterClosedCards});
+    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
     const isWorkspaceCardRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS;
     const card = cardsList?.[cardID];

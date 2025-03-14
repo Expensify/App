@@ -11,7 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     checkIfFeedConnectionIsBroken,
-    filterClosedCards,
+    filterInactiveCards,
     getCompanyFeeds,
     getFilteredCardList,
     getSelectedFeed,
@@ -49,7 +49,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`, {selector: filterClosedCards});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`, {selector: filterInactiveCards});
 
     const {cardList, ...cards} = cardsList ?? {};
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);

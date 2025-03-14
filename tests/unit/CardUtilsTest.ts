@@ -4,7 +4,7 @@ import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import {
     checkIfFeedConnectionIsBroken,
-    filterClosedCards,
+    filterInactiveCards,
     flatAllCardsList,
     formatCardExpiration,
     getBankCardDetailsImage,
@@ -711,7 +711,7 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('filterClosedCards', () => {
+    describe('filterInactiveCards', () => {
         it('should filter out closed, deactivated and suspended cards', () => {
             const activeCards = {card1: {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN}};
             const closedCards = {
@@ -720,12 +720,12 @@ describe('CardUtils', () => {
                 card4: {cardID: 4, state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED},
             };
             const cardList = {...activeCards, ...closedCards} as unknown as CardList;
-            const filteredList = filterClosedCards(cardList);
+            const filteredList = filterInactiveCards(cardList);
             expect(filteredList).toEqual(activeCards);
         });
 
         it('should return an empty object if undefined card list is passed', () => {
-            const cards = filterClosedCards(undefined);
+            const cards = filterInactiveCards(undefined);
             expect(cards).toEqual({});
         });
     });

@@ -32,7 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
-import {filterClosedCards} from '@libs/CardUtils';
+import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
@@ -136,7 +136,7 @@ function WorkspacesListPage() {
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = getWorkspaceAccountID(policyIDToDelete);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterClosedCards});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const policyToDelete = getPolicy(policyIDToDelete);
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
