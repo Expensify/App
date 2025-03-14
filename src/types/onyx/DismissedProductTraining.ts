@@ -76,6 +76,11 @@ type DismissedProductTraining = {
      * When user dismisses the test manager on confirmantion page product training tooltip, we store the timestamp here.
      */
     [SCAN_TEST_CONFIRMATION]: string;
+
+    /**
+     * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
+     */
+    [CONST.CHANGE_POLICY_TRAINING_MODAL]: string;
 };
 
 export default DismissedProductTraining;
