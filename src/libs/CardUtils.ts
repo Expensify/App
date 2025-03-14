@@ -17,6 +17,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
+import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
@@ -464,8 +465,7 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
 
 function filterInactiveCards(cards: CardList | undefined): CardList {
     const closedStates: number[] = [CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED];
-    const filteredCards = Object.entries(cards ?? {}).filter(([, card]) => !closedStates.includes(card.state));
-    return Object.fromEntries(filteredCards);
+    return filterObject(cards ?? {}, (key: string, card: Card) => !closedStates.includes(card.state));
 }
 
 function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): CardList {
