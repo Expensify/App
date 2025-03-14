@@ -3,6 +3,7 @@ title: Create a Company Workspace
 description: Get started with Expensify by creating a workspace for your company.
 keywords: [Expensify Classic, getting started, new workspace, set up Expensify account]
 ---
+<div id="expensify-classic" markdown="1">
 
 A workspace is the set of rules, settings, and spending limits for expense reports in your organization. This includes the unique expense categories and tags, budgets, currency and tax settings, etc. that all workspace members will use. A workspace also defines the approval workflow for your employees and the accounting connection if using an accounting software integration.
 
@@ -168,3 +169,5 @@ As an admin, it’s important to ensure employees are submitting expenses and re
 - If an employee frequently switches between workspaces, remind them to always verify the workspace selection before submitting an expense or report.
 
 By reinforcing this process, you help prevent expense reports from being miscategorized and ensure accurate financial tracking.
+
+</div>
