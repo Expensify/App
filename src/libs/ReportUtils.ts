@@ -3104,7 +3104,7 @@ function isWaitingForAssigneeToCompleteAction(report: OnyxEntry<Report>, parentR
         return true;
     }
 
-    if (!report?.hasParentAccess && isReportManager(report)) {
+    if (report?.hasParentAccess === false && isReportManager(report)) {
         if (isOpenTaskReport(report, parentReportAction)) {
             return true;
         }
