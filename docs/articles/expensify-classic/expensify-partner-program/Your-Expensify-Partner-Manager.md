@@ -1,77 +1,82 @@
 ---
 title: Expensify Partner Support
-description: Understanding support for our partners
+description: Learn about Expensify's Partner Support program, including training, dedicated partner managers, and real-time chat support.
+keywords: [ExpensifyApproved, partner support, training, partner manager, onboarding, concierge]
 ---
 
-# Overview
-As an ExpensifyApproved! Partner, your firm gains access to a specialized suite of support services. We're here to ensure your clients have the tools and resources they need, every step of the way.
-Our well-rounded support methodology is designed to provide comprehensive assistance, ensuring that both you and your clients have a seamless experience. Have questions or want to delve deeper? Don't hesitate to reach out to your dedicated Partner Manager to get started!
+As an **ExpensifyApproved! Partner**, your firm gains access to exclusive support services designed to enhance your experience and help your clients succeed. This guide outlines the key support resources available to you.
 
+# ExpensifyApproved! University
 
-## 1. ExpensifyApproved! University
-**Purpose:** Equip your team with a comprehensive understanding of Expensify.
+**Purpose:** Train and certify your team on Expensify.
 
 **Benefits:**
-- Foundation-level knowledge about the platform.
-- 3 CPE credits upon successful completion (US-only).
-- Unlock exclusive partner perks, including tickets to ExpensiCon!
-- Visit university.Expensify.com to access our comprehensive training program.
+- Gain foundational knowledge of Expensify.
+- Earn **3 CPE credits** (US-only).
+- Unlock partner perks, including tickets to **ExpensiCon**.
+- Access training at [university.expensify.com](https://university.expensify.com).
 
-## 2. Partner Manager
-**Role:** 
-A Partner Manager is a dedicated point of contact for your firm Partner Managers support our accounting partners by providing recommendations for client’s accounts, assisting with firm-wide training, and ensuring partners receive the full benefits of our partnership program. They will actively monitor open technical issues and be proactive with recommendations to increase efficiency.
+---
 
+# Partner Manager
 
-**Key Responsibilities:**
-- Handle any escalations promptly.
+Your **Partner Manager** is your dedicated contact for strategic support.
+
+## Key Responsibilities:
+- Handle escalations promptly.
 - Organize firm-wide training sessions.
-- Assist with strategic planning and the introduction of new features.
-- Once you've completed the ExpensifyApproved! University, log in to your Expensify account. Click on the "Support" option to connect with your dedicated Partner Manager.
+- Provide recommendations to optimize your clients' accounts.
+- Assist with strategic planning and feature adoption.
 
-**How do I know if I have a Partner Manager?**
+## How to Connect with Your Partner Manager
+To be assigned a **Partner Manager**, you must complete the **ExpensifyApproved! University** training. Once completed, check your **Expensify account**:
+- Look for the **ExpensifyApproved!** logo in the bottom left-hand corner.
+- Navigate to `Support` to message your **Partner Manager**.
 
-For your firm to be assigned a Partner Manager, you must complete the ExpensifyApproved! University training course. Every external accountant or bookkeeper who completes the training is automatically enrolled in our program and receives all the benefits, including access to the Partner Manager. So everyone at your firm must complete the training to receive the maximum benefit.
+**Contact Options:**
+1. Log in to [new.expensify.com](https://new.expensify.com) and search for your **Partner Manager**.
+2. Reply to any email from your **Partner Manager**.
 
-You can check to see if you’ve completed the course and enrolled in the ExpensifyApproved! Accountants program simply by logging into your Expensify account. In the bottom left-hand corner of the website, you will see the ExpensifyApproved! logo.
+**Checking Availability:**
+- Your **Partner Manager's** status in **New Expensify** will show as **"Online"** or display their working hours.
 
-**How do I contact my Partner Manager?**
-1. Signing in to new.expensify.com and searching for your Partner Manager
-2. Replying to or clicking the chat link on any email you get from your Partner Manager
+**Scheduling a Call:**
+- You can request a call for discussions on client onboarding, training, and best practices.
+- For general support questions, use **Concierge chat** for immediate assistance.
 
-**How do I know if my Partner Manager is online?**
+---
 
-You will be able to see if they are online via their status in new.expensify.com, which will either say “online” or have their working hours.
+# Client Setup Specialist
 
-**Can I get on a call with my Partner Manager?**
-
-Of course! You can ask your Partner Manager to schedule a call whenever you think one might be helpful. Partner Managers can discuss client onboarding strategies, firm-wide training, and client setups.
-
-We recommend continuing to work with Concierge for general support questions, as this team is always online and available to help immediately.
-
-## 3. Client Setup Specialist
-**Purpose:** Ensure smooth onboarding for every client you refer.
+**Purpose:** Ensure seamless onboarding for your referred clients.
 
 **Duties:**
-- Comprehensive assistance with setting up Expensify.
-- Help with configuring accounting integrations.
-- Ensure clients have the tools and knowledge they need to thrive.
-- After logging into Expensify, click on the "Support" option in the left-hand navigation pane. This will connect you directly to your assigned Client Onboarding Manager.
+- Assist with Expensify setup and **accounting integrations**.
+- Ensure clients have the necessary tools and knowledge.
+- To connect with a **Client Setup Specialist**, log in and navigate to `Support`.
 
-## 4. Client Account Manager
-**Role:** Dedicated support for ongoing client needs.
+---
+
+# Client Account Manager
+
+**Role:** Provide ongoing support for client accounts.
 
 **Responsibilities:**
-- Address day-to-day product inquiries.
-- Assist clients in navigating and optimizing their use of Expensify.
-- After logging into Expensify, click on the "Support" option in the left-hand navigation pane. This will connect you directly to your assigned Account Manager.
+- Address daily product-related inquiries.
+- Guide clients in optimizing their **Expensify experience**.
+- To contact your **Client Account Manager**, log in and go to `Support`.
 
-## 5. Concierge chat support
-**Availability:** Real-time support for any urgent inquiries.
+---
+
+# Concierge Chat Support
+
+**Availability:** Real-time support for immediate inquiries.
 
 **Features:**
-- Immediate assistance with an average response time of under two minutes.
-- Available to both accountants and clients for all product-related questions.
-- For instant assistance, click on the chat bubble located at the bottom right-hand corner of your screen when logged in.
+- **Response time under 2 minutes**.
+- Available to **both accountants and clients**.
+- Click the **chat bubble** in the bottom right-hand corner of Expensify for instant help.
 
+---
 
-Our well-rounded support methodology is designed to provide comprehensive assistance, ensuring that both you and your clients have a seamless experience. Have questions or want to delve deeper? Don't hesitate to reach out to your dedicated Partner Manager. You can find your partner manager by logging into Expensify and clicking the "Support" button in the left hand navigator. 
+Expensify's Partner Support ensures you and your clients receive elevated support in Expensify. If you need further guidance, reach out via `Support` in your Expensify account or connect directly with your Partner Manager!

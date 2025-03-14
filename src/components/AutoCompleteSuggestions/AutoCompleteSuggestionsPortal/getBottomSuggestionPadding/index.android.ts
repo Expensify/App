@@ -3,7 +3,7 @@ import {Dimensions} from 'react-native';
 function getBottomSuggestionPadding(): number {
     const {width, height} = Dimensions.get('window');
     const aspectRatio = height / width;
-    const basePadding = 6;
+    const basePadding = 30;
 
     // Calculate an adaptive offset based on screen characteristics
     if (aspectRatio > 2.1) {
