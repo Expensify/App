@@ -46,6 +46,7 @@ import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDrag
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import {
+    getMoneyRequestParticipantsFromReport,
     replaceReceipt,
     requestMoney,
     setMoneyRequestParticipantsFromReport,
@@ -328,15 +329,16 @@ function IOURequestStepScan({
             if ((transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) || iouType === CONST.IOU.TYPE.CREATE) {
                 if (activePolicy && isPaidGroupPolicy(activePolicy) && !shouldRestrictUserBillableActions(activePolicy.id)) {
                     const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
-                    setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat);
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CREATE,
-                            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                            transactionID,
-                            activePolicyExpenseChat?.reportID,
-                        ),
-                    );
+                    setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                                CONST.IOU.ACTION.CREATE,
+                                iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                                transactionID,
+                                activePolicyExpenseChat?.reportID,
+                            ),
+                        );
+                    });
                 } else {
                     navigateToParticipantPage();
                 }
@@ -345,7 +347,7 @@ function IOURequestStepScan({
 
             // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-            const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
+            const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
@@ -449,7 +451,9 @@ function IOURequestStepScan({
                 createTransaction(receipt, participant);
                 return;
             }
-            navigateToConfirmationPage();
+            setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+                navigateToConfirmationPage();
+            });
         },
         [
             backTo,
