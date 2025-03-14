@@ -3,6 +3,7 @@ title: Understanding the Copilot Function
 description: Safely delegate tasks without sharing login information.
 keywords: Expensify Classic, Copilot, delegate access, expense management
 ---
+<div id="expensify-classic" markdown="1">
 
 You can safely delegate tasks to someone else without sharing your login information by assigning them as your **Copilot**. A Copilot can access your Expensify account through their own login to:
 
@@ -68,3 +69,5 @@ To ensure the receipt is sent to the correct account, email it to **receipts@exp
 ## Can a Copilot add another Copilot to an account?
 
 No, only the account owner can assign additional Copilots.
+
+</div>
