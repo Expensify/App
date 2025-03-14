@@ -3,6 +3,7 @@ title: Cardholder Settings and Features
 description: Learn how to activate, manage, and troubleshoot your Expensify Visa® Commercial Card, including Smart Limits, notifications, and virtual card usage.
 keywords: [Expensify Classic, Expensify Card for Employees, Smart Limit, virtual card, notifications, expense management]
 ---
+<div id="expensify-classic" markdown="1">
 
 If you’ve received an Expensify Card, this guide will help you activate and start using it right away. Learn how to check your Smart Limit, manage transactions, enable notifications, and troubleshoot common issues.
 
@@ -98,3 +99,5 @@ To see your virtual card number, expiration date, and CVC:
 ## What if I haven’t received my Expensify Card?
 
 If your card hasn’t arrived, follow our guide on [Requesting a Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Card#what-if-i-havent-received-my-card-after-multiple-weeks).
+
+</div>
