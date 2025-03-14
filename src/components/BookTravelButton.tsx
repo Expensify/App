@@ -102,11 +102,14 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             const adminDomains = getAdminsPrivateEmailDomains(policy);
             if (adminDomains.length === 0) {
                 Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
-            } else if (isEmptyObject(policy?.address)) {
-                // Spotnana requires an address anytime an entity is created for a policy
-                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN));
             } else if (adminDomains.length === 1) {
-                navigateToAcceptTerms(adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN);
+                const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+                if (isEmptyObject(policy?.address)) {
+                    // Spotnana requires an address anytime an entity is created for a policy
+                    Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
+                } else {
+                    navigateToAcceptTerms(domain);
+                }
             } else {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }

@@ -8,7 +8,9 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import AddressPage from '@pages/AddressPage';
 import {updateAddress} from '@userActions/Policy/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceAddressForTravelPageProps = PlatformStackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.WORKSPACE_ADDRESS>;
@@ -29,7 +31,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
             zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
             country: values.country,
         });
-        Navigation.goBack();
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN), {forceReplace: true});
     };
 
     return (
