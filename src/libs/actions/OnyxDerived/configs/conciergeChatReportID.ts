@@ -1,4 +1,4 @@
-import {isThread} from '@libs/ReportUtils';
+import {isThread, isArchivedReportWithID} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,7 +12,8 @@ export default createOnyxDerivedValueConfig({
         }
 
         const conciergeReport = Object.values(reports).find((report) => {
-            if (!report?.participants || isThread(report)) {
+            // Merged accounts can have multiple conceirge chats, exclude archived chats.
+            if (!report?.participants || isThread(report) || isArchivedReportWithID(report?.reportID)) {
                 return false;
             }
 
