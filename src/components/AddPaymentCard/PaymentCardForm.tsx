@@ -284,7 +284,7 @@ function PaymentCardForm({
                             containerStyles={[styles.mt5]}
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             // Limit the address search only to the USA until we fully can support international debit cards
-                            isLimitedToUSA
+                            limitSearchesToCountry={CONST.COUNTRY.US}
                         />
                     </View>
                 )}

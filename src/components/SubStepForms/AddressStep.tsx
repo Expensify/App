@@ -67,6 +67,12 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
     /** Translation key of street field */
     streetTranslationKey?: TranslationPaths;
+
+    /** Indicates if country can be changed by user */
+    shouldAllowCountryChange?: boolean;
+
+    /** Indicates if zip code format should be validated */
+    shouldValidateZipCodeFormat?: boolean;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -87,6 +93,8 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     stateSelectorSearchInputTitle,
     onCountryChange,
     streetTranslationKey = 'common.streetAddress',
+    shouldAllowCountryChange = true,
+    shouldValidateZipCodeFormat = true,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -109,14 +117,14 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (zipCode && (shouldDisplayCountrySelector ? !isValidZipCodeInternational(zipCode as string) : !isValidZipCode(zipCode as string))) {
+            if (shouldValidateZipCodeFormat && zipCode && (shouldDisplayCountrySelector ? !isValidZipCodeInternational(zipCode as string) : !isValidZipCode(zipCode as string))) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
 
             return errors;
         },
-        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, stepFields, translate],
+        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, shouldValidateZipCodeFormat, stepFields, translate],
     );
 
     return (
@@ -142,6 +150,8 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
                     stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
                     onCountryChange={onCountryChange}
+                    shouldAllowCountryChange={shouldAllowCountryChange}
+                    shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
                 />
                 {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
             </View>

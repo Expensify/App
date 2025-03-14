@@ -54,6 +54,7 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
     const incorporationStateInitialValue = onyxValues[FORMATION_INCORPORATION_STATE] !== '' ? onyxValues[FORMATION_INCORPORATION_STATE] : businessAddressStateDefaultValue;
 
     const [selectedCountry, setSelectedCountry] = useState<string>(incorporationCountryInitialValue);
+    const [selectedState, setSelectedState] = useState<string>(incorporationStateInitialValue);
     const shouldGatherState = isCountryWithSelectableState(selectedCountry);
 
     const validate = useCallback(
@@ -71,6 +72,11 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
 
     const handleSelectingCountry = (country: unknown) => {
         setSelectedCountry(typeof country === 'string' ? country : '');
+        setSelectedState('');
+    };
+
+    const handleSelectingState = (state: unknown) => {
+        setSelectedState(typeof state === 'string' ? state : '');
     };
 
     return (
@@ -92,7 +98,8 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
                     searchInputTitle={translate('businessInfoStep.findIncorporationState')}
                     inputID={FORMATION_INCORPORATION_STATE}
                     shouldSaveDraft={!isEditing}
-                    defaultValue={incorporationStateInitialValue}
+                    value={selectedState}
+                    onValueChange={handleSelectingState}
                 />
             )}
             <InputWrapper
