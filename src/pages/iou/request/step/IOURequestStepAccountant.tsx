@@ -1,72 +1,49 @@
-import lodashIsEqual from 'lodash/isEqual';
-import React, {useCallback, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import React, {useCallback} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
-import useTransactionViolations from '@hooks/useTransactionViolations';
-import {setMoneyRequestAttendees, updateMoneyRequestAttendees} from '@libs/actions/IOU';
+import {setMoneyRequestAccountant} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAttendees} from '@libs/TransactionUtils';
 import MoneyRequestAccountantSelector from '@pages/iou/request/MoneyRequestAccountantSelector';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Accountant} from '@src/types/onyx/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepAccountantOnyxProps = {
-    /** The policy of the report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-
-    /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
-};
-
-type IOURequestStepAccountantProps = IOURequestStepAccountantOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT>;
+type IOURequestStepAccountantProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT>;
 
 function IOURequestStepAccountant({
     route: {
         params: {transactionID, reportID, iouType, backTo, action},
     },
-    policy,
-    policyTags,
-    policyCategories,
 }: IOURequestStepAccountantProps) {
     const {translate} = useLocalize();
 
     const setAccountant = useCallback(
-        (v: Attendee[]) => {
-            setMoneyRequestAttendees(transactionID, v, true);
+        (accountant: Accountant) => {
+            setMoneyRequestAccountant(transactionID, accountant, true);
         },
-        [backTo, policy, policyCategories, policyTags, reportID, transactionID],
+        [backTo, reportID, transactionID],
     );
 
-    const saveAttendees = useCallback(() => {
+    const navigateToParticipantsStep = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, undefined, action));
-    }, [backTo, policy, policyCategories, policyTags, reportID, transactionID]);
+    }, [iouType, transactionID, reportID, action]);
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
 
     return (
         <StepScreenWrapper
-            headerTitle={translate('iou.attendees')}
+            headerTitle={translate('iou.whoIsYourAccountant')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepAccountant.displayName}
         >
             <MoneyRequestAccountantSelector
-                onFinish={saveAttendees}
-                onAttendeesAdded={setAccountant}
+                onFinish={navigateToParticipantsStep}
+                onAccountantSelected={setAccountant}
                 iouType={iouType}
                 action={action}
             />

@@ -174,7 +174,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
+import type {Accountant, Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
@@ -263,6 +263,7 @@ type TrackedExpenseParams = {
     transactionParams: TrackedExpenseTransactionParams;
     policyParams: TrackedExpensePolicyParams;
     createdWorkspaceParams?: CreateWorkspaceParams;
+    accountantParams?: TrackExpenseAccountantParams;
 };
 
 type SendInvoiceInformation = {
@@ -500,6 +501,10 @@ type TrackExpenseTransactionParams = {
     customUnitRateID?: string;
 };
 
+type TrackExpenseAccountantParams = {
+    accountant?: Accountant;
+};
+
 type CreateTrackExpenseParams = {
     report: OnyxTypes.Report;
     isDraftPolicy: boolean;
@@ -507,6 +512,7 @@ type CreateTrackExpenseParams = {
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
     transactionParams: TrackExpenseTransactionParams;
+    accountantParams?: TrackExpenseAccountantParams;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -863,6 +869,10 @@ function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraf
 
 function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {attendees});
+}
+
+function setMoneyRequestAccountant(transactionID: string, accountant: Accountant, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {accountant});
 }
 
 function setMoneyRequestPendingFields(transactionID: string, pendingFields: OnyxTypes.Transaction['pendingFields']) {
@@ -4509,7 +4519,11 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams} = trackedExpenseParams;
+    console.log({trackedExpenseParams}); // s77rt
+
+    // s77rt: check optimistic data (accounant is an admin and invited to the expense report)
+
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams} = trackedExpenseParams;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
     const {
@@ -4558,6 +4572,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
         description: transactionParams.comment,
+        accountantEmail: accountantParams?.accountant?.login ?? '',
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -4878,7 +4893,7 @@ function sendInvoice(
  * Track an expense
  */
 function trackExpense(params: CreateTrackExpenseParams) {
-    const {report, action, isDraftPolicy, participantParams, policyParams: policyData = {}, transactionParams: transactionData} = params;
+    const {report, action, isDraftPolicy, participantParams, policyParams: policyData = {}, transactionParams: transactionData, accountantParams} = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
     const parsedComment = getParsedComment(transactionData.comment ?? '');
@@ -4902,10 +4917,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         linkedTrackedExpenseReportID,
         customUnitRateID,
     } = transactionData;
-
-    console.log({transactionData}); // s77rt
-
-    // s77rt: check optimistic data (accounant is an admin and invited to the expense report)
 
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report.chatReportID) : report;
@@ -5058,6 +5069,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionParams,
                 policyParams,
                 createdWorkspaceParams,
+                accountantParams,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;
@@ -10091,6 +10103,7 @@ export {
     setIndividualShare,
     setMoneyRequestAmount,
     setMoneyRequestAttendees,
+    setMoneyRequestAccountant,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestCreated,

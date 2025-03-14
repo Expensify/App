@@ -1,40 +1,30 @@
-import lodashIsEqual from 'lodash/isEqual';
 import lodashPick from 'lodash/pick';
-import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
-import FormHelpMessage from '@components/FormHelpMessage';
-import {usePersonalDetails, useSession} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Report from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Accountant} from '@src/types/onyx/IOU';
 
-type MoneyRequestAttendeesSelectorProps = {
-    /** Callback to request parent modal to go to next step, which should be split */
+type MoneyRequestAccountantSelectorProps = {
+    /** Callback to request parent modal to go to next step */
     onFinish: (value?: string) => void;
 
-    /** Callback to add participants in MoneyRequestModal */
-    onAttendeesAdded: (value: Attendee[]) => void;
-
-    /** Selected participants from MoneyRequestModal with login */
-    attendees?: Attendee[];
+    /** Callback to set accountant in MoneyRequestModal */
+    onAccountantSelected: (value: Accountant) => void;
 
     /** The type of IOU report, i.e. split, request, send, track */
     iouType: IOUType;
@@ -43,19 +33,13 @@ type MoneyRequestAttendeesSelectorProps = {
     action: IOUAction;
 };
 
-function MoneyRequestAccountantSelector({attendees = [], onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
+function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType, action}: MoneyRequestAccountantSelectorProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const session = useSession();
-    const isCurrentUserAttendee = attendees.some((attendee) => attendee.accountID === session?.accountID);
-    const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
-    const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
@@ -122,14 +106,7 @@ function MoneyRequestAccountantSelector({attendees = [], onFinish, onAttendeesAd
         const restOfRecents = [...chatOptions.recentReports].slice(5);
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            debouncedSearchTerm,
-            attendees.map((attendee) => ({...attendee, reportID: attendee.reportID ?? '-1'})),
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            personalDetails,
-            true,
-        );
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, [], chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
         newSections.push(formatResults.section);
 
         newSections.push({
@@ -162,7 +139,6 @@ function MoneyRequestAccountantSelector({attendees = [], onFinish, onAttendeesAd
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
-            attendees.some((attendee) => OptionsListUtils.getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
         return [newSections, headerMessage];
@@ -170,7 +146,6 @@ function MoneyRequestAccountantSelector({attendees = [], onFinish, onAttendeesAd
         areOptionsInitialized,
         didScreenTransitionEnd,
         debouncedSearchTerm,
-        attendees,
         chatOptions.recentReports,
         chatOptions.personalDetails,
         chatOptions.userToInvite,
@@ -179,38 +154,23 @@ function MoneyRequestAccountantSelector({attendees = [], onFinish, onAttendeesAd
         cleanSearchTerm,
     ]);
 
-    const addAttendeeToSelection = useCallback(
-        (option: Attendee) => {
-            const newParticipants: Attendee[] = [
-                {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber'),
-                    selected: true,
-                    iouType,
-                },
-            ];
-
-            onAttendeesAdded(newParticipants);
+    const selectAccountant = useCallback(
+        (option: Accountant) => {
+            onAccountantSelected(lodashPick(option, 'accountID', 'login'));
             onFinish();
         },
-        [attendees, iouType, onAttendeesAdded, onFinish],
+        [iouType, onAccountantSelected, onFinish],
     );
 
-    const shouldShowErrorMessage = attendees.length < 1;
-
     const handleConfirmSelection = useCallback(
-        (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Attendee) => {
-            const shouldAddSingleParticipant = option && !attendees.length;
-
-            if (shouldShowErrorMessage || (!attendees.length && !option)) {
+        (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Accountant) => {
+            if (!option) {
                 return;
             }
 
-            if (shouldAddSingleParticipant) {
-                addAttendeeToSelection(option);
-                return;
-            }
+            selectAccountant(option);
         },
-        [shouldShowErrorMessage, addAttendeeToSelection, attendees],
+        [selectAccountant],
     );
 
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
@@ -234,7 +194,7 @@ function MoneyRequestAccountantSelector({attendees = [], onFinish, onAttendeesAd
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            onSelectRow={addAttendeeToSelection}
+            onSelectRow={selectAccountant}
             shouldSingleExecuteRowSelect
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             headerMessage={header}
@@ -247,4 +207,4 @@ function MoneyRequestAccountantSelector({attendees = [], onFinish, onAttendeesAd
 
 MoneyRequestAccountantSelector.displayName = 'MoneyRequestAccountantSelector';
 
-export default memo(MoneyRequestAccountantSelector, (prevProps, nextProps) => lodashIsEqual(prevProps.attendees, nextProps.attendees) && prevProps.iouType === nextProps.iouType);
+export default memo(MoneyRequestAccountantSelector, (prevProps, nextProps) => prevProps.iouType === nextProps.iouType);
