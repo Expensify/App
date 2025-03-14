@@ -148,7 +148,7 @@ function HeaderWithBackButton({
                 style,
             ]}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
@@ -194,7 +194,7 @@ function HeaderWithBackButton({
                     />
                 )}
                 {middleContent}
-                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
+                <View style={[styles.reportOptions, styles.flexRow, styles.pr2, styles.alignItemsCenter]}>
                     {children}
                     {shouldShowDownloadButton &&
                         (!isDownloading ? (
@@ -259,7 +259,7 @@ function HeaderWithBackButton({
                     )}
                 </View>
                 {shouldDisplayHelpButton && <HelpButton />}
-                {shouldDisplaySearchRouter && <SearchButton style={styles.mr5} />}
+                {shouldDisplaySearchRouter && <SearchButton />}
             </View>
         </View>
     );

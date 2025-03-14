@@ -30,7 +30,7 @@ function HelpButton({style}: HelpButtonProps) {
         <Tooltip text={translate('common.help')}>
             <PressableWithoutFeedback
                 accessibilityLabel={translate('common.help')}
-                style={[styles.flexRow, styles.touchableButtonImage, styles.mr2, style]}
+                style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={() => {
                     triggerSidePane({
                         isOpen: isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen,
