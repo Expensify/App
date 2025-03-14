@@ -45,7 +45,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
             )}
             {!isDeleted ? (
                 <ShowContextMenuContext.Consumer>
-                    {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+                    {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                         <PressableWithoutFeedback
                             style={[styles.videoThumbnailContainer]}
                             accessibilityLabel={accessibilityLabel}
@@ -54,7 +54,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}
                             onLongPress={(event) => {
-                                if (isDisabled) {
+                                if (isDisabled || !shouldDisplayContextMenu) {
                                     return;
                                 }
                                 showContextMenuForReport(

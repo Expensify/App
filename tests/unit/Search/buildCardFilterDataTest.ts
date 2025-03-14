@@ -8,6 +8,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import type {CardList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 
+jest.mock('@src/components/ConfirmedRoute.tsx');
 // Use jest.spyOn to mock the implementation
 jest.spyOn(PolicyUtils, 'getPolicy').mockImplementation((policyID?: string): Policy => {
     switch (policyID) {

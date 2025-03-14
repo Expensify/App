@@ -100,7 +100,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -115,7 +115,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
-                                if (isDisabled) {
+                                if (isDisabled || !shouldDisplayContextMenu) {
                                     return;
                                 }
                                 showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
