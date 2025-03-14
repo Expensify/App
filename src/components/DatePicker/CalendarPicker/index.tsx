@@ -6,6 +6,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -49,6 +50,7 @@ function CalendarPicker({
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected,
 }: CalendarPickerProps) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale, translate} = useLocalize();
@@ -143,7 +145,7 @@ function CalendarPicker({
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
 
-    const webOnlyMarginStyle = getPlatform(true) === CONST.PLATFORM.WEB ? {marginHorizontal: 4} : {};
+    const webOnlyMarginStyle = getPlatform(true) === CONST.PLATFORM.WEB && !shouldUseNarrowLayout ? {marginHorizontal: 4} : {};
 
     return (
         <View style={[themeStyles.pb4]}>
