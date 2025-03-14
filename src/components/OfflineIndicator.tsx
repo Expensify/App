@@ -22,11 +22,20 @@ type OfflineIndicatorProps = {
     /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
 
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
     /** Whether to make the indicator translucent. */
     isTranslucent?: boolean;
 };
 
-function OfflineIndicator({style, containerStyles: containerStylesProp, addBottomSafeAreaPadding = false, isTranslucent = false}: OfflineIndicatorProps) {
+function OfflineIndicator({
+    style,
+    containerStyles: containerStylesProp,
+    addBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = false,
+    isTranslucent = false,
+}: OfflineIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -35,6 +44,7 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
 
     const containerStyles = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding,
         style: containerStylesProp ?? (shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator),
     });
 

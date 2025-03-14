@@ -53,6 +53,9 @@ type FullPageNotFoundViewProps = {
 
     /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -71,6 +74,7 @@ function FullPageNotFoundView({
     subtitleStyle,
     shouldDisplaySearchRouter,
     addBottomSafeAreaPadding = true,
+    addOfflineIndicatorBottomSafeAreaPadding = false,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -98,6 +102,7 @@ function FullPageNotFoundView({
                         onLinkPress={onLinkPress}
                         subtitleStyle={subtitleStyle}
                         addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                        addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     />
                 </View>
             </ForceFullScreenView>
