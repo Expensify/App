@@ -1,13 +1,15 @@
 ---
 title: Reimburse Australian reports
 description: Send payment for Australian expense reports
-keywords: [Expensify Classic, AUD, batch file, reimburse in AUD]
+keywords: [Expensify Classic, AUD, batch file, reimburse in AUD, ABA files]
 ---
 <div id="expensify-classic" markdown="1">
 
-Workspace Admins can reimburse AUD expense reports by downloading a .aba file containing the accounts needing payment and uploading the file to the bank. This can be done for a single report or for a batch of payments at once.
+Workspace Admins can reimburse AUD expense reports by downloading an ABA file containing the accounts needing payment and uploading the file to the bank. This can be done for a single report or for bulk reimbursements.
 
-**Note:** Your financial institution may require .aba files to include a self-balancing transaction. If you are unsure, check with your bank. Otherwise, the .aba file may not work with your bank’s internet banking platform.
+**Note:** An ABA file is a bank-specific format used to process batch payments in Australia.
+
+Your financial institution may require ABA files to include a self-balancing transaction. If you are unsure, check with your bank. Otherwise, the ABA file may not work with your bank’s internet banking platform.
 
 ---
 
@@ -17,7 +19,7 @@ Workspace Admins can reimburse AUD expense reports by downloading a .aba file co
 2. Click the **Reimburse** dropdown and select **Via ABA File**.
 3. Click **Generate ABA and Mark as Reimbursed**. 
 4. Click **Download**.
-5. Upload the .aba file to your bank. For additional guidance, use any of the following bank guides:
+5. Upload the ABA file to your bank. For additional guidance, use any of the following bank guides:
    - [ANZ Bank](https://www.anz.com.au/support/internet-banking/pay-transfer-business/payroll/import-file/)
    - [CommBank](https://www.commbank.com.au/business/pds/003-279-importing-a-de-file.pdf)
    - [Westpac](https://www.westpac.com.au/business-banking/online-banking/support-faqs/import-files/)
@@ -33,12 +35,10 @@ Once employees submit their expense reports, a Workspace Admin exports the repor
 
 ## Step 1: Verify currency & reimbursement settings
 
-1. Hover over **Settings**, then click **Workspaces**. 
-2. Select the desired workspace. 
-3. Click the **Reports** tab on the left. 
-4. Click the Report Currency dropdown and select **AUD A$**. 
-5. Click the **Reimbursement** tab on the left. 
-6. Verify that **Indirect** is selected as the Reimbursement type or select it if not.
+1. Go to **Settings > Workspaces > [Workspace Name] > Reports**
+2. Click the Report Currency dropdown and select **AUD A$**. 
+3. Click the **Reimbursement** tab on the left. 
+4. Verify that **Indirect** is selected as the Reimbursement type or select it if not.
 
 ## Step 2: Download and upload the ABA file
 
@@ -47,7 +47,7 @@ Once employees submit their expense reports, a Workspace Admin exports the repor
 3. Click **Bulk Actions** and select **Reimburse via ABA**.
 5. Click **Generate ABA and Mark as Reimbursed**.
 6. Click **Download Report**.
-7. Upload the .aba file to your bank. For additional guidance, use any of the following bank guides:
+7. Upload the ABA file to your bank. For additional guidance, use any of the following bank guides:
    - [ANZ Bank](https://www.anz.com.au/support/internet-banking/pay-transfer-business/payroll/import-file/)
    - [CommBank](https://www.commbank.com.au/business/pds/003-279-importing-a-de-file.pdf)
    - [Westpac](https://www.westpac.com.au/business-banking/online-banking/support-faqs/import-files/)
