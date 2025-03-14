@@ -92,6 +92,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
     const [isDisableCompanyCardsWarningModalOpen, setIsDisableCompanyCardsWarningModalOpen] = useState(false);
+    const [isDisableWorkflowWarningModalOpen, setIsDisableWorkflowWarningModalOpen] = useState(false);
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
 
@@ -106,7 +107,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         setIsOrganizeWarningModalOpen(true);
     }, [hasAccountingConnection]);
 
-    const onDisabledWorkflowPress = useCallback(() => {}, []);
+    const onDisabledWorkflowPress = useCallback(() => {
+        if(!isSmartLimitEnabled){
+            return;
+        }
+        setIsDisableWorkflowWarningModalOpen(true);
+    }, [isSmartLimitEnabled]);
 
     const spendItems: Item[] = [
         {
@@ -536,6 +542,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     onCancel={() => setIsDisableCompanyCardsWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.companyCards.disableCardPrompt')}
                     confirmText={translate('workspace.moreFeatures.companyCards.disableCardButton')}
+                    cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.workflowWarningModal.featureEnabledTitle')}
+                    isVisible={isDisableWorkflowWarningModalOpen}
+                    onConfirm={() => {
+                        setIsDisableWorkflowWarningModalOpen(false);
+                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+                    }}
+                    onCancel={() => setIsDisableWorkflowWarningModalOpen(false)}
+                    prompt={translate('workspace.moreFeatures.workflowWarningModal.featureEnabledText')}
+                    confirmText={translate('workspace.moreFeatures.workflowWarningModal.confirmText')}
                     cancelText={translate('common.cancel')}
                 />
             </ScreenWrapper>
