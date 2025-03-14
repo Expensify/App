@@ -226,8 +226,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         transactions,
         previousTransactions,
         queryJSON,
-        // Set offset to 0 to retrieve the most recent chat messages.
-        offset: 0,
+        offset,
         reportActions,
         previousReportActions,
     });
