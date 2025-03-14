@@ -3,6 +3,7 @@ title: Set Timezone
 description: Learn how to set your time zone in Expensify for accurate timestamps on expenses and reports.
 keywords: [Expensify Classic, timezone, settings, timestamps, automatic, manual]
 ---
+<div id="expensify-classic" markdown="1">
 
 Expensify uses the timezone set in your account to timestamp certain actions. To ensure accuracy, be sure to set your timezone correctly.
 
@@ -21,3 +22,5 @@ Expensify uses the timezone set in your account to timestamp certain actions. To
    - **Manual:** Select your time zone from the dropdown list.  
 
 Your selected timezone will now apply to all timestamps in your Expensify account.
+
+</div>
