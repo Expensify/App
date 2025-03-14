@@ -127,6 +127,7 @@ function createTaskAndNavigate(
     if (!parentReportID) {
         return;
     }
+
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, parentReportID, assigneeAccountID, title, description, policyID);
 
     const assigneeChatReportID = assigneeChatReport?.reportID;
@@ -931,7 +932,11 @@ function startOutCreateTaskQuickAction(reportID: string, targetAccountID: number
 /**
  * Get the assignee data
  */
-function getAssignee(assigneeAccountID: number, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee {
+function getAssignee(assigneeAccountID: number | undefined, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee | undefined {
+    if (!assigneeAccountID) {
+        return;
+    }
+
     const details = personalDetails?.[assigneeAccountID];
 
     if (!details) {

@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -13,11 +13,12 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {parseFSAttributes} from '@libs/Fullstory';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
-import * as CloseAccount from '@userActions/CloseAccount';
-import * as User from '@userActions/User';
+import {clearError} from '@userActions/CloseAccount';
+import {closeAccount} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
@@ -35,14 +36,22 @@ function CloseAccountPage() {
     // nothing runs on mount and we pass empty dependencies to prevent this from running on every re-render.
     // TODO: We should refactor this so that the data in instead passed directly as a prop instead of "side loading" the data
     // here, we left this as is during refactor to limit the breaking changes.
-    useEffect(() => () => CloseAccount.clearError(), []);
+    useEffect(() => () => clearError(), []);
+
+    /**
+     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
+     * to ensure necessary properties are available for further processing.
+     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
+     * updated attribute values.
+     */
+    useLayoutEffect(parseFSAttributes, []);
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
     };
 
     const onConfirm = () => {
-        User.closeAccount(reasonForLeaving);
+        closeAccount(reasonForLeaving);
         hideConfirmModal();
     };
 
@@ -60,7 +69,7 @@ function CloseAccountPage() {
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM> => {
         const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
-        const errors = ValidationUtils.getFieldRequiredErrors(values, ['phoneOrEmail']);
+        const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
 
         if (values.phoneOrEmail && userEmailOrPhone && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
             errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
@@ -88,7 +97,11 @@ function CloseAccountPage() {
                     style={[styles.flexGrow1, styles.mh5]}
                     isSubmitActionDangerous
                 >
-                    <View style={[styles.flexGrow1]}>
+                    <View
+                        fsClass={CONST.FULL_STORY.UNMASK}
+                        testID={CONST.FULL_STORY.UNMASK}
+                        style={[styles.flexGrow1]}
+                    >
                         <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
                         <InputWrapper
                             InputComponent={TextInput}

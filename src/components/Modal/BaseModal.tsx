@@ -3,26 +3,27 @@ import {View} from 'react-native';
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import ReactNativeModal from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
-import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import useKeyboardState from '@hooks/useKeyboardState';
-import usePrevious from '@hooks/usePrevious';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import ComposerFocusManager from '@libs/ComposerFocusManager';
-import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
-import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
-import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
-import CONST from '@src/CONST';
 import BottomDockedModal from './BottomDockedModal';
 import type ModalProps from './BottomDockedModal/types';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
+import ColorSchemeWrapper from './src/components/ColorSchemeWrapper';
+import FocusTrapForModal from './src/components/FocusTrap/FocusTrapForModal';
+import NavigationBar from './src/components/NavigationBar';
+import CONST from './src/CONST';
+import useKeyboardState from './src/hooks/useKeyboardState';
+import usePrevious from './src/hooks/usePrevious';
+import useResponsiveLayout from './src/hooks/useResponsiveLayout';
+import useSafeAreaInsets from './src/hooks/useSafeAreaInsets';
+import useStyleUtils from './src/hooks/useStyleUtils';
+import useTheme from './src/hooks/useTheme';
+import useThemeStyles from './src/hooks/useThemeStyles';
+import useWindowDimensions from './src/hooks/useWindowDimensions';
+import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from './src/libs/actions/Modal';
+import ComposerFocusManager from './src/libs/ComposerFocusManager';
+import Overlay from './src/libs/Navigation/AppNavigator/Navigators/Overlay';
+import Navigation from './src/libs/Navigation/Navigation';
+import variables from './src/styles/variables';
 import type BaseModalProps from './types';
 
 type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
@@ -77,6 +78,7 @@ function BaseModal(
         swipeDirection,
         shouldPreventScrollOnFocus = false,
         disableAnimationIn = false,
+        enableEdgeToEdgeBottomSafeAreaPadding = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -205,7 +207,7 @@ function BaseModal(
         paddingBottom: safeAreaPaddingBottom,
         paddingLeft: safeAreaPaddingLeft,
         paddingRight: safeAreaPaddingRight,
-    } = StyleUtils.getSafeAreaPadding(safeAreaInsets);
+    } = StyleUtils.getPlatformSafeAreaPadding(safeAreaInsets);
 
     const modalPaddingStyles = shouldUseModalPaddingStyle
         ? StyleUtils.getModalPaddingStyles({
@@ -215,7 +217,8 @@ function BaseModal(
               safeAreaPaddingRight,
               shouldAddBottomSafeAreaMargin,
               shouldAddTopSafeAreaMargin,
-              shouldAddBottomSafeAreaPadding: (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
+              // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
+              shouldAddBottomSafeAreaPadding: !enableEdgeToEdgeBottomSafeAreaPadding && (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
               shouldAddTopSafeAreaPadding,
               modalContainerStyleMarginTop: modalContainerStyle.marginTop,
               modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
@@ -317,6 +320,7 @@ function BaseModal(
                             </View>
                         </FocusTrapForModal>
                     </ModalContent>
+                    <NavigationBar />
                 </ModalComponent>
             </View>
         </ModalContext.Provider>

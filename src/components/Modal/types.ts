@@ -2,8 +2,8 @@ import type {FocusTrapProps} from 'focus-trap-react';
 import type {GestureResponderEvent, PanResponderGestureState, ViewStyle} from 'react-native';
 import type {Direction, ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
 import type BottomDockedModalProps from './BottomDockedModal/types';
+import type CONST from './src/CONST';
 
 type FocusTrapOptions = Exclude<FocusTrapProps['focusTrapOptions'], undefined>;
 
@@ -113,6 +113,13 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
 
         /** Whether to disable the animation in */
         disableAnimationIn?: boolean;
+
+        /**
+         * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
+         * Modals should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+         * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+         */
+        enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
     };
 
 export default BaseModalProps;
