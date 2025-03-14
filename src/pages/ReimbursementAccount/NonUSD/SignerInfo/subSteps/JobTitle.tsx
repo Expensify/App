@@ -8,19 +8,21 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type JobTitleProps = SubStepProps & {isSecondSigner: boolean};
+type JobTitleProps = SubStepProps & {directorID?: string; isDirectorFlow?: boolean};
 
-const {SIGNER_JOB_TITLE, SECOND_SIGNER_JOB_TITLE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {SIGNER_JOB_TITLE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {DIRECTOR_PREFIX, DIRECTOR_JOB_TITLE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
-function JobTitle({onNext, onMove, isEditing, isSecondSigner}: JobTitleProps) {
+function JobTitle({onNext, onMove, isEditing, directorID, isDirectorFlow}: JobTitleProps) {
     const {translate} = useLocalize();
 
-    const inputID = isSecondSigner ? SECOND_SIGNER_JOB_TITLE : SIGNER_JOB_TITLE;
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const defaultValue = reimbursementAccount?.achData?.corpay?.[inputID] ?? reimbursementAccountDraft?.[inputID] ?? '';
+    const inputID =
+        directorID && directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY ? (`${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_JOB_TITLE}` as keyof SignerInfoStepProps) : SIGNER_JOB_TITLE;
+    const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -41,7 +43,7 @@ function JobTitle({onNext, onMove, isEditing, isSecondSigner}: JobTitleProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('signerInfoStep.whatsYourJobTitle')}
+            formTitle={isDirectorFlow ? translate('signerInfoStep.whatsDirectorsJobTitle') : translate('signerInfoStep.whatsYourJobTitle')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={inputID}

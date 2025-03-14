@@ -9,19 +9,16 @@ import {getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type NameProps = SubStepProps & {directorID?: string; isDirectorFlow?: boolean};
+type OccupationProps = SubStepProps & {directorID?: string; isDirectorFlow?: boolean};
 
-const {SIGNER_FULL_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {DIRECTOR_PREFIX, DIRECTOR_FULL_NAME} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {DIRECTOR_PREFIX, DIRECTOR_OCCUPATION} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
-function Name({onNext, onMove, isEditing, directorID, isDirectorFlow}: NameProps) {
+function Occupation({onNext, onMove, isEditing, directorID, isDirectorFlow}: OccupationProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const inputID =
-        directorID && directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY ? (`${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_FULL_NAME}` as keyof SignerInfoStepProps) : SIGNER_FULL_NAME;
+    const inputID = `${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_OCCUPATION}` as keyof SignerInfoStepProps;
     const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(
@@ -49,11 +46,11 @@ function Name({onNext, onMove, isEditing, directorID, isDirectorFlow}: NameProps
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={isDirectorFlow ? translate('signerInfoStep.whatsDirectorsName') : translate('signerInfoStep.whatsYourName')}
+            formTitle={isDirectorFlow ? translate('signerInfoStep.whatsDirectorsOccupation') : translate('signerInfoStep.whatsYourOccupation')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={inputID}
-            inputLabel={translate('signerInfoStep.fullName')}
+            inputLabel={translate('signerInfoStep.occupation')}
             inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
@@ -61,6 +58,6 @@ function Name({onNext, onMove, isEditing, directorID, isDirectorFlow}: NameProps
     );
 }
 
-Name.displayName = 'Name';
+Occupation.displayName = 'Occupation';
 
-export default Name;
+export default Occupation;
