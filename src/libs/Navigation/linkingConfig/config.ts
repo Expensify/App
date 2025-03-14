@@ -38,14 +38,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
             },
         },
-        [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
-                    path: ROUTES.PUBLIC_CONSOLE_DEBUG.route,
-                    exact: true,
-                },
-            },
-        },
         [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.FEATURE_TRAINING_ROOT]: {
@@ -53,6 +45,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
+                [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: ROUTES.CHANGE_POLICY_EDUCATIONAL.route,
             },
         },
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
@@ -635,6 +628,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.route,
+                        },
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
                         },
@@ -1016,6 +1012,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_DETAILS.ROOT]: ROUTES.REPORT_WITH_ID_DETAILS.route,
                         [SCREENS.REPORT_DETAILS.SHARE_CODE]: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route,
                         [SCREENS.REPORT_DETAILS.EXPORT]: ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.route,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE]: {
+                    screens: {
+                        [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: {

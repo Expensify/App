@@ -129,10 +129,6 @@ const ROUTES = {
         },
     },
     WORKSPACE_SWITCHER: 'workspace-switcher',
-    PUBLIC_CONSOLE_DEBUG: {
-        route: 'troubleshoot/console',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
-    },
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
@@ -409,6 +405,10 @@ const ROUTES = {
     REPORT_WITH_ID_DETAILS_EXPORT: {
         route: 'r/:reportID/details/export/:connectionName',
         getRoute: (reportID: string, connectionName: ConnectionName, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/export/${connectionName as string}` as const, backTo),
+    },
+    REPORT_WITH_ID_CHANGE_WORKSPACE: {
+        route: 'r/:reportID/change-workspace',
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-workspace` as const, backTo),
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
@@ -1470,6 +1470,11 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
         getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card`, backTo),
     },
+    WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE: {
+        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card/transaction-start-date',
+        getRoute: (policyID: string, feed: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card/transaction-start-date`, backTo),
+    },
     WORKSPACE_COMPANY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID',
         getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${bank}/${cardID}`, backTo),
@@ -1684,6 +1689,10 @@ const ROUTES = {
     PROCESS_MONEY_REQUEST_HOLD: {
         route: 'hold-expense-educational',
         getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),
+    },
+    CHANGE_POLICY_EDUCATIONAL: {
+        route: 'change-workspace-educational',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: {

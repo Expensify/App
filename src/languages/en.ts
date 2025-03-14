@@ -37,7 +37,7 @@ import type {
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
     ChangeOwnerSubscriptionParams,
-    ChangePolicyParams,
+    ChangeReportPolicyParams,
     ChangeTypeParams,
     CharacterLengthLimitParams,
     CharacterLimitParams,
@@ -626,23 +626,9 @@ const translations = {
         findMember: 'Find a member',
     },
     emptyList: {
-        [CONST.IOU.TYPE.SUBMIT]: {
-            title: 'Submit an expense',
-            subtitleText1: 'Submit to someone and ',
-            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            subtitleText3: ' when they become a customer.',
-        },
-        [CONST.IOU.TYPE.SPLIT]: {
-            title: 'Split an expense',
-            subtitleText1: 'Split with a friend and ',
-            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            subtitleText3: ' when they become a customer.',
-        },
-        [CONST.IOU.TYPE.PAY]: {
-            title: 'Pay someone',
-            subtitleText1: 'Pay anyone and ',
-            subtitleText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            subtitleText3: ' when they become a customer.',
+        [CONST.IOU.TYPE.CREATE]: {
+            title: 'Submit an expense, refer your boss',
+            subtitleText: "Want your boss to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
     },
     videoChatButtonAndMenu: {
@@ -1099,6 +1085,13 @@ const translations = {
         whatIsHoldExplain: 'Hold is like hitting “pause” on an expense to ask for more details before approval or payment.',
         holdIsLeftBehind: 'Held expenses are left behind even if you approve an entire report.',
         unholdWhenReady: "Unhold expenses when you're ready to approve or pay.",
+        changePolicyEducational: {
+            title: 'You moved this report!',
+            description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
+            reCategorize: '<strong>Re-categorize any expenses</strong> to comply with workspace rules.',
+            workflows: 'This report may now be subject to a different <strong>approval workflow.</strong>',
+        },
+        changeWorkspace: 'Change workspace',
         set: 'set',
         changed: 'changed',
         removed: 'removed',
@@ -5187,12 +5180,14 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} from ${oldValue} to ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} to ${newValue}`,
-                changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `changed the workspace to ${toPolicy} (previously ${fromPolicy})`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
+                    `changed the workspace to ${toPolicyName}${fromPolicyName ? ` (previously ${fromPolicyName})` : ''}`,
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changed type from ${oldType} to ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
                 exportedToCSV: `exported this report to CSV`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}.`,
+                    automaticOne: ({label}: ExportedToIntegrationParams) => `automatically exported this report to ${label} via`,
+                    automaticTwo: 'accounting settings.',
                     manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
                     reimburseableLink: 'View out-of-pocket expenses.',
                     nonReimbursableLink: 'View company card expenses.',
@@ -5400,32 +5395,24 @@ const translations = {
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText1: 'Start a chat, ',
-            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Start a chat, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
+            buttonText2: 'refer a friend.',
+            header: 'Start a chat, refer a friend',
+            body: "Want your friends to use Expensify, too? Just start a chat with them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText1: 'Submit an expense, ',
-            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Submit an expense, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
-        },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE]: {
-            buttonText1: 'Pay someone, ',
-            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Pay someone, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `You gotta spend money to make money! Pay someone with Expensify and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
+            buttonText2: 'refer your boss.',
+            header: 'Submit an expense, refer your boss',
+            body: "Want your boss to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
-            buttonText1: 'Invite a friend, ',
-            buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Chat, pay, submit, or split an expense with a friend and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. Otherwise, just share your invite link!`,
+            header: 'Refer a friend',
+            body: "Want your friends to use Expensify, too? Just chat, pay, or split an expense with them and we'll take care of the rest. Or just share your invite link!",
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
-            buttonText1: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Chat, pay, submit, or split an expense with a friend and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. Otherwise, just share your invite link!`,
+            buttonText: 'Refer a friend',
+            header: 'Refer a friend',
+            body: "Want your friends to use Expensify, too? Just chat, pay, or split an expense with them and we'll take care of the rest. Or just share your invite link!",
         },
         copyReferralLink: 'Copy invite link',
     },
@@ -5529,7 +5516,6 @@ const translations = {
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicate requests you don't keep will be held for the member to delete`,
         hold: 'Hold',
-        resolvedDuplicates: 'resolved the duplicate',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,

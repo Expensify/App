@@ -3,7 +3,6 @@ import React from 'react';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {
     AddPersonalBankAccountNavigatorParamList,
-    ConsoleNavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
@@ -18,6 +17,7 @@ import type {
     ProfileNavigatorParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
+    ReportChangeWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
@@ -140,6 +140,10 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetails
     [SCREENS.REPORT_DETAILS.EXPORT]: () => require<ReactComponentModule>('../../../../pages/home/report/ReportDetailsExportPage').default,
 });
 
+const ReportChangeWorkspaceModalStackNavigator = createModalStackNavigator<ReportChangeWorkspaceNavigatorParamList>({
+    [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportChangeWorkspacePage').default,
+});
+
 const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettingsNavigatorParamList>({
     [SCREENS.REPORT_SETTINGS.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportSettingsPage').default,
     [SCREENS.REPORT_SETTINGS.NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Report/NamePage').default,
@@ -230,10 +234,6 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_KNOW_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/KnowATeacherPage').default,
     [SCREENS.INTRO_SCHOOL_PRINCIPAL]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/ImTeacherPage').default,
     [SCREENS.I_AM_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/ImTeacherPage').default,
-});
-
-const ConsoleModalStackNavigator = createModalStackNavigator<ConsoleNavigatorParamList>({
-    [SCREENS.PUBLIC_CONSOLE_DEBUG]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ConsolePage').default,
 });
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
@@ -559,6 +559,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BankConnection').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/AddNewCardPage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/TransactionStartDateSelectorPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardDetailsPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardAccountSelectCardPage').default,
@@ -668,6 +670,10 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require<ReactComponentModule>('../../../../pages/ProcessMoneyRequestHoldPage').default,
 });
 
+const ChangePolicyEducationalStackNavigator = createModalStackNavigator({
+    [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: () => require<ReactComponentModule>('../../../../pages/ChangePolicyEducationalModal').default,
+});
+
 const TransactionDuplicateStackNavigator = createModalStackNavigator<TransactionDuplicateNavigatorParamList>({
     [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/Review').default,
     [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/ReviewMerchant').default,
@@ -743,6 +749,7 @@ export {
     NewTeachersUniteNavigator,
     PrivateNotesModalStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
+    ChangePolicyEducationalStackNavigator,
     ProfileModalStackNavigator,
     ReferralModalStackNavigator,
     TravelModalStackNavigator,
@@ -750,6 +757,7 @@ export {
     NewReportWorkspaceSelectionModalStackNavigator,
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
+    ReportChangeWorkspaceModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
     RoomMembersModalStackNavigator,
@@ -771,5 +779,4 @@ export {
     MissingPersonalDetailsModalStackNavigator,
     DebugModalStackNavigator,
     WorkspaceConfirmationModalStackNavigator,
-    ConsoleModalStackNavigator,
 };
