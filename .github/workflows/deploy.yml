@@ -123,6 +123,12 @@ jobs:
           git submodule update --init --remote
           # TODO: Remove once merged
           cd Mobile-Expensify
+
+          git remote -v
+
+          git fetch origin
+          git branch -r
+
           git fetch origin andrew-android-variables
           git checkout andrew-android-variables
 
