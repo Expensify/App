@@ -1494,8 +1494,6 @@ const CONST = {
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
-        SKELETON_FADE_DURATION: 300,
-        SKELETON_SLIDE_DURATION: 1200,
         TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
@@ -1535,6 +1533,20 @@ const CONST = {
         LIGHT: 'light',
         DARK: 'dark',
     },
+    NAVIGATION_BAR_TYPE: {
+        // We consider there to be no navigation bar in one of these cases:
+        // 1. The device has physical navigation buttons
+        // 2. The device uses gesture navigation without a gesture bar.
+        // 3. The device uses hidden (auto-hiding) soft keys.
+        NONE: 'none',
+        SOFT_KEYS: 'soft-keys',
+        GESTURE_BAR: 'gesture-bar',
+    },
+    // Currently, in Android there is no native API to detect the type of navigation bar (soft keys vs. gesture).
+    // The navigation bar on (standard) Android devices is around 30-50dpi tall. (Samsung: 40dpi, Huawei: ~34dpi)
+    // To leave room to detect soft-key navigation bars on non-standard Android devices,
+    // we set this height threshold to 30dpi, since gesture bars will never be taller than that. (Samsung & Huawei: ~14-15dpi)
+    NAVIGATION_BAR_ANDROID_SOFT_KEYS_MINIMUM_HEIGHT_THRESHOLD: 30,
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
@@ -1932,6 +1944,7 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     XERO_CONFIG: {
@@ -6436,6 +6449,12 @@ const CONST = {
         },
     },
 
+    EXPENSE: {
+        TYPE: {
+            CASH_CARD_NAME: 'Cash Expense',
+        },
+    },
+
     REFERRER: {
         NOTIFICATION: 'notification',
     },
@@ -6798,6 +6817,7 @@ const CONST = {
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
     },
+    CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
@@ -6829,6 +6849,7 @@ const CONST = {
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+    ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

@@ -5,7 +5,6 @@ import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import type Webcam from 'react-webcam';
-import type {TupleToUnion} from 'type-fest';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
@@ -35,7 +34,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
-import {base64ToFile, readFileAsync, resizeImageIfNeeded, splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -241,7 +240,7 @@ function IOURequestStepScan({
         });
     }, [transaction?.amount, iouType]);
 
-    const hideRecieptModal = () => {
+    const hideReceiptModal = () => {
         setIsAttachmentInvalid(false);
     };
 
@@ -254,36 +253,6 @@ function IOURequestStepScan({
         setAttachmentValidReason(reason);
         setPdfFile(null);
     };
-
-    function validateReceipt(file: FileObject) {
-        return validateImageForCorruption(file)
-            .then(() => {
-                const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-                if (
-                    !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-                    )
-                ) {
-                    setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-                    return false;
-                }
-
-                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
-                    return false;
-                }
-
-                if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-                    return false;
-                }
-                return true;
-            })
-            .catch(() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                return false;
-            });
-    }
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
@@ -538,7 +507,7 @@ function IOURequestStepScan({
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(originalFile).then((isFileValid) => {
+        validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
             if (!isFileValid) {
                 return;
             }
@@ -929,8 +898,8 @@ function IOURequestStepScan({
                         />
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                            onConfirm={hideRecieptModal}
-                            onCancel={hideRecieptModal}
+                            onConfirm={hideReceiptModal}
+                            onCancel={hideReceiptModal}
                             isVisible={isAttachmentInvalid}
                             prompt={getConfirmModalPrompt()}
                             confirmText={translate('common.close')}
