@@ -2,7 +2,7 @@ name: Deploy code to staging or production
 
 on:
   push:
-    branches: [staging, production, andrew-variables]
+    branches: [staging, production, andrew-android-variables]
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
