@@ -1533,6 +1533,20 @@ const CONST = {
         LIGHT: 'light',
         DARK: 'dark',
     },
+    NAVIGATION_BAR_TYPE: {
+        // We consider there to be no navigation bar in one of these cases:
+        // 1. The device has physical navigation buttons
+        // 2. The device uses gesture navigation without a gesture bar.
+        // 3. The device uses hidden (auto-hiding) soft keys.
+        NONE: 'none',
+        SOFT_KEYS: 'soft-keys',
+        GESTURE_BAR: 'gesture-bar',
+    },
+    // Currently, in Android there is no native API to detect the type of navigation bar (soft keys vs. gesture).
+    // The navigation bar on (standard) Android devices is around 30-50dpi tall. (Samsung: 40dpi, Huawei: ~34dpi)
+    // To leave room to detect soft-key navigation bars on non-standard Android devices,
+    // we set this height threshold to 30dpi, since gesture bars will never be taller than that. (Samsung & Huawei: ~14-15dpi)
+    NAVIGATION_BAR_ANDROID_SOFT_KEYS_MINIMUM_HEIGHT_THRESHOLD: 30,
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',

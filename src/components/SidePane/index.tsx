@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSidePane from '@hooks/useSidePane';
 import NAVIGATORS from '@src/NAVIGATORS';
 import Help from './Help';
