@@ -328,7 +328,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             }
 
             // Return violations if there are any
-            if (hasViolations(field, data, policyHasDependentTags, tagValue)) {
+            if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
                 const firstViolation = violations.at(0);
 
