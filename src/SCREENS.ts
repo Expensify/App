@@ -34,6 +34,7 @@ const SCREENS = {
         DOMAIN_SELECTOR: 'Travel_DomainSelector',
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
+        WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
     },
     SEARCH: {
         ROOT: 'Search_Root',
