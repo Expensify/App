@@ -61,6 +61,8 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
+    const shouldShowOfflineIndicator = currentSearchResults?.data ? !!currentSearchResults : !!lastNonEmptySearchResults;
+
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
 
@@ -114,7 +116,7 @@ function SearchPage({route}: SearchPageProps) {
                         </View>
                         <ScreenWrapper
                             testID={Search.displayName}
-                            shouldShowOfflineIndicatorInWideScreen
+                            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicator}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
                             <SearchPageHeader queryJSON={queryJSON} />
