@@ -9,13 +9,12 @@ import CONST from '@src/CONST';
 function NavigationBar() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {insets} = useSafeAreaPaddings();
+    const {insets, paddingBottom} = useSafeAreaPaddings();
 
     const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);
-
     const isSoftKeyNavigation = navigationBarType === CONST.NAVIGATION_BAR_TYPE.SOFT_KEYS;
 
-    return isSoftKeyNavigation ? <View style={[styles.navigationBarBG, styles.stickToBottom, {height: insets.bottom}]} /> : null;
+    return isSoftKeyNavigation ? <View style={[styles.navigationBarBG, styles.stickToBottom, {height: paddingBottom}]} /> : null;
 }
 NavigationBar.displayName = 'NavigationBar';
 
