@@ -129,10 +129,6 @@ const ROUTES = {
         },
     },
     WORKSPACE_SWITCHER: 'workspace-switcher',
-    PUBLIC_CONSOLE_DEBUG: {
-        route: 'troubleshoot/console',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
-    },
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
@@ -1473,6 +1469,11 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
         getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card`, backTo),
+    },
+    WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE: {
+        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card/transaction-start-date',
+        getRoute: (policyID: string, feed: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card/transaction-start-date`, backTo),
     },
     WORKSPACE_COMPANY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID',

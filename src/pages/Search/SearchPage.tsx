@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -43,6 +43,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchTypeMenu from './SearchTypeMenu';
 
@@ -57,7 +58,7 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {selectedTransactions, clearSelectedTransactions, selectedReports} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
 
@@ -73,6 +74,20 @@ function SearchPage({route}: SearchPageProps) {
 
         return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
+
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+
+    useEffect(() => {
+        if (!currentSearchResults?.search?.type) {
+            return;
+        }
+
+        setLastSearchType(currentSearchResults.search.type);
+        if (currentSearchResults.data) {
+            setLastNonEmptySearchResults(currentSearchResults);
+        }
+    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -313,6 +328,8 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
+    const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
+
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
 
@@ -324,6 +341,8 @@ function SearchPage({route}: SearchPageProps) {
                     policyID={policyID}
                     searchName={searchName}
                     headerButtonsOptions={headerButtonsOptions}
+                    lastNonEmptySearchResults={lastNonEmptySearchResults}
+                    currentSearchResults={currentSearchResults}
                 />
                 {!!selectionMode && selectionMode?.isEnabled && (
                     <View>
@@ -401,7 +420,7 @@ function SearchPage({route}: SearchPageProps) {
                         </View>
                         <ScreenWrapper
                             testID={Search.displayName}
-                            shouldShowOfflineIndicatorInWideScreen
+                            shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
                             <SearchPageHeader
@@ -415,6 +434,8 @@ function SearchPage({route}: SearchPageProps) {
                             <Search
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}
+                                currentSearchResults={currentSearchResults}
+                                lastNonEmptySearchResults={lastNonEmptySearchResults}
                             />
                         </ScreenWrapper>
                     </View>

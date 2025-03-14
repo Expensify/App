@@ -3,7 +3,7 @@ import React, {useCallback} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, BackHandler} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HelpContent from './HelpContent';
 import type HelpProps from './types';
@@ -11,7 +11,7 @@ import type HelpProps from './types';
 function Help({sidePaneTranslateX, closeSidePane}: HelpProps) {
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {paddingTop, paddingBottom} = useStyledSafeAreaInsets();
+    const {paddingTop, paddingBottom} = useSafeAreaPaddings();
 
     // SidePane isn't a native screen, this handles the back button press on Android
     useFocusEffect(

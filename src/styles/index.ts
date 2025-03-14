@@ -795,6 +795,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.textLight,
         },
 
+        buttonBlendContainer: {
+            backgroundColor: theme.appBG,
+            opacity: 1,
+            position: 'relative',
+            overflow: 'hidden',
+        },
+
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
         },
@@ -5441,7 +5448,17 @@ const styles = (theme: ThemeColors) =>
 
         progressBarWrapper: {
             height: 2,
+            width: '100%',
+            backgroundColor: theme.transparent,
             overflow: 'hidden',
+            position: 'absolute',
+            bottom: -1,
+        },
+
+        progressBar: {
+            height: '100%',
+            backgroundColor: theme.success,
+            width: '100%',
         },
 
         accountSwitcherAnchorPosition: {
