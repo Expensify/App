@@ -38,6 +38,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.theresAWorkspaceWithCustomUnitsErrors';
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAWorkspaceMember';
+        case CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR:
+            return 'debug.indicatorStatus.theresAProblemWithAWorkspaceQBOExport';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAContactMethod';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
