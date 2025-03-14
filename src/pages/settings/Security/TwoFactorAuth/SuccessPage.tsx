@@ -32,11 +32,12 @@ function SuccessPage({route}: SuccessPageProps) {
     useEffect(() => {
         return () => {
             // When the 2FA RHP is closed, we want to remove the 2FA required page fromt the navigation stack too.
-            if (route.params?.backTo === ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
-                Navigation.popRootToTop();
+            if (route.params?.backTo !== ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
                 return;
             }
+            Navigation.popRootToTop();
         };
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     return (

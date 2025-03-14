@@ -27,7 +27,7 @@ import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
-import type {AuthScreensParamList, RightModalNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import Pusher from '@libs/Pusher';
@@ -246,11 +246,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }, [theme]);
 
     useEffect(() => {
-        if (!account?.needsTwoFactorAuthSetup || account.requiresTwoFactorAuth || shouldShowRequire2FAPage) {
+        if (!account?.needsTwoFactorAuthSetup || !!account.requiresTwoFactorAuth || shouldShowRequire2FAPage) {
             return;
         }
         setShouldShowRequire2FAPage(true);
-    }, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth]);
+    }, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, shouldShowRequire2FAPage]);
 
     useEffect(() => {
         if (!shouldShowRequire2FAPage) {
