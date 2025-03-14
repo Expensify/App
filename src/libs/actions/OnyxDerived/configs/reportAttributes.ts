@@ -12,7 +12,7 @@ export default createOnyxDerivedValueConfig({
             return {};
         }
 
-        return Object.values(reports).reduce<Record<string, ReportAttributes>>(
+        return Object.values(reportUpdates ?? reports).reduce<Record<string, ReportAttributes>>(
             (acc, report) => {
                 if (!report) {
                     return acc;
