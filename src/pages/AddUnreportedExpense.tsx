@@ -1,5 +1,5 @@
 import React, {useMemo, useRef, useState} from 'react';
-import type { ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -67,6 +67,7 @@ function unreportedExpenseListItem<TItem extends ListItem>({
             onSelectRow={() => {
                 setIsSelected((val) => !val);
             }}
+            containerStyle={[styles.p3, styles.mbn4]}
         >
             <View style={[{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}]}>
                 <TransactionItemRow
@@ -76,7 +77,7 @@ function unreportedExpenseListItem<TItem extends ListItem>({
                     // in order to remove styles from the component
                     containerStyles={emptyStylesArray}
                 />
-                <View style={[styles.minHeight22, styles.justifyContentCenter, styles.alignItemsCenter, styles.expenseWidgetSelectCircle, styles.mln2, styles.pr2]}>
+                <View style={[styles.pb3, styles.justifyContentCenter, styles.alignItemsCenter, styles.expenseWidgetSelectCircle, styles.mln2, styles.pr2]}>
                     <SelectCircle isChecked={isSelected} />
                 </View>
             </View>
