@@ -2651,7 +2651,7 @@ const translations = {
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
         phoneErrorIntro: 'Para reservar viajes,',
-        phoneErrorLink: 'añada una dirección de correo electrónico del trabajo',
+        phoneErrorLink: 'añade una dirección de correo electrónico de trabajo',
         domainSelector: {
             title: 'Dominio',
             subtitle: 'Elige un dominio para configurar Expensify Travel.',
