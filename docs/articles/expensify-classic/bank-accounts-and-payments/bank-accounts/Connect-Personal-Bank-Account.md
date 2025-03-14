@@ -47,3 +47,5 @@ Check the following possible issues:
 If your bank account has **two-factor authentication (2FA)** or another security step enabled, you should be prompted to complete this authentication step when connecting the account to Expensify.
 
 However, if you encounter an error during this process, you can close the pop-up window and select **Connect Manually** to add the account manually.
+
+</div>
