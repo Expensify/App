@@ -25,8 +25,14 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
     const currentRole = route.params.currentRole;
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [newRole, setNewRole] = useState<ValueOf<typeof CONST.DELEGATE_ROLE> | null>();
+    const showValidateActionModalFromURL = route.params.showValidateActionModal === 'true';
+    const newRoleFromURL = route.params.newRole;
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModalFromURL ?? false);
+    const [newRole, setNewRole] = useState<ValueOf<typeof CONST.DELEGATE_ROLE> | undefined>(newRoleFromURL);
+
+    useEffect(() => {
+        Navigation.setParams({showValidateActionModal: isValidateCodeActionModalVisible, newRole});
+    }, [isValidateCodeActionModalVisible, newRole]);
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
