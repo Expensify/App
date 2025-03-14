@@ -5499,6 +5499,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        navigationBarBG: {
+            backgroundColor: theme.navigationBarBackgroundColor,
+        },
+
         stickToBottom: {
             position: 'absolute',
             bottom: 0,

@@ -128,6 +128,9 @@ type ScreenWrapperProps = {
      * The KeyboardAvoidingView will use a negative keyboardVerticalOffset.
      */
     shouldKeyboardOffsetBottomSafeAreaPadding?: boolean;
+
+    /** Whether the offline indicator should be translucent. */
+    isOfflineIndicatorTranslucent?: boolean;
 };
 
 type ScreenWrapperStatusContextType = {
@@ -163,6 +166,7 @@ function ScreenWrapper(
         bottomContent,
         enableEdgeToEdgeBottomSafeAreaPadding = false,
         shouldKeyboardOffsetBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding,
+        isOfflineIndicatorTranslucent = enableEdgeToEdgeBottomSafeAreaPadding,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -371,7 +375,7 @@ function ScreenWrapper(
                                     <>
                                         <OfflineIndicator
                                             style={[offlineIndicatorStyle]}
-                                            containerStyles={styles.offlineIndicatorMobile}
+                                            isTranslucent={isOfflineIndicatorTranslucent}
                                             addBottomSafeAreaPadding={addMobileOfflineIndicatorBottomSafeAreaPadding}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}

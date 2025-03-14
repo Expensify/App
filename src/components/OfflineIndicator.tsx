@@ -21,18 +21,21 @@ type OfflineIndicatorProps = {
 
     /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to make the indicator translucent. */
+    isTranslucent?: boolean;
 };
 
-function OfflineIndicator({style, containerStyles, addBottomSafeAreaPadding = false}: OfflineIndicatorProps) {
+function OfflineIndicator({style, containerStyles: containerStylesProp, addBottomSafeAreaPadding = false, isTranslucent = false}: OfflineIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const computedStyles = useBottomSafeSafeAreaPaddingStyle({
+    const containerStyles = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
-        style: containerStyles ?? (shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator),
+        style: containerStylesProp ?? (shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator),
     });
 
     if (!isOffline) {
@@ -40,7 +43,7 @@ function OfflineIndicator({style, containerStyles, addBottomSafeAreaPadding = fa
     }
 
     return (
-        <View style={[computedStyles, styles.flexRow, styles.alignItemsCenter, style]}>
+        <View style={[containerStyles, isTranslucent && styles.navigationBarBG, styles.flexRow, styles.alignItemsCenter, style]}>
             <Icon
                 fill={theme.icon}
                 src={Expensicons.OfflineCloud}
