@@ -102,6 +102,9 @@ type OptionRowLHNDataProps = {
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Whether to show the educational tooltip for the GBR or RBR */
+    shouldShowRBRorGPRTooltip: boolean;
 };
 
 type OptionRowLHNProps = {
@@ -127,6 +130,9 @@ type OptionRowLHNProps = {
     hasDraftComment: boolean;
 
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Whether to show the educational tooltip on the GBR or RBR */
+    shouldShowRBRorGPRTooltip: boolean;
 };
 
 type RenderItemProps = {item: string};
