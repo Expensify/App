@@ -17,7 +17,9 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -272,8 +274,11 @@ function addSubscriptionPaymentCard(
             failureData,
         });
     }
-
-    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+    if (getCardForSubscriptionBilling()) {
+        Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION} because a card was already added`);
+    } else {
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+    }
 }
 
 /**
@@ -393,7 +398,7 @@ function resetWalletTransferData() {
     });
 }
 
-function saveWalletTransferAccountTypeAndID(selectedAccountType: string, selectedAccountID: string) {
+function saveWalletTransferAccountTypeAndID(selectedAccountType: string | undefined, selectedAccountID: string | undefined) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {selectedAccountType, selectedAccountID});
 }
 

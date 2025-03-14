@@ -57,7 +57,7 @@ type NavigationRoute = NavigationStateRoute | NavigationPartialRoute;
 
 type SplitNavigatorSidebarScreen = keyof typeof SIDEBAR_TO_SPLIT;
 
-type SplitNavigatorParamListType = {
+type SplitNavigatorParamList = {
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SettingsSplitNavigatorParamList;
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: ReportsSplitNavigatorParamList;
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: WorkspaceSplitNavigatorParamList;
@@ -67,11 +67,6 @@ type SplitNavigatorBySidebar<T extends SplitNavigatorSidebarScreen> = (typeof SI
 
 type BackToParams = {
     backTo?: Routes;
-};
-
-type BackToAndForwardToParms = {
-    backTo?: Routes;
-    forwardTo?: Routes;
 };
 
 type SettingsNavigatorParamList = {
@@ -221,6 +216,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.DOWNGRADE]: {
         policyID?: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
@@ -791,9 +787,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
     };
-    [SCREENS.GET_ASSISTANCE]: {
-        backTo: Routes;
-    };
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
@@ -1045,6 +1038,10 @@ type ProfileNavigatorParamList = {
     };
 };
 
+type NewReportWorkspaceSelectionNavigatorParamList = {
+    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: undefined;
+};
+
 type ReportDetailsNavigatorParamList = {
     [SCREENS.REPORT_DETAILS.ROOT]: {
         reportID: string;
@@ -1058,6 +1055,13 @@ type ReportDetailsNavigatorParamList = {
         reportID: string;
         policyID: string;
         connectionName: ConnectionName;
+        backTo?: Routes;
+    };
+};
+
+type ReportChangeWorkspaceNavigatorParamList = {
+    [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: {
+        reportID: string;
         backTo?: Routes;
     };
 };
@@ -1467,6 +1471,7 @@ type SignInNavigatorParamList = {
 type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
+    [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
 };
 
 type ReferralDetailsNavigatorParamList = {
@@ -1533,7 +1538,9 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
+    [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: NavigatorScreenParams<NewReportWorkspaceSelectionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE]: NavigatorScreenParams<ReportChangeWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SETTINGS_TAGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
@@ -1599,7 +1606,9 @@ type ReportsSplitNavigatorParamList = {
 
 type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
-    [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.SETTINGS.WORKSPACES]: {
+        backTo?: Routes;
+    };
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
     [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
@@ -1819,6 +1828,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
     [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
     [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
+    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [SCREENS.TRANSACTION_RECEIPT]: {
         reportID: string;
@@ -1828,11 +1838,6 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
-    [SCREENS.SEARCH.ROOT]: {
-        q: SearchQueryString;
-        name?: string;
-        groupBy?: string;
-    };
 };
 
 type SearchReportParamList = {
@@ -1852,6 +1857,17 @@ type SearchReportParamList = {
 
         /** Hash that includes info about what is searched for */
         searchHash?: number;
+    };
+};
+
+type SearchFullscreenNavigatorParamList = {
+    [SCREENS.SEARCH.ROOT]: {
+        q: SearchQueryString;
+        name?: string;
+        groupBy?: string;
+    };
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
+        reportID: string;
     };
 };
 
@@ -1908,17 +1924,15 @@ type DebugParamList = {
     };
 };
 
-type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
-
-type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
+type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList & SearchFullscreenNavigatorParamList;
 
 type OnboardingFlowName = keyof OnboardingModalNavigatorParamList;
 
-type SplitNavigatorName = keyof SplitNavigatorParamListType;
+type SplitNavigatorName = keyof SplitNavigatorParamList;
 
-type SplitNavigatorScreenName = keyof (WorkspaceSplitNavigatorParamList & SettingsSplitNavigatorParamList & ReportsSplitNavigatorParamList);
+type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
-type FullScreenName = SplitNavigatorName | typeof SCREENS.SEARCH.ROOT;
+type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -1931,7 +1945,6 @@ declare global {
 export type {
     AddPersonalBankAccountNavigatorParamList,
     AuthScreensParamList,
-    BackToAndForwardToParms,
     BackToParams,
     DebugParamList,
     DetailsNavigatorParamList,
@@ -1959,8 +1972,10 @@ export type {
     PublicScreensParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
+    NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
+    ReportChangeWorkspaceNavigatorParamList,
     ReportSettingsNavigatorParamList,
     ReportsSplitNavigatorParamList,
     RestrictedActionParamList,
@@ -1970,14 +1985,14 @@ export type {
     SearchAdvancedFiltersParamList,
     SearchReportParamList,
     SearchSavedSearchParamList,
+    SearchFullscreenNavigatorParamList,
     SettingsNavigatorParamList,
     SettingsSplitNavigatorParamList,
     SignInNavigatorParamList,
     SplitDetailsNavigatorParamList,
     SplitNavigatorBySidebar,
     SplitNavigatorName,
-    SplitNavigatorParamListType,
-    SplitNavigatorScreenName,
+    SplitNavigatorParamList,
     SplitNavigatorSidebarScreen,
     StackNavigationAction,
     State,
@@ -1988,7 +2003,6 @@ export type {
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
     WelcomeVideoModalNavigatorParamList,
-    WorkspaceScreenName,
     WorkspaceSplitNavigatorParamList,
     MigratedUserModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,

@@ -37,6 +37,7 @@ const SCREENS = {
     },
     SEARCH: {
         ROOT: 'Search_Root',
+        MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
@@ -163,7 +164,9 @@ const SCREENS = {
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
+        NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
         REPORT_DETAILS: 'Report_Details',
+        REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
@@ -326,10 +329,18 @@ const SCREENS = {
         EDIT: 'PrivateNotes_Edit',
     },
 
+    NEW_REPORT_WORKSPACE_SELECTION: {
+        ROOT: 'NewReportWorkspaceSelection_Root',
+    },
+
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
         SHARE_CODE: 'Report_Details_Share_Code',
         EXPORT: 'Report_Details_Export',
+    },
+
+    REPORT_CHANGE_WORKSPACE: {
+        ROOT: 'ReportChangeWorkspace_Root',
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
@@ -360,6 +371,8 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Classes_Displayed_As',
             QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Customers_Displayed_As',
             QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Locations_Displayed_As',
+            QUICKBOOKS_ONLINE_AUTO_SYNC: 'Policy_Accounting_Quickbooks_Online_Auto_Sync',
+            QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: 'Policy_Accounting_Quickbooks_Online_Accounting_Method',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Account_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense',
@@ -645,6 +658,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
+    CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     REPORT_PARTICIPANTS: {
         ROOT: 'ReportParticipants_Root',
@@ -659,7 +673,6 @@ const SCREENS = {
     },
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
-    GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     TRANSACTION_RECEIPT: 'TransactionReceipt',
