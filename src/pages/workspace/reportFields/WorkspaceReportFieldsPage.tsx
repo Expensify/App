@@ -257,6 +257,7 @@ function WorkspaceReportFieldsPage({
                         }
                         Navigation.goBack();
                     }}
+                    shouldDisplayHelpButton={shouldUseNarrowLayout}
                 >
                     {!shouldUseNarrowLayout && !hasAccountingConnections && getHeaderButtons()}
                 </HeaderWithBackButton>

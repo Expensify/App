@@ -422,6 +422,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     style={styles.headerBarDesktopHeight}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    shouldDisplayHelpButton={shouldUseNarrowLayout}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
