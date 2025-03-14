@@ -288,6 +288,9 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
 function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
+    const reports = Object.keys(data)
+        .filter(isReportEntry)
+        .map((key) => data[key]);
 
     return Object.keys(data)
         .filter(isTransactionEntry)
@@ -295,7 +298,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             const transactionItem = data[key];
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
-
+            const isPolicyExpenseChat = !!reports.find((report) => report.policyID === transactionItem.policyID && report.isPolicyExpenseChat);
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
             return {
@@ -314,6 +317,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
+                isPolicyExpenseChat,
             };
         });
 }
