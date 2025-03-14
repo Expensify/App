@@ -368,7 +368,7 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     useEffect(() => {
-        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex) {
+        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || textInputValue) {
             return;
         }
         setFocusedIndex(selectedItemIndex);
