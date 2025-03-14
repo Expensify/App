@@ -1,4 +1,4 @@
-type MergeDuplicatesParams = {
+type TransactionMergeParams = {
     transactionID: string | undefined;
     transactionIDList: string[];
     created: string;
@@ -12,7 +12,6 @@ type MergeDuplicatesParams = {
     tag: string;
     receiptID: number;
     reportID: string | undefined;
-    reportActionID?: string | undefined;
 };
 
-export default MergeDuplicatesParams;
+export default TransactionMergeParams;

@@ -15,7 +15,6 @@ import type {
     CreateWorkspaceParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
-    MergeDuplicatesParams,
     PayInvoiceParams,
     PayMoneyRequestParams,
     ReplaceReceiptParams,
@@ -29,6 +28,7 @@ import type {
     StartSplitBillParams,
     SubmitReportParams,
     TrackExpenseParams,
+    TransactionMergeParams,
     UnapproveExpenseReportParams,
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
@@ -95,7 +95,6 @@ import {
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticReportPreview,
-    buildOptimisticResolvedDuplicatesReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
     buildOptimisticUnHoldReportAction,
@@ -150,6 +149,7 @@ import {
     getAmount,
     getCategoryTaxCodeAndAmount,
     getCurrency,
+    getDistanceInMeters,
     getMerchant,
     getTransaction,
     getUpdatedTransaction,
@@ -1034,12 +1034,18 @@ function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: st
     }
 
     const distanceRate = DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
+    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    let newDistance;
+    if (distanceRate?.unit && distanceRate?.unit !== transaction?.comment?.customUnit?.distanceUnit) {
+        newDistance = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit), distanceRate.unit);
+    }
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             customUnit: {
                 customUnitRateID,
                 ...(!!policy && {defaultP2PRate: null}),
                 ...(distanceRate && {distanceUnit: distanceRate.unit}),
+                ...(newDistance && {quantity: newDistance}),
             },
         },
     });
@@ -4579,7 +4585,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
             ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
             : undefined;
-    const existingTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
+    const existingTransaction =
+        action === CONST.IOU.ACTION.SUBMIT
+            ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID}`]
+            : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
 
     const {
         payerAccountID,
@@ -9244,7 +9253,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
  */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>): Participant[] {
+function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Report>): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
@@ -9269,9 +9278,17 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
         participants = chatReportOtherParticipants.map((accountID) => ({accountID, selected: true}));
     }
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
-
     return participants;
+}
+
+/**
+ * Sets the participants for an IOU based on the attached report
+ * @param transactionID of the transaction to set the participants of
+ * @param report attached to the transaction
+ */
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>) {
+    const participants = getMoneyRequestParticipantsFromReport(report);
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
 }
 
 function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null) {
@@ -9739,7 +9756,7 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
 }
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
-function mergeDuplicates(params: MergeDuplicatesParams) {
+function mergeDuplicates(params: TransactionMergeParams) {
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
     const optimisticTransactionData: OnyxUpdate = {
@@ -9868,25 +9885,6 @@ function mergeDuplicates(params: MergeDuplicatesParams) {
         }, {}),
     };
 
-    const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
-
-    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
-    const optimisticReportActionData: OnyxUpdate = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-        value: {
-            [optimisticReportAction.reportActionID]: optimisticReportAction,
-        },
-    };
-
-    const failureReportActionData: OnyxUpdate = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-        value: {
-            [optimisticReportAction.reportActionID]: null,
-        },
-    };
-
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
@@ -9896,18 +9894,10 @@ function mergeDuplicates(params: MergeDuplicatesParams) {
         ...optimisticTransactionViolations,
         expenseReportOptimisticData,
         expenseReportActionsOptimisticData,
-        optimisticReportActionData,
     );
-    failureData.push(
-        failureTransactionData,
-        ...failureTransactionDuplicatesData,
-        ...failureTransactionViolations,
-        expenseReportFailureData,
-        expenseReportActionsFailureData,
-        failureReportActionData,
-    );
+    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, expenseReportFailureData, expenseReportActionsFailureData);
 
-    API.write(WRITE_COMMANDS.MERGE_DUPLICATES, {...params, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
 }
 
 function updateLastLocationPermissionPrompt() {
@@ -9915,7 +9905,7 @@ function updateLastLocationPermissionPrompt() {
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
-function resolveDuplicates(params: MergeDuplicatesParams) {
+function resolveDuplicates(params: TransactionMergeParams) {
     if (!params.transactionID) {
         return;
     }
@@ -10114,6 +10104,7 @@ export {
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
+    getMoneyRequestParticipantsFromReport,
     setMoneyRequestPendingFields,
     setMoneyRequestReceipt,
     setMoneyRequestTag,
