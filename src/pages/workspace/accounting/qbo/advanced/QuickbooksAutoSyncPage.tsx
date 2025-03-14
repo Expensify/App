@@ -38,6 +38,7 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={QuickbooksAutoSyncPage.displayName}
+                offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
                     title={translate('common.settings')}
