@@ -11,7 +11,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import getButtonState from '@libs/getButtonState';
-import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import ArrowIcon from './ArrowIcon';
 import generateMonthMatrix from './generateMonthMatrix';
