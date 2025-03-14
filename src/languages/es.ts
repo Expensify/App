@@ -5120,6 +5120,10 @@ const translations = {
             exported: 'Exportado',
             posted: 'Contabilizado',
         },
+        moneyRequestReport: {
+            emptyStateTitle: 'Este informe no tiene gastos',
+            emptyStateSubtitle: 'Puedes agregar gastos a este informe usando el botón de arriba.',
+        },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
         expenseType: 'Tipo de gasto',

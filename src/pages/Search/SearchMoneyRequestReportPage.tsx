@@ -3,11 +3,16 @@ import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderGap from '@components/HeaderGap';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
+import LottieAnimations from '@components/LottieAnimations';
+import MoneyReportHeader from '@components/MoneyReportHeader';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
 import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
 import TopBar from '@components/Navigation/TopBar';
+import OfflineIndicator from '@components/OfflineIndicator';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +23,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {openReport} from '@userActions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
@@ -35,6 +41,72 @@ const defaultReportMetadata = {
     hasLoadingNewerReportActionsError: false,
     isOptimisticReport: false,
 };
+
+// NOTE FOR KUBA:
+// When https://github.com/Expensify/App/pull/58360 is merged we should use the empty state component in MoneyRequestReportTableHeader,
+// for now it will be used in TemporaryMoneyRequestReportView.
+function SearchMoneyRequestReportEmptyState() {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    return (
+        <View style={styles.flex1}>
+            <EmptyStateComponent
+                cardStyles={[styles.appBG]}
+                cardContentStyles={[styles.pt5, styles.pb0]}
+                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                headerMedia={LottieAnimations.GenericEmptyState}
+                title={translate('search.moneyRequestReport.emptyStateTitle')}
+                subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
+                headerStyles={[styles.emptyStateCardIllustrationContainer, {maxHeight: 85, minHeight: 85}]}
+                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                headerContentStyles={styles.emptyStateFolderWebStyles}
+            />
+        </View>
+    );
+}
+
+// NOTE FOR KUBA:
+// When the correct header is ready we will need to disable the buttons in case of offline/failure state
+// and we will need to render Composer component and comment components conditionally in case of failure state
+/**
+ * TODO
+ * This is a completely temporary component, displayed to:
+ *  - show other devs that SearchMoneyRequestReportPage works
+ *  - unblock work for other devs for Report Creation (https://github.com/Expensify/App/issues/57654)
+ *
+ *  This component is not displayed to any users.
+ *  It will be removed once we fully implement SearchMoneyRequestReportPage (https://github.com/Expensify/App/issues/57508)
+ */
+function TemporaryMoneyRequestReportView({report, policy}: TemporaryMoneyRequestReportViewProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={[styles.flex1]}>
+            <OfflineWithFeedback
+                style={[styles.flex1]}
+                contentContainerStyle={[styles.flex1]}
+                pendingAction={report?.pendingAction}
+                errors={report?.errorFields?.create}
+                errorRowStyles={[styles.ph5, styles.pv3]}
+                shouldShowErrorMessages
+            >
+                <HeaderGap />
+                <MoneyReportHeader
+                    report={report}
+                    policy={policy}
+                    reportActions={[]}
+                    transactionThreadReportID={undefined}
+                    onBackButtonPress={() => {
+                        Navigation.goBack();
+                    }}
+                />
+                {!report?.total && <SearchMoneyRequestReportEmptyState />}
+            </OfflineWithFeedback>
+            <OfflineIndicator containerStyles={[styles.m1]} />
+        </View>
+    );
+}
 
 function SearchMoneyRequestReportPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
@@ -66,6 +138,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
             <ScreenWrapper
                 testID={SearchMoneyRequestReportPage.displayName}
                 shouldEnableMaxHeight
+                shouldShowOfflineIndicator={false}
                 offlineIndicatorStyle={styles.mtAuto}
                 headerGapStyles={styles.searchHeaderGap}
             >
