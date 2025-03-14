@@ -5498,6 +5498,13 @@ const styles = (theme: ThemeColors) =>
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
         },
+
+        stickToBottom: {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

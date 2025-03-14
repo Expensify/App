@@ -29,7 +29,7 @@ function FixedFooter({style, children, addBottomSafeAreaPadding = false, shouldS
         // If the footer should stick to the bottom, we use absolute positioning instead of flex.
         // In this case, we need to use style.bottom instead of style.paddingBottom.
         if (shouldStickToBottom) {
-            return {position: 'absolute', left: 0, right: 0, bottom: addBottomSafeAreaPadding ? totalPaddingBottom : styles.pb5.paddingBottom};
+            return [styles.stickToBottom, {bottom: addBottomSafeAreaPadding ? totalPaddingBottom : styles.pb5.paddingBottom}];
         }
 
         // If the footer should not stick to the bottom, we use flex and add the safe area padding in styles.paddingBottom.
@@ -39,7 +39,7 @@ function FixedFooter({style, children, addBottomSafeAreaPadding = false, shouldS
 
         // Otherwise, we just use the default bottom padding.
         return styles.pb5;
-    }, [addBottomSafeAreaPadding, paddingBottom, shouldStickToBottom, styles.pb5]);
+    }, [addBottomSafeAreaPadding, paddingBottom, shouldStickToBottom, styles.pb5, styles.stickToBottom]);
 
     if (!children) {
         return null;

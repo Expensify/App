@@ -130,10 +130,8 @@ function FormWrapper({
                         submitButtonStyles,
                         shouldSubmitButtonStickToBottom
                             ? [
+                                  styles.stickToBottom,
                                   {
-                                      position: 'absolute',
-                                      left: 0,
-                                      right: 0,
                                       bottom: styles.pb5.paddingBottom + paddingBottom,
                                   },
                                   style,
@@ -169,6 +167,7 @@ function FormWrapper({
             styles.mh0,
             styles.mt5,
             styles.pb5.paddingBottom,
+            styles.stickToBottom,
             submitButtonStyles,
             submitButtonText,
             submitFlexEnabled,
