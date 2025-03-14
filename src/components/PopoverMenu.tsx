@@ -372,7 +372,7 @@ function PopoverMenu({
 
     const menuContainerStyle = useMemo(() => {
         if (isSmallScreenWidth) {
-            return shouldEnableMaxHeight ? { maxHeight: windowHeight - 250 } : {};
+            return shouldEnableMaxHeight ? {maxHeight: windowHeight - 250} : {};
         }
         return styles.createMenuContainer;
     }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
