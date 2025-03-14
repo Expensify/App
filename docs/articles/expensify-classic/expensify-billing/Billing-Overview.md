@@ -3,6 +3,7 @@ title: Billing and Subscriptions
 description: Expensify Billing Overview
 keywords: [Expensify Classic, billing, subscription, monthly payment, payment card, billing history]
 ---
+<div id="expensify-classic" markdown="1">
 
 At the beginning of each month, the workspace's Billing Owner is billed for the previous month’s activity. 
 Your Expensify bill is determined by the following: 
@@ -55,3 +56,5 @@ Rates for pay-per-use plans are applied at full price:
 If another member needs to own the billing on a given workspace, they must first be a Workspace Admin. Then, from their account, the Admin will head to **Settings > Workspaces > [Workspace Name] > Members > [Current Workspace Owner] > Transfer Ownership**.
 
 From there, the new billing owner will add a payment card and be charged for the member activity on the workspace on the first of the month. 
+
+</div>
