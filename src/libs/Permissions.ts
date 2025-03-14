@@ -43,7 +43,7 @@ function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
+    return true;
 }
 
 function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
