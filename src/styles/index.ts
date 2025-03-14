@@ -1148,12 +1148,12 @@ const styles = (theme: ThemeColors) =>
             marginLeft: variables.chatInputSpacing,
         },
 
-        offlineIndicatorLeftSpacing: {
-            marginLeft: variables.chatInputSpacing,
-        },
-
         offlineIndicatorContainer: {
             height: variables.offlineIndicatorHeight,
+        },
+
+        offlineIndicatorChat: {
+            marginLeft: variables.chatInputSpacing,
         },
 
         deletedAttachmentIndicator: {
