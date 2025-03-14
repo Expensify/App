@@ -3926,12 +3926,11 @@ const translations = {
                 disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
             },
-            workflowWarningModal:{
+            workflowWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
-                featureEnabledText: "Expensify Cards from this workspace currently rely on approval to define their Smart Limits. Please amend the limit types of any Expensify Cards with Smart Limits before disabling workflows.",
-                disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
+                featureEnabledText:
+                    'Expensify Cards from this workspace currently rely on approval to define their Smart Limits. Please amend the limit types of any Expensify Cards with Smart Limits before disabling workflows.',
                 confirmText: 'Go to Expensify Card',
-                manageSettings: 'Manage settings',
             },
             rules: {
                 title: 'Rules',

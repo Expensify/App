@@ -3974,10 +3974,9 @@ const translations = {
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
-                featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
-                disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
-                confirmText: 'Go to Expensify Card',
-                manageSettings: 'Gestionar la configuración',
+                featureEnabledText:
+                    'Las Tarjetas Expensify de este espacio de trabajo dependen actualmente de la aprobación para definir sus Límites Inteligentes. Por favor, modifica los tipos de límite de cualquier Tarjeta Expensify con Límites Inteligentes antes de deshabilitar las flujos de trabajo.',
+                confirmText: 'Ir a Tarjeta Expensify',
             },
             rules: {
                 title: 'Reglas',

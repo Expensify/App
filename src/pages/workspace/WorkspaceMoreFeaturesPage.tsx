@@ -108,7 +108,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     }, [hasAccountingConnection]);
 
     const onDisabledWorkflowPress = useCallback(() => {
-        if(!isSmartLimitEnabled){
+        if (!isSmartLimitEnabled) {
             return;
         }
         setIsDisableWorkflowWarningModalOpen(true);
