@@ -1,5 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,8 +20,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchTypeMenu from './SearchTypeMenu';
 
@@ -39,9 +43,23 @@ function SearchPage({route}: SearchPageProps) {
 
         return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
+    const {clearSelectedTransactions, lastSearchType, setLastSearchType} = useSearchContext();
+
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+
+    useEffect(() => {
+        if (!currentSearchResults?.search?.type) {
+            return;
+        }
+
+        setLastSearchType(currentSearchResults.search.type);
+        if (currentSearchResults.data) {
+            setLastNonEmptySearchResults(currentSearchResults);
+        }
+    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
-    const {clearSelectedTransactions} = useSearchContext();
 
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
@@ -52,6 +70,8 @@ function SearchPage({route}: SearchPageProps) {
                 queryJSON={queryJSON}
                 policyID={policyID}
                 searchName={searchName}
+                lastNonEmptySearchResults={lastNonEmptySearchResults}
+                currentSearchResults={currentSearchResults}
             />
         );
     }
@@ -102,6 +122,8 @@ function SearchPage({route}: SearchPageProps) {
                             <Search
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}
+                                currentSearchResults={currentSearchResults}
+                                lastNonEmptySearchResults={lastNonEmptySearchResults}
                             />
                         </ScreenWrapper>
                     </View>
