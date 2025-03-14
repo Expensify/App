@@ -8,6 +8,7 @@ import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {PressableWithFeedback} from '@components/Pressable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
@@ -72,6 +73,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {MoneyRequestReportPreviewContentProps} from '.';
 
 function MoneyRequestReportPreviewContent({
@@ -95,6 +97,7 @@ function MoneyRequestReportPreviewContent({
     invoiceReceiverPersonalDetail,
     lastTransactionViolations,
     isDelegateAccessRestricted,
+    renderItem,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
@@ -178,8 +181,6 @@ function MoneyRequestReportPreviewContent({
         hasWarningTypeViolations(iouReportID, violations, true) ||
         (isReportOwner(iouReport) && hasReportViolations(iouReportID)) ||
         hasActionsWithErrors(iouReportID);
-    // const lastThreeTransactions = transactions?.slice(-3) ?? [];
-    // const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDList, iouReport, policy, violations);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
@@ -321,7 +322,8 @@ function MoneyRequestReportPreviewContent({
 
     const shouldShowSettlementButton = !shouldShowSubmitButton && (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
 
-    const shouldShowRBR = hasErrors && !iouSettled;
+    // const shouldShowRBR = hasErrors && !iouSettled;
+    const shouldShowRBR = true;
 
     /*
      Show subtitle if at least one of the expenses is not being smart scanned, and either:
@@ -391,6 +393,25 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBSUP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
+    const arrowComponent = (src: IconAsset) => (
+        <PressableWithFeedback
+            accessibilityRole="button"
+            accessible
+            accessibilityLabel="button"
+            style={{borderRadius: 50, width: 28, height: 28, backgroundColor: '#E6E1DA', alignItems: 'center', justifyContent: 'center', marginLeft: 4}}
+        >
+            <Icon
+                src={src}
+                small
+                fill="#A1A9A3"
+            />
+        </PressableWithFeedback>
+    );
+
+    const snapToOffsetsLikeGooglePlay = transactions.map((x, i) => {
+        return i * 100 + 32;
+    });
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -412,9 +433,9 @@ function MoneyRequestReportPreviewContent({
                 >
                     <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
-                            <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>
-                                <View style={styles.expenseAndReportPreviewTextContainer}>
-                                    <View style={styles.flexRow}>
+                            <View style={[shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer]}>
+                                <View style={[styles.expenseAndReportPreviewTextContainer]}>
+                                    <View style={[styles.flexRow]}>
                                         <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
                                             <Text
                                                 fontSize={variables.fontSizeNormal}
@@ -440,35 +461,39 @@ function MoneyRequestReportPreviewContent({
                                                 />
                                             </Animated.View>
                                         )}
-                                        <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20]}>
-                                            {supportText} {'<   >'}
-                                        </Text>
+                                        <View style={[styles.flexRow, {alignItems: 'center'}]}>
+                                            <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, {marginRight: 4}]}>{supportText}</Text>
+                                            {arrowComponent(Expensicons.BackArrow)}
+                                            {arrowComponent(Expensicons.ArrowRight)}
+                                        </View>
                                     </View>
-                                    <View style={styles.flexRow}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         {shouldShowRBR && (
-                                            <Icon
-                                                src={Expensicons.DotIndicator}
-                                                fill={theme.danger}
-                                            />
+                                            <>
+                                                <Icon
+                                                    src={Expensicons.DotIndicator}
+                                                    fill={theme.danger}
+                                                />
+                                                <Text style={[styles.textDanger, styles.textNormal, styles.textLineHeightNormal]}>Here are RBR messages</Text>
+                                            </>
                                         )}
-                                        <Text>Here are RBR messages</Text>
                                     </View>
                                 </View>
-                                <FlatList
-                                    horizontal
-                                    data={[1, 2, 3, 4, 5]}
-                                    nestedScrollEnabled
-                                    scrollEnabled
-                                    keyExtractor={(item: number, index: number) => `${index}`}
-                                    contentContainerStyle={[styles.gap2, {gap: 8}]}
-                                    showsHorizontalScrollIndicator={false}
-                                    pagingEnabled
-                                    renderItem={(item) => (
-                                        <View style={[{backgroundColor: 'red', height: 100, marginRight: 8, borderWidth: 1, borderBlockColor: 'black'}, styles.moneyRequestPreviewBox]}>
-                                            <Text>{item.item} This is a TransactionPreview </Text>
-                                        </View>
-                                    )}
-                                />
+                                <View style={{flex: 1, flexDirection: 'row', overflow: 'visible'}}>
+                                    <FlatList
+                                        horizontal
+                                        data={transactions}
+                                        nestedScrollEnabled
+                                        scrollEnabled
+                                        keyExtractor={(item) => item.transactionID}
+                                        contentContainerStyle={[styles.gap2]}
+                                        // style={{overflow: 'visible'}}
+                                        showsHorizontalScrollIndicator={false}
+                                        pagingEnabled
+                                        renderItem={renderItem}
+                                        snapToOffsets={snapToOffsetsLikeGooglePlay}
+                                    />
+                                </View>
                                 {shouldShowSettlementButton && (
                                     <AnimatedSettlementButton
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}

@@ -1,10 +1,13 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {ListRenderItem, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -59,7 +62,7 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     isDelegateAccessRestricted: boolean;
 };
 
-type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps & MoneyRequestReportPreviewProps;
+type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps & MoneyRequestReportPreviewProps & {renderItem: ListRenderItem<Transaction> | null | undefined};
 
 function MoneyRequestReportPreview({
     iouReportID,
@@ -87,6 +90,15 @@ function MoneyRequestReportPreview({
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
+    const styles = useThemeStyles();
+
+    const renderItem: ListRenderItem<Transaction> = ({item}) => (
+        <View style={[{backgroundColor: 'red', height: 100, marginRight: 8, borderWidth: 1, borderBlockColor: 'black'}, styles.moneyRequestPreviewBox]}>
+            <Text>
+                This is a TransactionPreview for {item.amount} {item.currency}
+            </Text>
+        </View>
+    );
 
     return (
         <MoneyRequestReportPreviewContent
@@ -110,6 +122,7 @@ function MoneyRequestReportPreview({
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
             isDelegateAccessRestricted={isDelegateAccessRestricted}
+            renderItem={renderItem}
         />
     );
 }

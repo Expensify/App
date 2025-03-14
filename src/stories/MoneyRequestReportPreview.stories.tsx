@@ -1,12 +1,17 @@
 import React from 'react';
+import type {ListRenderItem} from 'react-native';
+import {View} from 'react-native';
 // import * as Expensicons from '@components/Icon/Expensicons';
 // import OnyxProvider from '@components/OnyxProvider';
 import type {MoneyRequestReportPreviewContentProps} from '@components/ReportActionItem/MoneyRequestReportPreview';
 // import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MoneyRequestReportPreviewContent from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent';
+import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
 
 // import { CONST } from 'expensify-common';
 
@@ -465,6 +470,22 @@ const mockAction = {
     childOwnerAccountID: 17748577,
 };
 
+const moneyRequestPreviewBox = {
+    backgroundColor: 'transparent',
+    borderRadius: variables.componentBorderRadiusLarge,
+    maxWidth: variables.reportPreviewMaxWidth,
+    width: '100%',
+};
+
+const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
+    <View style={[moneyRequestPreviewBox, {height: 280, width: 300, borderWidth: 1, borderBlockColor: 'black', padding: 10, justifyContent: 'center', alignItems: 'center'}]}>
+        <Text>This is a TransactionPreview</Text>
+        <Text>
+            for {item.amount} {item.currency}
+        </Text>
+    </View>
+);
+
 export default {
     title: 'Components/MoneyRequestReportPreviewContent',
     component: MoneyRequestReportPreviewContent,
@@ -529,6 +550,7 @@ export default {
         violations: mockViolations,
         invoiceReceiverPersonalDetail: undefined,
         invoiceReceiverPolicy: undefined,
+        renderItem: mockRenderItem,
     },
 };
 
