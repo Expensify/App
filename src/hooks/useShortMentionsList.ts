@@ -1,5 +1,6 @@
 import {useMemo} from 'react';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 const getMention = (mention: string) => `@${mention}`;
@@ -25,20 +26,26 @@ export default function useShortMentionsList() {
                     return;
                 }
 
+                // If the emails are not in the same private domain, we don't want to highlight them
+                if (!areEmailsFromSamePrivateDomain(personalDetail.login, currentUserPersonalDetails.login ?? '')) {
+                    return;
+                }
+
                 const [username] = personalDetail.login.split('@');
                 return username ? getMention(username) : undefined;
             })
             .filter((login): login is string => !!login);
-    }, [personalDetails]);
+    }, [currentUserPersonalDetails.login, personalDetails]);
 
-    const currentUserMention = useMemo(() => {
+    // We want to highlight both short and long version of current user login
+    const currentUserMentions = useMemo(() => {
         if (!currentUserPersonalDetails.login) {
-            return;
+            return [];
         }
 
         const [baseName] = currentUserPersonalDetails.login.split('@');
-        return getMention(baseName);
+        return [baseName, currentUserPersonalDetails.login].map(getMention);
     }, [currentUserPersonalDetails.login]);
 
-    return {mentionsList, currentUserMention};
+    return {mentionsList, currentUserMentions};
 }

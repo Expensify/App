@@ -23,7 +23,7 @@ type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & 
 function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTextInputWithRefProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
     const theme = useTheme();
 
-    const {mentionsList, currentUserMention} = useShortMentionsList();
+    const {mentionsList, currentUserMentions} = useShortMentionsList();
     const mentionsSharedVal = useSharedValue<string[]>(mentionsList);
 
     // If `parser` prop was passed down we use it directly, otherwise we default to parsing with ExpensiMark
@@ -35,9 +35,9 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
                 return parser(text);
             }
 
-            return parseExpensiMarkWithShortMentions(text, mentionsSharedVal.get(), currentUserMention);
+            return parseExpensiMarkWithShortMentions(text, mentionsSharedVal.get(), currentUserMentions);
         },
-        [currentUserMention, mentionsSharedVal, parser],
+        [currentUserMentions, mentionsSharedVal, parser],
     );
 
     useEffect(() => {

@@ -3,13 +3,13 @@ import {decorateRangesWithShortMentions} from '@libs/ParsingUtils';
 
 describe('decorateRangesWithShortMentions', () => {
     test('returns empty list for empty text', () => {
-        const result = decorateRangesWithShortMentions([], '', [], '');
+        const result = decorateRangesWithShortMentions([], '', [], []);
         expect(result).toEqual([]);
     });
 
     test('returns empty list when there are no relevant mentions', () => {
         const text = 'Lorem ipsum';
-        const result = decorateRangesWithShortMentions([], text, [], '');
+        const result = decorateRangesWithShortMentions([], text, [], []);
         expect(result).toEqual([]);
     });
 
@@ -22,7 +22,7 @@ describe('decorateRangesWithShortMentions', () => {
                 length: 3,
             },
         ];
-        const result = decorateRangesWithShortMentions(ranges, text, [], '');
+        const result = decorateRangesWithShortMentions(ranges, text, []);
         expect(result).toEqual([
             {
                 type: 'bold',
@@ -32,7 +32,7 @@ describe('decorateRangesWithShortMentions', () => {
         ]);
     });
 
-    test('returns ranges with current user type changed to "mention-here"', () => {
+    test('returns ranges with current user type changed to "mention-here" for short-mention', () => {
         const text = 'Lorem ipsum @myUser';
         const ranges: MarkdownRange[] = [
             {
@@ -41,12 +41,31 @@ describe('decorateRangesWithShortMentions', () => {
                 length: 8,
             },
         ];
-        const result = decorateRangesWithShortMentions(ranges, text, [], '@myUser');
+        const result = decorateRangesWithShortMentions(ranges, text, [], ['@myUser']);
         expect(result).toEqual([
             {
                 type: 'mention-here',
                 start: 12,
                 length: 8,
+            },
+        ]);
+    });
+
+    test('returns ranges with current user type changed to "mention-here" for full mention', () => {
+        const text = 'Lorem ipsum @myUser.email.com';
+        const ranges: MarkdownRange[] = [
+            {
+                type: 'mention-user',
+                start: 12,
+                length: 17,
+            },
+        ];
+        const result = decorateRangesWithShortMentions(ranges, text, [], ['@myUser.email.com']);
+        expect(result).toEqual([
+            {
+                type: 'mention-here',
+                start: 12,
+                length: 17,
             },
         ]);
     });
@@ -62,7 +81,7 @@ describe('decorateRangesWithShortMentions', () => {
         ];
         const availableMentions = ['@johnDoe', '@steven.mock'];
 
-        const result = decorateRangesWithShortMentions(ranges, text, availableMentions, '');
+        const result = decorateRangesWithShortMentions(ranges, text, availableMentions, []);
         expect(result).toEqual([
             {
                 type: 'mention-user',
@@ -88,7 +107,7 @@ describe('decorateRangesWithShortMentions', () => {
         ];
         const availableMentions = ['@other.person'];
 
-        const result = decorateRangesWithShortMentions(ranges, text, availableMentions, '');
+        const result = decorateRangesWithShortMentions(ranges, text, availableMentions, []);
         expect(result).toEqual([
             {
                 type: 'bold',
@@ -118,9 +137,9 @@ describe('decorateRangesWithShortMentions', () => {
             },
         ];
         const availableMentions = ['@johnDoe', '@steven.mock', '@John.current'];
-        const currentUser = '@John.current';
+        const currentUsers = ['@John.current'];
 
-        const result = decorateRangesWithShortMentions(ranges, text, availableMentions, currentUser);
+        const result = decorateRangesWithShortMentions(ranges, text, availableMentions, currentUsers);
         expect(result).toEqual([
             {
                 type: 'bold',
