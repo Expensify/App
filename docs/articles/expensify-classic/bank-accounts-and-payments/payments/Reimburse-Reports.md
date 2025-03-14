@@ -99,3 +99,5 @@ You can give another employee access to reimburse reports by doing the following
 ## Why can’t I trigger direct ACH reimbursements in bulk?
 
 Expensify does not offer bulk reimbursement, but you can automate reimbursements by setting a threshold amount under **Settings > Workspaces > [Workspace Name] > Reimbursement**. After setting a threshold amount, an employee's reimbursement is triggered once a report is **Final Approved**. If the total of a report is more than the threshold amount, the reimbursement will need to be manually triggered.
+
+</div>
