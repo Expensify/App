@@ -131,6 +131,9 @@ type ScreenWrapperProps = {
      */
     shouldKeyboardOffsetBottomSafeAreaPadding?: boolean;
 
+    /** Whether to use a sticky mobile offline indicator. */
+    shouldMobileOfflineIndicatorStickToBottom?: boolean;
+
     /** Whether the offline indicator should be translucent. */
     isOfflineIndicatorTranslucent?: boolean;
 };
@@ -167,6 +170,7 @@ function ScreenWrapper(
         focusTrapSettings,
         bottomContent,
         enableEdgeToEdgeBottomSafeAreaPadding = false,
+        shouldMobileOfflineIndicatorStickToBottom = enableEdgeToEdgeBottomSafeAreaPadding,
         shouldKeyboardOffsetBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding,
         isOfflineIndicatorTranslucent = enableEdgeToEdgeBottomSafeAreaPadding,
     }: ScreenWrapperProps,
@@ -333,10 +337,15 @@ function ScreenWrapper(
 
     const addWidescreenOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true;
     const showTranslucentOfflineIndicator = isOfflineIndicatorTranslucent && !bottomContent && (isSoftKeyNavigation || isOffline);
-    const shouldUseStickyMobileOfflineIndicator = enableEdgeToEdgeBottomSafeAreaPadding && !bottomContent;
+    const displayStickyMobileOfflineIndicator = shouldMobileOfflineIndicatorStickToBottom && !bottomContent;
+
+    const mobileOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: displayStickyMobileOfflineIndicator,
+        styleProperty: isSoftKeyNavigation ? 'bottom' : 'paddingBottom',
+    });
     const mobileOfflineIndicatorContainerStyle = useMemo(
-        () => shouldUseStickyMobileOfflineIndicator && StyleUtils.getEdgeToEdgeMobileOfflineIndicatorStyle(isSoftKeyNavigation, paddingBottom),
-        [StyleUtils, shouldUseStickyMobileOfflineIndicator, paddingBottom, isSoftKeyNavigation],
+        () => displayStickyMobileOfflineIndicator && [styles.stickToBottom, mobileOfflineIndicatorBottomSafeAreaStyle],
+        [displayStickyMobileOfflineIndicator, styles.stickToBottom, mobileOfflineIndicatorBottomSafeAreaStyle],
     );
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());

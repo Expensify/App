@@ -1765,14 +1765,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
-
-    getEdgeToEdgeMobileOfflineIndicatorStyle: (isSoftKeyNavigation: boolean, paddingBottom: number): StyleProp<ViewStyle> => [
-        styles.stickToBottom,
-        {
-            bottom: isSoftKeyNavigation ? paddingBottom : 0,
-            paddingBottom: isSoftKeyNavigation ? 0 : paddingBottom,
-        },
-    ],
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
