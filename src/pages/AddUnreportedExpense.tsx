@@ -2,24 +2,21 @@ import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ImportedStateIndicator from '@components/ImportedStateIndicator';
+import Hoverable from '@components/Hoverable';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
-import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
-import TransactionItemComponent from '@components/TransactionItemComponent';
+import TransactionItemRow from '@components/TransactionItemRow';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import type {Option, Section} from '@libs/OptionsListUtils';
+import type {Section} from '@libs/OptionsListUtils';
 import navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import {getAllTransactions} from '@userActions/Transaction';
-import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 import NewChatSelectorPage from './NewChatSelectorPage';
 
@@ -40,39 +37,59 @@ function unreportedExpenseListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [isSelected, setIsSelected] = useState<boolean>(false);
+    const theme = useTheme();
 
-    const backgroundColor = isSelected || isFocused ? styles.buttonDefaultBG : styles.highlightBG;
+    const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
+
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: variables.componentBorderRadius,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.highlightBG,
+    });
 
     return (
         <BaseListItem
             item={item}
-            isFocused={false}
+            isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
-            onSelectRow={() => {
-                setIsSelected((selected) => !selected);
-            }}
-            onDismissError={onDismissError}
-            shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
-            errors={item.errors}
             pendingAction={item.pendingAction}
-            pressableStyle={pressableStyle}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            hoverStyle={item.isSelected && styles.activeComponentBG}
+            pressableWrapperStyle={[animatedHighlightStyle]}
+            onSelectRow={() => {
+                setIsSelected((val) => !val);
+            }}
         >
-            <View style={[{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}, styles.mb3]}>
-                <TransactionItemComponent
-                    transactionItem={item}
-                    shouldUseNarrowLayout
-                    isSelected={isSelected}
-                />
-                <View style={[backgroundColor, styles.minHeight22, styles.justifyContentCenter, styles.alignItemsCenter, styles.expenseWidgetSelectCircle, styles.mln2, styles.pr2]}>
-                    <SelectCircle isChecked={isSelected} />
-                </View>
-            </View>
+            <Hoverable>
+                {(hovered) => (
+                    <View style={[{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}]}>
+                        <TransactionItemRow
+                            transactionItem={item}
+                            shouldUseNarrowLayout
+                            isSelected={isSelected}
+                        />
+                        <View
+                            style={[
+                                hovered ? styles.buttonDefaultBG : styles.highlightBG,
+                                backgroundColor,
+                                styles.minHeight22,
+                                styles.justifyContentCenter,
+                                styles.alignItemsCenter,
+                                styles.expenseWidgetSelectCircle,
+                                styles.mln2,
+                                styles.pr2,
+                            ]}
+                        >
+                            <SelectCircle isChecked={isSelected} />
+                        </View>
+                    </View>
+                )}
+            </Hoverable>
         </BaseListItem>
     );
 }
