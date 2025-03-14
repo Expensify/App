@@ -3,6 +3,13 @@ import type {NonEmptyTuple, ValueOf} from 'type-fest';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
 import type ONYXKEYS from '@src/ONYXKEYS';
 
+type DerivedValueContext<Key extends OnyxKey, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>> = {
+    currentValue?: OnyxValue<Key>;
+    sourceValues?: {
+        [K in Deps[number] as K extends OnyxCollectionKey ? K : never]?: K extends keyof OnyxCollectionValuesMapping ? OnyxCollection<OnyxCollectionValuesMapping[K]> : never;
+    };
+};
+
 /**
  * A derived value configuration describes:
  *  - a tuple of Onyx keys to subscribe to (dependencies),
@@ -17,14 +24,8 @@ type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps e
         args: {
             [Index in keyof Deps]: OnyxValue<Deps[Index]>;
         },
-        context: {
-            currentValue?: OnyxValue<OnyxKey>;
-            sourceValues?: {
-                [K in Deps[number] as K extends OnyxCollectionKey ? K : never]?: K extends keyof OnyxCollectionValuesMapping ? OnyxCollection<OnyxCollectionValuesMapping[K]> : never;
-            };
-        },
+        context: DerivedValueContext<Key, Deps>,
     ) => OnyxDerivedValuesMapping[Key];
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export type {OnyxDerivedValueConfig};
+export type {OnyxDerivedValueConfig, DerivedValueContext};

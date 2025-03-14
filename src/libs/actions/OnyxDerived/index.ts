@@ -10,6 +10,7 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
+import type {DerivedValueContext} from './types';
 
 /**
  * Initialize all Onyx derived values, store them in Onyx, and setup listeners to update them when dependencies change.
@@ -23,11 +24,11 @@ function init() {
         OnyxUtils.get(key).then((storedDerivedValue) => {
             let derivedValue = storedDerivedValue;
             if (derivedValue) {
-                Log.info(`Derived value ${derivedValue} for ${key} restored from disk`);
+                Log.info(`Derived value for ${key} restored from disk`);
             } else {
                 OnyxUtils.tupleGet(dependencies).then((values) => {
-                    dependencyValues = values;
                     derivedValue = compute(values, {currentValue: derivedValue});
+                    dependencyValues = values;
                     Onyx.set(key, derivedValue ?? null);
                 });
             }
@@ -37,7 +38,7 @@ function init() {
             };
 
             const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown) => {
-                const context: Parameters<typeof compute>[1] = {
+                const context: DerivedValueContext<typeof key, typeof dependencies> = {
                     currentValue: derivedValue,
                     sourceValues: undefined,
                 };
