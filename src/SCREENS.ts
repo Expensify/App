@@ -34,6 +34,7 @@ const SCREENS = {
         DOMAIN_SELECTOR: 'Travel_DomainSelector',
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
+        WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -166,6 +167,7 @@ const SCREENS = {
         PROFILE: 'Profile',
         NEW_REPORT_WORKSPACE_SELECTION: 'New_Report_Workspace_Selection',
         REPORT_DETAILS: 'Report_Details',
+        REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
@@ -339,6 +341,10 @@ const SCREENS = {
         EXPORT: 'Report_Details_Export',
     },
 
+    REPORT_CHANGE_WORKSPACE: {
+        ROOT: 'ReportChangeWorkspace_Root',
+    },
+
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
 
     WORKSPACE: {
@@ -478,6 +484,7 @@ const SCREENS = {
         PROFILE: 'Workspace_Overview',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_ASSIGN_CARD: 'Workspace_CompanyCards_AssignCard',
+        COMPANY_CARDS_TRANSACTION_START_DATE: 'Workspace_CompanyCards_TransactionStartDate',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
         COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
         COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
@@ -652,6 +659,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
+    CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     REPORT_PARTICIPANTS: {
         ROOT: 'ReportParticipants_Root',

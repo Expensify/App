@@ -4,8 +4,7 @@ import useSafeAreaInsets from './useSafeAreaInsets';
 import useStyleUtils from './useStyleUtils';
 
 /**
- * Custom hook to get the styled safe area insets. The top and bottom padding values are adjusted
- * so that they will only ever be applied once per <ScreenWrapper>.
+ * Custom hook to get safe area padding values and styles.
  *
  * This hook utilizes the `SafeAreaInsetsContext` to retrieve the current safe area insets
  * and applies styling adjustments using the `useStyleUtils` hook.
@@ -26,28 +25,41 @@ import useStyleUtils from './useStyleUtils';
  * }
  *
  * function MyComponent() {
- *     const { paddingTop, paddingBottom, safeAreaPaddingBottomStyle } = useStyledSafeAreaInsets();
+ *     const { paddingTop, paddingBottom, safeAreaPaddingBottomStyle } = useSafeAreaPaddings();
  *
  *     // Use these values to style your component accordingly
  * }
  */
-function useStyledSafeAreaInsets() {
+function useSafeAreaPaddings(enableEdgeToEdgeBottomSafeAreaPadding = false) {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
+    const {paddingTop, paddingBottom} = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
 
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
     const isSafeAreaTopPaddingApplied = screenWrapperStatusContext?.isSafeAreaTopPaddingApplied ?? false;
     const isSafeAreaBottomPaddingApplied = screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false;
+
+    const adaptedPaddingBottom = isSafeAreaBottomPaddingApplied ? 0 : paddingBottom;
+    const safeAreaPaddingBottomStyle = useMemo(
+        () => ({paddingBottom: enableEdgeToEdgeBottomSafeAreaPadding ? paddingBottom : adaptedPaddingBottom}),
+        [adaptedPaddingBottom, enableEdgeToEdgeBottomSafeAreaPadding, paddingBottom],
+    );
+
+    if (enableEdgeToEdgeBottomSafeAreaPadding) {
+        return {
+            paddingTop,
+            paddingBottom,
+            unmodifiedPaddings: {},
+            insets,
+            safeAreaPaddingBottomStyle,
+        };
+    }
 
     const adaptedInsets = {
         ...insets,
         top: isSafeAreaTopPaddingApplied ? 0 : insets?.top,
         bottom: isSafeAreaBottomPaddingApplied ? 0 : insets?.bottom,
     };
-    const adaptedPaddingBottom = isSafeAreaBottomPaddingApplied ? 0 : paddingBottom;
-
-    const safeAreaPaddingBottomStyle = useMemo(() => ({paddingBottom: adaptedPaddingBottom}), [adaptedPaddingBottom]);
 
     return {
         paddingTop: isSafeAreaTopPaddingApplied ? 0 : paddingTop,
@@ -61,4 +73,4 @@ function useStyledSafeAreaInsets() {
     };
 }
 
-export default useStyledSafeAreaInsets;
+export default useSafeAreaPaddings;
