@@ -14,9 +14,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
+type EmailSubmitParams = {signerEmail: string, secondSignerEmail?: string};
+
 type EnterEmailProps = {
     /** Callback when the form is submitted */
-    onSubmit: () => void;
+    onSubmit: (values: EmailSubmitParams) => void;
 
     /** Whether the user is a director */
     isUserDirector: boolean;
@@ -87,4 +89,5 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
 
 EnterEmail.displayName = 'EnterEmail';
 
+export type {EmailSubmitParams};
 export default EnterEmail;

@@ -5,10 +5,10 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type { SubStepProps } from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
-import {clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
+import { askForCorpaySignerInformation, clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation } from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -20,6 +20,7 @@ import DateOfBirth from './subSteps/DateOfBirth';
 import JobTitle from './subSteps/JobTitle';
 import Name from './subSteps/Name';
 import UploadDocuments from './subSteps/UploadDocuments';
+
 
 type SignerInfoProps = {
     /** Handles back button press */
@@ -149,10 +150,15 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         }
     }, [currentSubStep, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
 
-    const handleEmailSubmit = useCallback(() => {
-        // TODO: the message to the email provided in the previous step should be sent
+    const handleEmailSubmit = useCallback((values: EmailSubmitParams) => {
+        askForCorpaySignerInformation({
+            signerEmail: values.signerEmail,
+            secondSignerEmail: values.secondSignerEmail,
+            policyID: String(policyID),
+            bankAccountID,
+        });
         setCurrentSubStep(SUBSTEP.HANG_TIGHT);
-    }, []);
+    }, [bankAccountID, policyID]);
 
     return (
         <InteractiveStepWrapper
