@@ -592,6 +592,7 @@ describe('ReportUtils', () => {
                 isUnreadWithMention: false,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                hasParentAccess: false,
             };
             expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });

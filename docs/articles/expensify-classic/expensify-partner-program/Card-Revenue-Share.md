@@ -1,27 +1,42 @@
 ---
-title: Expensify Card revenue share for ExpensifyApproved! partners
-description: Earn money when your clients adopt the Expensify Card
+title: Expensify-Card-Revenue-Share.md
+description: Learn how ExpensifyApproved! partner accountants can earn revenue by helping clients adopt the Expensify Card.
+keywords: [Expensify Card, revenue share, ExpensifyApproved! partner, accountant earnings]
 ---
-You can now earn additional income for your firm every time your client uses their Expensify Card. In short, your firm gets 0.5% of your clients’ total Expensify Card spend as cash back. The more your clients spend, the more cashback your firm receives!
 
-This program is currently only available to US-based ExpensifyApproved! partner accountants.
+ExpensifyApproved! Accounting Partners in the US can now earn additional income through the Expensify Card. Your firm will receive **0.5% of your clients’ total Expensify Card spend** as cashback -- More client spending means more revenue for your firm!
 
-# Become a Domain Admin
-To benefit from this program, you or a member of your firm must be a domain admin on the client’s domain in Expensify:
-1. Head to *Settings > Domains*
-2. Click the client's domain
-     - If you can click on the domain and access the domain settings, you are a Domain Admin
-     - If you’re not a Domain Admin, your client can add you as one by heading to **Settings > Domains > [Client's Domain] > Domain Admins > Add Admin**.
+**Note:** This program is currently available only to **US-based ExpensifyApproved! partner accountants**.
 
-_**Note:** You can view all domain admins under Settings > Domains > [Client's Domain] > Domain Admins._
+---
 
-# Connect a deposit-only business bank account
-[Follow these instructions](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#connect-a-business-deposit-only-account) to connect a deposit-only business bank account.
+# How to Earn Revenue
 
-Once that's complete, any revenue earned will be deposited directly into that bank account. 
+## 1. Become a Domain Admin
+To qualify, you or a member of your firm must be a **Domain Admin** on the client’s domain in Expensify.
 
-{% include faq-begin.md %}
+Steps to becoming a Domain Admin:
+1. Go to **Settings > Domains**.
+2. Click on your client’s domain.
+   - If you can access the domain settings, you are a Domain Admin.
+   - If you are not a Domain Admin, ask your client to add you:
+     - Navigate to **Settings > Domains > [Client's Domain] > Domain Admins > Add Admin**.
 
-## What if my firm is not permitted to accept revenue share from our clients?
+**Tip:** You can view all Domain Admins under **Settings > Domains > [Client's Domain] > Domain Admins**.
 
-We understand that different firms may have different policies. If your firm is unable to accept this revenue share, you can pass the revenue share back to your client to give them an additional 0.5% of cash back using your own internal payment tools.
+---
+
+## 2. Connect a Deposit-Only Business Bank Account
+To receive your revenue share, connect a **deposit-only business bank account**:
+
+[Follow these instructions](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#connect-a-business-deposit-only-account) to complete the setup.
+
+Once connected, all earned revenue will be deposited directly into this account.
+
+---
+
+# FAQ
+
+## What if my firm cannot accept revenue share from clients?
+
+We understand that some firms have restrictions on receiving revenue share. If your firm cannot accept the cashback, you can choose to pass the 0.5% cashback directly to your client using your internal payment tools.

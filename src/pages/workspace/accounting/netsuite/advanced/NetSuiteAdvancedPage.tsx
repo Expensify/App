@@ -100,9 +100,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 if (!autoSyncConfig?.autoSync?.enabled) {
                     return undefined;
                 }
-                return translate(
-                    `workspace.netsuite.advancedConfig.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths,
-                );
+                return translate(`workspace.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths);
             })(),
             subscribedSettings: [CONST.NETSUITE_CONFIG.AUTO_SYNC, CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD],
         },
