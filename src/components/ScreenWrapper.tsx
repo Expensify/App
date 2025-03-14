@@ -327,12 +327,12 @@ function ScreenWrapper(
         [enableEdgeToEdgeBottomSafeAreaPadding, edgeToEdgeBottomContentStyle, legacyBottomContentStyle],
     );
 
-    const shouldUseStickyMobileOfflineIndicator = enableEdgeToEdgeBottomSafeAreaPadding && !bottomContent;
-    const addMobileOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !shouldUseStickyMobileOfflineIndicator : !includeSafeAreaPaddingBottom;
+    const addMobileOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : !includeSafeAreaPaddingBottom;
     const addWidescreenOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true;
 
     const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);
     const isSoftKeyNavigation = navigationBarType === CONST.NAVIGATION_BAR_TYPE.SOFT_KEYS;
+    const shouldUseStickyMobileOfflineIndicator = enableEdgeToEdgeBottomSafeAreaPadding && !bottomContent;
     const mobileOfflineIndicatorContainerStyle = useMemo(
         () => (shouldUseStickyMobileOfflineIndicator ? StyleUtils.getEdgeToEdgeMobileOfflineIndicatorStyle(isSoftKeyNavigation, paddingBottom) : styles.offlineIndicatorMobile),
         [StyleUtils, shouldUseStickyMobileOfflineIndicator, paddingBottom, styles.offlineIndicatorMobile, isSoftKeyNavigation],
@@ -386,7 +386,7 @@ function ScreenWrapper(
                                     <>
                                         <OfflineIndicator
                                             containerStyles={mobileOfflineIndicatorContainerStyle}
-                                            style={[offlineIndicatorStyle]}
+                                            style={[styles.pl5, styles.offlineIndicatorContainer, offlineIndicatorStyle]}
                                             isTranslucent={isOfflineIndicatorTranslucent}
                                             addBottomSafeAreaPadding={addMobileOfflineIndicatorBottomSafeAreaPadding}
                                         />
@@ -398,7 +398,7 @@ function ScreenWrapper(
                                     <>
                                         <OfflineIndicator
                                             containerStyles={[]}
-                                            style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                            style={[styles.pl5, styles.offlineIndicatorContainer, offlineIndicatorStyle]}
                                             addBottomSafeAreaPadding={addWidescreenOfflineIndicatorBottomSafeAreaPadding}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}

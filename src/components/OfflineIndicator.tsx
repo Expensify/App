@@ -45,7 +45,7 @@ function OfflineIndicator({
     const containerStyles = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding,
-        style: containerStylesProp ?? (shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator),
+        style: containerStylesProp ?? [styles.offlineIndicatorContainer, !shouldUseNarrowLayout && styles.offlineIndicatorLeftSpacing],
     });
 
     if (!isOffline) {

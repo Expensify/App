@@ -1148,18 +1148,11 @@ const styles = (theme: ThemeColors) =>
             marginLeft: variables.chatInputSpacing,
         },
 
-        offlineIndicator: {
+        offlineIndicatorLeftSpacing: {
             marginLeft: variables.chatInputSpacing,
         },
 
-        offlineIndicatorMobile: {
-            paddingLeft: variables.offlineIndicatorHorizontalPadding,
-            paddingTop: variables.offlineIndicatorVerticalPadding,
-            paddingBottom: variables.offlineIndicatorVerticalPadding + 25,
-            marginBottom: -25,
-        },
-
-        offlineIndicatorRow: {
+        offlineIndicatorContainer: {
             height: variables.offlineIndicatorHeight,
         },
 
