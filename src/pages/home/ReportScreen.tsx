@@ -315,8 +315,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.dismissModal();
             return;
         }
+        if (route.params.backTo) {
+            Navigation.goBack(route.params.backTo);
+            return;
+        }
         Navigation.goBack(undefined, {shouldPopToTop: true});
-    }, [isInNarrowPaneModal]);
+    }, [isInNarrowPaneModal, route.params.backTo]);
 
     let headerView = (
         <HeaderView
