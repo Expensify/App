@@ -45,7 +45,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
             'worklet';
 
             mentionsSharedVal.set(mentionsList);
-        });
+        })();
     }, [mentionsList, mentionsSharedVal]);
 
     return (
