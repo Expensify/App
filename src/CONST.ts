@@ -2969,6 +2969,18 @@ const CONST = {
         },
     },
 
+    HELP_DOC_LINKS: {
+        'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        'QuickBooks Desktop': '',
+        quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        NetSuite: 'https://help.expensify.com/articles/new-expensify/connections/netsuite/Configure-Netsuite',
+        Xero: 'https://help.expensify.com/articles/new-expensify/connections/xero/Configure-Xero',
+        Intacct: 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
+        FinancialForce: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
+        'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
+        Certinia: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
+    },
+
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
         NAME_PER_DIEM_INTERNATIONAL: 'Per Diem International',
