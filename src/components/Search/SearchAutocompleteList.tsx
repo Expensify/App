@@ -381,7 +381,7 @@ function SearchAutocompleteList(
                     .filter((card) => isCard(card) && !isCardHiddenFromSearch(card))
                     .filter(
                         (card) =>
-                            (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || card.lastFourPAN?.includes(autocompleteValue.toLowerCase())) &&
+                            (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || card.lastFourPAN?.includes(autocompleteValue)) &&
                             !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()),
                     )
                     .sort()
