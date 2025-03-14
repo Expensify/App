@@ -56,7 +56,7 @@ function parseMessage(messages: Message[] | undefined) {
         const nextPart = messages.at(index + 1);
 
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-            tagType = 'strong';
+            tagType = 'next-step-email';
             content = nextPart?.text === `'s` ? 'your' : 'you';
         } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
             content = '';
