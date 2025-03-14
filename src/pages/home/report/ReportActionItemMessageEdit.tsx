@@ -1,6 +1,5 @@
 import lodashDebounce from 'lodash/debounce';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {findNodeHandle, InteractionManager, Keyboard, View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
@@ -80,10 +79,7 @@ const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 // video source -> video attributes
 const draftMessageVideoAttributeCache = new Map<string, string>();
 
-function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
-    forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
-) {
+function ReportActionItemMessageEdit({action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps) {
     const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -144,11 +140,12 @@ function ReportActionItemMessageEdit(
     useEffect(
         // Remove focus callback on unmount to avoid stale callbacks
         () => {
+            const ref = textInputRef.current;
             if (textInputRef.current) {
-                ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+                ReportActionComposeFocusManager.editComposerRef.current = ref;
             }
             return () => {
-                if (ReportActionComposeFocusManager.editComposerRef.current !== textInputRef.current) {
+                if (ReportActionComposeFocusManager.editComposerRef.current !== ref) {
                     return;
                 }
                 ReportActionComposeFocusManager.clear(true);
@@ -450,15 +447,8 @@ function ReportActionItemMessageEdit(
                     <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                         <Composer
                             multiline
-                            ref={(el: TextInput & HTMLTextAreaElement) => {
-                                textInputRef.current = el;
-                                if (typeof forwardedRef === 'function') {
-                                    forwardedRef(el);
-                                } else if (forwardedRef) {
-                                    // eslint-disable-next-line no-param-reassign
-                                    forwardedRef.current = el;
-                                }
-                            }}
+                            ref={textInputRef}
+                            autoFocus={prevDraftMessage === undefined || draftMessage !== undefined}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
@@ -564,4 +554,4 @@ function ReportActionItemMessageEdit(
 
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default forwardRef(ReportActionItemMessageEdit);
+export default ReportActionItemMessageEdit;
