@@ -202,6 +202,7 @@ const SCREENS = {
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
     },
+    PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
     },
