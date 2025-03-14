@@ -723,12 +723,8 @@ function clearSageIntacctErrorField(policyID: string | undefined, fieldName: str
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
-function clearNetSuiteAutoSyncErrorField(policyID: string | undefined) {
+function clearNetSuiteAutoSyncErrorField(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {config: {errorFields: {autoSync: null}}}}});
-}
-
-function clearQuickbooksOnlineAutoSyncErrorField(policyID: string | undefined) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {autoSync: null}}}}});
 }
 
 function clearNSQSErrorField(policyID: string, fieldName: string) {
@@ -5030,7 +5026,6 @@ export {
     clearNetSuiteErrorField,
     clearNetSuitePendingField,
     clearNetSuiteAutoSyncErrorField,
-    clearQuickbooksOnlineAutoSyncErrorField,
     removeNetSuiteCustomFieldByIndex,
     clearWorkspaceReimbursementErrors,
     setWorkspaceCurrencyDefault,
