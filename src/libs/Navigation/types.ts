@@ -805,7 +805,6 @@ type SettingsNavigatorParamList = {
         login: string;
         role: string;
         showValidateActionModal?: string;
-        newRole?: string;
     };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
