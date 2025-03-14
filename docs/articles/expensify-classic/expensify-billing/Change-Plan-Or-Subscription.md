@@ -3,6 +3,7 @@ title: Changing Your Workspace Plan
 description: How to change your Expensify plan or subscription
 keywords: [Expensify Classic, workspace plan, subscription]
 ---
+<div id="expensify-classic" markdown="1">
 
 Expensify offers several plans based on your needs: **Track, Submit, Collect, Control,** and **Free**. Your choice depends on whether you manage expenses individually or for a group or company. You may need to upgrade if you hire employees who need access to a **Group Workspace** or require features exclusive to paid plans.
 
@@ -105,3 +106,4 @@ Yes, monthly subscriptions are prepaid and not usage-based, so you will be charg
 ## I'm in a Group Workspace. Do I need the monthly subscription too?
 No, Group Workspace members already have unlimited **SmartScans**. However, you can keep a subscription for personal use if you leave your company's Workspace.
 
+</div>
