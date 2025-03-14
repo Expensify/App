@@ -78,6 +78,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                     policy={policy}
                     reportActions={[]}
                     transactionThreadReportID={undefined}
+                    shouldDisplayBackButton
                     onBackButtonPress={() => {
                         Navigation.goBack();
                     }}
@@ -115,6 +116,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                                 policy={policy}
                                 reportActions={[]}
                                 transactionThreadReportID={undefined}
+                                shouldDisplayBackButton
                                 onBackButtonPress={() => {
                                     Navigation.goBack();
                                 }}

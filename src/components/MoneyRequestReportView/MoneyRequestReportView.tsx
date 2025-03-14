@@ -12,7 +12,7 @@ import {
     getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
     getSortedReportActionsForDisplay,
-    isConsecutiveActionMadeByPreviousActor,
+    hasNextActionMadeBySameActor,
     isConsecutiveChronosAutomaticTimerAction,
     isDeletedParentAction,
     shouldReportActionBeVisible,
@@ -38,26 +38,31 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
+function isChatOnlyReportAction(action: OnyxTypes.ReportAction) {
+    return action.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU && action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED;
+}
+
 /**
- * TODO
- * This component is under construction and not yet displayed to any users.
+ * TODO This component is under construction and not yet displayed to any users.
  */
 function MoneyRequestReportView({report}: TemporaryMoneyRequestReportViewProps) {
     const styles = useThemeStyles();
 
     const reportID = report?.reportID;
 
-    // const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID);
-    // const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`);
-    // const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`);
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true});
-    // const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {allowStaleData: true});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID)}`, {
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID),
     });
 
-    const {reportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
+    const {
+        reportActions,
+        // linkedAction, Todo - do I need this?
+        // sortedAllReportActions,
+        // hasNewerActions,
+        // hasOlderActions
+    } = usePaginatedReportActions(reportID);
 
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
 
@@ -72,18 +77,8 @@ function MoneyRequestReportView({report}: TemporaryMoneyRequestReportViewProps) 
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`);
 
-    const actionsChatItem = reportActions.filter((ra) => {
-        return ra.actionName !== 'IOU' && ra.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED;
-    });
-
-    // // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
-    // // so that we display transaction-level and report-level report actions in order in the one-transaction view
-    // const reportActions2 = useMemo(
-    //     () => (reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? []) : []),
-    //     [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID],
-    // );
-
-    /* Thread's divider line should hide when the first chat in the thread is marked as unread.
+    /* Todo fix divider line
+     * Thread's divider line should hide when the first chat in the thread is marked as unread.
      * This is so that it will not be conflicting with header's separator line.
      */
     // const shouldHideThreadDividerLine = useMemo(
@@ -100,45 +95,56 @@ function MoneyRequestReportView({report}: TemporaryMoneyRequestReportViewProps) 
     );
 
     const canPerformWriteAction = canUserPerformWriteAction(report);
-    const visibleReportActions = useMemo(() => {
-        const filteredActions = actionsChatItem.filter(
-            (reportAction) =>
-                (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
-                shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction),
-        );
 
-        return [...filteredActions].toReversed();
-    }, [actionsChatItem, isOffline, canPerformWriteAction]);
+    // We are reversing actions because in this View we are starting at the top and don't use Inverted list
+    const visibleReportActions = useMemo(() => {
+        const filteredActions = reportActions.filter((reportAction) => {
+            const isChatAction = isChatOnlyReportAction(reportAction);
+
+            return (
+                isChatAction &&
+                (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
+                shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction)
+            );
+        });
+
+        return filteredActions.toReversed();
+    }, [reportActions, isOffline, canPerformWriteAction]);
 
     const transactionList = Object.values(transactions).filter((transaction): transaction is Transaction => {
         return transaction?.reportID === reportID;
     });
 
     const renderItem = useCallback(
-        ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
-            <ReportActionsListItemRenderer
-                reportAction={reportAction}
-                parentReportAction={parentReportAction}
-                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                index={index}
-                report={report}
-                transactionThreadReport={transactionThreadReport}
-                displayAsGroup={
-                    !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                    isConsecutiveActionMadeByPreviousActor(visibleReportActions, index)
-                }
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                shouldHideThreadDividerLine
-                shouldDisplayNewMarker={false}
-                // shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                // shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                // shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                shouldDisplayReplyDivider={visibleReportActions.length > 1}
-                isFirstVisibleReportAction={false}
-            />
-        ),
+        ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+            const displayAsGroup =
+                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
+                hasNextActionMadeBySameActor(visibleReportActions, index);
+
+            return (
+                <ReportActionsListItemRenderer
+                    reportAction={reportAction}
+                    reportActions={reportActions}
+                    parentReportAction={parentReportAction}
+                    parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                    index={index}
+                    report={report}
+                    transactionThreadReport={transactionThreadReport}
+                    displayAsGroup={displayAsGroup}
+                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                    shouldHideThreadDividerLine
+                    shouldDisplayNewMarker={false}
+                    // shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    // shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                    // shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                    shouldDisplayReplyDivider={visibleReportActions.length > 1}
+                    isFirstVisibleReportAction={false}
+                />
+            );
+        },
         [
             report,
+            reportActions,
             visibleReportActions,
             mostRecentIOUReportActionID,
             parentReportAction,
@@ -147,7 +153,6 @@ function MoneyRequestReportView({report}: TemporaryMoneyRequestReportViewProps) 
             // unreadMarkerReportActionID,
             // shouldHideThreadDividerLine,
             // shouldUseThreadDividerLine,
-            // firstVisibleReportActionID,
         ],
     );
 
@@ -179,8 +184,6 @@ function MoneyRequestReportView({report}: TemporaryMoneyRequestReportViewProps) 
                     // onContentSizeChange={onContentSizeChangeInner}
                     // onScroll={trackVerticalScrolling}
                     // onScrollToIndexFailed={onScrollToIndexFailed}
-                    // extraData={extraData}
-                    // key={listID}
                     // shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                     // initialScrollKey={reportActionID}
                 />
