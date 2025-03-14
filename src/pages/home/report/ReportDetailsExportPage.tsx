@@ -10,6 +10,7 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -36,6 +37,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 
     const {translate} = useLocalize();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
+    const styles = useThemeStyles();
 
     const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
     const canBeExported = ReportUtils.canBeExported(report);
@@ -94,6 +96,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.goBack()}
                     illustrationStyle={{width: 233, height: 162}}
+                    containerStyle={styles.flex1}
                 />
             </ScreenWrapper>
         );
