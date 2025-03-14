@@ -2785,24 +2785,23 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // 4. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
     // 5. REPORT_PREVIEW action for the chatReport
     // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
-    const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
-        buildOptimisticMoneyRequestEntities(
-            iouReport,
-            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            amount,
-            currency,
-            comment,
-            payeeEmail,
-            [participant],
-            optimisticTransaction.transactionID,
-            undefined,
-            false,
-            false,
-            false,
-            undefined,
-            linkedTrackedExpenseReportAction?.childReportID,
-            linkedTrackedExpenseReportAction,
-        );
+    const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction] = buildOptimisticMoneyRequestEntities(
+        iouReport,
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        amount,
+        currency,
+        comment,
+        payeeEmail,
+        [participant],
+        optimisticTransaction.transactionID,
+        undefined,
+        false,
+        false,
+        false,
+        undefined,
+        linkedTrackedExpenseReportAction?.childReportID,
+        linkedTrackedExpenseReportAction,
+    );
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
@@ -2857,8 +2856,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             },
             transactionParams: {
                 transaction: optimisticTransaction,
-                transactionThreadReport: optimisticTransactionThread,
-                transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+                transactionThreadReport: null,
+                transactionThreadCreatedReportAction: null,
             },
             policyRecentlyUsed: {
                 categories: optimisticPolicyRecentlyUsedCategories,
@@ -2880,8 +2879,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : undefined,
         createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOUReport.reportActionID : undefined,
         reportPreviewAction,
-        transactionThreadReportID: optimisticTransactionThread?.reportID,
-        createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
+        transactionThreadReportID: '',
+        createdReportActionIDForThread: '',
         onyxData: {
             optimisticData,
             successData,
