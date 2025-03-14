@@ -3,6 +3,7 @@ title: Reimburse Reports
 description: Learn how to reimburse reports in Expensify using direct deposit, global reimbursement, third-party payment providers, or manual tracking methods.
 keywords: [Expensify Classic, reimburse reports, direct deposit, USD, ACH, global reimbursement]
 ---
+<div id="expensify-classic" markdown="1">
 
 Once a report is submitted and approved, you can reimburse the expenses directly via direct deposit or global reimbursement, use an indirect reimbursement method (such as a third-party payment processor), or mark the report as reimbursed outside of Expensify (if your organization bundles reimbursements in payroll, for instance).
 
