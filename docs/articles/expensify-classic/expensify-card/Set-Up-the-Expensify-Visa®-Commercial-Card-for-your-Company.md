@@ -3,8 +3,11 @@ title: Set Up the Expensify Visa® Commercial Card for Your Company
 description: Step-by-step guide for admins to set up the Expensify Card for their organization.
 keywords: [Expensify Classic, Expensify Card, qualify, apply]
 ---
+<div id="expensify-classic" markdown="1">
 
 If you're an admin looking to roll out the Expensify Visa® Commercial Card for your organization, you're in the right place. This guide will walk you through the steps to qualify, apply for, and issue the Expensify Card to your employees.
+
+---
 
 # How to Qualify for the Expensify Card Program
 
@@ -89,3 +92,5 @@ The Expensify Card is free and has no fees associated with it. Additionally, usi
 Yes, as long as your business bank account is US-based, your cardholders can be located anywhere in the world.
 
 Currently, the Expensify Card is not available for customers with non-US bank accounts, but international support is a priority. Contact support if you'd like to be notified when it becomes available.
+
+</div>
