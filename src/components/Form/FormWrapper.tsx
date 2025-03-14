@@ -71,7 +71,7 @@ function FormWrapper({
     isSubmitDisabled = false,
     isLoading = false,
     shouldScrollToEnd = false,
-    addBottomSafeAreaPadding = false,
+    addBottomSafeAreaPadding = true,
     addOfflineIndicatorBottomSafeAreaPadding = false,
     shouldSubmitButtonStickToBottom = false,
 }: FormWrapperProps) {
