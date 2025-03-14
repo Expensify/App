@@ -32,7 +32,7 @@ function MoneyRequestReportTransactionList({report, transactions}: MoneyRequestR
             <View style={[styles.pv2, styles.ph5]}>
                 {transactions.map((transaction) => {
                     return (
-                        <View style={[styles.flex1, styles.mb2]}>
+                        <View style={[styles.mb2]}>
                             <TransactionItemRow
                                 transactionItem={transaction}
                                 isSelected={false}

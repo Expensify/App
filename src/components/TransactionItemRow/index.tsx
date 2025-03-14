@@ -13,6 +13,7 @@ import ReceiptCell from './DataCells/ReceiptCell';
 import TagCell from './DataCells/TagCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
+import TransactionItemRowRBR from './TransactionItemRowRBR';
 
 function TransactionItemRow({
     transactionItem,
@@ -83,13 +84,14 @@ function TransactionItemRow({
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                             </View>
+                            <TransactionItemRowRBR transaction={transactionItem} />
                         </View>
                     )}
                 </Hoverable>
             ) : (
                 <Hoverable>
                     {(hovered) => (
-                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius]}>
+                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius, styles.gap2]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                                     <ReceiptCell
@@ -140,6 +142,7 @@ function TransactionItemRow({
                                     />
                                 </View>
                             </View>
+                            <TransactionItemRowRBR transaction={transactionItem} />
                         </View>
                     )}
                 </Hoverable>
