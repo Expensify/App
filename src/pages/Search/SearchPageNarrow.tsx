@@ -26,6 +26,7 @@ import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtil
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchResults} from '@src/types/onyx';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -35,9 +36,11 @@ type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     policyID?: string;
     searchName?: string;
+    currentSearchResults?: SearchResults;
+    lastNonEmptySearchResults?: SearchResults;
 };
 
-function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, policyID, searchName, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -46,6 +49,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageNarrowPro
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
 
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
@@ -114,6 +118,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageNarrowPro
                 testID={SearchPageNarrow.displayName}
                 style={styles.pv0}
                 offlineIndicatorStyle={styles.mtAuto}
+                shouldShowOfflineIndicator={!!searchResults}
             >
                 <FullPageNotFoundView
                     shouldShow={!queryJSON}
@@ -131,6 +136,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageNarrowPro
             offlineIndicatorStyle={styles.mtAuto}
             bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
+            shouldShowOfflineIndicator={!!searchResults}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
                 {!selectionMode?.isEnabled ? (
@@ -189,6 +195,8 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageNarrowPro
                 {!searchRouterListVisible && (
                     <View style={[styles.flex1]}>
                         <Search
+                            currentSearchResults={currentSearchResults}
+                            lastNonEmptySearchResults={lastNonEmptySearchResults}
                             key={queryJSON.hash}
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}
