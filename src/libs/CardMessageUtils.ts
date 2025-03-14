@@ -7,7 +7,7 @@ import type {Card, ReportAction, WorkspaceCardsList} from '@src/types/onyx';
 import {getPolicy, getWorkspaceAccountID, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isActionOfType} from './ReportActionsUtils';
 
-let allYourCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
+let allUserCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
     key: ONYXKEYS.CARD_LIST,
     callback: (val) => {
@@ -15,7 +15,7 @@ Onyx.connect({
             return;
         }
 
-        allYourCards = val;
+        allUserCards = val;
     },
 });
 
@@ -42,7 +42,7 @@ function getExpensifyCardFromReportAction({reportAction, policyID}: {reportActio
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const allExpensifyCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`] ?? {};
-    return isPolicyAdmin(getPolicy(policyID)) ? allExpensifyCards?.[cardID] : allYourCards[cardID];
+    return isPolicyAdmin(getPolicy(policyID)) ? allExpensifyCards?.[cardID] : allUserCards[cardID];
 }
 
 export {
