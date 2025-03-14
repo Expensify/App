@@ -131,6 +131,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
 
+    /** Whether we should set a max height to the popover content */
+    shouldEnableMaxHeight?: boolean;
+
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
 
@@ -186,6 +189,7 @@ function PopoverMenu({
     innerContainerStyle,
     scrollContainerStyle,
     shouldUseScrollView = false,
+    shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
     shouldUseNewModal,
@@ -397,7 +401,7 @@ function PopoverMenu({
             shouldUseNewModal={shouldUseNewModal}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
+                <View style={[isSmallScreenWidth && shouldEnableMaxHeight ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
