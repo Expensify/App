@@ -123,7 +123,7 @@ jobs:
           git submodule update --init --remote
           # TODO: Remove once merged
           cd Mobile-Expensify
-          git fetch
+          git fetch origin andrew-android-variables
           git checkout andrew-android-variables
 
       - name: Configure MapBox SDK
