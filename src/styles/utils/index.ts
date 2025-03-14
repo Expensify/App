@@ -1765,6 +1765,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
+
+    getEdgeToEdgeMobileOfflineIndicatorStyle: (isSoftKeyNavigation: boolean, paddingBottom: number): StyleProp<ViewStyle> => ({
+        position: 'absolute',
+        bottom: isSoftKeyNavigation ? paddingBottom : 0,
+        left: 0,
+        right: 0,
+        paddingHorizontal: 20,
+        paddingTop: 5,
+        paddingBottom: isSoftKeyNavigation ? 5 : paddingBottom + 5,
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

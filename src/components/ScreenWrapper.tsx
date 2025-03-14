@@ -12,6 +12,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -195,6 +196,7 @@ function ScreenWrapper(
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isDevelopment} = useEnvironment();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
@@ -319,13 +321,22 @@ function ScreenWrapper(
             paddingBottom: includeSafeAreaPaddingBottom ? paddingBottom : undefined,
         };
     }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
+
     const bottomContentStyle = useMemo(
         () => (enableEdgeToEdgeBottomSafeAreaPadding ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle),
         [enableEdgeToEdgeBottomSafeAreaPadding, edgeToEdgeBottomContentStyle, legacyBottomContentStyle],
     );
 
-    const addMobileOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : !includeSafeAreaPaddingBottom;
+    const shouldUseStickyMobileOfflineIndicator = enableEdgeToEdgeBottomSafeAreaPadding && !bottomContent;
+    const addMobileOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !shouldUseStickyMobileOfflineIndicator : !includeSafeAreaPaddingBottom;
     const addWidescreenOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true;
+
+    const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);
+    const isSoftKeyNavigation = navigationBarType === CONST.NAVIGATION_BAR_TYPE.SOFT_KEYS;
+    const mobileOfflineIndicatorContainerStyle = useMemo(
+        () => (shouldUseStickyMobileOfflineIndicator ? StyleUtils.getEdgeToEdgeMobileOfflineIndicatorStyle(isSoftKeyNavigation, paddingBottom) : styles.offlineIndicatorMobile),
+        [StyleUtils, shouldUseStickyMobileOfflineIndicator, paddingBottom, styles.offlineIndicatorMobile, isSoftKeyNavigation],
+    );
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
@@ -374,6 +385,7 @@ function ScreenWrapper(
                                 {isSmallScreenWidth && shouldShowOfflineIndicator && (
                                     <>
                                         <OfflineIndicator
+                                            containerStyles={mobileOfflineIndicatorContainerStyle}
                                             style={[offlineIndicatorStyle]}
                                             isTranslucent={isOfflineIndicatorTranslucent}
                                             addBottomSafeAreaPadding={addMobileOfflineIndicatorBottomSafeAreaPadding}
