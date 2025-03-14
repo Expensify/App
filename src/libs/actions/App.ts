@@ -463,20 +463,14 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
 
     const isLoggingInAsNewUser = !!session.email && isLoggingInAsNewUserSessionUtils(currentUrl, session.email);
     const url = new URL(currentUrl);
-    const testDelegate = url.searchParams.get('delegatorEmail') ?? '';
-
-    if (testDelegate) {
-        connect(testDelegate);
-    }
-
     const exitTo = url.searchParams.get('exitTo') as Route | null;
-    console.log("test delegate is ", testDelegate);
 
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
     const policyOwnerEmail = url.searchParams.get('ownerEmail') ?? '';
     const makeMeAdmin = !!url.searchParams.get('makeMeAdmin');
     const policyName = url.searchParams.get('policyName') ?? '';
+    const delegatorEmail = url.searchParams.get('delegatorEmail') ?? '';
 
     // Sign out the current user if we're transitioning with a different user
     const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
@@ -494,6 +488,12 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
             .then(endSignOnTransition);
     } else {
         endSignOnTransition();
+    }
+
+    if (delegatorEmail) {
+        console.log("in theory we should try logging in with", delegatorEmail);
+        console.log(session);
+        connect(delegatorEmail);
     }
 }
 

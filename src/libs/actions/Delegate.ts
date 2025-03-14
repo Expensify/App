@@ -76,9 +76,9 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
 ];
 
 function connect(email: string) {
-    if (!delegatedAccess?.delegators) {
-        return;
-    }
+    // if (!delegatedAccess?.delegators) {
+    //     return;
+    // }
 
     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials);
     Onyx.set(ONYXKEYS.STASHED_SESSION, session);
