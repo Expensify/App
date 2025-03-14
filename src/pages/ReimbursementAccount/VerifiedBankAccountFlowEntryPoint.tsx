@@ -182,9 +182,7 @@ function VerifiedBankAccountFlowEntryPoint({
             <HeaderWithBackButton
                 title={translate('workspace.common.connectBankAccount')}
                 subtitle={policyName}
-                shouldShowGetAssistanceButton
                 onBackButtonPress={onBackButtonPress}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
             />
 
             <ScrollView style={styles.flex1}>
