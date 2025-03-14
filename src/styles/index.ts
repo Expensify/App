@@ -521,6 +521,9 @@ const styles = (theme: ThemeColors) =>
         textBold: {
             fontWeight: FontUtils.fontWeight.bold,
         },
+        textItalic: {
+            ...FontUtils.fontFamily.platform.MONOSPACE_ITALIC,
+        },
 
         textVersion: {
             color: theme.iconColorfulBackground,
@@ -790,6 +793,13 @@ const styles = (theme: ThemeColors) =>
 
         buttonDangerText: {
             color: theme.textLight,
+        },
+
+        buttonBlendContainer: {
+            backgroundColor: theme.appBG,
+            opacity: 1,
+            position: 'relative',
+            overflow: 'hidden',
         },
 
         hoveredComponentBG: {
@@ -5484,6 +5494,10 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
+
+        expenseWidgetRadius: {
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

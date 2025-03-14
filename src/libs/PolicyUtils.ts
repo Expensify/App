@@ -38,7 +38,7 @@ import {getCategoryApproverRule} from './CategoryUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
-import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
@@ -1088,6 +1088,39 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: Work
 };
 
 /**
+ * Determines whether the report can be moved to the workspace.
+ */
+const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, oldPolicy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean => {
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isCurrentUserMember = !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
+    if (!isCurrentUserMember) {
+        return false;
+    }
+
+    // Submitters: workspaces where the submitter is a member of
+    const isCurrentUserSubmitter = report?.ownerAccountID === currentUserAccountID;
+    if (isCurrentUserSubmitter) {
+        return true;
+    }
+
+    // Approvers: workspaces where both the approver AND submitter are members of
+    const reportApproverAccountID = getSubmitToAccountID(oldPolicy, report);
+    const isCurrentUserApprover = currentUserAccountID === reportApproverAccountID;
+    if (isCurrentUserApprover) {
+        const reportSubmitterLogin = report?.ownerAccountID ? getLoginByAccountID(report?.ownerAccountID) : undefined;
+        const isReportSubmitterMember = !!reportSubmitterLogin && !!newPolicy?.employeeList?.[reportSubmitterLogin];
+        return isCurrentUserApprover && isReportSubmitterMember;
+    }
+
+    // Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
+    if (isPolicyOwner(newPolicy, currentUserAccountID) || isUserPolicyAdmin(newPolicy, currentUserLogin)) {
+        return true;
+    }
+
+    return false;
+};
+
+/**
  * Takes removes pendingFields and errorFields from a customUnit
  */
 function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
@@ -1221,6 +1254,13 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
 }
 
+function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null = allPolicies) {
+    if (isEmptyObject(policies)) {
+        return CONST.EMPTY_ARRAY;
+    }
+    return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
+}
+
 // eslint-disable-next-line rulesdir/no-negated-variables
 function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
     const policy = getPolicy(policyID);
@@ -1325,35 +1365,6 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
-/**
- * Returns an array of user emails who are currently self-approving:
- * i.e. user.submitsTo === their own email.
- */
-function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
-    const defaultApprover = policy?.approver ?? policy?.owner;
-    if (!policy?.employeeList || !defaultApprover) {
-        return [];
-    }
-    return Object.keys(policy.employeeList).filter((email) => {
-        const employee = policy?.employeeList?.[email] ?? {};
-        return employee?.submitsTo === email && employee?.email !== defaultApprover;
-    });
-}
-
-/**
- * Checks if the workspace has only one user and if there no approver for the policy.
- * If so, we can't enable the "Prevent Self Approvals" feature.
- */
-function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
-    if (!policy?.employeeList || !policy.approver) {
-        return false;
-    }
-
-    const employeeEmails = Object.keys(policy.employeeList);
-
-    return employeeEmails.length > 1;
-}
-
 function isPrefferedExporter(policy: Policy) {
     const user = getCurrentUserEmail();
     const exporters = [
@@ -1383,12 +1394,10 @@ function isAutoSyncEnabled(policy: Policy) {
 
 export {
     canEditTaxRate,
-    canEnablePreventSelfApprovals,
     extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
     getPerDiemCustomUnits,
-    getAllSelfApprovers,
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
@@ -1495,6 +1504,7 @@ export {
     getCurrentTaxID,
     areSettingsInErrorFields,
     settingsPendingAction,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
     getForwardsToAccount,
     getSubmitToAccountID,
     getWorkspaceAccountID,
@@ -1509,7 +1519,6 @@ export {
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
-    areAllGroupPoliciesExpenseChatDisabled,
     shouldDisplayPolicyNotFoundPage,
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
@@ -1519,9 +1528,11 @@ export {
     getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
+    isWorkspaceEligibleForReportChange,
     getManagerAccountID,
     isPrefferedExporter,
     isAutoSyncEnabled,
+    areAllGroupPoliciesExpenseChatDisabled,
 };
 
 export type {MemberEmailsToAccountIDs};
