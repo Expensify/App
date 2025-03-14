@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
