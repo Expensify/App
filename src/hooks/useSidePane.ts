@@ -1,14 +1,14 @@
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import {triggerSidePane} from '@libs/actions/SidePane';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import useEnvironment from './useEnvironment';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
@@ -26,7 +26,6 @@ function isSidePaneHidden(sidePane: OnyxEntry<OnyxTypes.SidePane>, isExtraLargeS
 function useSidePane() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
-    const {isProduction} = useEnvironment();
 
     const [sidePaneNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
@@ -37,13 +36,16 @@ function useSidePane() {
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;
 
     const [shouldHideSidePane, setShouldHideSidePane] = useState(true);
+    const [isAnimatingExtraLargeScree, setIsAnimatingExtraLargeScreen] = useState(false);
+
     const shouldHideSidePaneBackdrop = isPaneHidden || isExtraLargeScreenWidth || shouldUseNarrowLayout;
+    const shouldHideToolTip = isExtraLargeScreenWidth ? isAnimatingExtraLargeScree : !shouldHideSidePane;
 
-    // The help button is hidden in production if the side pane nvp is not present or the language is unsupported.
-    const shouldHideOnProduction = isProduction && (!sidePaneNVP || isLanguageUnsupported);
-
-    // The help button is also hidden if the side pane is displayed currently.
-    const shouldHideHelpButton = shouldHideOnProduction || !isPaneHidden;
+    // The help button is hidden when:
+    // - side pane nvp is not set
+    // - side pane is displayed currently
+    // - language is unsupported
+    const shouldHideHelpButton = !sidePaneNVP || !isPaneHidden || isLanguageUnsupported;
 
     const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
     const sidePaneTranslateX = useRef(new Animated.Value(isPaneHidden ? sidePaneWidth : 0));
@@ -51,6 +53,9 @@ function useSidePane() {
     useEffect(() => {
         if (!isPaneHidden) {
             setShouldHideSidePane(false);
+        }
+        if (isExtraLargeScreenWidth) {
+            setIsAnimatingExtraLargeScreen(true);
         }
 
         Animated.parallel([
@@ -66,8 +71,24 @@ function useSidePane() {
             }),
         ]).start(() => {
             setShouldHideSidePane(isPaneHidden);
+            setIsAnimatingExtraLargeScreen(false);
         });
-    }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth]);
+    }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth, isExtraLargeScreenWidth]);
+
+    const closeSidePane = useCallback(
+        (shouldUpdateNarrow = false) => {
+            if (!sidePaneNVP) {
+                return;
+            }
+
+            const shouldOnlyUpdateNarrowLayout = !isExtraLargeScreenWidth || shouldUpdateNarrow;
+            triggerSidePane({
+                isOpen: shouldOnlyUpdateNarrowLayout ? undefined : false,
+                isOpenNarrowScreen: shouldOnlyUpdateNarrowLayout ? false : undefined,
+            });
+        },
+        [isExtraLargeScreenWidth, sidePaneNVP],
+    );
 
     return {
         sidePane: sidePaneNVP,
@@ -76,6 +97,8 @@ function useSidePane() {
         shouldHideHelpButton,
         sidePaneOffset,
         sidePaneTranslateX,
+        shouldHideToolTip,
+        closeSidePane,
     };
 }
 
