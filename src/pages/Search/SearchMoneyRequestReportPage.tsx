@@ -82,6 +82,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                         Navigation.goBack();
                     }}
                 />
+                <MoneyRequestReportView report={report} />
             </ScreenWrapper>
         );
     }
