@@ -3,6 +3,7 @@ title: Request the Expensify Card
 description: Learn how to request, activate, and manage the Expensify Card, including virtual card setup, replacement procedures, and eligibility requirements.
 keywords: [Expensify Classic, Expensify Card, request a card, new card]
 ---
+<div id="expensify-classic" markdown="1">
 
 This guide provides details on how you and your employees can request and use the Expensify Card.
 
@@ -36,6 +37,7 @@ When the physical card arrives, activate it by:
   - Entering the last four digits of the card in the activation task on your account homepage.
 
 ---
+
 # Virtual Cards
 
 - Virtual cards are available immediately once a spending limit is assigned.
@@ -55,6 +57,7 @@ Download the Expensify mobile app and enable push notifications to stay updated 
   - Potentially fraudulent activity
 
 ---
+
 # Request a Replacement Expensify Card
 
 ## Lost, Stolen, or Damaged Cards
@@ -77,6 +80,7 @@ If you can’t access the website or app:
 **Important**: The new card will have a unique number and won’t be linked to the old one.
 
 ---
+
 # FAQ
 
 ## What if I haven’t received my card after multiple weeks?
@@ -90,3 +94,5 @@ If the card is marked as delivered but not received:
 ## I’m self-employed. Can I set up the Expensify Card as an individual?
 
 Yes, if you have a business bank account and IRS registration for your company, you can use the Expensify Card as an individual business owner.
+
+</div>
