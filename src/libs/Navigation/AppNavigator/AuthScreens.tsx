@@ -1,6 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import {findFocusedRoute, useNavigation} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo, useRef} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
@@ -27,7 +27,7 @@ import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, RightModalNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import Pusher from '@libs/Pusher';
@@ -222,7 +222,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
-    const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
+    const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -244,6 +244,13 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             NavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
         };
     }, [theme]);
+
+    useEffect(() => {
+        if (!account?.needsTwoFactorAuthSetup || account.requiresTwoFactorAuth || shouldShowRequire2FAPage) {
+            return;
+        }
+        setShouldShowRequire2FAPage(true);
+    }, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth]);
 
     useEffect(() => {
         if (!shouldShowRequire2FAPage) {
@@ -559,7 +566,20 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.rightModalNavigator}
                     component={RightModalNavigator}
-                    listeners={modalScreenListenersWithCancelSearch}
+                    listeners={{
+                        ...modalScreenListenersWithCancelSearch,
+                        beforeRemove: () => {
+                            modalScreenListenersWithCancelSearch.beforeRemove();
+
+                            // When a 2FA RHP page is closed, if the 2FA require page is visible and the user has now enabled the 2FA, then remove the 2FA require page from the navigator.
+                            const routeParams = navigation.getState()?.routes?.at(-1)?.params;
+                            const screen = routeParams && 'screen' in routeParams ? routeParams.screen : '';
+                            if (!shouldShowRequire2FAPage || !account?.requiresTwoFactorAuth || screen !== SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH) {
+                                return;
+                            }
+                            setShouldShowRequire2FAPage(false);
+                        },
+                    }}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}

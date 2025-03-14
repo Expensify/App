@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
 import useEnvironment from '@hooks/useEnvironment';
@@ -28,6 +28,16 @@ function SuccessPage({route}: SuccessPageProps) {
         }
         quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
     }, [route.params?.backTo]);
+
+    useEffect(() => {
+        return () => {
+            // When the 2FA RHP is closed, we want to remove the 2FA required page fromt the navigation stack too.
+            if (route.params?.backTo === ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
+                Navigation.popRootToTop();
+                return;
+            }
+        };
+    }, []);
 
     return (
         <TwoFactorAuthWrapper
