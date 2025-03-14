@@ -110,6 +110,7 @@ import {
     getIOUForwardedMessage,
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
+    getPolicyChangeMessage,
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallySubmittedMessage,
     getWhisperDisplayNames,
@@ -162,6 +163,10 @@ type PureReportActionItemProps = {
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
+
+    /** Array of report actions for the report for this action */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportActions: OnyxTypes.ReportAction[];
 
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -831,25 +836,25 @@ function PureReportActionItem({
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUSubmittedMessage(action)} />;
+                children = <ReportActionItemBasicMessage message={getIOUSubmittedMessage(action, report)} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoApproved) {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUApprovedMessage(action)} />;
+                children = <ReportActionItemBasicMessage message={getIOUApprovedMessage(action, report)} />;
             }
         } else if (isUnapprovedAction(action)) {
-            children = <ReportActionItemBasicMessage message={getIOUUnapprovedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getIOUUnapprovedMessage(action, report)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
             const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {
@@ -873,6 +878,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getReportActionText(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
+            children = <ReportActionItemBasicMessage message={getPolicyChangeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
@@ -1293,6 +1300,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
         lodashIsEqual(prevProps.report?.fieldList, nextProps.report?.fieldList) &&
         lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
+        lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
         lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&

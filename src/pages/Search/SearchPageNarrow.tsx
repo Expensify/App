@@ -13,6 +13,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {SearchQueryJSON} from '@components/Search/types';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -25,7 +26,7 @@ import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtil
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useHandleBackButton from './useHandleBackButton';
+import type {SearchResults} from '@src/types/onyx';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -35,10 +36,11 @@ type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     policyID?: string;
     searchName?: string;
-    shouldGroupByReports?: boolean;
+    currentSearchResults?: SearchResults;
+    lastNonEmptySearchResults?: SearchResults;
 };
 
-function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, policyID, searchName, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -47,6 +49,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
 
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
@@ -115,6 +118,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                 testID={SearchPageNarrow.displayName}
                 style={styles.pv0}
                 offlineIndicatorStyle={styles.mtAuto}
+                shouldShowOfflineIndicator={!!searchResults}
             >
                 <FullPageNotFoundView
                     shouldShow={!queryJSON}
@@ -132,6 +136,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
             offlineIndicatorStyle={styles.mtAuto}
             bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
+            shouldShowOfflineIndicator={!!searchResults}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
                 {!selectionMode?.isEnabled ? (
@@ -157,7 +162,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                                             topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                                             setSearchRouterListVisible(true);
                                         }}
-                                        shouldGroupByReports={shouldGroupByReports}
                                     />
                                 </View>
                                 <View style={[styles.appBG]}>
@@ -185,19 +189,19 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                         <SearchPageHeader
                             queryJSON={queryJSON}
                             searchName={searchName}
-                            shouldGroupByReports={shouldGroupByReports}
                         />
                     </>
                 )}
                 {!searchRouterListVisible && (
                     <View style={[styles.flex1]}>
                         <Search
+                            currentSearchResults={currentSearchResults}
+                            lastNonEmptySearchResults={lastNonEmptySearchResults}
                             key={queryJSON.hash}
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}
                             onContentSizeChange={onContentSizeChange}
                             contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
-                            shouldGroupByReports={shouldGroupByReports}
                         />
                     </View>
                 )}
