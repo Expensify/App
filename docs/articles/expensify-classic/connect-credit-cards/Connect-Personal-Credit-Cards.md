@@ -2,10 +2,12 @@
 Title: Connecting Personal Credit Cards to Expensify  
 Description: Learn how to connect or manually import your personal credit card expenses into Expensify for seamless tracking and reimbursement.
 ---
+<div id="expensify-classic" markdown="1">
 
 Connecting a personal credit card to Expensify makes it easy to track your expenses and get reimbursed all in one place. You can either set up a direct connection to automatically import transactions or manually upload a CSV file. These methods also merge your expenses with SmartScanned receipts and, if enabled, allow you to generate IRS-compliant eReceipts.
 
 ---
+
 # Option 1: Connect Directly to Your Credit Card Account
 
 Follow these steps to import expenses automatically from your bank or credit card account:
@@ -22,6 +24,7 @@ Follow these steps to import expenses automatically from your bank or credit car
 8. Click **Update** to sync the latest transactions.
 
 ---
+
 # Option 2: Import Transactions via Spreadsheet
 
 Use this method if your bank isn’t supported or you need older transactions. Supported file types: CSV, OFX, QFX, or XLS.
@@ -45,6 +48,7 @@ Use this method if your bank isn’t supported or you need older transactions. S
 **Note:** For checking accounts, toggle **Flip Amount Sign** if transactions are listed as negatives.
 
 ---
+
 # Managing Credit Card Settings
 
 You can customize how imported card transactions appear:
@@ -82,3 +86,5 @@ Use the filters on the **Expenses** page (e.g., Date filter) to locate missing e
   - Cash or personal card purchases.
   - Per diem, hourly, or mileage expenses.
 - **Non-Reimbursable**: Expenses paid using company funds, like a corporate card transaction, that require documentation but not reimbursement.
+
+</div>
