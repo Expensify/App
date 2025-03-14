@@ -84,7 +84,7 @@ import {
 } from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport, unholdRequest} from '@userActions/IOU';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -578,13 +578,6 @@ function ReportPreview({
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
-            />
-        ) : null,
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REMOVE_HOLD]: iouReport ? (
-            <Button
-                text={translate('iou.unhold')}
-                onPress={() => unholdRequest(transactionIDList.at(0), iouReport.reportID)}
-                isDisabled={shouldDisableSubmitButton}
             />
         ) : null,
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (

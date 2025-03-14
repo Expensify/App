@@ -1,11 +1,11 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {canApprove, canExport, canPay, canRemoveHold, canReview, canSubmit} from '@libs/ReportPreviewActionUtils';
+import {canApprove, canExport, canPay, canReview, canSubmit} from '@libs/ReportPreviewActionUtils';
 // eslint-disable-next-line no-restricted-syntax
-import type * as ReportUtils from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportViolations, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportViolations, TransactionViolation} from '@src/types/onyx';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'tester@mail.com';
@@ -126,30 +126,6 @@ describe('getReportPreviewAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         expect(canExport(report, policy as Policy, VIOLATIONS)).toBe(true);
-    });
-
-    it('canRemoveHold should return true for reports where user is the holder', async () => {
-        const report = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-        } as unknown as Report;
-        const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
-        const transaction = {
-            comment: {
-                hold: REPORT_ACTION_ID,
-            },
-        } as unknown as Transaction;
-        const reportAction = {
-            reportActionID: REPORT_ACTION_ID,
-            actorAccountID: CURRENT_USER_ACCOUNT_ID,
-        } as unknown as ReportAction;
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {REPORT_ACTION_ID: reportAction});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-
-        expect(canRemoveHold(report, [transaction], VIOLATIONS)).toBe(true);
     });
 
     it('canReview should return true for reports where there are violations, user is submitter or approver and Workflows are enabled', async () => {

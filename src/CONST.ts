@@ -1131,7 +1131,6 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
-            REMOVE_HOLD: 'removeHold',
         },
         ACTIONS: {
             LIMIT: 50,

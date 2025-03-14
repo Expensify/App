@@ -10,7 +10,6 @@ import {
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
-    isHoldCreator,
     isInvoiceReport,
     isIOUReport,
     isOpenReport,
@@ -68,16 +67,6 @@ function canExport(report: Report, policy: Policy, violations: OnyxCollection<Tr
     return isExpense && isExporter && (isApproved || isReimbursed || isClosed) && hasAccountingConnection && !syncEnabled && !hasViolations;
 }
 
-function canRemoveHold(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>) {
-    const isExpense = isExpenseReport(report);
-    const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, report.reportID));
-    const isOpen = isOpenReport(report);
-    const isProcessing = isProcessingReport(report);
-    const isApproved = isReportApproved({report});
-    const hasViolations = hasAnyViolations(report.reportID, violations);
-
-    return isExpense && isHolder && (isOpen || isProcessing || isApproved) && !hasViolations;
-}
 
 function canReview(report: Report, policy: Policy, violations: OnyxCollection<TransactionViolation[]>) {
     const hasViolations = hasAnyViolations(report.reportID, violations);
@@ -105,9 +94,6 @@ function getReportPreviewAction(
     if (canExport(report, policy, violations)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
-    if (canRemoveHold(report, reportTransactions, violations)) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REMOVE_HOLD;
-    }
     if (canReview(report, policy, violations)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
@@ -115,4 +101,4 @@ function getReportPreviewAction(
     return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
 }
 
-export {getReportPreviewAction, canSubmit, canApprove, canPay, canExport, canRemoveHold, canReview, hasAnyViolations};
+export {getReportPreviewAction, canSubmit, canApprove, canPay, canExport, canReview, hasAnyViolations};
