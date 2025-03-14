@@ -75,10 +75,10 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.IS_SIDEBAR_LOADED,
 ];
 
-function connect(email: string) {
-    // if (!delegatedAccess?.delegators) {
-    //     return;
-    // }
+function connect(email: string, isFromOldDot = false) {
+    if (!delegatedAccess?.delegators && !isFromOldDot) {
+        return;
+    }
 
     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials);
     Onyx.set(ONYXKEYS.STASHED_SESSION, session);

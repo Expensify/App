@@ -491,9 +491,7 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     }
 
     if (delegatorEmail) {
-        console.log("in theory we should try logging in with", delegatorEmail);
-        console.log(session);
-        connect(delegatorEmail);
+        connect(delegatorEmail, true);
     }
 }
 
