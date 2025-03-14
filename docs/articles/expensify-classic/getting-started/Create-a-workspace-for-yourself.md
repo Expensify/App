@@ -3,6 +3,7 @@ title: Create a Workspace for Yourself
 description: Get started with Expensify by creating a workspace to track your expenses as a freelancer or individual user.
 keywords: [Expensify Classic, create workspace, new workspace, getting started]
 ---
+<div id="expensify-classic" markdown="1">
 
 Creating a workspace in Expensify Classic is the first step to organizing your expenses and managing your finances efficiently. This guide walks you through setting up your workspace so you can seamlessly track receipts, submit reports, and stay on top of your spending.
 
@@ -130,3 +131,5 @@ Yes, individuals can use Expensify for free to track expenses.
 
 Yes, group workspaces include features like accounting, HR, and travel tool integrations, which you can use even as the only member.
 See pricing details [here](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing)
+
+</div>
