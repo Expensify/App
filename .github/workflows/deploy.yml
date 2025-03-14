@@ -125,12 +125,6 @@ jobs:
           # TODO: Remove once merged
           cd Mobile-Expensify
           git remote set-url origin https://github.com/Expensify/Mobile-Expensify.git
-
-          git remote -v
-
-          git fetch origin
-          git branch -r
-
           git fetch origin andrew-android-variables
           git checkout andrew-android-variables
 
@@ -205,6 +199,7 @@ jobs:
         run: bundle exec fastlane android upload_google_play_internal_hybrid
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+          ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
 
       - name: Get current Android rollout percentage
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}

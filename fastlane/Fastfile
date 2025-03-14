@@ -214,7 +214,7 @@ platform :android do
       # Google is very unreliable, so we retry a few times
       ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
       upload_to_play_store(
-        package_name: "org.me.mobiexpensifyg",
+        package_name: ENV["ANDROID_PACKAGE_NAME"],
         json_key: './android-fastlane-json-key.json',
         aab: ENV[KEY_GRADLE_AAB_PATH],
         track: 'alpha',
@@ -223,7 +223,7 @@ platform :android do
 
       # Update the internal testing group "beta" with the latest version
       upload_to_play_store(
-        package_name: "org.me.mobiexpensifyg",
+        package_name: ENV["ANDROID_PACKAGE_NAME"],
         json_key: './android-fastlane-json-key.json',
         track: 'alpha',
         track_promote_to: 'beta',
@@ -232,7 +232,7 @@ platform :android do
 
       # Update the internal testing group "Internal Testers" with the latest version
       upload_to_play_store(
-          package_name: "org.me.mobiexpensifyg",
+          package_name:  ENV["ANDROID_PACKAGE_NAME"],
           json_key: './android-fastlane-json-key.json',
           track: 'alpha',
           track_promote_to: 'Internal Testers',
