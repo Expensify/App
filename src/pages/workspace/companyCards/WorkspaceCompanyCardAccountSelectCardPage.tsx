@@ -29,7 +29,8 @@ type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<Setti
 function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCardAccountSelectCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {policyID, cardID, bank} = route.params;
+    const {policyID, cardID} = route.params;
+    const bank = decodeURIComponent(route.params.bank);
     const policy = usePolicy(policyID);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [searchText, setSearchText] = useState('');

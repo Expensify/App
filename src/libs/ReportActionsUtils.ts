@@ -30,7 +30,7 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
 import {getEffectiveDisplayName, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
-import {getPolicy, getPolicyNameByID, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {isOnHoldByTransactionID} from './TransactionUtils';
@@ -146,6 +146,10 @@ function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 }
 
 function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+    if (isInviteOrRemovedAction(reportAction)) {
+        return false;
+    }
+
     const message = reportAction?.message ?? [];
 
     if (!Array.isArray(message)) {
@@ -1276,7 +1280,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
     }
     return [
         CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
-        CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
         CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE,
         CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
@@ -1331,10 +1334,6 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
                 return translateLocal('report.actions.type.changeFieldEmpty', {newValue, fieldName});
             }
             return translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
-        }
-        case CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY: {
-            const {fromPolicy, toPolicy} = originalMessage;
-            return translateLocal('report.actions.type.changePolicy', {fromPolicy: getPolicyNameByID(fromPolicy), toPolicy: getPolicyNameByID(toPolicy)});
         }
         case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
             const {delegateUser, originalManager} = originalMessage;
@@ -2182,6 +2181,10 @@ function getReportActionsLength() {
     return Object.keys(allReportActions ?? {}).length;
 }
 
+function getReportActions(report: Report) {
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
+}
+
 function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale): boolean {
     // The user has never gone offline or never come back online
     if (!lastOfflineAt || !lastOnlineAt) {
@@ -2333,6 +2336,7 @@ export {
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,
+    getReportActions,
 };
 
 export type {LastVisibleMessage};

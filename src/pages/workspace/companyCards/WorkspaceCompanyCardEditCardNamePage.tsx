@@ -11,13 +11,13 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {updateCompanyCardName} from '@libs/actions/CompanyCards';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {updateCompanyCardName} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,8 +27,9 @@ import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 type WorkspaceCompanyCardEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_NAME>;
 
 function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditCardNamePageProps) {
-    const {policyID, cardID, bank} = route.params;
+    const {policyID, cardID} = route.params;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const bank = decodeURIComponent(route.params.bank);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const defaultValue = customCardNames?.[cardID];
 
@@ -45,7 +46,14 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
         const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
         const length = values.name.length;
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+            addErrorMessage(
+                errors,
+                INPUT_IDS.NAME,
+                translate('common.error.characterLimitExceedCounter', {
+                    length,
+                    limit: CONST.STANDARD_LENGTH_LIMIT,
+                }),
+            );
         }
         return errors;
     };

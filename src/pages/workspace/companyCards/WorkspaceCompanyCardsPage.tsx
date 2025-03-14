@@ -144,7 +144,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     icon={Illustrations.CompanyCard}
                     headerText={translate('workspace.common.companyCards')}
                     route={route}
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
                     shouldShowOfflineIndicatorInWideScreen
                     includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}

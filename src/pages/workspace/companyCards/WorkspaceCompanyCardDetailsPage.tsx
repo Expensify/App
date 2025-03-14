@@ -41,7 +41,8 @@ import {getExportMenuItem} from './utils';
 type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
 
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
-    const {policyID, cardID, backTo, bank} = route.params;
+    const {policyID, cardID, backTo} = route.params;
+    const bank = decodeURIComponent(route.params.bank);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const policy = usePolicy(policyID);
@@ -73,7 +74,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     };
 
     const updateCard = () => {
-        updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
+        updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank as CompanyCardFeed);
     };
 
     if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
