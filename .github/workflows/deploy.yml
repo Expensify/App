@@ -121,8 +121,10 @@ jobs:
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
+          
           # TODO: Remove once merged
           cd Mobile-Expensify
+          git remote set-url origin https://github.com/Expensify/Mobile-Expensify.git
 
           git remote -v
 
