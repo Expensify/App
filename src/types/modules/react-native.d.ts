@@ -6,12 +6,6 @@ import type {NavBarButtonStyle, NavigationBarType} from '@libs/NavBarManager/typ
 import type {ShortcutManagerModule} from '@libs/ShortcutManager';
 import type StartupTimer from '@libs/StartupTimer/types';
 
-type HybridAppModule = {
-    closeReactNativeApp: ({shouldSignOut: boolean, shouldSetNVP: boolean}) => void;
-    completeOnboarding: ({status: boolean}) => void;
-    switchAccount: ({newDotCurrentAccountEmail: string, authToken: string, policyID: string, accountID: string}) => void;
-};
-
 type RNTextInputResetModule = {
     resetKeyboardInput: (nodeHandle: number | null) => void;
 };
@@ -45,7 +39,6 @@ declare module 'react-native' {
 
     interface NativeModulesStatic {
         BootSplash: BootSplashModule;
-        HybridAppModule: HybridAppModule;
         StartupTimer: StartupTimer;
         RNTextInputReset: RNTextInputResetModule;
         RNNavBarManager: RNNavBarManagerModule;

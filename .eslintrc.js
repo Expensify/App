@@ -244,6 +244,13 @@ module.exports = {
                 property: 'getSize',
                 message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
             },
+            // Disallow direct HybridAppModule.isHybridApp() usage, because it requires a native call
+            // Use CONFIG.IS_HYBRID_APP, which keeps cached value instead
+            {
+                object: 'HybridAppModule',
+                property: 'isHybridApp',
+                message: 'Use CONFIG.IS_HYBRID_APP instead.',
+            },
         ],
         'no-restricted-imports': [
             'error',
