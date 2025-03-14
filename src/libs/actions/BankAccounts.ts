@@ -805,8 +805,39 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
         country: data.bankCountry,
         currency: data.bankCurrency,
     };
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, {isWithdrawal: false, isSavings: true, inputs: JSON.stringify(inputData)});
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    isLoading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    isLoading: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, {isWithdrawal: false, isSavings: true, inputs: JSON.stringify(inputData)}, onyxData);
 }
 
 export {
