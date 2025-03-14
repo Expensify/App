@@ -82,7 +82,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         if (!card?.lastScrape || !preferredLocale) {
             return '';
         }
-        format(DateUtils.getLocalDateFromDatetime(preferredLocale, card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+        return format(DateUtils.getLocalDateFromDatetime(preferredLocale, card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
     }, [preferredLocale, card?.lastScrape]);
 
     if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
