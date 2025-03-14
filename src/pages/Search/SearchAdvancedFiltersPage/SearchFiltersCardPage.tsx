@@ -51,10 +51,14 @@ function SearchFiltersCardPage() {
         () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, true),
         [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
     );
-    const flattenedWorkspaceCardFeeds = Object.values(workspaceCardFeeds ?? {}).reduce<CardList>((result, domainCards) => {
-        Object.assign(result, domainCards);
-        return result;
-    }, {});
+    const flattenedWorkspaceCardFeeds = useMemo(
+        () =>
+            Object.values(workspaceCardFeeds ?? {}).reduce<CardList>((result, domainCards) => {
+                Object.assign(result, domainCards);
+                return result;
+            }, {}),
+        [workspaceCardFeeds],
+    );
 
     const domainFeedsData = useMemo(() => generateDomainFeedData(flattenedWorkspaceCardFeeds), [flattenedWorkspaceCardFeeds]);
 
