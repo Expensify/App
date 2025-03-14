@@ -358,6 +358,7 @@ function PolicyDistanceRatesPage({
                         }
                         Navigation.goBack();
                     }}
+                    shouldDisplayHelpButton={shouldUseNarrowLayout}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
