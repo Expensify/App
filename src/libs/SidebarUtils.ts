@@ -514,7 +514,7 @@ function getOptionData({
             : null;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
 
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
@@ -551,7 +551,7 @@ function getOptionData({
                     accountID: lastAction.actorAccountID,
                 };
             }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, hasMultipleParticipants) : undefined;
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0;
@@ -643,7 +643,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
         }
-        result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+        result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`;
     }
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
