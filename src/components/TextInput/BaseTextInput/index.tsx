@@ -79,6 +79,7 @@ function BaseTextInput(
         uncontrolled = false,
         placeholderTextColor,
         onClearInput,
+        iconContainerStyle,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -447,7 +448,7 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}

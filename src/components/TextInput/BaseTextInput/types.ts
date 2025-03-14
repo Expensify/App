@@ -148,6 +148,9 @@ type CustomBaseTextInputProps = {
     /** Style for the loading spinner */
     loadingSpinnerStyle?: StyleProp<ViewStyle>;
 
+    /** Style for the icon container */
+    iconContainerStyle?: StyleProp<ViewStyle>;
+
     /** The width of inner content */
     contentWidth?: number;
 

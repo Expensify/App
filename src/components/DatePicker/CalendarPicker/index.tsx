@@ -49,7 +49,8 @@ function CalendarPicker({
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected,
 }: CalendarPickerProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -145,7 +146,7 @@ function CalendarPicker({
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
 
-    const webOnlyMarginStyle = shouldUseNarrowLayout ? {} : styles.mh1;
+    const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
 
     return (
         <View style={[themeStyles.pb4]}>

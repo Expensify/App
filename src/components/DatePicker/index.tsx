@@ -118,7 +118,8 @@ function DatePicker({
                     ref={textInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={Expensicons.Calendar}
+                    icon={selectedDate ? null : Expensicons.Calendar}
+                    iconContainerStyle={{paddingRight: 0}}
                     label={label}
                     accessibilityLabel={label}
                     role={CONST.ROLE.PRESENTATION}
