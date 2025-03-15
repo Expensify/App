@@ -3,7 +3,7 @@ import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import type {Attendee, Participant, Split} from './IOU';
+import type {Accountant, Attendee, Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
@@ -387,6 +387,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Selected attendees */
         attendees?: Attendee[];
+
+        /** Selected accountant */
+        accountant?: Accountant;
 
         /** The transaction tax amount */
         taxAmount?: number;

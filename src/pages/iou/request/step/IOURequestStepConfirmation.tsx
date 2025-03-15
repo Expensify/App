@@ -482,6 +482,9 @@ function IOURequestStepConfirmation({
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                     customUnitRateID,
                 },
+                accountantParams: {
+                    accountant: transaction.accountant,
+                },
             });
         },
         [
