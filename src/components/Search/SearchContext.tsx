@@ -47,7 +47,7 @@ function getReportsFromSelectedTransactions(data: TransactionListItemType[] | Re
             .map((transaction) => ({
                 reportID: transaction.reportID,
                 action: 'action' in transaction ? transaction.action ?? CONST.SEARCH.ACTION_TYPES.VIEW : CONST.SEARCH.ACTION_TYPES.VIEW,
-                total: 'total' in transaction ? transaction.total ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID,
+                total: 'amount' in transaction ? transaction.amount ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID,
                 policyID: transaction.policyID,
             }));
     }
