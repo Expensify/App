@@ -336,8 +336,14 @@ function ScreenWrapper(
     );
 
     const addWidescreenOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true;
-    const showTranslucentOfflineIndicator = isOfflineIndicatorTranslucent && !bottomContent && (isSoftKeyNavigation || isOffline);
     const displayStickyMobileOfflineIndicator = shouldMobileOfflineIndicatorStickToBottom && !bottomContent;
+    const showOfflineIndicatorBackground = !bottomContent && (isSoftKeyNavigation || isOffline);
+    const mobileOfflineIndicatorBackgroundStyle = useMemo(() => {
+        if (!showOfflineIndicatorBackground) {
+            return undefined;
+        }
+        return isOfflineIndicatorTranslucent ? styles.navigationBarBG : styles.appBG;
+    }, [isOfflineIndicatorTranslucent, showOfflineIndicatorBackground, styles.appBG, styles.navigationBarBG]);
 
     const mobileOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: displayStickyMobileOfflineIndicator,
@@ -393,7 +399,7 @@ function ScreenWrapper(
                                         : children
                                 }
                                 {isSmallScreenWidth && shouldShowOfflineIndicator && (
-                                    <View style={[mobileOfflineIndicatorContainerStyle, showTranslucentOfflineIndicator && styles.navigationBarBG]}>
+                                    <View style={[mobileOfflineIndicatorContainerStyle, mobileOfflineIndicatorBackgroundStyle]}>
                                         <OfflineIndicator style={[styles.pl5, offlineIndicatorStyle]} />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
