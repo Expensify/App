@@ -5,9 +5,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID,
-    dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID],
-    compute: ([reports, conciergeChatReportID]) => {
-        if (!reports) {
+    dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID, ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS],
+    compute: ([reports, conciergeChatReportID, allReportNameValuePair]) => {
+        if (!reports || !allReportNameValuePair) {
             return undefined;
         }
 
@@ -24,6 +24,8 @@ export default createOnyxDerivedValueConfig({
 
             return participantAccountIDs.has(CONST.ACCOUNT_ID.CONCIERGE.toString()) || report?.reportID === conciergeChatReportID;
         });
+
+        console.debug('conciergeReport?.reportID', conciergeReport?.reportID);
 
         return conciergeReport?.reportID;
     },
