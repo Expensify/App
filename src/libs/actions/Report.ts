@@ -9,6 +9,7 @@ import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as API from '@libs/API';
 import type {
     AddCommentOrAttachementParams,
@@ -173,6 +174,7 @@ import type {NotificationPreference, Participants, Participant as ReportParticip
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey} from './CachedPDFPaths';
+import {setDownload} from './Download';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {
@@ -4835,8 +4837,9 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
 function downloadReportPDF(fileName: string, reportName: string) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
+    setDownload(fileName, true);
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
-    fileDownload(pdfURL, downloadFileName, '', Browser.isMobileSafari());
+    fileDownload(addEncryptedAuthTokenToURL(pdfURL), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
