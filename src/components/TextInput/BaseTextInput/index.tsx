@@ -68,6 +68,7 @@ function BaseTextInput(
         type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
+        shouldAlwaysShowClearButton = false,
         shouldUseDisabledStyles = true,
         prefixContainerStyle = [],
         prefixStyle = [],
@@ -77,6 +78,8 @@ function BaseTextInput(
         loadingSpinnerStyle,
         uncontrolled = false,
         placeholderTextColor,
+        onClearInput,
+        iconContainerStyle,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -404,7 +407,7 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && (
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || shouldAlwaysShowClearButton) && !!value && (
                                 <View
                                     onLayout={() => {
                                         if (didScrollToEndRef.current || !input.current) {
@@ -414,7 +417,12 @@ function BaseTextInput(
                                         didScrollToEndRef.current = true;
                                     }}
                                 >
-                                    <TextInputClearButton onPressButton={() => setValue('')} />
+                                    <TextInputClearButton
+                                        onPressButton={() => {
+                                            setValue('');
+                                            onClearInput?.();
+                                        }}
+                                    />
                                 </View>
                             )}
                             {!!inputProps.isLoading && (
@@ -440,7 +448,7 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}
