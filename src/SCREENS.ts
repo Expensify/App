@@ -34,6 +34,7 @@ const SCREENS = {
         DOMAIN_SELECTOR: 'Travel_DomainSelector',
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
+        WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -483,6 +484,7 @@ const SCREENS = {
         PROFILE: 'Workspace_Overview',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_ASSIGN_CARD: 'Workspace_CompanyCards_AssignCard',
+        COMPANY_CARDS_TRANSACTION_START_DATE: 'Workspace_CompanyCards_TransactionStartDate',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
         COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
         COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
