@@ -128,7 +128,7 @@ Set up **Tax Groups** in NetSuite for easy tracking of taxes within Expensify. E
 
 Leverage **NetSuite’s Company Card feature** for streamlined export of both reimbursable and non-reimbursable transactions to the General Ledger.
 
-> **Note**: Ensure tax settings and currency match for successful integration.
+**Note**: Ensure tax settings and currency match for successful integration.
 
 # FAQ
 
