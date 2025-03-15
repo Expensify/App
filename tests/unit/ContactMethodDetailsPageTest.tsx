@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MockFetch} from '../utils/TestHelper';
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
@@ -69,7 +70,7 @@ describe('ContactMethodDetailsPage', () => {
 
         // When a deleteContactMethod called
         UserActions.deleteContactMethod(fakeEmail, mockLoginList);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // When the deletion is successful
         mockFetch?.succeed();
