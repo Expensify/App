@@ -9,7 +9,7 @@ describe('isConsecutiveActionMadeByPreviousActor', () => {
     it('should return false if the current action is SUBMITTED and the previous action was made by a different actor', () => {
         // When two consecutive report actions from different account IDs
         const isConsecutiveActionMadeByPreviousActor = isConsecutiveActionMadeByPreviousActorUtil(mockReportActions, 0);
-     
+
         // Then, the isConsecutiveActionMadeByPreviousActorUtil function should return false
         expect(isConsecutiveActionMadeByPreviousActor).toBe(false);
     });
