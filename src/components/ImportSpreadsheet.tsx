@@ -7,13 +7,13 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route as Routes} from '@src/ROUTES';
-import type {FileObject} from './AttachmentModal';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
@@ -36,7 +36,7 @@ type ImportSpreedsheetProps = {
 function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isReadingFile, setIsReadingFIle] = useState(false);
+    const [isReadingFile, setIsReadingFile] = useState(false);
     const [fileTopPosition, setFileTopPosition] = useState(0);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
@@ -60,7 +60,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
     };
 
     const validateFile = (file: FileObject) => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
         if (!CONST.ALLOWED_SPREADSHEET_EXTENSIONS.includes(fileExtension.toLowerCase() as TupleToUnion<typeof CONST.ALLOWED_SPREADSHEET_EXTENSIONS>)) {
             setUploadFileError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
@@ -87,7 +87,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
 
         fetch(fileURI)
             .then((data) => {
-                setIsReadingFIle(true);
+                setIsReadingFile(true);
                 return data.arrayBuffer();
             })
             .then((arrayBuffer) => {
@@ -105,7 +105,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
                     });
             })
             .finally(() => {
-                setIsReadingFIle(false);
+                setIsReadingFile(false);
                 if (fileURI && !file.uri) {
                     URL.revokeObjectURL(fileURI);
                 }
@@ -163,7 +163,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             testID={ImportSpreadsheet.displayName}
-            shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMaxHeight={canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
             {({safeAreaPaddingBottomStyle}) => (

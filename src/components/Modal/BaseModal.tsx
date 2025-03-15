@@ -3,27 +3,27 @@ import {View} from 'react-native';
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import ReactNativeModal from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
-import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import NavigationBar from '@components/NavigationBar';
-import useKeyboardState from '@hooks/useKeyboardState';
-import usePrevious from '@hooks/usePrevious';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import ComposerFocusManager from '@libs/ComposerFocusManager';
-import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
-import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
-import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
-import CONST from '@src/CONST';
 import BottomDockedModal from './BottomDockedModal';
 import type ModalProps from './BottomDockedModal/types';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
+import ColorSchemeWrapper from './src/components/ColorSchemeWrapper';
+import FocusTrapForModal from './src/components/FocusTrap/FocusTrapForModal';
+import NavigationBar from './src/components/NavigationBar';
+import CONST from './src/CONST';
+import useKeyboardState from './src/hooks/useKeyboardState';
+import usePrevious from './src/hooks/usePrevious';
+import useResponsiveLayout from './src/hooks/useResponsiveLayout';
+import useSafeAreaInsets from './src/hooks/useSafeAreaInsets';
+import useStyleUtils from './src/hooks/useStyleUtils';
+import useTheme from './src/hooks/useTheme';
+import useThemeStyles from './src/hooks/useThemeStyles';
+import useWindowDimensions from './src/hooks/useWindowDimensions';
+import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from './src/libs/actions/Modal';
+import ComposerFocusManager from './src/libs/ComposerFocusManager';
+import Overlay from './src/libs/Navigation/AppNavigator/Navigators/Overlay';
+import Navigation from './src/libs/Navigation/Navigation';
+import variables from './src/styles/variables';
 import type BaseModalProps from './types';
 
 type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
@@ -77,6 +77,7 @@ function BaseModal(
         swipeThreshold = 150,
         swipeDirection,
         shouldPreventScrollOnFocus = false,
+        disableAnimationIn = false,
         enableEdgeToEdgeBottomSafeAreaPadding = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
@@ -238,6 +239,21 @@ function BaseModal(
         [isVisible, type],
     );
 
+    const animationInProps = useMemo(() => {
+        if (disableAnimationIn) {
+            return {
+                animationIn: {from: {opacity: 1}, to: {opacity: 1}},
+                animationInTiming: 0,
+            };
+        }
+
+        return {
+            animationIn: animationIn ?? modalStyleAnimationIn,
+            animationInDelay,
+            animationInTiming,
+        };
+    }, [animationIn, animationInDelay, animationInTiming, disableAnimationIn, modalStyleAnimationIn]);
+
     return (
         <ModalContext.Provider value={modalContextValue}>
             <View
@@ -260,7 +276,7 @@ function BaseModal(
                     onModalHide={hideModal}
                     onModalWillShow={saveFocusState}
                     onDismiss={handleDismissModal}
-                    onSwipeComplete={() => onClose?.()}
+                    onSwipeComplete={onClose}
                     swipeDirection={swipeDirection}
                     swipeThreshold={swipeThreshold}
                     isVisible={isVisible}
@@ -272,14 +288,13 @@ function BaseModal(
                     style={modalStyle}
                     deviceHeight={windowHeight}
                     deviceWidth={windowWidth}
-                    animationIn={animationIn ?? modalStyleAnimationIn}
-                    animationInDelay={animationInDelay}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...animationInProps}
                     animationOut={animationOut ?? modalStyleAnimationOut}
+                    animationOutTiming={animationOutTiming}
                     useNativeDriver={useNativeDriver}
                     useNativeDriverForBackdrop={useNativeDriverForBackdrop}
                     hideModalContentWhileAnimating={hideModalContentWhileAnimating}
-                    animationInTiming={animationInTiming}
-                    animationOutTiming={animationOutTiming}
                     statusBarTranslucent={statusBarTranslucent}
                     navigationBarTranslucent={navigationBarTranslucent}
                     onLayout={onLayout}

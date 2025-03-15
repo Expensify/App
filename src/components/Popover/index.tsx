@@ -46,7 +46,7 @@ function Popover(props: PopoverProps) {
             if (!isVisible) {
                 return;
             }
-            onClose();
+            onClose?.();
         };
         window.addEventListener('popstate', listener);
         return () => {
@@ -59,7 +59,7 @@ function Popover(props: PopoverProps) {
             close(anchorRef);
         }
         TooltipRefManager.hideTooltip();
-        onClose();
+        onClose?.();
     };
 
     if (!fullscreen && !shouldUseNarrowLayout) {
