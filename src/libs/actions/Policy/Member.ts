@@ -1223,6 +1223,7 @@ export {
     importPolicyMembers,
     downloadMembersCSV,
     clearInviteDraft,
+    buildRoomMembersOnyxData,
 };
 
 export type {NewCustomUnit};
