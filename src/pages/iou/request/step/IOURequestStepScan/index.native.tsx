@@ -458,7 +458,7 @@ function IOURequestStepScan({
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
             navigateBack();
-            replaceReceipt(transactionID, file as File, source);
+            replaceReceipt({transactionID, file: file as File, source});
         },
         [transactionID],
     );
