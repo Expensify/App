@@ -176,14 +176,6 @@ function SearchAutocompleteInput(
         [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
     );
 
-    const additionalMarkdownStyle = useMemo(
-        () => ({
-            mentionHere: styles.br1,
-            mentionUser: styles.br1,
-        }),
-        [styles.br1],
-    );
-
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
     // Parse Fullstory attributes on initial render
@@ -216,7 +208,6 @@ function SearchAutocompleteInput(
                         enterKeyHint="search"
                         accessibilityLabel={translate('search.searchPlaceholder')}
                         disabled={disabled}
-                        markdownStyle={additionalMarkdownStyle}
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
