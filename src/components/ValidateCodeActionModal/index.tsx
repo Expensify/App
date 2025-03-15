@@ -30,7 +30,7 @@ function ValidateCodeActionModal({
     sendValidateCode,
     hasMagicCodeBeenSent,
     isLoading,
-    shouldHandleNavigationBack,
+    navigationHistoryID,
     disableAnimation,
     threeDotsMenuItems = [],
     onThreeDotsButtonPress = () => {},
@@ -63,7 +63,7 @@ function ValidateCodeActionModal({
 
     return (
         <Modal
-            shouldHandleNavigationBack={shouldHandleNavigationBack}
+            navigationHistoryID={navigationHistoryID}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={hide}
