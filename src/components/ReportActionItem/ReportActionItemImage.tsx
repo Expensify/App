@@ -151,8 +151,8 @@ function ReportActionItemImage({
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.TRANSACTION_RECEIPT.getRoute(
-                                    transactionThreadReport?.reportID ?? report?.reportID ?? '-1',
-                                    transaction?.transactionID ?? '-1',
+                                    transactionThreadReport?.reportID ?? report?.reportID,
+                                    transaction?.transactionID,
                                     readonly,
                                     isFromReviewDuplicates,
                                 ),
