@@ -162,6 +162,15 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     return isLegacyDeletedComment || !!message.at(0)?.deleted;
 }
 
+function addAttachmentID(html: string, reportActionID: string | undefined) {
+    if (!reportActionID) {
+        return html;
+    }
+
+    let attachmentID = 0;
+    return html.replace(/<img|<video/g, (m) => m.concat(` data-attachment-id="${reportActionID}_${++attachmentID}"`));
+}
+
 function getReportActionMessage(reportAction: PartialReportAction) {
     return Array.isArray(reportAction?.message) ? reportAction.message.at(0) : reportAction?.message;
 }
@@ -2217,6 +2226,7 @@ export {
     extractLinksFromMessageHtml,
     formatLastMessageText,
     isReportActionUnread,
+    addAttachmentID,
     getActionableMentionWhisperMessage,
     getAllReportActions,
     getCombinedReportActions,
