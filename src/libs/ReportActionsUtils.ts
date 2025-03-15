@@ -596,8 +596,9 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
 
     if (isSubmittedAction(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
-
-        return currentActionAdminAccountID === previousAction.actorAccountID || currentActionAdminAccountID === previousAction.adminAccountID;
+        return typeof currentActionAdminAccountID === 'number'
+            ? currentActionAdminAccountID === previousAction.actorAccountID
+            : currentAction.actorAccountID === previousAction.actorAccountID;
     }
 
     if (isSubmittedAction(previousAction)) {
