@@ -61,7 +61,7 @@ function Confirmation() {
         if (!reportAction?.childReportID) {
             return;
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID));
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID));
     }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const resolveDuplicates = useCallback(() => {
