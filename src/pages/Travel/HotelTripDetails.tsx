@@ -42,8 +42,8 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
             <MenuItemWithTopDescription
                 description={translate('common.address')}
                 title={reservation.start.address}
-                interactive={false}
                 numberOfLinesTitle={2}
+                copyValue={reservation.start.address}
             />
             <MenuItemWithTopDescription
                 description={translate('travel.hotelDetails.checkIn')}
@@ -74,7 +74,7 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                 <MenuItemWithTopDescription
                     description={translate('travel.hotelDetails.confirmation')}
                     title={reservation.confirmations?.at(0)?.value}
-                    interactive={false}
+                    copyValue={reservation.confirmations?.at(0)?.value}
                 />
             )}
             {!!displayName && (
