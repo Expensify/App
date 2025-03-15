@@ -9,10 +9,10 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {maskCardNumber} from '@libs/CardUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,23 +35,23 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
 
     const data = assignCard?.data;
-    const cardholderName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
     const submit = () => {
         if (!policyID) {
             return;
         }
-        CompanyCards.assignWorkspaceCompanyCard(policyID, data);
+        assignWorkspaceCompanyCard(policyID, data);
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-        CompanyCards.clearAssignCardStepAndData();
+        clearAssignCardStepAndData();
     };
 
     const editStep = (step: AssignCardStep) => {
-        CompanyCards.setAssignCardStepAndData({currentStep: step, isEditing: true});
+        setAssignCardStepAndData({currentStep: step, isEditing: true});
     };
 
     const handleBackButtonPress = () => {
-        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
+        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
     };
 
     return (
@@ -77,7 +77,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={CardUtils.maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
+                    title={maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
                 />
