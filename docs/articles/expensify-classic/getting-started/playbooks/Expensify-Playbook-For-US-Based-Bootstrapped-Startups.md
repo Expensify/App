@@ -3,7 +3,8 @@ title: Expensify Playbook for US-Based Bootstrapped Startups
 description: Learn best practices for using Expensify as a bootstrapped startup with fewer than five employees.
 keywords: [Expensify, startup, bootstrapped, expense tracking, reimbursement, workspace]
 ---
-
+<div id="expensify-classic" markdown="1">
+  
 This playbook outlines best practices for bootstrapped startups with fewer than five employees to use Expensify efficiently. The goal is to focus on product development while seamlessly capturing business-related receipts for future reimbursement.
 
 - If you've secured venture capital and are prioritizing top-line revenue growth, see our *[Playbook for VC-Backed Startups](https://help.expensify.com/articles/playbooks/Expensify-Playbook-for-US-based-VC-Backed-Startups)*.
@@ -99,3 +100,4 @@ Congratulations! Your Expensify setup is complete. If you need assistance:
 - Email *concierge@expensify.com*.
 - Upgrade to a Collect or Control Workspace to be assigned a dedicated Setup Specialist.
 
+</div>
