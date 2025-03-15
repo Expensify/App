@@ -14,9 +14,10 @@ type AttachmentCommentFragmentProps = {
 function AttachmentCommentFragment({addExtraMargin, html, source, styleAsDeleted}: AttachmentCommentFragmentProps) {
     const styles = useThemeStyles();
     const htmlContent = styleAsDeleted ? `<del>${html}</del>` : html;
+    const containerStyle = addExtraMargin ? styles.mt2 : {};
 
     return (
-        <View style={addExtraMargin ? styles.mt2 : {}}>
+        <View style={containerStyle}>
             <RenderCommentHTML
                 containsOnlyEmojis={false}
                 source={source}
@@ -28,4 +29,4 @@ function AttachmentCommentFragment({addExtraMargin, html, source, styleAsDeleted
 
 AttachmentCommentFragment.displayName = 'AttachmentCommentFragment';
 
-export default AttachmentCommentFragment;
+export default React.memo(AttachmentCommentFragment);
