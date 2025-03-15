@@ -106,11 +106,23 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const previousAuthenticated = usePrevious(authenticated);
 
     const initialState = useMemo(() => {
+        const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        if (
+            path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL) &&
+            lastVisitedPath &&
+            !CONFIG.IS_HYBRID_APP &&
+            isOnboardingCompleted &&
+            !wasInvitedToNewDot &&
+            authenticated &&
+            !shouldShowRequire2FAModal
+        ) {
+            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+        }
+
         if (!user || user.isFromPublicDomain) {
             return;
         }
 
-        const path = initialUrl ? getPathFromURL(initialUrl) : null;
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
