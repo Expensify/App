@@ -88,6 +88,9 @@ type ReceiptImageProps = (
     /** Callback to be called on pressing the image */
     onPress?: () => void;
 
+    /** Whether the receipt is a per diem request */
+    isPerDiemRequest?: boolean;
+
     /** The transaction data in search */
     transactionItem?: TransactionListItemType;
 };
@@ -111,6 +114,7 @@ function ReceiptImage({
     isEmptyReceipt = false,
     onPress,
     transactionItem,
+    isPerDiemRequest,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -133,7 +137,7 @@ function ReceiptImage({
         );
     }
 
-    if (isEReceipt) {
+    if (isEReceipt && !isPerDiemRequest) {
         return (
             <EReceiptWithSizeCalculation
                 transactionID={transactionID}
@@ -142,7 +146,7 @@ function ReceiptImage({
         );
     }
 
-    if (isThumbnail) {
+    if (isThumbnail || (isEReceipt && isPerDiemRequest)) {
         const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
         return (
             <View style={style ?? [styles.w100, styles.h100]}>

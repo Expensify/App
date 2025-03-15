@@ -14,7 +14,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest as isDistanceRequestUtils, isFetchingWaypointsFromServer, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -89,8 +89,8 @@ function ReportActionItemImage({
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isDistanceRequest = !!transaction && TransactionUtils.isDistanceRequest(transaction);
-    const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
+    const isDistanceRequest = !!transaction && isDistanceRequestUtils(transaction);
+    const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     const showMapAsImage = isDistanceRequest && (hasErrors || hasPendingWaypoints);
 
@@ -110,7 +110,7 @@ function ReportActionItemImage({
 
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
-    const isEReceipt = transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction);
+    const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
 
     let propsObj: ReceiptImageProps;
 
@@ -139,6 +139,8 @@ function ReportActionItemImage({
             onPress,
         };
     }
+
+    propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
 
     if (enablePreviewModal) {
         return (
