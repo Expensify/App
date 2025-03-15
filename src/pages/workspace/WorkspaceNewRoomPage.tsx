@@ -94,21 +94,18 @@ function WorkspaceNewRoomPage() {
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
         const participants = [session?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
-        const policyReport = buildOptimisticChatReport(
-            participants,
-            values.roomName,
-            CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+        const policyReport = buildOptimisticChatReport({
+            participantList: participants,
+            reportName: values.roomName,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             policyID,
-            CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
-            false,
-            '',
+            ownerAccountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
             visibility,
-            writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-            '',
-            '',
-            parsedDescription,
-        );
+            writeCapability: writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
+            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+            description: parsedDescription,
+        });
+
         setNewRoomReportID(policyReport.reportID);
         addPolicyReport(policyReport);
     };

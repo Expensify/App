@@ -14,8 +14,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {checkIfFeedConnectionIsBroken, flatAllCardsList, getBankName, getCardFeedIcon, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +43,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;

@@ -461,10 +461,11 @@ function ReportActionsList({
                     return;
                 }
 
+                reportScrollManager.scrollToBottom();
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [report.reportID],
+        [report.reportID, reportScrollManager],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
