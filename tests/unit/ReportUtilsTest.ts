@@ -22,6 +22,7 @@ import {
     getIconsForParticipants,
     getInvoiceChatByParticipants,
     getMostRecentlyVisitedReport,
+    getPolicyExpenseChat,
     getQuickActionDetails,
     getReportIDFromLink,
     getReportName,
@@ -1916,6 +1917,33 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction).then(() => {
                 expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
             });
+        });
+    });
+
+    describe('getPolicyExpenseChat', () => {
+        it('should return the correct policy expense chat when we have a task report is the child of this report', async () => {
+            const policyExpenseChat: Report = {
+                ...createRandomReport(11),
+                ownerAccountID: 1,
+                policyID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const taskReport: Report = {
+                ...createRandomReport(10),
+                ownerAccountID: 1,
+                policyID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID: policyExpenseChat.reportID,
+                parentReportActionID: '1',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+
+            expect(getPolicyExpenseChat(1, '1')?.reportID).toBe(policyExpenseChat.reportID);
         });
     });
 
