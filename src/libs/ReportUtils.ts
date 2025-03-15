@@ -300,6 +300,7 @@ type OptimisticNewReport = Pick<
     | 'parentReportActionID'
     | 'participants'
     | 'managerID'
+    | 'pendingAction'
 >;
 
 type BuildOptimisticIOUReportActionParams = {

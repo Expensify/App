@@ -2425,6 +2425,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         nonReimbursableTotal: 0,
         participants: {},
         lastVisibleActionCreated: timeOfCreation,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
     if (accountID) {
