@@ -58,7 +58,7 @@ function TestToolsModal() {
         >
             <ScrollView
                 contentContainerStyle={[StyleUtils.getTestToolsModalStyle(windowWidth), shouldUseNarrowLayout && {...styles.w100, ...styles.pv0}]}
-                style={{maxHeight: windowHeight - variables.modalBackdropMinHeight}}
+                style={{maxHeight: windowHeight * variables.modalContentMaxHeightPercentage}}
             >
                 <Text
                     style={[styles.textLabelSupporting, styles.mt4, styles.mb3]}
