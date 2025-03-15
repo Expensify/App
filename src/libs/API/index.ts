@@ -68,6 +68,11 @@ function prepareRequest<TCommand extends ApiCommand>(
     }
 
     const isWriteRequest = type === CONST.API_REQUEST_TYPE.WRITE;
+    let pusherSocketID = Pusher.getPusherSocketID();
+    if (pusherSocketID === 'null' && isWriteRequest) {
+        Log.alert("Pusher socket ID is 'null'. This should not happen.", {command, pusherSocketID}, true);
+        pusherSocketID = undefined;
+    }
 
     // Prepare the data we'll send to the API
     const data = {
@@ -76,7 +81,7 @@ function prepareRequest<TCommand extends ApiCommand>(
 
         // We send the pusherSocketID with all write requests so that the api can include it in push events to prevent Pusher from sending the events to the requesting client. The push event
         // is sent back to the requesting client in the response data instead, which prevents a replay effect in the UI. See https://github.com/Expensify/App/issues/12775.
-        pusherSocketID: isWriteRequest ? Pusher.getPusherSocketID() : undefined,
+        pusherSocketID: isWriteRequest ? pusherSocketID : undefined,
     };
 
     // Assemble all request metadata (used by middlewares, and for persisted requests stored in Onyx)
