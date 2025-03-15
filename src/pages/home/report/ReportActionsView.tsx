@@ -271,8 +271,7 @@ function ReportActionsView({
         (force = false) => {
             if (
                 !force &&
-                (!reportActionID ||
-                    !isFocused ||
+                (!isFocused ||
                     !newestReportAction ||
                     !hasNewerActions ||
                     isOffline ||
@@ -299,7 +298,7 @@ function ReportActionsView({
                 getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
-        [reportActionID, isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
+        [isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
     );
 
     /**
