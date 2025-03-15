@@ -13,11 +13,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
-import {getReservationsFromTripTransactions, getTripReservationIcon} from '@src/libs/TripReservationUtils';
+import {getReservationsFromTripTransactions, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -61,14 +62,14 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
     const formattedDate = getFormattedDate();
 
     const bottomDescription = useMemo(() => {
-        const code = `${reservation.confirmations && reservation.confirmations?.length > 0 ? `${reservation.confirmations.at(0)?.value} • ` : ''}`;
+        const code = getTripReservationCode(reservation);
         if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT) {
             const longName = reservation.company?.longName ? `${reservation.company?.longName} • ` : '';
             const shortName = reservation?.company?.shortName ? `${reservation?.company?.shortName} ` : '';
             return `${code}${longName}${shortName}${reservation.route?.number}`;
         }
         if (reservation.type === CONST.RESERVATION_TYPE.HOTEL) {
-            return `${code}${reservation.start.address}`;
+            return `${code}${StringUtils.removeDoubleQuotes(reservation.start.address)}`;
         }
         if (reservation.type === CONST.RESERVATION_TYPE.CAR) {
             const vendor = reservation.vendor ? `${reservation.vendor} • ` : '';
@@ -77,7 +78,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
         if (reservation.type === CONST.RESERVATION_TYPE.TRAIN) {
             return reservation.route?.name;
         }
-        return reservation.start.address ?? reservation.start.location;
+        return StringUtils.removeDoubleQuotes(reservation.start.address) ?? reservation.start.location;
     }, [reservation]);
 
     const titleComponent = () => {
@@ -107,7 +108,14 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
                 >
                     {reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '')}
                 </Text>
-                {!!bottomDescription && <Text style={[styles.textSmall, styles.colorMuted, styles.lh14]}>{bottomDescription}</Text>}
+                {!!bottomDescription && (
+                    <Text
+                        style={[styles.textSmall, styles.colorMuted, styles.lh14]}
+                        testID={CONST.RESERVATION_ADDRESS_TEST_ID}
+                    >
+                        {bottomDescription}
+                    </Text>
+                )}
             </View>
         );
     };
