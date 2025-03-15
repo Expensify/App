@@ -837,14 +837,16 @@ function clearWorkspaceOwnerChangeFlow(policyID: string) {
     });
 }
 
-/**
- * Adds members to the specified workspace/policyID
- * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
- */
-function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string, policyMemberAccountIDs: number[], role: string) {
+// s77rt should we remove invitedEmailsToAccountIDs?
+function buildAddMembersToWorkspaceOnyxData(
+    logins: string[],
+    accountIDs: number[],
+    invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    policyID: string,
+    policyMemberAccountIDs: number[],
+    role: string,
+) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
-    const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
-    const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
@@ -926,6 +928,26 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
         },
     ];
     failureData.push(...membersChats.onyxFailureData, ...announceRoomChat.onyxFailureData, ...announceRoomMembers.failureData, ...adminRoomMembers.failureData);
+
+    return {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats};
+}
+
+/**
+ * Adds members to the specified workspace/policyID
+ * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
+ */
+function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string, policyMemberAccountIDs: number[], role: string) {
+    const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
+    const accountIDs = Object.values(invitedEmailsToAccountIDs);
+
+    const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats} = buildAddMembersToWorkspaceOnyxData(
+        logins,
+        accountIDs,
+        invitedEmailsToAccountIDs,
+        policyID,
+        policyMemberAccountIDs,
+        role,
+    );
 
     const params: AddMembersToWorkspaceParams = {
         employees: JSON.stringify(logins.map((login) => ({email: login, role}))),
@@ -1210,6 +1232,7 @@ export {
     updateWorkspaceMembersRole,
     requestWorkspaceOwnerChange,
     clearWorkspaceOwnerChangeFlow,
+    buildAddMembersToWorkspaceOnyxData,
     addMembersToWorkspace,
     clearDeleteMemberError,
     clearAddMemberError,
