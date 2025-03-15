@@ -23,7 +23,7 @@ const defaultSearchContext = {
 const Context = React.createContext<SearchContext>(defaultSearchContext);
 
 function getReportsFromSelectedTransactions(data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[], selectedTransactions: SelectedTransactions) {
-    if (!Array.isArray(data) || data.length === 0) {
+    if (data.length === 0) {
         return [];
     }
 
