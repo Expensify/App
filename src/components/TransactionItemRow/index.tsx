@@ -13,6 +13,7 @@ import ReceiptCell from './DataCells/ReceiptCell';
 import TagCell from './DataCells/TagCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
+import TransactionItemRowRBR from './TransactionItemRowRBR';
 
 function TransactionItemRow({
     transactionItem,
@@ -83,56 +84,57 @@ function TransactionItemRow({
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                             </View>
+                            <TransactionItemRowRBR transaction={transactionItem} />
                         </View>
                     )}
                 </Hoverable>
             ) : (
                 <Hoverable>
                     {(hovered) => (
-                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius]}>
+                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius, styles.gap2]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
                                         isSelected
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
                                     <TypeCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, false)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE)]}>
                                     <DateCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
                                     <MerchantCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
                                     <CategoryCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
                                     <TagCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                                     <TotalCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
@@ -140,6 +142,7 @@ function TransactionItemRow({
                                     />
                                 </View>
                             </View>
+                            <TransactionItemRowRBR transaction={transactionItem} />
                         </View>
                     )}
                 </Hoverable>
