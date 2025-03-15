@@ -3761,6 +3761,10 @@ const translations = {
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
             importCategories: 'Import categories',
+            cannotDisableAllCategories: {
+                title: 'Cannot disable all categories',
+                description: `You can't disable all categories when categories are requied on the workspace.`,
+            },
         },
         moreFeatures: {
             subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',
@@ -3998,6 +4002,10 @@ const translations = {
             importTags: 'Import tags',
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
+            cannotDisableAllTags: {
+                title: 'Cannot disable all tags',
+                description: `You can't disable all tags when tags are requied on the workspace.`,
+            },
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
