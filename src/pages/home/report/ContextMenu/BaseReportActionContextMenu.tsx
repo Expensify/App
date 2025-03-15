@@ -290,21 +290,27 @@ function BaseReportActionContextMenu({
             event,
             selection,
             contextMenuAnchor: anchorRef?.current as ViewType | RNText | null,
-            reportID,
-            reportActionID: reportAction?.reportActionID,
-            originalReportID,
-            draftMessage,
-            onShow: checkIfContextMenuActive,
-            onHide: () => {
-                checkIfContextMenuActive?.();
-                setShouldKeepOpen(false);
+            report: {
+                reportID,
+                originalReportID,
+                isArchivedRoom: isArchivedNonExpenseReportWithID(originalReportID),
+                isChronos: chatIncludesChronosWithID(originalReportID),
             },
-            isArchivedRoom: isArchivedNonExpenseReportWithID(originalReportID),
-            isChronosReport: chatIncludesChronosWithID(originalReportID),
+            reportAction: {
+                reportActionID: reportAction?.reportActionID,
+                draftMessage,
+                isThreadReportParentAction,
+            },
+            callbacks: {
+                onShow: checkIfContextMenuActive,
+                onHide: () => {
+                    checkIfContextMenuActive?.();
+                    setShouldKeepOpen(false);
+                },
+            },
             disabledOptions: filteredContextMenuActions,
             shouldCloseOnTarget: true,
             isOverflowMenu: true,
-            isThreadReportParentAction,
         });
     };
 

@@ -162,22 +162,16 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             event,
             selection,
             contextMenuAnchor,
-            reportID,
-            reportActionID,
-            originalReportID,
-            draftMessage,
-            onShow = () => {},
-            onHide = () => {},
-            isArchivedRoom = false,
-            isChronosReport = false,
-            isPinnedChat = false,
-            isUnreadChat = false,
+            report = {},
+            reportAction = {},
+            callbacks = {},
             disabledOptions = [],
             shouldCloseOnTarget = false,
-            setIsEmojiPickerActive = () => {},
             isOverflowMenu = false,
-            isThreadReportParentAction: isThreadReportParentActionParam = false,
         } = showContextMenuParams;
+        const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = report;
+        const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
+        const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
@@ -223,7 +217,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
             setIsRoomArchived(isArchivedRoom);
-            setIsChronosReportEnabled(isChronosReport);
+            setIsChronosReportEnabled(isChronos);
             setIsChatPinned(isPinnedChat);
             setHasUnreadMessages(isUnreadChat);
             setIsThreadReportParentAction(isThreadReportParentActionParam);

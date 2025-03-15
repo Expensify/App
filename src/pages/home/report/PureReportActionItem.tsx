@@ -527,17 +527,23 @@ function PureReportActionItem({
                 event,
                 selection,
                 contextMenuAnchor: popoverAnchorRef.current,
-                reportID,
-                reportActionID: action.reportActionID,
-                originalReportID,
-                draftMessage,
-                onShow: toggleContextMenuFromActiveReportAction,
-                onHide: toggleContextMenuFromActiveReportAction,
-                isArchivedRoom,
-                isChronosReport,
+                report: {
+                    reportID,
+                    originalReportID,
+                    isArchivedRoom,
+                    isChronos: isChronosReport,
+                },
+                reportAction: {
+                    reportActionID: action.reportActionID,
+                    draftMessage,
+                    isThreadReportParentAction,
+                },
+                callbacks: {
+                    onShow: toggleContextMenuFromActiveReportAction,
+                    onHide: toggleContextMenuFromActiveReportAction,
+                    setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
+                },
                 disabledOptions: disabledActions,
-                setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
-                isThreadReportParentAction,
             });
         },
         [

@@ -23,21 +23,27 @@ type ShowContextMenuParams = {
     event: GestureResponderEvent | MouseEvent;
     selection: string;
     contextMenuAnchor: ContextMenuAnchor;
-    reportID?: string;
-    reportActionID?: string;
-    originalReportID?: string;
-    draftMessage?: string;
-    onShow?: () => void;
-    onHide?: () => void;
-    isArchivedRoom?: boolean;
-    isChronosReport?: boolean;
-    isPinnedChat?: boolean;
-    isUnreadChat?: boolean;
+    report?: {
+        reportID?: string;
+        originalReportID?: string;
+        isArchivedRoom?: boolean;
+        isChronos?: boolean;
+        isPinnedChat?: boolean;
+        isUnreadChat?: boolean;
+    };
+    reportAction?: {
+        reportActionID?: string;
+        draftMessage?: string;
+        isThreadReportParentAction?: boolean;
+    };
+    callbacks?: {
+        onShow?: () => void;
+        onHide?: () => void;
+        setIsEmojiPickerActive?: (state: boolean) => void;
+    };
     disabledOptions?: ContextMenuAction[];
     shouldCloseOnTarget?: boolean;
-    setIsEmojiPickerActive?: (state: boolean) => void;
     isOverflowMenu?: boolean;
-    isThreadReportParentAction?: boolean;
 };
 
 type ShowContextMenu = (params: ShowContextMenuParams) => void;

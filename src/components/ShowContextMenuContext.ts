@@ -58,12 +58,18 @@ function showContextMenuForReport(
         event,
         selection: '',
         contextMenuAnchor: anchor,
-        reportID,
-        reportActionID: action?.reportActionID,
-        originalReportID: reportID ? getOriginalReportID(reportID, action) : undefined,
-        onShow: checkIfContextMenuActive,
-        onHide: checkIfContextMenuActive,
-        isArchivedRoom,
+        report: {
+            reportID,
+            originalReportID: reportID ? getOriginalReportID(reportID, action) : undefined,
+            isArchivedRoom,
+        },
+        reportAction: {
+            reportActionID: action?.reportActionID,
+        },
+        callbacks: {
+            onShow: checkIfContextMenuActive,
+            onHide: checkIfContextMenuActive,
+        },
     });
 }
 

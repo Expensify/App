@@ -145,12 +145,18 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             event,
             selection: '',
             contextMenuAnchor: popoverAnchor.current,
-            reportID,
-            reportActionID: '-1',
-            originalReportID: reportID,
-            onHide: () => setIsContextMenuActive(false),
-            isPinnedChat: optionItem.isPinned,
-            isUnreadChat: !!optionItem.isUnread,
+            report: {
+                reportID,
+                originalReportID: reportID,
+                isPinnedChat: optionItem.isPinned,
+                isUnreadChat: !!optionItem.isUnread,
+            },
+            reportAction: {
+                reportActionID: '-1',
+            },
+            callbacks: {
+                onHide: () => setIsContextMenuActive(false),
+            },
         });
     };
 
