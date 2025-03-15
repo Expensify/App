@@ -4,10 +4,10 @@ import AnimatedSectionList from './AnimatedSectionList';
 import type {SectionListProps, SectionListRef} from './types';
 
 function BaseSectionList<ItemT, SectionT>(
-    {addBottomSafeAreaPadding = false, contentContainerStyle: contentContainerStyleProp, ...restProps}: SectionListProps<ItemT, SectionT>,
+    {addBottomSafeAreaPadding = false, addOfflineIndicatorBottomSafeAreaPadding = false, contentContainerStyle: contentContainerStyleProp, ...restProps}: SectionListProps<ItemT, SectionT>,
     ref: SectionListRef<ItemT, SectionT>,
 ) {
-    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyleProp});
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: contentContainerStyleProp});
 
     return (
         <AnimatedSectionList

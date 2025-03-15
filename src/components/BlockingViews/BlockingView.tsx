@@ -51,6 +51,9 @@ type BaseBlockingViewProps = {
 
     /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
 type BlockingViewIconProps = {
@@ -100,6 +103,7 @@ function BlockingView({
     contentFitImage,
     containerStyle: containerStyleProp,
     addBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = false,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -137,7 +141,7 @@ function BlockingView({
         );
     }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
 
-    const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: containerStyleProp});
+    const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: containerStyleProp});
 
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}>

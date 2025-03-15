@@ -43,6 +43,9 @@ type FormWrapperProps = ChildrenProps &
         /** If enabled, the content will have a bottom padding equal to account for the safe bottom area inset. */
         addBottomSafeAreaPadding?: boolean;
 
+        /** Whether to add bottom safe area padding to the content. */
+        addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
         /** Whether the submit button should stick to the bottom of the screen. */
         shouldSubmitButtonStickToBottom?: boolean;
     };
@@ -69,6 +72,7 @@ function FormWrapper({
     isLoading = false,
     shouldScrollToEnd = false,
     addBottomSafeAreaPadding = true,
+    addOfflineIndicatorBottomSafeAreaPadding = false,
     shouldSubmitButtonStickToBottom = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
@@ -130,10 +134,8 @@ function FormWrapper({
                         submitButtonStyles,
                         shouldSubmitButtonStickToBottom
                             ? [
+                                  styles.stickToBottom,
                                   {
-                                      position: 'absolute',
-                                      left: 0,
-                                      right: 0,
                                       bottom: styles.pb5.paddingBottom + paddingBottom,
                                   },
                                   style,
@@ -169,6 +171,7 @@ function FormWrapper({
             styles.mh0,
             styles.mt5,
             styles.pb5.paddingBottom,
+            styles.stickToBottom,
             submitButtonStyles,
             submitButtonText,
             submitFlexEnabled,
@@ -221,6 +224,7 @@ function FormWrapper({
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
                 >
                     {scrollViewContent()}
@@ -231,6 +235,7 @@ function FormWrapper({
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
                 >
                     {scrollViewContent()}

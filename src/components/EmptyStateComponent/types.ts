@@ -28,6 +28,9 @@ type SharedProps<T> = {
 
     /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
 type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {
