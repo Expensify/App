@@ -297,7 +297,13 @@ function buildCardFeedsData(
     });
 
     Object.entries(workspaceCardFeeds)
-        .filter(([, workspaceFeed]) => !isEmptyObject(workspaceFeed))
+        .filter(([, workspaceFeed]) => {
+            const domainName = Object.values(workspaceFeed ?? {}).at(0)?.domainName ?? '';
+            if (Object.keys(domainFeedsData).includes(domainName)) {
+                return false;
+            }
+            return !isEmptyObject(workspaceFeed);
+        })
         .forEach(([workspaceFeedKey, workspaceFeed]) => {
             const correspondingCardIDs = Object.entries(workspaceFeed ?? {})
                 .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && !isCardHiddenFromSearch(card))
