@@ -1928,7 +1928,7 @@ describe('ReportUtils', () => {
                 policyID: '1',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 type: CONST.REPORT.TYPE.CHAT,
-            }
+            };
 
             const taskReport: Report = {
                 ...createRandomReport(10),
@@ -1938,14 +1938,14 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.TASK,
                 parentReportID: policyExpenseChat.reportID,
                 parentReportActionID: '1',
-            }
+            };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
 
             expect(getPolicyExpenseChat(1, '1')?.reportID).toBe(policyExpenseChat.reportID);
-        })
-    })
+        });
+    });
 
     describe('getApprovalChain', () => {
         describe('submit and close policy', () => {
