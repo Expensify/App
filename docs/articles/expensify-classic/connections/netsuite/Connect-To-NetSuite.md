@@ -143,7 +143,7 @@ After connecting, the NetSuite connection will sync, and the configuration dialo
 
 ---
 
-{% include faq-begin.md %}
+# FAQ
 
 ## Can negative expenses be exported to NetSuite? 
 
