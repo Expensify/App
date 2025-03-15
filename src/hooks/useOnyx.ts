@@ -1,10 +1,10 @@
 import {useMemo} from 'react';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, UseOnyxOptions} from 'react-native-onyx';
+import {useSearchContext} from '@components/Search/SearchContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
-import useSearchState from './useSearchState';
 
 type OriginalUseOnyx = typeof originalUseOnyx;
 type OriginalUseOnyxReturnType = ReturnType<OriginalUseOnyx>;
@@ -45,12 +45,13 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
  * Custom hook for accessing and subscribing to Onyx data with search snapshot support
  */
 const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
-    const {isOnSearch, hashKey} = useSearchState();
+    const {isOnSearch, currentSearchHash} = useSearchContext();
     const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
     const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
     // Determine if we should use snapshot data based on search state and key
-    const shouldUseSnapshot = isOnSearch && !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey));
+    const shouldUseSnapshot =
+        isOnSearch && !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey)) && !!currentSearchHash;
 
     // Create selector function that handles both regular and snapshot data
     const selector = useMemo(() => {
@@ -61,7 +62,7 @@ const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
     }, [selectorProp, shouldUseSnapshot, key]);
 
     const onyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector, allowDynamicKey: true};
-    const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashKey}` as OnyxKey) : key;
+    const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as OnyxKey) : key;
 
     const originalResult = originalUseOnyx(snapshotKey, onyxOptions, dependencies);
 

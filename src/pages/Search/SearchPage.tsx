@@ -16,8 +16,8 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import type {PaymentData} from '@components/Search/types';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -26,7 +26,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import isSearchTopmostFullScreenNavigator from '@libs/Navigation/helpers/isSearchTopmostFullScreenNavigator';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -35,6 +34,7 @@ import {
     payMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
+import isSearchTopmostFullScreenNavigator from '@libs/Navigation/helpers/isSearchTopmostFullScreenNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';

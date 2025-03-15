@@ -11,6 +11,7 @@ import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import {useSearchContext} from '@components/Search/SearchContext';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
@@ -18,7 +19,6 @@ import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoP
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
-import useSearchState from '@hooks/useSearchState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
@@ -107,7 +107,7 @@ function BaseVideoPlayer({
     const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
     const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
     const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
-    const {isOnSearch} = useSearchState();
+    const {isOnSearch} = useSearchContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         setIsEnded(false);

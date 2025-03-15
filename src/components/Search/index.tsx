@@ -44,6 +44,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
+import SearchScopeProvider from './SearchScopeProvider';
 import type {SearchColumnType, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
@@ -151,6 +152,12 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
+    // const { setIsOnSearch } = useSearchContext();
+
+    // useEffect(() => {
+    //     setIsOnSearch(true);
+    //     return () => setIsOnSearch(false);
+    // }, [setIsOnSearch]);
 
     useEffect(() => {
         clearSelectedTransactions(hash);
@@ -463,72 +470,75 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
+
     return (
-        <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
-            ref={handleSelectionListScroll(sortedSelectedData)}
-            sections={[{data: sortedSelectedData, isDisabled: false}]}
-            turnOnSelectionModeOnLongPress={type !== CONST.SEARCH.DATA_TYPES.CHAT}
-            onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
-            onCheckboxPress={toggleTransaction}
-            onSelectAll={toggleAllTransactions}
-            customListHeader={
-                !isLargeScreenWidth ? null : (
-                    <SearchTableHeader
-                        data={searchResults?.data}
-                        metadata={searchResults?.search}
-                        onSortPress={onSortPress}
-                        sortOrder={sortOrder}
-                        sortBy={sortBy}
-                        shouldShowYear={shouldShowYear}
-                        shouldShowSorting={shouldShowSorting}
-                    />
-                )
-            }
-            isSelected={(item) =>
-                (status !== CONST.SEARCH.STATUS.EXPENSE.ALL || shouldGroupByReports) && isReportListItemType(item)
-                    ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
-                    : !!item.isSelected
-            }
-            onScroll={onSearchListScroll}
-            onContentSizeChange={onContentSizeChange}
-            canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
-            customListHeaderHeight={searchHeaderHeight}
-            // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
-            // we have configured a larger windowSize and a longer delay between batch renders.
-            // The windowSize determines the number of items rendered before and after the currently visible items.
-            // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
-            // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
-            // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
-            // For more information, refer to the React Native documentation:
-            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
-            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
-            windowSize={111}
-            updateCellsBatchingPeriod={200}
-            ListItem={ListItem}
-            onSelectRow={openReport}
-            getItemHeight={getItemHeightMemoized}
-            shouldSingleExecuteRowSelect
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            shouldPreventDefault={false}
-            listHeaderWrapperStyle={[styles.ph8, styles.pt3]}
-            containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-            showScrollIndicator={false}
-            onEndReachedThreshold={0.75}
-            onEndReached={fetchMoreResults}
-            listFooterContent={
-                shouldShowLoadingMoreItems ? (
-                    <SearchRowSkeleton
-                        shouldAnimate
-                        fixedNumItems={5}
-                    />
-                ) : undefined
-            }
-            contentContainerStyle={[contentContainerStyle, styles.pb3]}
-            scrollEventThrottle={1}
-            shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
-            isScreenFocused={isSearchScreenFocused}
-            initialNumToRender={shouldUseNarrowLayout ? 5 : undefined}
-        />
+        <SearchScopeProvider isOnSearch={true}>
+            <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
+                ref={handleSelectionListScroll(sortedSelectedData)}
+                sections={[{data: sortedSelectedData, isDisabled: false}]}
+                turnOnSelectionModeOnLongPress={type !== CONST.SEARCH.DATA_TYPES.CHAT}
+                onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
+                onCheckboxPress={toggleTransaction}
+                onSelectAll={toggleAllTransactions}
+                customListHeader={
+                    !isLargeScreenWidth ? null : (
+                        <SearchTableHeader
+                            data={searchResults?.data}
+                            metadata={searchResults?.search}
+                            onSortPress={onSortPress}
+                            sortOrder={sortOrder}
+                            sortBy={sortBy}
+                            shouldShowYear={shouldShowYear}
+                            shouldShowSorting={shouldShowSorting}
+                        />
+                    )
+                }
+                isSelected={(item) =>
+                    (status !== CONST.SEARCH.STATUS.EXPENSE.ALL || shouldGroupByReports) && isReportListItemType(item)
+                        ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
+                        : !!item.isSelected
+                }
+                onScroll={onSearchListScroll}
+                onContentSizeChange={onContentSizeChange}
+                canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
+                customListHeaderHeight={searchHeaderHeight}
+                // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
+                // we have configured a larger windowSize and a longer delay between batch renders.
+                // The windowSize determines the number of items rendered before and after the currently visible items.
+                // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
+                // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
+                // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
+                // For more information, refer to the React Native documentation:
+                // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
+                // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
+                windowSize={111}
+                updateCellsBatchingPeriod={200}
+                ListItem={ListItem}
+                onSelectRow={openReport}
+                getItemHeight={getItemHeightMemoized}
+                shouldSingleExecuteRowSelect
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                shouldPreventDefault={false}
+                listHeaderWrapperStyle={[styles.ph8, styles.pt3]}
+                containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                showScrollIndicator={false}
+                onEndReachedThreshold={0.75}
+                onEndReached={fetchMoreResults}
+                listFooterContent={
+                    shouldShowLoadingMoreItems ? (
+                        <SearchRowSkeleton
+                            shouldAnimate
+                            fixedNumItems={5}
+                        />
+                    ) : undefined
+                }
+                contentContainerStyle={[contentContainerStyle, styles.pb3]}
+                scrollEventThrottle={1}
+                shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
+                isScreenFocused={isSearchScreenFocused}
+                initialNumToRender={shouldUseNarrowLayout ? 5 : undefined}
+            />
+        </SearchScopeProvider>
     );
 }
 

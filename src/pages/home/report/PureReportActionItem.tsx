@@ -28,13 +28,13 @@ import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
+import {useSearchContext} from '@components/Search/SearchContext';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchState from '@hooks/useSearchState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -415,7 +415,7 @@ function PureReportActionItem({
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
 
-    const {isOnSearch, hashKey} = useSearchState();
+    const {isOnSearch, currentSearchHash} = useSearchContext();
     const onClose = () => {
         let transactionID;
         if (isMoneyRequestAction(action)) {
@@ -588,10 +588,10 @@ function PureReportActionItem({
 
     const attachmentContextValue = useMemo(() => {
         if (isOnSearch) {
-            return {type: CONST.ATTACHMENT_TYPE.SEARCH, hashKey};
+            return {type: CONST.ATTACHMENT_TYPE.SEARCH, currentSearchHash};
         }
         return {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
-    }, [reportID, isOnSearch, hashKey]);
+    }, [reportID, isOnSearch, currentSearchHash]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID, exactlyMatch: true}), [report?.reportID]);
     const actionableItemButtons: ActionableItem[] = useMemo(() => {

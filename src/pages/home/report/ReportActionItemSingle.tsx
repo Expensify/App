@@ -7,6 +7,7 @@ import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import {useSearchContext} from '@components/Search/SearchContext';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -15,7 +16,6 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useSearchState from '@hooks/useSearchState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -128,7 +128,7 @@ function ReportActionItemSingle({
     const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report);
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
-    const {isOnSearch} = useSearchState();
+    const {isOnSearch} = useSearchContext();
 
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
