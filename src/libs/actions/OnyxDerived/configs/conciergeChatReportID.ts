@@ -25,8 +25,6 @@ export default createOnyxDerivedValueConfig({
             return participantAccountIDs.has(CONST.ACCOUNT_ID.CONCIERGE.toString()) || report?.reportID === conciergeChatReportID;
         });
 
-        console.debug('conciergeReport?.reportID', conciergeReport?.reportID);
-
         return conciergeReport?.reportID;
     },
 });
