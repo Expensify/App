@@ -39,6 +39,8 @@ type RootStackNavigatorConfig = {
 
 type RootStackNavigatorRouterOptions = StackRouterOptions;
 
+type SearchFullscreenNavigatorRouterOptions = StackRouterOptions;
+
 type RootStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> & RootStackNavigatorConfig;
 
 type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootStackNavigatorActionType;
@@ -53,4 +55,5 @@ export type {
     RootStackNavigatorRouterOptions,
     RootStackNavigatorProps,
     RootStackNavigatorConfig,
+    SearchFullscreenNavigatorRouterOptions,
 };
