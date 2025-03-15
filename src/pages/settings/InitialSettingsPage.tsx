@@ -37,7 +37,7 @@ import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUt
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import {buildOldDotURL, openExternalLink, openOldDotLink} from '@userActions/Link';
@@ -315,9 +315,21 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
             const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
                 if (typeof link === 'function') {
-                    link?.()?.then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
+                    link?.()?.then((url) =>
+                        showContextMenu({
+                            type: CONST.CONTEXT_MENU_TYPES.LINK,
+                            event,
+                            selection: url,
+                            contextMenuAnchor: popoverAnchor.current,
+                        }),
+                    );
                 } else if (link) {
-                    ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current);
+                    showContextMenu({
+                        type: CONST.CONTEXT_MENU_TYPES.LINK,
+                        event,
+                        selection: link,
+                        contextMenuAnchor: popoverAnchor.current,
+                    });
                 }
             };
 
