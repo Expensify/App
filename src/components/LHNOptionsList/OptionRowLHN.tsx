@@ -237,7 +237,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     (hovered || isContextMenuActive) && !isFocused ? styles.sidebarLinkHover : null,
                                 ]}
                                 role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`}
+                                accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ``} ${
+                                    optionItem.alternateText
+                                }`}
                                 onLayout={onLayout}
                                 needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                             >
