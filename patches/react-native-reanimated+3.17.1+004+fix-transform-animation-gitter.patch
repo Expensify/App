@@ -1,8 +1,8 @@
-diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/NativeReanimatedModule.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/NativeReanimatedModule.cpp
-index 673ebd1..08d65fe 100644
---- a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/NativeReanimatedModule.cpp
-+++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/NativeReanimatedModule.cpp
-@@ -710,6 +710,15 @@ void NativeReanimatedModule::performOperations() {
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
+index 10aaa36..f494afb 100644
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
+@@ -760,6 +760,15 @@ void ReanimatedModuleProxy::performOperations() {
      jsPropsUpdater.call(rt, viewTag, nonAnimatableProps);
    }
  
@@ -16,5 +16,5 @@ index 673ebd1..08d65fe 100644
 +  }
 +
    bool hasLayoutUpdates = false;
+ 
    for (const auto &[shadowNode, props] : copiedOperationsQueue) {
-     if (isThereAnyLayoutProp(rt, props->asObject(rt))) {

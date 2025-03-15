@@ -79,7 +79,7 @@
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
     "@expensify/react-native-background-task": "file:./modules/background-task",
-    "@expensify/react-native-live-markdown": "0.1.238",
+    "@expensify/react-native-live-markdown": "0.1.244",
     "@expo/metro-runtime": "^4.0.0",
     "@firebase/app": "^0.10.10",
     "@firebase/performance": "^0.6.8",
@@ -178,7 +178,7 @@
     "react-native-plaid-link-sdk": "11.11.0",
     "react-native-qrcode-svg": "6.3.14",
     "react-native-quick-sqlite": "git+https://github.com/margelo/react-native-nitro-sqlite#99f34ebefa91698945f3ed26622e002bd79489e0",
-    "react-native-reanimated": "3.16.4",
+    "react-native-reanimated": "3.17.1",
     "react-native-release-profiler": "^0.2.1",
     "react-native-render-html": "6.3.1",
     "react-native-safe-area-context": "4.12.0",

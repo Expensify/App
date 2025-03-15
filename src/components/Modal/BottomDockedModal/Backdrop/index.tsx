@@ -1,26 +1,13 @@
 import React, {useMemo} from 'react';
 import Animated, {Easing, Keyframe} from 'react-native-reanimated';
-import type {ReanimatedKeyframe} from 'react-native-reanimated/lib/typescript/layoutReanimation/animationBuilder/Keyframe';
 import type {BackdropProps} from '@components/Modal/BottomDockedModal/types';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
-/**
- * Due to issues with react-native-reanimated Keyframes the easing type doesn't account for bezier functions
- * and we also need to use internal .build() function to make the easing apply on each mount.
- *
- * This causes problems with both eslint & Typescript and is going to be fixed in react-native-reanimated 3.17 with these PRs merged:
- * https://github.com/software-mansion/react-native-reanimated/pull/6960
- * https://github.com/software-mansion/react-native-reanimated/pull/6958
- *
- * Once that's added we can apply our changes to files in BottomDockedModal/Backdrop/*.tsx and BottomDockedModal/Container/*.tsx
- */
-
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 function Backdrop({
     style,
     customBackdrop,
@@ -36,13 +23,10 @@ function Backdrop({
             from: {opacity: 0},
             to: {
                 opacity: 0.72,
-                // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
                 easing,
             },
         });
-
-        // @ts-expect-error Internal function used to fix easing issue, should to be fixed in 3.17
-        return FadeIn.duration(animationInTiming).build() as ReanimatedKeyframe;
+        return FadeIn.duration(animationInTiming);
     }, [animationInTiming]);
 
     const Exiting = useMemo(() => {
@@ -50,13 +34,11 @@ function Backdrop({
             from: {opacity: 0.72},
             to: {
                 opacity: 0,
-                // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
                 easing,
             },
         });
 
-        // @ts-expect-error Internal function used to fix easing issue, should to be fixed in 3.17
-        return FadeOut.duration(animationOutTiming).build() as ReanimatedKeyframe;
+        return FadeOut.duration(animationOutTiming);
     }, [animationOutTiming]);
 
     const BackdropOverlay = useMemo(
