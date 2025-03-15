@@ -262,7 +262,7 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
     const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
-    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW) {
+    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW || reportItem.action === CONST.SEARCH.ACTION_TYPES.PAY) {
         return translateLocal('iou.payerOwesAmount', {
             payer: payerName,
             amount: formattedAmount,
@@ -491,8 +491,11 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
-                reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
             };
+
+            if (isIOUReport) {
+                reportIDToTransactions[reportKey].reportName = getIOUReportName(data, reportIDToTransactions[reportKey]);
+            }
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;

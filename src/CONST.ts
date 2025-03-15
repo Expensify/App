@@ -1313,7 +1313,6 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
-                RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
@@ -1945,7 +1944,6 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
-        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     XERO_CONFIG: {
@@ -2969,6 +2967,18 @@ const CONST = {
             EXPENSE: 'expense',
             DAILY: 'daily',
         },
+    },
+
+    HELP_DOC_LINKS: {
+        'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        'QuickBooks Desktop': '',
+        quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        NetSuite: 'https://help.expensify.com/articles/new-expensify/connections/netsuite/Configure-Netsuite',
+        Xero: 'https://help.expensify.com/articles/new-expensify/connections/xero/Configure-Xero',
+        Intacct: 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
+        FinancialForce: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
+        'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
+        Certinia: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
     },
 
     CUSTOM_UNITS: {
@@ -5017,11 +5027,9 @@ const CONST = {
         CONTENT_TYPES: {
             SUBMIT_EXPENSE: 'submitExpense',
             START_CHAT: 'startChat',
-            PAY_SOMEONE: 'paySomeone',
             REFER_FRIEND: 'referralFriend',
             SHARE_CODE: 'shareCode',
         },
-        REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/expenses/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },

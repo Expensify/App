@@ -127,6 +127,7 @@ function TransferBalancePage() {
                     shouldShowButton
                     buttonText={translate('common.done')}
                     onButtonPress={dismissSuccessfulTransferBalancePage}
+                    containerStyle={styles.flex1}
                 />
             </ScreenWrapper>
         );

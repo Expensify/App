@@ -4942,6 +4942,11 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        searchStatusBarContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
         walletIllustration: {
             height: 180,
         },

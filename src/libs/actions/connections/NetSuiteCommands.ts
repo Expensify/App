@@ -766,10 +766,7 @@ function updateNetSuiteExportToNextOpenPeriod(policyID: string, value: boolean, 
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD, parameters, onyxData);
 }
 
-function updateNetSuiteAutoSync(policyID: string | undefined, value: boolean) {
-    if (!policyID) {
-        return;
-    }
+function updateNetSuiteAutoSync(policyID: string, value: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -940,13 +937,10 @@ function updateNetSuiteExportReportsTo(
 }
 
 function updateNetSuiteAccountingMethod(
-    policyID: string | undefined,
+    policyID: string,
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
     oldAccountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
 ) {
-    if (!policyID) {
-        return;
-    }
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
 
     const parameters = {
