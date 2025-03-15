@@ -378,6 +378,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Custom unit name */
     customUnitName?: string;
 
+    /** Rate name of the custom unit */
+    customUnitRateName?: string;
+
     /** Custom unit name */
     rateName?: string;
 
@@ -404,6 +407,33 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Old role of user or old value of the category/tag field */
     oldValue?: boolean | string;
+
+    /** Old approval audit rate */
+    oldAuditRate?: number;
+
+    /** New approval audit rate */
+    newAuditRate?: number;
+
+    /** Old limit of manual approval threshold */
+    oldLimit?: number;
+
+    /** New limit of manual approval threshold */
+    newLimit?: number;
+
+    /** Name for the field of which approver has been updated */
+    name?: string;
+
+    /** Account ID of the approver */
+    approverAccountID?: string;
+
+    /** Email of the approver */
+    approverEmail?: string;
+
+    /** Name of the approver */
+    approverName?: string;
+
+    /** Field of which approver has been updated */
+    field?: string;
 };
 
 /** Model of `join policy` report action */
