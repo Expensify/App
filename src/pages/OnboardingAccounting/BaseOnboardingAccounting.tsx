@@ -188,7 +188,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         setOnboardingAdminsChatReportID();
                         setOnboardingPolicyID();
                     });
-                    navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, onboardingAdminsChatReportID);
+                    navigateAfterOnboarding(
+                        isSmallScreenWidth,
+                        canUseDefaultRooms,
+                        onboardingPolicyID,
+                        activeWorkspaceID,
+                        onboardingAdminsChatReportID,
+                        !(session?.email ?? '').includes('+'),
+                    );
                 }}
                 pressOnEnter
             />
