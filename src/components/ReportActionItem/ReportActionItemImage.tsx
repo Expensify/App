@@ -150,12 +150,7 @@ function ReportActionItemImage({
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.TRANSACTION_RECEIPT.getRoute(
-                                    transactionThreadReport?.reportID ?? report?.reportID,
-                                    transaction?.transactionID,
-                                    readonly,
-                                    isFromReviewDuplicates,
-                                ),
+                                ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID, transaction?.transactionID, readonly, isFromReviewDuplicates),
                             )
                         }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
