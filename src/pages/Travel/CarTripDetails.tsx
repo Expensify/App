@@ -45,6 +45,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                     </Text>
                 }
                 interactive={false}
+                helperText={reservation.start.location}
                 helperTextStyle={[styles.pb3, styles.mtn2]}
             />
             <MenuItemWithTopDescription
