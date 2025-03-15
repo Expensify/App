@@ -736,4 +736,8 @@ export default {
     minHeight65: {
         minHeight: 260,
     },
+
+    maxHeight5: {
+        maxHeight: 20,
+    },
 } satisfies Record<string, ViewStyle>;
