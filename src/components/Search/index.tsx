@@ -423,11 +423,11 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
         if (isReportActionListItemType(item)) {
             const reportActionID = item.reportActionID;
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo, q: buildSearchQueryString(queryJSON)}));
             return;
         }
 
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo, q: buildSearchQueryString(queryJSON)}));
     };
 
     const fetchMoreResults = () => {
