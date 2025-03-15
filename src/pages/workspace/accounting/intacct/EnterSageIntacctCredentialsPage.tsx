@@ -53,7 +53,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
     );
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
             testID={EnterSageIntacctCredentialsPage.displayName}
         >
@@ -70,6 +70,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                 enabledWhenOffline
                 shouldValidateOnBlur
                 shouldValidateOnChange
+                addBottomSafeAreaPadding
             >
                 <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{translate('workspace.intacct.enterCredentials')}</Text>
                 {formItems.map((formItem, index) => (

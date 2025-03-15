@@ -61,7 +61,7 @@ function SelectFeedType() {
     return (
         <ScreenWrapper
             testID={SelectFeedType.displayName}
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -91,6 +91,7 @@ function SelectFeedType() {
                 showConfirmButton
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
+                addBottomSafeAreaPadding
             >
                 {hasError && (
                     <View style={[styles.ph5, styles.mb3]}>

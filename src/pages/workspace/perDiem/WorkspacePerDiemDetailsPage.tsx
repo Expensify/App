@@ -71,7 +71,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspacePerDiemDetailsPage.displayName}
             >
@@ -86,8 +86,12 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                <FullPageBlockingView style={!isEmptyObject(selectedSubRate) ? styles.flexGrow1 : []}>
+                <FullPageBlockingView
+                    style={!isEmptyObject(selectedSubRate) ? styles.flexGrow1 : []}
+                    addBottomSafeAreaPadding
+                >
                     <ScrollView
+                        addBottomSafeAreaPadding
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="always"
                     >

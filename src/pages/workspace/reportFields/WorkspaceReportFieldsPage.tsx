@@ -238,7 +238,7 @@ function WorkspaceReportFieldsPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceReportFieldsPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -306,6 +306,7 @@ function WorkspaceReportFieldsPage({
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
+                        addBottomSafeAreaPadding
                     />
                 )}
             </ScreenWrapper>

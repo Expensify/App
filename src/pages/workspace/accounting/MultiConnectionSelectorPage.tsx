@@ -95,7 +95,7 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
         >
             <ScreenWrapper
                 testID={MultiConnectionSelectorPage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton title={translate(`workspace.multiConnectionSelector.title`, {connectionName: multiConnectionName})} />
