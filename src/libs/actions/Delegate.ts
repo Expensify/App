@@ -75,8 +75,8 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.IS_SIDEBAR_LOADED,
 ];
 
-function connect(email: string) {
-    if (!delegatedAccess?.delegators) {
+function connect(email: string, isFromOldDot = false) {
+    if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
 
