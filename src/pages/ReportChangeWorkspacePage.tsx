@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {isWorkspaceEligibleForReportChange} from '@libs/PolicyUtils';
-import {isExpenseReport} from '@libs/ReportUtils';
+import {isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -59,7 +59,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
         additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin),
     });
 
-    if (!isExpenseReport(report)) {
+    if (!isExpenseReport(report) || isMoneyRequestReportPendingDeletion(report)) {
         return <NotFoundPage />;
     }
 
