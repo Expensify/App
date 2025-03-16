@@ -1993,7 +1993,8 @@ function getWorkspaceReportFieldAddMessage(action: ReportAction): string {
 }
 
 function getWorkspaceReportFieldUpdateMessage(action: ReportAction): string {
-    const {updateType, fieldName, defaultValue, optionName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD>) ?? {};
+    const {updateType, fieldName, defaultValue, optionName, allEnabled} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD>) ?? {};
 
     if (updateType === 'updatedDefaultValue' && fieldName && defaultValue) {
         return translateLocal('workspaceActions.updateReportFieldDefaultValue', {
@@ -2017,9 +2018,10 @@ function getWorkspaceReportFieldUpdateMessage(action: ReportAction): string {
     }
 
     if (updateType === 'updatedAllDisabled' && fieldName && optionName) {
-        return translateLocal('workspaceActions.updateReportFieldAddedOption', {
+        return translateLocal('workspaceActions.updateReportFieldAllOptionsDisabled', {
             fieldName,
             optionName,
+            allEnabled: !!allEnabled,
         });
     }
 

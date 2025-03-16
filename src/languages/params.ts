@@ -325,6 +325,8 @@ type PolicyAddedReportFieldOptionParams = {fieldName?: string; optionName: strin
 
 type PolicyDisabledReportFieldOptionParams = {fieldName: string; optionName: string; optionEnabled: boolean};
 
+type PolicyDisabledReportFieldAllOptionsParams = {fieldName: string; optionName: string; allEnabled: boolean};
+
 type AddedPolicyApprovalRuleParams = {approverEmail: string; approverName: string; field: string; name: string};
 
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
@@ -905,6 +907,7 @@ export type {
     UpdatedPolicyReportFieldDefaultValueParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldOptionParams,
+    PolicyDisabledReportFieldAllOptionsParams,
     SubmitsToParams,
     SettlementDateParams,
     PolicyExpenseChatNameParams,

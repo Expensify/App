@@ -129,6 +129,7 @@ import type {
     PayerSettledParams,
     PaySomeoneParams,
     PolicyAddedReportFieldOptionParams,
+    PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
     ReconciliationWorksParams,
@@ -4907,6 +4908,8 @@ const translations = {
         updateReportFieldAddedOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `updated Report Field "${fieldName}"; Added the option "${optionName}"`,
         updateReportFieldOptionDisabled: ({fieldName, optionName, optionEnabled}: PolicyDisabledReportFieldOptionParams) =>
             `updated Report Field "${fieldName}"; Set the option "${optionName}" to be ${optionEnabled ? 'Enabled' : 'Disabled'}`,
+        updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled}: PolicyDisabledReportFieldAllOptionsParams) =>
+            `updated Report Field "${fieldName}"; Set the option "${optionName}" to be ${allEnabled ? 'Enabled' : 'Disabled'} making all options ${allEnabled ? 'Enabled' : 'Disabled'}`,
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `removed ${fieldType} Report Field "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,

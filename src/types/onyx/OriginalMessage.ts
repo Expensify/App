@@ -437,6 +437,9 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Option name of a list report field */
     optionName?: string;
+
+    /** Are all allEnabled report field options enabled */
+    allEnabled?: string;
 };
 
 /** Model of `join policy` report action */
