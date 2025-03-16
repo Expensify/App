@@ -8,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getBrowser, isChromeIOS} from '@libs/Browser';
 import Navigation from '@navigation/Navigation';
-import variables from '@styles/variables';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,6 +24,8 @@ import Text from './Text';
 function getRouteBasedOnAuthStatus(isAuthenticated: boolean, activeRoute: string) {
     return isAuthenticated ? ROUTES.SETTINGS_CONSOLE.getRoute(activeRoute) : ROUTES.PUBLIC_CONSOLE_DEBUG.getRoute(activeRoute);
 }
+
+const modalContentMaxHeightPercentage = 0.75;
 
 function TestToolsModal() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -58,7 +59,7 @@ function TestToolsModal() {
         >
             <ScrollView
                 contentContainerStyle={[StyleUtils.getTestToolsModalStyle(windowWidth), shouldUseNarrowLayout && {...styles.w100, ...styles.pv0}]}
-                style={{maxHeight: windowHeight * variables.modalContentMaxHeightPercentage}}
+                style={{maxHeight: windowHeight * modalContentMaxHeightPercentage}}
             >
                 <Text
                     style={[styles.textLabelSupporting, styles.mt4, styles.mb3]}
