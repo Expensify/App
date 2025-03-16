@@ -100,7 +100,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         selector: wasInvitedToNewDotSelector,
     });
     const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
-    const shouldShowRequire2FAPage = account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
 
     const previousAuthenticated = usePrevious(authenticated);
 
@@ -109,6 +108,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
+        const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
         if (shouldShowRequire2FAPage) {
             return getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config);
         }
