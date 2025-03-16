@@ -5042,15 +5042,19 @@ function changeReportPolicy(reportID: string, policyID: string) {
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove.reportID}`,
         value: {
             [optimisticMovedReportAction.reportActionID]: {
-                ...optimisticMovedReportAction,
                 pendingAction: null,
+                errors: null,
             },
         },
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove.reportID}`,
-        value: {[optimisticMovedReportAction.reportActionID]: null},
+        value: {
+            [optimisticMovedReportAction.reportActionID]: {
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
     });
 
     // Call the ChangeReportPolicy API endpoint
