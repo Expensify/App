@@ -684,39 +684,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_SETUP]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_PROJECTS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_PROJECTS_DISPLAYED_AS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PREFERRED_EXPORTER]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PAYMENT_ACCOUNT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: {
         policyID: string;
     };

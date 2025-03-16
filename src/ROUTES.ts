@@ -2102,50 +2102,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
     },
-    POLICY_ACCOUNTING_NSQS_SETUP: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/setup',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/setup` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_IMPORT: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/import',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/import/customers',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/customers` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/import/customers/displayed-as',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/customers/displayed-as` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/import/projects',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/projects` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS_DISPLAYED_AS: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/import/projects/displayed-as',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/projects/displayed-as` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_EXPORT: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/export',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_EXPORT_PREFERRED_EXPORTER: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/export/preferred-exporter',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/preferred-exporter` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_EXPORT_DATE: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/export/date',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/date` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_EXPORT_PAYMENT_ACCOUNT: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/export/payment-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/payment-account` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_ADVANCED: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/advanced',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/advanced` as const,
-    },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/prerequisites` as const,

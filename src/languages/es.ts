@@ -3486,69 +3486,6 @@ const translations = {
                 },
             },
         },
-        nsqs: {
-            setup: {
-                title: 'NSQS configuración',
-                description: 'Introduce tu ID de NSQS',
-                formInputs: {
-                    netSuiteAccountID: 'ID de Cuenta NSQS',
-                },
-            },
-            import: {
-                expenseCategories: 'Categorías de gastos',
-                expenseCategoriesDescription: 'Las categorías de gastos de NSQS se importan a Expensify como categorías.',
-                importTypes: {
-                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
-                        label: 'Etiquetas',
-                        description: 'Nivel de línea de pedido',
-                    },
-                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
-                        label: 'Campos de informe',
-                        description: 'Nivel de informe',
-                    },
-                },
-                importFields: {
-                    customers: {
-                        title: 'Clientes',
-                        subtitle: 'Elige cómo gestionar los *clientes* de NSQS en Expensify.',
-                    },
-                    projects: {
-                        title: 'Proyectos',
-                        subtitle: 'Elige cómo gestionar los *proyectos* de NSQS en Expensify.',
-                    },
-                },
-            },
-            export: {
-                description: 'Configura cómo se exportan los datos de Expensify a NSQS.',
-                exportDate: {
-                    label: 'Fecha de exportación',
-                    description: 'Usa esta fecha al exportar informe a NSQS.',
-                    values: {
-                        [CONST.NSQS_EXPORT_DATE.LAST_EXPENSE]: {
-                            label: 'Fecha del último gasto',
-                            description: 'Fecha del gasto mas reciente en el informe.',
-                        },
-                        [CONST.NSQS_EXPORT_DATE.EXPORTED]: {
-                            label: 'Fecha de exportación',
-                            description: 'Fecha de exportación del informe a NSQS.',
-                        },
-                        [CONST.NSQS_EXPORT_DATE.SUBMITTED]: {
-                            label: 'Fecha de envío',
-                            description: 'Fecha en la que el informe se envió para su aprobación.',
-                        },
-                    },
-                },
-                expense: 'Gasto',
-                reimbursableExpenses: 'Exportar gastos reembolsables como',
-                nonReimbursableExpenses: 'Exportar gastos no reembolsables como',
-                defaultPaymentAccount: 'Preferencia predeterminada de NSQS',
-                paymentAccount: 'Cuenta de pago',
-                paymentAccountDescription: 'Elige la cuenta que se utilizará como cuenta de pago para las transacciones NSQS.',
-            },
-            advanced: {
-                autoSyncDescription: 'Sincroniza NSQS y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
-            },
-        },
         intacct: {
             sageIntacctSetup: 'Sage Intacct configuración',
             prerequisitesTitle: 'Antes de conectar...',
@@ -4148,7 +4085,6 @@ const translations = {
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
-            nsqs: 'NSQS',
             intacct: 'Sage Intacct',
             talkYourOnboardingSpecialist: 'Chatea con tu especialista asignado.',
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
@@ -4162,8 +4098,6 @@ const translations = {
                         return 'Xero';
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return 'NetSuite';
-                    case CONST.POLICY.CONNECTIONS.NAME.NSQS:
-                        return 'NSQS';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
                     default: {
@@ -4197,8 +4131,6 @@ const translations = {
                         return 'No se puede conectar a Xero.';
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return 'No se puede conectar a NetSuite.';
-                    case CONST.POLICY.CONNECTIONS.NAME.NSQS:
-                        return 'No se puede conectar a NSQS.';
                     case CONST.POLICY.CONNECTIONS.NAME.QBD:
                         return 'No se puede conectar a QuickBooks Desktop.';
                     default: {
@@ -4326,7 +4258,6 @@ const translations = {
                         case 'netSuiteSyncData':
                             return 'Importando datos a Expensify';
                         case 'netSuiteSyncAccounts':
-                        case 'nsqsSyncAccounts':
                             return 'Sincronizando cuentas';
                         case 'netSuiteSyncCurrencies':
                             return 'Sincronizando divisas';
@@ -4347,16 +4278,6 @@ const translations = {
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Importando proveedores';
-                        case 'nsqsSyncConnection':
-                            return 'Iniciando conexión a NSQS';
-                        case 'nsqsSyncEmployees':
-                            return 'Sincronizando empleados';
-                        case 'nsqsSyncCustomers':
-                            return 'Sincronizando clientes';
-                        case 'nsqsSyncProjects':
-                            return 'Sincronizando proyectos';
-                        case 'nsqsSyncCurrency':
-                            return 'Sincronizando moneda';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
                         case 'netSuiteImportVendorsTitle':
