@@ -434,6 +434,9 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Field of which approver has been updated */
     field?: string;
+
+    /** Option name of a list report field */
+    optionName?: string;
 };
 
 /** Model of `join policy` report action */

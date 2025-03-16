@@ -1993,12 +1993,19 @@ function getWorkspaceReportFieldAddMessage(action: ReportAction): string {
 }
 
 function getWorkspaceReportFieldUpdateMessage(action: ReportAction): string {
-    const {updateType, fieldName, defaultValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {updateType, fieldName, defaultValue, optionName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD>) ?? {};
 
     if (updateType === 'updatedDefaultValue' && fieldName && defaultValue) {
         return translateLocal('workspaceActions.updateReportFieldDefaultValue', {
             fieldName,
             defaultValue,
+        });
+    }
+
+    if (updateType === 'addedOption' && fieldName && optionName) {
+        return translateLocal('workspaceActions.updateReportFieldAddedOption', {
+            fieldName,
+            optionName,
         });
     }
 
