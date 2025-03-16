@@ -3929,8 +3929,8 @@ const translations = {
             workflowWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
                 featureEnabledText:
-                    'Expensify Cards from this workspace currently rely on approval to define their Smart Limits. Please amend the limit types of any Expensify Cards with Smart Limits before disabling workflows.',
-                confirmText: 'Go to Expensify Card',
+                    'Expensify Cards from this workspace currently rely on approval to define their Smart Limits. Please change the limit types of any cards with Smart Limits before disabling workflows.',
+                confirmText: 'Go to Expensify Cards',
             },
             rules: {
                 title: 'Rules',
