@@ -53,7 +53,13 @@ function useWorkspaceList({
         }
 
         return Object.values(policies)
-            .filter((policy) => !!policy && shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin) && !policy?.isJoinRequestPending && (additionalFilter ? additionalFilter(policy) : true))
+            .filter(
+                (policy) =>
+                    !!policy &&
+                    shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin) &&
+                    !policy?.isJoinRequestPending &&
+                    (additionalFilter ? additionalFilter(policy) : true),
+            )
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id,

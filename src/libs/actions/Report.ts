@@ -4981,14 +4981,8 @@ function changeReportPolicy(reportID: string, policyID: string) {
 
         // Update the workspace chat report
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`];
-        const lastMessageText = getLastVisibleMessage(
-            workspaceChatReportID,
-            {[reportPreviewActionID]: updatedReportPreviewAction as ReportAction},
-        )?.lastMessageText;
-        const lastVisibleActionCreated = getReportLastMessage(
-            workspaceChatReportID,
-            {[reportPreviewActionID]: updatedReportPreviewAction as ReportAction},
-        )?.lastVisibleActionCreated;
+        const lastMessageText = getLastVisibleMessage(workspaceChatReportID, {[reportPreviewActionID]: updatedReportPreviewAction as ReportAction})?.lastMessageText;
+        const lastVisibleActionCreated = getReportLastMessage(workspaceChatReportID, {[reportPreviewActionID]: updatedReportPreviewAction as ReportAction})?.lastVisibleActionCreated;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
