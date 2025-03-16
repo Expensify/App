@@ -438,6 +438,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Option name of a list report field */
     optionName?: string;
 
+    /** Option enabled state of a list report field */
+    optionEnabled?: string;
+
     /** Are all allEnabled report field options enabled */
     allEnabled?: string;
 };

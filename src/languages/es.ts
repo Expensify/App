@@ -4959,7 +4959,8 @@ const translations = {
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
-        updateReportFieldAddedOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `actualizó el campo de informe "${fieldName}"; agregó la opción "${optionName}"`,
+        addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `actualizó el campo de informe "${fieldName}"; agregó la opción "${optionName}"`,
+        removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `actualizó el campo de informe "${fieldName}"; eliminó la opción "${optionName}"`,
         updateReportFieldOptionDisabled: ({fieldName, optionName, optionEnabled}: PolicyDisabledReportFieldOptionParams) =>
             `actualizó el campo de informe "${fieldName}"; estableció la opción "${optionName}" como ${optionEnabled ? 'Habilitada' : 'Deshabilitada'}`,
         updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled}: PolicyDisabledReportFieldAllOptionsParams) =>
