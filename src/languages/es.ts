@@ -4963,10 +4963,14 @@ const translations = {
         removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `actualizó el campo de informe "${fieldName}"; eliminó la opción "${optionName}"`,
         updateReportFieldOptionDisabled: ({fieldName, optionName, optionEnabled}: PolicyDisabledReportFieldOptionParams) =>
             `actualizó el campo de informe "${fieldName}"; estableció la opción "${optionName}" como ${optionEnabled ? 'Habilitada' : 'Deshabilitada'}`,
-        updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled}: PolicyDisabledReportFieldAllOptionsParams) =>
-            `actualizó el campo de informe "${fieldName}"; estableció la opción "${optionName}" como ${allEnabled ? 'Habilitada' : 'Deshabilitada'}, haciendo que todas las opciones estén ${
-                allEnabled ? 'Habilitadas' : 'Deshabilitadas'
-            }`,
+        updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled, toggledOptionsCount}: PolicyDisabledReportFieldAllOptionsParams) => {
+            if (toggledOptionsCount && toggledOptionsCount > 1) {
+                return `actualizó el campo de informe "${fieldName}"; estableció todas las opciones como ${allEnabled ? 'Habilitadas' : 'Deshabilitadas'}`;
+            }
+            return `actualizó el campo de informe "${fieldName}"; estableció la opción "${optionName}" como ${
+                allEnabled ? 'Habilitada' : 'Deshabilitada'
+            }, haciendo que todas las opciones estén ${allEnabled ? 'Habilitadas' : 'Deshabilitadas'}`;
+        },
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,

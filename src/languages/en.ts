@@ -4904,13 +4904,20 @@ const translations = {
             `updated the rate of the ${customUnitName} ${updatedField} "${customUnitRateName}" from "${oldValue}" to "${newValue}"`,
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removed the "${customUnitName}" rate "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
+
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
         addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `updated Report Field "${fieldName}"; Added the option "${optionName}"`,
         removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `updated Report Field "${fieldName}"; Removed the option "${optionName}"`,
         updateReportFieldOptionDisabled: ({fieldName, optionName, optionEnabled}: PolicyDisabledReportFieldOptionParams) =>
             `updated Report Field "${fieldName}"; Set the option "${optionName}" to be ${optionEnabled ? 'Enabled' : 'Disabled'}`,
-        updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled}: PolicyDisabledReportFieldAllOptionsParams) =>
-            `updated Report Field "${fieldName}"; Set the option "${optionName}" to be ${allEnabled ? 'Enabled' : 'Disabled'} making all options ${allEnabled ? 'Enabled' : 'Disabled'}`,
+        updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled, toggledOptionsCount}: PolicyDisabledReportFieldAllOptionsParams) => {
+            if (toggledOptionsCount && toggledOptionsCount > 1) {
+                return `updated Report Field "${fieldName}"; Set all options to be ${allEnabled ? 'Enabled' : 'Disabled'}`;
+            }
+            return `updated Report Field "${fieldName}"; Set the option "${optionName}" to be ${allEnabled ? 'Enabled' : 'Disabled'} making all options ${
+                allEnabled ? 'Enabled' : 'Disabled'
+            }`;
+        },
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `removed ${fieldType} Report Field "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,

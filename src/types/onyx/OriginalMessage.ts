@@ -441,6 +441,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Option enabled state of a list report field */
     optionEnabled?: string;
 
+    /** Number of report field options updated */
+    toggledOptionsCount?: number;
+
     /** Are all allEnabled report field options enabled */
     allEnabled?: string;
 };

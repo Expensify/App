@@ -325,7 +325,7 @@ type PolicyAddedReportFieldOptionParams = {fieldName?: string; optionName: strin
 
 type PolicyDisabledReportFieldOptionParams = {fieldName: string; optionName: string; optionEnabled: boolean};
 
-type PolicyDisabledReportFieldAllOptionsParams = {fieldName: string; optionName: string; allEnabled: boolean};
+type PolicyDisabledReportFieldAllOptionsParams = {fieldName: string; optionName: string; allEnabled: boolean; toggledOptionsCount?: number};
 
 type AddedPolicyApprovalRuleParams = {approverEmail: string; approverName: string; field: string; name: string};
 
