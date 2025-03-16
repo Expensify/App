@@ -3494,10 +3494,6 @@ const translations = {
                 }
             },
         },
-        multiConnectionSelector: {
-            title: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} setup`,
-            description: ({connectionName}: ConnectionNameParams) => `Select your ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} version to continue.`,
-        },
         type: {
             free: 'Free',
             control: 'Control',

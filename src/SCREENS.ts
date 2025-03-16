@@ -467,7 +467,6 @@ const SCREENS = {
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings',
-            MULTI_CONNECTION_SELECTOR: 'Policy_Accounting_Multi_Connection_Selector',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Overview',

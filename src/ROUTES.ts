@@ -1200,10 +1200,6 @@ const ROUTES = {
             return `settings/workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const;
         },
     },
-    WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/:connection/connection-selector',
-        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => `settings/workspaces/${policyID}/accounting/${connection}/connection-selector` as const,
-    },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
         getRoute: (policyID: string | undefined) => {
