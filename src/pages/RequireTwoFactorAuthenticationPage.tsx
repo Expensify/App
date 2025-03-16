@@ -23,7 +23,7 @@ function RequireTwoFactorAuthenticationPage() {
                 shouldShowBackButton={false}
                 shouldDisplayHelpButton={false}
             />
-            <View style={[{maxWidth: 350}, styles.mAuto]}>
+            <View style={[styles.twoFARequiredContainer]}>
                 <View style={[styles.cardSectionIllustration, styles.alignItemsCenter]}>
                     <Icon
                         src={Encryption}

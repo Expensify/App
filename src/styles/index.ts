@@ -5286,6 +5286,11 @@ const styles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        twoFARequiredContainer: {
+            maxWidth: 350,
+            margin: 'auto',
+        },
+
         widthAuto: {
             width: 'auto',
         },
