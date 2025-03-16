@@ -128,6 +128,7 @@ import type {
     PayerSettledParams,
     PaySomeoneParams,
     PolicyAddedReportFieldOptionParams,
+    PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -4958,6 +4959,8 @@ const translations = {
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
         updateReportFieldAddedOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `actualizó el campo de informe "${fieldName}"; agregó la opción "${optionName}"`,
+        updateReportFieldOptionDisabled: ({fieldName, optionName, optionEnabled}: PolicyDisabledReportFieldOptionParams) =>
+            `actualizó el campo de informe "${fieldName}"; estableció la opción "${optionName}" como ${optionEnabled ? 'Habilitada' : 'Deshabilitada'}`,
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,

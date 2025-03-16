@@ -2009,6 +2009,20 @@ function getWorkspaceReportFieldUpdateMessage(action: ReportAction): string {
         });
     }
 
+    if (updateType === 'changedOptionDisabled' && fieldName && optionName) {
+        return translateLocal('workspaceActions.updateReportFieldAddedOption', {
+            fieldName,
+            optionName,
+        });
+    }
+
+    if (updateType === 'updatedAllDisabled' && fieldName && optionName) {
+        return translateLocal('workspaceActions.updateReportFieldAddedOption', {
+            fieldName,
+            optionName,
+        });
+    }
+
     return getReportActionText(action);
 }
 
