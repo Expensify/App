@@ -186,6 +186,7 @@ import type {
     UnshareParams,
     UntilTimeParams,
     UpdatedPolicyAuditRateParams,
+    UpdatedPolicyCategoryGLCodeParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
@@ -4884,6 +4885,15 @@ const translations = {
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `added the category "${categoryName}"`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
+        updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+            if (!oldValue) {
+                return `updated the category "${categoryName}" by adding a GL Code of "${newValue}"`;
+            }
+            if (!newValue && oldValue) {
+                return `updated the category "${categoryName}" by removing the GL Code which was previously "${oldValue}"`;
+            }
+            return `actualizó la categoría "${categoryName}" cambiando el código GL de "${oldValue}" a "${newValue}"`;
+        },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `updated the name of the tag list "${oldName}" to be "${newName}"`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,

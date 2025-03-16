@@ -1820,7 +1820,8 @@ function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
 }
 
 function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
-    const {categoryName, oldValue, newName, oldName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {categoryName, oldValue, newName, oldName, updatedField, newValue} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
         return translateLocal('workspaceActions.addCategory', {
@@ -1835,10 +1836,20 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
-        return translateLocal('workspaceActions.updateCategory', {
-            oldValue: !!oldValue,
-            categoryName,
-        });
+        if (updatedField === 'enabled') {
+            return translateLocal('workspaceActions.updateCategory', {
+                oldValue: !!oldValue,
+                categoryName,
+            });
+        }
+
+        if (updatedField === 'GL Code' && typeof oldValue === 'string' && typeof newValue === 'string') {
+            return translateLocal('workspaceActions.updateCategoryGLCode', {
+                oldValue,
+                categoryName,
+                newValue,
+            });
+        }
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {

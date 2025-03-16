@@ -301,6 +301,8 @@ type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
 type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
 
+type UpdatedPolicyCategoryGLCodeParams = {categoryName: string; oldValue?: string; newValue?: string};
+
 type UpdatedPolicyTagParams = {tagListName: string; tagName: string; enabled?: boolean};
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
@@ -918,4 +920,5 @@ export type {
     UpdatePolicyCustomUnitParams,
     AddOrDeletePolicyCustomUnitRateParams,
     AddedPolicyApprovalRuleParams,
+    UpdatedPolicyCategoryGLCodeParams,
 };
