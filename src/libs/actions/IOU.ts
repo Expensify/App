@@ -54,7 +54,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
@@ -134,8 +134,10 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isReportApproved,
     isReportManager,
+    isSelectedManagerMcTest,
     isSelfDM,
     isSettled,
+    isTestTransactionReport,
     isTrackExpenseReport,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
@@ -1108,6 +1110,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
+    const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS>;
@@ -1241,6 +1244,65 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${iou.report.policyID}`,
             value: policyRecentlyUsed.destinations,
         });
+    }
+
+    if (isMoneyRequestToManagerMcTest) {
+        const date = new Date();
+        const isTestReceipt = transaction.filename?.includes(CONST.TEST_RECEIPT.FILENAME) && isScanRequest;
+        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+        const optimisticIOUReportAction = buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total ?? 0,
+            currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency ?? '',
+            comment: '',
+            participants: [managerMcTestParticipant],
+            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            iouReportID: iou.report.reportID,
+            transactionID: transaction.transactionID,
+        });
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
+                value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: DateUtils.getDBTime(date.valueOf())},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
+                value: {
+                    ...iou.report,
+                    total: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total,
+                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency,
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    hasOutstandingChildRequest: false,
+                    pendingFields: {
+                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
+                value: {
+                    [optimisticIOUReportAction.reportActionID]: {
+                        ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    ...transaction,
+                    amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
+                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
+                    receipt: {...transaction.receipt, state: CONST.IOU.RECEIPT_STATE.SCANCOMPLETE},
+                },
+            },
+        );
     }
 
     const redundantParticipants: Record<number, null> = {};
@@ -2807,7 +2869,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             payeeEmail,
             [participant],
             optimisticTransaction.transactionID,
-            undefined,
+            isSelectedManagerMcTest(participant.login) ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
             false,
             false,
             false,
@@ -4704,7 +4766,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 reimbursible,
                 description: parsedComment,
             };
-
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
         }
