@@ -4278,18 +4278,20 @@ const styles = (theme: ThemeColors) =>
             ...writingDirection.ltr,
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh2,
+            lineHeight: variables.lineHeighTaskTitle,
             maxWidth: '100%',
             ...wordBreak.breakWord,
+            textUnderlineOffset: -1,
         },
 
         taskTitleMenuItemItalic: {
             ...writingDirection.ltr,
             ...headlineItalicFont,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh2,
+            lineHeight: variables.lineHeighTaskTitle,
             maxWidth: '100%',
             ...wordBreak.breakWord,
+            textUnderlineOffset: -1,
         },
 
         taskDescriptionMenuItem: {
