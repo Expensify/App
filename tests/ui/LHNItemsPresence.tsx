@@ -434,21 +434,15 @@ describe('SidebarLinksData', () => {
                     reportID: expenseReport.reportID,
                 },
             });
-            const expenseCreatedAction = buildOptimisticIOUReportAction(
-                'create',
-                100,
-                'USD',
-                '',
-                [],
-                expenseTransaction.transactionID,
-                undefined,
-                expenseReport.reportID,
-                undefined,
-                false,
-                false,
-                undefined,
-                undefined,
-            );
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: 'create',
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
