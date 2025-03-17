@@ -92,6 +92,7 @@ export default {
     extraSmallMobileResponsiveHeightBreakpoint: 667,
     mobileResponsiveWidthBreakpoint: 800,
     tabletResponsiveWidthBreakpoint: 1024,
+    sidePanelResponsiveWidthBreakpoint: 1300,
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
@@ -212,6 +213,10 @@ export default {
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
     holdEducationModalWidth: 400,
+    changePolicyEducationModalWidth: 400,
+    changePolicyEducationModalIconWidth: 147.69,
+    changePolicyEducationModalIconHeight: 180,
+
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
     // Emoji related variables
@@ -274,9 +279,9 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -106,
+    minimalTopBarOffset: -124,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 116,
+    searchListContentMarginTop: 124,
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,

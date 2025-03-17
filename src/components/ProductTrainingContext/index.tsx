@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePane from '@hooks/useSidePane';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
@@ -101,7 +102,13 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             }
 
             // We need to make an exception for the QAB tooltip because it is shown in a modal, otherwise it would be hidden if a modal is visible
-            if (tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON && isModalVisible) {
+            if (
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
+                isModalVisible
+            ) {
                 return false;
             }
 
@@ -158,6 +165,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const context = useContext(ProductTrainingContext);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldHideToolTip} = useSidePane();
     const {translate} = useLocalize();
 
     if (!context) {
@@ -211,7 +219,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     </Text>
                 </View>
                 {!!tooltip?.shouldRenderActionButtons && (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph1, styles.pb1]}>
+                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph1, styles.pv2]}>
                         <Button
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
@@ -235,9 +243,9 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.justifyContentCenter,
         styles.mw100,
         styles.p2,
-        styles.pb1,
         styles.ph1,
         styles.productTrainingTooltipText,
+        styles.pv2,
         styles.textAlignCenter,
         styles.textBold,
         styles.textWrap,
@@ -247,8 +255,8 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     ]);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
-        return shouldShow && shouldRenderTooltip(tooltipName);
-    }, [shouldRenderTooltip, tooltipName, shouldShow]);
+        return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
+    }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
 
     const hideProductTrainingTooltip = useCallback(() => {
         if (!shouldShowProductTrainingTooltip) {

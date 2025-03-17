@@ -10,6 +10,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -28,6 +29,8 @@ import {
     getCurrency as getTransactionCurrency,
     getDescription as getTransactionDescription,
     hasReceipt,
+    isExpensifyCardTransaction,
+    isPending,
     isReceiptBeingScanned,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -145,9 +148,9 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     const description = getTransactionDescription(transactionItem);
     let merchantOrDescriptionToDisplay = transactionItem.formattedMerchant;
     if (!merchantOrDescriptionToDisplay && !isLargeScreenWidth) {
-        merchantOrDescriptionToDisplay = Parser.htmlToText(Parser.replace(description));
+        merchantOrDescriptionToDisplay = Parser.htmlToText(description);
     }
-    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(Parser.replace(description));
+    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
 
     if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
@@ -183,15 +186,23 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCell
 
 function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     const theme = useTheme();
-    const typeIcon = getTypeIcon(transactionItem.transactionType);
+    const {translate} = useLocalize();
+    const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
+    const typeIcon = isPendingExpensifyCardTransaction ? Expensicons.CreditCardHourglass : getTypeIcon(transactionItem.transactionType);
+
+    const tooltipText = isPendingExpensifyCardTransaction ? translate('iou.pending') : '';
 
     return (
-        <Icon
-            src={typeIcon}
-            fill={theme.icon}
-            height={isLargeScreenWidth ? 20 : 12}
-            width={isLargeScreenWidth ? 20 : 12}
-        />
+        <Tooltip text={tooltipText}>
+            <View>
+                <Icon
+                    src={typeIcon}
+                    fill={theme.icon}
+                    height={isLargeScreenWidth ? 20 : 12}
+                    width={isLargeScreenWidth ? 20 : 12}
+                />
+            </View>
+        </Tooltip>
     );
 }
 
