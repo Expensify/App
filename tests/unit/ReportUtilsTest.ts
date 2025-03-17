@@ -592,6 +592,7 @@ describe('ReportUtils', () => {
                 isUnreadWithMention: false,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                hasParentAccess: false,
             };
             expect(requiresAttentionFromCurrentUser(report)).toBe(true);
         });
@@ -1035,14 +1036,14 @@ describe('ReportUtils', () => {
         });
 
         it('should disable thread on split expense actions', () => {
-            const reportAction = buildOptimisticIOUReportAction(
-                CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-                50000,
-                CONST.CURRENCY.USD,
-                '',
-                [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
-                NumberUtils.rand64(),
-            ) as ReportAction;
+            const reportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+                amount: 50000,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
+                transactionID: NumberUtils.rand64(),
+            }) as ReportAction;
             expect(shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
 
@@ -1436,36 +1437,26 @@ describe('ReportUtils', () => {
                     reportID: expenseReport.reportID,
                 },
             });
-            const expenseCreatedAction1 = buildOptimisticIOUReportAction(
-                'create',
-                100,
-                'USD',
-                '',
-                [],
-                expenseTransaction.transactionID,
-                undefined,
-                expenseReport.reportID,
-                undefined,
-                false,
-                false,
-                undefined,
-                undefined,
-            );
-            const expenseCreatedAction2 = buildOptimisticIOUReportAction(
-                'create',
-                100,
-                'USD',
-                '',
-                [],
-                expenseTransaction.transactionID,
-                undefined,
-                expenseReport.reportID,
-                undefined,
-                false,
-                false,
-                undefined,
-                undefined,
-            );
+            const expenseCreatedAction1 = buildOptimisticIOUReportAction({
+                type: 'create',
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+
+                iouReportID: expenseReport.reportID,
+            });
+            const expenseCreatedAction2 = buildOptimisticIOUReportAction({
+                type: 'create',
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+
+                iouReportID: expenseReport.reportID,
+            });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction1, expenseReport);
             const currentReportId = '1';
             const isInFocusMode = false;
@@ -1669,21 +1660,16 @@ describe('ReportUtils', () => {
                     reportID: expenseReport.reportID,
                 },
             });
-            const expenseCreatedAction = buildOptimisticIOUReportAction(
-                'create',
-                100,
-                'USD',
-                '',
-                [],
-                expenseTransaction.transactionID,
-                undefined,
-                expenseReport.reportID,
-                undefined,
-                false,
-                false,
-                undefined,
-                undefined,
-            );
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: 'create',
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+
+                iouReportID: expenseReport.reportID,
+            });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
             const currentReportId = '1';
@@ -1779,7 +1765,9 @@ describe('ReportUtils', () => {
 
     describe('buildOptimisticChatReport', () => {
         it('should always set isPinned to false', () => {
-            const result = buildOptimisticChatReport([1, 2, 3]);
+            const result = buildOptimisticChatReport({
+                participantList: [1, 2, 3],
+            });
             expect(result.isPinned).toBe(false);
         });
     });
