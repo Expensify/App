@@ -7,7 +7,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import type {SearchQueryString} from '@components/Search/types';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -19,15 +18,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {getPolicy} from '@libs/PolicyUtils';
+import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
-import {getPreservedSplitNavigatorState} from '@navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import type {AuthScreensParamList, RootNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -42,34 +40,6 @@ type BottomTabBarProps = {
     selectedTab: ValueOf<typeof BOTTOM_TABS>;
     isTooltipAllowed?: boolean;
 };
-
-/**
- * Returns SearchQueryString that has policyID correctly set.
- *
- * When we're coming back to Search Screen we might have pre-existing policyID inside SearchQuery.
- * There are 2 cases when we might want to remove this `policyID`:
- *  - if Policy was removed in another screen
- *  - if WorkspaceSwitcher was used to globally unset a policyID
- * Otherwise policyID will be inserted into query
- */
-function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: string): SearchQueryString {
-    const queryJSON = buildSearchQueryJSON(query);
-    if (!queryJSON) {
-        return query;
-    }
-
-    const policyID = activePolicyID ?? queryJSON.policyID;
-    const policy = getPolicy(policyID);
-
-    // In case policy is missing or there is no policy currently selected via WorkspaceSwitcher we remove it
-    if (!activePolicyID || !policy) {
-        delete queryJSON.policyID;
-    } else {
-        queryJSON.policyID = policyID;
-    }
-
-    return buildSearchQueryString(queryJSON);
-}
 
 function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
     const theme = useTheme();
@@ -108,23 +78,28 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
+            const defaultCannedQuery = buildCannedSearchQuery();
+
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-            const lastSearchRoute = rootState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+            const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+            const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+            const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
 
             if (lastSearchRoute) {
-                const {q, ...rest} = lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.ROOT];
-                const cleanedQuery = handleQueryWithPolicyID(q, activeWorkspaceID);
-
-                Navigation.navigate(
-                    ROUTES.SEARCH_ROOT.getRoute({
-                        query: cleanedQuery,
-                        ...rest,
-                    }),
-                );
-                return;
+                const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+                const queryJSON = buildSearchQueryJSON(q);
+                if (queryJSON) {
+                    queryJSON.policyID = activeWorkspaceID;
+                    const query = buildSearchQueryString(queryJSON);
+                    Navigation.navigate(
+                        ROUTES.SEARCH_ROOT.getRoute({
+                            query,
+                            ...rest,
+                        }),
+                    );
+                    return;
+                }
             }
-
-            const defaultCannedQuery = buildCannedSearchQuery();
             // when navigating to search we might have an activePolicyID set from workspace switcher
             const query = activeWorkspaceID ? `${defaultCannedQuery} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultCannedQuery;
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
@@ -168,7 +143,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                 return;
             }
 
-            const state = lastSettingsOrWorkspaceNavigatorRoute.state ?? getPreservedSplitNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key);
+            const state = lastSettingsOrWorkspaceNavigatorRoute.state ?? getPreservedNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key);
 
             // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
             if (lastSettingsOrWorkspaceNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
