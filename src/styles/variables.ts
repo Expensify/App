@@ -52,7 +52,6 @@ export default {
     fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),
     fontSizeNormal: getValueUsingPixelRatio(15, 21),
-    fontSizeEmojiNormal: getValueUsingPixelRatio(15, 28),
     fontSizeMedium: getValueUsingPixelRatio(16, 22),
     fontSizeLarge: getValueUsingPixelRatio(17, 19),
     fontSizeHero: 36,
@@ -214,6 +213,10 @@ export default {
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
     holdEducationModalWidth: 400,
+    changePolicyEducationModalWidth: 400,
+    changePolicyEducationModalIconWidth: 147.69,
+    changePolicyEducationModalIconHeight: 180,
+
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
     // Emoji related variables
