@@ -1392,8 +1392,9 @@ const translations = {
         enableTwoFactorAuth: 'Activar la autenticación de dos factores',
         pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
         twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
-        twoFactorAuthIsRequiredForAdminsDescription:
-            'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthIsRequiredForAdminsHeader: 'Se requiere autenticación de dos factores',
+        twoFactorAuthIsRequiredForAdminsTitle: 'Debes habilitar la autenticación de dos factores',
+        twoFactorAuthIsRequiredForAdminsDescription: 'La conexión contable con Xero requiere el uso de autenticación de dos factores. Para seguir usando Expensify, por favor, habilítala.',
         twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
         twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
     },
