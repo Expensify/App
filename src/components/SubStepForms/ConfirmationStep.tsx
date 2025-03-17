@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -48,7 +48,7 @@ function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinks
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
+    const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
     return (
         <ScrollView
