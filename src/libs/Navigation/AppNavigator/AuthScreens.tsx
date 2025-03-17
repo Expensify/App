@@ -17,6 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
@@ -77,16 +78,19 @@ type AuthScreensProps = {
     initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
 
-const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/home/report/ReportAttachments').default;
+const platform = getPlatform();
+const isWeb = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILEWEB;
+const attachmentModalScreenOptions = {
+    headerShown: false,
+    presentation: isWeb ? Presentation.TRANSPARENT_MODAL : undefined,
+};
+
+const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../pages/media/AttachmentModalScreen').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
-const loadProfileAvatar = () => require<ReactComponentModule>('../../../pages/settings/Profile/ProfileAvatar').default;
-const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/workspace/WorkspaceAvatar').default;
-const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
-const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
@@ -493,40 +497,23 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={SCREENS.ATTACHMENTS}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadReportAttachments}
-                    listeners={modalScreenListeners}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
                 />
                 <RootStack.Screen
                     name={SCREENS.PROFILE_AVATAR}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                        animation: Animations.NONE,
-                    }}
-                    getComponent={loadProfileAvatar}
-                    listeners={modalScreenListeners}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
                 />
                 <RootStack.Screen
                     name={SCREENS.WORKSPACE_AVATAR}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadWorkspaceAvatar}
-                    listeners={modalScreenListeners}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
                 />
                 <RootStack.Screen
                     name={SCREENS.REPORT_AVATAR}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadReportAvatar}
-                    listeners={modalScreenListeners}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
                 />
                 <RootStack.Screen
                     name={SCREENS.NOT_FOUND}
@@ -594,11 +581,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={SCREENS.TRANSACTION_RECEIPT}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadReceiptView}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

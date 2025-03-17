@@ -1,4 +1,4 @@
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {Country} from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';

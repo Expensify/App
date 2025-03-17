@@ -2,7 +2,7 @@ import {useCallback, useRef} from 'react';
 import type {SetStateAction} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 
-function useCarouselContextEvents(setShouldShowArrows: (show?: SetStateAction<boolean>) => void) {
+function useCarouselContextEvents(setShouldShowArrows?: (show?: SetStateAction<boolean>) => void) {
     const scale = useRef(1);
     const isScrollEnabled = useSharedValue(true);
 
@@ -12,11 +12,11 @@ function useCarouselContextEvents(setShouldShowArrows: (show?: SetStateAction<bo
     const onRequestToggleArrows = useCallback(
         (showArrows?: boolean) => {
             if (showArrows === undefined) {
-                setShouldShowArrows((prevShouldShowArrows) => !prevShouldShowArrows);
+                setShouldShowArrows?.((prevShouldShowArrows) => !prevShouldShowArrows);
                 return;
             }
 
-            setShouldShowArrows(showArrows);
+            setShouldShowArrows?.(showArrows);
         },
         [setShouldShowArrows],
     );
