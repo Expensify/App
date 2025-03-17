@@ -64,6 +64,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
+import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
 type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
@@ -189,6 +190,7 @@ function ReportActionsList({
 
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
+    const hasHeaderRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
 
     const lastAction = sortedVisibleReportActions.at(0);
@@ -664,6 +666,7 @@ function ReportActionsList({
     );
     const hideComposer = !canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
+    const canShowHeader = isOffline || hasHeaderRendered.current;
 
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
@@ -682,9 +685,29 @@ function ReportActionsList({
         [onContentSizeChange],
     );
 
+    const retryLoadNewerChatsError = useCallback(() => {
+        loadNewerChats(true);
+    }, [loadNewerChats]);
+
+    const listHeaderComponent = useMemo(() => {
+        // In case of an error we want to display the header no matter what.
+        if (!canShowHeader) {
+            // eslint-disable-next-line react-compiler/react-compiler
+            hasHeaderRendered.current = true;
+            return null;
+        }
+
+        return (
+            <ListBoundaryLoader
+                type={CONST.LIST_COMPONENTS.HEADER}
+                onRetry={retryLoadNewerChatsError}
+            />
+        );
+    }, [canShowHeader, retryLoadNewerChatsError]);
+
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const renderFooter = useMemo(() => {
+    const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
             return;
         }
@@ -741,7 +764,8 @@ function ReportActionsList({
                     onEndReachedThreshold={0.75}
                     onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
-                    ListFooterComponent={renderFooter}
+                    ListHeaderComponent={listHeaderComponent}
+                    ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onContentSizeChange={onContentSizeChangeInner}
