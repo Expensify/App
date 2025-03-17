@@ -27,7 +27,7 @@ import type {
     LeaveRoomParams,
     MarkAsExportedParams,
     MarkAsUnreadParams,
-    MoveIOUReportToPolicyParams,
+    MoveIOUReportToExistingPolicyParams,
     OpenReportParams,
     OpenRoomMembersPageParams,
     ReadNewestActionParams,
@@ -90,6 +90,7 @@ import type {OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
+    buildOptimisticChangePolicyReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticExportIntegrationAction,
@@ -4723,6 +4724,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
 
     // Generate new variables for the policy
     const policyName = policy.name ?? '';
+    const oldPolicyName = iouReport.policyName ?? '';
     const iouReportID = iouReport.reportID;
     const employeeAccountID = iouReport.ownerAccountID;
     const chatReportId = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
@@ -4748,6 +4750,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
         chatReportID: policy.isPolicyExpenseChatEnabled ? chatReportId : undefined,
         policyID,
         policyName,
+        parentReportID: iouReport.parentReportID,
         type: CONST.REPORT.TYPE.EXPENSE,
         total: -(iouReport?.total ?? 0),
     };
@@ -4806,21 +4809,33 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
             value: {[reportPreview.reportActionID]: reportPreview},
         });
+
+        // Add the reportPreview action to workspace chat
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportId}`,
+            value: {[reportPreview.reportActionID]: reportPreview},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportId}`,
+            value: {[reportPreview.reportActionID]: null},
+        });
     }
 
-    // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, chatReportId, iouReportID, policyName);
+    // Create the CHANGE_POLICY report action and add it to the DM chat which indicates to the user where the report has been moved
+    const changePolicyReportAction = buildOptimisticChangePolicyReportAction(iouReport.policyID, policyID, oldPolicyName, policyName);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[movedReportAction.reportActionID]: movedReportAction},
+        value: {[changePolicyReportAction.reportActionID]: changePolicyReportAction},
     });
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
         value: {
-            [movedReportAction.reportActionID]: {
-                ...movedReportAction,
+            [changePolicyReportAction.reportActionID]: {
+                ...changePolicyReportAction,
                 pendingAction: null,
             },
         },
@@ -4828,17 +4843,16 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[movedReportAction.reportActionID]: null},
+        value: {[changePolicyReportAction.reportActionID]: null},
     });
 
-    const parameters: MoveIOUReportToPolicyParams = {
-        reportID,
+    const parameters: MoveIOUReportToExistingPolicyParams = {
+        iouReportID,
         policyID,
-        changePolicyReportActionID: movedReportAction.reportActionID,
-        reportPreviewReportActionID: movedReportAction.reportActionID,
+        changePolicyReportActionID: changePolicyReportAction.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, parameters, {optimisticData, successData, failureData});
 }
 
 export type {Video};
