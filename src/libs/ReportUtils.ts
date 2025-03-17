@@ -5766,10 +5766,11 @@ function buildOptimisticMovedReportAction(fromPolicyID: string | undefined, toPo
  * Builds an optimistic CHANGEPOLICY report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
-function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string): ReportAction {
+function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string, automaticAction = false): ReportAction {
     const originalMessage = {
         fromPolicy: fromPolicyID,
         toPolicy: toPolicyID,
+        automaticAction,
     };
 
     const fromPolicy = getPolicy(fromPolicyID);
