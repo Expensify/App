@@ -196,7 +196,7 @@ function VerifiedBankAccountFlowEntryPoint({
                     illustrationBackgroundColor={theme.fallbackIconColor}
                     isCentralPane
                 >
-                    {!!plaidDesktopMessage && (
+                    {!!plaidDesktopMessage && !isNonUSDWorkspace && (
                         <View style={[styles.mt3, styles.flexRow, styles.justifyContentBetween]}>
                             <TextLink onPress={() => openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                         </View>
