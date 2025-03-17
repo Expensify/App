@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -37,10 +37,9 @@ import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
-    shouldGroupByReports?: boolean;
 };
 
-function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) {
+function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {type, hash} = queryJSON;
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -48,9 +47,10 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const {isOffline} = useNetwork();
     const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
+    const isFocused = useIsFocused();
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
-        shouldShowSavedSearchesMenuItemTitle,
+        shouldShowSavedSearchesMenuItemTitle && isFocused,
     );
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -171,8 +171,8 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
     const isCannedQuery = isCannedSearchQuery(queryJSON);
     const activeItemIndex = isCannedQuery
         ? typeMenuItems.findIndex((item) => {
-              if (shouldGroupByReports) {
-                  return item.translationPath === 'common.expenseReports';
+              if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+                  return item.translationPath === 'common.expenseReports' && item.type === type;
               }
               return item.type === type;
           })

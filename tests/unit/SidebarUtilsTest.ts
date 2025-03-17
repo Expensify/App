@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -232,6 +233,45 @@ describe('SidebarUtils', () => {
             expect(optionDataPinned?.isPinned).toBe(true);
             expect(optionDataUnpinned?.isPinned).toBe(false);
         });
+
+        it('returns null when report is archived', async () => {
+            const MOCK_REPORT: Report = {
+                reportID: '5',
+            };
+
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${MOCK_REPORT.reportID}`, reportNameValuePairs);
+
+            await waitForBatchedUpdates();
+
+            const MOCK_REPORT_ACTION = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 12345,
+                created: '2024-08-08 18:20:44.171',
+                message: [
+                    {
+                        type: '',
+                        text: '',
+                    },
+                ],
+                errors: {
+                    someError: 'Some error occurred',
+                },
+            };
+            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': MOCK_REPORT_ACTION,
+            };
+            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
+
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+
+            expect(result).toBeNull();
+        });
     });
 
     describe('shouldShowRedBrickRoad', () => {
@@ -369,6 +409,25 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT: Report = {
                 reportID: '1',
             };
+            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
+            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
+
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+
+            expect(result).toBe(false);
+        });
+
+        it('returns false when report is archived', () => {
+            const MOCK_REPORT: Report = {
+                reportID: '5',
+                errorFields: {
+                    export: {
+                        error: 'Some error occurred',
+                    },
+                },
+            };
+            // This report with reportID 5 is already archived from previous tests
+            // where we set reportNameValuePairs with private_isArchived
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
@@ -633,7 +692,7 @@ describe('SidebarUtils', () => {
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
-                expect(result?.alternateText).toBe(`invited 1 user`);
+                expect(result?.alternateText).toBe(`You invited 1 user`);
             });
         });
     });
