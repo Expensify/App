@@ -213,6 +213,9 @@ type SearchReportAction = {
 
     /** The name of the report */
     reportName: string;
+
+    /** Whether the report is policyExpenseChat */
+    isPolicyExpenseChat?: boolean;
 };
 
 /** Model of policy search result */

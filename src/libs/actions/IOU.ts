@@ -9088,7 +9088,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         true,
     );
 }
-function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
+function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true, paymentPolicyID?: string) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -9107,9 +9107,26 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
     notifyNewAction(Navigation.getTopmostReportId() ?? iouReport?.reportID, userAccountID);
+
+    // Save the payment method used for the report
+    // If the report is from a workspace, we use the policyID
+    // Otherwise, we use the policyID from the iouReport
+    // Otherwise, we use the paymentSelected
+    if (iouReport && iouReport?.policyID) {
+        const usedPaymentOption = paymentPolicyID ?? paymentSelected;
+        const reportType = iouReport?.type ?? CONST.LAST_PAYMENT_METHOD.LAST_USED;
+        savePreferredPaymentMethod(iouReport?.policyID, usedPaymentOption, reportType as ValueOf<typeof CONST.LAST_PAYMENT_METHOD>);
+    }
 }
 
-function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxEntry<OnyxTypes.Report>, payAsBusiness = false) {
+function payInvoice(
+    paymentMethodType: PaymentMethodType,
+    chatReport: OnyxTypes.Report,
+    invoiceReport: OnyxEntry<OnyxTypes.Report>,
+    payAsBusiness = false,
+    bankAccountID?: number,
+    fundID?: number,
+) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
         optimisticData,
@@ -9138,6 +9155,14 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         paymentMethodType,
         payAsBusiness,
     };
+
+    if (bankAccountID) {
+        params.bankAccountID = bankAccountID;
+    }
+
+    if (fundID) {
+        params.fundID = fundID;
+    }
 
     if (policyID) {
         params = {
@@ -9796,8 +9821,11 @@ function navigateToStartStepIfScanFileCannotBeRead(
     readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
-/** Save the preferred payment method for a policy */
-function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMethodType, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
+/** Save the preferred payment method for a policy or personal DM */
+function savePreferredPaymentMethod(policyID: string | undefined, paymentMethod: string, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: type ? {[type]: paymentMethod, [CONST.LAST_PAYMENT_METHOD.LAST_USED]: paymentMethod} : paymentMethod});
 }
 

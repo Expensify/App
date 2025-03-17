@@ -124,6 +124,11 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type BusinessBankAccountParams = {
+    formattedAmount: string;
+    last4Digits: string;
+};
+
 type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
@@ -183,6 +188,8 @@ type EnterMagicCodeParams = {contactMethod: string};
 type TransferParams = {amount: string};
 
 type InstantSummaryParams = {rate: string; minAmount: string};
+
+type BankAccountLastFourParams = {lastFour: string};
 
 type NotYouParams = {user: string};
 
@@ -890,5 +897,7 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     PolicyExpenseChatNameParams,
+    BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
+    BankAccountLastFourParams,
 };

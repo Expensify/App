@@ -1398,6 +1398,10 @@ function isIndividualInvoiceRoom(report: OnyxEntry<Report>): boolean {
     return isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 }
 
+function isBusinessInvoiceRoom(report: OnyxEntry<Report>): boolean {
+    return isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
+}
+
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
         return currentUserAccountID === report.invoiceReceiver.accountID;
@@ -1495,7 +1499,15 @@ function isPublicAnnounceRoom(report: OnyxEntry<Report>): boolean {
  * else since the report is a personal IOU, the route should be for personal bank account.
  */
 function getBankAccountRoute(report: OnyxEntry<Report>): Route {
-    return isPolicyExpenseChat(report) ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(report?.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
+    if (isPolicyExpenseChat(report)) {
+        return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(report?.policyID);
+    }
+
+    if (isInvoiceRoom(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
+        return ROUTES.WORKSPACE_INVOICES.getRoute(report?.invoiceReceiver?.policyID);
+    }
+
+    return ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
 }
 
 /**
@@ -9723,6 +9735,7 @@ export {
     buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    isBusinessInvoiceRoom,
 };
 
 export type {
