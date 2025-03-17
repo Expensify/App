@@ -5811,6 +5811,44 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
 }
 
 /**
+ * Builds an optimistic MOVED_TRANSACTION report action with a randomly generated reportActionID.
+ * This action is used when we change the workspace of a report.
+ */
+function buildOptimisticMovedTransactionAction(oldReportID: string, toReportID: string, transactionID: string): ReportAction {
+    const originalMessage = {
+        oldReportID,
+        toReportID,
+        transactionID,
+    };
+
+    const changePolicyReportActionMessage = [
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            text: `moved the transaction to the ${toReportID}`,
+        },
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        originalMessage,
+        message: changePolicyReportActionMessage,
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
@@ -9723,6 +9761,8 @@ export {
     buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    populateOptimisticReportFormula,
+    buildOptimisticMovedTransactionAction,
 };
 
 export type {
