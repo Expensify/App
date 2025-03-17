@@ -12,7 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
-import {getIOURequestPolicyID, initMoneyRequest, requestMoney, setMoneyRequestParticipantsFromReport, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, requestMoney, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -54,7 +54,7 @@ function SubmitDetailsPage({
         initMoneyRequest(reportOrAccountID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
     }, [reportOrAccountID, policy]);
 
-    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : setMoneyRequestParticipantsFromReport(transaction?.transactionID ?? `${CONST.DEFAULT_NUMBER_ID}`, report);
+    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
     const participants = selectedParticipants.map((participant) => (participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant)));
 
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';

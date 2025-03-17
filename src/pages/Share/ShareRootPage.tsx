@@ -115,6 +115,7 @@ function ShareRootPage() {
                 <HeaderWithBackButton
                     title={translate('share.shareToExpensify')}
                     shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
                 />
                 {isFileReady ? (
                     <OnyxTabNavigator
