@@ -133,6 +133,8 @@ function AddUnreportedExpense() {
                     sections={sections}
                     ListItem={unreportedExpenseListItem}
                     confirmButtonStyles={styles.mb5}
+                    showConfirmButton
+                    confirmButtonText="Add to report"
                 />
             </KeyboardAvoidingView>
         </ScreenWrapper>
