@@ -18,8 +18,8 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
-import {getPolicy, getWorkspaceAccountID, isPolicyAdmin as PolicyUtilsIsPolicyAdmin} from '@libs/PolicyUtils';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
+import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
+import {getLinkedTransactionID, getOneTransactionThreadReportID, getReportAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getSourceIDFromReportAction,
@@ -146,9 +146,6 @@ function BaseReportActionContextMenu({
     const [user] = useOnyx(ONYXKEYS.USER);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policyID = report?.policyID;
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
         if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1' || !reportActionID) {
@@ -311,17 +308,8 @@ function BaseReportActionContextMenu({
         );
     };
 
-    const cardIssuedActionOriginalMessage = isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-    )
-        ? getOriginalMessage(reportAction)
-        : undefined;
-    const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    const isPolicyAdmin = PolicyUtilsIsPolicyAdmin(getPolicy(policyID));
-    const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    const card = getExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
     return (
         (isVisible || shouldKeepOpen) && (

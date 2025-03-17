@@ -618,23 +618,9 @@ const translations = {
         findMember: 'Encuentra un miembro',
     },
     emptyList: {
-        [CONST.IOU.TYPE.SUBMIT]: {
-            title: 'Presentar un gasto',
-            subtitleText1: 'Presente un gasto a alguien y ',
-            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
-            subtitleText3: ' cuando se convierta en client.',
-        },
-        [CONST.IOU.TYPE.SPLIT]: {
-            title: 'Dividir un gasto',
-            subtitleText1: 'Divide con un amigo y ',
-            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
-            subtitleText3: ' cuando se convierta en client.',
-        },
-        [CONST.IOU.TYPE.PAY]: {
-            title: 'Pagar a alguien',
-            subtitleText1: 'Paga a quien quieras y ',
-            subtitleText2: `recibe ${CONST.REFERRAL_PROGRAM.REVENUE} dólares`,
-            subtitleText3: ' cuando se convierta en client.',
+        [CONST.IOU.TYPE.CREATE]: {
+            title: 'Presenta un gasto, recomienda a tu jefe',
+            subtitleText: '¿Quieres que tu jefe también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
         },
     },
     videoChatButtonAndMenu: {
@@ -2958,7 +2944,6 @@ const translations = {
             locations: 'Lugares',
             customers: 'Clientes/proyectos',
             accountsDescription: 'Tu plan de cuentas de QuickBooks Online se importará a Expensify como categorías.',
-            autoSyncDescription: 'Sincroniza QuickBooks Online y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
             accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             classesDescription: 'Elige cómo gestionar las clases de QuickBooks Online en Expensify.',
@@ -3305,6 +3290,18 @@ const translations = {
                         [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_BOTH]: 'Aprobado por supervisor y contabilidad',
                     },
                 },
+                accountingMethods: {
+                    label: 'Cuándo Exportar',
+                    description: 'Elige cuándo exportar los gastos:',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
+                    },
+                },
                 exportVendorBillsTo: {
                     label: 'Nivel de aprobación de facturas de proveedores',
                     description:
@@ -3597,18 +3594,6 @@ const translations = {
                     default:
                         return 'asignaciones';
                 }
-            },
-        },
-        accountingMethods: {
-            label: 'Cuándo Exportar',
-            description: 'Elige cuándo exportar los gastos:',
-            values: {
-                [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
-                [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
-            },
-            alternateText: {
-                [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
-                [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
             },
         },
         multiConnectionSelector: {
@@ -5256,7 +5241,8 @@ const translations = {
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
                 exportedToCSV: `exportó este informe a CSV`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}.`,
+                    automaticOne: ({label}: ExportedToIntegrationParams) => `exportó automáticamente este informe a ${label} a través de la`,
+                    automaticTwo: 'configuración contable.',
                     manual: ({label}: ExportedToIntegrationParams) => `marcó este informe como exportado manualmente a ${label}.`,
                     reimburseableLink: 'Ver los gastos por cuenta propia.',
                     nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
@@ -5924,32 +5910,24 @@ const translations = {
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText1: 'Inicia un chat y ',
-            buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Inicia un chat y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
+            buttonText2: 'recomienda a un amigo',
+            header: 'Inicia un chat, recomienda a un amigo',
+            body: '¿Quieres que tus amigos también usen Expensify? Simplemente inicia un chat con ellos y nosotros nos encargaremos del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText1: 'Presenta un gasto, ',
-            buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Presenta un gasto y consigue $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `¡Vale la pena cobrar! Envia un gasto a una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
-        },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE]: {
-            buttonText1: 'Pagar a alguien, ',
-            buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Paga a alguien y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `¡Hay que gastar dinero para ganar dinero! Paga a alguien con Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
+            buttonText2: 'recomienda a tu jefe',
+            header: 'Envía un gasto, recomienda a tu jefe',
+            body: '¿Quieres que tu jefe también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
-            buttonText1: 'Invita a un amigo y ',
-            buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Chatea, paga, presenta y divide gastos con un amigo y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
+            header: 'Recomienda a un amigo',
+            body: '¿Quieres que tus amigos también usen Expensify? Simplemente chatea, paga o divide un gasto con ellos y nosotros nos encargaremos del resto. ¡O simplemente comparte tu enlace de invitación!',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
-            buttonText1: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Chatea, paga, presenta y divide gastos con un amigo y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
+            buttonText: 'Recomienda a un amigo',
+            header: 'Recomienda a un amigo',
+            body: '¿Quieres que tus amigos también usen Expensify? Simplemente chatea, paga o divide un gasto con ellos y nosotros nos encargaremos del resto. ¡O simplemente comparte tu enlace de invitación!',
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },
@@ -6055,7 +6033,6 @@ const translations = {
         confirmDetails: 'Confirma los detalles que conservas',
         confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
         hold: 'Retenido',
-        resolvedDuplicates: 'resolvió el duplicado',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} es obligatorio`,
@@ -6525,7 +6502,7 @@ const translations = {
         },
         scanTestTooltip: {
             part1: '¿Quieres ver cómo funciona Escanear?',
-            part2: ' \n¡Prueba con un recibo de prueba!',
+            part2: '¡Prueba con un recibo de prueba!',
             part3: '¡Elige a',
             part4: ' nuestro gerente',
             part5: ' de prueba para probarlo!',
