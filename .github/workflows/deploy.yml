@@ -226,7 +226,7 @@ jobs:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
       - name: Upload Android build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
