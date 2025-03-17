@@ -1,4 +1,5 @@
 import React from 'react';
+import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import Text from '@components/Text';
@@ -19,11 +20,13 @@ function TransactionItemRow({
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
+    containerStyles,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
+    containerStyles?: ViewStyle[];
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -35,7 +38,7 @@ function TransactionItemRow({
             {shouldUseNarrowLayout ? (
                 <Hoverable>
                     {(hovered) => (
-                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly]}>
+                        <View style={containerStyles ?? [hovered ? styles.hoveredComponentBG : backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly]}>
                             <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.mb3, styles.ml3]}>
                                 <View style={[styles.mr3]}>
                                     <ReceiptCell
@@ -89,7 +92,7 @@ function TransactionItemRow({
             ) : (
                 <Hoverable>
                     {(hovered) => (
-                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius]}>
+                        <View style={containerStyles ?? [hovered ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                                     <ReceiptCell

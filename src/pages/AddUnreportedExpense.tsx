@@ -1,4 +1,5 @@
 import React, {useMemo, useRef, useState} from 'react';
+import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,6 +20,8 @@ import variables from '@styles/variables';
 import {getAllTransactions} from '@userActions/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import NewChatSelectorPage from './NewChatSelectorPage';
+
+const emptyStylesArray: ViewStyle[] = [];
 
 function unreportedExpenseListItem<TItem extends ListItem>({
     item,
@@ -60,36 +63,24 @@ function unreportedExpenseListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[animatedHighlightStyle]}
+            pressableWrapperStyle={[animatedHighlightStyle, backgroundColor]}
             onSelectRow={() => {
                 setIsSelected((val) => !val);
             }}
+            containerStyle={[styles.p3, styles.mbn4]}
         >
-            <Hoverable>
-                {(hovered) => (
-                    <View style={[{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}]}>
-                        <TransactionItemRow
-                            transactionItem={item}
-                            shouldUseNarrowLayout
-                            isSelected={isSelected}
-                        />
-                        <View
-                            style={[
-                                hovered ? styles.buttonDefaultBG : styles.highlightBG,
-                                backgroundColor,
-                                styles.minHeight22,
-                                styles.justifyContentCenter,
-                                styles.alignItemsCenter,
-                                styles.expenseWidgetSelectCircle,
-                                styles.mln2,
-                                styles.pr2,
-                            ]}
-                        >
-                            <SelectCircle isChecked={isSelected} />
-                        </View>
-                    </View>
-                )}
-            </Hoverable>
+            <View style={[{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}]}>
+                <TransactionItemRow
+                    transactionItem={item}
+                    shouldUseNarrowLayout
+                    isSelected={isSelected}
+                    // in order to remove styles from the component
+                    containerStyles={emptyStylesArray}
+                />
+                <View style={[styles.pb3, styles.justifyContentCenter, styles.alignItemsCenter, styles.expenseWidgetSelectCircle, styles.mln2, styles.pr2]}>
+                    <SelectCircle isChecked={isSelected} />
+                </View>
+            </View>
         </BaseListItem>
     );
 }
