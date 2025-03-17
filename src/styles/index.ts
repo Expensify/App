@@ -5471,11 +5471,14 @@ const styles = (theme: ThemeColors) =>
         sidePaneContainer: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             right: 0,
+            top: 0,
+            bottom: 0,
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             height: '100%',
             backgroundColor: theme.modalBackground,
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
+            zIndex: 10000,
         }),
     } satisfies Styles);
 

@@ -1,5 +1,7 @@
+import {Portal} from '@gorhom/portal';
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScrollView from '@components/ScrollView';
@@ -29,7 +31,7 @@ function HelpContent() {
     useEffect(() => {
         // Close the side pane when the screen size changes from large to small
         if (!isExtraLargeScreenWidth && !wasPreviousNarrowScreen.current) {
-            closeSidePane(true);
+            // closeSidePane(true);
             wasPreviousNarrowScreen.current = true;
         }
 

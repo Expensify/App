@@ -85,7 +85,7 @@ function BaseModal(
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isExtraLargeScreenWidth} = useResponsiveLayout();
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -191,6 +191,7 @@ function BaseModal(
                     windowWidth,
                     windowHeight,
                     isSmallScreenWidth,
+                    isExtraLargeScreenWidth,
                 },
                 popoverAnchorPosition,
                 innerContainerStyle,

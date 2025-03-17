@@ -16,7 +16,11 @@ function Help({sidePaneTranslateX, closeSidePane}: HelpProps) {
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePane(), {isActive: !isExtraLargeScreenWidth});
 
-    return <HelpContent />;
+    return (
+        <Animated.View style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop, paddingBottom}]}>
+            <HelpContent />
+        </Animated.View>
+    );
 }
 
 Help.displayName = 'Help';
