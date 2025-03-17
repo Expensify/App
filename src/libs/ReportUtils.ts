@@ -45,7 +45,7 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
-import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
+import type {OriginalMessageChangePolicy, OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -453,6 +453,12 @@ type OptimisticExportIntegrationAction = OriginalMessageExportedToIntegration &
     Pick<
         ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>,
         'reportActionID' | 'actorAccountID' | 'avatar' | 'created' | 'lastModified' | 'message' | 'person' | 'shouldShow' | 'pendingAction' | 'errors' | 'automatic'
+    >;
+
+type OptimisticChangePolicyAction = OriginalMessageChangePolicy &
+    Pick<
+        ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>,
+        'reportActionID' | 'actorAccountID' | 'avatar' | 'created' | 'isAttachmentOnly' | 'lastModified' | 'message' | 'person' | 'shouldShow' | 'pendingAction' | 'errors' | 'automatic'
     >;
 
 type OptimisticTaskReportAction = Pick<
@@ -5697,6 +5703,46 @@ function buildOptimisticMovedReportAction(fromPolicyID: string | undefined, toPo
 }
 
 /**
+ * Builds an optimistic CHANGE_POLICY report action with a randomly generated reportActionID.
+ * This action is used when we change the policy of a report.
+ */
+function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string, oldPolicyName: string, policyName: string): OptimisticChangePolicyAction {
+    const originalMessage = {
+        fromPolicy: fromPolicyID ?? '',
+        toPolicy: toPolicyID,
+        automaticAction: true,
+    };
+
+    const changePolicyActionMessage = [
+        {
+            text: `changed the workspace to ${policyName} (previously ${oldPolicyName})`,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        },
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        isAttachmentOnly: false,
+        originalMessage,
+        message: changePolicyActionMessage,
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
@@ -9271,6 +9317,7 @@ export {
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedReportAction,
+    buildOptimisticChangePolicyReportAction,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticRoomDescriptionUpdatedReportAction,
