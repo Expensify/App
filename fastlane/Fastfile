@@ -210,7 +210,7 @@ platform :android do
   end
 
   desc "Upload HybridApp to Google Play draft mode"
-  lane :upload_google_play_draft_hybrid
+  lane :upload_google_play_draft_hybrid do
      # Google is very unreliable, so we retry a few times
       ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
       upload_to_play_store(
