@@ -26,7 +26,7 @@ function UpdateRequiredView() {
     const isStandaloneNewAppProduction = isProduction && !CONFIG.IS_HYBRID_APP;
 
     return (
-        <View style={[styles.appBG, styles.h100, StyleUtils.getSafeAreaPadding(insets)]}>
+        <View style={[styles.appBG, styles.h100, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
             <HeaderGap />
             <View style={[styles.pt5, styles.ph5, styles.updateRequiredViewHeader]}>
                 <Header title={translate('updateRequiredView.updateRequired')} />
