@@ -4871,7 +4871,6 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
 
     // Generate new variables for the policy
     const policyName = policy.name ?? '';
-    const oldPolicyName = iouReport.policyName ?? '';
     const iouReportID = iouReport.reportID;
     const employeeAccountID = iouReport.ownerAccountID;
     const chatReportId = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
