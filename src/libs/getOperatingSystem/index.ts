@@ -1,3 +1,4 @@
+import {isWindowAvailable} from 'expensify-common/dist/utils';
 import CONST from '@src/CONST';
 import type GetOperatingSystem from './types';
 
@@ -5,6 +6,10 @@ import type GetOperatingSystem from './types';
  * Reads the current operating system when running on Web/Mobile-Web/Desktop
  */
 const getOperatingSystem: GetOperatingSystem = () => {
+    if (!isWindowAvailable()) {
+        return null;
+    }
+
     const {userAgent, platform} = window.navigator;
     const macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'];
     const windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'];

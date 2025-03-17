@@ -11,6 +11,22 @@ import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {doesReportBelongToWorkspace, generateReportID} from '@libs/ReportUtils';
+import getInitialSplitNavigatorState from '@navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import originalCloseRHPFlow from '@navigation/helpers/closeRHPFlow';
+import getPolicyIDFromState from '@navigation/helpers/getPolicyIDFromState';
+import getStateFromPath from '@navigation/helpers/getStateFromPath';
+import getTopmostReportParams from '@navigation/helpers/getTopmostReportParams';
+import isReportOpenInRHP from '@navigation/helpers/isReportOpenInRHP';
+import isSideModalNavigator from '@navigation/helpers/isSideModalNavigator';
+import linkTo from '@navigation/helpers/linkTo';
+import getMinimalAction from '@navigation/helpers/linkTo/getMinimalAction';
+import type {LinkToOptions} from '@navigation/helpers/linkTo/types';
+import replaceWithSplitNavigator from '@navigation/helpers/replaceWithSplitNavigator';
+import setNavigationActionToMicrotaskQueue from '@navigation/helpers/setNavigationActionToMicrotaskQueue';
+import switchPolicyID from '@navigation/helpers/switchPolicyID';
+import {linkingConfig} from '@navigation/linkingConfig';
+import navigationRef from '@navigation/navigationRef';
+import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, RootNavigatorParamList, State} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,22 +35,8 @@ import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import originalCloseRHPFlow from './helpers/closeRHPFlow';
-import getPolicyIDFromState from './helpers/getPolicyIDFromState';
-import getStateFromPath from './helpers/getStateFromPath';
-import getTopmostReportParams from './helpers/getTopmostReportParams';
-import isReportOpenInRHP from './helpers/isReportOpenInRHP';
-import isSideModalNavigator from './helpers/isSideModalNavigator';
-import linkTo from './helpers/linkTo';
-import getMinimalAction from './helpers/linkTo/getMinimalAction';
-import type {LinkToOptions} from './helpers/linkTo/types';
-import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
-import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
-import switchPolicyID from './helpers/switchPolicyID';
-import {linkingConfig} from './linkingConfig';
-import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
+import type NavigationType from './types';
+import type {GoBackOptions, NavigateToReportWithPolicyCheckPayload} from './types';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -75,12 +77,12 @@ function canNavigate(methodName: string, params: Record<string, unknown> = {}): 
 /**
  * Extracts from the topmost report its id.
  */
-const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportID;
+const getTopmostReportId = (state = navigationRef.getState() as State) => getTopmostReportParams(state)?.reportID;
 
 /**
  * Extracts from the topmost report its action id.
  */
-const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportActionID;
+const getTopmostReportActionId = (state = navigationRef.getState() as State) => getTopmostReportParams(state)?.reportActionID;
 
 /**
  * Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
@@ -108,7 +110,7 @@ function parseHybridAppUrl(url: HybridAppRoute | Route): Route {
  * Returns the current active route.
  */
 function getActiveRoute(): string {
-    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRoute = navigationRef.current?.getCurrentRoute();
     if (!currentRoute?.name) {
         return '';
     }
@@ -222,22 +224,6 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
 function isRootNavigatorState(state: State): state is State<RootNavigatorParamList> {
     return state.key === navigationRef.current?.getRootState().key;
 }
-
-type GoBackOptions = {
-    /**
-     * If we should compare params when searching for a route in state to go up to.
-     * There are situations where we want to compare params when going up e.g. goUp to a specific report.
-     * Sometimes we want to go up and update params of screen e.g. country picker.
-     * In that case we want to goUp to a country picker with any params so we don't compare them.
-     */
-    compareParams?: boolean;
-
-    /**
-     * Specifies whether goBack should pop to top when invoked.
-     * Additionaly, to execute popToTop, set the value of the global variable ShouldPopAllStateOnUP to true using the setShouldPopAllStateOnUP function.
-     */
-    shouldPopToTop?: boolean;
-};
 
 const defaultGoBackOptions: Required<GoBackOptions> = {
     compareParams: true,
@@ -469,8 +455,6 @@ function waitForProtectedRoutes() {
     });
 }
 
-type NavigateToReportWithPolicyCheckPayload = {report?: OnyxEntry<Report>; reportID?: string; reportActionID?: string; referrer?: string; policyIDToCheck?: string};
-
 /**
  * Navigates to a report passed as a param (as an id or report object) and checks whether the target object belongs to the currently selected workspace.
  * If not, the current workspace is set to global.
@@ -592,7 +576,7 @@ function removeScreenByKey(key: string) {
     });
 }
 
-export default {
+const Navigation: NavigationType = {
     setShouldPopAllStateOnUP,
     navigate,
     setParams,
@@ -621,7 +605,8 @@ export default {
     getReportRouteByID,
     switchPolicyID,
     replaceWithSplitNavigator,
-    isTopmostRouteModalScreen,
 };
+
+export default Navigation;
 
 export {navigationRef};

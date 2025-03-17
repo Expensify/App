@@ -1,0 +1,35 @@
+{
+  "name": "emails",
+  "version": "1.0.0",
+  "main": "index.js",
+  "description": "A lightweight set of utilities that render Expensify's react-native-web components in a server, such that they can be used in email communications",
+  "scripts": {
+    "build": "./scripts/build.sh",
+    "build:cli": "webpack --config ../config/webpack/ssr/webpack.cli.ts",
+    "build:server": "webpack --config ../config/webpack/ssr/webpack.server.ts",
+    "dev": "./scripts/start.sh",
+    "serve": "nodemon --watch server/dist/server.bundle.js --exec 'node server/dist/server.bundle.js'",
+    "test": "echo 'Error: no test specified' && exit 1",
+    "watch": "npm run build:server -- --watch",
+    "ws": "ts-node server/LiveReloadServer.ts"
+  },
+  "keywords": [],
+  "author": "Expensify",
+  "license": "ISC",
+  "dependencies": {
+    "declassify": "^2.1.0",
+    "express": "^4.21.2",
+    "juice": "^11.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "bufferutil": "^4.0.9",
+    "concurrently": "^9.1.2",
+    "css-loader": "^7.1.2",
+    "nodemon": "^3.1.9",
+    "open": "^8.4.2",
+    "source-map-support": "^0.5.21",
+    "utf-8-validate": "^6.0.5",
+    "ws": "^8.18.0"
+  }
+}

@@ -4,7 +4,7 @@ import webpack from 'webpack';
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias, import/no-relative-packages -- alias imports don't work for webpack
 import {dependencies as desktopDependencies} from '../../desktop/package.json';
 import type Environment from './types';
-import getCommonConfiguration from './webpack.common';
+import getCommonConfiguration from './web/webpack.common';
 
 /**
  * Desktop creates 2 configurations in parallel
