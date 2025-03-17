@@ -113,6 +113,7 @@ import {
     getRejectedReportMessage,
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallySubmittedMessage,
+    getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
     isArchivedNonExpenseReport,
@@ -865,7 +866,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
             children = <ReportActionItemBasicMessage message={getRejectedReportMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
-            children = <ReportActionItemBasicMessage message={translate('workspaceActions.upgradedWorkspace')} />;
+            children = <ReportActionItemBasicMessage message={getUpgradeWorkspaceMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
             children = <ReportActionItemBasicMessage message={translate('workspaceActions.downgradedWorkspace')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
