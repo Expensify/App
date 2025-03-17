@@ -432,6 +432,7 @@ const translations = {
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
         category: 'Categoría',
+        report: 'Informe',
         billable: 'Facturable',
         nonBillable: 'No facturable',
         tag: 'Etiqueta',

@@ -439,6 +439,7 @@ const translations = {
         showMore: 'Show more',
         merchant: 'Merchant',
         category: 'Category',
+        report: 'Report',
         billable: 'Billable',
         nonBillable: 'Non-billable',
         tag: 'Tag',
