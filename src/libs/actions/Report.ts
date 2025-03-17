@@ -134,7 +134,6 @@ import {
     isGroupChat as isGroupChatReportUtils,
     isHiddenForCurrentUser,
     isMoneyRequestReport,
-    isOptimisticPersonalDetail,
     isSelfDM,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
