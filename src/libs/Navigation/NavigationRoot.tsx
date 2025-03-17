@@ -1,9 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
-import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FABPopoverProvider from '@components/FABPopoverProvider';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -20,13 +18,14 @@ import {updateLastVisitedPath} from '@userActions/App';
 import * as Session from '@userActions/Session';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
-import {cleanPreservedSplitNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
+import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import {linkingConfig} from './linkingConfig';
@@ -111,19 +110,20 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
             return;
         }
 
+        const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        // We also make sure that the user is authenticated, isn't part of a group workspace, & wasn't invited to NewDot.
-        if (!NativeModules.HybridAppModule && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !shouldShowRequire2FAModal) {
+        // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
+        if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning && !shouldShowRequire2FAModal) {
             return getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
         }
 
         // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
         // The same applies to HybridApp, as we always define the route to which we want to transition.
-        if (!lastVisitedPath || NativeModules.HybridAppModule) {
+        if (!lastVisitedPath || CONFIG.IS_HYBRID_APP) {
             return undefined;
         }
-
-        const path = initialUrl ? getPathFromURL(initialUrl) : null;
 
         // If the user opens the root of app "/" it will be parsed to empty string "".
         // If the path is defined and different that empty string we don't want to modify the default behavior.
@@ -209,7 +209,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
-        cleanPreservedSplitNavigatorStates(state);
+        cleanPreservedNavigatorStates(state);
     };
 
     return (
@@ -224,9 +224,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
                 enabled: false,
             }}
         >
-            <FABPopoverProvider>
-                <AppNavigator authenticated={authenticated} />
-            </FABPopoverProvider>
+            <AppNavigator authenticated={authenticated} />
         </NavigationContainer>
     );
 }

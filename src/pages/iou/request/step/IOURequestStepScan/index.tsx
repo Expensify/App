@@ -3,8 +3,8 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {RESULTS} from 'react-native-permissions';
 import type Webcam from 'react-webcam';
-import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -28,8 +28,9 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
-import {base64ToFile, resizeImageIfNeeded, splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {base64ToFile, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -60,6 +61,7 @@ import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getLocationPermission} from './LocationPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
 
@@ -203,7 +205,33 @@ function IOURequestStepScan({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
 
-    const hideRecieptModal = () => {
+    // this effect will pre-fetch location in web and desktop if the location permission is already granted to optimize the flow
+    useEffect(() => {
+        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
+        if (!gpsRequired) {
+            return;
+        }
+
+        getLocationPermission().then((status) => {
+            if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+                return;
+            }
+
+            clearUserLocation();
+            getCurrentPosition(
+                (successData) => {
+                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
+                },
+                () => {},
+                {
+                    maximumAge: CONST.GPS.MAX_AGE,
+                    timeout: CONST.GPS.TIMEOUT,
+                },
+            );
+        });
+    }, [transaction?.amount, iouType]);
+
+    const hideReceiptModal = () => {
         setIsAttachmentInvalid(false);
     };
 
@@ -216,36 +244,6 @@ function IOURequestStepScan({
         setAttachmentValidReason(reason);
         setPdfFile(null);
     };
-
-    function validateReceipt(file: FileObject) {
-        return validateImageForCorruption(file)
-            .then(() => {
-                const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-                if (
-                    !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-                    )
-                ) {
-                    setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-                    return false;
-                }
-
-                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
-                    return false;
-                }
-
-                if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-                    return false;
-                }
-                return true;
-            })
-            .catch(() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                return false;
-            });
-    }
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
@@ -489,7 +487,7 @@ function IOURequestStepScan({
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(originalFile).then((isFileValid) => {
+        validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
             if (!isFileValid) {
                 return;
             }
@@ -825,8 +823,8 @@ function IOURequestStepScan({
                         />
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                            onConfirm={hideRecieptModal}
-                            onCancel={hideRecieptModal}
+                            onConfirm={hideReceiptModal}
+                            onCancel={hideReceiptModal}
                             isVisible={isAttachmentInvalid}
                             prompt={getConfirmModalPrompt()}
                             confirmText={translate('common.close')}
