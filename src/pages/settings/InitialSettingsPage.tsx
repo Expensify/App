@@ -1,8 +1,9 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app/src';
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
@@ -12,7 +13,6 @@ import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndB
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
 import MenuItem from '@components/MenuItem';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
 import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
@@ -44,6 +44,7 @@ import {buildOldDotURL, openExternalLink, openOldDotLink} from '@userActions/Lin
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {openInitialSettingsPage} from '@userActions/Wallet';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -102,7 +103,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
-    const {setInitialURL} = useContext(InitialURLContext);
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
@@ -190,7 +190,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: Expensicons.Buildings,
                 screenName: SCREENS.SETTINGS.WORKSPACES,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES),
+                action: () => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route),
             },
             {
                 translationKey: 'allSettingsScreen.domains',
@@ -248,11 +248,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.ExpensifyLogoNew,
-                    ...(NativeModules.HybridAppModule
+                    ...(CONFIG.IS_HYBRID_APP
                         ? {
                               action: () => {
-                                  NativeModules.HybridAppModule.closeReactNativeApp(false, true);
-                                  setInitialURL(undefined);
+                                  HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                                   setRootStatusBarEnabled(false);
                               },
                           }
@@ -299,7 +298,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, setInitialURL, setRootStatusBarEnabled, isActingAsDelegate, shouldOpenBookACall, signOut]);
+    }, [styles.pt4, setRootStatusBarEnabled, isActingAsDelegate, shouldOpenBookACall, signOut]);
 
     /**
      * Retuns JSX.Element with menu items

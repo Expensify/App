@@ -215,7 +215,7 @@ type GetOptionsConfig = {
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Attendee[];
-    excludeHiddenReports?: boolean;
+    excludeHiddenThreads?: boolean;
     canShowManagerMcTest?: boolean;
 } & GetValidReportsConfig;
 
@@ -534,10 +534,14 @@ function uniqFast(items: string[]): string[] {
  * Get the last actor display name from last actor details.
  */
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
-    return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
+    if (!hasMultipleParticipants || !lastActorDetails) {
+        return '';
+    }
+
+    return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
-        : '';
+        : translateLocal('common.you');
 }
 
 /**
@@ -809,7 +813,9 @@ function createOption(
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
-        result.isUnread = isUnread(report);
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
+        const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+        result.isUnread = isUnread(report, oneTransactionThreadReport);
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
@@ -1463,13 +1469,6 @@ function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
 }
 
 /**
- * Helper method to check if participant email is Manager McTest
- */
-function isSelectedManagerMcTest(email: string | null | undefined): boolean {
-    return email === CONST.EMAIL.MANAGER_MCTEST;
-}
-
-/**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
 function getValidOptions(
@@ -1482,7 +1481,7 @@ function getValidOptions(
         selectedOptions = [],
         shouldSeparateSelfDMChat = false,
         shouldSeparateWorkspaceChat = false,
-        excludeHiddenReports = false,
+        excludeHiddenThreads = false,
         canShowManagerMcTest = false,
         ...config
     }: GetOptionsConfig = {},
@@ -1577,8 +1576,8 @@ function getValidOptions(
         }
     }
 
-    if (excludeHiddenReports) {
-        recentReportOptions = recentReportOptions.filter((option) => option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+    if (excludeHiddenThreads) {
+        recentReportOptions = recentReportOptions.filter((option) => !option.isThread || option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     }
 
     return {
@@ -1611,7 +1610,7 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
         includeTasks: true,
         includeSelfDM: true,
         shouldBoldTitleByDefault: !isUsedInChatFinder,
-        excludeHiddenReports: true,
+        excludeHiddenThreads: true,
     });
     const orderedOptions = orderOptions(optionList);
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2155,6 +2154,11 @@ function shouldUseBoldText(report: OptionData): boolean {
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
 }
 
+function getManagerMcTestParticipant(): Participant | undefined {
+    const managerMcTestPersonalDetails = Object.values(allPersonalDetails ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
+    return managerMcTestPersonalDetails ? getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails) : undefined;
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2209,7 +2213,7 @@ export {
     filterSelfDMChat,
     filterReports,
     getIsUserSubmittedExpenseOrScannedReceipt,
-    isSelectedManagerMcTest,
+    getManagerMcTestParticipant,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};

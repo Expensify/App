@@ -200,7 +200,7 @@ const CONST = {
     ANIMATION_PAID_CHECKMARK_DELAY: 300,
     ANIMATION_THUMBSUP_DURATION: 250,
     ANIMATION_THUMBSUP_DELAY: 200,
-    ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
+    ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
@@ -495,6 +495,14 @@ const CONST = {
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
         },
+        BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
+            ACCOUNT_HOLDER_NAME: 'addressName',
+            ACCOUNT_HOLDER_REGION: 'addressState',
+            ACCOUNT_HOLDER_CITY: 'addressCity',
+            ACCOUNT_HOLDER_ADDRESS: 'addressStreet',
+            ACCOUNT_HOLDER_POSTAL_CODE: 'addressZipCode',
+            ROUTING_CODE: 'routingNumber',
+        },
         BUSINESS_INFO_STEP: {
             PICKLIST: {
                 ANNUAL_VOLUME_RANGE: 'AnnualVolumeRange',
@@ -565,9 +573,11 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
+        NEWDOT_PDF_EXPORT: 'newDotPDFExport',
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NSQS: 'nsqs',
         CUSTOM_RULES: 'customRules',
+        TABLE_REPORT_VIEW: 'tableReportView',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -586,6 +596,12 @@ const CONST = {
         CA: 'CA',
         GB: 'GB',
         IT: 'IT',
+    },
+    SWIPE_DIRECTION: {
+        DOWN: 'down',
+        LEFT: 'left',
+        RIGHT: 'right',
+        UP: 'up',
     },
     DESKTOP_DEEPLINK_APP_STATE: {
         CHECKING: 'checking',
@@ -782,6 +798,7 @@ const CONST = {
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
+    CONNECTIONS_VIDEO_PATHS,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
@@ -807,7 +824,7 @@ const CONST = {
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
-    FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
+    FEES_URL: `${EXPENSIFY_URL}/fees`,
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
@@ -872,6 +889,7 @@ const CONST = {
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
+        SIGN_OUT: 'signout',
     },
 
     EXPENSIFY_POLICY_DOMAIN,
@@ -925,6 +943,28 @@ const CONST = {
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORTID: '0',
         SPLIT_REPORTID: '-2',
+        SECONDARY_ACTIONS: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            UNAPPROVE: 'unapprove',
+            CANCEL_PAYMENT: 'cancelPayment',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+            MARK_AS_EXPORTED: 'markAsExported',
+            HOLD: 'hold',
+            DOWNLOAD: 'download',
+            CHANGE_WORKSPACE: 'changeWorkspace',
+            VIEW_DETAILS: 'viewDetails',
+            DELETE: 'delete',
+        },
+        PRIMARY_ACTIONS: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+            REMOVE_HOLD: 'removeHold',
+            REVIEW_DUPLICATES: 'reviewDuplicates',
+            MARK_AS_CASH: 'markAsCash',
+        },
         ACTIONS: {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
@@ -941,7 +981,7 @@ const CONST = {
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
                 CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
-                CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
+                CHANGE_POLICY: 'CHANGEPOLICY',
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
                 CHRONOS_OOO_LIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
@@ -1264,6 +1304,7 @@ const CONST = {
         USE_DEBOUNCED_STATE_DELAY: 300,
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
         PUSHER_PING_PONG: 'pusher_ping_pong',
+        LOCATION_UPDATE_INTERVAL: 5000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1288,6 +1329,20 @@ const CONST = {
         LIGHT: 'light',
         DARK: 'dark',
     },
+    NAVIGATION_BAR_TYPE: {
+        // We consider there to be no navigation bar in one of these cases:
+        // 1. The device has physical navigation buttons
+        // 2. The device uses gesture navigation without a gesture bar.
+        // 3. The device uses hidden (auto-hiding) soft keys.
+        NONE: 'none',
+        SOFT_KEYS: 'soft-keys',
+        GESTURE_BAR: 'gesture-bar',
+    },
+    // Currently, in Android there is no native API to detect the type of navigation bar (soft keys vs. gesture).
+    // The navigation bar on (standard) Android devices is around 30-50dpi tall. (Samsung: 40dpi, Huawei: ~34dpi)
+    // To leave room to detect soft-key navigation bars on non-standard Android devices,
+    // we set this height threshold to 30dpi, since gesture bars will never be taller than that. (Samsung & Huawei: ~14-15dpi)
+    NAVIGATION_BAR_ANDROID_SOFT_KEYS_MINIMUM_HEIGHT_THRESHOLD: 30,
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
@@ -1303,6 +1358,10 @@ const CONST = {
             CURRENT: 'current',
             DRAFT: 'draft',
             BACKUP: 'backup',
+        },
+        LIABILITY_TYPE: {
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
         },
     },
 
@@ -1464,6 +1523,7 @@ const CONST = {
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_DEFAULT_SKIN_TONE: -1,
+    DISPLAY_PARTICIPANTS_LIMIT: 5,
 
     // Amount of emojis to render ahead at the end of the update cycle
     EMOJI_DRAW_AMOUNT: 250,
@@ -1541,6 +1601,7 @@ const CONST = {
         REPORT: 'r',
         NOTE: 'n',
         SEARCH: 's',
+        ONBOARDING: 'o',
     },
 
     IMAGE_HIGH_RESOLUTION_THRESHOLD: 7000,
@@ -2211,7 +2272,7 @@ const CONST = {
         BANCORP_WALLET_PROGRAM_ID: '660',
         PROGRAM_ISSUERS: {
             EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
-            BANCORP_BANK: 'The Bancorp Bank',
+            BANCORP_BANK: 'The Bancorp Bank, N.A.',
         },
     },
 
@@ -2704,6 +2765,18 @@ const CONST = {
         },
     },
 
+    HELP_DOC_LINKS: {
+        'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        'QuickBooks Desktop': '',
+        quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        NetSuite: 'https://help.expensify.com/articles/new-expensify/connections/netsuite/Configure-Netsuite',
+        Xero: 'https://help.expensify.com/articles/new-expensify/connections/xero/Configure-Xero',
+        Intacct: 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
+        FinancialForce: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
+        'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
+        Certinia: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
+    },
+
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
         NAME_PER_DIEM_INTERNATIONAL: 'Per Diem International',
@@ -3044,6 +3117,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         ROOM_NAME: /^#[\p{Ll}0-9-]{1,100}$/u,
+        ROOM_NAME_WITHOUT_LIMIT: /^#[\p{Ll}0-9-]+$/u,
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
         ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
 
@@ -3064,7 +3138,7 @@ const CONST = {
         EMOJI_NAME: /:[\p{L}0-9_+-]+:/gu,
         EMOJI_SUGGESTIONS: /:[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
-        LINE_BREAK: /\r\n|\r|\n/g,
+        LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -3113,7 +3187,7 @@ const CONST = {
             `(?<!^[^\`\n]*(?:\`[^\`\n]*\`[^\`\n]*)*\`[^\`\n]*)@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*|@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\n]*\`)`,
             'gim',
         ),
-        REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
+        REPORT_ID_FROM_PATH: /(?<!\/search)\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
         WHITESPACE: /\s+/g,
 
@@ -3134,20 +3208,7 @@ const CONST = {
         PREFIX: '__predefined_',
         SELF_SELECT: '__predefined_selfSelect',
     },
-    GUIDES_CALL_TASK_IDS: {
-        CONCIERGE_DM: 'NewExpensifyConciergeDM',
-        WORKSPACE_INITIAL: 'WorkspaceHome',
-        WORKSPACE_OVERVIEW: 'WorkspaceOverview',
-        WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
-        WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
-        WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
-        WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
-        WORKSPACE_COMPANY_CARDS: 'WorkspaceCompanyCards',
-        WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
-        WORKSPACE_SETTINGS: 'WorkspaceSettings',
-        WORKSPACE_FEATURES: 'WorkspaceFeatures',
-        WORKSPACE_RULES: 'WorkspaceRules',
-    },
+
     EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce((prev, [, email]) => {
         // eslint-disable-next-line no-param-reassign
         prev[email] = true;
@@ -3224,10 +3285,18 @@ const CONST = {
     WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH: 256,
     REPORT_NAME_LIMIT: 100,
     TITLE_CHARACTER_LIMIT: 100,
+    TASK_TITLE_CHARACTER_LIMIT: 10000,
     DESCRIPTION_LIMIT: 1000,
     SEARCH_QUERY_LIMIT: 1000,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     STATE_CHARACTER_LIMIT: 32,
+
+    // Test receipt data
+    TEST_RECEIPT: {
+        AMOUNT: 1800,
+        CURRENCY: 'USD',
+        FILENAME: 'test_receipt',
+    },
 
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -3256,7 +3325,8 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
-        DOWNLOAD: 'download',
+        DOWNLOAD_CSV: 'downloadCSV',
+        DOWNLOAD_PDF: 'downloadPDF',
         EXPORT: 'export',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
@@ -3264,6 +3334,7 @@ const CONST = {
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
         GO_TO_WORKSPACE: 'goToWorkspace',
+        ERROR: 'error',
         TRACK: {
             SUBMIT: 'submit',
             CATEGORIZE: 'categorize',
@@ -4759,11 +4830,9 @@ const CONST = {
         CONTENT_TYPES: {
             SUBMIT_EXPENSE: 'submitExpense',
             START_CHAT: 'startChat',
-            PAY_SOMEONE: 'paySomeone',
             REFER_FRIEND: 'referralFriend',
             SHARE_CODE: 'shareCode',
         },
-        REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/expenses/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },
@@ -5738,6 +5807,8 @@ const CONST = {
         TRAIN: 'train',
     },
 
+    RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
+
     CANCELLATION_POLICY: {
         UNKNOWN: 'UNKNOWN',
         NON_REFUNDABLE: 'NON_REFUNDABLE',
@@ -5746,6 +5817,7 @@ const CONST = {
     },
 
     DOT_SEPARATOR: '•',
+    BULLET: '●',
 
     DEFAULT_TAX: {
         defaultExternalID: 'id_TAX_EXEMPT',
@@ -5873,6 +5945,7 @@ const CONST = {
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             POLICY_ID: 'policyID',
+            GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
             DATE: 'date',
@@ -5887,6 +5960,7 @@ const CONST = {
             TAG: 'tag',
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
+            FEED: 'feed',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
@@ -5908,6 +5982,7 @@ const CONST = {
             SORT_BY: 'sort-by',
             SORT_ORDER: 'sort-order',
             POLICY_ID: 'workspace',
+            GROUP_BY: 'group-by',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expense-type',
@@ -5920,6 +5995,7 @@ const CONST = {
             TAG: 'tag',
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
+            FEED: 'feed',
             REPORT_ID: 'reportid',
             KEYWORD: 'keyword',
             IN: 'in',
@@ -5932,6 +6008,12 @@ const CONST = {
         DATE_MODIFIERS: {
             BEFORE: 'Before',
             AFTER: 'After',
+        },
+    },
+
+    EXPENSE: {
+        TYPE: {
+            CASH_CARD_NAME: 'Cash Expense',
         },
     },
 
@@ -6281,11 +6363,6 @@ const CONST = {
         },
     },
 
-    HYBRID_APP: {
-        REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
-        SINGLE_NEW_DOT_ENTRY: 'singleNewDotEntry',
-    },
-
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
@@ -6302,6 +6379,7 @@ const CONST = {
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
     },
+    CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
@@ -6333,6 +6411,7 @@ const CONST = {
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+    ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
