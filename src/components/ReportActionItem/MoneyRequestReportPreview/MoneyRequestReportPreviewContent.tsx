@@ -1,6 +1,7 @@
 import truncate from 'lodash/truncate';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
+import type {ListRenderItemInfo, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
@@ -18,6 +19,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
@@ -67,11 +69,11 @@ import {
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
-import variables from '@styles/variables';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {MoneyRequestReportPreviewContentProps} from '.';
@@ -393,24 +395,62 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBSUP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    const arrowComponent = (src: IconAsset) => (
+    const flatListRef = useRef<FlatList<Transaction> | null>(null);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    // eslint-disable-next-line react-compiler/react-compiler
+    const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+        const newIndex = viewableItems.at(0)?.index;
+        if (typeof newIndex === 'number') {
+            setCurrentIndex(newIndex);
+        }
+    }).current;
+
+    const handleChange = (index: number) => {
+        if (index >= transactions.length - 1) {
+            return;
+        }
+        flatListRef.current?.scrollToIndex({index, animated: true});
+    };
+
+    const setIndex = (index: number) => {
+        flatListRef.current?.scrollToIndex({index, animated: true});
+    };
+
+    const arrowComponent = (src: IconAsset, index: number) => (
         <PressableWithFeedback
             accessibilityRole="button"
             accessible
             accessibilityLabel="button"
             style={{borderRadius: 50, width: 28, height: 28, backgroundColor: '#E6E1DA', alignItems: 'center', justifyContent: 'center', marginLeft: 4}}
+            onPress={() => handleChange(index)}
         >
             <Icon
                 src={src}
                 small
                 fill="#A1A9A3"
+                isButtonIcon
             />
         </PressableWithFeedback>
     );
 
-    const snapToOffsetsLikeGooglePlay = transactions.map((x, i) => {
-        return i * 100 + 32;
-    });
+    const invisibleTransactions = () => (
+        <View style={{flex: 1, padding: 20, justifyContent: 'center'}}>
+            <Text style={{color: '#0164BF'}}>+{transactions.length - 10} more</Text>
+        </View>
+    );
+
+    const renderFlatlistItem = (itemInfo: ListRenderItemInfo<Transaction>) => {
+        if (itemInfo.index > 4) {
+            return invisibleTransactions();
+        }
+        if (renderItem) {
+            return renderItem(itemInfo);
+        }
+        return null;
+    };
+
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <OfflineWithFeedback
@@ -426,21 +466,20 @@ function MoneyRequestReportPreviewContent({
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress
                     // This is added to omit console error about nested buttons as its forbidden on web platform
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, {maxWidth: 680}]}
                     role={getButtonRole(true)}
                     isNested
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
-                    <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                    <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined, {maxWidth: 680}]}>
                         <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
                             <View style={[shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer]}>
                                 <View style={[styles.expenseAndReportPreviewTextContainer]}>
                                     <View style={[styles.flexRow]}>
                                         <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
                                             <Text
-                                                fontSize={variables.fontSizeNormal}
                                                 style={[styles.lh20, styles.headerText]}
-                                                testID="reportPreview-previewMessage"
+                                                testID="MoneyRequestReportPreview-reportName"
                                             >
                                                 {iouReport?.reportName}
                                             </Text>
@@ -461,11 +500,13 @@ function MoneyRequestReportPreviewContent({
                                                 />
                                             </Animated.View>
                                         )}
-                                        <View style={[styles.flexRow, {alignItems: 'center'}]}>
-                                            <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, {marginRight: 4}]}>{supportText}</Text>
-                                            {arrowComponent(Expensicons.BackArrow)}
-                                            {arrowComponent(Expensicons.ArrowRight)}
-                                        </View>
+                                        {shouldUseNarrowLayout && (
+                                            <View style={[styles.flexRow, {alignItems: 'center'}]}>
+                                                <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, {marginRight: 4}]}>{supportText}</Text>
+                                                {arrowComponent(Expensicons.BackArrow, currentIndex)}
+                                                {arrowComponent(Expensicons.ArrowRight, currentIndex + 1)}
+                                            </View>
+                                        )}
                                     </View>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         {shouldShowRBR && (
@@ -474,27 +515,49 @@ function MoneyRequestReportPreviewContent({
                                                     src={Expensicons.DotIndicator}
                                                     fill={theme.danger}
                                                 />
-                                                <Text style={[styles.textDanger, styles.textNormal, styles.textLineHeightNormal]}>Here are RBR messages</Text>
+                                                <Text style={[styles.textDanger, styles.fontSizeLabel, styles.textLineHeightNormal, styles.ml2]}>Here are RBR messages</Text>
                                             </>
                                         )}
                                     </View>
                                 </View>
-                                <View style={{flex: 1, flexDirection: 'row', overflow: 'visible'}}>
+                                <View style={{flex: 1, flexDirection: 'column', overflow: 'visible', marginHorizontal: -16, paddingHorizontal: 16, overflowY: 'hidden'}}>
                                     <FlatList
                                         horizontal
                                         data={transactions}
+                                        ref={flatListRef}
                                         nestedScrollEnabled
                                         scrollEnabled
                                         keyExtractor={(item) => item.transactionID}
                                         contentContainerStyle={[styles.gap2]}
-                                        // style={{overflow: 'visible'}}
+                                        style={{marginHorizontal: -16, paddingHorizontal: 16}}
                                         showsHorizontalScrollIndicator={false}
-                                        pagingEnabled
-                                        renderItem={renderItem}
-                                        snapToOffsets={snapToOffsetsLikeGooglePlay}
+                                        // pagingEnabled
+                                        renderItem={renderFlatlistItem}
+                                        onViewableItemsChanged={onViewableItemsChanged}
+                                        // snapToOffsets={snapToOffsetsLikeGooglePlay}
                                     />
                                 </View>
-                                {shouldShowSettlementButton && (
+                                {shouldUseNarrowLayout && (
+                                    <View style={{flexDirection: 'row', alignSelf: 'center', alignContent: 'center', gap: 8, marginTop: -4, marginBottom: -4}}>
+                                        {transactions.slice(0, 5).map((item, index) => (
+                                            <PressableWithFeedback
+                                                accessibilityRole="button"
+                                                accessible
+                                                accessibilityLabel="button"
+                                                style={{
+                                                    borderRadius: 50,
+                                                    width: 8,
+                                                    height: 8,
+                                                    backgroundColor: index === currentIndex ? '#A1A9A3' : '#E6E1DA',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                }}
+                                                onPress={() => setIndex(index)}
+                                            />
+                                        ))}
+                                    </View>
+                                )}
+                                {(shouldShowSettlementButton || true) && (
                                     <AnimatedSettlementButton
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}

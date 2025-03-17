@@ -105,7 +105,7 @@ const mockIOUReport = {
     policyID: '03C3FBC349E12C61',
     private_isArchived: '',
     reportID: '3527108249935433',
-    reportName: 'IOU',
+    reportName: 'Expense Report #3261987',
     stateNum: 1,
     statusNum: 1,
     total: 572950,
@@ -540,6 +540,10 @@ export default {
             options: [true, false, undefined],
             control: {type: 'radio'},
         },
+        shouldUseNarrowLayout: {
+            options: [true, false],
+            // control: {type: 'radio'}
+        },
     },
     args: {
         action: mockAction,
@@ -558,7 +562,9 @@ function Template(props: MoneyRequestReportPreviewContentProps) {
     return (
         <ThemeProvider theme={CONST.THEME.LIGHT}>
             <ThemeStylesProvider>
-                <MoneyRequestReportPreviewContent {...props} />
+                <View style={{maxWidth: '100%'}}>
+                    <MoneyRequestReportPreviewContent {...props} />
+                </View>
             </ThemeStylesProvider>
         </ThemeProvider>
     );
