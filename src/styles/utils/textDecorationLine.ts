@@ -9,4 +9,8 @@ export default {
         textDecorationLine: 'underline line-through',
         textDecorationStyle: 'solid',
     },
+    underlineLine: {
+        textDecorationLine: 'underline',
+        textDecorationStyle: 'solid',
+    },
 } satisfies Record<string, TextStyle>;
