@@ -151,6 +151,7 @@ function filterOutRangesWithCorrectValue(
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
     const expenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE) as string[];
     const statusList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP}) as string[];
+    const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
@@ -175,6 +176,8 @@ function filterOutRangesWithCorrectValue(
             return categoryList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
             return tagList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
+            return groupByList.includes(range.value);
         default:
             return false;
     }
