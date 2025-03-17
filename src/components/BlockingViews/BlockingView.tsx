@@ -103,7 +103,7 @@ function BlockingView({
     contentFitImage,
     containerStyle: containerStyleProp,
     addBottomSafeAreaPadding = false,
-    addOfflineIndicatorBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

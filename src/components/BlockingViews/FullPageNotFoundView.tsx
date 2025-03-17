@@ -74,7 +74,7 @@ function FullPageNotFoundView({
     subtitleStyle,
     shouldDisplaySearchRouter,
     addBottomSafeAreaPadding = true,
-    addOfflineIndicatorBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

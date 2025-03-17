@@ -14,7 +14,7 @@ type FullPageOfflineBlockingViewProps = ChildrenProps & {
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
-function FullPageOfflineBlockingView({children, addBottomSafeAreaPadding = true, addOfflineIndicatorBottomSafeAreaPadding = false}: FullPageOfflineBlockingViewProps) {
+function FullPageOfflineBlockingView({children, addBottomSafeAreaPadding = true, addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding}: FullPageOfflineBlockingViewProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 

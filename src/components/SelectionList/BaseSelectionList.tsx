@@ -128,7 +128,7 @@ function BaseSelectionList<TItem extends ListItem>(
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
-        addOfflineIndicatorBottomSafeAreaPadding = false,
+        addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {

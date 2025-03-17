@@ -19,7 +19,7 @@ function ScrollView(
         scrollIndicatorInsets,
         contentContainerStyle: contentContainerStyleProp,
         addBottomSafeAreaPadding = false,
-        addOfflineIndicatorBottomSafeAreaPadding = false,
+        addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
         ...props
     }: ScrollViewProps,
     ref: ForwardedRef<RNScrollView>,

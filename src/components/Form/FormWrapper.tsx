@@ -72,7 +72,7 @@ function FormWrapper({
     isLoading = false,
     shouldScrollToEnd = false,
     addBottomSafeAreaPadding = true,
-    addOfflineIndicatorBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();

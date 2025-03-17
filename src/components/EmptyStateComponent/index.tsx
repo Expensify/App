@@ -30,7 +30,7 @@ function EmptyStateComponent({
     showsVerticalScrollIndicator,
     minModalHeight = 400,
     addBottomSafeAreaPadding = false,
-    addOfflineIndicatorBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
