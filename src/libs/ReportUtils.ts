@@ -302,6 +302,22 @@ type OptimisticNewReport = Pick<
     | 'managerID'
 >;
 
+type BuildOptimisticIOUReportActionParams = {
+    type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
+    amount: number;
+    currency: string;
+    comment: string;
+    participants: Participant[];
+    transactionID: string;
+    paymentType?: PaymentMethodType;
+    iouReportID?: string;
+    isSettlingUp?: boolean;
+    isSendMoneyFlow?: boolean;
+    isOwnPolicyExpenseChat?: boolean;
+    created?: string;
+    linkedExpenseReportAction?: OnyxEntry<ReportAction>;
+};
+
 type OptimisticIOUReportAction = Pick<
     ReportAction,
     | 'actionName'
@@ -5121,6 +5137,7 @@ function buildOptimisticIOUReport(
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
     const policyID = chatReportID ? getReport(chatReportID, allReports)?.policyID : undefined;
     const policy = getPolicy(policyID);
+    const isTestMoneyRequest = isSelectedManagerMcTest(payerEmail);
 
     const participants: Participants = {
         [payeeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
@@ -5135,8 +5152,8 @@ function buildOptimisticIOUReport(
         ownerAccountID: payeeAccountID,
         participants,
         reportID: generateReportID(),
-        stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
-        statusNum: isSendingMoney ? CONST.REPORT.STATUS_NUM.REIMBURSED : CONST.REPORT.STATE_NUM.SUBMITTED,
+        stateNum: isSendingMoney || isTestMoneyRequest ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
+        statusNum: isSendingMoney || isTestMoneyRequest ? CONST.REPORT.STATUS_NUM.REIMBURSED : CONST.REPORT.STATE_NUM.SUBMITTED,
         total,
         unheldTotal: total,
         nonReimbursableTotal: 0,
@@ -5534,21 +5551,23 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
  * @param [receipt]
  * @param [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense chat
  */
-function buildOptimisticIOUReportAction(
-    type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>,
-    amount: number,
-    currency: string,
-    comment: string,
-    participants: Participant[],
-    transactionID: string,
-    paymentType?: PaymentMethodType,
-    iouReportID = '',
-    isSettlingUp = false,
-    isSendMoneyFlow = false,
-    isOwnPolicyExpenseChat = false,
-    created = DateUtils.getDBTime(),
-    linkedExpenseReportAction?: OnyxEntry<ReportAction>,
-): OptimisticIOUReportAction {
+function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionParams): OptimisticIOUReportAction {
+    const {
+        type,
+        amount,
+        currency,
+        comment,
+        participants,
+        transactionID,
+        paymentType,
+        iouReportID = '',
+        isSettlingUp = false,
+        isSendMoneyFlow = false,
+        isOwnPolicyExpenseChat = false,
+        created = DateUtils.getDBTime(),
+        linkedExpenseReportAction,
+    } = params;
+
     const IOUReportID = iouReportID || generateReportID();
 
     const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>['originalMessage'] = {
@@ -5593,15 +5612,18 @@ function buildOptimisticIOUReportAction(
         }
     }
 
-    return {
+    const iouReportAction = {
         ...linkedExpenseReportAction,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatar(),
         isAttachmentOnly: false,
         originalMessage,
-        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
+        reportActionID: rand64(),
+        shouldShow: true,
+        created,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        delegateAccountID: delegateAccountDetails?.accountID,
         person: [
             {
                 style: 'strong',
@@ -5609,12 +5631,27 @@ function buildOptimisticIOUReportAction(
                 type: 'TEXT',
             },
         ],
-        reportActionID: rand64(),
-        shouldShow: true,
-        created,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        delegateAccountID: delegateAccountDetails?.accountID,
+        avatar: getCurrentUserAvatar(),
+        message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp),
     };
+
+    const managerMcTestParticipant = participants.find((participant) => isSelectedManagerMcTest(participant.login));
+    if (managerMcTestParticipant) {
+        return {
+            ...iouReportAction,
+            actorAccountID: managerMcTestParticipant.accountID,
+            avatar: managerMcTestParticipant.icons?.[0]?.source,
+            person: [
+                {
+                    style: 'strong',
+                    text: getDisplayNameForParticipant(managerMcTestParticipant),
+                    type: 'TEXT',
+                },
+            ],
+        };
+    }
+
+    return iouReportAction;
 }
 
 /**
@@ -5832,6 +5869,7 @@ function buildOptimisticReportPreview(
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+    const isTestTransaction = isTestTransactionReport(iouReport);
     return {
         reportActionID: reportActionID ?? rand64(),
         reportID: chatReport?.reportID,
@@ -5858,6 +5896,7 @@ function buildOptimisticReportPreview(
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
+        ...(isTestTransaction && {childStateNum: 2, childStatusNum: 4}),
     };
 }
 
@@ -6135,23 +6174,41 @@ function isWorkspaceChat(chatType: string) {
 /**
  * Builds an optimistic chat report with a randomly generated reportID and as much information as we currently have
  */
-function buildOptimisticChatReport(
-    participantList: number[],
-    reportName: string = CONST.REPORT.DEFAULT_REPORT_NAME,
-    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>,
-    policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
-    ownerAccountID: number = CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+type BuildOptimisticChatReportParams = {
+    participantList: number[];
+    reportName?: string;
+    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
+    policyID?: string;
+    ownerAccountID?: number;
+    isOwnPolicyExpenseChat?: boolean;
+    oldPolicyName?: string;
+    visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
+    writeCapability?: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
+    notificationPreference?: NotificationPreference;
+    parentReportActionID?: string;
+    parentReportID?: string;
+    description?: string;
+    avatarUrl?: string;
+    optimisticReportID?: string;
+};
+
+function buildOptimisticChatReport({
+    participantList,
+    reportName = CONST.REPORT.DEFAULT_REPORT_NAME,
+    chatType,
+    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+    ownerAccountID = CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
-    visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>,
-    writeCapability?: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>,
-    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    visibility,
+    writeCapability,
+    notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
     description = '',
     avatarUrl = '',
     optimisticReportID = '',
-): OptimisticChatReport {
+}: BuildOptimisticChatReportParams): OptimisticChatReport {
     const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
         const participant: ReportParticipant = {
@@ -6207,23 +6264,14 @@ function buildOptimisticGroupChatReport(
     optimisticReportID?: string,
     notificationPreference?: NotificationPreference,
 ) {
-    return buildOptimisticChatReport(
-        participantAccountIDs,
+    return buildOptimisticChatReport({
+        participantList: participantAccountIDs,
         reportName,
-        CONST.REPORT.CHAT_TYPE.GROUP,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
+        chatType: CONST.REPORT.CHAT_TYPE.GROUP,
         notificationPreference,
-        undefined,
-        undefined,
-        undefined,
-        avatarUri,
+        avatarUrl: avatarUri,
         optimisticReportID,
-    );
+    });
 }
 
 /**
@@ -6605,32 +6653,6 @@ function buildOptimisticDismissedViolationReportAction(
     };
 }
 
-function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedViolationReportAction {
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES,
-        actorAccountID: currentUserAccountID,
-        avatar: getCurrentUserAvatar(),
-        created: DateUtils.getDBTime(),
-        message: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
-                text: translateLocal('violations.resolvedDuplicates'),
-            },
-        ],
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        person: [
-            {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'strong',
-                text: getCurrentUserDisplayNameOrEmail(),
-            },
-        ],
-        reportActionID: rand64(),
-        shouldShow: true,
-    };
-}
-
 function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): OptimisticAnnounceChat {
     const announceReport = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     const policy = getPolicy(policyID);
@@ -6649,18 +6671,17 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): Op
         };
     }
 
-    const announceChatData = buildOptimisticChatReport(
-        accountIDs,
-        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
-        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+    const announceChatData = buildOptimisticChatReport({
+        participantList: accountIDs,
+        reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         policyID,
-        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-        false,
-        policy?.name,
-        undefined,
-        CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-    );
+        ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        oldPolicyName: policy?.name,
+        writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    });
+
     const announceCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
     announceRoomOnyxData.onyxOptimisticData.push(
         {
@@ -6752,15 +6773,14 @@ function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): Op
 function buildOptimisticWorkspaceChats(policyID: string, policyName: string, expenseReportId?: string): OptimisticWorkspaceChats {
     const pendingChatMembers = getPendingChatMembers(currentUserAccountID ? [currentUserAccountID] : [], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const adminsChatData = {
-        ...buildOptimisticChatReport(
-            currentUserAccountID ? [currentUserAccountID] : [],
-            CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
-            CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        ...buildOptimisticChatReport({
+            participantList: currentUserAccountID ? [currentUserAccountID] : [],
+            reportName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             policyID,
-            CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-            false,
-            policyName,
-        ),
+            ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+            oldPolicyName: policyName,
+        }),
     };
     const adminsChatReportID = adminsChatData.reportID;
     const adminsCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
@@ -6768,23 +6788,17 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
         [adminsCreatedAction.reportActionID]: adminsCreatedAction,
     };
 
-    const expenseChatData = buildOptimisticChatReport(
-        currentUserAccountID ? [currentUserAccountID] : [],
-        '',
-        CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+    const expenseChatData = buildOptimisticChatReport({
+        participantList: currentUserAccountID ? [currentUserAccountID] : [],
+        reportName: '',
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         policyID,
-        currentUserAccountID,
-        true,
-        policyName,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        expenseReportId,
-    );
+        ownerAccountID: currentUserAccountID,
+        isOwnPolicyExpenseChat: true,
+        oldPolicyName: policyName,
+        optimisticReportID: expenseReportId,
+    });
+
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '');
     const expenseReportActionData = {
@@ -6910,20 +6924,15 @@ function buildTransactionThread(
         };
     }
 
-    return buildOptimisticChatReport(
-        participantAccountIDs,
-        getTransactionReportName({reportAction}),
-        undefined,
-        moneyRequestReport?.policyID,
-        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-        false,
-        '',
-        undefined,
-        undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-        reportAction?.reportActionID,
-        moneyRequestReport?.reportID,
-    );
+    return buildOptimisticChatReport({
+        participantList: participantAccountIDs,
+        reportName: getTransactionReportName({reportAction}),
+        policyID: moneyRequestReport?.policyID,
+        ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        parentReportActionID: reportAction?.reportActionID,
+        parentReportID: moneyRequestReport?.reportID,
+    });
 }
 
 /**
@@ -6958,7 +6967,7 @@ function buildOptimisticMoneyRequestEntities(
     const iouActionCreationTime = DateUtils.getDBTime();
     const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
 
-    const iouAction = buildOptimisticIOUReportAction(
+    const iouAction = buildOptimisticIOUReportAction({
         type,
         amount,
         currency,
@@ -6966,13 +6975,13 @@ function buildOptimisticMoneyRequestEntities(
         participants,
         transactionID,
         paymentType,
-        isPersonalTrackingExpense ? '0' : iouReport.reportID,
+        iouReportID: isPersonalTrackingExpense ? '0' : iouReport.reportID,
         isSettlingUp,
         isSendMoneyFlow,
         isOwnPolicyExpenseChat,
-        iouActionCreationTime,
-        linkedTrackedExpenseReportAction,
-    );
+        created: iouActionCreationTime,
+        linkedExpenseReportAction: linkedTrackedExpenseReportAction,
+    });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
     const transactionThread = buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID);
@@ -9351,6 +9360,22 @@ function getReportMetadata(reportID: string | undefined) {
     return reportID ? allReportMetadataKeyValue[reportID] : undefined;
 }
 
+/**
+ * Helper method to check if participant email is Manager McTest
+ */
+function isSelectedManagerMcTest(email: string | null | undefined): boolean {
+    return email === CONST.EMAIL.MANAGER_MCTEST;
+}
+
+/**
+ *  Helper method to check if the report is a test transaction report
+ */
+function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const persionalDetails = allPersonalDetails?.[managerID];
+    return isSelectedManagerMcTest(persionalDetails?.login);
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -9692,7 +9717,8 @@ export {
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
     prepareOnboardingOnyxData,
-    buildOptimisticResolvedDuplicatesReportAction,
+    isSelectedManagerMcTest,
+    isTestTransactionReport,
     getReportSubtitlePrefix,
     buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,

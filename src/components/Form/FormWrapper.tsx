@@ -68,7 +68,7 @@ function FormWrapper({
     isSubmitDisabled = false,
     isLoading = false,
     shouldScrollToEnd = false,
-    addBottomSafeAreaPadding = false,
+    addBottomSafeAreaPadding = true,
     shouldSubmitButtonStickToBottom = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
