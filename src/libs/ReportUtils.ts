@@ -9259,6 +9259,11 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 
         fullApprovalChain.push(approver);
     });
+
+    const submitterIndex = fullApprovalChain.findIndex((approver) => approver === submitterEmail);
+    if (submitterIndex !== -1 && policy?.preventSelfApproval) {
+        fullApprovalChain.splice(submitterIndex, 1);
+    }
     return fullApprovalChain;
 }
 
