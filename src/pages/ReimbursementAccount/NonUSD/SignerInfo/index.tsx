@@ -87,6 +87,17 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         };
     }, [reimbursementAccount, onSubmit, currency]);
 
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (reimbursementAccount?.errors || reimbursementAccount?.isAskingForCorpaySignerInformation || !reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
+            setCurrentSubStep(SUBSTEP.HANG_TIGHT);
+        }
+    }, [reimbursementAccount]);
+
     const bodyContent = useMemo(() => {
         if (isUserOwner) {
             return userIsOwnerBodyContent;
@@ -157,7 +168,6 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             policyID: String(policyID),
             bankAccountID,
         });
-        setCurrentSubStep(SUBSTEP.HANG_TIGHT);
     }, [bankAccountID, policyID]);
 
     return (
