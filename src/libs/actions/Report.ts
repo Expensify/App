@@ -1165,18 +1165,10 @@ function openReport(
  * @param accountID accountID of the user that the optimistic chat report is created with.
  */
 function getOptimisticChatReport(accountID: number): OptimisticChatReport {
-    return buildOptimisticChatReport(
-        [accountID, currentUserAccountID],
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-    );
+    return buildOptimisticChatReport({
+        participantList: [accountID, currentUserAccountID],
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    });
 }
 
 /**
