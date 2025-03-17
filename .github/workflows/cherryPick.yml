@@ -98,7 +98,7 @@ jobs:
           AUTHOR_CHECKLIST=$(sed -n '/### PR Author Checklist/,$p' .github/PULL_REQUEST_TEMPLATE.md)
 
           PR_DESCRIPTION=$(cat <<EOF
-          🍒 Cherry pick https://github.com/Expensify/App/pull/56382 to staging 🍒
+          🍒 Cherry pick https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒
 
           This PR had conflicts when we tried to cherry-pick it to staging. You'll need to manually perform the cherry-pick, using the following steps:
 
