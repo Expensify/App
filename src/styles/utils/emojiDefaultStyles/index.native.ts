@@ -2,8 +2,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import type EmojiDefaultStyles from './types';
 
 const emojiDefaultStyles: EmojiDefaultStyles = {
-    fontStyle: 'normal',
-    fontWeight: FontUtils.fontWeight.normal,
+    ...FontUtils.fontFamily.platform.EXP_NEUE,
     textDecorationLine: 'none',
 };
 

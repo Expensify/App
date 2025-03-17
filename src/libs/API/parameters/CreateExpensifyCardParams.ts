@@ -1,5 +1,5 @@
 type CreateExpensifyCardParams = {
-    policyID: string;
+    policyID: string | undefined;
     assigneeEmail: string;
     limit: number;
     limitType: string;

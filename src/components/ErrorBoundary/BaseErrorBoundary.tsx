@@ -27,7 +27,7 @@ function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseEr
 
     return (
         <ErrorBoundary
-            fallback={updateRequired ? <UpdateRequiredView /> : <GenericErrorPage />}
+            FallbackComponent={updateRequired ? UpdateRequiredView : GenericErrorPage}
             onError={catchError}
         >
             {children}

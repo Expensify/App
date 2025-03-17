@@ -3,9 +3,6 @@ import type CONST from '@src/CONST';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Two factor authentication steps */
-type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
-
 /** The role of the delegate */
 type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
 
@@ -60,6 +57,21 @@ type DelegatedAccess = {
     errorFields?: DelegateErrors;
 };
 
+/** Model of SMS delivery failure status */
+type SMSDeliveryFailureStatus = {
+    /** Whether the account is having trouble receiving SMS */
+    hasSMSDeliveryFailure: boolean;
+
+    /** The message associated with the SMS delivery failure */
+    message: string;
+
+    /** Indicates whether the SMS delivery failure status has been reset by an API call */
+    isReset?: boolean;
+
+    /** Whether a sign is loading */
+    isLoading?: boolean;
+};
+
 /** Model of user account */
 type Account = {
     /** Whether SAML is enabled for the current account */
@@ -92,6 +104,15 @@ type Account = {
     /** The primaryLogin associated with the account */
     primaryLogin?: string;
 
+    /** The Report ID of the admins room */
+    adminsRoomReportID?: string;
+
+    /** The Account ID of the account manager */
+    accountManagerAccountID?: string;
+
+    /** The Report ID of the account manager */
+    accountManagerReportID?: string;
+
     /** The message to be displayed when code requested */
     message?: string;
 
@@ -116,14 +137,14 @@ type Account = {
     /** Authentication failure errors */
     errors?: OnyxCommon.Errors | null;
 
+    /** Errors related to specific account fields */
+    errorFields?: OnyxCommon.ErrorFields;
+
     /** Authentication success message */
     success?: string;
 
     /** Whether the two factor authentication codes were copied */
     codesAreCopied?: boolean;
-
-    /** Current two factor authentication step */
-    twoFactorAuthStep?: TwoFactorAuthStep;
 
     /** Referral banners that the user dismissed */
     dismissedReferralBanners?: DismissedReferralBanners;
@@ -145,7 +166,18 @@ type Account = {
 
     /** The users you can access as delegate and the users who can access your account as a delegate */
     delegatedAccess?: DelegatedAccess;
+
+    /** Indicates SMS delivery failure status and associated information */
+    smsDeliveryFailureStatus?: SMSDeliveryFailureStatus;
+
+    /** The guide details of the account */
+    guideDetails?: {
+        /** The email of the guide details */
+        email: string;
+        /** The calendar link of the guide details */
+        calendarLink: string;
+    };
 };
 
 export default Account;
-export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess, Delegate};
+export type {DelegateRole, DelegatedAccess, Delegate};

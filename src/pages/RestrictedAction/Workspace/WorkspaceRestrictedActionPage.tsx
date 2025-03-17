@@ -1,7 +1,7 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import usePolicy from '@hooks/usePolicy';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -11,7 +11,7 @@ import WorkspaceAdminRestrictedAction from './WorkspaceAdminRestrictedAction';
 import WorkspaceOwnerRestrictedAction from './WorkspaceOwnerRestrictedAction';
 import WorkspaceUserRestrictedAction from './WorkspaceUserRestrictedAction';
 
-type WorkspaceRestrictedActionPageProps = StackScreenProps<RestrictedActionParamList, typeof SCREENS.RESTRICTED_ACTION_ROOT>;
+type WorkspaceRestrictedActionPageProps = PlatformStackScreenProps<RestrictedActionParamList, typeof SCREENS.RESTRICTED_ACTION_ROOT>;
 
 function WorkspaceRestrictedActionPage({
     route: {

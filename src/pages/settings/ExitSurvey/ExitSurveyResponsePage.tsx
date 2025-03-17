@@ -1,6 +1,6 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,11 +16,12 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import StatusBar from '@libs/StatusBar';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import * as ExitSurvey from '@userActions/ExitSurvey';
+import {saveResponse} from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,7 +30,7 @@ import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
-type ExitSurveyResponsePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
+type ExitSurveyResponsePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
 
 function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps) {
     const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: (value) => value?.[INPUT_IDS.RESPONSE]});
@@ -60,7 +61,7 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
     }, [backTo, isOffline, navigation]);
 
     const submitForm = useCallback(() => {
-        ExitSurvey.saveResponse(draftResponse);
+        saveResponse(draftResponse);
         Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.getRoute(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route));
     }, [draftResponse]);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
@@ -86,46 +87,52 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
             testID={ExitSurveyResponsePage.displayName}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('exitSurvey.header')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <FormProvider
-                formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
-                style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
-                onSubmit={submitForm}
-                submitButtonText={translate('common.next')}
-                validate={() => {
-                    const errors: Errors = {};
-                    if (!draftResponse?.trim()) {
-                        errors[INPUT_IDS.RESPONSE] = translate('common.error.fieldRequired');
-                    }
-                    return errors;
-                }}
-                shouldValidateOnBlur
-                shouldValidateOnChange
-            >
-                {isOffline && <ExitSurveyOffline />}
-                {!isOffline && (
-                    <>
-                        <Text style={textStyle}>{translate(`exitSurvey.prompts.${reason}`)}</Text>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.RESPONSE}
-                            label={translate(`exitSurvey.responsePlaceholder`)}
-                            accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
-                            role={CONST.ROLE.PRESENTATION}
-                            autoGrowHeight
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            maxLength={CONST.MAX_COMMENT_LENGTH}
-                            ref={inputCallbackRef}
-                            containerStyles={[baseResponseInputContainerStyle]}
-                            shouldSaveDraft
-                            shouldSubmitForm
-                        />
-                    </>
-                )}
-            </FormProvider>
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('exitSurvey.header')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
+                    style={[styles.flex1, styles.mh5, formTopMarginsStyle, StyleUtils.getMaximumHeight(formMaxHeight)]}
+                    onSubmit={submitForm}
+                    submitButtonText={translate('common.next')}
+                    validate={() => {
+                        const errors: Errors = {};
+                        if (!draftResponse?.trim()) {
+                            errors[INPUT_IDS.RESPONSE] = translate('common.error.fieldRequired');
+                        } else if (draftResponse.length > CONST.MAX_COMMENT_LENGTH) {
+                            errors[INPUT_IDS.RESPONSE] = translate('common.error.characterLimitExceedCounter', {
+                                length: draftResponse.length,
+                                limit: CONST.MAX_COMMENT_LENGTH,
+                            });
+                        }
+                        return errors;
+                    }}
+                    shouldValidateOnBlur
+                    shouldValidateOnChange
+                >
+                    {isOffline && <ExitSurveyOffline />}
+                    {!isOffline && (
+                        <>
+                            <Text style={textStyle}>{translate(`exitSurvey.prompts.${reason}`)}</Text>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.RESPONSE}
+                                label={translate(`exitSurvey.responsePlaceholder`)}
+                                accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
+                                role={CONST.ROLE.PRESENTATION}
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                ref={inputCallbackRef}
+                                containerStyles={[baseResponseInputContainerStyle]}
+                                shouldSaveDraft
+                                shouldSubmitForm
+                            />
+                        </>
+                    )}
+                </FormProvider>
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }

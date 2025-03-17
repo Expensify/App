@@ -1,8 +1,9 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {GetBrowser, IsChromeIOS, IsMobile, IsMobileChrome, IsMobileSafari, IsMobileWebKit, IsSafari, OpenRouteInDesktopApp} from './types';
+import type {GetBrowser, IsChromeIOS, IsMobile, IsMobileChrome, IsMobileSafari, IsMobileWebKit, IsModernSafari, IsSafari, OpenRouteInDesktopApp} from './types';
 
+let isOpenRouteInDesktop = false;
 /**
  * Fetch browser name from UA string
  *
@@ -29,7 +30,7 @@ const getBrowser: GetBrowser = () => {
         }
     }
 
-    browserName = match[1] ?? navigator.appName;
+    browserName = match[1];
     return browserName ? browserName.toLowerCase() : CONST.BROWSER.OTHER;
 };
 
@@ -77,6 +78,16 @@ const isChromeIOS: IsChromeIOS = () => {
 const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
 
 /**
+ * Checks if the requesting user agent is a modern version of Safari on iOS (version 18 or higher).
+ */
+const isModernSafari: IsModernSafari = (): boolean => {
+    const version = navigator.userAgent.match(/OS (\d+_\d+)/);
+    const iosVersion = version ? version[1].replace('_', '.') : '';
+
+    return parseFloat(iosVersion) >= 18;
+};
+
+/**
  * The session information needs to be passed to the Desktop app, and the only way to do that is by using query params. There is no other way to transfer the data.
  */
 const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', email = '', initialRoute = '') => {
@@ -113,8 +124,29 @@ const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', 
             document.body.removeChild(iframe);
         }, 0);
     } else {
+        isOpenRouteInDesktop = true;
         window.location.href = expensifyDeeplinkUrl;
     }
 };
 
-export {getBrowser, isMobile, isMobileSafari, isMobileWebKit, isSafari, isMobileChrome, isChromeIOS, openRouteInDesktopApp};
+const isOpeningRouteInDesktop = () => {
+    return isOpenRouteInDesktop;
+};
+
+const resetIsOpeningRouteInDesktop = () => {
+    isOpenRouteInDesktop = false;
+};
+
+export {
+    getBrowser,
+    isMobile,
+    isMobileSafari,
+    isMobileWebKit,
+    isSafari,
+    isModernSafari,
+    isMobileChrome,
+    isChromeIOS,
+    openRouteInDesktopApp,
+    isOpeningRouteInDesktop,
+    resetIsOpeningRouteInDesktop,
+};

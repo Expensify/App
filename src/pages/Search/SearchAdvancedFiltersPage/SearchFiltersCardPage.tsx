@@ -1,19 +1,20 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import getBankIcon from '@components/Icon/BankIcons';
-import type {BankName} from '@components/Icon/BankIconsUtils';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import CardListItem from '@components/SelectionList/CardListItem';
+import CardListItem from '@components/SelectionList/Search/CardListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {CategorySection} from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
+import type {CardFilterItem} from '@libs/CardFeedUtils';
+import {buildCardFeedsData, buildCardsData, generateDomainFeedData, generateSelectedCards, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import Navigation from '@navigation/Navigation';
-import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -21,59 +22,129 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useThemeIllustrations();
 
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const currentCards = searchAdvancedFiltersForm?.cardID;
-    const [newCards, setNewCards] = useState(currentCards ?? []);
+    const personalDetails = usePersonalDetails();
+
+    const [selectedCards, setSelectedCards] = useState<string[]>([]);
+
+    useEffect(() => {
+        const generatedCards = generateSelectedCards(userCardList, workspaceCardFeeds, searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID);
+        setSelectedCards(generatedCards);
+    }, [searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID, workspaceCardFeeds, userCardList]);
+
+    useEffect(() => {
+        openSearchFiltersCardPage();
+    }, []);
+
+    const individualCardsSectionData = useMemo(
+        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, false),
+        [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
+    );
+
+    const closedCardsSectionData = useMemo(
+        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, true),
+        [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
+    );
+
+    const domainFeedsData = useMemo(() => generateDomainFeedData(userCardList), [userCardList]);
+
+    const cardFeedsSectionData = useMemo(
+        () => buildCardFeedsData(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, domainFeedsData, selectedCards, translate, illustrations),
+        [domainFeedsData, workspaceCardFeeds, selectedCards, translate, illustrations],
+    );
+
+    const shouldShowSearchInput =
+        cardFeedsSectionData.selected.length + cardFeedsSectionData.unselected.length + individualCardsSectionData.selected.length + individualCardsSectionData.unselected.length >
+        CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD;
+
+    const searchFunction = useCallback(
+        (item: CardFilterItem) =>
+            !!item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
+            !!item.lastFourPAN?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
+            !!item.cardName?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
+            (item.isVirtual && translate('workspace.expensifyCard.virtual').toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase())),
+        [debouncedSearchTerm, translate],
+    );
 
     const sections = useMemo(() => {
-        const newSections: CategorySection[] = [];
-        const cards = Object.values(cardList ?? {})
-            .sort((a, b) => a.bank.localeCompare(b.bank))
-            .map((card) => {
-                const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
-                const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
-                const text = card.bank === CONST.EXPENSIFY_CARD.BANK ? card.bank : cardName;
+        if (searchAdvancedFiltersForm === undefined) {
+            return [];
+        }
 
-                return {
-                    lastFourPAN: card.lastFourPAN,
-                    isVirtual: card?.nameValuePairs?.isVirtual,
-                    text,
-                    keyForList: card.cardID.toString(),
-                    isSelected: newCards.includes(card.cardID.toString()),
-                    bankIcon: icon,
-                };
-            });
+        const newSections = [];
+        const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected, ...closedCardsSectionData.selected];
+
         newSections.push({
             title: undefined,
-            data: cards,
-            shouldShow: cards.length > 0,
+            data: selectedItems.filter(searchFunction),
+            shouldShow: selectedItems.length > 0,
+        });
+        newSections.push({
+            title: translate('search.filters.card.cardFeeds'),
+            data: cardFeedsSectionData.unselected.filter(searchFunction),
+            shouldShow: cardFeedsSectionData.unselected.length > 0,
+        });
+        newSections.push({
+            title: translate('search.filters.card.individualCards'),
+            data: individualCardsSectionData.unselected.filter(searchFunction),
+            shouldShow: individualCardsSectionData.unselected.length > 0,
+        });
+        newSections.push({
+            title: translate('search.filters.card.closedCards'),
+            data: closedCardsSectionData.unselected.filter(searchFunction),
+            shouldShow: closedCardsSectionData.unselected.length > 0,
         });
         return newSections;
-    }, [cardList, styles, newCards]);
+    }, [
+        searchAdvancedFiltersForm,
+        cardFeedsSectionData.selected,
+        cardFeedsSectionData.unselected,
+        individualCardsSectionData.selected,
+        individualCardsSectionData.unselected,
+        closedCardsSectionData.selected,
+        closedCardsSectionData.unselected,
+        searchFunction,
+        translate,
+    ]);
 
     const handleConfirmSelection = useCallback(() => {
-        SearchActions.updateAdvancedFilters({
-            cardID: newCards,
+        const feeds = cardFeedsSectionData.selected.map((feed) => feed.cardFeedKey);
+        const cardsFromSelectedFeed = getSelectedCardsFromFeeds(userCardList, workspaceCardFeeds, feeds);
+        const IDs = selectedCards.filter((card) => !cardsFromSelectedFeed.includes(card));
+
+        updateAdvancedFilters({
+            cardID: IDs,
+            feed: feeds,
         });
 
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [newCards]);
+    }, [userCardList, selectedCards, cardFeedsSectionData.selected, workspaceCardFeeds]);
 
     const updateNewCards = useCallback(
-        (item: Partial<OptionData>) => {
+        (item: CardFilterItem) => {
             if (!item.keyForList) {
                 return;
             }
+
+            const isCardFeed = item?.isCardFeed && item?.correspondingCards;
+
             if (item.isSelected) {
-                setNewCards(newCards.filter((card) => card !== item.keyForList));
+                const newCardsObject = selectedCards.filter((card) => (isCardFeed ? !item.correspondingCards?.includes(card) : card !== item.keyForList));
+                setSelectedCards(newCardsObject);
             } else {
-                setNewCards([...newCards, item.keyForList]);
+                const newCardsObject = isCardFeed ? [...selectedCards, ...(item?.correspondingCards ?? [])] : [...selectedCards, item.keyForList];
+                setSelectedCards(newCardsObject);
             }
         },
-        [newCards],
+        [selectedCards],
     );
+
+    const headerMessage = debouncedSearchTerm.trim() && sections.every((section) => !section.data.length) ? translate('common.noResultsFound') : '';
 
     const footerContent = useMemo(
         () => (
@@ -102,14 +173,25 @@ function SearchFiltersCardPage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SelectionList
+                <SelectionList<CardFilterItem>
                     sections={sections}
                     onSelectRow={updateNewCards}
                     footerContent={footerContent}
+                    headerMessage={headerMessage}
                     shouldStopPropagation
                     shouldShowTooltips
                     canSelectMultiple
+                    shouldPreventDefaultFocusOnSelectRow={false}
+                    shouldKeepFocusedItemAtTopOfViewableArea={false}
+                    shouldScrollToFocusedIndex={false}
                     ListItem={CardListItem}
+                    shouldShowTextInput={shouldShowSearchInput}
+                    textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
+                    textInputValue={searchTerm}
+                    onChangeText={(value) => {
+                        setSearchTerm(value);
+                    }}
+                    showLoadingPlaceholder
                 />
             </View>
         </ScreenWrapper>

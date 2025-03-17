@@ -22,6 +22,11 @@
         android:theme="@style/AppTheme"
         tools:replace="android:supportsRtl">
 
+        <service
+            android:name="com.expensify.reactnativebackgroundtask.BackgroundJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"

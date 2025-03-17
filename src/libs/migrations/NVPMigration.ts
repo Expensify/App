@@ -9,16 +9,14 @@ import type {OnyxKey} from '@src/ONYXKEYS';
 const migrations = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     nvp_lastPaymentMethod: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-    isFirstTimeNewExpensifyUser: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     preferredLocale: ONYXKEYS.NVP_PREFERRED_LOCALE,
     preferredEmojiSkinTone: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     frequentlyUsedEmojis: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     private_blockedFromConcierge: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     private_pushNotificationID: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     tryFocusMode: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     introSelected: ONYXKEYS.NVP_INTRO_SELECTED,
+    preferredTheme: ONYXKEYS.PREFERRED_THEME,
 };
 
 // This migration changes the keys of all the NVP related keys so that they are standardized

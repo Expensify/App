@@ -5,12 +5,15 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     RemovePolicyConnectionParams,
+    SyncPolicyToNSQSParams,
     SyncPolicyToQuickbooksDesktopParams,
     UpdateManyPolicyConnectionConfigurationsParams,
     UpdatePolicyConnectionConfigParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import {getNSQSCompanyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -42,11 +45,50 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
         },
     ];
 
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    const policy = PolicyUtils.getPolicy(policyID);
+    const supportedConnections: PolicyConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO];
+
+    if (PolicyUtils.isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areReportFieldsEnabled: false,
+                pendingFields: {
+                    areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    areReportFieldsEnabled: null,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areReportFieldsEnabled: policy?.areReportFieldsEnabled,
+                pendingFields: {
+                    areReportFieldsEnabled: null,
+                },
+            },
+        });
+    }
+
     const parameters: RemovePolicyConnectionParams = {
         policyID,
         connectionName,
     };
-    API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData, successData, failureData});
 }
 
 function createPendingFields<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
@@ -165,6 +207,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_NETSUITE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NETSUITE_SYNC_CONNECTION};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.NSQS: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_NSQS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NSQS_SYNC_CONNECTION};
+        }
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION};
         }
@@ -179,14 +224,15 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
 /**
  * This method helps in syncing policy to the connected accounting integration.
  *
- * @param policyID - ID of the policy for which the sync is needed
+ * @param policy - Policy for which the sync is needed
  * @param connectionName - Name of the connection, QBO/Xero
  * @param forceDataRefresh - If true, it will trigger a full data refresh
  */
-function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {
-    if (!connectionName) {
+function syncConnection(policy: Policy | undefined, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {
+    if (!connectionName || !policy) {
         return;
     }
+    const policyID = policy.id;
     const syncConnectionData = getSyncConnectionParameters(connectionName);
 
     if (!syncConnectionData) {
@@ -212,13 +258,16 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
         },
     ];
 
-    const parameters: SyncPolicyToQuickbooksDesktopParams = {
+    const parameters: SyncPolicyToQuickbooksDesktopParams | SyncPolicyToNSQSParams = {
         policyID,
         idempotencyKey: policyID,
     };
 
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
         parameters.forceDataRefresh = forceDataRefresh;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NSQS) {
+        (parameters as SyncPolicyToNSQSParams).netSuiteAccountID = getNSQSCompanyID(policy) ?? '';
     }
 
     API.read(syncConnectionData.readCommand, parameters, {
@@ -228,11 +277,14 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
 }
 
 function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
-    policyID: string,
+    policyID: string | undefined,
     connectionName: TConnectionName,
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
 ) {
+    if (!policyID) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

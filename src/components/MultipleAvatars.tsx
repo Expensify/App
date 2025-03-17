@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getUserDetailTooltipText} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -36,6 +36,9 @@ type MultipleAvatarsProps = {
 
     /** Whether the avatars are hovered */
     isHovered?: boolean;
+
+    /** Whether the avatars are actived */
+    isActive?: boolean;
 
     /** Whether the avatars are in an element being pressed */
     isPressed?: boolean;
@@ -76,6 +79,7 @@ function MultipleAvatars({
     shouldStackHorizontally = false,
     shouldDisplayAvatarsInRows = false,
     isHovered = false,
+    isActive = false,
     isPressed = false,
     isFocusMode = false,
     isInReportAction = false,
@@ -110,7 +114,7 @@ function MultipleAvatars({
     let avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
 
-    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => ReportUtils.getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
+    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), icon.name)) : ['']), [shouldShowTooltip, icons]);
 
     const avatarSize = useMemo(() => {
         if (isFocusMode) {
@@ -153,6 +157,7 @@ function MultipleAvatars({
                 fallbackUserDetails={{
                     displayName: icons.at(0)?.name,
                 }}
+                shouldRender={shouldShowTooltip}
             >
                 <View style={avatarContainerStyles}>
                     <Avatar
@@ -172,7 +177,6 @@ function MultipleAvatars({
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
     const overlapSize = oneAvatarSize.width / overlapDivider;
-
     if (shouldStackHorizontally) {
         // Height of one avatar + border space
         const height = oneAvatarSize.height + 2 * oneAvatarBorderWidth;
@@ -194,6 +198,7 @@ function MultipleAvatars({
                         fallbackUserDetails={{
                             displayName: icon.name,
                         }}
+                        shouldRender={shouldShowTooltip}
                     >
                         <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
                             <Avatar
@@ -204,6 +209,7 @@ function MultipleAvatars({
                                         isPressed,
                                         isInReportAction,
                                         shouldUseCardBackground,
+                                        isActive,
                                     }),
                                     StyleUtils.getAvatarBorderWidth(size),
                                 ]}
@@ -221,6 +227,7 @@ function MultipleAvatars({
                     <Tooltip
                         // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
                         text={tooltipTexts.slice(avatarRows.length * maxAvatarsInRow - 1, avatarRows.length * maxAvatarsInRow + 9).join(', ')}
+                        shouldRender={shouldShowTooltip}
                     >
                         <View
                             style={[
@@ -260,6 +267,7 @@ function MultipleAvatars({
                     fallbackUserDetails={{
                         displayName: icons.at(0)?.name,
                     }}
+                    shouldRender={shouldShowTooltip}
                 >
                     {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                     <View>
@@ -282,6 +290,7 @@ function MultipleAvatars({
                             fallbackUserDetails={{
                                 displayName: icons.at(1)?.name,
                             }}
+                            shouldRender={shouldShowTooltip}
                         >
                             <View>
                                 <Avatar
@@ -296,7 +305,10 @@ function MultipleAvatars({
                             </View>
                         </UserDetailsTooltip>
                     ) : (
-                        <Tooltip text={tooltipTexts.slice(1).join(', ')}>
+                        <Tooltip
+                            text={tooltipTexts.slice(1).join(', ')}
+                            shouldRender={shouldShowTooltip}
+                        >
                             <View style={[singleAvatarStyle, styles.alignItemsCenter, styles.justifyContentCenter]}>
                                 <Text
                                     style={[styles.userSelectNone, size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText]}

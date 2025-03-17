@@ -19,6 +19,7 @@ type BasePushNotificationData = {
     onyxData?: OnyxServerUpdate[];
     lastUpdateID?: number;
     previousUpdateID?: number;
+    hasPendingOnyxUpdates?: boolean;
 };
 
 type ReportActionPushNotificationData = BasePushNotificationData & {

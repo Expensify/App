@@ -32,7 +32,17 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'edited',
                 contentModel: HTMLContentModel.textual,
             }),
+            'task-title': HTMLElementModel.fromCustomModel({
+                tagName: 'task-title',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: {...styles.taskTitleMenuItem},
+            }),
             'alert-text': HTMLElementModel.fromCustomModel({
+                tagName: 'alert-text',
+                mixedUAStyles: {...styles.formError, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
+            'deleted-action': HTMLElementModel.fromCustomModel({
                 tagName: 'alert-text',
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
@@ -49,12 +59,22 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             comment: HTMLElementModel.fromCustomModel({
                 tagName: 'comment',
-                mixedUAStyles: {whiteSpace: 'pre'},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.islarge === undefined) {
+                        return {whiteSpace: 'pre'};
+                    }
+                    return {whiteSpace: 'pre', ...styles.onlyEmojisText};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             'email-comment': HTMLElementModel.fromCustomModel({
                 tagName: 'email-comment',
-                mixedUAStyles: {whiteSpace: 'normal'},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.islarge === undefined) {
+                        return {whiteSpace: 'normal'};
+                    }
+                    return {whiteSpace: 'normal', ...styles.onlyEmojisText};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             strong: HTMLElementModel.fromCustomModel({
@@ -102,7 +122,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.textSupporting,
             styles.textLineThrough,
             styles.mutedNormalTextLabel,
+            styles.onlyEmojisText,
             styles.onlyEmojisTextLineHeight,
+            styles.taskTitleMenuItem,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */

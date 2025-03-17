@@ -8,9 +8,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
+import HelpButton from '@components/SidePane/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -26,7 +26,9 @@ import type HeaderWithBackButtonProps from './types';
 function HeaderWithBackButton({
     icon,
     iconFill,
-    guidesCallTaskID = '',
+    iconWidth,
+    iconHeight,
+    iconStyles,
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
@@ -40,12 +42,11 @@ function HeaderWithBackButton({
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
     isDownloading = false,
-    shouldShowGetAssistanceButton = false,
-    shouldDisableGetAssistanceButton = false,
     shouldShowPinButton = false,
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
+    shouldUseHeadlineHeader = false,
     stepCounter,
     subtitle = '',
     title = '',
@@ -62,6 +63,7 @@ function HeaderWithBackButton({
     shouldOverlayDots = false,
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
+    shouldDisplayHelpButton = true,
     shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
@@ -72,10 +74,6 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    const {isKeyboardShown} = useKeyboardState();
-
-    // If the icon is present, the header bar should be taller and use different font.
-    const isCentralPaneSettings = !!icon;
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -108,14 +106,14 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
                 subTitleLink={subTitleLink}
             />
         );
     }, [
         StyleUtils,
         subTitleLink,
-        isCentralPaneSettings,
+        shouldUseHeadlineHeader,
         policy,
         progressBarPercentage,
         report,
@@ -140,7 +138,7 @@ function HeaderWithBackButton({
             dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
-                isCentralPaneSettings && styles.headerBarDesktopHeight,
+                shouldUseHeadlineHeader && styles.headerBarDesktopHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 // progressBarPercentage can be 0 which would
                 // be falsey, hence using !== undefined explicitly
@@ -155,7 +153,7 @@ function HeaderWithBackButton({
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
                             onPress={() => {
-                                if (isKeyboardShown) {
+                                if (Keyboard.isVisible()) {
                                     Keyboard.dismiss();
                                 }
                                 const topmostReportId = Navigation.getTopmostReportId();
@@ -180,9 +178,10 @@ function HeaderWithBackButton({
                 {!!icon && (
                     <Icon
                         src={icon}
-                        width={variables.iconHeader}
-                        height={variables.iconHeader}
-                        additionalStyles={[styles.mr2]}
+                        width={iconWidth ?? variables.iconHeader}
+                        height={iconHeight ?? variables.iconHeader}
+                        additionalStyles={[styles.mr2, iconStyles]}
+                        fill={iconFill}
                     />
                 )}
                 {!!policyAvatar && (
@@ -230,22 +229,6 @@ function HeaderWithBackButton({
                                 color={theme.spinner}
                             />
                         ))}
-                    {shouldShowGetAssistanceButton && (
-                        <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
-                            <PressableWithoutFeedback
-                                disabled={shouldDisableGetAssistanceButton}
-                                onPress={() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID, Navigation.getActiveRoute()))}
-                                style={[styles.touchableButtonImage]}
-                                role="button"
-                                accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
-                            >
-                                <Icon
-                                    src={Expensicons.QuestionMark}
-                                    fill={iconFill ?? theme.icon}
-                                />
-                            </PressableWithoutFeedback>
-                        </Tooltip>
-                    )}
                     {shouldShowPinButton && !!report && <PinButton report={report} />}
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
@@ -275,6 +258,7 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
+                {shouldDisplayHelpButton && <HelpButton />}
                 {shouldDisplaySearchRouter && <SearchButton style={styles.mr5} />}
             </View>
         </View>

@@ -5,6 +5,9 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Card feed */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
+/** Custom card feed with a number */
+type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}`;
+
 /** Card feed provider */
 type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD
@@ -13,7 +16,7 @@ type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
 
 /** Custom card feed data */
-type CustomCardFeedData = {
+type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether any actions are pending */
     pending?: boolean;
 
@@ -34,13 +37,10 @@ type CustomCardFeedData = {
 
     /** Indicates the day when the statement period for this card ends */
     statementPeriodEndDay?: string;
-
-    /** Broken connection errors */
-    errors?: OnyxCommon.Errors;
-};
+}>;
 
 /** Direct card feed data */
-type DirectCardFeedData = {
+type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** List of accounts */
     accountList: string[];
 
@@ -55,10 +55,7 @@ type DirectCardFeedData = {
 
     /** Whether any actions are pending */
     pending?: boolean;
-
-    /** Broken connection errors */
-    errors?: OnyxCommon.Errors;
-};
+}>;
 
 /** Card feed data */
 type CardFeedData = CustomCardFeedData | DirectCardFeedData;
@@ -135,4 +132,5 @@ export type {
     CardFeedProvider,
     CompanyFeeds,
     CompanyCardNicknames,
+    CompanyCardFeedWithNumber,
 };

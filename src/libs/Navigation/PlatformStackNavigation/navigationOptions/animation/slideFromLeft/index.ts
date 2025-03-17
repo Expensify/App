@@ -1,7 +1,7 @@
 import type {StackNavigationOptions} from '@react-navigation/stack';
 import GestureDirection from '@libs/Navigation/PlatformStackNavigation/navigationOptions/gestureDirection';
-import type SlideFromLeftTransitionNavigationOptions from './types';
+import type {PlatformSpecificNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
-const slideFromLeft: SlideFromLeftTransitionNavigationOptions = {animationEnabled: true, gestureDirection: GestureDirection.HORIZONTAL_INVERTED} satisfies StackNavigationOptions;
+const slideFromLeft: PlatformSpecificNavigationOptions = {animationEnabled: true, gestureDirection: GestureDirection.HORIZONTAL_INVERTED} satisfies StackNavigationOptions;
 
 export default slideFromLeft;

@@ -62,15 +62,20 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         onClose();
     };
 
+    const handleClose = () => {
+        onClose();
+        setSearchValue('');
+    };
+
     const searchResults = searchOptions(debouncedSearchValue, options);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (
         <Modal
-            onClose={onClose}
+            onClose={handleClose}
             isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            onModalHide={onClose}
+            onModalHide={handleClose}
             shouldUseCustomBackdrop
             useNativeDriver
         >

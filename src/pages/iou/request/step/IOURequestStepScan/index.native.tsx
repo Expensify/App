@@ -1,7 +1,8 @@
-import {useFocusEffect} from '@react-navigation/core';
+import {useFocusEffect, useIsFocused} from '@react-navigation/core';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, Image, InteractionManager, View} from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
@@ -9,6 +10,7 @@ import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequ
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
 import type {TupleToUnion} from 'type-fest';
+import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
@@ -21,27 +23,45 @@ import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {dismissProductTraining} from '@libs/actions/Welcome';
+import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
-import * as IOUUtils from '@libs/IOUUtils';
+import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
+import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import * as IOU from '@userActions/IOU';
+import variables from '@styles/variables';
+import {
+    getMoneyRequestParticipantsFromReport,
+    replaceReceipt,
+    requestMoney,
+    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestReceipt,
+    startSplitBill,
+    trackExpense,
+    updateLastLocationPermissionPrompt,
+} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -65,6 +85,7 @@ function IOURequestStepScan({
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
+    const [elementTop, setElementTop] = useState(0);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
@@ -72,20 +93,24 @@ function IOURequestStepScan({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [fileResize, setFileResize] = useState<null | FileObject>(null);
     const [fileSource, setFileSource] = useState('');
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? -1}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID ?? -1}`);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
+    const isTabActive = useIsFocused();
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
 
@@ -96,9 +121,7 @@ function IOURequestStepScan({
             return false;
         }
 
-        return (
-            !ReportUtils.isArchivedRoom(report, reportNameValuePairs) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
-        );
+        return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy, reportNameValuePairs]);
 
     const {translate} = useLocalize();
@@ -111,7 +134,7 @@ function IOURequestStepScan({
                 setCameraPermissionStatus(status);
 
                 if (status === RESULTS.BLOCKED) {
-                    FileUtils.showCameraPermissionsAlert();
+                    showCameraPermissionsAlert();
                 }
             })
             .catch(() => {
@@ -124,8 +147,8 @@ function IOURequestStepScan({
     const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
 
     const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: focusIndicatorOpacity.value,
-        transform: [{translateX: focusIndicatorPosition.value.x}, {translateY: focusIndicatorPosition.value.y}, {scale: focusIndicatorScale.value}],
+        opacity: focusIndicatorOpacity.get(),
+        transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
     }));
 
     const focusCamera = (point: Point) => {
@@ -147,11 +170,10 @@ function IOURequestStepScan({
         .onStart((ev: {x: number; y: number}) => {
             const point = {x: ev.x, y: ev.y};
 
-            // eslint-disable-next-line react-compiler/react-compiler
-            focusIndicatorOpacity.value = withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250})));
-            focusIndicatorScale.value = 2;
-            focusIndicatorScale.value = withSpring(1, {damping: 10, stiffness: 200});
-            focusIndicatorPosition.value = point;
+            focusIndicatorOpacity.set(withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250}))));
+            focusIndicatorScale.set(2);
+            focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
+            focusIndicatorPosition.set(point);
 
             runOnJS(focusCamera)(point);
         });
@@ -186,7 +208,7 @@ function IOURequestStepScan({
     );
 
     const validateReceipt = (file: FileObject) => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
         if (
             !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
                 fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
@@ -197,7 +219,10 @@ function IOURequestStepScan({
         }
 
         if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-            Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+            Alert.alert(
+                translate('attachmentPicker.attachmentTooLarge'),
+                translate('attachmentPicker.sizeExceededWithLimit', {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)}),
+            );
             return false;
         }
 
@@ -225,55 +250,65 @@ function IOURequestStepScan({
         }
     }, [iouType, reportID, transactionID]);
 
-    const navigateToConfirmationPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-        }
-    }, [iouType, reportID, transactionID]);
+    const navigateToConfirmationPage = useCallback(
+        (isTestTransaction = false) => {
+            switch (iouType) {
+                case CONST.IOU.TYPE.REQUEST:
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    break;
+                case CONST.IOU.TYPE.SEND:
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+                    break;
+                default:
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType, transactionID, reportID),
+                    );
+            }
+        },
+        [iouType, reportID, transactionID],
+    );
 
     const createTransaction = useCallback(
         (receipt: Receipt, participant: Participant) => {
             if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                IOU.trackExpense(
+                trackExpense({
                     report,
-                    0,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    '',
-                    false,
-                    receipt,
-                );
+                    isDraftPolicy: false,
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    transactionParams: {
+                        amount: 0,
+                        currency: transaction?.currency ?? 'USD',
+                        created: transaction?.created,
+                        receipt,
+                    },
+                });
             } else {
-                IOU.requestMoney(
+                requestMoney({
                     report,
-                    0,
-                    transaction?.attendees,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    '',
-                    receipt,
-                );
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    transactionParams: {
+                        amount: 0,
+                        attendees: transaction?.attendees,
+                        currency: transaction?.currency ?? 'USD',
+                        created: transaction?.created ?? '',
+                        merchant: '',
+                        receipt,
+                    },
+                });
             }
         },
         [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
     );
     const navigateToConfirmationStep = useCallback(
-        (file: FileObject, source: string, locationPermissionGranted = false) => {
+        (file: FileObject, source: string, locationPermissionGranted = false, isTestTransaction = false) => {
             if (backTo) {
                 Navigation.goBack(backTo);
                 return;
@@ -283,16 +318,36 @@ function IOURequestStepScan({
             // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if ((transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) || iouType === CONST.IOU.TYPE.CREATE) {
-                navigateToParticipantPage();
+                if (activePolicy && isPaidGroupPolicy(activePolicy) && !shouldRestrictUserBillableActions(activePolicy.id)) {
+                    const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+                    setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                                CONST.IOU.ACTION.CREATE,
+                                iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                                transactionID,
+                                activePolicyExpenseChat?.reportID,
+                            ),
+                        );
+                    });
+                } else {
+                    if (isTestTransaction) {
+                        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+                        setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, selected: true}]);
+                        navigateToConfirmationPage(true);
+                        return;
+                    }
+                    navigateToParticipantPage();
+                }
                 return;
             }
 
             // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? -1;
-                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+                const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
             });
 
             if (shouldSkipConfirmation) {
@@ -301,13 +356,13 @@ function IOURequestStepScan({
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     playSound(SOUNDS.DONE);
-                    IOU.startSplitBill({
+                    startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? -1,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
                         comment: '',
                         receipt,
-                        existingSplitChatReportID: reportID ?? -1,
+                        existingSplitChatReportID: reportID,
                         billable: false,
                         category: '',
                         tag: '',
@@ -326,57 +381,54 @@ function IOURequestStepScan({
                         (successData) => {
                             playSound(SOUNDS.DONE);
                             if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                                IOU.trackExpense(
+                                trackExpense({
                                     report,
-                                    0,
-                                    transaction?.currency ?? 'USD',
-                                    transaction?.created ?? '',
-                                    '',
-                                    currentUserPersonalDetails.login,
-                                    currentUserPersonalDetails.accountID,
-                                    participant,
-                                    '',
-                                    false,
-                                    receipt,
-                                    '',
-                                    '',
-                                    '',
-                                    0,
-                                    false,
-                                    policy,
-                                    {},
-                                    {},
-                                    {
-                                        lat: successData.coords.latitude,
-                                        long: successData.coords.longitude,
+                                    isDraftPolicy: false,
+                                    participantParams: {
+                                        payeeEmail: currentUserPersonalDetails.login,
+                                        payeeAccountID: currentUserPersonalDetails.accountID,
+                                        participant,
                                     },
-                                );
+                                    policyParams: {
+                                        policy,
+                                    },
+                                    transactionParams: {
+                                        amount: 0,
+                                        currency: transaction?.currency ?? 'USD',
+                                        created: transaction?.created,
+                                        receipt,
+                                        billable: false,
+                                        gpsPoints: {
+                                            lat: successData.coords.latitude,
+                                            long: successData.coords.longitude,
+                                        },
+                                    },
+                                });
                             } else {
-                                IOU.requestMoney(
+                                requestMoney({
                                     report,
-                                    0,
-                                    transaction?.attendees,
-                                    transaction?.currency ?? 'USD',
-                                    transaction?.created ?? '',
-                                    '',
-                                    currentUserPersonalDetails.login,
-                                    currentUserPersonalDetails.accountID,
-                                    participant,
-                                    '',
-                                    receipt,
-                                    '',
-                                    '',
-                                    '',
-                                    0,
-                                    false,
-                                    policy,
-                                    {},
-                                    {},
-                                    {
+                                    participantParams: {
+                                        payeeEmail: currentUserPersonalDetails.login,
+                                        payeeAccountID: currentUserPersonalDetails.accountID,
+                                        participant,
+                                    },
+                                    policyParams: {
+                                        policy,
+                                    },
+                                    gpsPoints: {
                                         lat: successData.coords.latitude,
                                         long: successData.coords.longitude,
                                     },
-                                );
+                                    transactionParams: {
+                                        amount: 0,
+                                        attendees: transaction?.attendees,
+                                        currency: transaction?.currency ?? 'USD',
+                                        created: transaction?.created ?? '',
+                                        merchant: '',
+                                        receipt,
+                                        billable: false,
+                                    },
+                                });
                             }
                         },
                         (errorData) => {
@@ -396,24 +448,27 @@ function IOURequestStepScan({
                 createTransaction(receipt, participant);
                 return;
             }
-            navigateToConfirmationPage();
+            setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+                navigateToConfirmationPage();
+            });
         },
         [
             backTo,
             transaction?.isFromGlobalCreate,
-            transaction?.attendees,
             transaction?.currency,
             transaction?.created,
+            transaction?.attendees,
             iouType,
             report,
             transactionID,
             shouldSkipConfirmation,
             navigateToConfirmationPage,
+            activePolicy,
+            currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.login,
             navigateToParticipantPage,
             personalDetails,
             createTransaction,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
             reportID,
             transactionTaxCode,
             transactionTaxAmount,
@@ -424,9 +479,58 @@ function IOURequestStepScan({
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
             navigateBack();
-            IOU.replaceReceipt(transactionID, file as File, source);
+            replaceReceipt(transactionID, file as File, source);
         },
         [transactionID],
+    );
+
+    /**
+     * Sets a test receipt from CONST.TEST_RECEIPT_URL and navigates to the confirmation step
+     */
+    const setTestReceiptAndNavigate = useCallback(() => {
+        try {
+            const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.png`;
+            const path = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${filename}`;
+            const source = Image.resolveAssetSource(TestReceipt).uri;
+
+            ReactNativeBlobUtil.config({
+                fileCache: true,
+                appendExt: 'png',
+                path,
+            })
+                .fetch('GET', source)
+                .then(() => {
+                    const file: FileObject = {
+                        uri: `file://${path}`,
+                        name: filename,
+                        type: 'image/png',
+                        size: 0,
+                    };
+
+                    if (!file.uri) {
+                        return;
+                    }
+
+                    setMoneyRequestReceipt(transactionID, file.uri, filename, !isEditing, file.type);
+                    navigateToConfirmationStep(file, file.uri, false, true);
+                })
+                .catch((error) => {
+                    Log.warn('Error downloading test receipt:', {message: error});
+                });
+        } catch (error) {
+            Log.warn('Error in setTestReceiptAndNavigate:', {message: error});
+        }
+    }, [transactionID, isEditing, navigateToConfirmationStep]);
+
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive,
+        {
+            onConfirm: setTestReceiptAndNavigate,
+            onDismiss: () => {
+                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP);
+            },
+        },
     );
 
     /**
@@ -448,12 +552,12 @@ function IOURequestStepScan({
         if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsLoadingReceipt(true);
         }
-        FileUtils.resizeImageIfNeeded(originalFile).then((file) => {
+        resizeImageIfNeeded(originalFile).then((file) => {
             setIsLoadingReceipt(false);
             // Store the receipt on the transaction object in Onyx
             // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
             // So, let us also save the file type in receipt for later use during blob fetch
-            IOU.setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
+            setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
 
             if (isEditing) {
                 updateScanAndNavigate(file, file?.uri ?? '');
@@ -465,8 +569,8 @@ function IOURequestStepScan({
                 const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
 
                 if (gpsRequired) {
-                    const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
-                    if (shouldStartLocationPermissionFlow) {
+                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                    if (beginLocationPermissionFlow) {
                         setStartLocationPermissionFlow(true);
                         return;
                     }
@@ -496,49 +600,68 @@ function IOURequestStepScan({
 
         setDidCapturePhoto(true);
 
-        camera?.current
-            ?.takePhoto({
-                flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !isPlatformMuted,
-            })
-            .then((photo: PhotoFile) => {
-                // Store the receipt on the transaction object in Onyx
-                const source = getPhotoSource(photo.path);
-                IOU.setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
+        const path = getReceiptsUploadFolderPath();
 
-                FileUtils.readFileAsync(
-                    source,
-                    photo.path,
-                    (file) => {
-                        if (isEditing) {
-                            updateScanAndNavigate(file, source);
-                            return;
-                        }
-                        if (shouldSkipConfirmation) {
-                            setFileResize(file);
-                            setFileSource(source);
-                            const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-                            if (gpsRequired) {
-                                const shouldStartLocationPermissionFlow = IOUUtils.shouldStartLocationPermissionFlow();
-                                if (shouldStartLocationPermissionFlow) {
-                                    setStartLocationPermissionFlow(true);
-                                    return;
-                                }
-                            }
-                        }
-                        navigateToConfirmationStep(file, source, false);
-                    },
-                    () => {
-                        setDidCapturePhoto(false);
-                        showCameraAlert();
-                        Log.warn('Error reading photo');
-                    },
-                );
+        ReactNativeBlobUtil.fs
+            .isDir(path)
+            .then((isDir) => {
+                if (isDir) {
+                    return;
+                }
+
+                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
+                    Log.warn('Error creating the directory', error);
+                });
             })
             .catch((error: string) => {
-                setDidCapturePhoto(false);
-                showCameraAlert();
-                Log.warn('Error taking photo', error);
+                Log.warn('Error checking if the directory exists', error);
+            })
+            .then(() => {
+                camera?.current
+                    ?.takePhoto({
+                        flash: flash && hasFlash ? 'on' : 'off',
+                        enableShutterSound: !isPlatformMuted,
+                        path,
+                    })
+                    .then((photo: PhotoFile) => {
+                        // Store the receipt on the transaction object in Onyx
+                        const source = getPhotoSource(photo.path);
+                        setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
+
+                        readFileAsync(
+                            source,
+                            photo.path,
+                            (file) => {
+                                if (isEditing) {
+                                    updateScanAndNavigate(file, source);
+                                    return;
+                                }
+                                if (shouldSkipConfirmation) {
+                                    setFileResize(file);
+                                    setFileSource(source);
+                                    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+                                    if (gpsRequired) {
+                                        const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                                        if (beginLocationPermissionFlow) {
+                                            setStartLocationPermissionFlow(true);
+                                            return;
+                                        }
+                                    }
+                                }
+                                navigateToConfirmationStep(file, source, false);
+                            },
+                            () => {
+                                setDidCapturePhoto(false);
+                                showCameraAlert();
+                                Log.warn('Error reading photo');
+                            },
+                        );
+                    })
+                    .catch((error: string) => {
+                        setDidCapturePhoto(false);
+                        showCameraAlert();
+                        Log.warn('Error taking photo', error);
+                    });
             });
     }, [
         cameraPermissionStatus,
@@ -569,138 +692,159 @@ function IOURequestStepScan({
             shouldShowWrapper={!!backTo || isEditing}
             testID={IOURequestStepScan.displayName}
         >
-            {isLoadingReceipt && <FullScreenLoadingIndicator />}
-            {!!pdfFile && (
-                <PDFThumbnail
-                    style={styles.invisiblePDF}
-                    previewSourceURL={pdfFile?.uri ?? ''}
-                    onLoadSuccess={() => {
-                        setPdfFile(null);
-                        if (pdfFile) {
-                            setReceiptAndNavigate(pdfFile, true);
-                        }
-                    }}
-                    onPassword={() => {
-                        setPdfFile(null);
-                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
-                    }}
-                    onLoadError={() => {
-                        setPdfFile(null);
-                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                    }}
-                />
-            )}
-            {cameraPermissionStatus !== RESULTS.GRANTED && (
-                <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                    <ImageSVG
-                        contentFit="contain"
-                        src={Hand}
-                        width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                        height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                        style={styles.pb5}
+            <View
+                style={styles.flex1}
+                onLayout={(e) => {
+                    setElementTop(e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding) * 2);
+                }}
+            >
+                {isLoadingReceipt && <FullScreenLoadingIndicator />}
+                {!!pdfFile && (
+                    <PDFThumbnail
+                        style={styles.invisiblePDF}
+                        previewSourceURL={pdfFile?.uri ?? ''}
+                        onLoadSuccess={() => {
+                            setPdfFile(null);
+                            if (pdfFile) {
+                                setReceiptAndNavigate(pdfFile, true);
+                            }
+                        }}
+                        onPassword={() => {
+                            setPdfFile(null);
+                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
+                        }}
+                        onLoadError={() => {
+                            setPdfFile(null);
+                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                        }}
                     />
+                )}
+                <EducationalTooltip
+                    shouldRender={shouldShowProductTrainingTooltip}
+                    renderTooltipContent={renderProductTrainingTooltip}
+                    shouldHideOnNavigate
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                    shiftVertical={-elementTop}
+                >
+                    <View style={[styles.flex1]}>
+                        {cameraPermissionStatus !== RESULTS.GRANTED && (
+                            <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
+                                <ImageSVG
+                                    contentFit="contain"
+                                    src={Hand}
+                                    width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                                    height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                                    style={styles.pb5}
+                                />
 
-                    <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                    <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                    <Button
-                        success
-                        text={translate('common.continue')}
-                        accessibilityLabel={translate('common.continue')}
-                        style={[styles.p9, styles.pt5]}
+                                <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                                <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                                <Button
+                                    success
+                                    text={translate('common.continue')}
+                                    accessibilityLabel={translate('common.continue')}
+                                    style={[styles.p9, styles.pt5]}
+                                    onPress={capturePhoto}
+                                />
+                            </View>
+                        )}
+                        {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
+                            <View style={[styles.cameraView]}>
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    style={[styles.flex1]}
+                                    color={theme.textSupporting}
+                                />
+                            </View>
+                        )}
+                        {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
+                            <View style={[styles.cameraView]}>
+                                <GestureDetector gesture={tapGesture}>
+                                    <View style={styles.flex1}>
+                                        <NavigationAwareCamera
+                                            ref={camera}
+                                            device={device}
+                                            style={styles.flex1}
+                                            zoom={device.neutralZoom}
+                                            photo
+                                            cameraTabIndex={1}
+                                        />
+                                        <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
+                                    </View>
+                                </GestureDetector>
+                            </View>
+                        )}
+                    </View>
+                </EducationalTooltip>
+
+                <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
+                    <AttachmentPicker>
+                        {({openPicker}) => (
+                            <PressableWithFeedback
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('receipt.gallery')}
+                                style={[styles.alignItemsStart]}
+                                onPress={() => {
+                                    openPicker({
+                                        onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
+                                    });
+                                }}
+                            >
+                                <Icon
+                                    height={32}
+                                    width={32}
+                                    src={Expensicons.Gallery}
+                                    fill={theme.textSupporting}
+                                />
+                            </PressableWithFeedback>
+                        )}
+                    </AttachmentPicker>
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.shutter')}
+                        style={[styles.alignItemsCenter]}
                         onPress={capturePhoto}
-                    />
-                </View>
-            )}
-            {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
-                <View style={[styles.cameraView]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        color={theme.textSupporting}
-                    />
-                </View>
-            )}
-            {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                <View style={[styles.cameraView]}>
-                    <GestureDetector gesture={tapGesture}>
-                        <View style={styles.flex1}>
-                            <NavigationAwareCamera
-                                ref={camera}
-                                device={device}
-                                style={styles.flex1}
-                                zoom={device.neutralZoom}
-                                photo
-                                cameraTabIndex={1}
-                                orientation="portrait"
-                            />
-                            <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
-                        </View>
-                    </GestureDetector>
-                </View>
-            )}
-            <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker>
-                    {({openPicker}) => (
+                    >
+                        <ImageSVG
+                            contentFit="contain"
+                            src={Shutter}
+                            width={CONST.RECEIPT.SHUTTER_SIZE}
+                            height={CONST.RECEIPT.SHUTTER_SIZE}
+                        />
+                    </PressableWithFeedback>
+                    {hasFlash && (
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.gallery')}
-                            style={[styles.alignItemsStart]}
-                            onPress={() => {
-                                openPicker({
-                                    onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
-                                });
-                            }}
+                            accessibilityLabel={translate('receipt.flash')}
+                            style={[styles.alignItemsEnd]}
+                            disabled={cameraPermissionStatus !== RESULTS.GRANTED}
+                            onPress={() => setFlash((prevFlash) => !prevFlash)}
                         >
                             <Icon
                                 height={32}
                                 width={32}
-                                src={Expensicons.Gallery}
+                                src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
                                 fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>
                     )}
-                </AttachmentPicker>
-                <PressableWithFeedback
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('receipt.shutter')}
-                    style={[styles.alignItemsCenter]}
-                    onPress={capturePhoto}
-                >
-                    <ImageSVG
-                        contentFit="contain"
-                        src={Shutter}
-                        width={CONST.RECEIPT.SHUTTER_SIZE}
-                        height={CONST.RECEIPT.SHUTTER_SIZE}
+                </View>
+                {startLocationPermissionFlow && !!fileResize && (
+                    <LocationPermissionModal
+                        startPermissionFlow={startLocationPermissionFlow}
+                        resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                        onGrant={() => navigateToConfirmationStep(fileResize, fileSource, true)}
+                        onDeny={() => {
+                            updateLastLocationPermissionPrompt();
+                            navigateToConfirmationStep(fileResize, fileSource, false);
+                        }}
                     />
-                </PressableWithFeedback>
-                {hasFlash && (
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.flash')}
-                        style={[styles.alignItemsEnd]}
-                        disabled={cameraPermissionStatus !== RESULTS.GRANTED}
-                        onPress={() => setFlash((prevFlash) => !prevFlash)}
-                    >
-                        <Icon
-                            height={32}
-                            width={32}
-                            src={Expensicons.Bolt}
-                            fill={flash ? theme.iconHovered : theme.textSupporting}
-                        />
-                    </PressableWithFeedback>
                 )}
             </View>
-            {startLocationPermissionFlow && !!fileResize && (
-                <LocationPermissionModal
-                    startPermissionFlow={startLocationPermissionFlow}
-                    resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                    onGrant={() => navigateToConfirmationStep(fileResize, fileSource, true)}
-                    onDeny={() => {
-                        IOU.updateLastLocationPermissionPrompt();
-                        navigateToConfirmationStep(fileResize, fileSource, false);
-                    }}
-                />
-            )}
         </StepScreenWrapper>
     );
 }

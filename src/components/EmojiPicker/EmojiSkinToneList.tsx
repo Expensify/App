@@ -42,6 +42,11 @@ function EmojiSkinToneList() {
     }, [preferredSkinTone]);
 
     const currentSkinTone = getSkinToneEmojiFromIndex(preferredSkinTone);
+
+    useEffect(() => {
+        setHighlightedIndex(currentSkinTone.skinTone);
+    }, [currentSkinTone.skinTone]);
+
     return (
         <View style={[styles.flexRow, styles.p3, styles.ph4, styles.emojiPickerContainer]}>
             {!isSkinToneListVisible && (

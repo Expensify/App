@@ -1,6 +1,6 @@
 ---
 title: Expensify and TSheets/QuickBooks Time Integration Guide
-description: This help document explains how to connect TSheets/QuickBooks Time to your Expensify policy
+description: This help document explains how to connect TSheets/QuickBooks Time to your Expensify workspace
 ---
 # Overview
 

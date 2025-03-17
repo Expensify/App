@@ -1,11 +1,14 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import * as SearchUIUtils from '@libs/SearchUIUtils';
+import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {isReportListItemType} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext, SelectedTransactions} from './types';
 
 const defaultSearchContext = {
     currentSearchHash: -1,
+    shouldTurnOffSelectionMode: false,
     selectedTransactions: {},
     selectedReports: [],
     setCurrentSearchHash: () => {},
@@ -22,19 +25,19 @@ const Context = React.createContext<SearchContext>(defaultSearchContext);
 function getReportsFromSelectedTransactions(data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[], selectedTransactions: SelectedTransactions) {
     return (data ?? [])
         .filter(
-            (item) =>
-                !SearchUIUtils.isTransactionListItemType(item) &&
-                !SearchUIUtils.isReportActionListItemType(item) &&
-                item.reportID &&
+            (item): item is ReportListItemType =>
+                isReportListItemType(item) &&
+                isMoneyRequestReport(item) &&
                 item?.transactions?.every((transaction: {keyForList: string | number}) => selectedTransactions[transaction.keyForList]?.isSelected),
         )
-        .map((item) => item.reportID);
+        .map((item) => ({reportID: item.reportID, action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW, total: item.total ?? CONST.DEFAULT_NUMBER_ID, policyID: item.policyID}));
 }
 
 function SearchContextProvider({children}: ChildrenProps) {
-    const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'selectedReports'>>({
+    const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode' | 'selectedReports'>>({
         currentSearchHash: defaultSearchContext.currentSearchHash,
         selectedTransactions: defaultSearchContext.selectedTransactions,
+        shouldTurnOffSelectionMode: false,
         selectedReports: defaultSearchContext.selectedReports,
     });
 
@@ -52,17 +55,19 @@ function SearchContextProvider({children}: ChildrenProps) {
         setSearchContextData((prevState) => ({
             ...prevState,
             selectedTransactions,
+            shouldTurnOffSelectionMode: false,
             selectedReports,
         }));
     }, []);
 
     const clearSelectedTransactions = useCallback(
-        (searchHash?: number) => {
+        (searchHash?: number, shouldTurnOffSelectionMode = false) => {
             if (searchHash === searchContextData.currentSearchHash) {
                 return;
             }
             setSearchContextData((prevState) => ({
                 ...prevState,
+                shouldTurnOffSelectionMode,
                 selectedTransactions: {},
                 selectedReports: [],
             }));

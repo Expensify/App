@@ -58,7 +58,9 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
             value: account,
             text: account.name,
             keyForList: account.name,
-            isSelected: account.id === qbdConfig?.export?.reimbursableAccount,
+            // We use the logical OR (||) here instead of ?? because `reimbursableAccount` can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            isSelected: account.id === (qbdConfig?.export?.reimbursableAccount || accounts.at(0)?.id),
         }));
     }, [policy?.connections?.quickbooksDesktop, qbdConfig?.export?.reimbursableAccount]);
 

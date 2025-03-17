@@ -9,6 +9,8 @@ const Context = React.createContext<VolumeContext | null>(null);
 function VolumeContextProvider({children}: ChildrenProps) {
     const {currentVideoPlayerRef, originalParent} = usePlaybackContext();
     const volume = useSharedValue(0);
+    // We need this field to remember the last value before clicking mute
+    const lastNonZeroVolume = useSharedValue(1);
 
     const updateVolume = useCallback(
         (newVolume: number) => {
@@ -16,11 +18,21 @@ function VolumeContextProvider({children}: ChildrenProps) {
                 return;
             }
             currentVideoPlayerRef.current.setStatusAsync({volume: newVolume, isMuted: newVolume === 0});
-            // eslint-disable-next-line react-compiler/react-compiler
-            volume.value = newVolume;
+
+            volume.set(newVolume);
         },
         [currentVideoPlayerRef, volume],
     );
+
+    // This function ensures mute and unmute functionality. Overwriting lastNonZeroValue
+    // only in the case of mute guarantees that a pan gesture reducing the volume to zero won’t cause
+    // us to lose this value. As a result, unmute restores the last non-zero value.
+    const toggleMute = useCallback(() => {
+        if (volume.get() !== 0) {
+            lastNonZeroVolume.set(volume.get());
+        }
+        updateVolume(volume.get() === 0 ? lastNonZeroVolume.get() : 0);
+    }, [lastNonZeroVolume, updateVolume, volume]);
 
     // We want to update the volume when currently playing video changes.
     // When originalParent changed we're sure that currentVideoPlayerRef is updated. So we can apply the new volume.
@@ -28,10 +40,19 @@ function VolumeContextProvider({children}: ChildrenProps) {
         if (!originalParent) {
             return;
         }
-        updateVolume(volume.value);
-    }, [originalParent, updateVolume, volume.value]);
+        updateVolume(volume.get());
+    }, [originalParent, updateVolume, volume]);
 
-    const contextValue = useMemo(() => ({updateVolume, volume}), [updateVolume, volume]);
+    const contextValue = useMemo(
+        () => ({
+            updateVolume,
+            volume,
+            lastNonZeroVolume,
+            toggleMute,
+        }),
+        [updateVolume, volume, lastNonZeroVolume, toggleMute],
+    );
+
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 

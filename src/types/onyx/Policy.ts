@@ -43,7 +43,7 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
         currency?: string;
 
         /** Generated ID to identify the rate */
-        customUnitRateID?: string;
+        customUnitRateID: string;
 
         /** Whether this rate is currently enabled */
         enabled?: boolean;
@@ -1072,6 +1072,96 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
+/**
+ *  NSQS Payment account
+ */
+type NSQSPaymentAccount = {
+    /** ID assigned to the account in NSQS */
+    id: string;
+
+    /** Name of the account */
+    name: string;
+
+    /** Display name of the account */
+    displayName: string;
+
+    /** Number of the account */
+    number: string;
+
+    /** Type of the account */
+    type: string;
+};
+
+/**
+ * Connection data for NSQS
+ */
+type NSQSConnectionData = {
+    /** Collection of the payments accounts */
+    paymentAccounts: NSQSPaymentAccount[];
+};
+
+/**
+ * Connection config for NSQS
+ */
+type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Configuration of automatic synchronization from NSQS to the app */
+    autoSync?: {
+        /** Job ID of the synchronization */
+        jobID: string;
+
+        /** Whether changes made in NSQS should be reflected into the app automatically */
+        enabled: boolean;
+    };
+
+    /** Configuration options pertaining to sync */
+    syncOptions?: {
+        /** Configuration of import settings from NSQS to Expensify */
+        mapping?: {
+            /** How NSQS customers are displayed as */
+            customers: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
+
+            /** How NSQS projects are displayed as */
+            projects: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
+        };
+    };
+
+    /** The company currency */
+    currency: string;
+
+    /** The e-mail of the exporter */
+    exporter: string;
+
+    /** Export date type */
+    exportDate: ValueOf<typeof CONST.NSQS_EXPORT_DATE>;
+
+    /** NSQS credentials */
+    credentials: {
+        /** Encrypted token for NSQS authentication */
+        accessToken: string;
+
+        /** The company ID */
+        companyID: string;
+
+        /** Token expiration date */
+        expires: string;
+
+        /** The current scope of the NSQS connection */
+        scope: string;
+
+        /** The access token type */
+        tokenType: string;
+    };
+
+    /** Whether the connection is configured */
+    isConfigured: boolean;
+
+    /** The account used for payments in NSQS */
+    paymentAccount: string;
+
+    /** Collections of form field errors */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 /** One of the SageIntacctConnectionData object elements */
 type SageIntacctDataElement = {
     /** Element ID */
@@ -1281,69 +1371,77 @@ type QBDConnectionData = {
 };
 
 /**
+ * Export config for QuickBooks Desktop
+ */
+type QBDExportConfig = {
+    /** E-mail of the exporter */
+    exporter: string;
+
+    /** Defines how reimbursable expenses are exported */
+    reimbursable: QBDReimbursableExportAccountType;
+
+    /** Account that receives the reimbursable expenses */
+    reimbursableAccount: string;
+
+    /** Export date type */
+    exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+
+    /** Defines how non-reimbursable expenses are exported */
+    nonReimbursable: QBDNonReimbursableExportAccountType;
+
+    /** Account that receives the non reimbursable expenses */
+    nonReimbursableAccount: string;
+
+    /** Default vendor of non reimbursable bill */
+    nonReimbursableBillDefaultVendor: string;
+};
+
+/**
  * User configuration for the QuickBooks Desktop accounting integration.
  */
-type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** API provider */
-    apiProvider: string;
+type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** API provider */
+        apiProvider: string;
 
-    /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
-    autoSync: {
-        /** Job ID of the synchronization */
-        jobID: string;
+        /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
+        autoSync: {
+            /** Job ID of the synchronization */
+            jobID: string;
 
-        /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
-        enabled: boolean;
-    };
+            /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
+            enabled: boolean;
+        };
 
-    /** Whether a check to be printed */
-    markChecksToBePrinted: boolean;
+        /** Whether a check to be printed */
+        markChecksToBePrinted: boolean;
 
-    /** Determines if a vendor should be automatically created */
-    shouldAutoCreateVendor: boolean;
+        /** Determines if a vendor should be automatically created */
+        shouldAutoCreateVendor: boolean;
 
-    /** Whether items is imported */
-    importItems: boolean;
+        /** Whether items is imported */
+        importItems: boolean;
 
-    /** Configuration of the export */
-    export: {
-        /** E-mail of the exporter */
-        exporter: string;
+        /** Configuration of the export */
+        export: QBDExportConfig;
 
-        /** Defines how reimbursable expenses are exported */
-        reimbursable: QBDReimbursableExportAccountType;
+        /** Configuration of import settings from QuickBooks Desktop to the app */
+        mappings: {
+            /** How QuickBooks Desktop classes displayed as */
+            classes: IntegrationEntityMap;
 
-        /** Account that receives the reimbursable expenses */
-        reimbursableAccount: string;
+            /** How QuickBooks Desktop customers displayed as */
+            customers: IntegrationEntityMap;
+        };
 
-        /** Export date type */
-        exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+        /** Whether new categories are enabled in chart of accounts */
+        enableNewCategories: boolean;
 
-        /** Defines how non-reimbursable expenses are exported */
-        nonReimbursable: QBDNonReimbursableExportAccountType;
-
-        /** Account that receives the non reimbursable expenses */
-        nonReimbursableAccount: string;
-
-        /** Default vendor of non reimbursable bill */
-        nonReimbursableBillDefaultVendor: string;
-    };
-
-    /** Configuration of import settings from QuickBooks Desktop to the app */
-    mappings: {
-        /** How QuickBooks Desktop classes displayed as */
-        classes: IntegrationEntityMap;
-
-        /** How QuickBooks Desktop customers displayed as */
-        customers: IntegrationEntityMap;
-    };
-
-    /** Whether new categories are enabled in chart of accounts */
-    enableNewCategories: boolean;
-
-    /** Collections of form field errors */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof QBDExportConfig
+>;
 
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
@@ -1367,6 +1465,9 @@ type Connections = {
 
     /** NetSuite integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: NetSuiteConnection;
+
+    /** NSQS integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.NSQS]: Connection<NSQSConnectionData, NSQSConnectionConfig>;
 
     /** Sage Intacct integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
@@ -1491,9 +1592,15 @@ type PolicyInvoicingDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Account balance */
         stripeConnectAccountBalance?: number;
 
+        /** AccountID */
+        stripeConnectAccountID?: string;
+
         /** bankAccountID of selected BBA for payouts */
         transferBankAccountID?: number;
     };
+
+    /** The markUp */
+    markUp?: number;
 }>;
 
 /** Names of policy features */
@@ -1630,6 +1737,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         harvesting?: {
             /** Whether the scheduled submit is enabled */
             enabled: boolean;
+
+            /** The ID of the Bedrock job that runs harvesting */
+            jobID?: number;
         };
 
         /** Whether the self approval or submitting is enabled */
@@ -1750,6 +1860,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             expenseRules?: ExpenseRule[];
         };
 
+        /** A set of custom rules defined with natural language */
+        customRules?: string;
+
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
@@ -1822,6 +1935,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the policy is pending an upgrade */
         isPendingUpgrade?: boolean;
 
+        /** Indicates if the policy is pending a downgrade */
+        isPendingDowngrade?: boolean;
+
         /** Max expense age for a Policy violation */
         maxExpenseAge?: number;
 
@@ -1842,6 +1958,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Workspace account ID configured for Expensify Card */
         workspaceAccountID?: number;
+
+        /** Setup specialist guide assigned for the policy */
+        assignedGuide?: {
+            /** The guide's email */
+            email: string;
+        };
+
+        /** Indicate whether the Workspace plan can be downgraded */
+        canDowngrade?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
@@ -1910,6 +2035,7 @@ export type {
     NetSuiteTaxAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
+    NSQSPaymentAccount,
     SageIntacctMappingValue,
     SageIntacctMappingType,
     SageIntacctMappingName,
@@ -1923,4 +2049,6 @@ export type {
     ApprovalRule,
     ExpenseRule,
     NetSuiteConnectionConfig,
+    MccGroup,
+    Subrate,
 };

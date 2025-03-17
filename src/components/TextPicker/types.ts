@@ -21,6 +21,9 @@ type TextSelectorModalProps = {
 
     /** Whether to clear the input value when the modal closes */
     shouldClearOnClose?: boolean;
+
+    /** The ID used to uniquely identify the input in a Form */
+    inputID: string;
 } & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
     TextProps;
 
@@ -42,7 +45,10 @@ type TextPickerProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
-} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description'> &
+
+    /** The ID used to uniquely identify the input in a Form */
+    inputID: string;
+} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive'> &
     TextProps;
 
 export type {TextSelectorModalProps, TextPickerProps};

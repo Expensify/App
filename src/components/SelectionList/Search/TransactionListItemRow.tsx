@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -9,18 +10,29 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getFileName} from '@libs/fileDownload/FileUtils';
 import Parser from '@libs/Parser';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import StringUtils from '@libs/StringUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {
+    getTagForDisplay,
+    getTaxAmount,
+    getCreated as getTransactionCreated,
+    getCurrency as getTransactionCurrency,
+    getDescription as getTransactionDescription,
+    hasReceipt,
+    isExpensifyCardTransaction,
+    isPending,
+    isReceiptBeingScanned,
+} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -59,6 +71,7 @@ type TransactionListItemRowProps = {
     isButtonSelected?: boolean;
     parentAction?: string;
     shouldShowTransactionCheckbox?: boolean;
+    isLoading?: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -82,7 +95,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
     let source = transactionItem?.receipt?.source ?? '';
-    if (source) {
+    if (source && typeof source === 'string') {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         const isReceiptPDF = Str.isPDF(filename);
@@ -117,7 +130,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
 function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
     const styles = useThemeStyles();
 
-    const created = TransactionUtils.getCreated(transactionItem);
+    const created = getTransactionCreated(transactionItem);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
 
     return (
@@ -132,14 +145,14 @@ function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: Transactio
 function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const description = TransactionUtils.getDescription(transactionItem);
+    const description = getTransactionDescription(transactionItem);
     let merchantOrDescriptionToDisplay = transactionItem.formattedMerchant;
     if (!merchantOrDescriptionToDisplay && !isLargeScreenWidth) {
-        merchantOrDescriptionToDisplay = Parser.htmlToText(Parser.replace(description));
+        merchantOrDescriptionToDisplay = Parser.htmlToText(description);
     }
-    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(Parser.replace(description));
+    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
 
-    if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
+    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
     }
     const merchantToDisplay = StringUtils.getFirstLine(merchant);
@@ -155,10 +168,10 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
 function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const currency = TransactionUtils.getCurrency(transactionItem);
-    let amount = CurrencyUtils.convertToDisplayString(transactionItem.formattedTotal, currency);
+    const currency = getTransactionCurrency(transactionItem);
+    let amount = convertToDisplayString(transactionItem.formattedTotal, currency);
 
-    if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem)) {
+    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem)) {
         amount = translate('iou.receiptStatusTitle');
     }
 
@@ -173,15 +186,23 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCell
 
 function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     const theme = useTheme();
-    const typeIcon = getTypeIcon(transactionItem.transactionType);
+    const {translate} = useLocalize();
+    const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
+    const typeIcon = isPendingExpensifyCardTransaction ? Expensicons.CreditCardHourglass : getTypeIcon(transactionItem.transactionType);
+
+    const tooltipText = isPendingExpensifyCardTransaction ? translate('iou.pending') : '';
 
     return (
-        <Icon
-            src={typeIcon}
-            fill={theme.icon}
-            height={isLargeScreenWidth ? 20 : 12}
-            width={isLargeScreenWidth ? 20 : 12}
-        />
+        <Tooltip text={tooltipText}>
+            <View>
+                <Icon
+                    src={typeIcon}
+                    fill={theme.icon}
+                    height={isLargeScreenWidth ? 20 : 12}
+                    width={isLargeScreenWidth ? 20 : 12}
+                />
+            </View>
+        </Tooltip>
     );
 }
 
@@ -215,14 +236,14 @@ function TagCell({isLargeScreenWidth, showTooltip, transactionItem}: Transaction
     return isLargeScreenWidth ? (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={TransactionUtils.getTagForDisplay(transactionItem)}
+            text={getTagForDisplay(transactionItem)}
             style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
         />
     ) : (
         <TextWithIconCell
             icon={Expensicons.Tag}
             showTooltip={showTooltip}
-            text={TransactionUtils.getTagForDisplay(transactionItem)}
+            text={getTagForDisplay(transactionItem)}
             textStyle={[styles.textMicro, styles.mnh0]}
         />
     );
@@ -232,13 +253,13 @@ function TaxCell({transactionItem, showTooltip}: TransactionCellProps) {
     const styles = useThemeStyles();
 
     const isFromExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
-    const taxAmount = TransactionUtils.getTaxAmount(transactionItem, isFromExpenseReport);
-    const currency = TransactionUtils.getCurrency(transactionItem);
+    const taxAmount = getTaxAmount(transactionItem, isFromExpenseReport);
+    const currency = getTransactionCurrency(transactionItem);
 
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(taxAmount, currency)}
+            text={convertToDisplayString(taxAmount, currency)}
             style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, styles.textAlignRight]}
         />
     );
@@ -257,6 +278,7 @@ function TransactionListItemRow({
     isButtonSelected = false,
     parentAction = '',
     shouldShowTransactionCheckbox,
+    isLoading = false,
 }: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -280,6 +302,7 @@ function TransactionListItemRow({
                         isDisabled={item.isDisabled}
                         isDisabledCheckbox={item.isDisabledCheckbox}
                         handleCheckboxPress={onCheckboxPress}
+                        isLoading={isLoading}
                     />
                 )}
 
@@ -287,9 +310,10 @@ function TransactionListItemRow({
                     {canSelectMultiple && !!shouldShowTransactionCheckbox && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
-                            role={CONST.ROLE.BUTTON}
+                            role={getButtonRole(true)}
                             disabled={isDisabled}
                             onPress={onCheckboxPress}
+                            isNested
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!isDisabled)]}>
@@ -445,6 +469,7 @@ function TransactionListItemRow({
                         isChildListItem={isChildListItem}
                         parentAction={parentAction}
                         goToItem={onButtonPress}
+                        isLoading={isLoading}
                     />
                 </View>
             </View>

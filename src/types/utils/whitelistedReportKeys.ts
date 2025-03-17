@@ -7,7 +7,6 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         avatarUrl: unknown;
-        avatarFileName: unknown;
         chatType: unknown;
         hasOutstandingChildRequest: unknown;
         hasOutstandingChildTask: unknown;
@@ -27,7 +26,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         policyID: unknown;
         reportName: unknown;
         reportID: string;
-        reportActionID: unknown;
         chatReportID: unknown;
         stateNum: unknown;
         statusNum: unknown;
@@ -35,10 +33,8 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         type: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
-        lastMessageTranslationKey: unknown;
         parentReportID: unknown;
         parentReportActionID: unknown;
-        isOptimisticReport: unknown;
         managerID: unknown;
         lastVisibleActionLastModified: unknown;
         lastMessageHtml: unknown;
@@ -48,18 +44,16 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         participants: unknown;
         total: unknown;
         unheldTotal: unknown;
+        unheldNonReimbursableTotal: unknown;
         currency: unknown;
         errorFields: unknown;
+        errors: unknown;
         isWaitingOnBankAccount: unknown;
         isCancelledIOU: unknown;
         iouReportID: unknown;
         preexistingReportID: unknown;
         nonReimbursableTotal: unknown;
-        isHidden: unknown;
         privateNotes: unknown;
-        isLoadingPrivateNotes: unknown;
-        pendingChatMembers: unknown;
-        transactionThreadReportID: unknown;
         fieldList: unknown;
         permissions: unknown;
         tripData: {
@@ -67,8 +61,8 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
             endDate: unknown;
             tripID: unknown;
         };
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived: unknown;
+        welcomeMessage: unknown;
     },
     PolicyReportField['fieldID']
 >;

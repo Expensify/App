@@ -6,9 +6,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTagNamesFromTagsLists} from '@libs/PolicyUtils';
-import * as SearchActions from '@userActions/Search';
+import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,9 +23,9 @@ function SearchFiltersTagPage() {
         if (tag === CONST.SEARCH.EMPTY_VALUE) {
             return {name: translate('search.noTag'), value: tag};
         }
-        return {name: tag, value: tag};
+        return {name: getCleanedTagName(tag), value: tag};
     });
-    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
+    const policyID = searchAdvancedFiltersForm?.policyID;
     const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const singlePolicyTagLists = allPolicyTagLists[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
 
@@ -38,21 +38,20 @@ function SearchFiltersTagPage() {
                 .map(getTagNamesFromTagsLists)
                 .flat()
                 .forEach((tag) => uniqueTagNames.add(tag));
-            items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: tagName, value: tagName})));
+            items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName})));
         } else {
-            items.push(...getTagNamesFromTagsLists(singlePolicyTagLists).map((name) => ({name, value: name})));
+            items.push(...getTagNamesFromTagsLists(singlePolicyTagLists).map((name) => ({name: getCleanedTagName(name), value: name})));
         }
         return items;
     }, [allPolicyTagLists, singlePolicyTagLists, translate]);
 
-    const updateTagFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({tag: values}), []);
+    const updateTagFilter = useCallback((values: string[]) => updateAdvancedFilters({tag: values}), []);
 
     return (
         <ScreenWrapper
             testID={SearchFiltersTagPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton

@@ -27,7 +27,7 @@ function SearchAdvancedFiltersPage() {
             testID={SearchAdvancedFiltersPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.filtersHeader')}>
                 {shouldShowResetFilters && <TextLink onPress={SearchActions.clearAdvancedFilters}>{translate('search.resetFilters')}</TextLink>}

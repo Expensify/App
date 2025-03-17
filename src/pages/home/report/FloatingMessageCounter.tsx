@@ -30,13 +30,13 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}}: Floating
     const show = useCallback(() => {
         'worklet';
 
-        translateY.value = withSpring(MARKER_ACTIVE_TRANSLATE_Y);
+        translateY.set(withSpring(MARKER_ACTIVE_TRANSLATE_Y));
     }, [translateY]);
 
     const hide = useCallback(() => {
         'worklet';
 
-        translateY.value = withSpring(MARKER_INACTIVE_TRANSLATE_Y);
+        translateY.set(withSpring(MARKER_INACTIVE_TRANSLATE_Y));
     }, [translateY]);
 
     useEffect(() => {
@@ -49,7 +49,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}}: Floating
 
     const wrapperStyle = useAnimatedStyle(() => ({
         ...styles.floatingMessageCounterWrapper,
-        transform: [{translateY: translateY.value}],
+        transform: [{translateY: translateY.get()}],
     }));
 
     return (

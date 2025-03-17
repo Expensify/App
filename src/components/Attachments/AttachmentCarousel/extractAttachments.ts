@@ -2,12 +2,12 @@ import {Parser as HtmlParser} from 'htmlparser2';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getFileName, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
 /**
@@ -20,13 +20,13 @@ function extractAttachments(
         accountID,
         parentReportAction,
         reportActions,
-        reportID,
-    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; reportID: string},
+        report,
+    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; report: OnyxEntry<Report>},
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
+    const description = report?.description ?? '';
     const attachments: Attachment[] = [];
-    const report = ReportUtils.getReport(reportID);
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+    const canUserPerformAction = canUserPerformWriteAction(report);
 
     // We handle duplicate image sources by considering the first instance as original. Selecting any duplicate
     // and navigating back (<) shows the image preceding the first instance, not the selected duplicate's position.
@@ -46,7 +46,7 @@ function extractAttachments(
                 }
 
                 uniqueSourcesAndLinks.add(source);
-                const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
+                const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${source}`);
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
@@ -59,7 +59,7 @@ function extractAttachments(
             }
 
             if (name === 'img' && attribs.src) {
-                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(attribs.src) ? attribs.src : null);
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
                 const previewSource = tryResolveUrlFromApiRoot(attribs.src);
                 const sourceLinkKey = `${source}|${currentLink}`;
@@ -70,7 +70,7 @@ function extractAttachments(
 
                 uniqueSourcesAndLinks.add(sourceLinkKey);
 
-                let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
+                let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${source}`);
 
                 const width = (attribs['data-expensify-width'] && parseInt(attribs['data-expensify-width'], 10)) || undefined;
                 const height = (attribs['data-expensify-height'] && parseInt(attribs['data-expensify-height'], 10)) || undefined;
@@ -78,7 +78,7 @@ function extractAttachments(
                 // Public image URLs might lack a file extension in the source URL, without an extension our
                 // AttachmentView fails to recognize them as images and renders fallback content instead.
                 // We apply this small hack to add an image extension and ensure AttachmentView renders the image.
-                const fileInfo = FileUtils.splitExtensionFromFileName(fileName);
+                const fileInfo = splitExtensionFromFileName(fileName);
                 if (!fileInfo.fileExtension) {
                     fileName = `${fileInfo.fileName || 'image'}.jpg`;
                 }
@@ -113,15 +113,22 @@ function extractAttachments(
         return attachments.reverse();
     }
 
-    const actions = [...(parentReportAction ? [parentReportAction] : []), ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
+    if (type === CONST.ATTACHMENT_TYPE.ONBOARDING) {
+        htmlParser.write(description);
+        htmlParser.end();
+
+        return attachments.reverse();
+    }
+
+    const actions = [...(parentReportAction ? [parentReportAction] : []), ...getSortedReportActions(Object.values(reportActions ?? {}))];
     actions.forEach((action, key) => {
-        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key, canUserPerformWriteAction) || ReportActionsUtils.isMoneyRequestAction(action)) {
+        if (!shouldReportActionBeVisible(action, key, canUserPerformAction) || isMoneyRequestAction(action)) {
             return;
         }
 
-        const decision = ReportActionsUtils.getReportActionMessage(action)?.moderationDecision?.decision;
+        const decision = getReportActionMessage(action)?.moderationDecision?.decision;
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
-        const html = ReportActionsUtils.getReportActionHtml(action).replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
+        const html = getReportActionHtml(action).replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
         htmlParser.write(html);
     });
     htmlParser.end();

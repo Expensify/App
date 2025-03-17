@@ -52,26 +52,50 @@ const INPUT_IDS = {
     AMOUNT1: 'amount1',
     AMOUNT2: 'amount2',
     AMOUNT3: 'amount3',
+    /** Some pairs are send under certain key and saved under different key by BE.
+     * This is forced on BE side which is asking us to send it under certain keys
+     * but then saves it and returns under different keys */
     ADDITIONAL_DATA: {
+        /** This pair is send under 1ST key but saved under 2nd key */
         ACCOUNT_HOLDER_NAME: 'accountHolderName',
+        ADDRESS_NAME: 'addressName',
+
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_ADDRESS_1: 'accountHolderAddress1',
         ADDRESS_STREET: 'addressStreet',
+
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_CITY: 'accountHolderCity',
         ADDRESS_CITY: 'addressCity',
+
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_REGION: 'accountHolderRegion',
         ADDRESS_STATE: 'addressState',
+
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_POSTAL: 'accountHolderPostal',
         ADDRESS_ZIP_CODE: 'addressZipCode',
+
+        /** 2nd key from pair with ROUTING_NUMBER (shares it with SWIFT/BIC code) */
+        ROUTING_CODE: 'routingCode',
         COUNTRY: 'country',
         CORPAY: {
             ACCOUNT_HOLDER_COUNTRY: 'accountHolderCountry',
-            SWIFT_CODE: 'swiftCode',
+            /** 2nd key from pair with ROUTING_NUMBER  (shares it with routing code) */
+            SWIFT_BIC_CODE: 'swiftBicCode',
             BANK_NAME: 'bankName',
             BANK_CITY: 'bankCity',
-            BANK_ADDRESS_LINE_1: 'bankAddress',
-            BANK_STATEMENT: 'bankStatement',
+            BANK_REGION: 'bankRegion',
+            BANK_POSTAL: 'bankPostal',
+            BANK_ADDRESS_LINE_1: 'bankAddressLine1',
+            BANK_COUNTRY: 'bankCountry',
+            BANK_CURRENCY: 'bankCurrency',
             COMPANY_NAME: 'companyName',
-            COMPANY_STREET: 'companyStreet',
+            COMPANY_STREET: 'companyStreetAddress',
             COMPANY_CITY: 'companyCity',
             COMPANY_STATE: 'companyState',
-            COMPANY_ZIP_CODE: 'companyZipCode',
-            COMPANY_COUNTRY: 'companyCountry',
+            COMPANY_POSTAL_CODE: 'companyPostalCode',
+            COMPANY_COUNTRY_CODE: 'companyCountryCode',
             BUSINESS_CONTACT_NUMBER: 'businessContactNumber',
             BUSINESS_CONFIRMATION_EMAIL: 'businessConfirmationEmail',
             FORMATION_INCORPORATION_COUNTRY_CODE: 'formationIncorporationCountryCode',
@@ -80,15 +104,15 @@ const INPUT_IDS = {
             COUNTRY_CODE: 'countryCode',
             TAX_ID_EIN_NUMBER: 'taxIDEINNumber',
             BUSINESS_CATEGORY: 'natureOfBusiness',
-            APPLICANT_TYPE_ID: 'applicantTypeID',
+            APPLICANT_TYPE_ID: 'applicantTypeId',
             PURPOSE_OF_TRANSACTION_ID: 'purposeOfTransactionID',
+            PREFERRED_METHOD: 'preferredMethod',
             CURRENCY_NEEDED: 'currencyNeeded',
             TRADE_VOLUME: 'tradeVolume',
             ANNUAL_VOLUME: 'annualVolume',
             OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
             ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE: 'anyIndividualOwn25PercentOrMore',
             BENEFICIAL_OWNERS: 'beneficialOwners',
-            ENTITY_CHART: 'entityChart',
             FUND_DESTINATION_COUNTRIES: 'fundDestinationCountries',
             FUND_SOURCE_COUNTRIES: 'fundSourceCountries',
             COMPANY_DIRECTORS_FULL_NAME: 'companyDirectorsFullName',
@@ -135,7 +159,7 @@ type BeneficialOwnerDataKey = `beneficialOwner_${string}_${string}`;
 type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bankAccountID?: number};
 
 type BeneficialOwnersStepExtraProps = {
-    [key: BeneficialOwnerDataKey]: string;
+    [key: BeneficialOwnerDataKey]: string | FileObject[];
     beneficialOwnerKeys?: string[];
 };
 
@@ -193,17 +217,40 @@ type ReimbursementAccountProps = {
 
 /** Additional props for non-USD reimbursement account */
 type NonUSDReimbursementAccountAdditionalProps = {
-    /** Country of the reimbursement account */
+    /** Country of the bank */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+
+    /** Preferred method of payment */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PREFERRED_METHOD]: string;
 
     /** Name of the account holder */
     [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_NAME]: string;
+
+    /** Street of the account holder */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_ADDRESS_1]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STREET]: string;
+
+    /** City of the account holder */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_CITY]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_CITY]: string;
+
+    /** State of the account holder */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_REGION]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STATE]: string;
+
+    /** Postal code of the account holder */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_POSTAL]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_ZIP_CODE]: string;
+
+    /** Routing code */
+    [INPUT_IDS.ADDITIONAL_DATA.ROUTING_CODE]: string;
 
     /** Country of the account holder */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: Country | '';
 
     /** SWIFT code */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_CODE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE]: string;
 
     /** Bank name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_NAME]: string;
@@ -211,11 +258,20 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Bank city */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CITY]: string;
 
+    /** Bank region */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_REGION]: string;
+
+    /** Bank postal code */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_POSTAL]: string;
+
+    /** Bank country */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_COUNTRY]: string;
+
+    /** Bank currency */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CURRENCY]: string;
+
     /** Bank address line 1 */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_ADDRESS_LINE_1]: string;
-
-    /** Bank statement file */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
 
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
@@ -230,10 +286,10 @@ type NonUSDReimbursementAccountAdditionalProps = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STATE]: string;
 
     /** Company zip code */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_ZIP_CODE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_POSTAL_CODE]: string;
 
     /** Company country */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_COUNTRY]: Country | '';
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_COUNTRY_CODE]: Country | '';
 
     /** Business contact number */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CONTACT_NUMBER]: string;
@@ -282,9 +338,6 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Beneficial owners */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]: string;
-
-    /** Entity chart */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]: FileObject[];
 
     /** Fund destination countries */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_DESTINATION_COUNTRIES]: string;

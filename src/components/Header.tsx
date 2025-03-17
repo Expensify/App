@@ -20,6 +20,9 @@ type HeaderProps = {
     /** Additional text styles */
     textStyles?: StyleProp<TextStyle>;
 
+    /** Additional header styles */
+    style?: StyleProp<ViewStyle>;
+
     /** Additional header container styles */
     containerStyles?: StyleProp<ViewStyle>;
 
@@ -27,7 +30,7 @@ type HeaderProps = {
     subTitleLink?: string;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = ''}: HeaderProps) {
+function Header({title = '', subtitle = '', textStyles = [], style, containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = ''}: HeaderProps) {
     const styles = useThemeStyles();
     const renderedSubtitle = useMemo(
         () => (
@@ -65,7 +68,7 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
 
     return (
         <View style={[styles.flex1, styles.flexRow, containerStyles]}>
-            <View style={styles.mw100}>
+            <View style={[styles.mw100, style]}>
                 {typeof title === 'string'
                     ? !!title && (
                           <Text

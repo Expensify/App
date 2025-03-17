@@ -3,6 +3,8 @@ import {useOnyx} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import * as CategoryOptionsListUtils from '@libs/CategoryOptionListUtils';
+import type {Category} from '@libs/CategoryOptionListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,7 +14,7 @@ import RadioListItem from './SelectionList/RadioListItem';
 import type {ListItem} from './SelectionList/types';
 
 type CategoryPickerProps = {
-    policyID: string;
+    policyID: string | undefined;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
 };
@@ -27,7 +29,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit}: CategoryPickerPr
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const selectedOptions = useMemo(() => {
+    const selectedOptions = useMemo((): Category[] => {
         if (!selectedCategory) {
             return [];
         }
@@ -35,8 +37,8 @@ function CategoryPicker({selectedCategory, policyID, onSubmit}: CategoryPickerPr
         return [
             {
                 name: selectedCategory,
-                accountID: undefined,
                 isSelected: true,
+                enabled: true,
             },
         ];
     }, [selectedCategory]);
@@ -44,11 +46,9 @@ function CategoryPicker({selectedCategory, policyID, onSubmit}: CategoryPickerPr
     const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
         const categories = policyCategories ?? policyCategoriesDraft ?? {};
         const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
-        const {categoryOptions} = OptionsListUtils.getFilteredOptions({
+        const categoryOptions = CategoryOptionsListUtils.getCategoryListSections({
             searchValue: debouncedSearchValue,
             selectedOptions,
-            includeP2P: false,
-            includeCategories: true,
             categories,
             recentlyUsedCategories: validPolicyRecentlyUsedCategories,
         });

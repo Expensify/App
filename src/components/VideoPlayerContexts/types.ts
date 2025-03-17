@@ -1,3 +1,4 @@
+import type {NavigationState} from '@react-navigation/native';
 import type {MutableRefObject} from 'react';
 import type {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
@@ -20,11 +21,14 @@ type PlaybackContext = {
     pauseVideo: () => void;
     checkVideoPlaying: (statusCallback: StatusCallback) => void;
     setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
+    updateCurrentPlayingReportID: (state: NavigationState) => void;
 };
 
 type VolumeContext = {
     updateVolume: (newVolume: number) => void;
     volume: SharedValue<number>;
+    lastNonZeroVolume: SharedValue<number>;
+    toggleMute: () => void;
 };
 
 type VideoPopoverMenuContext = {
@@ -33,6 +37,7 @@ type VideoPopoverMenuContext = {
     currentPlaybackSpeed: PlaybackSpeed;
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
     setCurrentPlaybackSpeed: (speed: PlaybackSpeed) => void;
+    setSource: (source: string) => void;
 };
 
 type FullScreenContext = {

@@ -1,9 +1,11 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
+import Accordion from '@components/Accordion';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
@@ -29,6 +31,8 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const pendingAction =
         settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ?? settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!autoSyncConfig?.autoSync?.enabled);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -39,6 +43,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={NetSuiteAutoSyncPage.displayName}
+                offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
                     title={translate('common.settings')}
@@ -57,7 +62,11 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     pendingAction={pendingAction}
                     errors={ErrorUtils.getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC)}
                 />
-                {!!autoSyncConfig?.autoSync?.enabled && (
+
+                <Accordion
+                    isExpanded={isAccordionExpanded}
+                    isToggleTriggered={shouldAnimateAccordionSection}
+                >
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <MenuItemWithTopDescription
                             title={
@@ -70,7 +79,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD.getRoute(policyID))}
                         />
                     </OfflineWithFeedback>
-                )}
+                </Accordion>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

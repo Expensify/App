@@ -1,0 +1,32 @@
+diff --git a/node_modules/react-native-modal/dist/modal.d.ts b/node_modules/react-native-modal/dist/modal.d.ts
+index bd6419e..029762c 100644
+--- a/node_modules/react-native-modal/dist/modal.d.ts
++++ b/node_modules/react-native-modal/dist/modal.d.ts
+@@ -46,6 +46,7 @@ declare const defaultProps: {
+     scrollOffsetMax: number;
+     scrollHorizontal: boolean;
+     statusBarTranslucent: boolean;
++    navigationBarTranslucent: boolean;
+     supportedOrientations: ("landscape" | "portrait" | "portrait-upside-down" | "landscape-left" | "landscape-right")[];
+ };
+ export declare type ModalProps = ViewProps & {
+@@ -137,6 +138,7 @@ export declare class ReactNativeModal extends React.Component<ModalProps, State>
+         scrollOffsetMax: number;
+         scrollHorizontal: boolean;
+         statusBarTranslucent: boolean;
++        navigationBarTranslucent: boolean;
+         supportedOrientations: ("landscape" | "portrait" | "portrait-upside-down" | "landscape-left" | "landscape-right")[];
+     };
+     state: State;
+diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
+index 46277ea..feec991 100644
+--- a/node_modules/react-native-modal/dist/modal.js
++++ b/node_modules/react-native-modal/dist/modal.js
+@@ -38,6 +38,7 @@ const defaultProps = {
+     scrollOffsetMax: 0,
+     scrollHorizontal: false,
+     statusBarTranslucent: false,
++    navigationBarTranslucent: false,
+     supportedOrientations: ['portrait', 'landscape'],
+ };
+ const extractAnimationFromProps = (props) => ({

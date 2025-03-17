@@ -100,7 +100,7 @@ function MultiGestureCanvas({
     // Adding together zoom scale and the initial scale to fit the content into the canvas
     // Using the minimum content scale, so that the image is not bigger than the canvas
     // and not smaller than needed to fit
-    const totalScale = useDerivedValue(() => zoomScale.value * minContentScale, [minContentScale]);
+    const totalScale = useDerivedValue(() => zoomScale.get() * minContentScale, [minContentScale]);
 
     const panTranslateX = useSharedValue(0);
     const panTranslateY = useSharedValue(0);
@@ -116,13 +116,13 @@ function MultiGestureCanvas({
     const offsetY = useSharedValue(0);
 
     useAnimatedReaction(
-        () => isSwipingDownToClose.value,
+        () => isSwipingDownToClose.get(),
         (current) => {
             if (!isUsedInCarousel) {
                 return;
             }
             // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
-            isPagerScrollEnabled.value = !current;
+            isPagerScrollEnabled.set(!current);
         },
     );
 
@@ -145,26 +145,25 @@ function MultiGestureCanvas({
 
             stopAnimation();
 
-            // eslint-disable-next-line react-compiler/react-compiler
-            offsetX.value = 0;
-            offsetY.value = 0;
-            pinchScale.value = 1;
+            offsetX.set(0);
+            offsetY.set(0);
+            pinchScale.set(1);
 
             if (animated) {
-                panTranslateX.value = withSpring(0, SPRING_CONFIG);
-                panTranslateY.value = withSpring(0, SPRING_CONFIG);
-                pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
-                pinchTranslateY.value = withSpring(0, SPRING_CONFIG);
-                zoomScale.value = withSpring(1, SPRING_CONFIG, callback);
+                panTranslateX.set(withSpring(0, SPRING_CONFIG));
+                panTranslateY.set(withSpring(0, SPRING_CONFIG));
+                pinchTranslateX.set(withSpring(0, SPRING_CONFIG));
+                pinchTranslateY.set(withSpring(0, SPRING_CONFIG));
+                zoomScale.set(withSpring(1, SPRING_CONFIG, callback));
 
                 return;
             }
 
-            panTranslateX.value = 0;
-            panTranslateY.value = 0;
-            pinchTranslateX.value = 0;
-            pinchTranslateY.value = 0;
-            zoomScale.value = 1;
+            panTranslateX.set(0);
+            panTranslateY.set(0);
+            pinchTranslateX.set(0);
+            pinchTranslateY.set(0);
+            zoomScale.set(1);
 
             if (callback === undefined) {
                 return;
@@ -172,7 +171,7 @@ function MultiGestureCanvas({
 
             callback();
         },
-        [stopAnimation, offsetX, offsetY, pinchScale, panTranslateX, panTranslateY, pinchTranslateX, pinchTranslateY, zoomScale],
+        [offsetX, offsetY, panTranslateX, panTranslateY, pinchScale, pinchTranslateX, pinchTranslateY, stopAnimation, zoomScale],
     );
 
     const {singleTapGesture: baseSingleTapGesture, doubleTapGesture} = useTapGestures({
@@ -245,8 +244,8 @@ function MultiGestureCanvas({
 
     // Animate the x and y position of the content within the canvas based on all of the gestures
     const animatedStyles = useAnimatedStyle(() => {
-        const x = pinchTranslateX.value + panTranslateX.value + offsetX.value;
-        const y = pinchTranslateY.value + panTranslateY.value + offsetY.value;
+        const x = pinchTranslateX.get() + panTranslateX.get() + offsetX.get();
+        const y = pinchTranslateY.get() + panTranslateY.get() + offsetY.get();
 
         return {
             transform: [
@@ -256,7 +255,7 @@ function MultiGestureCanvas({
                 {
                     translateY: y,
                 },
-                {scale: totalScale.value},
+                {scale: totalScale.get()},
             ],
             // Hide the image if the size is not ready yet
             opacity: contentSizeProp?.width ? 1 : 0,

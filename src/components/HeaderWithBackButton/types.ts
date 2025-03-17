@@ -38,6 +38,15 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
      * */
     icon?: IconAsset;
 
+    /** Icon Width */
+    iconWidth?: number;
+
+    /** Icon Height */
+    iconHeight?: number;
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles?: StyleProp<ViewStyle>;
+
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
 
@@ -58,12 +67,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should show a loading indicator replacing the download button */
     isDownloading?: boolean;
-
-    /** Whether we should show a get assistance (question mark) button */
-    shouldShowGetAssistanceButton?: boolean;
-
-    /** Whether we should disable the get assistance button */
-    shouldDisableGetAssistanceButton?: boolean;
 
     /** Whether we should show a pin button */
     shouldShowPinButton?: boolean;
@@ -95,9 +98,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a back button */
     shouldShowBackButton?: boolean;
 
-    /** The guides call taskID to associate with the get assistance button, if we show it */
-    guidesCallTaskID?: string;
-
     /** Data to display a step counter in the header */
     stepCounter?: StepCounterParams;
 
@@ -119,6 +119,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should navigate to report page when the route have a topMostReport  */
     shouldNavigateToTopMostReport?: boolean;
 
+    /** Whether the header should use the headline header style */
+    shouldUseHeadlineHeader?: boolean;
+
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
     iconFill?: string;
 
@@ -130,6 +133,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
+
+    /** Whether we should display the button that opens the help pane */
+    shouldDisplayHelpButton?: boolean;
 
     /** Whether we should display the button that opens new SearchRouter */
     shouldDisplaySearchRouter?: boolean;

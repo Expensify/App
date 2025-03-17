@@ -6,19 +6,19 @@ description: Approve, hold, and unapprove submitted expenses
 
 Expenses can be created through manual entry, tracking distance, or scanning a receipt. They can be submitted to an individual or a workspace. 
 
-This help article has more details about creating and submitting an expense to an individual or a workspace. 
+This [help article](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense) has more details about creating and submitting an expense to an individual or a workspace. 
 
 # Receiving an expense from an Individual
 
 When an expense is submitted to an individual, it doesn’t need approval. It only needs to be paid. 
 
-This help article has the steps to pay the expense. 
+This [help article](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Pay-an-expense) has the steps to pay the expense. 
 
 # Receiving a workspace expense
 
-When an expense is submitted to a workspace with an “approval workflow”, it must be approved before it can be paid.
+When an expense is submitted to a workspace with an **approval workflow**, it must be approved before it can be paid.
 
-As a workspace admin, you can set an [approval workflow](https://help.expensify.com/articles/new-expensify/workspaces/Add-approvals) in the workspace settings. For each expense report, you’ll have the option to: 
+A workspace admin can set an [approval workflow](https://help.expensify.com/articles/new-expensify/workspaces/Add-approvals) in the workspace settings. For each expense report, there will be an option to: 
 
 - **Approve:** Click Approve if you’re satisfied with the expense details.
 - **Hold the expense:** If you need to delay a payment or provide more information before approval, you can hold an expense.
@@ -29,11 +29,11 @@ As a workspace admin, you can set an [approval workflow](https://help.expensify.
 {% include selector.html values="desktop, mobile" %}
 
 {% include option.html value="desktop or WebApp" %}
-1. When an expense is submitted, you will receive an email and in-app notification with the details of the expense.
+1. When an expense is submitted, the approver will receive an email and in-app notification with the details of the expense.
 2. Click the expense in the email to be directed to New Expensify, where you can review it.
 3. Click on the expense to view the receipt, amount, description, and additional details the submitter provides.
 4. Click **Approve**.
-5. When you are ready to pay the expense, follow the steps in this help article.
+5. When you are ready to pay the expense, follow the steps in this [help article](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Pay-an-expense).
 {% include end-option.html %}
 
 {% include option.html value="mobile" %}
@@ -46,7 +46,7 @@ As a workspace admin, you can set an [approval workflow](https://help.expensify.
 {% include end-selector.html %}
 
 {% include info.html %}
-If the transaction is pending (a common occurrence with recent company cards or SmartScan expenses), you’ll need to wait until the transaction posts before approving it. 
+If the transaction is pending, common for recent Expensify Card transactions or SmartScanning expenses, you’ll need to wait until the transaction posts before approving it. 
 {% include end-info.html %}
 
 
@@ -68,7 +68,7 @@ When you’re ready to remove the hold,
 1. Locate the expense on the Search page.
 2. Click **View**.
 3. Click the drop-down arrow at the top of the expense.
-4. Select **UnHold**.
+4. Select **Unhold**.
 5. Complete the steps above to “Approve expenses.” Once the expense has been approved, you can pay it.
 {% include end-option.html %}
 
@@ -85,11 +85,17 @@ When you’re ready to remove the hold,
 
 1. Tap **Search** and select the expense.
 2. Tap the drop-down arrow at the top of the expense.
-3. Select **UnHold**.
+3. Select **Unhold**.
 4. Complete the steps above to “Approve expenses.” Once the expense has been approved, you can pay it. 
 {% include end-option.html %}
 
 {% include end-selector.html %}
+
+![Use Search to find an expense]({{site.url}}/assets/images/search-hold-01.png){:width="100%"}
+![Click on top of expense]({{site.url}}/assets/images/search-hold-02.png){:width="100%"}
+![Click Hold]({{site.url}}/assets/images/search-hold-03.png){:width="100%"}
+![Click Unhold]({{site.url}}/assets/images/search-hold-04.png){:width="100%"}
+![Click Approve]({{site.url}}/assets/images/search-hold-05.png){:width="100%"}
 
 {% include info.html %}
 Held expenses will not be available for payment until they have been approved.
@@ -125,7 +131,7 @@ If the approved expense has already been exported to an accounting package, you�
 
 {% include faq-begin.md %}
 
-**Why is an employee expense showing as ‘pending?’**
+**Why is an employee expense showing as pending?**
 
 An Expensify Card expense will show as pending if the merchant hasn’t posted it. This is usually the case with hotel holds, or card rental holds. A hold will normally last no more than 7-10 business days unless it’s a hotel hold, which can last 31 days. 
 

@@ -1,6 +1,8 @@
 import Log from './Log';
 import KeyReportActionsDraftByReportActionID from './migrations/KeyReportActionsDraftByReportActionID';
+import MoveIsOptimisticReportToMetadata from './migrations/MoveIsOptimisticReportToMetadata';
 import NVPMigration from './migrations/NVPMigration';
+import PendingMembersToMetadata from './migrations/PendingMembersToMetadata';
 import PronounsMigration from './migrations/PronounsMigration';
 import RemoveEmptyReportActionsDrafts from './migrations/RemoveEmptyReportActionsDrafts';
 import RenameCardIsVirtual from './migrations/RenameCardIsVirtual';
@@ -21,6 +23,8 @@ export default function () {
             RemoveEmptyReportActionsDrafts,
             NVPMigration,
             PronounsMigration,
+            MoveIsOptimisticReportToMetadata,
+            PendingMembersToMetadata,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the

@@ -1,6 +1,6 @@
 type UpgradeToCorporateParams = {
     policyID: string;
-    featureName: string;
+    featureName?: string;
 };
 
 export default UpgradeToCorporateParams;

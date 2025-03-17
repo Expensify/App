@@ -503,6 +503,8 @@ Here are some common cases you may face when fixing your code to remove the old/
 
 #### **Case 1**: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 
+##### 1. Utility function
+
 ```diff
 -Report.getNewerActions(newestActionCurrentReport?.reportID ?? '-1', newestActionCurrentReport?.reportActionID ?? '-1');
 +Report.getNewerActions(newestActionCurrentReport?.reportID, newestActionCurrentReport?.reportActionID);
@@ -518,6 +520,50 @@ We need to change `Report.getNewerActions()` arguments to allow `undefined`. By 
 +    if (!reportID || !reportActionID) {
 +        return;
 +    }
+```
+
+##### 2. `ROUTES.ts`'s `getRoute()` function
+
+```diff
+-Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policyID ?? '-1'))
++Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policyID))
+```
+
+> error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'. Type 'undefined' is not assignable to type 'string'.
+
+We need to change the `getRoute()` `policyID` argument type to allow `undefined` to fix the TS error. Besides that, we *must* add a warning log if a user tries to navigate without the `policyID`. The log will help to catch and investigate cases of navigation with invalid IDs in the future.
+
+```diff
+WORKSPACE_PROFILE_ADDRESS: {
+    route: 'settings/workspaces/:policyID/profile/address',
+-   getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
++   getRoute: (policyID: string | undefined, backTo?: string) => {
++       if (!policyID) {
++           Log.warn("Invalid policyID is used to build the WORKSPACE_PROFILE_ADDRESS route")
++       }
++       return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo);
++   },
+},
+```
+
+##### Important Note:
+
+When you change the function id argument type to allow `undefined`, check if it makes sense to call the function without the argument. If so, you can type the argument as optional. Otherwise, please use explicit `undefined` typing to identify that the parameter should **always** be passed, even if it's `undefined`.
+
+``` ts
+// BAD
+-function getReport(reportID: string) {
++function getReport(reportID?: string) { // it doesn't makes sense to call getReport() without reportID, so it can't be optional
+
+-function findLastAccessedReport(excludeReportID: string) {
++function findLastAccessedReport(excludeReportID: string | undefined) { // you can call findLastAccessedReport() without excludeReportID, so it can't be the required param
+
+// GOOD
+-function getReport(reportID: string) {
++function getReport(reportID: string | undefined) {
+
+-function findLastAccessedReport(excludeReportID: string) {
++function findLastAccessedReport(excludeReportID?: string) {
 ```
 
 #### **Case 2**: Type 'undefined' cannot be used as an index type.

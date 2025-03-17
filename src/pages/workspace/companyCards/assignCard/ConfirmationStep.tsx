@@ -8,7 +8,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -22,7 +21,7 @@ import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type ConfirmationStepProps = {
     /** Current policy id */
-    policyID: string;
+    policyID: string | undefined;
 
     /** Route to go back to */
     backTo?: Route;
@@ -34,12 +33,14 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     const data = assignCard?.data;
     const cardholderName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
     const submit = () => {
+        if (!policyID) {
+            return;
+        }
         CompanyCards.assignWorkspaceCompanyCard(policyID, data);
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         CompanyCards.clearAssignCardStepAndData();
@@ -97,7 +98,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                         isDisabled={isOffline}
                         success
                         large
-                        style={[styles.w100, safePaddingBottomStyle]}
+                        style={styles.w100}
                         onPress={submit}
                         text={translate('workspace.companyCards.assignCard')}
                     />

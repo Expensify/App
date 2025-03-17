@@ -1,18 +1,21 @@
-import {NativeModules} from 'react-native';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
+import CONFIG from '@src/CONFIG';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as OnboardingFlow from './OnboardingFlow';
+import {clearInitialPath} from './OnboardingFlow';
+import switchToOldDotOnNonMicroCompanySize from './switchToOldDotOnNonMicroCompanySize';
 
-type OnboardingData = Onboarding | [] | undefined;
+type OnboardingData = Onboarding | undefined;
 
 let isLoadingReportData = true;
 let tryNewDotData: TryNewDot | undefined;
@@ -43,7 +46,7 @@ function onServerDataReady(): Promise<void> {
 let isOnboardingInProgress = false;
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
-        if (Array.isArray(onboarding) || isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
+        if (isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             onCanceled?.();
             return;
         }
@@ -120,7 +123,7 @@ function updateOnboardingLastVisitedPath(path: string) {
 }
 
 function completeHybridAppOnboarding() {
-    if (!NativeModules.HybridAppModule) {
+    if (!CONFIG.IS_HYBRID_APP) {
         return;
     }
 
@@ -144,7 +147,7 @@ function completeHybridAppOnboarding() {
 
         // No matter what the response is, we want to mark the onboarding as completed (user saw the explanation modal)
         Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true);
-        NativeModules.HybridAppModule.completeOnboarding(true);
+        HybridAppModule.completeOnboarding({status: true});
     });
 }
 
@@ -182,10 +185,15 @@ function resetAllChecks() {
     });
     isLoadingReportData = true;
     isOnboardingInProgress = false;
-    OnboardingFlow.clearInitialPath();
+    clearInitialPath();
 }
 
-function setSelfTourViewed() {
+function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
+    if (shouldUpdateOnyxDataOnlyLocally) {
+        Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -199,9 +207,24 @@ function setSelfTourViewed() {
     API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
 }
 
+function dismissProductTraining(elementName: string) {
+    const date = new Date();
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
+            value: {
+                [elementName]: DateUtils.getDBTime(date.valueOf()),
+            },
+        },
+    ];
+    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName}, {optimisticData});
+}
+
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
+    dismissProductTraining,
     setOnboardingCustomChoices,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,
@@ -209,6 +232,7 @@ export {
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
     completeHybridAppOnboarding,
+    switchToOldDotOnNonMicroCompanySize,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
     setSelfTourViewed,

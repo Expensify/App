@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {format, getMonth, getYear} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
@@ -7,21 +6,24 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WalletStatementModal from '@components/WalletStatementModal';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemePreference from '@hooks/useThemePreference';
 import DateUtils from '@libs/DateUtils';
+import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {addTrailingForwardSlash} from '@libs/Url';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
 import * as User from '@userActions/User';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-type WalletStatementPageProps = StackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
+type WalletStatementPageProps = PlatformStackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
 
 function WalletStatementPage({route}: WalletStatementPageProps) {
     const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT);
@@ -31,7 +33,10 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const prevIsWalletStatementGenerating = usePrevious(isWalletStatementGenerating);
     const [isDownloading, setIsDownloading] = useState(isWalletStatementGenerating);
     const {translate, preferredLocale} = useLocalize();
+    const {environment} = useEnvironment();
     const {isOffline} = useNetwork();
+
+    const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
 
     useEffect(() => {
         const currentYearMonth = format(new Date(), CONST.DATE.YEAR_MONTH_FORMAT);
@@ -55,13 +60,13 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
             // We already have a file URL for this statement, so we can download it immediately
             const downloadFileName = `Expensify_Statement_${yearMonth}.pdf`;
             const fileName = walletStatement[yearMonth];
-            const pdfURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
+            const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
             fileDownload(pdfURL, downloadFileName).finally(() => setIsDownloading(false));
             return;
         }
 
         User.generateStatementPDF(yearMonth);
-    }, [isWalletStatementGenerating, walletStatement, yearMonth]);
+    }, [baseURL, isWalletStatementGenerating, walletStatement, yearMonth]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -79,7 +84,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const month = yearMonth?.substring(4) || getMonth(new Date());
     const monthName = format(new Date(Number(year), Number(month) - 1), CONST.DATE.MONTH_FORMAT);
     const title = translate('statementPage.title', {year, monthName});
-    const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}${themePreference === CONST.THEME.DARK ? '&isDarkMode=true' : ''}`;
+    const url = `${baseURL}statement.php?period=${yearMonth}${themePreference === CONST.THEME.DARK ? '&isDarkMode=true' : ''}`;
 
     return (
         <ScreenWrapper

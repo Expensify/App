@@ -31,7 +31,7 @@ describe('PhoneNumber', () => {
             });
         });
         it('Should return invalid phone number', () => {
-            const invalidNumbers = ['+165025300001', 'John Doe', '123', 'email@domain.com'];
+            const invalidNumbers = ['+165025300001', 'John Doe', '123', '0945789083', 'email@domain.com'];
 
             invalidNumbers.forEach((givenPhone) => {
                 const parsedPhone = parsePhoneNumber(givenPhone);

@@ -4,7 +4,7 @@ import Avatar from '@components/Avatar';
 import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchUIUtils from '@libs/SearchUIUtils';
+import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 
@@ -18,7 +18,7 @@ function UserInfoCell({participant, displayName}: UserInfoCellProps) {
     const {isLargeScreenWidth} = useResponsiveLayout();
     const avatarURL = participant?.avatar;
 
-    if (!SearchUIUtils.isCorrectSearchUserName(displayName)) {
+    if (!isCorrectSearchUserName(displayName)) {
         return null;
     }
 
@@ -35,7 +35,7 @@ function UserInfoCell({participant, displayName}: UserInfoCellProps) {
             />
             <Text
                 numberOfLines={1}
-                style={[isLargeScreenWidth ? styles.themeTextColor : [styles.textMicro, styles.textBold], styles.flexShrink1]}
+                style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold, styles.flexShrink1]}
             >
                 {displayName}
             </Text>

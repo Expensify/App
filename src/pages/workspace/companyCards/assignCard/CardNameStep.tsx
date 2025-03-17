@@ -20,7 +20,7 @@ import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
 type CardNameStepProps = {
     /** Current policy id */
-    policyID: string;
+    policyID: string | undefined;
 };
 
 function CardNameStep({policyID}: CardNameStepProps) {
@@ -60,7 +60,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
             <ScreenWrapper
                 testID={CardNameStep.displayName}
                 shouldEnablePickerAvoiding={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardName')}

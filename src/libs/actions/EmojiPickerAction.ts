@@ -79,8 +79,8 @@ function hideEmojiPicker(isNavigating?: boolean) {
 /**
  * Whether Emoji Picker is active for the given id.
  */
-function isActive(id: string): boolean {
-    if (!emojiPickerRef.current) {
+function isActive(id?: string): boolean {
+    if (!emojiPickerRef.current || !id) {
         return false;
     }
 

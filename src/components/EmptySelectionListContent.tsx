@@ -7,15 +7,15 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BlockingView from './BlockingViews/BlockingView';
 import * as Illustrations from './Icon/Illustrations';
+import ScrollView from './ScrollView';
 import Text from './Text';
-import TextLink from './TextLink';
 
 type EmptySelectionListContentProps = {
     /** Type of selection list */
     contentType: string;
 };
 
-const CONTENT_TYPES = [CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.PAY];
+const CONTENT_TYPES = [CONST.IOU.TYPE.CREATE];
 type ContentType = TupleToUnion<typeof CONTENT_TYPES>;
 
 function isContentType(contentType: unknown): contentType is ContentType {
@@ -30,26 +30,22 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
         return null;
     }
 
-    const EmptySubtitle = (
-        <Text style={[styles.textAlignCenter]}>
-            {translate(`emptyList.${contentType}.subtitleText1`)}
-            <TextLink href={CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK}>{translate(`emptyList.${contentType}.subtitleText2`)}</TextLink>
-            {translate(`emptyList.${contentType}.subtitleText3`)}
-        </Text>
-    );
+    const EmptySubtitle = <Text style={[styles.textAlignCenter]}>{translate(`emptyList.${contentType}.subtitleText`)}</Text>;
 
     return (
-        <View style={[styles.flex1, styles.overflowHidden, styles.minHeight65]}>
-            <BlockingView
-                icon={Illustrations.ToddWithPhones}
-                iconWidth={variables.emptySelectionListIconWidth}
-                iconHeight={variables.emptySelectionListIconHeight}
-                title={translate(`emptyList.${contentType}.title`)}
-                shouldShowLink={false}
-                CustomSubtitle={EmptySubtitle}
-                containerStyle={[styles.mb8, styles.ph15]}
-            />
-        </View>
+        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+            <View style={[styles.flex1, styles.overflowHidden, styles.minHeight65]}>
+                <BlockingView
+                    icon={Illustrations.ToddWithPhones}
+                    iconWidth={variables.emptySelectionListIconWidth}
+                    iconHeight={variables.emptySelectionListIconHeight}
+                    title={translate(`emptyList.${contentType}.title`)}
+                    shouldShowLink={false}
+                    CustomSubtitle={EmptySubtitle}
+                    containerStyle={[styles.mb8, styles.ph15]}
+                />
+            </View>
+        </ScrollView>
     );
 }
 

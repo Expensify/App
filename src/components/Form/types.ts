@@ -23,10 +23,11 @@ import type StatePicker from '@components/StatePicker';
 import type StateSelector from '@components/StateSelector';
 import type TextInput from '@components/TextInput';
 import type TextPicker from '@components/TextPicker';
+import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
-import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
+import type BusinessTypePicker from '@pages/ReimbursementAccount/USD/BusinessInfo/subSteps/TypeBusiness/BusinessTypePicker';
 import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
@@ -69,7 +70,8 @@ type ValidInputs =
     | typeof StatePicker
     | typeof ConstantSelector
     | typeof UploadFile
-    | typeof PushRowWithModal;
+    | typeof PushRowWithModal
+    | typeof TimeModalPicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart';
 type ValueTypeMap = {
@@ -116,6 +118,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     autoGrowHeight?: boolean;
     blurOnSubmit?: boolean;
     shouldSubmitForm?: boolean;
+    uncontrolled?: boolean;
 };
 
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;
@@ -160,6 +163,12 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
+
+    /**
+     * Determines whether the form should automatically scroll to the end upon rendering or when the value changes.
+     * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
+     */
+    shouldScrollToEnd?: boolean;
 };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
