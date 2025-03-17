@@ -465,7 +465,7 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
 
 function filterInactiveCards(cards: CardList | undefined): CardList {
     const closedStates: number[] = [CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED];
-    return filterObject(cards ?? {}, (key: string, card: Card) => !closedStates.includes(card.state));
+    return filterObject(cards ?? {}, (key, card) => !closedStates.includes(card.state));
 }
 
 function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): CardList {
