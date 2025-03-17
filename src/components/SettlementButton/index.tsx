@@ -22,6 +22,7 @@ import {
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
+    isBusinessInvoiceRoom,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
@@ -98,7 +99,7 @@ function SettlementButton({
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
-    const policy = policies?.[policyID];
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const isLastPaymentPolicy = !Object.values({...CONST.PAYMENT_METHODS, ...CONST.IOU.PAYMENT_TYPE}).includes(lastPaymentMethod as PaymentMethod);
     const lastPaymentPolicy = isLastPaymentPolicy ? getPolicy(lastPaymentMethod) : undefined;
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -214,10 +215,6 @@ function SettlementButton({
                     shouldUpdateSelectedIndex: true,
                     onSelected: () => {
                         onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType, undefined);
-                        if (!formattedPaymentMethod.accountType) {
-                            return;
-                        }
-                        savePreferredPaymentMethod(policyIDKey, formattedPaymentMethod.accountType);
                     },
                 }));
 
@@ -225,7 +222,7 @@ function SettlementButton({
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
                     icon: Expensicons.User,
-                    value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    value: lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: [
                         ...(isCurrencySupported ? getPaymentSubitems(false) : []),
@@ -256,7 +253,7 @@ function SettlementButton({
             buttonOptions.push({
                 text: translate('iou.settleBusiness', {formattedAmount}),
                 icon: Expensicons.Building,
-                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                value: lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
                     ...(isCurrencySupported ? getPaymentSubitems(true) : []),
@@ -327,7 +324,6 @@ function SettlementButton({
             }
             return;
         }
-
         onPress(iouPaymentType, false);
     };
 
@@ -376,6 +372,14 @@ function SettlementButton({
         }
 
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            if (isBusinessInvoiceRoom(chatReport)) {
+                return translate('iou.invoiceBussinessBank', {lastFour: bankAccount?.accountData?.accountNumber?.slice(-4) ?? ''});
+            }
+
+            if (isIndividualInvoiceRoomUtil(chatReport)) {
+                return translate('iou.invoicePersonalBank', {lastFour: bankAccount?.accountData?.accountNumber?.slice(-4) ?? ''});
+            }
+            
             return translate('common.wallet');
         }
 
@@ -417,7 +421,8 @@ function SettlementButton({
                     defaultSelectedIndex={lastPaymentPolicy ? paymentButtonOptions.findIndex((option) => option.value === lastPaymentPolicy.id) : 0}
                     onPress={(event, iouPaymentType) => {
                         const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(iouPaymentType as PaymentMethod);
-                        if (isPaymentMethod ?? lastPaymentPolicy ?? latestBankItem) {
+                        const shouldSelectPaymentMethod = isPaymentMethod ?? lastPaymentPolicy ?? !isEmpty(latestBankItem);
+                        if (shouldSelectPaymentMethod) {
                             selectPaymentMethod(event, triggerKYCFlow, iouPaymentType as PaymentMethod);
                             return;
                         }
