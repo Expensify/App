@@ -4862,7 +4862,7 @@ function completeShortMention(text: string): string {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>, isTaskAction?: boolean): string {
+function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>, disabledRules?: string[]): string {
     let isGroupPolicyReport = false;
     if (parsingDetails?.reportID) {
         const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
@@ -4877,12 +4877,12 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAt
     }
 
     const textWithMention = completeShortMention(text);
-    const disabledRules = isTaskAction ? ['image'] : [];
+    const rules = disabledRules ?? [];
 
     return text.length <= CONST.MAX_MARKUP_LENGTH
         ? Parser.replace(textWithMention, {
               shouldEscapeText: parsingDetails?.shouldEscapeText,
-              disabledRules: isGroupPolicyReport ? [...disabledRules] : ['reportMentions', ...disabledRules],
+              disabledRules: isGroupPolicyReport ? [...rules] : ['reportMentions', ...rules],
               extras: {mediaAttributeCache: mediaAttributes},
           })
         : lodashEscape(text);
@@ -6507,7 +6507,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: changelog,
-                html: getParsedComment(changelog, undefined, undefined, title !== undefined),
+                html: getParsedComment(changelog, undefined, undefined, title !== undefined ? [...CONST.TASK_TITLE_DISABLED_RULES] : undefined),
             },
         ],
         person: [
@@ -6852,7 +6852,7 @@ function buildOptimisticTaskReport(
 
     return {
         reportID: generateReportID(),
-        reportName: getParsedComment(title ?? '', undefined, undefined, true),
+        reportName: getParsedComment(title ?? '', undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]),
         description: getParsedComment(description ?? '', {}, mediaAttributes),
         ownerAccountID,
         participants,

@@ -41,7 +41,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
 
-            const parsedTitle = getParsedComment(title, undefined, undefined, true);
+            const parsedTitle = getParsedComment(title, undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]);
             const parsedTitleLength = getCommentLength(parsedTitle);
 
             if (!parsedTitle) {
