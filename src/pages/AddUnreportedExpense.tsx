@@ -1,10 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Hoverable from '@components/Hoverable';
-import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
@@ -23,19 +20,7 @@ import NewChatSelectorPage from './NewChatSelectorPage';
 
 const emptyStylesArray: ViewStyle[] = [];
 
-function unreportedExpenseListItem<TItem extends ListItem>({
-    item,
-    isFocused,
-    showTooltip,
-    isDisabled,
-    canSelectMultiple,
-    onDismissError,
-    shouldPreventEnterKeySubmit,
-    rightHandSideComponent,
-    onFocus,
-    shouldSyncFocus,
-    pressableStyle,
-}: UserListItemProps<TItem>) {
+function unreportedExpenseListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, canSelectMultiple, onFocus, shouldSyncFocus}: UserListItemProps<TItem>) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const styles = useThemeStyles();
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -67,14 +52,13 @@ function unreportedExpenseListItem<TItem extends ListItem>({
             onSelectRow={() => {
                 setIsSelected((val) => !val);
             }}
-            containerStyle={[styles.p3, styles.mbn4]}
+            containerStyle={[styles.p3, styles.mbn4, styles.expenseWidgetRadius]}
         >
             <View style={[{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}]}>
                 <TransactionItemRow
                     transactionItem={item}
                     shouldUseNarrowLayout
                     isSelected={isSelected}
-                    // in order to remove styles from the component
                     containerStyles={emptyStylesArray}
                 />
                 <View style={[styles.pb3, styles.justifyContentCenter, styles.alignItemsCenter, styles.expenseWidgetSelectCircle, styles.mln2, styles.pr2]}>
@@ -97,7 +81,6 @@ function AddUnreportedExpense() {
     const unreportedExpensesList = Object.values(getAllTransactions()).filter((item) => item.reportID === '0');
     const sections: Section[] = [
         {
-            title: 'expense',
             shouldShow: true,
             data: unreportedExpensesList,
         },
@@ -111,32 +94,23 @@ function AddUnreportedExpense() {
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             testID={NewChatSelectorPage.displayName}
-            // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
         >
             <HeaderWithBackButton
                 title="Add unreported expanse"
                 onBackButtonPress={navigation.goBack}
             />
-            <KeyboardAvoidingView
-                style={styles.flex1}
-                behavior="padding"
-                // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
-                // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
-            >
-                <SelectionList<Transaction & ListItem>
-                    ref={selectionListRef}
-                    onSelectRow={() => {}}
-                    shouldShowTextInput={false}
-                    canSelectMultiple
-                    sections={sections}
-                    ListItem={unreportedExpenseListItem}
-                    confirmButtonStyles={styles.mb5}
-                    showConfirmButton
-                    confirmButtonText="Add to report"
-                />
-            </KeyboardAvoidingView>
+            <SelectionList<Transaction & ListItem>
+                ref={selectionListRef}
+                onSelectRow={() => {}}
+                shouldShowTextInput={false}
+                canSelectMultiple
+                sections={sections}
+                ListItem={unreportedExpenseListItem}
+                confirmButtonStyles={[styles.justifyContentCenter]}
+                showConfirmButton
+                confirmButtonText="Add to report"
+            />
         </ScreenWrapper>
     );
 }
