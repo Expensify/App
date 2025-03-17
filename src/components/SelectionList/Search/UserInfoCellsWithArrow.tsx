@@ -67,4 +67,6 @@ function UserInfoCellsWithArrow({
     );
 }
 
+UserInfoCellsWithArrow.displayName = 'UserInfoCellsWithArrow';
+
 export default UserInfoCellsWithArrow;

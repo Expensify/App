@@ -6,8 +6,6 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type TransactionPreviewProps = {
     /** The active IOUReport, used for Onyx subscription */
-    // The iouReportID is used inside withOnyx HOC
-    // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: string | undefined;
 
     /** The associated chatReport */

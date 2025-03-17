@@ -42,7 +42,7 @@ const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     login: undefined,
 };
 
-const chooseIdBasedOnAmount = (amount: number, negativeId: number, positiveId: number) => (amount < 0 ? negativeId : positiveId);
+const chooseIDBasedOnAmount = (amount: number, negativeId: number, positiveId: number) => (amount < 0 ? negativeId : positiveId);
 
 function getIOUData(
     managerID: number,
@@ -51,8 +51,8 @@ function getIOUData(
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     amount: number,
 ) {
-    const fromID = chooseIdBasedOnAmount(amount, managerID, ownerAccountID);
-    const toID = chooseIdBasedOnAmount(amount, ownerAccountID, managerID);
+    const fromID = chooseIDBasedOnAmount(amount, managerID, ownerAccountID);
+    const toID = chooseIDBasedOnAmount(amount, ownerAccountID, managerID);
 
     return reportOrID && isIOUReport(reportOrID)
         ? {
@@ -116,7 +116,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     transaction,
     action,
     violations,
-    transactions,
+    transactionDetails,
     isBillSplit,
     shouldShowRBR,
     violationMessage,
@@ -125,7 +125,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     action: OnyxTypes.ReportAction;
     violations: OnyxTypes.TransactionViolations;
-    transactions: Partial<TransactionDetails>;
+    transactionDetails: Partial<TransactionDetails>;
     isBillSplit: boolean;
     shouldShowRBR: boolean;
     violationMessage?: string;
@@ -136,6 +136,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     const isMoneyRequestSettled = isSettled(iouReport?.reportID);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isTransactionOnHold;
+
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
     const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
@@ -143,39 +144,39 @@ function getTransactionPreviewTextAndTranslationPaths({
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction?.transactionID, violations, true) && isPaidGroupPolicy(iouReport);
 
-    const {amount: requestAmount, currency: requestCurrency} = transactions;
+    const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
 
-    let RBRmessage: TranslationPathOrText | undefined;
+    let RBRMessage: TranslationPathOrText | undefined;
 
     if (!shouldShowRBR || !transaction) {
-        RBRmessage = {text: ''};
+        RBRMessage = {text: ''};
     }
 
-    if (shouldShowHoldMessage && RBRmessage === undefined) {
-        RBRmessage = {translationPath: 'iou.expenseWasPutOnHold'};
+    if (shouldShowHoldMessage && RBRMessage === undefined) {
+        RBRMessage = {translationPath: 'iou.expenseWasPutOnHold'};
     }
 
-    if (violationMessage && RBRmessage === undefined) {
+    if (violationMessage && RBRMessage === undefined) {
         const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
         const isTooLong = violationsCount > 1 || violationMessage.length > 15;
         const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-        RBRmessage = isTooLong || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
+        RBRMessage = isTooLong || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
     }
 
-    if (hasFieldErrors && RBRmessage === undefined) {
+    if (hasFieldErrors && RBRMessage === undefined) {
         const merchantMissing = isMerchantMissing(transaction);
         const amountMissing = isAmountMissing(transaction);
         if (amountMissing && merchantMissing) {
-            RBRmessage = {translationPath: 'violations.reviewRequired'};
+            RBRMessage = {translationPath: 'violations.reviewRequired'};
         } else if (amountMissing) {
-            RBRmessage = {translationPath: 'iou.missingAmount'};
+            RBRMessage = {translationPath: 'iou.missingAmount'};
         } else if (merchantMissing) {
-            RBRmessage = {translationPath: 'iou.missingMerchant'};
+            RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }
 
-    RBRmessage ??= {text: ''};
+    RBRMessage ??= {text: ''};
 
     let previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
 
@@ -235,7 +236,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     const displayDeleteAmountText: TranslationPathOrText = {text: convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency)};
 
     return {
-        RBRmessage,
+        RBRMessage,
         displayAmountText,
         displayDeleteAmountText,
         previewHeaderText,
@@ -248,7 +249,7 @@ function createTransactionPreviewConditionals({
     transaction,
     action,
     violations,
-    transactions,
+    transactionDetails,
     isBillSplit,
     isReportAPolicyExpenseChat,
     areThereDuplicates,
@@ -257,12 +258,12 @@ function createTransactionPreviewConditionals({
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
     action: OnyxTypes.ReportAction;
     violations: OnyxTypes.TransactionViolations;
-    transactions: Partial<TransactionDetails>;
+    transactionDetails: Partial<TransactionDetails>;
     isBillSplit: boolean;
     isReportAPolicyExpenseChat: boolean;
     areThereDuplicates: boolean;
 }) {
-    const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactions;
+    const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
 
     const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
 

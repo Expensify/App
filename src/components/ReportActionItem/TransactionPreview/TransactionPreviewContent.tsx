@@ -64,13 +64,13 @@ function TransactionPreviewContent({
         backgroundColor: theme.cardBG,
     };
 
-    const transactions = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
-    const {amount: requestAmount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactions;
+    const {amount: requestAmount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
 
-    const creationalData = useMemo(
+    const transactionPreviewUtilsArguments = useMemo(
         () => ({
             iouReport,
             transaction,
@@ -78,19 +78,19 @@ function TransactionPreviewContent({
             action,
             isBillSplit,
             violations,
-            transactions,
+            transactionDetails,
         }),
-        [action, iouReport, isBillSplit, transaction, transactions, translate, violations],
+        [action, iouReport, isBillSplit, transaction, transactionDetails, translate, violations],
     );
 
     const conditionals = useMemo(
         () =>
             createTransactionPreviewConditionals({
-                ...creationalData,
+                ...transactionPreviewUtilsArguments,
                 areThereDuplicates,
                 isReportAPolicyExpenseChat,
             }),
-        [areThereDuplicates, creationalData, isReportAPolicyExpenseChat],
+        [areThereDuplicates, transactionPreviewUtilsArguments, isReportAPolicyExpenseChat],
     );
 
     const {
@@ -113,11 +113,11 @@ function TransactionPreviewContent({
     const previewText = useMemo(
         () =>
             getTransactionPreviewTextAndTranslationPaths({
-                ...creationalData,
+                ...transactionPreviewUtilsArguments,
                 shouldShowRBR,
                 violationMessage,
             }),
-        [creationalData, shouldShowRBR, violationMessage],
+        [transactionPreviewUtilsArguments, shouldShowRBR, violationMessage],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? '');
 
@@ -125,7 +125,7 @@ function TransactionPreviewContent({
         return `${text}${getTranslatedText(currentKey)}`;
     }, '');
 
-    const RBRmessage = getTranslatedText(previewText.RBRmessage);
+    const RBRMessage = getTranslatedText(previewText.RBRMessage);
     const displayAmountText = getTranslatedText(previewText.displayAmountText);
     const showCashOrCard = getTranslatedText(previewText.showCashOrCard);
     const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
@@ -337,7 +337,7 @@ function TransactionPreviewContent({
                                             numberOfLines={1}
                                             style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}
                                         >
-                                            {RBRmessage}
+                                            {RBRMessage}
                                         </Text>
                                     </View>
                                 )}
@@ -383,6 +383,6 @@ function TransactionPreviewContent({
     );
 }
 
-TransactionPreviewContent.displayName = 'TransactionPreviewContentUI';
+TransactionPreviewContent.displayName = 'TransactionPreviewContent';
 
 export default TransactionPreviewContent;

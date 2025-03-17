@@ -18,7 +18,7 @@ const basicProps = {
     translate: jest.fn().mockImplementation((key: string) => key),
     action: buildOptimisticIOUReportAction('create', 100, 'USD', '', [], '1', undefined, '1'),
     violations: [],
-    transactions: {},
+    transactionDetails: {},
     isBillSplit: false,
     shouldShowRBR: false,
     isReportAPolicyExpenseChat: false,
@@ -29,7 +29,7 @@ describe('TransactionPreviewUtils', () => {
     describe('getTransactionPreviewTextAndTranslationPaths', () => {
         it('should return an empty RBR message when shouldShowRBR is false and no transaction is given', () => {
             const result = getTransactionPreviewTextAndTranslationPaths({...basicProps, shouldShowRBR: false});
-            expect(result.RBRmessage.text).toEqual('');
+            expect(result.RBRMessage.text).toEqual('');
         });
 
         it('returns correct hold message when the transaction is on hold', () => {
@@ -40,7 +40,7 @@ describe('TransactionPreviewUtils', () => {
             };
 
             const result = getTransactionPreviewTextAndTranslationPaths(testInput);
-            expect(result.RBRmessage.translationPath).toContain('iou.expenseWasPutOnHold');
+            expect(result.RBRMessage.translationPath).toContain('iou.expenseWasPutOnHold');
         });
     });
 
