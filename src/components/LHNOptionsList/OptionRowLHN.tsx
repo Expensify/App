@@ -83,7 +83,9 @@ function OptionRowLHN({
     const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
         // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        let tooltip: ProductTrainingTooltipName = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+        let tooltip: ProductTrainingTooltipName = shouldShowGetStartedTooltip
+            ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR
+            : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
         if (shouldShowRBRorGPRTooltip) {
             tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT;
         }
