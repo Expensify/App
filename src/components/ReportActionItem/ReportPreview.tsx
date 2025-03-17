@@ -516,7 +516,6 @@ function ReportPreview({
 
         const newReportPreviewAction = getReportPreviewAction(iouReport, policy, transactions, violations);
         setReportPreviewAction(newReportPreviewAction);
-        console.log(reportPreviewAction);
     }, [iouReport, policy, transactions, violations, reportPreviewAction]);
 
     const reportPreviewActions = {
