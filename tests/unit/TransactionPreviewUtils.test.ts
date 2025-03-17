@@ -61,6 +61,24 @@ describe('TransactionPreviewUtils', () => {
             expect(result.RBRMessage.translationPath).toEqual('violations.reviewRequired');
         });
 
+        it('should display showCashOrCard in previewHeaderText', () => {
+            const functionArgsWithCardTransaction = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    managedCard: true,
+                },
+            };
+            const cardTransaction = getTransactionPreviewTextAndTranslationPaths(functionArgsWithCardTransaction);
+            const cashTransaction = getTransactionPreviewTextAndTranslationPaths(basicProps);
+
+            expect(cardTransaction.showCashOrCard).toEqual({translationPath: 'iou.card'});
+            expect(cashTransaction.showCashOrCard).toEqual({translationPath: 'iou.cash'});
+
+            expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([cardTransaction.showCashOrCard]));
+            expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([cashTransaction.showCashOrCard]));
+        });
+
         it('displays appropriate header text if the transaction is bill split', () => {
             const functionArgs = {...basicProps, isBillSplit: true};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
@@ -122,6 +140,18 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, areThereDuplicates: true};
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowKeepButton).toBeTruthy();
+        });
+
+        it('should show split share if amount is positive and bill is split', () => {
+            const functionArgs = {
+                ...basicProps,
+                isBillSplit: true,
+                transactionDetails: {
+                    amount: 1,
+                },
+            };
+            const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowSplitShare).toBeTruthy();
         });
 
         it('should show skeleton if transaction data is empty and action is not deleted', () => {
