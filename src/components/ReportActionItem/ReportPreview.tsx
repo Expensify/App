@@ -518,7 +518,8 @@ function ReportPreview({
 
         const newReportPreviewAction = getReportPreviewAction(iouReport, policy, transactions, violations);
         setReportPreviewAction(newReportPreviewAction);
-    }, [iouReport, policy, transactions, violations]);
+        console.log(reportPreviewAction);
+    }, [iouReport, policy, transactions, violations, reportPreviewAction]);
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
@@ -534,7 +535,6 @@ function ReportPreview({
                 text={translate('iou.approve')}
                 onPress={() => confirmApproval()}
                 isDisabled={shouldDisableSubmitButton}
-                style={{paddingTop: 16}}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
@@ -555,7 +555,6 @@ function ReportPreview({
                 confirmApproval={confirmApproval}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
-                shouldAddTopMargin
                 shouldHidePaymentOptions={!shouldShowPayButton}
                 shouldShowApproveButton={shouldShowApproveButton}
                 shouldDisableApproveButton={shouldDisableApproveButton}
@@ -632,7 +631,7 @@ function ReportPreview({
                             />
                         )}
                         <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
-                            <View style={shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer}>
+                            <View>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={styles.flexRow}>
                                         <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
@@ -692,7 +691,7 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                {reportPreviewActions[reportPreviewAction]}
+                                <View style={{paddingTop: 16}}>{reportPreviewActions[reportPreviewAction]}</View>
                             </View>
                         </View>
                     </View>
