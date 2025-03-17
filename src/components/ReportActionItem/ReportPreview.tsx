@@ -550,6 +550,7 @@ function ReportPreview({
                 chatReportID={chatReportID}
                 iouReport={iouReport}
                 onPress={confirmPayment}
+                onPaymentOptionsShow={onPaymentOptionsShow}
                 onPaymentOptionsHide={onPaymentOptionsHide}
                 confirmApproval={confirmApproval}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
