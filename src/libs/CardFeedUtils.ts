@@ -127,7 +127,7 @@ function buildCardsData(
 function generateDomainFeedData(cardList: CardList | undefined): Record<string, DomainFeedData> {
     return Object.values(cardList ?? {}).reduce((domainFeedData, currentCard) => {
         // Cards in cardList can also be domain cards, we use them to compute domain feed
-        if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard)) {
+        if (!currentCard?.domainName?.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard)) {
             if (domainFeedData[currentCard.domainName]) {
                 domainFeedData[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
             } else {
@@ -136,8 +136,8 @@ function generateDomainFeedData(cardList: CardList | undefined): Record<string, 
                 domainFeedData[currentCard.domainName] = {
                     fundID: currentCard.fundID,
                     domainName: currentCard.domainName,
-                    bank: currentCard.bank,
-                    correspondingCardIDs: [currentCard.cardID.toString()],
+                    bank: currentCard?.bank,
+                    correspondingCardIDs: [currentCard.cardID?.toString()],
                 };
             }
         }
