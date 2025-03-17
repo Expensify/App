@@ -1,7 +1,7 @@
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking, NativeModules, Platform} from 'react-native';
+import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
@@ -12,11 +12,15 @@ import GrowlNotification from './components/GrowlNotification';
 import RequireTwoFactorAuthenticationModal from './components/RequireTwoFactorAuthenticationModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
+import TestToolsModal from './components/TestToolsModal';
 import UpdateAppModal from './components/UpdateAppModal';
-import * as CONFIG from './CONFIG';
+import CONFIG from './CONFIG';
 import CONST from './CONST';
+import useDebugShortcut from './hooks/useDebugShortcut';
+import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import {updateLastRoute} from './libs/actions/App';
+import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
@@ -97,6 +101,8 @@ function Expensify() {
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
+    useDebugShortcut();
+
     useEffect(() => {
         if (!account?.needsTwoFactorAuthSetup || account.requiresTwoFactorAuth) {
             return;
@@ -113,15 +119,15 @@ function Expensify() {
         setAttemptedToOpenPublicRoom(true);
     }, [isCheckingPublicRoom]);
 
-    const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
+    const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const shouldInit = NativeModules.HybridAppModule
+    const shouldInit = CONFIG.IS_HYBRID_APP
         ? !hybridApp?.loggedOutFromOldDot && isNavigationReady && hasAttemptedToOpenPublicRoom
         : isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash =
         shouldInit &&
-        (NativeModules.HybridAppModule
+        (CONFIG.IS_HYBRID_APP
             ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && (isAuthenticated || !!hybridApp?.useNewDotSignInPage)
             : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
 
@@ -239,8 +245,18 @@ function Expensify() {
         if (!isAuthenticated) {
             return;
         }
-        setCrashlyticsUserId(session?.accountID ?? -1);
+        setCrashlyticsUserId(session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     }, [isAuthenticated, session?.accountID]);
+
+    useEffect(() => {
+        if (!account?.delegatedAccess?.delegate) {
+            return;
+        }
+        if (account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate)) {
+            return;
+        }
+        disconnect();
+    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
@@ -280,7 +296,7 @@ function Expensify() {
                         <RequireTwoFactorAuthenticationModal
                             onSubmit={() => {
                                 setShouldShowRequire2FAModal(false);
-                                Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.HOME));
+                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.HOME));
                             }}
                             isVisible
                             description={translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}
@@ -300,6 +316,7 @@ function Expensify() {
                 />
             )}
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            <TestToolsModal />
         </DeeplinkWrapper>
     );
 }

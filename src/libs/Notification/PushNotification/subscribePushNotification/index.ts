@@ -1,22 +1,18 @@
-import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
-import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
-import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import {updateLastVisitedPath} from '@userActions/App';
 import * as Modal from '@userActions/Modal';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxUpdatesFromServer, Report} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import PushNotification from '..';
 
 let lastVisitedPath: string | undefined;
@@ -30,12 +26,14 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<Report>;
+let isSingleNewDotEntry: boolean | undefined;
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
+    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
     callback: (value) => {
-        allReports = value;
+        if (!value) {
+            return;
+        }
+        isSingleNewDotEntry = value;
     },
 });
 
@@ -112,16 +110,20 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
 
     const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
-    const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
 
     Navigation.waitForProtectedRoutes().then(() => {
         // The attachment modal remains open when navigating to the report so we need to close it
         Modal.close(() => {
             try {
+                // When transitioning to the new experience via the singleNewDotEntry flow, the navigation
+                // is handled elsewhere. So we cancel here to prevent double navigation.
+                if (isSingleNewDotEntry) {
+                    Log.info('[PushNotification] Not navigating because this is a singleNewDotEntry flow', false, {reportID, reportActionID});
+                    return;
+                }
+
                 // Get rid of the transition screen, if it is on the top of the stack
-                if (NativeModules.HybridAppModule && Navigation.getActiveRoute().includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+                if (CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
                     Navigation.goBack();
                 }
                 // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
@@ -130,10 +132,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                 }
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                if (!reportBelongsToWorkspace) {
-                    Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-                }
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
+                Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID});
                 updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
             } catch (error) {
                 let errorMessage = String(error);

@@ -9,6 +9,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Log from './Log';
+import Parser from './Parser';
 import {getCleanedTagName, getSortedTagKeys} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
@@ -141,7 +142,7 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
-        return translateLocal('iou.movedToSelfDM');
+        return translateLocal('iou.movedToPersonalSpace');
     }
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
@@ -152,7 +153,7 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     if (isEmpty(policyName) && !reportName) {
         return translateLocal('iou.changedTheExpense');
     }
-    return translateLocal('iou.movedFromSelfDM', {
+    return translateLocal('iou.movedFromPersonalSpace', {
         reportName,
         workspaceName: !isEmpty(policyName) ? policyName : undefined,
     });
@@ -222,8 +223,8 @@ function getForReportAction({
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
     if (hasModifiedComment) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.newComment ?? '',
-            reportActionOriginalMessage?.oldComment ?? '',
+            Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
+            Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
             translateLocal('common.description'),
             true,
             setFragments,

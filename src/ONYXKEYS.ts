@@ -295,6 +295,9 @@ const ONYXKEYS = {
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
+    /** Is the app loaded? */
+    HAS_LOADED_APP: 'hasLoadedApp',
+
     /** Is the test tools modal open? */
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
@@ -473,6 +476,9 @@ const ONYXKEYS = {
     /** Information about travel provisioning process */
     TRAVEL_PROVISIONING: 'travelProvisioning',
 
+    /** Stores the information about the state of side panel */
+    NVP_SIDE_PANE: 'nvp_sidePanel',
+
     HYBRID_APP: 'hybridApp',
 
     /** Collection Keys */
@@ -561,6 +567,8 @@ const ONYXKEYS = {
 
         /**  Whether the bank account chosen for Expensify Card in on verification waitlist */
         NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist_',
+
+        NVP_EXPENSIFY_REPORT_PDFFILENAME: 'nvp_expensify_report_PDFFilename_',
 
         /** Stores the information about the state of issuing a new card */
         ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
@@ -668,8 +676,6 @@ const ONYXKEYS = {
         REPORT_PHYSICAL_CARD_FORM_DRAFT: 'requestPhysicalCardFormDraft',
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
-        GET_PHYSICAL_CARD_FORM: 'getPhysicalCardForm',
-        GET_PHYSICAL_CARD_FORM_DRAFT: 'getPhysicalCardFormDraft',
         REPORT_FIELDS_EDIT_FORM: 'reportFieldsEditForm',
         REPORT_FIELDS_EDIT_FORM_DRAFT: 'reportFieldsEditFormDraft',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
@@ -750,10 +756,15 @@ const ONYXKEYS = {
         RULES_MAX_EXPENSE_AMOUNT_FORM_DRAFT: 'rulesMaxExpenseAmountFormDraft',
         RULES_MAX_EXPENSE_AGE_FORM: 'rulesMaxExpenseAgeForm',
         RULES_MAX_EXPENSE_AGE_FORM_DRAFT: 'rulesMaxExpenseAgeFormDraft',
+        RULES_CUSTOM_FORM: 'rulesCustomForm',
+        RULES_CUSTOM_FORM_DRAFT: 'rulesCustomFormDraft',
         DEBUG_DETAILS_FORM: 'debugDetailsForm',
         DEBUG_DETAILS_FORM_DRAFT: 'debugDetailsFormDraft',
         WORKSPACE_PER_DIEM_FORM: 'workspacePerDiemForm',
         WORKSPACE_PER_DIEM_FORM_DRAFT: 'workspacePerDiemFormDraft',
+    },
+    DERIVED: {
+        CONCIERGE_CHAT_REPORT_ID: 'conciergeChatReportID',
     },
 } as const;
 
@@ -809,7 +820,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM]: FormTypes.IntroSchoolPrincipalForm;
     [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD]: FormTypes.ReportVirtualCardFraudForm;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: FormTypes.ReportPhysicalCardForm;
-    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: FormTypes.GetPhysicalCardForm;
     [ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM]: FormTypes.ReportFieldsEditForm;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM]: FormTypes.PersonalBankAccountForm;
@@ -849,6 +859,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM]: FormTypes.RulesRequiredReceiptAmountForm;
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM]: FormTypes.RulesMaxExpenseAmountForm;
     [ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM]: FormTypes.RulesMaxExpenseAgeForm;
+    [ONYXKEYS.FORMS.RULES_CUSTOM_FORM]: FormTypes.RulesCustomForm;
     [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
     [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm | FormTypes.DebugTransactionForm | FormTypes.DebugTransactionViolationForm;
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
@@ -896,6 +907,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: OnyxTypes.SelectedTabRequest;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
+    [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
@@ -1007,6 +1019,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.APP_PROFILING_IN_PROGRESS]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
+    [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: boolean;
@@ -1072,16 +1085,23 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
+    [ONYXKEYS.NVP_SIDE_PANE]: OnyxTypes.SidePane;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
 };
-type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
+
+type OnyxDerivedValuesMapping = {
+    [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: string | undefined;
+};
+
+type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;
 
 type OnyxCollectionKey = keyof OnyxCollectionValuesMapping;
 type OnyxFormKey = keyof OnyxFormValuesMapping;
 type OnyxFormDraftKey = keyof OnyxFormDraftValuesMapping;
 type OnyxValueKey = keyof OnyxValuesMapping;
+type OnyxDerivedKey = keyof OnyxDerivedValuesMapping;
 
-type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey;
+type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey | OnyxDerivedKey;
 type OnyxPagesKey = typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES;
 
 type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: ${Exclude<AllOnyxKeys, OnyxKey>}`;
@@ -1090,4 +1110,16 @@ type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: 
 type AssertOnyxKeys = AssertTypesEqual<AllOnyxKeys, OnyxKey, MissingOnyxKeysError>;
 
 export default ONYXKEYS;
-export type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxFormDraftKey, OnyxFormKey, OnyxFormValuesMapping, OnyxKey, OnyxPagesKey, OnyxValueKey, OnyxValues};
+export type {
+    OnyxCollectionKey,
+    OnyxCollectionValuesMapping,
+    OnyxFormDraftKey,
+    OnyxFormKey,
+    OnyxFormValuesMapping,
+    OnyxKey,
+    OnyxPagesKey,
+    OnyxValueKey,
+    OnyxValues,
+    OnyxDerivedKey,
+    OnyxDerivedValuesMapping,
+};

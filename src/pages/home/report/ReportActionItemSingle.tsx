@@ -70,6 +70,9 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** If the action is being hovered */
     isHovered?: boolean;
+
+    /** If the action is being actived */
+    isActive?: boolean;
 };
 
 const showUserDetails = (accountID: number | undefined) => {
@@ -93,6 +96,7 @@ function ReportActionItemSingle({
     report,
     iouReport,
     isHovered = false,
+    isActive = false,
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -103,7 +107,7 @@ function ReportActionItemSingle({
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const actorAccountID = getReportActionActorAccountID(action, iouReport, report);
+    const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
     );
@@ -223,6 +227,15 @@ function ReportActionItemSingle({
         [action, isWorkspaceActor, actorAccountID],
     );
 
+    const getBackgroundColor = () => {
+        if (isActive) {
+            return theme.messageHighlightBG;
+        }
+        if (isHovered) {
+            return theme.hoverComponentBG;
+        }
+        return theme.sidebar;
+    };
     const getAvatar = () => {
         if (shouldShowSubscriptAvatar) {
             return (
@@ -230,6 +243,7 @@ function ReportActionItemSingle({
                     mainAvatar={icon}
                     secondaryAvatar={secondaryAvatar}
                     noMargin
+                    backgroundColor={getBackgroundColor()}
                 />
             );
         }

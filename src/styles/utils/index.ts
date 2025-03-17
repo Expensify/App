@@ -24,12 +24,14 @@ import createReportActionContextMenuStyleUtils from './generators/ReportActionCo
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
+import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import searchHeaderHeight from './searchHeaderHeight';
+import getSearchBottomTabHeaderStyles from './searchBottomTabHeaderStyles.ts';
+import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import type {
     AllStyles,
     AvatarSize,
@@ -330,10 +332,11 @@ type SafeAreaPadding = {
 };
 
 /**
- * Takes safe area insets and returns padding to use for a View
+ * Takes safe area insets and returns platform specific padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
+function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
     const platform = getPlatform();
+
     let insetsPercentage = insetsPercentageProp;
     if (insetsPercentage == null) {
         switch (platform) {
@@ -627,8 +630,14 @@ function getModalPaddingStyles({
 /**
  * Returns the font size for the HTML code tag renderer.
  */
-function getCodeFontSize(isInsideH1: boolean) {
-    return isInsideH1 ? 15 : 13;
+function getCodeFontSize(isInsideH1: boolean, isInsideTaskTitle?: boolean) {
+    if (isInsideH1 && !isInsideTaskTitle) {
+        return 15;
+    }
+    if (isInsideTaskTitle) {
+        return 19;
+    }
+    return 13;
 }
 
 /**
@@ -753,13 +762,24 @@ type AvatarBorderStyleParams = {
     isPressed: boolean;
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
+    isActive?: boolean;
 };
 
-function getHorizontalStackedAvatarBorderStyle({theme, isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleParams): ViewStyle {
+function getHorizontalStackedAvatarBorderStyle({
+    theme,
+    isHovered,
+    isPressed,
+    isInReportAction = false,
+    shouldUseCardBackground = false,
+    isActive = false,
+}: AvatarBorderStyleParams): ViewStyle {
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
     if (isHovered) {
         borderColor = isInReportAction ? theme.hoverComponentBG : theme.border;
+    }
+    if (isActive) {
+        borderColor = theme.messageHighlightBG;
     }
 
     if (isPressed) {
@@ -944,18 +964,21 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
 }
 
 /**
- * Returns padding vertical based on number of lines
+ * Returns vertical padding based on number of lines.
  */
-function getComposeTextAreaPadding(isComposerFullSize: boolean): TextStyle {
-    let paddingValue = 5;
+function getComposeTextAreaPadding(isComposerFullSize: boolean, textContainsOnlyEmojis: boolean): TextStyle {
+    let paddingTop = 8;
+    let paddingBottom = 8;
     // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
     if (!isComposerFullSize) {
-        paddingValue = 8;
+        paddingTop = 8;
+        paddingBottom = 8;
     }
-    return {
-        paddingTop: paddingValue,
-        paddingBottom: paddingValue,
-    };
+    // We need to reduce the top padding because emojis have a bigger font height.
+    if (textContainsOnlyEmojis) {
+        paddingTop = 3;
+    }
+    return {paddingTop, paddingBottom};
 }
 
 /**
@@ -1161,7 +1184,7 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
 
 const staticStyleUtils = {
     positioning,
-    searchHeaderHeight,
+    searchHeaderDefaultOffset,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
@@ -1210,7 +1233,7 @@ const staticStyleUtils = {
     getPaymentMethodMenuWidth,
     getSafeAreaInsets,
     getSafeAreaMargins,
-    getSafeAreaPadding,
+    getPlatformSafeAreaPadding,
     getSignInWordmarkWidthStyle,
     getTextColorStyle,
     getTransparentColor,
@@ -1225,6 +1248,7 @@ const staticStyleUtils = {
     getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
+    getSearchBottomTabHeaderStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
@@ -1235,6 +1259,7 @@ const staticStyleUtils = {
     getBorderRadiusStyle,
     getHighResolutionInfoWrapperStyle,
     getItemBackgroundColorStyle,
+    getNavigationBarType,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({

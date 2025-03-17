@@ -1,8 +1,10 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import type {LayoutChangeEventWithTarget} from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@navigation/Navigation';
@@ -37,22 +39,23 @@ function CardSectionActions() {
         [translate],
     );
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (shouldUseNarrowLayout) {
-            return;
-        }
-        threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-            setThreeDotsMenuPosition({
-                horizontal: x + width,
-                vertical: y + height,
-            });
-        });
-    }, [shouldUseNarrowLayout]);
-
     return (
-        <View ref={threeDotsMenuContainerRef}>
+        <View
+            ref={threeDotsMenuContainerRef}
+            onLayout={(e: LayoutChangeEvent) => {
+                if (shouldUseNarrowLayout) {
+                    return;
+                }
+                const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
+                target?.measureInWindow((x, y, width) => {
+                    setThreeDotsMenuPosition({
+                        horizontal: x + width,
+                        vertical: y,
+                    });
+                });
+            }}
+        >
             <ThreeDotsMenu
-                onIconPress={calculateAndSetThreeDotsMenuPosition}
                 menuItems={overflowMenu}
                 anchorPosition={threeDotsMenuPosition}
                 anchorAlignment={anchorAlignment}

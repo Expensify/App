@@ -1,6 +1,6 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -10,6 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {parseFSAttributes} from '@libs/Fullstory';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {dismissTrackTrainingModal} from '@userActions/User';
@@ -92,6 +93,9 @@ type BaseFeatureTrainingModalProps = {
 
     /** Modal width */
     width?: number;
+
+    /** Whether to disable the modal */
+    isModalDisabled?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -111,6 +115,12 @@ type FeatureTrainingModalSVGProps = {
 
     /** Determines how the image should be resized to fit its container */
     contentFitImage?: ImageContentFit;
+
+    /** The width of the image */
+    imageWidth?: number;
+
+    /** The height of the image */
+    imageHeight?: number;
 };
 
 // This page requires either an icon or a video/animation, but not both
@@ -139,6 +149,9 @@ function FeatureTrainingModal({
     contentInnerContainerStyles,
     contentOuterContainerStyles,
     modalInnerContainerStyle,
+    imageWidth,
+    imageHeight,
+    isModalDisabled = true,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -153,8 +166,14 @@ function FeatureTrainingModal({
     const {isOffline} = useNetwork();
 
     useEffect(() => {
-        InteractionManager.runAfterInteractions(() => setIsModalVisible(true));
-    }, []);
+        InteractionManager.runAfterInteractions(() => {
+            if (!isModalDisabled) {
+                setIsModalVisible(false);
+                return;
+            }
+            setIsModalVisible(true);
+        });
+    }, [isModalDisabled]);
 
     useEffect(() => {
         if (isVideoStatusLocked) {
@@ -200,6 +219,8 @@ function FeatureTrainingModal({
                     <ImageSVG
                         src={image}
                         contentFit={contentFitImage}
+                        width={imageWidth}
+                        height={imageHeight}
                     />
                 )}
                 {!!videoURL && videoStatus === 'video' && (
@@ -230,6 +251,8 @@ function FeatureTrainingModal({
         );
     }, [
         image,
+        imageHeight,
+        imageWidth,
         contentFitImage,
         illustrationAspectRatio,
         styles.w100,
@@ -264,6 +287,14 @@ function FeatureTrainingModal({
         onConfirm?.();
     }, [onConfirm, closeModal]);
 
+    /**
+     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
+     * to ensure necessary properties are available for further processing.
+     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
+     * updated attribute values.
+     */
+    useLayoutEffect(parseFSAttributes, []);
+
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
@@ -286,7 +317,11 @@ function FeatureTrainingModal({
                         ...modalInnerContainerStyle,
                     }}
                 >
-                    <View style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), safeAreaPaddingBottomStyle]}>
+                    <View
+                        style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), safeAreaPaddingBottomStyle]}
+                        fsClass={CONST.FULL_STORY.UNMASK}
+                        testID={CONST.FULL_STORY.UNMASK}
+                    >
                         <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
                             {renderIllustration()}
                         </View>

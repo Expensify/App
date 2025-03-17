@@ -1,3 +1,4 @@
+import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
@@ -22,8 +23,16 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
-jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
-jest.mock('@src/hooks/useIsCurrentRouteHome');
+jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
+    useNavigationState: () => undefined,
+    useIsFocused: () => true,
+    useRoute: () => ({name: 'Home'}),
+    useNavigation: () => undefined,
+    useFocusEffect: () => undefined,
+}));
 
 type LazyLoadLHNTestUtils = {
     fakePersonalDetails: PersonalDetailsList;
@@ -425,21 +434,15 @@ describe('SidebarLinksData', () => {
                     reportID: expenseReport.reportID,
                 },
             });
-            const expenseCreatedAction = buildOptimisticIOUReportAction(
-                'create',
-                100,
-                'USD',
-                '',
-                [],
-                expenseTransaction.transactionID,
-                undefined,
-                expenseReport.reportID,
-                undefined,
-                false,
-                false,
-                undefined,
-                undefined,
-            );
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: 'create',
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 

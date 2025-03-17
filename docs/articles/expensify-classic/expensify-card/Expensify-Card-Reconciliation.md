@@ -1,18 +1,18 @@
 ---
-title: Expensify Card reconciliation
-description: Learn how to reconcile expenses from Expensify Cards through auto-reconciliation or manual methods.
+title: Expensify Card Reconciliation
+description: Learn how to reconcile expenses from Expensify Cards through Continuous Reconciliation or manual methods.
 ---
 
-To manage unapproved Expensify Card expenses after closing your books for the month, you can set up **auto-reconciliation** with an accounting integration or **manually reconcile** the expenses. 
+To manage unapproved Expensify Card expenses after closing your books for the month, you can set up **Continuous Reconciliation** with an accounting integration or **manually reconcile** the expenses. 
 
 ---
-# Set Up Automatic Reconciliation
+# Set Up Continuous Reconciliation
 
-Auto-reconciliation deducts Expensify Card purchases from your company's settlement account on a daily or monthly basis.
+Continuous Reconciliation deducts Expensify Card purchases from your company's settlement account on a daily or monthly basis.
 
 _**Note: A business bank account must be linked as your settlement account to complete this process.**_
 
-## Steps to set up auto-reconciliation:
+## Steps to set up Continuous Reconciliation:
 1. Go to **Settings > Domains**.
 2. Click your desired domain name.
 3. Under the **Company Cards** tab, find the **Imported Cards** section and select the desired Expensify Card from the dropdown.
@@ -104,7 +104,11 @@ The filtered list will show expenses with settlement entries but no correspondin
    - Run the settlements report in the Reconciliation Dashboard.
    - Compare **Approved** activity to posted activity in your accounting system.
 
-## What if Auto-Reconciliation is disabled for Expensify Cards?
+## What if Continuous Reconciliation is disabled for Expensify Cards?
 
 A Domain Admin can set export accounts for individual cards via:
 **Settings > Domains > [Domain Name] > Company Cards > Edit Exports**.
+
+## How can I use Expensify's Continuous Reconciliation with Sage Intacct Smart Rules, and why are there issues?
+
+Due to the highly customizable nature of Sage Intacct Smart Rules, Continuous Reconciliation may encounter conflicts, especially when Expensify attempts to create vendor accounts during the reconciliation process. To resolve this, you can temporarily disable all Smart Rules in Sage Intacct, allow Expensify to create the necessary vendor accounts, and then re-enable the Smart Rules. However, if some Smart Rules are implemented via a Sage Intacct Package and cannot be easily disabled, you may need to manually adjust the rules after account creation. This process might need to be repeated if new employees submit reports in the future. Expensify creates vendor accounts to associate reports with the email addresses that submitted them, and the "vendor" field is included in the journal entries posted via Continuous Reconciliation.

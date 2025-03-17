@@ -1,10 +1,15 @@
+import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {translateLocal} from '@libs/Localize';
+import BaseLocaleListener from '@libs/Localize/LocaleListener/BaseLocaleListener';
+// eslint-disable-next-line no-restricted-syntax
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy as PolicyType, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
@@ -81,6 +86,7 @@ describe('actions/Policy', () => {
             expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
+            expect(policy?.mccGroup).toBeDefined();
 
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
@@ -137,8 +143,9 @@ describe('actions/Policy', () => {
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             });
-            // Created report action and and default MANAGE_TEAM intent tasks (7) assigned to user by guide, signingoff messages (1)
-            expect(adminReportActions.length).toBe(9);
+            // Created Report Action, MANAGE_TEAM tasks (minus tasks that requires integrations to be enabled) and signoff message
+            const manageTeamDefaultTaskCount = CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 2;
+            expect(adminReportActions.length).toBe(2 + manageTeamDefaultTaskCount);
             let createdTaskReportActions = 0;
             let signingOffMessage = 0;
             let taskReportActions = 0;
@@ -159,7 +166,7 @@ describe('actions/Policy', () => {
             });
             expect(createdTaskReportActions).toBe(1);
             expect(signingOffMessage).toBe(1);
-            expect(taskReportActions).toBe(7);
+            expect(taskReportActions).toBe(manageTeamDefaultTaskCount);
 
             // Check for success data
             (fetch as MockFetch)?.resume?.();
@@ -215,6 +222,44 @@ describe('actions/Policy', () => {
                 expect(reportAction.pendingAction).toBeFalsy();
             });
         });
+
+        it('create a new workspace with enabled workflows if the onboarding choice is newDotManageTeam or newDotLookingAround', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to MANAGE_TEAM
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then the workflows feature is enabled
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
+                },
+            });
+        });
+
+        it('create a new workspace with disabled workflows if the onboarding choice is not newDotManageTeam or newDotLookingAround', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to PERSONAL_SPEND
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then workflows are not enabled
+                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                },
+            });
+        });
     });
 
     describe('upgradeToCorporate', () => {
@@ -246,6 +291,38 @@ describe('actions/Policy', () => {
             // Then the policy autoReporting and autoReportingFrequency should equal the initial value.
             expect(policy?.autoReporting).toBe(autoReporting);
             expect(policy?.autoReportingFrequency).toBe(autoReportingFrequency);
+        });
+    });
+
+    describe('disableWorkflows', () => {
+        it('disableWorkflow should reset autoReportingFrequency to INSTANT', async () => {
+            const autoReporting = true;
+            const autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
+            // Given that a policy has autoReporting initially set to true and autoReportingFrequency set to monthly.
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                autoReporting,
+                autoReportingFrequency,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When workflows are disabled for the policy
+            Policy.enablePolicyWorkflows(fakePolicy.id, false);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the policy autoReportingFrequency should revert to "INSTANT"
+            expect(policy?.autoReporting).toBe(false);
+            expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
         });
     });
 
@@ -370,6 +447,185 @@ describe('actions/Policy', () => {
                         resolve();
                     },
                 });
+            });
+        });
+
+        it('should remove violation from expense report', async () => {
+            const policyID = '123';
+            const expenseChatReportID = '1';
+            const expenseReportID = '2';
+            const transactionID = '3';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`, {
+                ...createRandomReport(Number(expenseChatReportID)),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                iouReportID: expenseReportID,
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reportID: expenseReportID,
+                transactionID,
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
+                {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
+            ]);
+
+            Policy.deleteWorkspace(policyID, 'test');
+
+            await waitForBatchedUpdates();
+
+            const violations = await new Promise<OnyxEntry<TransactionViolations>>((resolve) => {
+                Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    callback: resolve,
+                });
+            });
+
+            expect(violations?.every((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION)).toBe(true);
+        });
+    });
+
+    const TEST_EMAIL = 'esh@gmail.com';
+    const TEST_EMAIL_2 = 'eshofficial@gmail.com';
+    const TEST_ACCOUNT_ID = 1;
+    const TEST_DISPLAY_NAME = 'Esh Gupta';
+    const TEST_PHONE_NUMBER = '1234567890';
+    const TEST_NON_PUBLIC_DOMAIN_EMAIL = 'esh@example.com';
+    const TEST_SMS_DOMAIN_EMAIL = 'esh@expensify.sms';
+
+    describe('generateDefaultWorkspaceName', () => {
+        beforeAll(() => {
+            Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
+        });
+
+        it('should generate a workspace name based on the email domain when the domain is not public', () => {
+            const domain = 'example.com';
+            const displayNameForWorkspace = Str.UCFirst(domain.split('.').at(0) ?? '');
+
+            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+                displayName: TEST_DISPLAY_NAME,
+                phoneNumber: TEST_PHONE_NUMBER,
+                accountID: TEST_ACCOUNT_ID,
+            });
+
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL);
+
+            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+        });
+
+        it('should generate a workspace name based on the display name when the domain is public and display name is available', () => {
+            const displayNameForWorkspace = Str.UCFirst(TEST_DISPLAY_NAME);
+
+            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+                displayName: TEST_DISPLAY_NAME,
+                phoneNumber: TEST_PHONE_NUMBER,
+                accountID: TEST_ACCOUNT_ID,
+            });
+
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
+
+            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+        });
+
+        it('should generate a workspace name based on the username when the domain is public and display name is not available', () => {
+            const emailParts = TEST_EMAIL_2.split('@');
+            const username = emailParts.at(0) ?? '';
+            const displayNameForWorkspace = Str.UCFirst(username);
+
+            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+                displayName: '',
+                phoneNumber: TEST_PHONE_NUMBER,
+                accountID: TEST_ACCOUNT_ID,
+            });
+
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2);
+
+            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
+        });
+
+        it('should generate a workspace name with an incremented number when there are existing policies with similar names', async () => {
+            const existingPolicies = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace`),
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
+            };
+
+            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+                displayName: TEST_DISPLAY_NAME,
+                phoneNumber: TEST_PHONE_NUMBER,
+                accountID: TEST_ACCOUNT_ID,
+            });
+
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
+
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
+
+            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
+        });
+
+        it('should return "My Group Workspace" when the domain is SMS', () => {
+            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+                displayName: TEST_DISPLAY_NAME,
+                phoneNumber: TEST_PHONE_NUMBER,
+                accountID: TEST_ACCOUNT_ID,
+            });
+
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL);
+
+            expect(workspaceName).toBe(translateLocal('workspace.new.myGroupWorkspace'));
+        });
+
+        it('should generate a workspace name with an incremented number even if previous workspaces were created in english lang', async () => {
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
+            jest.spyOn(BaseLocaleListener, 'getPreferredLocale').mockReturnValue('es');
+            const existingPolicies = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace`),
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
+            };
+
+            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
+                displayName: TEST_DISPLAY_NAME,
+                phoneNumber: TEST_PHONE_NUMBER,
+                accountID: TEST_ACCOUNT_ID,
+            });
+
+            jest.spyOn(Str, 'UCFirst').mockReturnValue(TEST_DISPLAY_NAME);
+
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
+
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
+
+            expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
+        });
+    });
+
+    describe('enablePolicyWorkflows', () => {
+        it('should update delayed submission to instant when disabling the workflows feature', async () => {
+            (fetch as MockFetch)?.pause?.();
+            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                areWorkflowsEnabled: true,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // Disable the workflow feature
+            Policy.enablePolicyWorkflows(fakePolicy.id, false);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Check if the autoReportingFrequency is updated to instant
+                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+                },
             });
         });
     });
