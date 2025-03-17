@@ -418,6 +418,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 nonUSDBankAccountStep={nonUSDBankAccountStep}
                 setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                 setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
+                policyID={policyIDParam}
             />
         );
     }
