@@ -276,6 +276,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             [ONYXKEYS.STASHED_SESSION]: session,
         };
     }
+
     // If this is a supportal token, and we've received the parameters to stashSession as true, and
     // we already have a stashedSession, that means we are supportaled, currently supportaling
     // into another account and we want to keep the stashed data from the original account.
