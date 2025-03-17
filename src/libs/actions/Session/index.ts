@@ -293,8 +293,9 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         HybridAppModule.switchAccount({
             newDotCurrentAccountEmail: stashedSession.email ?? '',
             authToken: stashedSession.authToken ?? '',
+            // eslint-disable-next-line rulesdir/no-default-id-values
             policyID: activePolicyID ?? '',
-            accountID: String(session.accountID ?? ''),
+            accountID: session.accountID ? String(session.accountID) : '',
         });
         return;
     }
