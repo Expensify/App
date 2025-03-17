@@ -43,7 +43,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(CONCEIRGE_LHN_GBR),
         name: CONCEIRGE_LHN_GBR,
         priority: 1300,
-        shouldShow: ({shouldUseNarrowLayout}) => !!shouldUseNarrowLayout,
+        shouldShow: () => false,
     },
     [RENAME_SAVED_SEARCH]: {
         content: [
