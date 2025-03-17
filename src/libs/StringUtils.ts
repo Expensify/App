@@ -99,4 +99,11 @@ function getFirstLine(text = '') {
     return lines.at(0);
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, lineBreaksToSpaces, getFirstLine};
+/**
+ * Remove double quotes from the string
+ */
+function removeDoubleQuotes(text = '') {
+    return text.replace(/"/g, '');
+}
+
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, lineBreaksToSpaces, getFirstLine, removeDoubleQuotes};

@@ -62,7 +62,7 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     const currentParams = currentRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
     const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
-    return currentParams.reportID === newParams.reportID;
+    return currentParams?.reportID === newParams?.reportID;
 }
 
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
