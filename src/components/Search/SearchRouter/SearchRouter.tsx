@@ -81,7 +81,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
