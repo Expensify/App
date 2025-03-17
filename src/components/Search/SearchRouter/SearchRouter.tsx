@@ -81,7 +81,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
@@ -273,7 +273,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
 
                 KeyboardUtils.dismiss().then(() => {
                     if (item?.reportID) {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
+                        Navigation.navigateToReportWithPolicyCheck({reportID: item?.reportID});
                     } else if ('login' in item) {
                         navigateToAndOpenReport(item.login ? [item.login] : [], false);
                     }
