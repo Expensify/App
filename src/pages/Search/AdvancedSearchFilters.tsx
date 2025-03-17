@@ -16,6 +16,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {clearAllFilters, saveSearch} from '@libs/actions/Search';
+import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import localeCompare from '@libs/LocaleCompare';
@@ -30,7 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report, WorkspaceCardsList} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -207,19 +208,42 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.IN],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
 
-function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
-    return filterValue
-        ? Object.values(cards)
-              .filter((card) => filterValue.includes(card.cardID.toString()))
-              .map((card) => getCardDescription(card.cardID, cards))
-              .join(', ')
-        : undefined;
+function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList, translate: LocaleContextProps['translate']) {
+    const cardIdsFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
+    const feedFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
+    const workspaceCardFeeds = Object.entries(cards).reduce<Record<string, WorkspaceCardsList>>((workspaceCardsFeed, [cardID, card]) => {
+        const feedKey = `${createCardFeedKey(card.fundID, card.bank)}`;
+        const workspaceFeedKey = getWorkspaceCardFeedKey(feedKey);
+        /* eslint-disable no-param-reassign */
+        workspaceCardsFeed[workspaceFeedKey] ??= {};
+        workspaceCardsFeed[workspaceFeedKey][cardID] = card;
+        /* eslint-enable no-param-reassign */
+        return workspaceCardsFeed;
+    }, {});
+
+    const cardFeedNamesWithType = getCardFeedNamesWithType({
+        workspaceCardFeeds,
+        userCardList: cards,
+        translate,
+    });
+
+    const cardNames = Object.values(cards)
+        .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(createCardFeedKey(card.fundID, card.bank)))
+        .map((card) => getCardDescription(card.cardID, cards));
+
+    const feedNames = Object.keys(cardFeedNamesWithType)
+        .filter((workspaceCardFeedKey) => {
+            const feedKey = getCardFeedKey(workspaceCardFeeds, workspaceCardFeedKey);
+            return !!feedKey && feedFilter.includes(feedKey);
+        })
+        .map((cardFeedKey) => cardFeedNamesWithType[cardFeedKey].name);
+
+    return [...feedNames, ...cardNames].join(', ');
 }
 
 function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined) {
@@ -269,7 +293,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         return dateValue;
     }
 
-    const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys>;
+    const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY>;
 
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const {lessThan, greaterThan} = filters;
@@ -374,9 +398,9 @@ function AdvancedSearchFilters() {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const policyID = searchAdvancedFilters.policyID;
-    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList, true), [userCardList, workspaceCardFeeds]);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
@@ -426,11 +450,11 @@ function AdvancedSearchFilters() {
 
     const applyFiltersAndNavigate = () => {
         clearAllFilters();
-        Navigation.dismissModal();
         Navigation.navigate(
-            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+            ROUTES.SEARCH_ROOT.getRoute({
                 query: queryString,
             }),
+            {forceReplace: true},
         );
     };
 
@@ -453,6 +477,10 @@ function AdvancedSearchFilters() {
         .map((section) => {
             return section
                 .map((key) => {
+                    // 'feed' filter row does not appear in advanced filters, it is created using selected cards
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+                        return;
+                    }
                     const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
                     let filterTitle;
                     if (
@@ -483,7 +511,7 @@ function AdvancedSearchFilters() {
                         if (!shouldDisplayCardFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, allCards);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, allCards, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
                         if (!shouldDisplayCardFilter) {
                             return;
@@ -519,7 +547,8 @@ function AdvancedSearchFilters() {
                 <View>
                     {filters.map((section, index) => {
                         return (
-                            <>
+                            // eslint-disable-next-line react/no-array-index-key
+                            <View key={`${section.at(0)?.key}-${index}`}>
                                 {index !== 0 && (
                                     <SpacerView
                                         shouldShow
@@ -538,7 +567,7 @@ function AdvancedSearchFilters() {
                                         />
                                     );
                                 })}
-                            </>
+                            </View>
                         );
                     })}
                 </View>

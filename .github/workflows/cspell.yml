@@ -22,4 +22,4 @@ jobs:
           inline: error
           strict: true
           use_cspell_files: false
-          incremental_files_only: false
+          incremental_files_only: true

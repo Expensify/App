@@ -10,6 +10,8 @@ const {
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
     SCAN_TEST_TOOLTIP,
+    SCAN_TEST_TOOLTIP_MANAGER,
+    SCAN_TEST_CONFIRMATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 /**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.
@@ -64,6 +66,21 @@ type DismissedProductTraining = {
      * When user dismisses the globalCreateTooltip product training tooltip, we store the timestamp here.
      */
     [SCAN_TEST_TOOLTIP]: string;
+
+    /**
+     * When user dismisses the test manager tooltip product training tooltip, we store the timestamp here.
+     */
+    [SCAN_TEST_TOOLTIP_MANAGER]: string;
+
+    /**
+     * When user dismisses the test manager on confirmantion page product training tooltip, we store the timestamp here.
+     */
+    [SCAN_TEST_CONFIRMATION]: string;
+
+    /**
+     * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
+     */
+    [CONST.CHANGE_POLICY_TRAINING_MODAL]: string;
 };
 
 export default DismissedProductTraining;

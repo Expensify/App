@@ -15,7 +15,8 @@ type SharedProps<T> = {
     SkeletonComponent: ValidSkeletons;
     title: string;
     titleStyles?: StyleProp<TextStyle>;
-    subtitle: string | React.ReactNode;
+    subtitle?: string;
+    children?: React.ReactNode;
     buttons?: Button[];
     containerStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
@@ -24,6 +25,9 @@ type SharedProps<T> = {
     lottieWebViewStyles?: React.CSSProperties | undefined;
     minModalHeight?: number;
     showsVerticalScrollIndicator?: boolean;
+
+    /** Whether to add bottom safe area padding to the view. */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {

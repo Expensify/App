@@ -1,11 +1,16 @@
 import React, {useEffect, useMemo} from 'react';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import {getReportPrivateNote} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import Navigation from '@libs/Navigation/Navigation';
 import {isArchivedReport, isSelfDM} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import LoadingPage from '@pages/LoadingPage';
@@ -70,6 +75,25 @@ export default function (pageTitle: TranslationPaths) {
             }, [report, isOtherUserNote, shouldShowFullScreenLoadingIndicator, isPrivateNotesUndefined, isReconnecting, isOffline, reportNameValuePairs]);
 
             if (shouldShowFullScreenLoadingIndicator) {
+                if (isOffline) {
+                    return (
+                        <ScreenWrapper
+                            shouldEnableMaxHeight
+                            includeSafeAreaPaddingBottom
+                            testID="PrivateNotesOfflinePage"
+                        >
+                            <HeaderWithBackButton
+                                title={translate('privateNotes.title')}
+                                onBackButtonPress={() => Navigation.goBack()}
+                                shouldShowBackButton
+                                onCloseButtonPress={() => Navigation.dismissModal()}
+                            />
+                            <FullPageOfflineBlockingView>
+                                <View />
+                            </FullPageOfflineBlockingView>
+                        </ScreenWrapper>
+                    );
+                }
                 return <LoadingPage title={translate(pageTitle)} />;
             }
 

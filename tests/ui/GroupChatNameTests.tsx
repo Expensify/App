@@ -6,9 +6,9 @@
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import * as Localize from '@libs/Localize';
-import * as AppActions from '@userActions/App';
-import * as User from '@userActions/User';
+import {translateLocal} from '@libs/Localize';
+import {setSidebarLoaded} from '@userActions/App';
+import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +33,8 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
         ignoreAllLogs: jest.fn(),
     },
 }));
+
+jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
 
 /**
  * We need to keep track of the transitionEnd callback so we can trigger it in our tests
@@ -80,7 +82,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
     return waitForBatchedUpdatesWithAct()
         .then(async () => {
             await waitForBatchedUpdatesWithAct();
-            const hintText = Localize.translateLocal('loginForm.loginForm');
+            const hintText = translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
 
@@ -90,7 +92,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
             return waitForBatchedUpdatesWithAct();
         })
         .then(() => {
-            User.subscribeToUserEvents();
+            subscribeToUserEvents();
             return waitForBatchedUpdates();
         })
         .then(async () => {
@@ -117,7 +119,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
             });
 
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
-            AppActions.setSidebarLoaded();
+            setSidebarLoaded();
             return waitForBatchedUpdatesWithAct();
         });
 }
@@ -129,10 +131,11 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
 describe('Tests for group chat name', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        Onyx.clear();
 
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
+
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     const participantAccountIDs4 = [USER_A_ACCOUNT_ID, USER_B_ACCOUNT_ID, USER_C_ACCOUNT_ID, USER_D_ACCOUNT_ID];
@@ -141,16 +144,16 @@ describe('Tests for group chat name', () => {
     it('Should show correctly in LHN', () =>
         signInAndGetApp('A, B, C, D', participantAccountIDs4).then(() => {
             // Verify the sidebar links are rendered
-            const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
+            const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
 
             // Verify there is only one option in the sidebar
-            const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+            const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
             const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
             expect(optionRows).toHaveLength(1);
 
-            const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
 
             return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D'));
@@ -159,53 +162,53 @@ describe('Tests for group chat name', () => {
     it('Should show correctly in LHN when report name is not present', () =>
         signInAndGetApp('', participantAccountIDs4).then(() => {
             // Verify the sidebar links are rendered
-            const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
+            const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
 
             // Verify there is only one option in the sidebar
-            const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+            const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
             const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
             expect(optionRows).toHaveLength(1);
 
-            const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
 
             return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D'));
         }));
 
-    it('Should show limited names in LHN when 8 participants are present', () =>
+    it('Should show limited names with ellipsis in LHN when 8 participants are present', () =>
         signInAndGetApp('', participantAccountIDs8).then(() => {
             // Verify the sidebar links are rendered
-            const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
+            const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
 
             // Verify there is only one option in the sidebar
-            const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+            const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
             const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
             expect(optionRows).toHaveLength(1);
 
-            const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
 
-            return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E'));
+            return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E...'));
         }));
 
     it('Check if group name shows fine for report header', () =>
         signInAndGetApp('', participantAccountIDs4)
             .then(() => {
                 // Verify the sidebar links are rendered
-                const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
+                const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
                 const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
                 expect(optionRows).toHaveLength(1);
 
-                const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
 
                 expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D');
@@ -220,30 +223,30 @@ describe('Tests for group chat name', () => {
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
             }));
 
-    it('Should show only 5 names when there are 8 participants in the report header', () =>
+    it('Should show only 5 names with ellipsis when there are 8 participants in the report header', () =>
         signInAndGetApp('', participantAccountIDs8)
             .then(() => {
                 // Verify the sidebar links are rendered
-                const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
+                const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
                 const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
                 expect(optionRows).toHaveLength(1);
 
-                const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
 
-                expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E');
+                expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E...');
 
                 return navigateToSidebarOption(0);
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
                 await act(() => transitionEndCB?.());
-                const name = 'A, B, C, D, E';
+                const name = 'A, B, C, D, E...';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
             }));
@@ -252,16 +255,16 @@ describe('Tests for group chat name', () => {
         signInAndGetApp('Test chat', participantAccountIDs4)
             .then(() => {
                 // Verify the sidebar links are rendered
-                const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
+                const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
                 const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
                 expect(optionRows).toHaveLength(1);
 
-                const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
 
                 expect(displayNameText?.props?.children?.[0]).toBe('Test chat');
@@ -280,16 +283,16 @@ describe('Tests for group chat name', () => {
         signInAndGetApp("Let's talk", participantAccountIDs8)
             .then(() => {
                 // Verify the sidebar links are rendered
-                const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
+                const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
                 const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
                 const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
                 expect(optionRows).toHaveLength(1);
 
-                const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
 
                 expect(displayNameText?.props?.children?.[0]).toBe("Let's talk");
@@ -304,37 +307,37 @@ describe('Tests for group chat name', () => {
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
             }));
 
-    it.skip('Should show last message preview in LHN', () =>
+    it('Should show last message preview in LHN', () =>
         signInAndGetApp('A, B, C, D', participantAccountIDs4).then(() => {
             // Verify the sidebar links are rendered
-            const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
+            const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
 
             // Verify there is only one option in the sidebar
-            const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+            const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
             const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
             expect(optionRows).toHaveLength(1);
 
-            const lastChatHintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+            const lastChatHintText = translateLocal('accessibilityHints.lastChatMessagePreview');
             const lastChatText = screen.queryByLabelText(lastChatHintText);
 
             return waitFor(() => expect(lastChatText?.props?.children).toBe('B: Test'));
         }));
 
-    it.skip('Should sort the names before displaying', () =>
+    it('Should sort the names before displaying', () =>
         signInAndGetApp('', [USER_E_ACCOUNT_ID, ...participantAccountIDs4]).then(() => {
             // Verify the sidebar links are rendered
-            const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
+            const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
             expect(sidebarLinks).toHaveLength(1);
 
             // Verify there is only one option in the sidebar
-            const optionRowsHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+            const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
             const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
             expect(optionRows).toHaveLength(1);
 
-            const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+            const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
 
             return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E'));

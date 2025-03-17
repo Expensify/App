@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
@@ -43,6 +44,15 @@ type FullPageNotFoundViewProps = {
 
     /** Whether we should force the full page view */
     shouldForceFullScreen?: boolean;
+
+    /** The style of the subtitle message */
+    subtitleStyle?: StyleProp<TextStyle>;
+
+    /** Whether we should display the button that opens new SearchRouter */
+    shouldDisplaySearchRouter?: boolean;
+
+    /** Whether to add bottom safe area padding to the view. */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -56,8 +66,11 @@ function FullPageNotFoundView({
     onBackButtonPress = () => Navigation.goBack(),
     shouldShowLink = true,
     shouldShowBackButton = true,
-    onLinkPress = () => Navigation.dismissModal(),
+    onLinkPress = () => Navigation.goBackToHome(),
     shouldForceFullScreen = false,
+    subtitleStyle,
+    shouldDisplaySearchRouter,
+    addBottomSafeAreaPadding = true,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -68,6 +81,7 @@ function FullPageNotFoundView({
                 <HeaderWithBackButton
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 />
                 <View
                     style={[styles.flex1, styles.blockingViewContainer]}
@@ -82,6 +96,8 @@ function FullPageNotFoundView({
                         linkKey={linkKey}
                         shouldShowLink={shouldShowLink}
                         onLinkPress={onLinkPress}
+                        subtitleStyle={subtitleStyle}
+                        addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                     />
                 </View>
             </ForceFullScreenView>

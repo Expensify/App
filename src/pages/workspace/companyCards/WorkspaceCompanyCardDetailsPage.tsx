@@ -16,13 +16,14 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedIcon, getDefaultCardName, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getConnectedIntegration, getWorkspaceAccountID} from '@libs/PolicyUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -40,15 +41,17 @@ import {getExportMenuItem} from './utils';
 type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_DETAILS>;
 
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
-    const {policyID, cardID, backTo, bank} = route.params;
+    const {policyID, cardID, backTo} = route.params;
+    const bank = decodeURIComponent(route.params.bank);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
     const policy = usePolicy(policyID);
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const illustrations = useThemeIllustrations();
     const {isOffline} = useNetwork();
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
@@ -71,7 +74,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     };
 
     const updateCard = () => {
-        updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank);
+        updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank as CompanyCardFeed);
     };
 
     if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
@@ -97,7 +100,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             <View style={[styles.walletCard, styles.mb3]}>
                                 <ImageSVG
                                     contentFit="contain"
-                                    src={getCardFeedIcon(cardBank as CompanyCardFeed)}
+                                    src={getCardFeedIcon(cardBank as CompanyCardFeed, illustrations)}
                                     pointerEvents="none"
                                     height={variables.cardPreviewHeight}
                                     width={variables.cardPreviewWidth}
@@ -175,7 +178,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 style={styles.mt3}
                                 onPress={() => {
                                     Navigation.navigate(
-                                        ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                                        ROUTES.SEARCH_ROOT.getRoute({
                                             query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
                                         }),
                                     );

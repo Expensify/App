@@ -6,9 +6,10 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
-import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
+import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 type AddressValues = {
@@ -63,6 +64,9 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
     /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
+
+    /** Translation key of street field */
+    streetTranslationKey?: TranslationPaths;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -82,6 +86,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
     onCountryChange,
+    streetTranslationKey = 'common.streetAddress',
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -95,16 +100,16 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
+            const errors = getFieldRequiredErrors(values, stepFields);
 
             const street = values[inputFieldsIDs.street as keyof typeof values];
-            if (street && !ValidationUtils.isValidAddress(street as FormValue)) {
+            if (street && !isValidAddress(street as FormValue)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.street] = translate('bankAccount.error.addressStreet');
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (zipCode && (shouldDisplayCountrySelector ? !ValidationUtils.isValidZipCodeInternational(zipCode as string) : !ValidationUtils.isValidZipCode(zipCode as string))) {
+            if (zipCode && (shouldDisplayCountrySelector ? !isValidZipCodeInternational(zipCode as string) : !isValidZipCode(zipCode as string))) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
@@ -128,7 +133,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                 {!!formPOBoxDisclaimer && <Text style={[styles.textSupporting]}>{formPOBoxDisclaimer}</Text>}
                 <AddressFormFields
                     inputKeys={inputFieldsIDs}
-                    streetTranslationKey="common.streetAddress"
+                    streetTranslationKey={streetTranslationKey}
                     defaultValues={defaultValues}
                     shouldSaveDraft={!isEditing}
                     shouldDisplayStateSelector={shouldDisplayStateSelector}

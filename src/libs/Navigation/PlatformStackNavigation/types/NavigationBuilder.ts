@@ -20,7 +20,14 @@ type PlatformNavigationBuilderOptions<
     EventMap extends PlatformSpecificEventMap & EventMapBase,
     ParamList extends ParamListBase = ParamListBase,
     RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap> & NavigationBuilderOptions<NavigationOptions> & RouterOptions;
+> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap> &
+    NavigationBuilderOptions<NavigationOptions> &
+    RouterOptions & {
+        persistentScreens?: Array<Extract<keyof ParamList, string>>;
+        defaultCentralScreen?: Extract<keyof ParamList, string>;
+        sidebarScreen?: Extract<keyof ParamList, string>;
+        parentRoute?: RouteProp<ParamListBase>;
+    };
 
 // Represents the return type of the useNavigationBuilder function using the types from PlatformStackNavigation.
 type PlatformNavigationBuilderResult<

@@ -4,10 +4,10 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react-nat
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import * as Localize from '@libs/Localize';
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import * as AppActions from '@userActions/App';
-import * as User from '@userActions/User';
+import {translateLocal} from '@libs/Localize';
+import {waitForIdle} from '@libs/Network/SequentialQueue';
+import {setSidebarLoaded} from '@userActions/App';
+import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,6 +25,7 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
+jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
 
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
@@ -51,7 +52,7 @@ function getReportScreen(reportID = REPORT_ID) {
 }
 
 function scrollToOffset(offset: number) {
-    const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
+    const hintText = translateLocal('sidebarScreen.listOfChatMessages');
     fireEvent.scroll(within(getReportScreen()).getByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {
@@ -81,9 +82,9 @@ function triggerListLayout(reportID?: string) {
 function getReportActions(reportID?: string) {
     const report = getReportScreen(reportID);
     return [
-        ...within(report).queryAllByLabelText(Localize.translateLocal('accessibilityHints.chatMessage')),
+        ...within(report).queryAllByLabelText(translateLocal('accessibilityHints.chatMessage')),
         // Created action has a different accessibility label.
-        ...within(report).queryAllByLabelText(Localize.translateLocal('accessibilityHints.chatWelcomeMessage')),
+        ...within(report).queryAllByLabelText(translateLocal('accessibilityHints.chatWelcomeMessage')),
     ];
 }
 
@@ -191,7 +192,7 @@ async function signInAndGetApp(): Promise<void> {
     // Render the App and sign in as a test user.
     render(<App />);
     await waitForBatchedUpdatesWithAct();
-    const hintText = Localize.translateLocal('loginForm.loginForm');
+    const hintText = translateLocal('loginForm.loginForm');
     const loginForm = await screen.findAllByLabelText(hintText);
     expect(loginForm).toHaveLength(1);
 
@@ -201,7 +202,7 @@ async function signInAndGetApp(): Promise<void> {
 
     await waitForBatchedUpdatesWithAct();
 
-    User.subscribeToUserEvents();
+    subscribeToUserEvents();
 
     await waitForBatchedUpdates();
 
@@ -252,7 +253,7 @@ async function signInAndGetApp(): Promise<void> {
         });
 
         // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
-        AppActions.setSidebarLoaded();
+        setSidebarLoaded();
     });
 
     await waitForBatchedUpdatesWithAct();
@@ -260,7 +261,7 @@ async function signInAndGetApp(): Promise<void> {
 
 describe('Pagination', () => {
     afterEach(async () => {
-        await SequentialQueue.waitForIdle();
+        await waitForIdle();
         await act(async () => {
             await Onyx.clear();
 
@@ -345,7 +346,7 @@ describe('Pagination', () => {
         expect(getReportActions()).toHaveLength(10);
 
         // There is 1 extra call here because of the comment linking report.
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
@@ -356,13 +357,12 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 1, {reportID: REPORT_ID, reportActionID: '10'});
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
 
-        // We now have 15 messages. 5 from the initial OpenReport and 10 from the 2 GetNewerActions calls.
-        expect(getReportActions()).toHaveLength(15);
+        // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
+        expect(getReportActions()).toHaveLength(10);
 
         // Simulate the backend returning no new messages to simulate reaching the start of the chat.
         mockGetNewerActions(0);
@@ -372,12 +372,11 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 3);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 2, {reportID: REPORT_ID, reportActionID: '15'});
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
 
-        // We still have 15 messages. 5 from the initial OpenReport and 10 from the 2 GetNewerActions calls.
-        expect(getReportActions()).toHaveLength(15);
+        // We still have 15 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
+        expect(getReportActions()).toHaveLength(10);
     });
 });

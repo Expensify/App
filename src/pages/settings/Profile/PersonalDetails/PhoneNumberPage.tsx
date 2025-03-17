@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -13,12 +12,11 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as LoginUtils from '@libs/LoginUtils';
+import {getEarliestErrorField} from '@libs/ErrorUtils';
+import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PhoneNumberUtils from '@libs/PhoneNumber';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
+import {clearPhoneNumberError, updatePhoneNumber as updatePhone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
@@ -32,18 +30,18 @@ function PhoneNumberPage() {
     const {inputCallbackRef} = useAutoFocusInput();
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
-    const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
+    const validateLoginError = getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
         // Clear the error when the user tries to submit the form
         if (validateLoginError) {
-            PersonalDetails.clearPhoneNumberError();
+            clearPhoneNumberError();
         }
 
         // Only call the API if the user has changed their phone number
-        if (phoneNumber !== values?.phoneNumber) {
-            PersonalDetails.updatePhoneNumber(values?.phoneNumber ?? '', currenPhoneNumber);
+        if (values?.phoneNumber && phoneNumber !== values.phoneNumber) {
+            updatePhone(formatE164PhoneNumber(values.phoneNumber) ?? '', currenPhoneNumber);
         }
 
         Navigation.goBack();
@@ -52,19 +50,24 @@ function PhoneNumberPage() {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
-            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.PHONE_NUMBER])) {
+            const phoneNumberValue = values[INPUT_IDS.PHONE_NUMBER];
+
+            if (!isRequiredFulfilled(phoneNumberValue)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
-            }
-            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(values[INPUT_IDS.PHONE_NUMBER]);
-            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(values[INPUT_IDS.PHONE_NUMBER]);
-            if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode.slice(0))) {
-                errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
+                return errors;
             }
 
-            // Clear the error when the user tries to validate the form and there are errors
-            if (validateLoginError && !!errors) {
-                PersonalDetails.clearPhoneNumberError();
+            const phoneNumberWithCountryCode = appendCountryCode(phoneNumberValue);
+
+            if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
+                errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
+                return errors;
             }
+
+            if (validateLoginError && Object.keys(errors).length > 0) {
+                clearPhoneNumberError();
+            }
+
             return errors;
         },
         [translate, validateLoginError],
@@ -95,7 +98,7 @@ function PhoneNumberPage() {
                         <OfflineWithFeedback
                             errors={validateLoginError}
                             errorRowStyles={styles.mt2}
-                            onClose={() => PersonalDetails.clearPhoneNumberError()}
+                            onClose={() => clearPhoneNumberError()}
                         >
                             <InputWrapper
                                 InputComponent={TextInput}
@@ -111,7 +114,7 @@ function PhoneNumberPage() {
                                     if (!validateLoginError) {
                                         return;
                                     }
-                                    PersonalDetails.clearPhoneNumberError();
+                                    clearPhoneNumberError();
                                 }}
                             />
                         </OfflineWithFeedback>

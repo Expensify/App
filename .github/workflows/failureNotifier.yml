@@ -79,6 +79,9 @@ jobs:
             for (let i = 0; i < jobs.total_count; i++) {
               if (jobs.jobs[i].conclusion == 'failure') {
                 const jobName = jobs.jobs[i].name;
+                if (jobName === 'confirmPassingBuild') {
+                  continue;
+                }
                 const jobLink = jobs.jobs[i].html_url;
                 const previousJob = previousRunJobs.jobs.find(job => job.name === jobName);
                 if (previousJob?.conclusion === 'success') {
