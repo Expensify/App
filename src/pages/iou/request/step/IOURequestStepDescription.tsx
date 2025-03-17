@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
@@ -64,8 +65,10 @@ function IOURequestStepDescription({
     const {inputCallbackRef} = useAutoFocusInput(true);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
-    const descriptionRef = useRef(currentDescription);
+    const currentDescriptionInMarkdown = Parser.htmlToMarkdown(
+        isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '',
+    );
+    const descriptionRef = useRef(currentDescriptionInMarkdown);
     const isSavedRef = useRef(false);
 
     /**
@@ -105,7 +108,7 @@ function IOURequestStepDescription({
         const newComment = value.moneyRequestComment.trim();
 
         // Only update comment if it has changed
-        if (newComment === currentDescription) {
+        if (newComment === currentDescriptionInMarkdown) {
             navigateBack();
             return;
         }
@@ -159,7 +162,7 @@ function IOURequestStepDescription({
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         name={INPUT_IDS.MONEY_REQUEST_COMMENT}
-                        defaultValue={currentDescription}
+                        defaultValue={currentDescriptionInMarkdown}
                         onValueChange={updateDescriptionRef}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
@@ -179,7 +182,7 @@ function IOURequestStepDescription({
                     if (isSavedRef.current) {
                         return false;
                     }
-                    return descriptionRef.current !== currentDescription;
+                    return descriptionRef.current !== currentDescriptionInMarkdown;
                 }}
             />
         </StepScreenWrapper>
