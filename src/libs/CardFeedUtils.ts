@@ -16,7 +16,6 @@ type CardFeedNamesWithType = Record<string, {name: string; type: 'domain' | 'wor
 type CardFeedData = {cardName: string; bank: string; label?: string; type: 'domain' | 'workspace'};
 type GetCardFeedData = {
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined;
-    userCardList: CardList | undefined;
     translate: LocaleContextProps['translate'];
 };
 
@@ -188,13 +187,23 @@ function getDomainCardFeedData(domainFeed: DomainFeedData, repeatingBanks: strin
     };
 }
 
-function getCardFeedsData({workspaceCardFeeds, userCardList, translate}: GetCardFeedData) {
-    const domainFeedData = generateDomainFeedData(userCardList);
+function getCardFeedsData({workspaceCardFeeds, translate}: GetCardFeedData) {
+    const flattenedWorkspaceCardFeeds = Object.values(workspaceCardFeeds ?? {}).reduce<CardList>((result, domainCards) => {
+        Object.assign(result, domainCards);
+        return result;
+    }, {});
+    const domainFeedData = generateDomainFeedData(flattenedWorkspaceCardFeeds);
     const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds ?? CONST.EMPTY_OBJECT), domainFeedData);
     const cardFeedData: Record<string, CardFeedData> = {};
 
     Object.entries(workspaceCardFeeds ?? {})
-        .filter(([, cardFeed]) => !isEmptyObject(cardFeed))
+        .filter(([, workspaceFeed]) => {
+            const domainName = Object.values(workspaceFeed ?? {}).at(0)?.domainName ?? '';
+            if (Object.keys(domainFeedData).includes(domainName)) {
+                return false;
+            }
+            return !isEmptyObject(workspaceFeed);
+        })
         .forEach(([cardFeedKey, cardFeed]) => {
             const workspaceData = getWorkspaceCardFeedData(cardFeed, repeatingBanks, translate);
             if (workspaceData) {
@@ -203,7 +212,7 @@ function getCardFeedsData({workspaceCardFeeds, userCardList, translate}: GetCard
         });
 
     Object.values(domainFeedData).forEach((domainFeed) => {
-        const cardFeedKey = createCardFeedKey(domainFeed.fundID, domainFeed.bank);
+        const cardFeedKey = createCardFeedKey(`cards_${domainFeed.fundID}`, domainFeed.bank);
         cardFeedData[cardFeedKey] = getDomainCardFeedData(domainFeed, repeatingBanks, translate);
     });
 
