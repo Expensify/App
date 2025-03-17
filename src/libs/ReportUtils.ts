@@ -9629,7 +9629,6 @@ export {
     isReportFieldDisabled,
     isReportFieldOfTypeTitle,
     isReportManager,
-    isReportMessageAttachment,
     isReportOwner,
     isReportParticipant,
     isSelfDM,

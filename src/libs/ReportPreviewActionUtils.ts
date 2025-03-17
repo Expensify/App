@@ -67,7 +67,6 @@ function canExport(report: Report, policy: Policy, violations: OnyxCollection<Tr
     return isExpense && isExporter && (isApproved || isReimbursed || isClosed) && hasAccountingConnection && !syncEnabled && !hasViolations;
 }
 
-
 function canReview(report: Report, policy: Policy, violations: OnyxCollection<TransactionViolation[]>) {
     const hasViolations = hasAnyViolations(report.reportID, violations);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
