@@ -176,8 +176,6 @@ function ReportActionsList({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
     const participantsContext = useContext(PersonalDetailsContext);
-    const [messagesHeight, setMessagesHeight] = useState(0);
-    const blankSpace = Math.max(0, windowHeight - messagesHeight);
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
@@ -621,33 +619,26 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
-            <View
-                onLayout={(event) => {
-                    const height = event.nativeEvent.layout.height;
-                    setMessagesHeight((prev) => prev + height);
-                }}
-            >
-                <ReportActionsListItemRenderer
-                    reportAction={reportAction}
-                    reportActions={sortedReportActions}
-                    parentReportAction={parentReportAction}
-                    parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                    index={index}
-                    report={report}
-                    transactionThreadReport={transactionThreadReport}
-                    linkedReportActionID={linkedReportActionID}
-                    displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                        isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
-                    }
-                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                    shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                    shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
-                    isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                    shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                />
-            </View>
+            <ReportActionsListItemRenderer
+                reportAction={reportAction}
+                reportActions={sortedReportActions}
+                parentReportAction={parentReportAction}
+                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                index={index}
+                report={report}
+                transactionThreadReport={transactionThreadReport}
+                linkedReportActionID={linkedReportActionID}
+                displayAsGroup={
+                    !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
+                    isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
+                }
+                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
+                isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+            />
         ),
         [
             report,
@@ -698,14 +689,13 @@ function ReportActionsList({
             return;
         }
 
-        const skeletonContentItems = Math.floor(blankSpace / CONST.CHAT_SKELETON_VIEW.HEIGHT_FOR_ROW_COUNT[3]);
         return (
             <ReportActionsSkeletonView
                 shouldAnimate={false}
-                possibleVisibleContentItems={skeletonContentItems}
+                possibleVisibleContentItems={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 10}
             />
         );
-    }, [blankSpace, shouldShowSkeleton]);
+    }, [shouldShowSkeleton]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
