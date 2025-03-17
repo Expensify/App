@@ -121,7 +121,7 @@ function FeatureList({
                         accessibilityLabel={ctaAccessibilityLabel}
                         style={styles.w100}
                         success
-                        isDisabled={false}
+                        isDisabled={isButtonDisabled}
                         large
                     />
                 )}
