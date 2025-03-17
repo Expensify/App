@@ -13,12 +13,11 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
-import {buildCardFeedsData, buildCardsData, generateDomainFeedData, generateSelectedCards, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
+import {buildCardFeedsData, buildCardsData, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CardList} from '@src/types/onyx';
 
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
@@ -51,16 +50,8 @@ function SearchFiltersCardPage() {
         () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, true),
         [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
     );
-    const flattenedWorkspaceCardFeeds = useMemo(
-        () =>
-            Object.values(workspaceCardFeeds ?? {}).reduce<CardList>((result, domainCards) => {
-                Object.assign(result, domainCards);
-                return result;
-            }, {}),
-        [workspaceCardFeeds],
-    );
 
-    const domainFeedsData = useMemo(() => generateDomainFeedData(flattenedWorkspaceCardFeeds), [flattenedWorkspaceCardFeeds]);
+    const domainFeedsData = useMemo(() => getDomainFeedData(workspaceCardFeeds), [workspaceCardFeeds]);
 
     const cardFeedsSectionData = useMemo(
         () => buildCardFeedsData(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, domainFeedsData, selectedCards, translate, illustrations),

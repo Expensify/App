@@ -145,6 +145,14 @@ function generateDomainFeedData(cardList: CardList | undefined): Record<string, 
     }, {} as Record<string, DomainFeedData>);
 }
 
+function getDomainFeedData(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined) {
+    const flattenedWorkspaceCardFeeds = Object.values(workspaceCardFeeds ?? {}).reduce<CardList>((result, domainCards) => {
+        Object.assign(result, domainCards);
+        return result;
+    }, {});
+    return generateDomainFeedData(flattenedWorkspaceCardFeeds);
+}
+
 function getWorkspaceCardFeedData(cardFeed: WorkspaceCardsList | undefined, repeatingBanks: string[], translate: LocaleContextProps['translate']): CardFeedData | undefined {
     const cardFeedArray = Object.values(cardFeed ?? {});
     const representativeCard = cardFeedArray.find((cardFeedItem) => isCard(cardFeedItem));
@@ -187,29 +195,28 @@ function getDomainCardFeedData(domainFeed: DomainFeedData, repeatingBanks: strin
     };
 }
 
+function filterOutDomainCards(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined) {
+    const domainFeedData = getDomainFeedData(workspaceCardFeeds);
+    return Object.entries(workspaceCardFeeds ?? {}).filter(([, workspaceFeed]) => {
+        const domainName = Object.values(workspaceFeed ?? {}).at(0)?.domainName ?? '';
+        if (Object.keys(domainFeedData).includes(domainName)) {
+            return false;
+        }
+        return !isEmptyObject(workspaceFeed);
+    });
+}
+
 function getCardFeedsData({workspaceCardFeeds, translate}: GetCardFeedData) {
-    const flattenedWorkspaceCardFeeds = Object.values(workspaceCardFeeds ?? {}).reduce<CardList>((result, domainCards) => {
-        Object.assign(result, domainCards);
-        return result;
-    }, {});
-    const domainFeedData = generateDomainFeedData(flattenedWorkspaceCardFeeds);
+    const domainFeedData = getDomainFeedData(workspaceCardFeeds);
     const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds ?? CONST.EMPTY_OBJECT), domainFeedData);
     const cardFeedData: Record<string, CardFeedData> = {};
 
-    Object.entries(workspaceCardFeeds ?? {})
-        .filter(([, workspaceFeed]) => {
-            const domainName = Object.values(workspaceFeed ?? {}).at(0)?.domainName ?? '';
-            if (Object.keys(domainFeedData).includes(domainName)) {
-                return false;
-            }
-            return !isEmptyObject(workspaceFeed);
-        })
-        .forEach(([cardFeedKey, cardFeed]) => {
-            const workspaceData = getWorkspaceCardFeedData(cardFeed, repeatingBanks, translate);
-            if (workspaceData) {
-                cardFeedData[cardFeedKey] = workspaceData;
-            }
-        });
+    filterOutDomainCards(workspaceCardFeeds).forEach(([cardFeedKey, cardFeed]) => {
+        const workspaceData = getWorkspaceCardFeedData(cardFeed, repeatingBanks, translate);
+        if (workspaceData) {
+            cardFeedData[cardFeedKey] = workspaceData;
+        }
+    });
 
     Object.values(domainFeedData).forEach((domainFeed) => {
         const cardFeedKey = createCardFeedKey(`cards_${domainFeed.fundID}`, domainFeed.bank);
@@ -305,41 +312,33 @@ function buildCardFeedsData(
         }
     });
 
-    Object.entries(workspaceCardFeeds)
-        .filter(([, workspaceFeed]) => {
-            const domainName = Object.values(workspaceFeed ?? {}).at(0)?.domainName ?? '';
-            if (Object.keys(domainFeedsData).includes(domainName)) {
-                return false;
-            }
-            return !isEmptyObject(workspaceFeed);
-        })
-        .forEach(([workspaceFeedKey, workspaceFeed]) => {
-            const correspondingCardIDs = Object.entries(workspaceFeed ?? {})
-                .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && !isCardHiddenFromSearch(card))
-                .map(([cardKey]) => cardKey);
+    filterOutDomainCards(workspaceCardFeeds).forEach(([workspaceFeedKey, workspaceFeed]) => {
+        const correspondingCardIDs = Object.entries(workspaceFeed ?? {})
+            .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && !isCardHiddenFromSearch(card))
+            .map(([cardKey]) => cardKey);
 
-            const cardFeedData = getWorkspaceCardFeedData(workspaceFeed, repeatingBanks, translate);
-            if (!cardFeedData) {
-                return;
-            }
-            const {cardName, bank} = cardFeedData;
-            const cardFeedKey = getCardFeedKey(workspaceCardFeeds, workspaceFeedKey);
+        const cardFeedData = getWorkspaceCardFeedData(workspaceFeed, repeatingBanks, translate);
+        if (!cardFeedData) {
+            return;
+        }
+        const {cardName, bank} = cardFeedData;
+        const cardFeedKey = getCardFeedKey(workspaceCardFeeds, workspaceFeedKey);
 
-            const feedItem = createCardFeedItem({
-                cardName,
-                bank,
-                correspondingCardIDs,
-                cardFeedKey: cardFeedKey ?? '',
-                keyForList: workspaceFeedKey,
-                selectedCards,
-                illustrations,
-            });
-            if (feedItem.isSelected) {
-                selectedFeeds.push(feedItem);
-            } else {
-                unselectedFeeds.push(feedItem);
-            }
+        const feedItem = createCardFeedItem({
+            cardName,
+            bank,
+            correspondingCardIDs,
+            cardFeedKey: cardFeedKey ?? '',
+            keyForList: workspaceFeedKey,
+            selectedCards,
+            illustrations,
         });
+        if (feedItem.isSelected) {
+            selectedFeeds.push(feedItem);
+        } else {
+            unselectedFeeds.push(feedItem);
+        }
+    });
 
     return {selected: selectedFeeds, unselected: unselectedFeeds};
 }
@@ -391,4 +390,5 @@ export {
     getCardFeedKey,
     getWorkspaceCardFeedKey,
     generateDomainFeedData,
+    getDomainFeedData,
 };
