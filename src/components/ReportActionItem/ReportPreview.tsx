@@ -276,14 +276,7 @@ function ReportPreview({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(
-                        type,
-                        chatReport,
-                        iouReport,
-                        payAsBusiness,
-                        paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? methodID : undefined,
-                        paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD ? methodID : undefined,
-                    );
+                    payInvoice(type, chatReport, iouReport, payAsBusiness, methodID, paymentMethod);
                 } else {
                     payMoneyRequest(type, chatReport, iouReport);
                 }

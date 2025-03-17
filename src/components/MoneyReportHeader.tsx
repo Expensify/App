@@ -254,14 +254,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 setIsHoldMenuVisible(true);
             } else if (isInvoiceReport(moneyRequestReport)) {
                 startAnimation();
-                payInvoice(
-                    type,
-                    chatReport,
-                    moneyRequestReport,
-                    payAsBusiness,
-                    paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? methodID : undefined,
-                    paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD ? methodID : undefined,
-                );
+                payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
             } else {
                 startAnimation();
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
