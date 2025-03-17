@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -17,6 +17,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
@@ -55,6 +56,10 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
         const isTransitioning = report && report?.reportID !== reportID;
         return reportID !== '' && !!report?.reportID && !isTransitioning;
     }, [report, reportID]);
+
+    useEffect(() => {
+        openReport(reportID);
+    }, [reportID]);
 
     if (shouldUseNarrowLayout) {
         return (
