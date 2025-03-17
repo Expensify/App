@@ -24,7 +24,7 @@ function HelpButton({style}: HelpButtonProps) {
     const {sidePane, shouldHideHelpButton} = useSidePane();
 
     if (shouldHideHelpButton) {
-        return null;
+        // return null;
     }
 
     return (
