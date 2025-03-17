@@ -209,6 +209,20 @@ platform :android do
     )
   end
 
+  desc "Upload HybridApp to Google Play draft mode"
+  lane :upload_google_play_draft_hybrid
+         # Google is very unreliable, so we retry a few times
+          ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
+          upload_to_play_store(
+            package_name: ENV["ANDROID_PACKAGE_NAME"],
+            json_key: './android-fastlane-json-key.json',
+            aab: ENV[KEY_GRADLE_AAB_PATH],
+            track: 'internal',
+            release_status: 'draft',
+            rollout: '1.0'
+          )
+  end
+
     desc "Upload HybridApp to Google Play for internal testing"
     lane :upload_google_play_internal_hybrid do
       # Google is very unreliable, so we retry a few times
