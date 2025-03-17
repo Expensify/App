@@ -5978,6 +5978,17 @@ const translations = {
             part2: ', start chatting,',
             part3: '\nand more!',
         },
+        GBRRBRChat: {
+            part1: 'You’ll see 🟢 on ',
+            part2: 'actions to take',
+            part3: ',\nand 🔴 on ',
+            part4: 'errors to review.',
+        },
+        accountSwitcher: {
+            part1: 'Access your ',
+            part2: 'Copilot accounts',
+            part3: ' here',
+        },
         scanTestTooltip: {
             part1: 'Want to see how Scan works?',
             part2: ' Try a test \nreceipt!',

@@ -15,6 +15,8 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
+    GBR_RBR_CHAT,
+    ACCOUNT_SWITCHER,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
@@ -114,7 +116,30 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         ],
         onHideTooltip: () => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
-        priority: 800,
+        priority: 1800,
+        shouldShow: () => true,
+    },
+    [GBR_RBR_CHAT]: {
+        content: [
+            {text: 'productTrainingTooltip.GBRRBRChat.part1', isBold: false},
+            {text: 'productTrainingTooltip.GBRRBRChat.part2', isBold: true},
+            {text: 'productTrainingTooltip.GBRRBRChat.part3', isBold: false},
+            {text: 'productTrainingTooltip.GBRRBRChat.part4', isBold: true},
+        ],
+        onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
+        name: GBR_RBR_CHAT,
+        priority: 1900,
+        shouldShow: () => true,
+    },
+    [ACCOUNT_SWITCHER]: {
+        content: [
+            {text: 'productTrainingTooltip.accountSwitcher.part1', isBold: false},
+            {text: 'productTrainingTooltip.accountSwitcher.part2', isBold: true},
+            {text: 'productTrainingTooltip.accountSwitcher.part3', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(ACCOUNT_SWITCHER),
+        name: ACCOUNT_SWITCHER,
+        priority: 1600,
         shouldShow: () => true,
     },
     [SCAN_TEST_TOOLTIP]: {

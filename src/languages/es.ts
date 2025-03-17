@@ -6500,6 +6500,17 @@ const translations = {
             part2: ', comienza a chatear,',
             part3: '\ny mucho más!',
         },
+        GBRRBRChat: {
+            part1: 'Verás 🟢 en ',
+            part2: 'acciones a realizar',
+            part3: ',\ny 🔴 en ',
+            part4: 'errores para revisar.',
+        },
+        accountSwitcher: {
+            part1: 'Accede a tus ',
+            part2: 'cuentas Copilot',
+            part3: ' aquí',
+        },
         scanTestTooltip: {
             part1: '¿Quieres ver cómo funciona Escanear?',
             part2: ' \n¡Prueba con un recibo de prueba!',
