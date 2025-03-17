@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -47,8 +48,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {isOffline} = useNetwork();
-
+    const previousIsLoading = usePrevious(bankAccountList?.isLoading ?? false);
     const getTitle = (field: CorpayFormField, fieldName: string) => {
         if ((field.valueSet ?? []).length > 0) {
             return field.valueSet?.find((type) => type.id === formValues[fieldName])?.text ?? formValues[fieldName];
@@ -69,17 +71,20 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
             corpayFields?.classification ?? '',
             corpayFields?.destinationCountry ?? '',
             corpayFields?.preferredMethod ?? '',
-        ).then((response) => {
-            setIsSubmitting(false);
-            if (response?.jsonCode) {
-                if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                    onNext();
-                } else {
-                    setError(response.message ?? '');
-                }
-            }
-        });
+        )
     };
+
+    useEffect(() => {
+        if (previousIsLoading && !bankAccountList?.isLoading && bankAccountList?.errors) {
+            const errorMessage = bankAccountList.errors[0]?.message || '';
+            setError(errorMessage);
+            return;
+        }
+
+        if (previousIsLoading && !bankAccountList?.isLoading) {
+            onNext();
+        }
+    }, [bankAccountList, onNext, previousIsLoading]); 
 
     const summaryItems: MenuItemProps[] = [
         {
