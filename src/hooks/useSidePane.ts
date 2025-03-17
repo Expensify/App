@@ -1,9 +1,10 @@
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import {triggerSidePane} from '@libs/actions/SidePane';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,7 +36,10 @@ function useSidePane() {
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;
 
     const [shouldHideSidePane, setShouldHideSidePane] = useState(true);
+    const [isAnimatingExtraLargeScree, setIsAnimatingExtraLargeScreen] = useState(false);
+
     const shouldHideSidePaneBackdrop = isPaneHidden || isExtraLargeScreenWidth || shouldUseNarrowLayout;
+    const shouldHideToolTip = isExtraLargeScreenWidth ? isAnimatingExtraLargeScree : !shouldHideSidePane;
 
     // The help button is hidden when:
     // - side pane nvp is not set
@@ -49,6 +53,9 @@ function useSidePane() {
     useEffect(() => {
         if (!isPaneHidden) {
             setShouldHideSidePane(false);
+        }
+        if (isExtraLargeScreenWidth) {
+            setIsAnimatingExtraLargeScreen(true);
         }
 
         Animated.parallel([
@@ -64,8 +71,24 @@ function useSidePane() {
             }),
         ]).start(() => {
             setShouldHideSidePane(isPaneHidden);
+            setIsAnimatingExtraLargeScreen(false);
         });
-    }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth]);
+    }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth, isExtraLargeScreenWidth]);
+
+    const closeSidePane = useCallback(
+        (shouldUpdateNarrow = false) => {
+            if (!sidePaneNVP) {
+                return;
+            }
+
+            const shouldOnlyUpdateNarrowLayout = !isExtraLargeScreenWidth || shouldUpdateNarrow;
+            triggerSidePane({
+                isOpen: shouldOnlyUpdateNarrowLayout ? undefined : false,
+                isOpenNarrowScreen: shouldOnlyUpdateNarrowLayout ? false : undefined,
+            });
+        },
+        [isExtraLargeScreenWidth, sidePaneNVP],
+    );
 
     return {
         sidePane: sidePaneNVP,
@@ -74,6 +97,8 @@ function useSidePane() {
         shouldHideHelpButton,
         sidePaneOffset,
         sidePaneTranslateX,
+        shouldHideToolTip,
+        closeSidePane,
     };
 }
 
