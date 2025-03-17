@@ -502,6 +502,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
 
+    const prevReportActions = usePrevious(reportActions);
+    useEffect(() => {
+        if (prevReportActions.length !== 0 || reportActions.length === 0) {
+            return;
+        }
+        fetchReport();
+    }, [prevReportActions, reportActions, fetchReport]);
+
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
         if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isSingleTransactionView) {
