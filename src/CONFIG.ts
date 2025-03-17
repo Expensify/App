@@ -106,5 +106,6 @@ export default {
     USE_REACT_STRICT_MODE_IN_DEV: false,
     ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     IS_TEST_ENV: process.env.NODE_ENV === 'test',
+    // eslint-disable-next-line no-restricted-properties
     IS_HYBRID_APP: HybridAppModule.isHybridApp(),
 } as const;
