@@ -6,7 +6,7 @@ const personalInfoKeys = INPUT_IDS.PERSONAL_INFO_STEP;
 /**
  * Returns the initial substep for the Personal Info step based on already existing data
  */
-function getInitialSubstepForPersonalInfo(data: PersonalInfoStepProps): number {
+function getInitialSubStepForPersonalInfo(data: PersonalInfoStepProps): number {
     if (data[personalInfoKeys.FIRST_NAME] === '' || data[personalInfoKeys.LAST_NAME] === '') {
         return 0;
     }
@@ -30,4 +30,4 @@ function getInitialSubstepForPersonalInfo(data: PersonalInfoStepProps): number {
     return 5;
 }
 
-export default getInitialSubstepForPersonalInfo;
+export default getInitialSubStepForPersonalInfo;

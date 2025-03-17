@@ -545,7 +545,7 @@ describe('PolicyUtils', () => {
             };
             const result = getManagerAccountID(policy, report);
 
-            expect(result).toBe(categoryapprover1AccountID);
+            expect(result).toBe(categoryApprover1AccountID);
         });
 
         it('should return -1 if there is no employee or default approver', () => {
@@ -601,7 +601,7 @@ describe('PolicyUtils', () => {
 
             const result = getManagerAccountID(policy, report);
 
-            expect(result).toBe(categoryapprover1AccountID);
+            expect(result).toBe(categoryApprover1AccountID);
         });
     });
 

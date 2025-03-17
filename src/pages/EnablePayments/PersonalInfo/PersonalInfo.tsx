@@ -6,8 +6,8 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import IdologyQuestions from '@pages/EnablePayments/IdologyQuestions';
-import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/utils/getInitialSubstepForPersonalInfo';
-import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
+import getInitialSubStepForPersonalInfo from '@pages/EnablePayments/utils/getInitialSubStepForPersonalInfo';
+import getSubStepValues from '@pages/EnablePayments/utils/getSubStepValues';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,7 +30,7 @@ function PersonalInfoPage() {
 
     const showIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
 
-    const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
+    const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
     const submit = () => {
         const personalDetails = {
             phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
@@ -47,7 +47,7 @@ function PersonalInfoPage() {
         Wallet.updatePersonalDetails(personalDetails);
     };
 
-    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
+    const startFrom = useMemo(() => getInitialSubStepForPersonalInfo(values), [values]);
 
     const {
         componentToRender: SubStep,

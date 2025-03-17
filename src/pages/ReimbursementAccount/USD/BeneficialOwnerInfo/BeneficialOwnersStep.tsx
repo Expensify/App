@@ -119,7 +119,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         setCurrentUBOSubStep(SUBSTEP.UBO_DETAILS_FORM);
     };
 
-    const handleNextUBOSubstep = (value: boolean) => {
+    const handleNextUBOSubStep = (value: boolean) => {
         if (currentUBOSubStep === SUBSTEP.IS_USER_UBO) {
             setIsUserUBO(value);
 
@@ -195,7 +195,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         } else if (currentUBOSubStep === SUBSTEP.UBO_DETAILS_FORM && screenIndex > 0) {
             prevScreen();
         } else {
-            setCurrentUBOSubStep((currentSubstep) => currentSubstep - 1);
+            setCurrentUBOSubStep((currentSubStep) => currentSubStep - 1);
         }
     };
 
@@ -221,7 +221,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     defaultValue={isUserUBO}
-                    onSelectedValue={handleNextUBOSubstep}
+                    onSelectedValue={handleNextUBOSubStep}
                 />
             )}
 
@@ -231,7 +231,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
                     defaultValue={isAnyoneElseUBO}
-                    onSelectedValue={handleNextUBOSubstep}
+                    onSelectedValue={handleNextUBOSubStep}
                 />
             )}
 
@@ -250,7 +250,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
                     title={`${translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent')} ${companyName}?`}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
                     submitButtonStyles={[styles.mb0]}
-                    onSelectedValue={handleNextUBOSubstep}
+                    onSelectedValue={handleNextUBOSubStep}
                     defaultValue={false}
                 />
             )}

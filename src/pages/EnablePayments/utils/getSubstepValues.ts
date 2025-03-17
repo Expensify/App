@@ -3,7 +3,7 @@ import type {WalletAdditionalDetailsForm} from '@src/types/form';
 import type {PersonalInfoStepProps} from '@src/types/form/WalletAdditionalDetailsForm';
 import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
 
-function getSubstepValues<T extends keyof WalletAdditionalDetailsForm>(
+function getSubStepValues<T extends keyof WalletAdditionalDetailsForm>(
     inputKeys: Record<string, T>,
     walletAdditionalDetailsDraft: OnyxEntry<WalletAdditionalDetailsForm>,
     walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>,
@@ -14,4 +14,4 @@ function getSubstepValues<T extends keyof WalletAdditionalDetailsForm>(
     }, {} as {[K in T]: WalletAdditionalDetailsForm[K] | string});
 }
 
-export default getSubstepValues;
+export default getSubStepValues;

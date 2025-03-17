@@ -179,7 +179,7 @@
         "crios",
         "newdotreport",
         "Woohoo",
-        "contenteditable",
+        "contenteditable"
     ],
     "ignorePaths": [
         "node_modules",
@@ -208,7 +208,7 @@
         "src/TIMEZONES.ts",
         "tests/unit/splitLongWordTest.ts",
         "tests/unit/currencyList.json",
-        "src/CONST.ts",
+        "src/CONST.ts"
     ],
     "useGitignore": true
 }

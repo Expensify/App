@@ -12,7 +12,7 @@ import type {
     EventCallbackError,
     EventData,
     PusherEventName,
-    PusherSubscribtionErrorData,
+    PusherSubscriptionErrorData,
     PusherWithAuthParams,
     SocketEventCallback,
     SocketEventName,

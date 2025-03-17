@@ -37,7 +37,7 @@ function getLatestCreatedBankAccount(bankAccountList: OnyxEntry<BankAccountList>
     return lodashSortBy(Object.values(bankAccountList ?? {}), 'accountData.created').pop();
 }
 
-function getSubstepValues(
+function getSubStepValues(
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>,
     corpayFields: OnyxEntry<CorpayFields>,
     bankAccountList: OnyxEntry<BankAccountList>,
@@ -108,7 +108,7 @@ function testValidation(values: InternationalBankAccountForm, fieldsMap: CorpayF
     return true;
 }
 
-function getInitialSubstep(values: InternationalBankAccountForm, fieldsMap: Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap>) {
+function getInitialSubStep(values: InternationalBankAccountForm, fieldsMap: Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap>) {
     if (values.bankCountry === '' || isEmptyObject(fieldsMap)) {
         return CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR;
     }
@@ -144,4 +144,4 @@ function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERN
     return errors;
 }
 
-export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors};
+export {getFieldsMap, getSubStepValues, getInitialPersonalDetailsValues, getInitialSubStep, testValidation, getValidationErrors};

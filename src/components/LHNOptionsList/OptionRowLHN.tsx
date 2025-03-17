@@ -70,7 +70,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
-        const tooltip = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+        const tooltip = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
         const shouldShowTooltips = shouldShowWorkspaceChatTooltip || shouldShowGetStartedTooltip;
         const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isReportsSplitNavigatorLast : isReportsSplitNavigatorLast && !isFullscreenVisible;
 

@@ -1299,7 +1299,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     ...transaction,
                     amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
                     currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
-                    receipt: {...transaction.receipt, state: CONST.IOU.RECEIPT_STATE.SCANCOMPLETE},
+                    receipt: {...transaction.receipt, state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE},
                 },
             },
         );

@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
 import type {Policy} from '@src/types/onyx';
-import {getCustomSegmentInitialSubstep, getSubstepValues} from './customUtils';
+import {getCustomSegmentInitialSubStep, getSubStepValues} from './customUtils';
 import ChooseSegmentTypeStep from './substeps/ChooseSegmentTypeStep';
 import ConfirmCustomSegmentStep from './substeps/ConfirmCustomSegmentList';
 import CustomSegmentInternalIdStep from './substeps/CustomSegmentInternalIdStep';
@@ -44,8 +44,8 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
     const config = policy?.connections?.netsuite?.options?.config;
     const customSegments = useMemo(() => config?.syncOptions?.customSegments ?? [], [config?.syncOptions]);
     const [customSegmentType, setCustomSegmentType] = useState<ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES> | undefined>();
-    const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
-    const startFrom = useMemo(() => getCustomSegmentInitialSubstep(values), [values]);
+    const values = useMemo(() => getSubStepValues(draftValues), [draftValues]);
+    const startFrom = useMemo(() => getCustomSegmentInitialSubStep(values), [values]);
     const handleFinishStep = useCallback(() => {
         InteractionManager.runAfterInteractions(() => {
             const updatedCustomSegments = customSegments.concat([

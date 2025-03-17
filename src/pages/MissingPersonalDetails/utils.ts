@@ -5,7 +5,7 @@ import type {PersonalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
-function getSubstepValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, personalDetailsDraft: OnyxEntry<PersonalDetailsForm>): PersonalDetailsForm {
+function getSubStepValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, personalDetailsDraft: OnyxEntry<PersonalDetailsForm>): PersonalDetailsForm {
     const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
@@ -23,7 +23,7 @@ function getSubstepValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetai
     };
 }
 
-function getInitialSubstep(values: PersonalDetailsForm) {
+function getInitialSubStep(values: PersonalDetailsForm) {
     if (values[INPUT_IDS.LEGAL_FIRST_NAME] === '' || values[INPUT_IDS.LEGAL_LAST_NAME] === '') {
         return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME;
     }
@@ -45,4 +45,4 @@ function getInitialSubstep(values: PersonalDetailsForm) {
     return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.CONFIRM;
 }
 
-export {getSubstepValues, getInitialSubstep};
+export {getSubStepValues, getInitialSubStep};
