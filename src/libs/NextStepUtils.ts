@@ -56,7 +56,7 @@ function parseMessage(messages: Message[] | undefined) {
         const nextPart = messages.at(index + 1);
 
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-            tagType = 'next-step-email';
+            tagType = 'strong';
             content = nextPart?.text === `'s` ? 'your' : 'you';
         } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
             content = '';
@@ -64,7 +64,7 @@ function parseMessage(messages: Message[] | undefined) {
             tagType = 'next-step-email';
             content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
         }
-
+        
         nextStepHTML += `<${tagType}>${content}</${tagType}>`;
     });
 
