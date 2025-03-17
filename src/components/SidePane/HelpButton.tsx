@@ -10,6 +10,7 @@ import useSidePane from '@hooks/useSidePane';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {triggerSidePane} from '@libs/actions/SidePane';
+import KeyboardUtils from '@src/utils/keyboard';
 
 type HelpButtonProps = {
     style?: StyleProp<ViewStyle>;
@@ -32,6 +33,7 @@ function HelpButton({style}: HelpButtonProps) {
                 accessibilityLabel={translate('common.help')}
                 style={[styles.flexRow, styles.touchableButtonImage, styles.mr2, style]}
                 onPress={() => {
+                    KeyboardUtils.dismiss();
                     triggerSidePane({
                         isOpen: isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen,
                         isOpenNarrowScreen: isExtraLargeScreenWidth ? undefined : !sidePane?.openNarrowScreen,

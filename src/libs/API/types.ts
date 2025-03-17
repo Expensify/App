@@ -311,7 +311,7 @@ const WRITE_COMMANDS = {
     SEND_INVOICE: 'SendInvoice',
     PAY_INVOICE: 'PayInvoice',
     MARK_AS_CASH: 'MarkAsCash',
-    MERGE_DUPLICATES: 'MergeDuplicates',
+    TRANSACTION_MERGE: 'Transaction_Merge',
     RESOLVE_DUPLICATES: 'ResolveDuplicates',
     UPDATE_SUBSCRIPTION_TYPE: 'UpdateSubscriptionType',
     SIGN_UP_USER: 'SignUpUser',
@@ -462,6 +462,7 @@ const WRITE_COMMANDS = {
     RESET_SMS_DELIVERY_FAILURE_STATUS: 'ResetSMSDeliveryFailureStatus',
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
+    CHANGE_REPORT_POLICY: 'ChangeReportPolicy',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -783,7 +784,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEND_INVOICE]: Parameters.SendInvoiceParams;
     [WRITE_COMMANDS.PAY_INVOICE]: Parameters.PayInvoiceParams;
     [WRITE_COMMANDS.MARK_AS_CASH]: Parameters.MarkAsCashParams;
-    [WRITE_COMMANDS.MERGE_DUPLICATES]: Parameters.MergeDuplicatesParams;
+    [WRITE_COMMANDS.TRANSACTION_MERGE]: Parameters.TransactionMergeParams;
     [WRITE_COMMANDS.RESOLVE_DUPLICATES]: Parameters.ResolveDuplicatesParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_TYPE]: Parameters.UpdateSubscriptionTypeParams;
     [WRITE_COMMANDS.SIGN_UP_USER]: Parameters.SignUpUserParams;
@@ -935,6 +936,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY]: Parameters.JoinAccessiblePolicyParams;
     // Dismis Product Training
     [WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING]: Parameters.DismissProductTrainingParams;
+
+    // Change report policy
+    [WRITE_COMMANDS.CHANGE_REPORT_POLICY]: Parameters.ChangeReportPolicyParams;
 };
 
 const READ_COMMANDS = {
