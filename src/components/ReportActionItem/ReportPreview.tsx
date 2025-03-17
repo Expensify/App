@@ -532,6 +532,7 @@ function ReportPreview({
                 text={translate('iou.approve')}
                 onPress={() => confirmApproval()}
                 isDisabled={shouldDisableSubmitButton}
+                style={{paddingTop: 16}}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
@@ -547,7 +548,6 @@ function ReportPreview({
                 chatReportID={chatReportID}
                 iouReport={iouReport}
                 onPress={confirmPayment}
-                onPaymentOptionsShow={onPaymentOptionsShow}
                 onPaymentOptionsHide={onPaymentOptionsHide}
                 confirmApproval={confirmApproval}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
@@ -585,6 +585,9 @@ function ReportPreview({
                 text={translate('common.review')}
                 onPress={() => openReportFromPreview()}
                 isDisabled={shouldDisableSubmitButton}
+                icon={Expensicons.DotIndicator}
+                iconFill={theme.danger}
+                iconHoverFill={theme.dangerHover}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
@@ -637,12 +640,6 @@ function ReportPreview({
                                                 {previewMessage}
                                             </Text>
                                         </Animated.View>
-                                        {shouldShowRBR && (
-                                            <Icon
-                                                src={Expensicons.DotIndicator}
-                                                fill={theme.danger}
-                                            />
-                                        )}
                                         {!shouldShowRBR && shouldPromptUserToAddBankAccount && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
