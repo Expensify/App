@@ -35,6 +35,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import KeyboardUtils from '@src/utils/keyboard';
 import SearchTypeMenuPopover from './SearchTypeMenuPopover';
 
 // When counting absolute positioning, we need to account for borders
@@ -47,18 +48,9 @@ type SearchPageHeaderInputProps = {
     onSearchRouterFocus?: () => void;
     searchName?: string;
     inputRightComponent: React.ReactNode;
-    shouldGroupByReports?: boolean;
 };
 
-function SearchPageHeaderInput({
-    queryJSON,
-    searchRouterListVisible,
-    hideSearchRouterList,
-    onSearchRouterFocus,
-    searchName,
-    inputRightComponent,
-    shouldGroupByReports,
-}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent}: SearchPageHeaderInputProps) {
     const {translate} = useLocalize();
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
@@ -252,7 +244,7 @@ function SearchPageHeaderInput({
                                 onSearchQueryChange={onSearchQueryChange}
                                 isFullWidth
                                 onSubmit={() => {
-                                    submitSearch(textInputValue);
+                                    KeyboardUtils.dismiss().then(() => submitSearch(textInputValue));
                                 }}
                                 autoFocus={false}
                                 onFocus={onFocus}
@@ -271,7 +263,6 @@ function SearchPageHeaderInput({
                             >
                                 <SearchTypeMenuPopover
                                     queryJSON={queryJSON}
-                                    shouldGroupByReports={shouldGroupByReports}
                                     searchName={searchName}
                                 />
                             </Animated.View>
