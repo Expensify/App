@@ -324,6 +324,17 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         [isFocused, clearSelectedTransactions],
     );
 
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        onSearchListScroll?.(event);
+        const offsetY = event.nativeEvent.contentOffset.y;
+
+        if (shouldShowLoadingState || offsetY > 0) {
+            return;
+        }
+
+        setOffset(0);
+    };
+
     if (shouldShowLoadingState) {
         return (
             <SearchRowSkeleton
@@ -488,7 +499,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
                     : !!item.isSelected
             }
-            onScroll={onSearchListScroll}
+            onScroll={handleScroll}
             onContentSizeChange={onContentSizeChange}
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
             customListHeaderHeight={searchHeaderHeight}
