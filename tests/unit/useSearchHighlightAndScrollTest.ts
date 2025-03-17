@@ -2,7 +2,7 @@
 import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
-import * as Search from '@libs/actions/Search';
+import {search} from '@libs/actions/Search';
 
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => true,
@@ -184,12 +184,12 @@ describe('useSearchHighlightAndScroll', () => {
         const {rerender} = renderHook((prop: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(prop), {
             initialProps,
         });
-        expect(Search.search).not.toHaveBeenCalled();
+        expect(search).not.toHaveBeenCalled();
 
         // When the transaction ids list change though it has the same length as previous value
         rerender(changedProp);
 
         // Then Search will be triggerred.
-        expect(Search.search).toHaveBeenCalled();
+        expect(search).toHaveBeenCalled();
     });
 });
