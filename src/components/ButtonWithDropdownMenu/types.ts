@@ -79,6 +79,14 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
 
+    /**
+     * Determines how the popover menu should be horizontally positioned relative to the button.
+     * - 'right': Anchors to the right edge of the button (default)
+     * - 'left': Anchors to the left edge of the button
+     * - 'center': Anchors to the center of the button
+     */
+    popoverHorizontalOffsetType?: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
+
     /* ref for the button */
     buttonRef?: RefObject<View>;
 
