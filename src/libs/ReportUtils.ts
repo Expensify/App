@@ -4862,7 +4862,7 @@ function completeShortMention(text: string): string {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>): string {
+function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>, isTaskAction?: boolean): string {
     let isGroupPolicyReport = false;
     if (parsingDetails?.reportID) {
         const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
@@ -4877,11 +4877,12 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAt
     }
 
     const textWithMention = completeShortMention(text);
+    const disabledRules = isTaskAction ? ['image'] : [];
 
     return text.length <= CONST.MAX_MARKUP_LENGTH
         ? Parser.replace(textWithMention, {
               shouldEscapeText: parsingDetails?.shouldEscapeText,
-              disabledRules: isGroupPolicyReport ? [] : ['reportMentions'],
+              disabledRules: isGroupPolicyReport ? [...disabledRules] : ['reportMentions', ...disabledRules],
               extras: {mediaAttributeCache: mediaAttributes},
           })
         : lodashEscape(text);
@@ -6506,7 +6507,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: changelog,
-                html: getParsedComment(changelog),
+                html: getParsedComment(changelog, undefined, undefined, title !== undefined),
             },
         ],
         person: [
@@ -6851,7 +6852,7 @@ function buildOptimisticTaskReport(
 
     return {
         reportID: generateReportID(),
-        reportName: getParsedComment(title ?? ''),
+        reportName: getParsedComment(title ?? '', undefined, undefined, true),
         description: getParsedComment(description ?? '', {}, mediaAttributes),
         ownerAccountID,
         participants,
