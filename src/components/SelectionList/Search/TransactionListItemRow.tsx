@@ -148,9 +148,9 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     const description = getTransactionDescription(transactionItem);
     let merchantOrDescriptionToDisplay = transactionItem.formattedMerchant;
     if (!merchantOrDescriptionToDisplay && !isLargeScreenWidth) {
-        merchantOrDescriptionToDisplay = Parser.htmlToText(Parser.replace(description));
+        merchantOrDescriptionToDisplay = Parser.htmlToText(description);
     }
-    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(Parser.replace(description));
+    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
 
     if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
