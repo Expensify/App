@@ -1,7 +1,8 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import React, {useMemo, useState} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,7 +17,6 @@ import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {openOldDotLink} from '@userActions/Link';
-import {setIsRootStatusBarEnabled} from '@userActions/HybridApp';
 import {createWorkspace, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingCompanySize, setOnboardingPolicyID, switchToOldDotOnNonMicroCompanySize} from '@userActions/Welcome';
@@ -38,6 +38,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
 
@@ -112,7 +113,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
 
                     if (CONFIG.IS_HYBRID_APP) {
                         HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                        setIsRootStatusBarEnabled(false);
+                        setRootStatusBarEnabled(false);
                     } else {
                         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                     }

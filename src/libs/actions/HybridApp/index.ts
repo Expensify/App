@@ -30,10 +30,6 @@ function setUseNewDotSignInPage(useNewDotSignInPage: boolean) {
     return Onyx.merge(ONYXKEYS.HYBRID_APP, {useNewDotSignInPage});
 }
 
-function setIsRootStatusBarEnabled(isRootStatusBarEnabled: boolean) {
-    return Onyx.merge(ONYXKEYS.HYBRID_APP, {isRootStatusBarEnabled});
-}
-
 /*
  * Starts HybridApp sign-in flow from the beginning.
  */
@@ -64,4 +60,4 @@ function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
     });
 }
 
-export {parseHybridAppSettings, setReadyToShowAuthScreens, setNewDotSignInState, resetSignInFlow, prepareHybridAppAfterTransitionToNewDot, setUseNewDotSignInPage, setIsRootStatusBarEnabled};
+export {parseHybridAppSettings, setReadyToShowAuthScreens, setNewDotSignInState, resetSignInFlow, prepareHybridAppAfterTransitionToNewDot, setUseNewDotSignInPage};

@@ -9,6 +9,7 @@ import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -40,7 +41,6 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import * as HybridAppActions from '@userActions/HybridApp';
-import {setIsRootStatusBarEnabled} from '@userActions/HybridApp';
 import {buildOldDotURL, openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';

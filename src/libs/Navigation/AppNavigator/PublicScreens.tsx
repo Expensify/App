@@ -9,7 +9,6 @@ import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
-import CONFIG from '@src/CONFIG';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';

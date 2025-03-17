@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
@@ -27,6 +27,7 @@ import Terms from '@pages/signin/Terms';
 import * as HybridAppActions from '@userActions/HybridApp';
 import * as SessionActions from '@userActions/Session';
 import * as User from '@userActions/User';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -154,7 +155,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        if (NativeModules.HybridAppModule) {
+        if (CONFIG.IS_HYBRID_APP) {
             HybridAppActions.resetSignInFlow();
         }
 
@@ -237,7 +238,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (NativeModules.HybridAppModule && session?.authToken) {
+        if (CONFIG.IS_HYBRID_APP && session?.authToken) {
             HybridAppActions.resetSignInFlow();
         }
 

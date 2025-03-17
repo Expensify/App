@@ -41,9 +41,6 @@ type HybridApp = {
 
     /**  */
     delegateAccessData?: HybridAppDelegateAccessData;
-
-    /** */
-    isRootStatusBarEnabled?: boolean;
 };
 
 export default HybridApp;

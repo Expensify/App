@@ -7,6 +7,7 @@ import {Keyboard, PanResponder, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
+import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
@@ -181,7 +182,7 @@ function ScreenWrapper(
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {initialURL} = useContext(InitialURLContext);
 
-    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
     const includeSafeAreaPaddingBottom = enableEdgeToEdgeBottomSafeAreaPadding ? false : includeSafeAreaPaddingBottomProp;
 
@@ -197,7 +198,7 @@ function ScreenWrapper(
 
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
-    UNSTABLE_usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
+    UNSTABLE_usePreventRemove((hybridApp?.isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }

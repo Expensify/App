@@ -1,10 +1,11 @@
 import React, {createContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
-import type {AppProps} from '@src/App';
 import {useOnyx} from 'react-native-onyx';
 import {setupNewDotAfterTransitionFromOldDot} from '@libs/actions/Session';
+import type {AppProps} from '@src/App';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';

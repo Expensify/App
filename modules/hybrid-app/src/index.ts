@@ -16,6 +16,14 @@ const HybridAppModule: HybridAppModuleType = {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `switchAccount` should never be called on web');
     },
+    signInToOldDot() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `signInToOldDot` should never be called on web');
+    },
+    signOutFromOldDot() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `signOutFromOldDot` should never be called on web');
+    },
 };
 
 export default HybridAppModule;
