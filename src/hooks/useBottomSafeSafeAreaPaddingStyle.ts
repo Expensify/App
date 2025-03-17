@@ -54,13 +54,13 @@ function useBottomSafeSafeAreaPaddingStyle(params?: UseBottomSafeAreaPaddingStyl
         // If a style is provided, flatten the style and add the padding to it
         if (style) {
             const contentContainerStyleFlattened = StyleSheet.flatten(style);
-            const stylePaddingBottom = contentContainerStyleFlattened?.paddingBottom;
+            const styleBottomSafeAreaPadding = contentContainerStyleFlattened?.[styleProperty];
 
-            if (typeof stylePaddingBottom === 'number') {
-                totalPaddingBottom += stylePaddingBottom;
-            } else if (typeof stylePaddingBottom === 'string') {
-                totalPaddingBottom = `calc(${totalPaddingBottom}px + ${stylePaddingBottom})`;
-            } else if (stylePaddingBottom !== undefined) {
+            if (typeof styleBottomSafeAreaPadding === 'number') {
+                totalPaddingBottom += styleBottomSafeAreaPadding;
+            } else if (typeof styleBottomSafeAreaPadding === 'string') {
+                totalPaddingBottom = `calc(${totalPaddingBottom}px + ${styleBottomSafeAreaPadding})`;
+            } else if (styleBottomSafeAreaPadding !== undefined) {
                 return style;
             }
 
