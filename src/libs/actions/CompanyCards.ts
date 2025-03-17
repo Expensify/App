@@ -38,6 +38,10 @@ function setAssignCardStepAndData({data, isEditing, currentStep}: Partial<Assign
     Onyx.merge(ONYXKEYS.ASSIGN_CARD, {data, isEditing, currentStep});
 }
 
+function setTransactionStartDate(startDate: string) {
+    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {startDate});
+}
+
 function clearAssignCardStepAndData() {
     Onyx.set(ONYXKEYS.ASSIGN_CARD, {});
 }
@@ -790,4 +794,5 @@ export {
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
     openAssignFeedCardPage,
+    setTransactionStartDate,
 };

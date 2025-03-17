@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useLayoutEffect, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
@@ -131,6 +131,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
 
+    /** Whether we should set a max height to the popover content */
+    shouldEnableMaxHeight?: boolean;
+
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
 
@@ -186,6 +189,7 @@ function PopoverMenu({
     innerContainerStyle,
     scrollContainerStyle,
     shouldUseScrollView = false,
+    shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
     shouldUseNewModal,
@@ -366,6 +370,13 @@ function PopoverMenu({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [menuItems, setFocusedIndex]);
 
+    const menuContainerStyle = useMemo(() => {
+        if (isSmallScreenWidth) {
+            return shouldEnableMaxHeight ? {maxHeight: windowHeight - 250} : {};
+        }
+        return styles.createMenuContainer;
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -397,7 +408,7 @@ function PopoverMenu({
             shouldUseNewModal={shouldUseNewModal}
         >
             <FocusTrapForModal active={isVisible}>
-                <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
+                <View style={[menuContainerStyle, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
