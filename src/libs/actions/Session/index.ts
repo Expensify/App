@@ -60,7 +60,6 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
-import {getCurrentUserAccountID} from '../Report';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
@@ -289,17 +288,17 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 
     // Now if this is a supportal access or force use stashed session, we do not want to stash the current session and we have a
     // stashed session, then we need to restore the stashed session instead of completely logging out
-    if ((isSupportal || shouldForceUseStashedSession) && !shouldStashSession && hasStashedSession()) {
-        if (CONFIG.IS_HYBRID_APP) {
-            HybridAppModule.switchAccount({
-                newDotCurrentAccountEmail: stashedSession.email ?? '',
-                authToken: stashedSession.authToken ?? '',
-                policyID: activePolicyID ?? '',
-                accountID: String(getCurrentUserAccountID()),
-            });
-            return;
-        }
-
+    const shouldSwitchAccount = (isSupportal || shouldForceUseStashedSession) && !shouldStashSession && hasStashedSession();
+    if (shouldSwitchAccount && CONFIG.IS_HYBRID_APP) {
+        HybridAppModule.switchAccount({
+            newDotCurrentAccountEmail: stashedSession.email ?? '',
+            authToken: stashedSession.authToken ?? '',
+            policyID: activePolicyID ?? '',
+            accountID: String(session.accountID ?? ''),
+        });
+        return;
+    }
+    if (shouldSwitchAccount) {
         onyxSetParams = {
             [ONYXKEYS.CREDENTIALS]: stashedCredentials,
             [ONYXKEYS.SESSION]: stashedSession,
