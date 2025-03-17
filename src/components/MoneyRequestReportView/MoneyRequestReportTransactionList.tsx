@@ -1,34 +1,32 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import TransactionItemRow from '@components/TransactionItemRow';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 
 type MoneyRequestReportTransactionListProps = {
-    /** The report */
-    report: OnyxEntry<OnyxTypes.Report>;
-
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
 };
 
-/**
- * TODO
- * This component is under construction and not yet displayed to any users.
- */
-function MoneyRequestReportTransactionList({report, transactions}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+
+    const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
 
     return (
         <>
-            <MoneyRequestReportTableHeader
-                shouldShowSorting
-                sortBy="date"
-                sortOrder="desc"
-                onSortPress={() => {}}
-            />
+            {!displayNarrowVersion && (
+                <MoneyRequestReportTableHeader
+                    shouldShowSorting
+                    sortBy="date"
+                    sortOrder="desc"
+                    onSortPress={() => {}}
+                />
+            )}
             <View style={[styles.pv2, styles.ph5]}>
                 {transactions.map((transaction) => {
                     return (
@@ -37,7 +35,7 @@ function MoneyRequestReportTransactionList({report, transactions}: MoneyRequestR
                                 transactionItem={transaction}
                                 isSelected={false}
                                 shouldShowTooltip
-                                shouldUseNarrowLayout={false}
+                                shouldUseNarrowLayout={displayNarrowVersion}
                             />
                         </View>
                     );

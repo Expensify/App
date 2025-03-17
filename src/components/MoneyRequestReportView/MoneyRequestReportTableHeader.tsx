@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import SortableTableHeader from '@components/SelectionList/SortableTableHeader';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -63,12 +62,6 @@ const shouldShowColumn = () => true;
 
 function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, shouldShowSorting}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
-
-    if (displayNarrowVersion) {
-        return;
-    }
 
     return (
         <View style={[styles.ph8, styles.pv3]}>

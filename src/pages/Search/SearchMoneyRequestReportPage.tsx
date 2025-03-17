@@ -1,10 +1,9 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import HeaderGap from '@components/HeaderGap';
-import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
 import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
@@ -14,12 +13,10 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import ReportFooter from '@pages/home/report/ReportFooter';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
@@ -45,13 +42,10 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
 
     const {reportID} = route.params;
 
-    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-
-    const [isComposerFocus, setIsComposerFocus] = useState(false);
 
     /**
      * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
@@ -62,9 +56,6 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
         return reportID !== '' && !!report?.reportID && !isTransitioning;
     }, [report, reportID]);
 
-    const onComposerFocus = useCallback(() => setIsComposerFocus(true), []);
-    const onComposerBlur = useCallback(() => setIsComposerFocus(false), []);
-
     if (shouldUseNarrowLayout) {
         return (
             <ScreenWrapper
@@ -73,17 +64,11 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                 offlineIndicatorStyle={styles.mtAuto}
                 headerGapStyles={styles.searchHeaderGap}
             >
-                <MoneyReportHeader
+                <MoneyRequestReportView
                     report={report}
+                    reportMetadata={reportMetadata}
                     policy={policy}
-                    reportActions={[]}
-                    transactionThreadReportID={undefined}
-                    shouldDisplayBackButton
-                    onBackButtonPress={() => {
-                        Navigation.goBack();
-                    }}
                 />
-                <MoneyRequestReportView report={report} />
             </ScreenWrapper>
         );
     }
@@ -110,30 +95,11 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                 <View style={[styles.flexColumn, styles.flex1]}>
                     <DragAndDropProvider isDisabled={!isCurrentReportLoadedFromOnyx || !canUserPerformWriteAction(report)}>
                         <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                            <HeaderGap />
-                            <MoneyReportHeader
+                            <MoneyRequestReportView
                                 report={report}
+                                reportMetadata={reportMetadata}
                                 policy={policy}
-                                reportActions={[]}
-                                transactionThreadReportID={undefined}
-                                shouldDisplayBackButton
-                                onBackButtonPress={() => {
-                                    Navigation.goBack();
-                                }}
                             />
-                            <MoneyRequestReportView report={report} />
-                            {isCurrentReportLoadedFromOnyx ? (
-                                <ReportFooter
-                                    onComposerFocus={onComposerFocus}
-                                    onComposerBlur={onComposerBlur}
-                                    report={report}
-                                    reportMetadata={reportMetadata}
-                                    policy={policy}
-                                    // pendingAction={reportPendingAction}
-                                    isComposerFullSize={!!isComposerFullSize}
-                                    // lastReportAction={lastReportAction}
-                                />
-                            ) : null}
                         </View>
                         <PortalHost name="suggestions" />
                     </DragAndDropProvider>
