@@ -206,7 +206,7 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('twice a month', () => {
-                    // Waiting for userSubmitter's expense(s) to automatically submit on the 1st and 16th of the month
+                    // Waiting for userSubmitter's expense(s) to automatically submit on the 1st and 16th of each month
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -224,7 +224,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ' on the 1st and 16th of the month',
+                            text: ' on the 1st and 16th of each month',
                         },
                     ];
 
@@ -259,7 +259,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ' on the 2nd of the month',
+                            text: ' on the 2nd of each month',
                         },
                     ];
 
