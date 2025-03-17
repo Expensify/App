@@ -166,6 +166,8 @@ function AttachmentModal({
     type = undefined,
     accountID = undefined,
     shouldDisableSendButton = false,
+    draftTransactionID,
+    action,
     attachmentLink = '',
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
@@ -437,7 +439,13 @@ function AttachmentModal({
                     closeModal(true);
                     Navigation.isNavigationReady().then(() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                action ?? CONST.IOU.ACTION.EDIT,
+                                iouType,
+                                draftTransactionID ?? transaction?.transactionID,
+                                report?.reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
                         );
                     });
                 },
