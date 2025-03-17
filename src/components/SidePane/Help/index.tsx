@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -28,6 +28,21 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
     const isInNarrowPaneModal = !!modal?.isVisible || isInRHP;
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePane(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
+
+    useEffect(() => {
+        window.history.pushState({isSidePaneOpen: true}, '', null);
+        const handlePopState = () => {
+            if (isExtraLargeScreenWidth) {
+                return;
+            }
+
+            closeSidePane();
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <ModalPortal>
