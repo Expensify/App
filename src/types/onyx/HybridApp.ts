@@ -41,6 +41,9 @@ type HybridApp = {
 
     /**  */
     delegateAccessData?: HybridAppDelegateAccessData;
+
+    /** */
+    closingReactNativeApp?: boolean;
 };
 
 export default HybridApp;

@@ -113,7 +113,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
 
                     if (CONFIG.IS_HYBRID_APP) {
                         HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                        setRootStatusBarEnabled(false);
                     } else {
                         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                     }

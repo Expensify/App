@@ -615,7 +615,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     setModalVisible(false);
                     if (CONFIG.IS_HYBRID_APP) {
                         HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                        setRootStatusBarEnabled(false);
                         return;
                     }
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX);
