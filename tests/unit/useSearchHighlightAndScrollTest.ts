@@ -4,6 +4,10 @@ import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
 import * as Search from '@libs/actions/Search';
 
+jest.mock('@react-navigation/native', () => ({
+    useIsFocused: () => true,
+    createNavigationContainerRef: jest.fn(),
+}));
 jest.mock('@libs/actions/Search');
 
 describe('useSearchHighlightAndScroll', () => {
