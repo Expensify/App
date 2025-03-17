@@ -7,13 +7,13 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 function HangTight({tempSubmit}: {tempSubmit: () => void}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
+    const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
     const handleSendReminder = () => {
         // TODO remove that
