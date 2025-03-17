@@ -335,24 +335,29 @@ function ScreenWrapper(
         [enableEdgeToEdgeBottomSafeAreaPadding, edgeToEdgeBottomContentStyle, legacyBottomContentStyle],
     );
 
-    const addWidescreenOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true;
-    const displayStickyMobileOfflineIndicator = shouldMobileOfflineIndicatorStickToBottom && !bottomContent;
-    const showOfflineIndicatorBackground = !bottomContent && (isSoftKeyNavigation || isOffline);
     const mobileOfflineIndicatorBackgroundStyle = useMemo(() => {
+        const showOfflineIndicatorBackground = !bottomContent && (isSoftKeyNavigation || isOffline);
         if (!showOfflineIndicatorBackground) {
             return undefined;
         }
         return isOfflineIndicatorTranslucent ? styles.navigationBarBG : styles.appBG;
-    }, [isOfflineIndicatorTranslucent, showOfflineIndicatorBackground, styles.appBG, styles.navigationBarBG]);
-
+    }, [bottomContent, isOffline, isOfflineIndicatorTranslucent, isSoftKeyNavigation, styles.appBG, styles.navigationBarBG]);
     const mobileOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: displayStickyMobileOfflineIndicator,
+        addBottomSafeAreaPadding: !bottomContent,
         styleProperty: isSoftKeyNavigation ? 'bottom' : 'paddingBottom',
     });
+
+    const displayStickyMobileOfflineIndicator = shouldMobileOfflineIndicatorStickToBottom && !bottomContent;
     const mobileOfflineIndicatorContainerStyle = useMemo(
-        () => displayStickyMobileOfflineIndicator && [styles.stickToBottom, mobileOfflineIndicatorBottomSafeAreaStyle],
-        [displayStickyMobileOfflineIndicator, styles.stickToBottom, mobileOfflineIndicatorBottomSafeAreaStyle],
+        () => [mobileOfflineIndicatorBottomSafeAreaStyle, displayStickyMobileOfflineIndicator && styles.stickToBottom, !isSoftKeyNavigation && mobileOfflineIndicatorBackgroundStyle],
+        [mobileOfflineIndicatorBottomSafeAreaStyle, displayStickyMobileOfflineIndicator, styles.stickToBottom, isSoftKeyNavigation, mobileOfflineIndicatorBackgroundStyle],
     );
+    const mobileOfflineIndicatorStyle = useMemo(
+        () => [styles.pl5, isSoftKeyNavigation && mobileOfflineIndicatorBackgroundStyle, offlineIndicatorStyle],
+        [isSoftKeyNavigation, mobileOfflineIndicatorBackgroundStyle, offlineIndicatorStyle, styles.pl5],
+    );
+
+    const addWidescreenOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true;
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
@@ -399,8 +404,8 @@ function ScreenWrapper(
                                         : children
                                 }
                                 {isSmallScreenWidth && shouldShowOfflineIndicator && (
-                                    <View style={[mobileOfflineIndicatorContainerStyle, mobileOfflineIndicatorBackgroundStyle]}>
-                                        <OfflineIndicator style={[styles.pl5, offlineIndicatorStyle]} />
+                                    <View style={[mobileOfflineIndicatorContainerStyle]}>
+                                        <OfflineIndicator style={mobileOfflineIndicatorStyle} />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
                                     </View>
