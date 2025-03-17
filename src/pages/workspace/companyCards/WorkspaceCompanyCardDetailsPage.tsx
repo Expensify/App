@@ -79,8 +79,11 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     };
 
     const lastScrape = useMemo(() => {
-        if (!card?.lastScrape || !preferredLocale) {
+        if (!card?.lastScrape) {
             return '';
+        }
+        if (!preferredLocale) {
+            return card.lastScrape ?? '';
         }
         return format(DateUtils.getLocalDateFromDatetime(preferredLocale, card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
     }, [preferredLocale, card?.lastScrape]);
