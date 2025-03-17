@@ -188,7 +188,7 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     }
 
     return (
-        <View style={[shouldShowSelectedDropdown ? styles.ph5 : styles.pr5, styles.mb2, styles.searchStatusBarContainer]}>
+        <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchStatusBarContainer]}>
             {shouldShowSelectedDropdown ? (
                 <ButtonWithDropdownMenu
                     onPress={() => null}
