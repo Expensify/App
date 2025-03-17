@@ -8,7 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getPolicyCategoriesData} from '@libs/actions/Policy/Category';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
-import type {MergeDuplicatesParams} from '@libs/API/parameters';
+import type {TransactionMergeParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -1402,7 +1402,7 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
     };
 }
 
-function buildMergeDuplicatesParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): MergeDuplicatesParams {
+function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
     return {
         amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
         reportID: originalTransaction?.reportID,
@@ -1535,7 +1535,7 @@ export {
     compareDuplicateTransactionFields,
     getTransactionID,
     buildNewTransactionAfterReviewingDuplicates,
-    buildMergeDuplicatesParams,
+    buildTransactionsMergeParams,
     getReimbursable,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
