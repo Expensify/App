@@ -249,6 +249,7 @@ const SCREENS = {
         STEP_DESTINATION_EDIT: 'Money_Request_Destination_Edit',
         STEP_TIME_EDIT: 'Money_Request_Time_Edit',
         STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
+        STEP_REPORT: 'Money_Request_Report',
     },
 
     TRANSACTION_DUPLICATE: {

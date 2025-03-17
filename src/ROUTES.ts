@@ -604,6 +604,11 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = 0, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}/edit/${pageIndex}`, backTo),
     },
+    MONEY_REQUEST_STEP_REPORT: {
+        route: ':action/:iouType/report/:transactionID/:reportID/edit',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}/edit`, backTo),
+    },
     SETTINGS_TAGS_ROOT: {
         route: 'settings/:policyID/tags',
         getRoute: (policyID: string | undefined, backTo = '') => {
