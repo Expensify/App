@@ -218,8 +218,7 @@ platform :android do
       json_key: './android-fastlane-json-key.json',
       aab: ENV[KEY_GRADLE_AAB_PATH],
       track: 'internal',
-      release_status: 'draft',
-      rollout: '1.0'
+      release_status: 'draft'
     )
   end
 
