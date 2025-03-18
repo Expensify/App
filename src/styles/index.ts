@@ -4929,6 +4929,11 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        searchStatusBarContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
         walletIllustration: {
             height: 180,
         },
@@ -5274,6 +5279,11 @@ const styles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        twoFARequiredContainer: {
+            maxWidth: 350,
+            margin: 'auto',
+        },
+
         widthAuto: {
             width: 'auto',
         },
@@ -5468,7 +5478,6 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
-
         sidePaneOverlay: (isOverlayVisible: boolean) => ({
             ...positioning.pFixed,
             top: 0,
