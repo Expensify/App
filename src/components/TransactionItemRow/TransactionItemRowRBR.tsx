@@ -1,4 +1,5 @@
 import React from 'react';
+import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {DotIndicator} from '@components/Icon/Expensicons';
@@ -11,7 +12,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import type Transaction from '@src/types/onyx/Transaction';
 
-function TransactionItemRowRBR({transaction}: {transaction: Transaction}) {
+function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Transaction; containerStyles?: ViewStyle[]}) {
     const styles = useThemeStyles();
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const {translate} = useLocalize();
@@ -26,7 +27,7 @@ function TransactionItemRowRBR({transaction}: {transaction: Transaction}) {
 
     return (
         transactionViolations.length > 0 && (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}>
                 <Icon
                     src={DotIndicator}
                     fill={theme.danger}

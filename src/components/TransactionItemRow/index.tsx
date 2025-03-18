@@ -30,6 +30,7 @@ function TransactionItemRow({
     const StyleUtils = useStyleUtils();
 
     const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
+    const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
 
     return (
         <View style={styles.flex1}>
@@ -72,7 +73,7 @@ function TransactionItemRow({
                                     </View>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ml3, styles.mt0, styles.mb3]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ml3, styles.mt0, hasCategoryOrTag && styles.mb2]}>
                                 <CategoryCell
                                     transactionItem={transactionItem}
                                     shouldShowTooltip={shouldShowTooltip}
@@ -84,7 +85,10 @@ function TransactionItemRow({
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                             </View>
-                            <TransactionItemRowRBR transaction={transactionItem} />
+                            <TransactionItemRowRBR
+                                containerStyles={[styles.ml3, styles.mt0, styles.mb2]}
+                                transaction={transactionItem}
+                            />
                         </View>
                     )}
                 </Hoverable>
