@@ -10,11 +10,12 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
-import {canBeExported as canBeExportedUtils, getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
+import {canBeExported as canBeExportedUtil, getIntegrationIcon, isExported as isExportedUtil} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,10 +37,11 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 
     const {translate} = useLocalize();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
+    const styles = useThemeStyles();
 
     const iconToDisplay = getIntegrationIcon(connectionName);
-    const canBeExported = canBeExportedUtils(report);
-    const isExported = isExportedUtils(reportActions);
+    const canBeExported = canBeExportedUtil(report);
+    const isExported = isExportedUtil(reportActions);
 
     const confirmExport = useCallback(
         (type = modalStatus) => {
@@ -94,6 +96,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.goBack()}
                     illustrationStyle={{width: 233, height: 162}}
+                    containerStyle={styles.flex1}
                 />
             </ScreenWrapper>
         );
