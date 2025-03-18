@@ -509,7 +509,7 @@ function ReportPreview({
     }, [iouReportID]);
 
     const reportPreviewAction = useMemo(() => {
-        if (!iouReport || !policy || !transactions) {
+        if (!iouReport) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
         }
         return getReportPreviewAction(iouReport, policy, transactions, violations);
