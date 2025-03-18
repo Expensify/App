@@ -142,13 +142,15 @@ function connect(email: string, isFromOldDot = false) {
                 Onyx.update(failureData);
                 return;
             }
-            if (!activePolicyID) {
+            if (!activePolicyID && CONFIG.IS_HYBRID_APP) {
                 Log.alert('[Delegate] Unable to access activePolicyID');
                 Onyx.update(failureData);
                 return;
             }
             const restrictedToken = response.restrictedToken;
-            const policyID = activePolicyID;
+
+            // The only time this won't exist is when we're not in HybridApp, so the default value is never used
+            const policyID = activePolicyID ?? '';
 
             return SequentialQueue.waitForIdle()
                 .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
