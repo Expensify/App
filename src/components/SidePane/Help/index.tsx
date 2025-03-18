@@ -20,7 +20,7 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom} = useSafeAreaPaddings();
-    const [isInNarrowPaneModal = false] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED});
+    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED});
 
     const onCloseSidePaneOnSmallScreens = () => {
         if (isExtraLargeScreenWidth) {
@@ -62,7 +62,7 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
                         {!shouldHideSidePaneBackdrop && (
                             <SidePaneOverlay
                                 onBackdropPress={closeSidePane}
-                                isInNarrowPaneModal={isInNarrowPaneModal}
+                                isRHPVisible={isRHPVisible}
                             />
                         )}
                     </View>
