@@ -135,7 +135,7 @@ function hasWorkspaceSettingsRBR(policy: Policy) {
     );
 }
 
-function getChatTabBrickRoadReport(policyID: string | undefined, orderedReports: OnyxEntry<Report>[] = []): OnyxEntry<Report> {
+function getChatTabBrickRoadReport(policyID: string | undefined, orderedReports: Array<OnyxEntry<Report>> = []): OnyxEntry<Report> {
     if (!orderedReports.length) {
         return undefined;
     }
@@ -165,7 +165,7 @@ function getChatTabBrickRoadReport(policyID: string | undefined, orderedReports:
     return undefined;
 }
 
-function getChatTabBrickRoad(policyID: string | undefined, orderedReports: OnyxEntry<Report>[]): BrickRoad | undefined {
+function getChatTabBrickRoad(policyID: string | undefined, orderedReports: Array<OnyxEntry<Report>>): BrickRoad | undefined {
     const report = getChatTabBrickRoadReport(policyID, orderedReports);
     return report ? getBrickRoadForPolicy(report) : undefined;
 }
