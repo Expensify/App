@@ -18,7 +18,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
@@ -75,7 +74,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth],
+        [onboardingPurposeSelected, onboardingMessages, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth],
     );
 
     useEffect(() => {

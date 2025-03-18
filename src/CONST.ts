@@ -8,7 +8,6 @@ import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import type ResponsiveLayoutResult from './hooks/useResponsiveLayout/types';
-import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
 import {addTrailingForwardSlash} from './libs/Url';

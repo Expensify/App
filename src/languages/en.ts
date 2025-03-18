@@ -1995,7 +1995,6 @@ const translations = {
                     '\n' +
                     `![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
             },
-            //this
             addExpenseApprovalsTask: {
                 title: 'Add expense approvals',
                 description: ({workspaceMoreFeaturesLink}: OnboardingTaskDescriptionParams) =>
@@ -2056,7 +2055,6 @@ const translations = {
             },
             inviteAccountantTask: {
                 title: 'Invite your accountant',
-                mediaAttributes: {},
                 description: ({workspaceMembersLink}: OnboardingTaskDescriptionParams) =>
                     '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
                     '\n' +
@@ -2074,7 +2072,6 @@ const translations = {
                     '\n' +
                     `[View your workspace members](${workspaceMembersLink}).`,
             },
-            //this
             startChatTask: {
                 title: 'Start a chat',
                 description:
