@@ -25,7 +25,7 @@ If you haven't already, follow the instructions to [Connect a US Business Bank A
 4. Ensure that the workspace currency is set to **USD**. 
 5. Click the **Reimbursements** tab on the left.
 6. Ensure that the reimbursement method is set to **Direct** and that the correct bank account is selected. 
-7. Click the **Payments** tab on the left.
+7. Head to **Settings > Account > Wallet** on the left-side menu.
 8. Click **Enable Global Reimbursement** next to the bank account.  
 9. Complete the Global Reimbursement DocuSign form.
 10. Once the form is complete, it is automatically sent to our Compliance Team for review. 
@@ -42,7 +42,7 @@ After the bank account is verified for international payments, set the correct b
 1. Under **Settings** > **Workspaces** > **Group** > **[Workspace Name]** > **Reimbursements**
 2. Select the reimbursement account as the default account.
 3. Ask your employees to add their deposit-only bank account.
-   - They can do this by logging into their Expensify accounts, heading to **Settings** > **Account** > **Payments**, and clicking **Add Deposit-Only Bank Account**. 
+   - They can do this by logging into their Expensify accounts, heading to **Settings** > **Account** > **Wallet**, and clicking **Add Deposit-Only Bank Account**. 
 
 ---
 
@@ -55,7 +55,7 @@ After the bank account is verified for international payments, set the correct b
 4. Expensify sends test deposits to the provided bank account: Expensify asks the customer to confirm test deposit amounts.
 5. Admin Actions Required:
      - Set the reimbursement account under **Settings > Workspaces > [Workspace Name] > Reimbursements**.
-     - Ensure employees add their deposit-only bank accounts under **Settings > Account > Payments > Add Deposit-Only Bank Account**.
+     - Ensure employees add their deposit-only bank accounts under **Settings > Account > Wallet > Add Deposit-Only Bank Account**.
 
 ## Step 1: Connect the Bank Account
 
@@ -89,7 +89,7 @@ After the bank account is verified for international payments, set the correct b
 1. Under **Settings** > **Workspaces** > **Group** > **[Workspace Name]** > **Reimbursements**
 2. Select the reimbursement account as the default account.
 3. Ask your employees to add their deposit-only bank account.
-   - They can do this by logging into their Expensify accounts, heading to **Settings** > **Account** > **Payments**, and clicking **Add Deposit-Only Bank Account**. 
+   - They can do this by logging into their Expensify accounts, heading to **Settings** > **Account** > **Wallet**, and clicking **Add Deposit-Only Bank Account**. 
 
 ---
 
