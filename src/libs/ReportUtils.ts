@@ -5457,7 +5457,7 @@ function getDeletedTransactionMessage(action: ReportAction) {
 
 function getPolicyChangeMessage(action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
-    const {fromPolicyID, toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
+    const {fromPolicy: fromPolicyID, toPolicy: toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
     const message = translateLocal('report.actions.type.changeReportPolicy', {
         fromPolicyName: fromPolicyID ? getPolicyNameByID(fromPolicyID) : undefined,
         toPolicyName: getPolicyNameByID(toPolicyID),
@@ -5768,8 +5768,8 @@ function buildOptimisticMovedReportAction(fromPolicyID: string | undefined, toPo
  */
 function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string): ReportAction {
     const originalMessage = {
-        fromPolicyID,
-        toPolicyID,
+        fromPolicy: fromPolicyID,
+        toPolicy: toPolicyID,
     };
 
     const fromPolicy = getPolicy(fromPolicyID);
@@ -7498,7 +7498,7 @@ function getPolicyExpenseChat(ownerAccountID: number | undefined, policyID: stri
             return false;
         }
 
-        return report.policyID === policyID && isPolicyExpenseChat(report) && report.ownerAccountID === ownerAccountID;
+        return report.policyID === policyID && isPolicyExpenseChat(report) && !isThread(report) && report.ownerAccountID === ownerAccountID;
     });
 }
 
