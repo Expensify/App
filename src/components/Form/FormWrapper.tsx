@@ -68,8 +68,8 @@ function FormWrapper({
     isSubmitDisabled = false,
     isLoading = false,
     shouldScrollToEnd = false,
-    addBottomSafeAreaPadding = true,
-    shouldSubmitButtonStickToBottom = false,
+    addBottomSafeAreaPadding,
+    shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -110,7 +110,18 @@ function FormWrapper({
         focusInput?.focus?.();
     }, [errors, formState?.errorFields, inputRefs]);
 
-    const {paddingBottom} = useSafeAreaPaddings(true);
+    // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
+    // we expect that the user wants to use the new edge-to-edge bottom safe area padding handling.
+    // In this case, we want to get and apply the padding unconditionnally.
+    const enableEdgeToEdgeBottomSafeAreaPadding = addBottomSafeAreaPadding !== undefined || shouldSubmitButtonStickToBottomProp !== undefined;
+    const shouldSubmitButtonStickToBottom = shouldSubmitButtonStickToBottomProp ?? false;
+    const {paddingBottom} = useSafeAreaPaddings(enableEdgeToEdgeBottomSafeAreaPadding);
+
+    // Same as above, if `addBottomSafeAreaPadding` is explicitly set true, we default to the new edge-to-edge bottom safe area padding handling.
+    // If the paddingBottom is 0, it has already been applied to a parent component and we don't want to apply the padding again.
+    const isLegacyBottomSafeAreaPaddingAlreadyApplied = paddingBottom === 0;
+    const shouldApplyBottomSafeAreaPadding = addBottomSafeAreaPadding ?? !isLegacyBottomSafeAreaPaddingAlreadyApplied;
+
     const SubmitButton = useMemo(
         () =>
             isSubmitButtonVisible && (
@@ -180,7 +191,6 @@ function FormWrapper({
             <FormElement
                 key={formID}
                 ref={formContentRef}
-                // Note: the paddingBottom is only grater 0 if no parent has applied the inset yet:
                 style={[style, styles.pb5]}
                 onLayout={() => {
                     if (!shouldScrollToEnd) {
@@ -220,7 +230,7 @@ function FormWrapper({
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
-                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     ref={formRef}
                 >
                     {scrollViewContent()}
@@ -230,7 +240,7 @@ function FormWrapper({
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
-                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     ref={formRef}
                 >
                     {scrollViewContent()}
