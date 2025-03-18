@@ -109,7 +109,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             if (!isFeedExpired) {
                 customWindow?.close();
                 setAssignCardStepAndData({
-                    currentStep: assignCard?.data?.encryptedCardNumber ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                     isEditing: false,
                 });
                 return;

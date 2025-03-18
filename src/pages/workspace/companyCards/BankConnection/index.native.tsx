@@ -93,7 +93,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         // Handle assign card flow
         if (feed && !isFeedExpired) {
             setAssignCardStepAndData({
-                currentStep: assignCard?.data?.encryptedCardNumber ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                 isEditing: false,
             });
             return;
