@@ -222,9 +222,12 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                         accountID: option.accountID ?? -1,
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         login: option.login || option.text,
-                        displayName: option.text,
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        email: option.login || (option.text ?? ''),
+                        displayName: option.text ?? '',
                         selected: true,
                         searchText: option.searchText,
+                        avatarUrl: option.avatarUrl ?? '',
                         iouType,
                     },
                 ];
