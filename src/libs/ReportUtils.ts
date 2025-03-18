@@ -9540,6 +9540,7 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
+    getParentReport,
     getReportOrDraftReport,
     getRoom,
     getRootParentReport,

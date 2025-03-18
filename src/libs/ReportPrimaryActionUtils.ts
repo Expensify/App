@@ -14,6 +14,7 @@ import {
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID} from './ReportActionsUtils';
 import {
+    getParentReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -77,18 +78,24 @@ function isPayAction(report: Report, policy?: Policy) {
         return false;
     }
 
-    const isInvoiceReport = isInvoiceReportUtils(report);
-
-    if (isInvoiceReport) {
-        return true;
-    }
     const isIOUReport = isIOUReportUtils(report);
 
     if (isIOUReport && isReportPayer) {
         return true;
     }
 
-    return false;
+    const isInvoiceReport = isInvoiceReportUtils(report);
+
+    if (!isInvoiceReport) {
+        return false;
+    }
+
+    const parentReport = getParentReport(report);
+    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+        return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
+    }
+
+    return policy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
 function isExportAction(report: Report, policy?: Policy) {
@@ -237,8 +244,6 @@ function getTransactionThreadReportPrimaryAction(
     if (isReviewDuplicatesAction(parentReport, [reportTransaction], policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
-
-
 
     // if (isMarkAsCashAction(transactionThreadReport, reportTransactions, violations, policy)) {
     //     return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
