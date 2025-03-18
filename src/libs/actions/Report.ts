@@ -407,9 +407,9 @@ function startNewChat() {
     Navigation.navigate(ROUTES.NEW);
 }
 
-function openUnreportedExpense() {
+function openUnreportedExpense(reportID: string) {
     clearGroupChat();
-    Navigation.navigate(ROUTES.ADD_UNREPORTED_EXPENSE);
+    Navigation.navigate(ROUTES.ADD_UNREPORTED_EXPENSE.getRoute(reportID));
 }
 
 /** Get the private pusher channel name for a Report. */

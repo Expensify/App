@@ -56,6 +56,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
+import {useRoute} from '../../../../__mocks__/@react-navigation/native';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
@@ -331,6 +332,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         hideCreateMenu();
     }, [didScreenBecomeInactive, hideCreateMenu]);
 
+    const reportId = (useRoute().params as {reportId: string}).reportId;
+
     useImperativeHandle(ref, () => ({
         hideCreateMenu() {
             hideCreateMenu();
@@ -518,7 +521,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         {
             icon: Expensicons.ChatBubble,
             text: 'Add unreported Expense',
-            onSelected: () => interceptAnonymousUser(openUnreportedExpense),
+            onSelected: () =>
+                interceptAnonymousUser(() => {
+                    console.log(reportId);
+                    openUnreportedExpense(reportId);
+                }),
         },
         ...(canSendInvoice
             ? [

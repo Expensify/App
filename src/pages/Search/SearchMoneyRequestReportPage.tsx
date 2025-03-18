@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
@@ -16,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {openUnreportedExpense} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -57,6 +59,16 @@ function TemporaryMoneyRequestReportView({report, policy}: TemporaryMoneyRequest
                     Navigation.goBack();
                 }}
             />
+            <Button
+                success
+                large
+                text="Add unreported expense"
+                onPress={() => {
+                    console.log(report?.reportID);
+                    openUnreportedExpense(report?.reportID);
+                }}
+                isDisabled={false}
+            />
         </View>
     );
 }
@@ -65,7 +77,8 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-
+    // hook do routa
+    // useRoute();
     const {reportID} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});

@@ -13,6 +13,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {Section} from '@libs/OptionsListUtils';
 import navigation from '@navigation/Navigation';
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import type {AuthScreensParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {getAllTransactions} from '@userActions/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -71,7 +73,7 @@ function unreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
 
 unreportedExpenseListItem.displayName = 'unreportedExpenseListItem';
 
-function AddUnreportedExpense() {
+function AddUnreportedExpense({route}: {route: {reportID: number}}) {
     const styles = useThemeStyles();
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const containerElements = useMemo(() => {
@@ -85,7 +87,7 @@ function AddUnreportedExpense() {
             data: unreportedExpensesList,
         },
     ];
-
+    const reportId = route.reportID;
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -110,6 +112,9 @@ function AddUnreportedExpense() {
                 confirmButtonStyles={[styles.justifyContentCenter]}
                 showConfirmButton
                 confirmButtonText="Add to report"
+                onConfirm={() => {
+                    console.log(reportId);
+                }}
             />
         </ScreenWrapper>
     );
