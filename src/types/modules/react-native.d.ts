@@ -2,21 +2,17 @@
 import type {TargetedEvent} from 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
 import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
+import type {NavBarButtonStyle, NavigationBarType} from '@libs/NavBarManager/types';
 import type {ShortcutManagerModule} from '@libs/ShortcutManager';
 import type StartupTimer from '@libs/StartupTimer/types';
-
-type HybridAppModule = {
-    closeReactNativeApp: (shouldSignOut: boolean, shouldSetNVP: boolean) => void;
-    completeOnboarding: (status: boolean) => void;
-    switchAccount: (newDotCurrentAccountEmail: string, authToken: string, policyID: string, accountID: string) => void;
-};
 
 type RNTextInputResetModule = {
     resetKeyboardInput: (nodeHandle: number | null) => void;
 };
 
 type RNNavBarManagerModule = {
-    setButtonStyle: (style: 'light' | 'dark') => void;
+    setButtonStyle: (style: NavBarButtonStyle) => void;
+    getType(): NavigationBarType;
 };
 
 declare module 'react-native' {
@@ -43,7 +39,6 @@ declare module 'react-native' {
 
     interface NativeModulesStatic {
         BootSplash: BootSplashModule;
-        HybridAppModule: HybridAppModule;
         StartupTimer: StartupTimer;
         RNTextInputReset: RNTextInputResetModule;
         RNNavBarManager: RNNavBarManagerModule;

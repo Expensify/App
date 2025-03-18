@@ -52,7 +52,6 @@ export default {
     fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),
     fontSizeNormal: getValueUsingPixelRatio(15, 21),
-    fontSizeEmojiNormal: getValueUsingPixelRatio(15, 28),
     fontSizeMedium: getValueUsingPixelRatio(16, 22),
     fontSizeLarge: getValueUsingPixelRatio(17, 19),
     fontSizeHero: 36,
@@ -214,6 +213,10 @@ export default {
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
     holdEducationModalWidth: 400,
+    changePolicyEducationModalWidth: 400,
+    changePolicyEducationModalIconWidth: 147.69,
+    changePolicyEducationModalIconHeight: 180,
+
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
     // Emoji related variables
@@ -276,9 +279,9 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -106,
+    minimalTopBarOffset: -124,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 116,
+    searchListContentMarginTop: 124,
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
