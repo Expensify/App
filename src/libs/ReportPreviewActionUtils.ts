@@ -20,7 +20,7 @@ import {
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 
-function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>,policy?: Policy) {
+function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpen = isOpenReport(report);
@@ -30,7 +30,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     return isExpense && isSubmitter && isOpen && isManualSubmitEnabled && !hasViolations;
 }
 
-function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>,policy?: Policy) {
+function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
     const isExpense = isExpenseReport(report);
     const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
     const isProcessing = isProcessingReport(report);
@@ -40,7 +40,7 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasViolations;
 }
 
-function canPay(report: Report,  violations: OnyxCollection<TransactionViolation[]>,policy?: Policy) {
+function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
@@ -51,13 +51,13 @@ function canPay(report: Report,  violations: OnyxCollection<TransactionViolation
     const isIOU = isIOUReport(report);
     const isProcessing = isProcessingReport(report);
 
-    if (!isReportPayer){
+    if (!isReportPayer) {
         return false;
     }
     return (isExpense && isPaymentsEnabled && (isApproved || isClosed) && !hasViolations) || ((isInvoice || isIOU) && isProcessing);
 }
 
-function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>,policy?: Policy) {
+function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPrefferedExporter(policy) : false;
     const isApproved = isReportApproved({report});
@@ -67,13 +67,13 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     const syncEnabled = policy ? isAutoSyncEnabled(policy) : false;
     const hasViolations = hasAnyViolations(report.reportID, violations);
 
-    if (isExpense && isExporter && hasAccountingConnection && !syncEnabled && !hasViolations){
-        return (isApproved || isReimbursed || isClosed)
+    if (isExpense && isExporter && hasAccountingConnection && !syncEnabled && !hasViolations) {
+        return isApproved || isReimbursed || isClosed;
     }
     return false;
 }
 
-function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>,policy?: Policy) {
+function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
     const hasViolations = hasAnyViolations(report.reportID, violations);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
@@ -87,7 +87,6 @@ function getReportPreviewAction(
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
-
     if (canSubmit(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
@@ -100,7 +99,7 @@ function getReportPreviewAction(
     if (canExport(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
-    if (canReview(report,  violations, policy)) {
+    if (canReview(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 
