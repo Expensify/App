@@ -27,8 +27,8 @@ function Help({sidePaneTranslateX, closeSidePane}: HelpProps) {
     );
 
     return (
-        <Animated.View style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop, paddingBottom}]}>
-            <HelpContent />
+        <Animated.View style={[styles.sidePaneContent(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop, paddingBottom}]}>
+            <HelpContent closeSidePane={closeSidePane} />
         </Animated.View>
     );
 }

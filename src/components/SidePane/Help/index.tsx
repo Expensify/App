@@ -29,6 +29,7 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePane(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
 
+    // Web back button: push history state and close side pane on popstate
     useEffect(() => {
         window.history.pushState({isSidePaneOpen: true}, '', null);
         const handlePopState = () => {
@@ -59,7 +60,7 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
                     <Animated.View
                         style={[styles.sidePaneContent(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop, paddingBottom}]}
                     >
-                        <HelpContent />
+                        <HelpContent closeSidePane={closeSidePane} />
                     </Animated.View>
                 </View>
             </FocusTrapForModal>

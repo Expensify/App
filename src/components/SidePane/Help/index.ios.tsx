@@ -46,9 +46,9 @@ function Help({sidePaneTranslateX, closeSidePane}: HelpProps) {
     return (
         <GestureDetector gesture={panGesture}>
             <Animated.View
-                style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop, paddingBottom}]}
+                style={[styles.sidePaneContent(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop, paddingBottom}]}
             >
-                <HelpContent />
+                <HelpContent closeSidePane={closeSidePane} />
             </Animated.View>
         </GestureDetector>
     );
