@@ -3,7 +3,7 @@ import React from 'react';
 import {Animated, Dimensions} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import HelpContent from './HelpContent';
@@ -14,7 +14,7 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 function Help({sidePaneTranslateX, closeSidePane}: HelpProps) {
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {paddingTop, paddingBottom} = useStyledSafeAreaInsets();
+    const {paddingTop, paddingBottom} = useSafeAreaPaddings();
 
     // SidePane isn't a native screen, this simulates the 'close swipe gesture' on iOS
     const panGesture = Gesture.Pan()
