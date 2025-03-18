@@ -95,7 +95,6 @@ function CreateTagPage({route}: CreateTagPageProps) {
                         label={translate('common.name')}
                         accessibilityLabel={translate('common.name')}
                         inputID={INPUT_IDS.TAG_NAME}
-                        maxLength={CONST.API_TRANSACTION_TAG_MAX_LENGTH}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                     />
