@@ -69,6 +69,12 @@ type BackToParams = {
     backTo?: Routes;
 };
 
+type ConsoleNavigatorParamList = {
+    [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
+        backTo: Routes;
+    };
+};
+
 type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: undefined;
@@ -800,9 +806,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
     };
-    [SCREENS.GET_ASSISTANCE]: {
-        backTo: Routes;
-    };
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
@@ -814,6 +817,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE]: {
         login: string;
         currentRole: string;
+        showValidateActionModal?: string;
+        newRole?: ValueOf<typeof CONST.DELEGATE_ROLE>;
     };
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
         login: string;
@@ -1054,6 +1059,10 @@ type ProfileNavigatorParamList = {
     };
 };
 
+type NewReportWorkspaceSelectionNavigatorParamList = {
+    [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: undefined;
+};
+
 type ReportDetailsNavigatorParamList = {
     [SCREENS.REPORT_DETAILS.ROOT]: {
         reportID: string;
@@ -1067,6 +1076,13 @@ type ReportDetailsNavigatorParamList = {
         reportID: string;
         policyID: string;
         connectionName: ConnectionName;
+        backTo?: Routes;
+    };
+};
+
+type ReportChangeWorkspaceNavigatorParamList = {
+    [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: {
+        reportID: string;
         backTo?: Routes;
     };
 };
@@ -1476,6 +1492,7 @@ type SignInNavigatorParamList = {
 type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
+    [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
 };
 
 type ReferralDetailsNavigatorParamList = {
@@ -1542,7 +1559,9 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
+    [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: NavigatorScreenParams<NewReportWorkspaceSelectionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE]: NavigatorScreenParams<ReportChangeWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SETTINGS_TAGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
@@ -1594,6 +1613,9 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: {
         domain: string;
     };
+    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
+        domain: string;
+    };
 };
 
 type ReportsSplitNavigatorParamList = {
@@ -1638,6 +1660,11 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: {
+        policyID: string;
+        feed: string;
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.PER_DIEM]: {
@@ -1790,6 +1817,7 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.SAML_SIGN_IN]: undefined;
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
+    [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<ConsoleNavigatorParamList>;
 };
 
 type AuthScreensParamList = SharedScreensParamList & {
@@ -1820,6 +1848,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         policyID?: string;
     };
     [SCREENS.NOT_FOUND]: undefined;
+    [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: undefined;
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList> & {policyID?: string};
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList> & {policyID?: string};
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
@@ -1974,8 +2003,10 @@ export type {
     PublicScreensParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
+    NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
+    ReportChangeWorkspaceNavigatorParamList,
     ReportSettingsNavigatorParamList,
     ReportsSplitNavigatorParamList,
     RestrictedActionParamList,
@@ -2007,4 +2038,5 @@ export type {
     MigratedUserModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
+    ConsoleNavigatorParamList,
 };

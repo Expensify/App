@@ -10,11 +10,12 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
-import {canBeExported, getIntegrationIcon, isExported} from '@libs/ReportUtils';
+import {canBeExported as canBeExportedUtil, getIntegrationIcon} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,15 +32,14 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const reportID = route.params.reportID;
     const backTo = route.params.backTo;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const policyID = report?.policyID;
 
     const {translate} = useLocalize();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
+    const styles = useThemeStyles();
 
     const iconToDisplay = getIntegrationIcon(connectionName);
-    const exportable = canBeExported(report);
-    const exported = isExported(reportActions);
+    const canBeExported = canBeExportedUtil(report);
 
     const confirmExport = useCallback(
         (type = modalStatus) => {
@@ -64,7 +64,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     type: CONST.ICON_TYPE_AVATAR,
                 },
             ],
-            isDisabled: !exportable,
+            isDisabled: !canBeExported,
         },
         {
             value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
@@ -75,11 +75,11 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     type: CONST.ICON_TYPE_AVATAR,
                 },
             ],
-            isDisabled: !exportable,
+            isDisabled: !canBeExported,
         },
     ];
 
-    if (!exportable) {
+    if (!canBeExported) {
         return (
             <ScreenWrapper testID={ReportDetailsExportPage.displayName}>
                 <HeaderWithBackButton
@@ -94,6 +94,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.goBack()}
                     illustrationStyle={{width: 233, height: 162}}
+                    containerStyle={styles.flex1}
                 />
             </ScreenWrapper>
         );
@@ -102,7 +103,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     return (
         <>
             <SelectionScreen<ExportType>
-                policyID={policyID ?? CONST.DEFAULT_NUMBER_ID.toString()}
+                policyID={policyID}
                 accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
                 displayName={ReportDetailsExportPage.displayName}
@@ -113,7 +114,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 title="common.export"
                 connectionName={connectionName}
                 onSelectRow={({value}) => {
-                    if (exported) {
+                    if (canBeExported) {
                         setModalStatus(value);
                     } else {
                         confirmExport(value);

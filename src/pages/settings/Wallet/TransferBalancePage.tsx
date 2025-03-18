@@ -13,20 +13,20 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import {calculateWalletTransferBalanceFee, formatPaymentMethods, hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
-import variables from '@styles/variables';
 import {
     dismissSuccessfulTransferBalancePage,
     resetWalletTransferData,
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     transferWalletBalance,
-} from '@userActions/PaymentMethods';
+} from '@libs/actions/PaymentMethods';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {calculateWalletTransferBalanceFee, formatPaymentMethods, hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,15 +37,15 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 const TRANSFER_TIER_NAMES: string[] = [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM];
 
 function TransferBalancePage() {
+    const styles = useThemeStyles();
+    const {numberFormat, translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {paddingBottom} = useSafeAreaPaddings();
+
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-
-    const styles = useThemeStyles();
-    const {numberFormat, translate} = useLocalize();
-    const {isOffline} = useNetwork();
-    const {paddingBottom} = useStyledSafeAreaInsets();
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
@@ -90,7 +90,7 @@ function TransferBalancePage() {
         const filteredMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
             const account = filteredMethods.at(0);
-            saveWalletTransferAccountTypeAndID(filterPaymentMethodType, account?.methodID?.toString() ?? CONST.DEFAULT_STRING_NEGATIVE_ID);
+            saveWalletTransferAccountTypeAndID(filterPaymentMethodType, account?.methodID?.toString());
             return;
         }
 
@@ -106,7 +106,7 @@ function TransferBalancePage() {
             return;
         }
 
-        saveWalletTransferAccountTypeAndID(selectedAccount?.accountType, selectedAccount?.methodID?.toString() ?? CONST.DEFAULT_STRING_NEGATIVE_ID);
+        saveWalletTransferAccountTypeAndID(selectedAccount?.accountType, selectedAccount?.methodID?.toString());
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want this effect to run on initial render
     }, []);
 
@@ -127,6 +127,7 @@ function TransferBalancePage() {
                     shouldShowButton
                     buttonText={translate('common.done')}
                     onButtonPress={dismissSuccessfulTransferBalancePage}
+                    containerStyle={styles.flex1}
                 />
             </ScreenWrapper>
         );
