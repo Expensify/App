@@ -156,8 +156,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
-    const formattedTransactionAmount = transactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const formattedPerAttendeeAmount = transactionAmount ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency) : '';
+    const formattedTransactionAmount = transactionAmount !== null && transactionAmount !== undefined ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
+    const formattedPerAttendeeAmount =
+        transactionAmount !== null && transactionAmount !== undefined ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency) : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCardName(transaction);

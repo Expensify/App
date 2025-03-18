@@ -66,7 +66,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                         )}
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
-                        {!!transactionAmount && <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>}
+                        {transactionAmount !== null && transactionAmount !== undefined && <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>}
                         <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2]}>
