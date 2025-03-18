@@ -88,6 +88,7 @@ function NonUSDVerifiedBankAccountFlow({
                 <BankInfo
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
+                    policyID={policyID}
                 />
             );
         case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
