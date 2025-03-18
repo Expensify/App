@@ -1,4 +1,4 @@
-import { isThread, isArchivedReportWithID } from '@libs/ReportUtils';
+import {isArchivedReportWithID, isThread} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
