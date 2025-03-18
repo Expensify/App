@@ -606,6 +606,9 @@ function PureReportActionItem({
 
         if (isConciergeCategoryOptions(action)) {
             const options = getOriginalMessage(action)?.options;
+            if (!options) {
+                return [];
+            }
             return options.map((option, i) => ({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
