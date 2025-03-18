@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues, FormRef} from '@components/Form/types';
@@ -145,19 +144,17 @@ function AccountDetailsPage() {
                         aria-label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
                     />
                 </View>
-                <FixedFooter style={[styles.ph0, styles.pb0]}>
-                    <FormAlertWithSubmitButton
-                        isAlertVisible={!!genericError}
-                        onSubmit={() => {
-                            formRef.current?.submit();
-                        }}
-                        message={genericError}
-                        buttonText={translate('common.next')}
-                        enabledWhenOffline={false}
-                        containerStyles={styles.mt3}
-                        isLoading={getValidateCodeForAccountMerge?.isLoading}
-                    />
-                </FixedFooter>
+                <FormAlertWithSubmitButton
+                    isAlertVisible={!!genericError}
+                    onSubmit={() => {
+                        formRef.current?.submit();
+                    }}
+                    message={genericError}
+                    buttonText={translate('common.next')}
+                    enabledWhenOffline={false}
+                    containerStyles={styles.mt3}
+                    isLoading={getValidateCodeForAccountMerge?.isLoading}
+                />
             </FormProvider>
         </ScreenWrapper>
     );
