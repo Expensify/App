@@ -453,7 +453,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     shouldUseHeadlineHeader
                     title={translate('workspace.common.moreFeatures')}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 
                 <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>

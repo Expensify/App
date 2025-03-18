@@ -108,6 +108,7 @@ function HeaderWithBackButton({
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
                 subTitleLink={subTitleLink}
+                numberOfTitleLines={1}
             />
         );
     }, [
@@ -194,42 +195,44 @@ function HeaderWithBackButton({
                     />
                 )}
                 {middleContent}
-                <View style={[styles.reportOptions, styles.flexRow, styles.pr2, styles.alignItemsCenter]}>
-                    {children}
-                    {shouldShowDownloadButton &&
-                        (!isDownloading ? (
-                            <Tooltip text={translate('common.download')}>
-                                <PressableWithoutFeedback
-                                    onPress={(event) => {
-                                        // Blur the pressable in case this button triggers a Growl notification
-                                        // We do not want to overlap Growl with the Tooltip (#15271)
-                                        (event?.currentTarget as HTMLElement)?.blur();
+                <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.pr2]}>
+                        {children}
+                        {shouldShowDownloadButton &&
+                            (!isDownloading ? (
+                                <Tooltip text={translate('common.download')}>
+                                    <PressableWithoutFeedback
+                                        onPress={(event) => {
+                                            // Blur the pressable in case this button triggers a Growl notification
+                                            // We do not want to overlap Growl with the Tooltip (#15271)
+                                            (event?.currentTarget as HTMLElement)?.blur();
 
-                                        if (!isDownloadButtonActive) {
-                                            return;
-                                        }
+                                            if (!isDownloadButtonActive) {
+                                                return;
+                                            }
 
-                                        onDownloadButtonPress();
-                                        temporarilyDisableDownloadButton();
-                                    }}
+                                            onDownloadButtonPress();
+                                            temporarilyDisableDownloadButton();
+                                        }}
+                                        style={[styles.touchableButtonImage]}
+                                        role="button"
+                                        accessibilityLabel={translate('common.download')}
+                                    >
+                                        <Icon
+                                            src={Expensicons.Download}
+                                            fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                        />
+                                    </PressableWithoutFeedback>
+                                </Tooltip>
+                            ) : (
+                                <ActivityIndicator
                                     style={[styles.touchableButtonImage]}
-                                    role="button"
-                                    accessibilityLabel={translate('common.download')}
-                                >
-                                    <Icon
-                                        src={Expensicons.Download}
-                                        fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
-                                    />
-                                </PressableWithoutFeedback>
-                            </Tooltip>
-                        ) : (
-                            <ActivityIndicator
-                                style={[styles.touchableButtonImage]}
-                                size="small"
-                                color={theme.spinner}
-                            />
-                        ))}
-                    {shouldShowPinButton && !!report && <PinButton report={report} />}
+                                    size="small"
+                                    color={theme.spinner}
+                                />
+                            ))}
+                        {shouldShowPinButton && !!report && <PinButton report={report} />}
+                    </View>
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
                             icon={threeDotsMenuIcon}

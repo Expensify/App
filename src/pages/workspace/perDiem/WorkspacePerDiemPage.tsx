@@ -386,7 +386,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                    shouldDisplayHelpButton={shouldUseNarrowLayout}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>

@@ -357,7 +357,6 @@ function WorkspaceTaxesPage({
                         }
                         Navigation.goBack();
                     }}
-                    shouldDisplayHelpButton={shouldUseNarrowLayout}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>

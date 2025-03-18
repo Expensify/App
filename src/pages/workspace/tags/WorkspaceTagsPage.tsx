@@ -456,7 +456,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                    shouldDisplayHelpButton={shouldUseNarrowLayout}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
