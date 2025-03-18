@@ -187,8 +187,6 @@ import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage}
 import {startOnboardingFlow} from './Welcome/OnboardingFlow';
 import getOnboardingMessages from './Welcome/OnboardingFlowTasks';
 
-const {CREATE_EXPENSE_ONBOARDING_MESSAGES, ONBOARDING_MESSAGES} = getOnboardingMessages();
-
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
 type ActionSubscriber = {
@@ -235,7 +233,11 @@ type GuidedSetupData = Array<
 type ReportError = {
     type?: string;
 };
+
+type OnboardingMessagesType = ValueOf<ReturnType<typeof getOnboardingMessages>['onboardingMessages']>;
+
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
+
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 let currentUserEmail: string | undefined;
@@ -957,7 +959,8 @@ function openReport(
         const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
 
         if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
-            const onboardingMessage = ONBOARDING_MESSAGES[choice];
+            const {onboardingMessages} = getOnboardingMessages();
+            const onboardingMessage = onboardingMessages[choice];
             if (choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
                 const updatedTasks = onboardingMessage.tasks.map((task) => (task.type === 'startChat' ? {...task, autoCompleted: true} : task));
                 onboardingMessage.tasks = updatedTasks;
@@ -3807,20 +3810,22 @@ function getReportPrivateNote(reportID: string | undefined) {
 
 function prepareOnboardingOnyxData(
     engagementChoice: OnboardingPurpose,
-    data: ValueOf<typeof ONBOARDING_MESSAGES>,
+    data: OnboardingMessagesType,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     userReportedIntegration?: OnboardingAccounting,
     wasInvited?: boolean,
 ) {
+    const {createExpenseOnboardingMessages} = getOnboardingMessages();
+
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
-        data = CREATE_EXPENSE_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
+        data = createExpenseOnboardingMessages[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
     }
 
     if (engagementChoice === CONST.ONBOARDING_CHOICES.EMPLOYER || engagementChoice === CONST.ONBOARDING_CHOICES.SUBMIT) {
         // eslint-disable-next-line no-param-reassign
-        data = CREATE_EXPENSE_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT];
+        data = createExpenseOnboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
     // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.
@@ -4353,7 +4358,7 @@ function prepareOnboardingOnyxData(
 
 function completeOnboarding(
     engagementChoice: OnboardingPurpose,
-    data: ValueOf<typeof ONBOARDING_MESSAGES>,
+    data: OnboardingMessagesType,
     firstName = '',
     lastName = '',
     adminsChatReportID?: string,

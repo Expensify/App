@@ -46,14 +46,14 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
 
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {ONBOARDING_MESSAGES} = getOnboardingMessages();
+    const {onboardingMessages} = getOnboardingMessages();
 
     const handleJoinWorkspace = useCallback(
         (policyID: string) => {
             MemberAction.joinAccessiblePolicy(policyID);
             Report.completeOnboarding(
                 CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-                ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+                onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
                 onboardingPersonalDetails?.firstName ?? '',
                 onboardingPersonalDetails?.lastName ?? '',
             );

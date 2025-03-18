@@ -145,8 +145,8 @@ describe('actions/Policy', () => {
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             });
             // Created Report Action, MANAGE_TEAM tasks (minus tasks that requires integrations to be enabled) and signoff message
-            const {ONBOARDING_MESSAGES} = getOnboardingMessages();
-            const manageTeamDefaultTaskCount = ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 2;
+            const {onboardingMessages} = getOnboardingMessages();
+            const manageTeamDefaultTaskCount = onboardingMessages[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 2;
             expect(adminReportActions.length).toBe(2 + manageTeamDefaultTaskCount);
             let createdTaskReportActions = 0;
             let signingOffMessage = 0;

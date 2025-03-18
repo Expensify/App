@@ -100,10 +100,10 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     // For other company sizes we want to complete onboarding here.
                     // At this point `onboardingPurposeSelected` should always exist as we set it in `BaseOnboardingPurpose`.
                     if (onboardingPurposeSelected) {
-                        const {ONBOARDING_MESSAGES} = getOnboardingMessages();
+                        const {onboardingMessages} = getOnboardingMessages();
                         completeOnboarding(
                             onboardingPurposeSelected,
-                            ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                            onboardingMessages[onboardingPurposeSelected],
                             undefined,
                             undefined,
                             adminsChatReportID,

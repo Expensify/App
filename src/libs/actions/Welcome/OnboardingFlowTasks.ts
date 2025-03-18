@@ -75,7 +75,7 @@ const getOnboardingMessages = () => {
         type: 'setupCategories',
         autoCompleted: false,
         mediaAttributes: {
-            [`${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-categories.png" data-expensify-width="1920" data-expensify-height="1080"`,
+            [`${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4`]: `data-expensify-thumbnail-url="${CONST.CLOUDFRONT_URL}/images/walkthrough-categories.png" data-expensify-width="1920" data-expensify-height="1080"`,
         },
         title: translateLocal('onboarding.tasks.setupCategoriesTask.title'),
         description: ({workspaceCategoriesLink}) => translateLocal('onboarding.tasks.setupCategoriesTask.description', {workspaceCategoriesLink}),
@@ -209,7 +209,7 @@ const getOnboardingMessages = () => {
         tasks: [selfGuidedTourTask, trackExpenseTask],
     };
     return {
-        ONBOARDING_MESSAGES: {
+        onboardingMessages: {
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: {
@@ -252,7 +252,7 @@ const getOnboardingMessages = () => {
             },
         } satisfies Record<OnboardingPurpose, OnboardingMessage>,
 
-        CREATE_EXPENSE_ONBOARDING_MESSAGES: {
+        createExpenseOnboardingMessages: {
             [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
             [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
             [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,

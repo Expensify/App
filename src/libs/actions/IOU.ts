@@ -9063,7 +9063,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
     }
 
     const session = getSession();
-    const {ONBOARDING_MESSAGES} = getOnboardingMessages();
+    const {onboardingMessages} = getOnboardingMessages();
 
     const personalDetailsListValues = Object.values(getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList));
     const personalDetails = personalDetailsListValues.at(0);
@@ -9079,7 +9079,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
 
     completeOnboarding(
         onboardingPurpose,
-        ONBOARDING_MESSAGES[onboardingPurpose],
+        onboardingMessages[onboardingPurpose],
         personalDetails?.firstName ?? '',
         personalDetails?.lastName ?? '',
         adminsChatReportID,

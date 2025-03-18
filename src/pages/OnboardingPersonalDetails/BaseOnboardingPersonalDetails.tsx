@@ -49,7 +49,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const isPrivateDomain = isUserOnPrivateDomain();
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {ONBOARDING_MESSAGES} = getOnboardingMessages();
+    const {onboardingMessages} = getOnboardingMessages();
 
     useEffect(() => {
         setOnboardingErrorMessage('');
@@ -63,7 +63,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             completeOnboardingReport(
                 onboardingPurposeSelected,
-                ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                onboardingMessages[onboardingPurposeSelected],
                 firstName,
                 lastName,
                 onboardingAdminsChatReportID ?? undefined,

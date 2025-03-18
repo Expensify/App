@@ -59,7 +59,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
     const [error, setError] = useState('');
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-    const {ONBOARDING_MESSAGES} = getOnboardingMessages();
+    const {onboardingMessages} = getOnboardingMessages();
 
     // If the signupQualifier is VSB, the company size step is skip.
     // So we need to create the new workspace in the accounting step
@@ -176,7 +176,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
                     completeOnboarding(
                         onboardingPurposeSelected,
-                        ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                        onboardingMessages[onboardingPurposeSelected],
                         undefined,
                         undefined,
                         onboardingAdminsChatReportID ?? undefined,
