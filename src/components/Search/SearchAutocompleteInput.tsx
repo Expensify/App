@@ -164,7 +164,7 @@ function SearchAutocompleteInput(
             'worklet';
 
             tagSharedValue.set(tagAutocompleteList);
-        });
+        })();
     }, [tagSharedValue, tagAutocompleteList]);
 
     const parser = useCallback(
