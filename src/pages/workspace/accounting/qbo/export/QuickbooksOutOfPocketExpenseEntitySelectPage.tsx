@@ -53,7 +53,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const policyID = policy?.id;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT>>();
     const backTo = route.params?.backTo;
-    const [selectedAccountError, setSelectedAccountError] = useState<Errors | null>(null);
+    const [selectedExportDestinationError, setSelectedExportDestinationError] = useState<Errors | null>(null);
 
     const data: MenuItem[] = useMemo(
         () => [
@@ -92,14 +92,14 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const selectExportEntity = useCallback(
         (row: MenuItem) => {
             if (!row.accounts.at(0)) {
-                setSelectedAccountError({
+                setSelectedExportDestinationError({
                     [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.exportDestinationSetupAccountsInfo.${row.value}`),
                 });
                 return;
             }
 
             if (row.value !== qboConfig?.reimbursableExpensesExportDestination) {
-                setSelectedAccountError(null);
+                setSelectedExportDestinationError(null);
                 updateManyPolicyConnectionConfigs(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.QBO,
@@ -141,10 +141,10 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
                 qboConfig?.pendingFields,
             )}
-            errors={selectedAccountError ?? errors}
+            errors={selectedExportDestinationError ?? errors}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => {
-                setSelectedAccountError(null);
+                setSelectedExportDestinationError(null);
                 clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION);
             }}
             listFooterContent={<Footer isTaxEnabled={isTaxesEnabled} />}
