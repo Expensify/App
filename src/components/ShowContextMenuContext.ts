@@ -51,23 +51,28 @@ function showContextMenuForReport(
     checkIfContextMenuActive: () => void,
     isArchivedRoom = false,
 ) {
-    if (canUseTouchScreen()) {
+    if (!canUseTouchScreen()) {
         return;
     }
 
-    showContextMenu(
-        CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+    showContextMenu({
+        type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,
-        '',
-        anchor,
-        reportID,
-        action?.reportActionID,
-        reportID ? getOriginalReportID(reportID, action) : undefined,
-        undefined,
-        undefined,
-        checkIfContextMenuActive,
-        isArchivedRoom,
-    );
+        selection: '',
+        contextMenuAnchor: anchor,
+        report: {
+            reportID,
+            originalReportID: reportID ? getOriginalReportID(reportID, action) : undefined,
+            isArchivedRoom,
+        },
+        reportAction: {
+            reportActionID: action?.reportActionID,
+        },
+        callbacks: {
+            onShow: checkIfContextMenuActive,
+            onHide: checkIfContextMenuActive,
+        },
+    });
 }
 
 export {ShowContextMenuContext, showContextMenuForReport};
