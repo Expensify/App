@@ -9,11 +9,9 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import SidePaneOverlay from '@components/SidePane/SidePaneOverlay';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import HelpContent from './HelpContent';
 import type HelpProps from './types';
@@ -22,10 +20,7 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom} = useSafeAreaPaddings();
-
-    const isInRHP = useRootNavigationState((state) => state?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const isInNarrowPaneModal = !!modal?.isVisible || isInRHP;
+    const [isInNarrowPaneModal = false] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED});
 
     const onCloseSidePaneOnSmallScreens = () => {
         if (isExtraLargeScreenWidth) {

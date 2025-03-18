@@ -156,10 +156,10 @@ function BaseModal(
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
-            setModalVisibility(true);
+            setModalVisibility(true, type);
         }
         onModalShow();
-    }, [onModalShow, shouldSetModalVisibility]);
+    }, [onModalShow, shouldSetModalVisibility, type]);
 
     const handleBackdropPress = (e?: KeyboardEvent) => {
         if (e?.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
