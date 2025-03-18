@@ -1,9 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, {useEffect} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -37,13 +38,19 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const data = assignCard?.data;
     const cardholderName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
+    useEffect(() => {
+        if (!assignCard?.isAssigned) {
+            return;
+        }
+        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        InteractionManager.runAfterInteractions(() => CompanyCards.clearAssignCardStepAndData());
+    }, [assignCard, backTo, policyID]);
+
     const submit = () => {
         if (!policyID) {
             return;
         }
         CompanyCards.assignWorkspaceCompanyCard(policyID, data);
-        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-        CompanyCards.clearAssignCardStepAndData();
     };
 
     const editStep = (step: AssignCardStep) => {
@@ -94,14 +101,22 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
                 />
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
-                    <Button
-                        isDisabled={isOffline}
-                        success
-                        large
-                        style={styles.w100}
-                        onPress={submit}
-                        text={translate('workspace.companyCards.assignCard')}
-                    />
+                    <OfflineWithFeedback
+                        shouldDisplayErrorAbove
+                        errors={assignCard?.errors}
+                        errorRowStyles={styles.mv2}
+                        canDismissError={false}
+                    >
+                        <Button
+                            isDisabled={isOffline}
+                            success
+                            large
+                            isLoading={assignCard?.isAssigning}
+                            style={styles.w100}
+                            onPress={submit}
+                            text={translate('workspace.companyCards.assignCard')}
+                        />
+                    </OfflineWithFeedback>
                 </View>
             </ScrollView>
         </InteractiveStepWrapper>
