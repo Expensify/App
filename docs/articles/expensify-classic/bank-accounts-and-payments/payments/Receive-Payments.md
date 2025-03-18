@@ -1,36 +1,82 @@
 ---
-title: Receive payments
-description: Receive reimbursements from an employer
+title: Receive Payments
+description: Learn how to receive reimbursements through Expensify, including ACH, Wise, PayPal, and Venmo options.
+keywords: [reimbursement, ACH, bank account, Wise, PayPal, Venmo, Rapid Reimbursement]
 ---
-<div id="expensify-classic" markdown="1">
 
-To get paid after submitting a report for reimbursement, you must first connect a personal U.S. bank account or a personal Australian bank account. Then once your employer approves your report or invoice, the reimbursement will be paid directly to your bank account.
-Funds for U.S. and global payments are generally deposited within a maximum of four to five business days: 2 days for the funds to be debited from the business bank account, and 2-3 business days for the ACH or wire to deposit into the employee account.
+To receive a reimbursement after submitting an expense report, you must first [connect a personal bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-Bank-Account) to Expensify. Once your employer approves your report or invoice, the reimbursement is deposited directly into your bank account.
 
-However, banks only process ACH transactions before the daily cutoff (generally 3 p.m. PST) and only on business weekdays that are not bank holidays. This may affect when the payment is disbursed. If the payment qualifies for Rapid Reimbursement, you may receive the payment sooner.
+**Processing Times:**  
+- U.S. and global payments generally take **4-5 business days**:  
+  - **2 days** for the business account to process the debit  
+  - **2-3 business days** for ACH or wire transfer to your account  
+- Payments initiated **after 3 p.m. PST** or on **weekends/bank holidays** may be delayed.  
+- If your payment qualifies for **Rapid Reimbursement**, you may receive it sooner.
 
-{% include info.html %}
-Companies also have the option to submit payments outside of Expensify via check, cash, or a third-party payment processor. Check with your Workspace Admin to know how you will be reimbursed.
-{% include end-info.html %}
- 
-# Rapid Reimbursement (U.S. only)
+Your company or client also has the option to pay you via **check, a third-party payment processor, or outside of Expensify**. Check with your **Workspace Admin** or payor to confirm the payment method.
 
-With Expensify’s ACH reimbursement, payments may be eligible for reimbursement by the next business day with Rapid Reimbursement if they meet the following qualifications:
-- **Deposit-only accounts**: Payment must not exceed $100 
-- **Verified business bank accounts**: The account does not disburse more than $10,000 within a 24-hour time period.
+---
 
-If the payment amount exceeds the limit, funds will be deposited within the typical ACH time frame of four to five business days. 
+# Rapid Reimbursement (U.S. Only)
 
-{% include faq-begin.md %}
+Expensify’s **Rapid Reimbursement** allows eligible ACH payments to process **within one business day** if they meet the following conditions:
 
-**Is there a way I can track my payment?**
+- **Deposit-only accounts:** Payment must not exceed **$100**.  
+- **Verified business bank accounts:** Total disbursements must not exceed **$10,000** within 24 hours.
 
-For U.S. ACH payments and global reimbursements, the expected date of reimbursement is provided at the top of the report and in the comments section of the report. Funds will be deposited within the typical ACH time frame of four to five business days unless the payment is eligible for Rapid Reimbursement. 
+If payments exceed these limits, they follow the standard **4-5 business day ACH timeframe**.
 
-**For global payments, what currency is the payment provided in?**
+---
 
-Global payments are reimbursed in the recipient's currency. 
+# Global Reimbursements via Wise
 
-{% include faq-end.md %}
+For employees outside the U.S., Expensify partners with **Wise (formerly TransferWise)** to enable **faster global reimbursements**.
 
-</div>
+## How It Works
+1. Sign up for a **Wise account** to receive a USD checking account number and ACH routing number.
+2. Add these details as a **deposit-only bank account** in Expensify.
+3. When your reimbursement is approved, it is deposited into your Wise account.
+4. Convert funds into **40+ currencies** or withdraw them to your local bank. **UK and EU users can also request a Wise debit card**.
+
+## Setting Up Wise for Expensify
+1. Confirm with your employer if **USD expenses** can be submitted.  
+2. Open a **Wise Borderless Account** and complete **verification** (may take up to **3 days**).  
+3. Add your **Wise USD account and ACH routing number** to Expensify.  
+
+**Important:** Use the **ACH routing number**, *not* the wire transfer routing number.
+
+Expensify will **automatically convert non-USD expenses** to USD before submission.
+
+---
+
+# Third-Party Payment Options
+
+Expensify integrates with **PayPal** and **Venmo** to provide alternative reimbursement options.
+
+## Benefits of Third-Party Payments
+- **Faster reimbursements** compared to standard ACH transfers.  
+- **Enhanced security** via trusted payment platforms.  
+- **Streamlined expense management** within Expensify.
+
+## Connecting a Third-Party Payment Option
+1. Log into your **Expensify account**.
+2. Navigate to **Settings > Account > Payments > Alternative Payment Accounts**.
+3. Select **PayPal** or **Venmo**:
+   - **PayPal**: Enter your **PayPal.Me** username.
+   - **Venmo**: Enter your **mobile number** (must match your Venmo account).
+
+---
+
+# FAQ
+
+## Can I link multiple third-party payment providers?
+Yes, you can link both **PayPal and Venmo** to your Expensify account.
+
+## Is there a limit on third-party reimbursements?
+Limits depend on **Expensify settings** and **third-party provider restrictions**.
+
+## How can I track my reimbursement?
+For **ACH and global payments**, Expensify displays the **expected deposit date** at the top of your expense report and in the report comments.
+
+## What currency will my global reimbursement be in?
+Expensify will reimburse you in your local currency, based on the conversion at the time of payout.

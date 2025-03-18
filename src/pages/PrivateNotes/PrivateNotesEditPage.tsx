@@ -97,7 +97,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
 
         const hasNewNoteBeenAdded = !originalNote && editedNote;
         if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note) || hasNewNoteBeenAdded) {
-            goBackToDetailsPage(report, backTo);
+            goBackToDetailsPage(report, backTo, true);
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo)));
         }
