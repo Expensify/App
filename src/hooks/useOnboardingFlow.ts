@@ -6,7 +6,7 @@ import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isProductTrainingElementDismissed} from '@libs/TooltipUtils';
+import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

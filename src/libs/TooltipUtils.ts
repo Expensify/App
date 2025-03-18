@@ -13,4 +13,4 @@ function isProductTrainingElementDismissed(elementName: keyof DismissedProductTr
     return typeof dismissedProductTraining?.[elementName] === 'string' ? !!dismissedProductTraining?.[elementName] : !!dismissedProductTraining?.[elementName]?.dismissedTime;
 }
 
-export {isProductTrainingElementDismissed};
+export default isProductTrainingElementDismissed;
