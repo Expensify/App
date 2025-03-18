@@ -149,8 +149,7 @@ function connect(email: string, isFromOldDot = false) {
             }
             const restrictedToken = response.restrictedToken;
 
-            // The only time this won't exist is when we're not in HybridApp, so the default value is never used
-            const policyID = activePolicyID ?? '';
+            const policyID = activePolicyID;
 
             return SequentialQueue.waitForIdle()
                 .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
@@ -161,7 +160,7 @@ function connect(email: string, isFromOldDot = false) {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
                     openApp().then(() => {
-                        if (!CONFIG.IS_HYBRID_APP) {
+                        if (!CONFIG.IS_HYBRID_APP || !policyID) {
                             return;
                         }
                         HybridAppModule.switchAccount({
