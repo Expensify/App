@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -116,8 +116,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         return !!achData?.bankAccountID && !!achData?.created;
     }, [achData?.bankAccountID, achData?.created]);
 
-    /** Calculates the state used to show the "Continue with setup" view. */
-    const getShouldShowContinueSetupButtonValue = useCallback(() => {
+    /** Returns true if VBBA flow is in progress */
+    const shouldShowContinueSetupButtonValue = useMemo(() => {
         if (hasForeignCurrency) {
             return hasInProgressNonUSDVBBA();
         }
@@ -133,7 +133,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
-    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(() => getShouldShowContinueSetupButtonValue());
+    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(shouldShowContinueSetupButtonValue);
     const [shouldShowConnectedVerifiedBankAccount, setShouldShowConnectedVerifiedBankAccount] = useState<boolean>(false);
 
     /**
@@ -180,8 +180,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
         // TODO double check condition for non USD accounts - will be done in https://github.com/Expensify/App/issues/50912
         setShouldShowConnectedVerifiedBankAccount(hasForeignCurrency ? !!achData?.corpay?.consentToPrivacyNotice : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
-        setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonValue());
-    }, [achData?.corpay?.consentToPrivacyNotice, achData?.currentStep, getShouldShowContinueSetupButtonValue, hasForeignCurrency, isPreviousPolicy]);
+        setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
+    }, [achData?.corpay?.consentToPrivacyNotice, achData?.currentStep, shouldShowContinueSetupButtonValue, hasForeignCurrency, isPreviousPolicy]);
 
     useEffect(
         () => {
@@ -419,7 +419,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                 setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
                 policyID={policyIDParam}
-                getShouldShowContinueSetupButtonValue={getShouldShowContinueSetupButtonValue}
+                shouldShowContinueSetupButtonValue={shouldShowContinueSetupButtonValue}
             />
         );
     }

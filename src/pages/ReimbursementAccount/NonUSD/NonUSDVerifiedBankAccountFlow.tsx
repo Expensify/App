@@ -13,7 +13,7 @@ type NonUSDVerifiedBankAccountFlowProps = {
     setNonUSDBankAccountStep: (step: string | null) => void;
     setShouldShowContinueSetupButton: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
     policyID: string | undefined;
-    getShouldShowContinueSetupButtonValue: () => boolean;
+    shouldShowContinueSetupButtonValue: boolean;
 };
 
 function NonUSDVerifiedBankAccountFlow({
@@ -21,7 +21,7 @@ function NonUSDVerifiedBankAccountFlow({
     setNonUSDBankAccountStep,
     setShouldShowContinueSetupButton,
     policyID,
-    getShouldShowContinueSetupButtonValue,
+    shouldShowContinueSetupButtonValue,
 }: NonUSDVerifiedBankAccountFlowProps) {
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
@@ -48,11 +48,13 @@ function NonUSDVerifiedBankAccountFlow({
         }
     };
 
+    console.log(shouldShowContinueSetupButtonValue);
+
     const nonUSDBankAccountsGoBack = () => {
         switch (nonUSDBankAccountStep) {
             case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
                 setNonUSDBankAccountStep(null);
-                setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonValue());
+                setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
                 break;
             case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
