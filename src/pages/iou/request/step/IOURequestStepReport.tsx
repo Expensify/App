@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -27,8 +27,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {translate} = useLocalize();
     const {transactionID, backTo} = route.params;
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-
-    const selectedWorkspace = useMemo(() => transaction?.participants?.find((participant) => participant.isSender), [transaction]);
+    const [searchValue, setSearchValue] = useState('');
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
@@ -44,19 +43,17 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED,
         );
 
-        return (
-            expenseReports
-                .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
-                .map(
-                    (report) =>
-                        report && {
-                            text: report.reportName,
-                            value: report.reportID,
-                            keyForList: report.reportID,
-                        },
-                ) ?? []
-        );
+        return expenseReports
+            .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
+            .filter((item) => item !== undefined)
+            .map((report) => ({
+                text: report.reportName,
+                value: report.reportID,
+                keyForList: report.reportID,
+            }));
     }, [allReports]);
+
+    const shouldShowSearch = reportOptions.length > 8;
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -77,18 +74,19 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     return (
         <StepScreenWrapper
-            headerTitle={translate('workspace.invoices.sendFrom')}
+            headerTitle={translate('common.report')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepReport.displayName}
             includeSafeAreaPaddingBottom
         >
             <SelectionList
-                sections={[{data: reportOptions, title: translate('common.report')}]}
+                sections={[{data: reportOptions}]}
+                textInputValue={searchValue}
+                textInputLabel={shouldShowSearch ? translate('common.search') : undefined}
                 onSelectRow={selectReport}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
-                initiallyFocusedOptionKey={selectedWorkspace?.policyID}
             />
         </StepScreenWrapper>
     );
