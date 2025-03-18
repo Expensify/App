@@ -217,7 +217,7 @@ function dismissProductTraining(elementName: string, isDismissedUsingX = false) 
             value: {
                 [elementName]: {
                     dismissedTime: DateUtils.getDBTime(date.valueOf()),
-                    dismissedMethod
+                    dismissedMethod,
                 },
             },
         },
