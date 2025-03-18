@@ -201,7 +201,7 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildOptimisticPolicyRecentlyUsedDestinations} from './Policy/PerDiem';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
-import {completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftTransaction} from './TransactionEdit';
 
@@ -268,6 +268,7 @@ type TrackedExpenseReportInformation = {
     linkedTrackedExpenseReportID: string;
     transactionThreadReportID: string | undefined;
     reportPreviewReportActionID: string | undefined;
+    expenseReportID: string | undefined;
 };
 type TrackedExpenseParams = {
     onyxData?: OnyxData;
@@ -4571,10 +4572,11 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams} = trackedExpenseParams;
 
     const policyID = policyParams?.policyID;
+    const expenseReportID = reportInformation?.expenseReportID;
     const accountantEmail = addSMSDomainIfPhoneNumber(accountantParams?.accountant?.login);
     const accountantAccountID = accountantParams?.accountant?.accountID;
 
-    if (!policyID || !accountantEmail || !accountantAccountID) {
+    if (!policyID || !expenseReportID || !accountantEmail || !accountantAccountID) {
         return;
     }
 
@@ -4631,6 +4633,18 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         successData?.push(...addAccountantToWorkspaceSuccessData);
         failureData?.push(...addAccountantToWorkspaceFailureData);
+    }
+
+    const expenseReportParticipants = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]?.participants;
+    if (!expenseReportParticipants?.[accountantAccountID]) {
+        const {
+            optimisticData: inviteAccountantToRoomOptimisticData,
+            successData: inviteAccountantToRoomSuccessData,
+            failureData: inviteAccountantToRoomFailureData,
+        } = buildInviteToRoomOnyxData(expenseReportID, {accountantEmail: accountantAccountID});
+        optimisticData?.push(...inviteAccountantToRoomOptimisticData);
+        successData?.push(...inviteAccountantToRoomSuccessData);
+        failureData?.push(...inviteAccountantToRoomFailureData);
     }
 
     const parameters: ShareTrackedExpenseParams = {
@@ -5095,6 +5109,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 linkedTrackedExpenseReportID,
                 transactionThreadReportID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
+                expenseReportID: report.reportID,
             };
             const trackedExpenseParams: TrackedExpenseParams = {
                 onyxData,
@@ -5139,6 +5154,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 linkedTrackedExpenseReportID,
                 transactionThreadReportID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
+                expenseReportID: report.reportID,
             };
             const trackedExpenseParams: TrackedExpenseParams = {
                 onyxData,
