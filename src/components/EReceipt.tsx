@@ -120,7 +120,7 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
                                             </View>
                                             <Text
                                                 adjustsFontSizeToFit
-                                                style={[styles.eReceiptAmountLarge, primaryTextColorStyle]}
+                                                style={[styles.eReceiptAmountLarge, primaryTextColorStyle, styles.pr4]}
                                             >
                                                 {amount}
                                             </Text>
