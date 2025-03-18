@@ -88,6 +88,7 @@ import {
     isChatThread,
     isConciergeChatReport,
     isDeprecatedGroupDM,
+    isDM,
     isDomainRoom,
     isExpenseReport,
     isExpenseRequest,
@@ -643,9 +644,13 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
         }
-        result.alternateText = lastActorDisplayName
-            ? `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`
-            : formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+        if (isDM(report) && lastActorDisplayName !== translateLocal('common.you')) {
+            result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+        } else {
+            result.alternateText = lastActorDisplayName
+                ? `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`
+                : formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+        }
     }
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
