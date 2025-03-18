@@ -71,14 +71,14 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
             if (value !== '') {
                 ReportActions.updateReportField(report.reportID, {...reportField, value}, reportField);
             }
-            Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : report?.reportID);
+            goBack();
         }
     };
 
     const handleReportFieldDelete = () => {
         ReportActions.deleteReportField(report.reportID, reportField);
         setIsDeleteModalVisible(false);
-        Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : report?.reportID);
+        goBack();
     };
 
     const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;
