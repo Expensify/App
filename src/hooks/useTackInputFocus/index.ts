@@ -28,20 +28,20 @@ export default function useTackInputFocus(enable = false): boolean {
         [setIsInputFocus],
     );
 
-    const resetScrollPositionOnVisualViewport = useCallback(() => {
-        if (Browser.isChromeIOS() && window.visualViewport?.offsetTop) {
-            // On Chrome iOS, the visual viewport triggers a scroll event when the keyboard is opened, but some time the scroll position is not correct.
-            // So this change is specific to Chrome iOS, helping to reset the viewport position correctly.
-            window.scrollTo({top: -window.visualViewport.offsetTop});
-        } else {
-            window.scrollTo({top: 0});
-        }
-    }, []);
-
     useEffect(() => {
         if (!enable) {
             return;
         }
+        // Putting the function here so a new instance of the function is created for each usage of the hook
+        const resetScrollPositionOnVisualViewport = () => {
+            if (Browser.isChromeIOS() && window.visualViewport?.offsetTop) {
+                // On Chrome iOS, the visual viewport triggers a scroll event when the keyboard is opened, but some time the scroll position is not correct.
+                // So this change is specific to Chrome iOS, helping to reset the viewport position correctly.
+                window.scrollTo({top: -window.visualViewport.offsetTop});
+            } else {
+                window.scrollTo({top: 0});
+            }
+        };
         window.addEventListener('focusin', handleFocusIn);
         window.addEventListener('focusout', handleFocusOut);
         window.visualViewport?.addEventListener('scroll', resetScrollPositionOnVisualViewport);
@@ -50,7 +50,7 @@ export default function useTackInputFocus(enable = false): boolean {
             window.removeEventListener('focusout', handleFocusOut);
             window.visualViewport?.removeEventListener('scroll', resetScrollPositionOnVisualViewport);
         };
-    }, [enable, handleFocusIn, handleFocusOut, resetScrollPositionOnVisualViewport]);
+    }, [enable, handleFocusIn, handleFocusOut]);
 
     return isInputFocusDebounced;
 }
