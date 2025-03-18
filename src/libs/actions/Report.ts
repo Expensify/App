@@ -639,19 +639,13 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
+        file,
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
         idempotencyKey: Str.guid(),
     };
 
     if (file) {
-        parameters.files = [
-            {
-                file,
-                attachmentID,
-            },
-        ];
-        console.log(attachmentID);
-        // parameters.attachmentID = attachmentID;
+        parameters.attachmentID = attachmentID;
     }
 
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChatReport(report)) {
