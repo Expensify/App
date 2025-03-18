@@ -606,8 +606,8 @@ function PureReportActionItem({
 
         if (isConciergeCategoryOptions(action)) {
             const options = getOriginalMessage(action)?.options;
-            return options.map((option, index) => ({
-                text: `${index + 1} - ${option}`,
+            return options.map((option, i) => ({
+                text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => addComment(originalReportID, option),
             }));
