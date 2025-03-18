@@ -1,4 +1,3 @@
-import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -9,6 +8,7 @@ import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import Visibility from '@libs/Visibility';
 import {updateLastVisitedPath} from '@userActions/App';
 import * as Modal from '@userActions/Modal';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,6 +23,17 @@ Onyx.connect({
             return;
         }
         lastVisitedPath = value;
+    },
+});
+
+let isSingleNewDotEntry: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        isSingleNewDotEntry = value;
     },
 });
 
@@ -104,8 +115,15 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
         // The attachment modal remains open when navigating to the report so we need to close it
         Modal.close(() => {
             try {
+                // When transitioning to the new experience via the singleNewDotEntry flow, the navigation
+                // is handled elsewhere. So we cancel here to prevent double navigation.
+                if (isSingleNewDotEntry) {
+                    Log.info('[PushNotification] Not navigating because this is a singleNewDotEntry flow', false, {reportID, reportActionID});
+                    return;
+                }
+
                 // Get rid of the transition screen, if it is on the top of the stack
-                if (NativeModules.HybridAppModule && Navigation.getActiveRoute().includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+                if (CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
                     Navigation.goBack();
                 }
                 // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back

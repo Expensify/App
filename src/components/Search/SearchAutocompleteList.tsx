@@ -17,6 +17,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
+import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
@@ -155,6 +156,7 @@ function SearchAutocompleteList(
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
+    const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
 
@@ -162,6 +164,10 @@ function SearchAutocompleteList(
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const cardAutocompleteList = Object.values(allCards);
+    const cardFeedNamesWithType = useMemo(() => {
+        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
+    }, [translate, workspaceCardFeeds, userCardList]);
+    const feedAutoCompleteList = useMemo(() => Object.entries(cardFeedNamesWithType).map(([cardFeedKey, cardFeedName]) => ({cardFeedKey, cardFeedName})), [cardFeedNamesWithType]);
 
     const participantsAutocompleteList = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -332,6 +338,12 @@ function SearchAutocompleteList(
 
                 return filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE, text: type}));
             }
+            case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY: {
+                const filteredGroupBy = groupByAutocompleteList.filter(
+                    (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(groupByValue.toLowerCase()),
+                );
+                return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
+            }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
                     .filter((status) => status.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(status))
@@ -348,6 +360,20 @@ function SearchAutocompleteList(
                 return filteredExpenseTypes.map((expenseType) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPENSE_TYPE,
                     text: expenseType,
+                }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {
+                const filteredFeeds = feedAutoCompleteList
+                    .filter(
+                        (feed) => feed.cardFeedName.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(feed.cardFeedName.name.toLowerCase()),
+                    )
+                    .sort()
+                    .slice(0, 10);
+                return filteredFeeds.map((feed) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FEED,
+                    text: feed.cardFeedName.name,
+                    autocompleteID: feed.cardFeedName.type === 'domain' ? feed.cardFeedKey : getCardFeedKey(workspaceCardFeeds, feed.cardFeedKey),
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
@@ -382,8 +408,11 @@ function SearchAutocompleteList(
         typeAutocompleteList,
         statusAutocompleteList,
         expenseTypes,
+        feedAutoCompleteList,
+        workspaceCardFeeds,
         cardAutocompleteList,
         allCards,
+        groupByAutocompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -393,7 +422,7 @@ function SearchAutocompleteList(
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards) : query,
+            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,
@@ -487,7 +516,7 @@ function SearchAutocompleteList(
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[styles.ph2, styles.pb2]}
+            sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
             listItemWrapperStyle={[styles.pr0, styles.pl0]}
             getItemHeight={getItemHeight}
             onLayout={() => {

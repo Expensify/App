@@ -9,7 +9,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
+import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -49,6 +49,15 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
 
     /** Should the submit button be enabled when offline */
     enabledWhenOffline?: boolean;
+
+    /** Set the default value to the input if there is a valid saved value */
+    shouldUseDefaultValue?: boolean;
+
+    /** Should the input be disabled */
+    disabled?: boolean;
+
+    /** Placeholder displayed inside input */
+    placeholder?: string;
 };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -65,6 +74,9 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowHelpLinks = true,
     maxLength,
     enabledWhenOffline,
+    shouldUseDefaultValue = true,
+    disabled = false,
+    placeholder,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -94,6 +106,9 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         defaultValue={defaultValue}
                         maxLength={maxLength}
                         shouldSaveDraft={!isEditing}
+                        shouldUseDefaultValue={shouldUseDefaultValue}
+                        disabled={disabled}
+                        placeholder={placeholder}
                         autoFocus
                     />
                 </View>
