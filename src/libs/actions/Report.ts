@@ -1240,7 +1240,7 @@ function navigateToAndOpenChildReport(
     childReportID: string | undefined,
     parentReportAction: Partial<ReportAction> = {},
     parentReportID?: string,
-    backTo?: string,
+    backTo?: Route,
     isInNarrowPaneModal = false,
 ) {
     const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
@@ -1275,10 +1275,10 @@ function navigateToAndOpenChildReport(
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
         if (backTo && isInNarrowPaneModal) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, Navigation.getActiveRoute()));
             return;
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID));
     }
 }
 

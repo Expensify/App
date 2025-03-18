@@ -7,6 +7,7 @@ import {getOriginalReportID} from '@libs/ReportUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type {Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 
 type ShowContextMenuContextProps = {
@@ -40,6 +41,7 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
  * @param action - ReportAction for ContextMenu
  * @param checkIfContextMenuActive Callback to update context menu active state
  * @param isArchivedRoom - Is the report an archived room
+ * @param backTo - route to navigate back
  */
 function showContextMenuForReport(
     event: GestureResponderEvent | MouseEvent,
@@ -48,6 +50,7 @@ function showContextMenuForReport(
     action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,
     isArchivedRoom = false,
+    backTo: Route | undefined = undefined,
 ) {
     if (!canUseTouchScreen()) {
         return;
@@ -70,6 +73,7 @@ function showContextMenuForReport(
             onShow: checkIfContextMenuActive,
             onHide: checkIfContextMenuActive,
         },
+        backTo,
     });
 }
 

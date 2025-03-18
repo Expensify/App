@@ -5,6 +5,7 @@ import type {GestureResponderEvent, Text as RNText, TextInput, View} from 'react
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type {ContextMenuAction} from './ContextMenuActions';
 
@@ -44,6 +45,7 @@ type ShowContextMenuParams = {
     disabledOptions?: ContextMenuAction[];
     shouldCloseOnTarget?: boolean;
     isOverflowMenu?: boolean;
+    backTo?: Route;
 };
 
 type ShowContextMenu = (params: ShowContextMenuParams) => void;
