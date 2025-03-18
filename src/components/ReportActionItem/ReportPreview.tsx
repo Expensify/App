@@ -512,7 +512,7 @@ function ReportPreview({
         if (!iouReport) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
         }
-        return getReportPreviewAction(iouReport, policy, transactions, violations);
+        return getReportPreviewAction(iouReport, transactions, violations, policy);
     }, [iouReport, policy, transactions, violations]);
 
     const reportPreviewActions = {
