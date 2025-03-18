@@ -48,8 +48,6 @@ function NonUSDVerifiedBankAccountFlow({
         }
     };
 
-    console.log(shouldShowContinueSetupButtonValue);
-
     const nonUSDBankAccountsGoBack = () => {
         switch (nonUSDBankAccountStep) {
             case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
