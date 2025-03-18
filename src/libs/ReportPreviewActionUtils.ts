@@ -67,7 +67,10 @@ function canExport(report: Report, policy: Policy, violations: OnyxCollection<Tr
     const syncEnabled = isAutoSyncEnabled(policy);
     const hasViolations = hasAnyViolations(report.reportID, violations);
 
-    return isExpense && isExporter && (isApproved || isReimbursed || isClosed) && hasAccountingConnection && !syncEnabled && !hasViolations;
+    if (isExpense && isExporter && hasAccountingConnection && !syncEnabled && !hasViolations){
+        return (isApproved || isReimbursed || isClosed)
+    }
+    return false;
 }
 
 function canReview(report: Report, policy: Policy, violations: OnyxCollection<TransactionViolation[]>) {
@@ -103,4 +106,4 @@ function getReportPreviewAction(
     return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
 }
 
-export {getReportPreviewAction, canSubmit, canApprove, canPay, canExport, canReview, hasAnyViolations};
+export default getReportPreviewAction;
