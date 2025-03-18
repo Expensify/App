@@ -135,13 +135,13 @@ const chatOptions: Array<{type: SearchDataTypes; status: ChatSearchStatus; icon:
     {
         type: CONST.SEARCH.DATA_TYPES.CHAT,
         status: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS,
-        icon: Expensicons.Document,
+        icon: Expensicons.Paperclip,
         text: 'common.attachments',
     },
     {
         type: CONST.SEARCH.DATA_TYPES.CHAT,
         status: CONST.SEARCH.STATUS.CHAT.LINKS,
-        icon: Expensicons.Paperclip,
+        icon: Expensicons.Link,
         text: 'common.links',
     },
     {
