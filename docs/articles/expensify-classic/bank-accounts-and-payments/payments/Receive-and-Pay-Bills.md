@@ -1,15 +1,18 @@
 ---
 title: Receive and Pay Bills
 description: Expensify bill management and payment methods.
+keywords: Bill pay, pay vendors, invoice, vendor bills
 ---
 
-Easily receive and pay vendor or supplier bills directly in Expensify. Your vendors don’t even need an Expensify account! Manage everything seamlessly in one place. 
+Easily receive and pay vendor or supplier bills directly in Expensify. Your vendors don’t need an Expensify account to manage everything in one place!
+
+---
 
 # Receiving Bills
 
 Expensify makes it easy to receive bills in three simple ways:  
 
-### 1. Directly from Vendors  
+## 1. Directly from Vendors  
 Share your Expensify billing email with vendors to receive bills automatically.  
 
 - Set a Primary Contact under **Settings > Domains > Domain Admins**.  
@@ -18,14 +21,14 @@ Share your Expensify billing email with vendors to receive bills automatically.
 
 ![Setting the Primary Contact at Domain Admins > Primary Contact](https://help.expensify.com/assets/images/OldDot%20-%20Create%20%26%20Pay%20Bills%201.png){:width="100%"}
 
-### 2. Forwarding Emails  
-Received a bill in your email? Forward it to Expensify.  
+## 2. Forwarding Emails  
+If you received a bill in via email, you can forward it directly to Expensify.  
 
 - Ensure your Primary Contact is set under **Settings > Domains > Domain Admins**.  
 - Forward bills to `domainname@expensify.cash`. Example: `domainname@expensify.cash` (e.g., for *expensicorp.com*, use `expensicorp@expensify.cash`).  
 - Expensify will create a bill automatically, ready for payment.  
 
-### 3. Manual Upload  
+## 3. Manual Upload  
 Got a paper bill? Create a bill manually in [Expensify](https://www.expensify.com/):  
 
 1. Log in to [Expensify](https://www.expensify.com).  
@@ -34,6 +37,8 @@ Got a paper bill? Create a bill manually in [Expensify](https://www.expensify.co
 4. Upload the invoice as a receipt. 
 
 ![Manually Create a Bill](https://help.expensify.com/assets/images/OldDot%20-%20Create%20%26%20Pay%20Bills%202.png){:width="100%"}
+
+---
 
 # Paying Bills in Expensify
 
@@ -49,11 +54,13 @@ Expensify makes it easy to manage and pay vendor bills with a straightforward wo
 
 ![Paying a Bill](https://help.expensify.com/assets/images/OldDot%20-%20Create%20%26%20Pay%20Bills%203.png){:width="100%"}
 
-## Payment Methods  
+---
+
+# Payment Methods  
 
 Expensify offers several ways to pay bills. Choose the method that works best for you: 
 
-### 1. ACH Bank-to-Bank Transfer  
+## 1. ACH Bank-to-Bank Transfer  
 
 Fast and fee-free, this method requires a connected [business bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account).  
 
@@ -66,7 +73,7 @@ Fast and fee-free, this method requires a connected [business bank account](http
 
 ---
 
-### 2. Credit or Debit Card  
+## 2. Credit or Debit Card  
 
 Pay vendors using a credit or debit card. This option is available for US and international customers paying US vendors with a US business bank account.  
 
@@ -79,7 +86,7 @@ Pay vendors using a credit or debit card. This option is available for US and in
 
 ---
 
-### 3. Venmo  
+## 3. Venmo  
 
 If both you and the vendor have Venmo accounts connected to Expensify, you can pay through Venmo. Learn how to set up Venmo [here](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Third-Party-Payments#setting-up-third-party-payments).  
 
@@ -87,7 +94,7 @@ If both you and the vendor have Venmo accounts connected to Expensify, you can p
 
 ---
 
-### 4. Pay Outside Expensify  
+## 4. Pay Outside Expensify  
 
 If you prefer to pay outside Expensify, you can still track the payment within the platform.  
 
@@ -98,7 +105,9 @@ If you prefer to pay outside Expensify, you can still track the payment within t
 
 **Fees:** None.  
 
-{% include faq-begin.md %}
+---
+
+# FAQ
 
 ## Who receives vendor bills in Expensify?
 
@@ -119,5 +128,3 @@ Currently, payments are only supported in USD.
 ## What's the difference between a bill and an Invoice in Expensify?
 
 A bill represents a payable amount owed to a vendor, while an Invoice is a receivable amount owed to you.
-
-{% include faq-end.md %}
