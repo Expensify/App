@@ -561,6 +561,11 @@ function popToTop() {
     navigationRef.current?.dispatch(StackActions.popToTop());
 }
 
+function popRootToTop() {
+    const rootState = navigationRef.getRootState();
+    navigationRef.current?.dispatch({...StackActions.popToTop(), target: rootState.key});
+}
+
 function removeScreenFromNavigationState(screen: string) {
     isNavigationReady().then(() => {
         navigationRef.current?.dispatch((state) => {
@@ -616,6 +621,7 @@ export default {
     setNavigationActionToMicrotaskQueue,
     navigateToReportWithPolicyCheck,
     popToTop,
+    popRootToTop,
     removeScreenFromNavigationState,
     removeScreenByKey,
     getReportRouteByID,
