@@ -23,7 +23,7 @@ function IOURequestStepAccountant({
         (accountant: Accountant) => {
             setMoneyRequestAccountant(transactionID, accountant, true);
         },
-        [backTo, reportID, transactionID],
+        [transactionID],
     );
 
     const navigateToParticipantsStep = useCallback(() => {

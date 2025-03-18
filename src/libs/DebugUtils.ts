@@ -1047,6 +1047,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );

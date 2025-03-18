@@ -210,7 +210,7 @@ function RoomInvitePage({
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);
-    }, [reportID, backRoute]);
+    }, [backRoute]);
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();

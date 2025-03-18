@@ -44,7 +44,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     useEffect(() => {
@@ -74,7 +73,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, options.personalDetails, options.reports]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, options.personalDetails, options.reports]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -142,24 +141,14 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         );
 
         return [newSections, headerMessage];
-    }, [
-        areOptionsInitialized,
-        didScreenTransitionEnd,
-        debouncedSearchTerm,
-        chatOptions.recentReports,
-        chatOptions.personalDetails,
-        chatOptions.userToInvite,
-        personalDetails,
-        translate,
-        cleanSearchTerm,
-    ]);
+    }, [areOptionsInitialized, didScreenTransitionEnd, debouncedSearchTerm, chatOptions.recentReports, chatOptions.personalDetails, chatOptions.userToInvite, personalDetails, translate]);
 
     const selectAccountant = useCallback(
         (option: Accountant) => {
             onAccountantSelected(lodashPick(option, 'accountID', 'login'));
             onFinish();
         },
-        [iouType, onAccountantSelected, onFinish],
+        [onAccountantSelected, onFinish],
     );
 
     const handleConfirmSelection = useCallback(
