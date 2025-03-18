@@ -6379,8 +6379,6 @@ const CONST = {
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
-            // this column only exists when we pass it as a prop to the TransactionItemRow component.
-            ADDITIONAL: 'additional',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
