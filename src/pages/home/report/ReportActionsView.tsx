@@ -5,7 +5,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import * as Illustrations from '@components/Icon/Illustrations';
-import LoadingBar from '@components/LoadingBar';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -54,8 +53,8 @@ type ReportActionsViewProps = {
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** The report's metadata */
-    reportMetadata: OnyxTypes.ReportMetadata;
+    /** The report metadata loading states */
+    isLoadingInitialReportActions?: boolean;
 
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -74,7 +73,7 @@ function ReportActionsView({
     report,
     parentReportAction,
     reportActions: allReportActions,
-    reportMetadata,
+    isLoadingInitialReportActions,
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
@@ -103,8 +102,6 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
-
-    const {isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions, hasLoadingNewerReportActionsError} = reportMetadata;
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -160,20 +157,16 @@ function ReportActionsView({
         });
 
         if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
-            const optimisticIOUAction = buildOptimisticIOUReportAction(
-                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                0,
-                CONST.CURRENCY.USD,
-                '',
-                [],
-                rand64(),
-                undefined,
-                report.reportID,
-                false,
-                false,
-                false,
-                DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
-            ) as OnyxTypes.ReportAction;
+            const optimisticIOUAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 0,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [],
+                transactionID: rand64(),
+                iouReportID: report.reportID,
+                created: DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
+            }) as OnyxTypes.ReportAction;
             moneyRequestActions.push(optimisticIOUAction);
             actions.splice(actions.length - 1, 0, optimisticIOUAction);
         }
@@ -213,8 +206,6 @@ function ReportActionsView({
             ),
         [reportActions, isOffline, canPerformWriteAction],
     );
-
-    const showLoadingBar = !!isLoadingOlderReportActions || !!isLoadingNewerReportActions || !!(visibleReportActions.length > 0 && isLoadingInitialReportActions);
 
     const reportActionIDMap = useMemo(() => {
         const reportActionIDs = allReportActions?.map((action) => action.reportActionID);
@@ -287,7 +278,7 @@ function ReportActionsView({
                     isOffline ||
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
-                    !!(didLoadNewerChats.current && hasLoadingNewerReportActionsError) ||
+                    didLoadNewerChats.current ||
                     newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ) {
                 return;
@@ -308,7 +299,7 @@ function ReportActionsView({
                 getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
-        [reportActionID, isFocused, newestReportAction, hasNewerActions, isOffline, hasLoadingNewerReportActionsError, transactionThreadReport, reportActionIDMap, reportID],
+        [reportActionID, isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
     );
 
     /**
@@ -377,7 +368,6 @@ function ReportActionsView({
     const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
     return (
         <>
-            <LoadingBar shouldShow={showLoadingBar} />
             <ReportActionsList
                 report={report}
                 transactionThreadReport={transactionThreadReport}
