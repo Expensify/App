@@ -22,7 +22,7 @@ function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
     };
 
     return scaleFactor ? (
-        <View style={[styles.overflowHidden, styles.w100, styles.h100]}>
+        <View style={[styles.overflowHidden, styles.w100, styles.h100, styles.userSelectNone]}>
             <View
                 onLayout={onLayout}
                 style={[styles.w100, styles.h100, {transform: `scale(${scaleFactor})`, transformOrigin: 'top left'}]}
