@@ -9,7 +9,13 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageChangePolicy, OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
+import type {
+    OriginalMessageChangePolicy,
+    OriginalMessageIOU,
+    OriginalMessageModifiedExpense,
+    OriginalMessageMovedTransaction,
+    OriginalMessageUnreportedTransaction,
+} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, IntacctSquare, NetSuiteSquare, NSQSSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
@@ -5455,6 +5461,24 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
+function getMovedTransactionMessage(action: ReportAction) {
+    const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
+    const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+    const message = translateLocal('iou.movedTransaction', {
+        reportID: toReportID,
+    });
+    return message;
+}
+
+function getUnreportedTransactionMessage(action: ReportAction) {
+    const unreportedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>) ?? {};
+    const {oldReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+    const message = translateLocal('iou.unreportedTransaction', {
+        reportID: oldReportID,
+    });
+    return message;
+}
+
 function getPolicyChangeMessage(action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
     const {fromPolicy: fromPolicyID, toPolicy: toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
@@ -5824,12 +5848,52 @@ function buildOptimisticMovedTransactionAction(oldReportID: string, toReportID: 
     const changePolicyReportActionMessage = [
         {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            text: `moved the transaction to the ${toReportID}`,
+            text: `moved this expense to [Expense Report ${toReportID}]`,
         },
     ];
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+        reportID: oldReportID,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        originalMessage,
+        message: changePolicyReportActionMessage,
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic UNREPORTED_TRANSACTION report action with a randomly generated reportActionID.
+ * This action is used when we unreport a transaction.
+ */
+function buildOptimisticUnreportedTransactionAction(oldReportID: string, toReportID: string, transactionID: string): ReportAction {
+    const originalMessage = {
+        oldReportID,
+        toReportID,
+        transactionID,
+    };
+
+    const changePolicyReportActionMessage = [
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            text: `removed this expense from [Expense Report ${oldReportID}]`,
+        },
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+        reportID: oldReportID,
         actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
@@ -9760,9 +9824,12 @@ export {
     getReportSubtitlePrefix,
     buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,
+    getMovedTransactionMessage,
+    getUnreportedTransactionMessage,
     getExpenseReportStateAndStatus,
     populateOptimisticReportFormula,
     buildOptimisticMovedTransactionAction,
+    buildOptimisticUnreportedTransactionAction,
 };
 
 export type {
