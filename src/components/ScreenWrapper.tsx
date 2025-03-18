@@ -343,7 +343,7 @@ function ScreenWrapper(
         return isOfflineIndicatorTranslucent ? styles.navigationBarBG : styles.appBG;
     }, [bottomContent, isOffline, isOfflineIndicatorTranslucent, isSoftKeyNavigation, styles.appBG, styles.navigationBarBG]);
     const mobileOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: !showBottomContent,
+        addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding ? true : !includeSafeAreaPaddingBottom,
         styleProperty: isSoftKeyNavigation ? 'bottom' : 'paddingBottom',
     });
 
@@ -404,11 +404,15 @@ function ScreenWrapper(
                                         : children
                                 }
                                 {isSmallScreenWidth && shouldShowOfflineIndicator && (
-                                    <View style={[mobileOfflineIndicatorContainerStyle]}>
-                                        <OfflineIndicator style={mobileOfflineIndicatorStyle} />
-                                        {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                    <>
+                                        {isOffline && (
+                                            <View style={[mobileOfflineIndicatorContainerStyle]}>
+                                                <OfflineIndicator style={mobileOfflineIndicatorStyle} />
+                                                {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                            </View>
+                                        )}
                                         <ImportedStateIndicator />
-                                    </View>
+                                    </>
                                 )}
                                 {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
                                     <>
