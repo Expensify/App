@@ -75,25 +75,38 @@ function TransactionItemRow({
                                     </View>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ml3, styles.mt0, hasCategoryOrTag && styles.mb2, {justifyContent: 'space-between'}]}>
-                                <View style={[styles.alignItemsCenter, styles.gap2]}>
-                                <CategoryCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                />
-                                <TagCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                />
+                            {hasCategoryOrTag && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ml3, styles.mt0, styles.mb3, {justifyContent: 'space-between'}]}>
+                                    <View style={[styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
+                                        <CategoryCell
+                                            transactionItem={transactionItem}
+                                            shouldShowTooltip={shouldShowTooltip}
+                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        />
+                                        <TagCell
+                                            transactionItem={transactionItem}
+                                            shouldShowTooltip={shouldShowTooltip}
+                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        />
+                                    </View>
+                                    {!!additionalColumn && <View style={styles.mr3}>{additionalColumn}</View>}
                                 </View>
-                                {!!additionalColumn && <View style={styles.mr2}>{additionalColumn}</View>}
-                            </View>
-                            <TransactionItemRowRBR
-                                containerStyles={[styles.ml3, styles.mt0, styles.mb2]}
-                                transaction={transactionItem}
-                            />
+                            )}
+                            {!!additionalColumn && !hasCategoryOrTag && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ml3, styles.mt0, styles.mb3, styles.mr3, {justifyContent: 'space-between'}]}>
+                                    <View>
+                                        <TransactionItemRowRBR transaction={transactionItem} />
+                                    </View>
+                                    {additionalColumn}
+                                </View>
+                            )}
+                            {!additionalColumn ||
+                                (hasCategoryOrTag && (
+                                    <TransactionItemRowRBR
+                                        containerStyles={[styles.ml3, styles.mt0, styles.mb3, styles.mtn1]}
+                                        transaction={transactionItem}
+                                    />
+                                ))}
                         </View>
                     )}
                 </Hoverable>
