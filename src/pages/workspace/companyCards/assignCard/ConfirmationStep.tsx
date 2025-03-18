@@ -10,14 +10,18 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import * as CardUtils from '@libs/CardUtils';
+import {isSelectedFeedExpired} from '@libs/CardUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import * as CompanyCards from '@userActions/CompanyCards';
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type ConfirmationStepProps = {
@@ -32,8 +36,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const feed = assignCard?.data?.bankName as CompanyCardFeed | undefined;
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const isFeedExpired = isSelectedFeedExpired(feed ? cardFeeds?.settings?.oAuthAccountDetails?.[feed] : undefined);
 
     const data = assignCard?.data;
     const cardholderName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
@@ -48,6 +56,10 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
 
     const submit = () => {
         if (!policyID) {
+            return;
+        }
+        if (isFeedExpired) {
+            setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
         CompanyCards.assignWorkspaceCompanyCard(policyID, data);
