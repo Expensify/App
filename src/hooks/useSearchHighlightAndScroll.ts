@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -25,7 +24,6 @@ type UseSearchHighlightAndScroll = {
  * Hook used to trigger a search when a new transaction or report action is added and handle highlighting and scrolling.
  */
 function useSearchHighlightAndScroll({searchResults, transactions, previousTransactions, reportActions, previousReportActions, queryJSON, offset}: UseSearchHighlightAndScroll) {
-    const isFocused = useIsFocused();
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
@@ -55,7 +53,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
 
         // Check if there is a change in the transactions or report actions list
-        if (isFocused && ((!isChat && hasTransactionsIDsChange) || (isChat && hasReportActionsIDsChange))) {
+        if ((!isChat && hasTransactionsIDsChange) || (isChat && hasReportActionsIDsChange)) {
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
@@ -75,7 +73,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         return () => {
             searchTriggeredRef.current = false;
         };
-    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, isFocused]);
+    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
