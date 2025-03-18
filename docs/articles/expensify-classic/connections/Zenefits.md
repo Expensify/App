@@ -3,7 +3,7 @@ title: Zenefits-Integration.md
 description: Learn how to integrate Zenefits with Expensify to automatically sync employees and manage approvals.
 keywords: [Zenefits, Expensify, HR integration, employee sync, approval workflow]
 ---
-<div id="new-expensify" markdown="1">
+<div id="expensify-classic" markdown="1">
 
 Expensify's integration with Zenefits automates employee management by syncing employee data and approval workflows. This ensures seamless expense management when onboarding, updating, or offboarding employees.
 
