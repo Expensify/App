@@ -593,8 +593,8 @@ const mainWindow = (): Promise<void> => {
 
                 // Handle renderer process crashes by relaunching the app
                 browserWindow.webContents.on('render-process-gone', (event, detailed) => {
-                    console.log('App crashed');
-                    console.log('render-process-gone', detailed);
+                    console.debug('App crashed');
+                    console.debug('render-process-gone', detailed);
                     if (detailed.reason === 'crashed') {
                         // relaunch app
                         app.relaunch({args: process.argv.slice(1).concat(['--relaunch'])});
