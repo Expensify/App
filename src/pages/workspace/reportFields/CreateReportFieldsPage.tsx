@@ -81,7 +81,8 @@ function CreateReportFieldsPage({
                 errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
             }
 
-            // formInitialValue can be undefined because the InitialValue component is rendered conditionally. If it's not been rendered when the validation is executed, formInitialValue will be undefined.
+            // formInitialValue can be undefined because the InitialValue component is rendered conditionally.
+            // If it's not been rendered when the validation is executed, formInitialValue will be undefined.
             if (type === CONST.REPORT_FIELD_TYPES.TEXT && !!formInitialValue && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
                     length: formInitialValue.length,
