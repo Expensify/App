@@ -591,6 +591,17 @@ const mainWindow = (): Promise<void> => {
                     browserWindow.webContents.send(ELECTRON_EVENTS.BLUR);
                 });
 
+                // Handle renderer process crashes by relaunching the app
+                browserWindow.webContents.on('render-process-gone', (event, detailed) => {
+                    console.log('App crashed');
+                    console.log('render-process-gone', detailed);
+                    if (detailed.reason === 'crashed') {
+                        // relaunch app
+                        app.relaunch({args: process.argv.slice(1).concat(['--relaunch'])});
+                        app.exit(0);
+                    }
+                });
+
                 app.on('before-quit', () => {
                     // Adding __DEV__ check because we want links to be handled by dev app only while it's running
                     // https://github.com/Expensify/App/issues/15965#issuecomment-1483182952
