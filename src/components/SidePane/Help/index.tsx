@@ -27,7 +27,21 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isInNarrowPaneModal = !!modal?.isVisible || isInRHP;
 
+    const onCloseSidePaneOnSmallScreens = () => {
+        if (isExtraLargeScreenWidth) {
+            return;
+        }
+
+        closeSidePane();
+    };
+
+    // Close side pane on escape key press
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePane(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
+
+    // Close side pane on small screens when navigation keyboard shortcuts are used
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SEARCH, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.NEW_CHAT, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHORTCUTS, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
 
     // Web back button: push history state and close side pane on popstate
     useEffect(() => {
