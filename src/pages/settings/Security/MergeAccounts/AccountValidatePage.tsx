@@ -1,12 +1,13 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
+import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
+import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -49,9 +50,10 @@ const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> |
 };
 
 function AccountValidatePage() {
+    const validateCodeSentInitiallyRef = useRef<boolean>(false);
+    const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const [hasMagicCodeBeenSent, setMagicCodeBeenSent] = useState(false);
     const [mergeWithValidateCode] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.mergeWithValidateCode});
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE>>();
 
     const email = params.login ?? '';
@@ -91,29 +93,36 @@ function AccountValidatePage() {
                 }}
                 shouldDisplayHelpButton={false}
             />
-            <View style={[styles.ph5, styles.mt3, styles.mb5, styles.flex1]}>
-                <Text style={[styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>
-                <Text style={[styles.mt5]}>
-                    {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
-                    <Text style={styles.textStrong}>{email}</Text>.
-                </Text>
-                <Text style={[styles.mt5]}>
-                    {translate('mergeAccountsPage.accountValidate.enterMagicCode')}
-                    <Text style={styles.textStrong}>{email}</Text>.
-                </Text>
-                <ValidateCodeForm
-                    validateCodeAction={validateCodeAction}
-                    handleSubmitForm={(code) => {
+            <ValidateCodeActionForm
+                descriptionPrimary={<Text style={[styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>}
+                descriptionSecondary={(
+                    <View>
+                        <Text style={[styles.mb3]}>
+                            {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
+                            <Text style={styles.textStrong}>{email}</Text>.
+                        </Text>
+                        <Text>
+                            {translate('mergeAccountsPage.accountValidate.enterMagicCode')}
+                            <Text style={styles.textStrong}>{email}</Text>.
+                        </Text>
+                    </View>
+                )}
+                handleSubmitForm={(code) => {
+                    mergeWithValidateCodeAction(email, code);
+                }}
+                sendValidateCode={() => {
+                    if (validateCodeSentInitiallyRef.current) {
                         setMagicCodeBeenSent(true);
-                        mergeWithValidateCodeAction(email, code);
-                    }}
-                    sendValidateCode={() => requestValidationCodeForAccountMerge(email)}
-                    clearError={() => clearMergeWithValidateCode()}
-                    validateError={mergeWithValidateCode?.errors}
-                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    hideSubmitButton
-                />
-            </View>
+                    }
+                    requestValidationCodeForAccountMerge(email);
+                    validateCodeSentInitiallyRef.current = true;
+                }}
+                clearError={() => clearMergeWithValidateCode()}
+                validateError={mergeWithValidateCode?.errors}
+                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                submitButtonText={translate('mergeAccountsPage.mergeAccount')}
+                forwardedRef={validateCodeFormRef}
+            />
         </ScreenWrapper>
     );
 }

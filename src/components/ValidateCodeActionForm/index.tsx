@@ -18,6 +18,7 @@ function ValidateCodeActionForm({
     sendValidateCode,
     hasMagicCodeBeenSent,
     isLoading,
+    submitButtonText,
     forwardedRef,
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
@@ -59,6 +60,7 @@ function ValidateCodeActionForm({
                 buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                 ref={forwardedRef}
                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                submitButtonText={submitButtonText}
             />
         </View>
     );
