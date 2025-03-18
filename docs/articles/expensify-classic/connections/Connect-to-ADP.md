@@ -1,47 +1,49 @@
 ---
 title: How to Use the ADP Integration
-description: Expensify’s ADP integration allows you to pay out expense reports outside of Expensify. It creates a Custom Export Format that can be directly uploaded to ADP.
+description: Learn how to set up and use Expensify’s ADP integration to export and process expense report payouts seamlessly with ADP.
+keywords: [Expensify, ADP integration, payroll export, custom export format, expense reports, bulk update]
 ---
 
-Expensify’s ADP integration enables you to process expense report payouts outside of Expensify. It generates a **Custom Export Format** that can be uploaded to ADP.
+Expensify’s ADP integration enables you to process expense report payouts outside of Expensify by generating a **Custom Export Format** that can be uploaded to ADP.
 
-- You must be on the **Control Plan** to create a Custom Export Format.
-- You can import your ADP employee list into Expensify as a **CSV file** via the **People table**. This helps sync employee expense reports with ADP and is available on all plans.
+- The **Control Plan** is required to create a Custom Export Format.
+- You can import your ADP employee list into Expensify as a **CSV file** via the **People table** to sync employee expense reports with ADP. This feature is available on all plans.
 
 ---
 
 # Setting Up the ADP Integration
 
 ## Step 1: Prepare the ADP Import File
-Your ADP import file should contain the following **five columns**:
+Your ADP import file must include the following **five columns**:
 
-1. **Company Code** - Found in **Edit Company** in ADP.
-2. **Batch ID** - Found in **Edit Company** in ADP.
-3. **File #** - The employee number in ADP (located under **RUN Powered by ADP > Reports > Tax Reports > Wage > Tax Register**).
-4. **Earnings 3 Code** - Found in **Edit Profit Center Group** in ADP.
-5. **Earnings 3 Amount** - Found in **Edit Profit Center Group** in ADP.
+1. **Company Code** – Located under **Edit Company** in ADP.
+2. **Batch ID** – Found in **Edit Company** in ADP.
+3. **File #** – The employee number in ADP (**RUN Powered by ADP > Reports > Tax Reports > Wage > Tax Register**).
+4. **Earnings 3 Code** – Located under **Edit Profit Center Group** in ADP.
+5. **Earnings 3 Amount** – Also found in **Edit Profit Center Group** in ADP.
 
-In **Expensify**:
-- The **File #** is entered in **Custom Field 1 or 2** in the **Members table**.
-- The **Earnings 3 Code** corresponds to a payroll account tracked in Expensify.
+### In Expensify:
+- The **File #** is stored in **Custom Field 1 or 2** under the **Members table**.
+- The **Earnings 3 Code** links to a payroll account tracked in Expensify.
 - The **Earnings 3 Amount** is the total expense amount sent to payroll.
-- To enter the **Earnings 3 Code**, go to **Settings > Workspaces > [Group Workspace Name] > Categories > [Category Name] > Edit Rules > Add under Payroll Code**.
+- To enter the **Earnings 3 Code**, navigate to:
+  **Settings > Workspaces > [Group Workspace Name] > Categories > [Category Name] > Edit Rules > Add under Payroll Code**.
 
 ---
 
 ## Step 2: Create Your ADP Export Format
-1. Go to **Settings > Workspaces > [Group Workspace Name] > Export Formats**.
+1. Navigate to **Settings > Workspaces > [Group Workspace Name] > Export Formats**.
 2. Add the following column headings and formulas:
 
-| Column Name            | Formula                                 |
-|------------------------|----------------------------------------|
-| Company Code          | Hardcoded from Step 1                 |
-| Batch ID             | Hardcoded from Step 1                 |
-| File #              | `{report:submit.from:customfield1}`     |
-| Earnings 3 Code     | `{expense:category:payrollcode}`       |
-| Earnings 3 Amount   | `{expense:amount}`                     |
+| Column Name         | Formula                                   |
+|---------------------|------------------------------------------|
+| Company Code       | Hardcoded from Step 1                    |
+| Batch ID          | Hardcoded from Step 1                    |
+| File #           | `{report:submit.from:customfield1}`       |
+| Earnings 3 Code  | `{expense:category:payrollcode}`         |
+| Earnings 3 Amount| `{expense:amount}`                       |
 
-The **Company Code** and **Batch ID** should be hardcoded with the values used in ADP.
+> The **Company Code** and **Batch ID** should be hardcoded with values from ADP.
 
 ---
 
@@ -76,5 +78,5 @@ If you need **additional columns, headings, or datasets**, contact your **Expens
 Yes. Convert your ADP employee data to match the column headings used in Expensify’s **Members table CSV export**.
 
 ## Can I add custom fields to my ADP Payroll Export?
-Yes! Your Expensify Account Manager can help customize your ADP Payroll export to fit your needs. 
+Yes! Your Expensify Account Manager can help customize your ADP Payroll export to fit your needs.
 
