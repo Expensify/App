@@ -41,7 +41,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingX = false) => dismissProductTraining(CONCEIRGE_LHN_GBR, isDismissedUsingX),
         name: CONCEIRGE_LHN_GBR,
         priority: 1300,
-        shouldShow: () => true,
+        shouldShow: ({shouldUseNarrowLayout}) => !!shouldUseNarrowLayout,
     },
     [RENAME_SAVED_SEARCH]: {
         content: [
