@@ -30,6 +30,7 @@ import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOpt
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import {connect} from '@libs/actions/Delegate';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
@@ -277,6 +278,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         PriorityMode.autoSwitchToFocusMode();
 
         App.setUpPoliciesAndNavigate(session);
+
+        const url = new URL(currentUrl);
+        const delegatorEmail = url.searchParams.get('delegatorEmail') ?? '';
+        if (delegatorEmail) {
+            connect(delegatorEmail, true);
+        }
 
         App.redirectThirdPartyDesktopSignIn();
 

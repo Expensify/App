@@ -470,7 +470,6 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const policyOwnerEmail = url.searchParams.get('ownerEmail') ?? '';
     const makeMeAdmin = !!url.searchParams.get('makeMeAdmin');
     const policyName = url.searchParams.get('policyName') ?? '';
-    const delegatorEmail = url.searchParams.get('delegatorEmail') ?? '';
 
     // Sign out the current user if we're transitioning with a different user
     const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
@@ -488,10 +487,6 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
             .then(endSignOnTransition);
     } else {
         endSignOnTransition();
-    }
-
-    if (delegatorEmail) {
-        connect(delegatorEmail, true);
     }
 }
 
