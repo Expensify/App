@@ -156,7 +156,7 @@ function TransactionItemRow({
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                {!!additionalColumn && <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ADDITIONAL)]}>{additionalColumn}</View>}
+                                {!!additionalColumn && <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>{additionalColumn}</View>}
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                                     <TotalCell
                                         transactionItem={transactionItem}
