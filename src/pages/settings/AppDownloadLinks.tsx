@@ -8,9 +8,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as Link from '@userActions/Link';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -29,7 +29,7 @@ function AppDownloadLinksPage() {
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
+                openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
             },
             link: CONST.APP_DOWNLOAD_LINKS.ANDROID,
             icon: Expensicons.Android,
@@ -38,7 +38,7 @@ function AppDownloadLinksPage() {
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
+                openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.IOS,
             icon: Expensicons.Apple,
@@ -47,7 +47,7 @@ function AppDownloadLinksPage() {
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
+                openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
             icon: Expensicons.Monitor,
@@ -66,7 +66,14 @@ function AppDownloadLinksPage() {
                     <MenuItem
                         key={item.translationKey}
                         onPress={item.action}
-                        onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current)}
+                        onSecondaryInteraction={(e) =>
+                            showContextMenu({
+                                type: CONST.CONTEXT_MENU_TYPES.LINK,
+                                event: e,
+                                selection: item.link,
+                                contextMenuAnchor: popoverAnchor.current,
+                            })
+                        }
                         ref={popoverAnchor}
                         title={translate(item.translationKey)}
                         icon={item.icon}
