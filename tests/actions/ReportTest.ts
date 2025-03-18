@@ -164,6 +164,36 @@ describe('actions/Report', () => {
             });
     });
 
+    it('clearCreateChatError should not delete the report if it is not optimistic report', () => {
+        const REPORT: OnyxTypes.Report = {...createRandomReport(1), errorFields: {createChat: {error: 'error'}}};
+        const REPORT_METADATA: OnyxTypes.ReportMetadata = {isOptimisticReport: false};
+
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`, REPORT);
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, REPORT_METADATA);
+
+        return waitForBatchedUpdates()
+            .then(() => {
+                Report.clearCreateChatError(REPORT);
+                return waitForBatchedUpdates();
+            })
+            .then(
+                () =>
+                    new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`,
+                            callback: (report) => {
+                                Onyx.disconnect(connection);
+                                resolve();
+
+                                // The report should exist but the create chat error field should be cleared.
+                                expect(report?.reportID).toBeDefined();
+                                expect(report?.errorFields?.createChat).toBeUndefined();
+                            },
+                        });
+                    }),
+            );
+    });
+
     it('should update pins in Onyx when togglePinned is called', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';

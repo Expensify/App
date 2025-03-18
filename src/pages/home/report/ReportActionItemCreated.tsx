@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIcons, isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
-import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
+import {clearCreateChatError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
@@ -49,7 +49,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID ?? reportID, undefined, true)}
+            onClose={() => clearCreateChatError(report)}
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
