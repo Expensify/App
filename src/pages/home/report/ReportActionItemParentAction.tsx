@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -69,6 +70,7 @@ function ReportActionItemParentAction({
     const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -133,6 +135,10 @@ function ReportActionItemParentAction({
                                 canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])
                                     ? () => {
                                           const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWriteAction);
+                                          if (isInNarrowPaneModal) {
+                                              Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: ancestor.report.reportID, reportActionID: ancestor.reportAction.reportActionID}));
+                                              return;
+                                          }
                                           // Pop the thread report screen before navigating to the chat report.
                                           Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
                                           if (isVisibleAction && !isOffline) {
