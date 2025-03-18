@@ -328,10 +328,15 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         onSearchListScroll?.(event);
         const offsetY = event.nativeEvent.contentOffset.y;
 
+        // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
         if (shouldShowLoadingState || offsetY > 0) {
             return;
         }
 
+        /**
+         * This line ensures that the app refreshes the search results when the user scrolls to the top.
+         * More info: https://github.com/Expensify/App/issues/56969
+         */
         setOffset(0);
     };
 
