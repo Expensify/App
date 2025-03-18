@@ -79,6 +79,7 @@ function BaseModal(
         swipeDirection,
         shouldPreventScrollOnFocus = false,
         enableEdgeToEdgeBottomSafeAreaPadding = false,
+        shouldApplySidePaneOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -90,6 +91,8 @@ function BaseModal(
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {sidePaneOffset} = useSidePane();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const sidePaneStyle = shouldApplySidePaneOffset && !shouldUseNarrowLayout ? {paddingRight: sidePaneOffset.current} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -271,7 +274,7 @@ function BaseModal(
                     backdropTransitionOutTiming={0}
                     hasBackdrop={fullscreen}
                     coverScreen={fullscreen}
-                    style={[modalStyle, type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && {paddingRight: sidePaneOffset.current}]}
+                    style={[modalStyle, sidePaneStyle]}
                     deviceHeight={windowHeight}
                     deviceWidth={windowWidth}
                     animationIn={animationIn ?? modalStyleAnimationIn}
