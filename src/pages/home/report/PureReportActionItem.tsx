@@ -605,7 +605,6 @@ function PureReportActionItem({
         }
 
         if (isConciergeCategoryOptions(action)) {
-            console.log('>>>> originalReportID', originalReportID);
             const options = getOriginalMessage(action)?.options;
             return options.map((option, index) => ({
                 text: `${index + 1} - ${option}`,
