@@ -63,7 +63,6 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const payeePersonalDetails = personalDetails?.[actorAccountID];
     const participantsExcludingPayee = participants.filter((participant) => participant.accountID !== reportAction?.actorAccountID);
 
-    const isDistanceRequestTransaction = isDistanceRequest(transaction);
     const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
     const hasSmartScanFailed = hasReceipt(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
     const isEditingSplitBill = session?.accountID === actorAccountID && areRequiredFieldsEmpty(transaction);
@@ -108,7 +107,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                             />
                         </View>
                     )}
-                    <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={!isDistanceRequestTransaction}>
+                    <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={!isDistanceRequest(transaction)}>
                         {!!participants.length && (
                             <MoneyRequestConfirmationList
                                 payeePersonalDetails={payeePersonalDetails}
@@ -123,7 +122,6 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 iouIsBillable={splitBillable}
                                 iouType={CONST.IOU.TYPE.SPLIT}
                                 isReadOnly={!isEditingSplitBill}
-                                isDistanceRequest={isDistanceRequestTransaction}
                                 shouldShowSmartScanFields
                                 receiptPath={transaction?.receipt?.source}
                                 receiptFilename={transaction?.filename}
