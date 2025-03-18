@@ -26,12 +26,14 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import useIsAccountSettingsRouteActive from '@libs/Navigation/helpers/useRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
@@ -112,6 +114,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const freeTrialText = getFreeTrialText(policies);
     const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
+
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isScreenFocused = useIsAccountSettingsRouteActive(shouldUseNarrowLayout);
 
     useEffect(() => {
         openInitialSettingsPage();
@@ -375,7 +380,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
             ) : (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
-                    <AccountSwitcher />
+                    <AccountSwitcher isScreenFocused={isScreenFocused} />
                     <Tooltip text={translate('statusPage.status')}>
                         <PressableWithFeedback
                             accessibilityLabel={translate('statusPage.status')}

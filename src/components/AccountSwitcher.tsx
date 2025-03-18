@@ -30,7 +30,12 @@ import {useProductTrainingContext} from './ProductTrainingContext';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
-function AccountSwitcher() {
+type AccountSwitcherProps = {
+    /* Whether the screen is focused. Used to hide the product training tooltip */
+    isScreenFocused: boolean;
+};
+
+function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -53,7 +58,7 @@ function AccountSwitcher() {
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
-        canSwitchAccounts,
+        isScreenFocused && canSwitchAccounts,
     );
 
     const createBaseMenuItem = (
