@@ -3,6 +3,7 @@ title: Enable Global Reimbursements
 description: Send international payments
 keywords: Expensify Classic, foreign bank validation, global reimbursement, Canada, Europe, Singapore, Australia, United Kingdom, international reimbursements
 ---
+<div id="expensify-classic" markdown="1">
 
 If your company’s business bank account is in the US, Canada, the UK, Europe, Australia, or Singapore, you can send direct reimbursements to nearly any country worldwide! 
 
@@ -190,3 +191,5 @@ Make sure your employee's default workspace is set to the one linked to the bank
 ## Does Global Reimbursement in Expensify support SEPA (Single Euro Payments Area) in the EU?
 
 Global Reimbursement uses SEPA B2B to facilitate payments from EU-based accounts. SEPA Core is not supported.
+
+</div>
