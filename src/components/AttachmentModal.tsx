@@ -1,26 +1,26 @@
 import {Str} from 'expensify-common';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
-import {Animated, Keyboard, View} from 'react-native';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
+import Animated, {FadeIn, useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {cleanFileName, getFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
+import {detachReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
+import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from './Attachments/AttachmentView';
@@ -48,11 +49,6 @@ import SafeAreaConsumer from './SafeAreaConsumer';
  * to display a full size image or PDF modally with optional confirmation button.
  */
 
-type AttachmentModalOnyxProps = {
-    /** The transaction associated with the receipt attachment, if any */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-};
-
 type ImagePickerResponse = {
     height?: number;
     name: string;
@@ -69,7 +65,7 @@ type ChildrenProps = {
     show: () => void;
 };
 
-type AttachmentModalProps = AttachmentModalOnyxProps & {
+type AttachmentModalProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
 
@@ -136,6 +132,12 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     fallbackSource?: AvatarSource;
 
     canEditReceipt?: boolean;
+
+    canDeleteReceipt?: boolean;
+
+    shouldDisableSendButton?: boolean;
+
+    attachmentLink?: string;
 };
 
 function AttachmentModal({
@@ -153,19 +155,20 @@ function AttachmentModal({
     isReceiptAttachment = false,
     isWorkspaceAvatar = false,
     maybeIcon = false,
-    transaction,
     headerTitle,
     children,
     fallbackSource,
     canEditReceipt = false,
+    canDeleteReceipt = false,
     onModalClose = () => {},
     isLoading = false,
     shouldShowNotFoundPage = false,
     type = undefined,
     accountID = undefined,
+    shouldDisableSendButton = false,
+    attachmentLink = '',
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -176,13 +179,18 @@ function AttachmentModal({
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
+    const isPDFLoadError = useRef(false);
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
     const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -193,6 +201,8 @@ function AttachmentModal({
     );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+
+    const isLocalSource = typeof sourceState === 'string' && /^file:|^blob:/.test(sourceState);
 
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
@@ -207,6 +217,7 @@ function AttachmentModal({
             setFile(attachment.file);
             setIsAuthTokenRequiredState(attachment.isAuthTokenRequired ?? false);
             onCarouselAttachmentChange(attachment);
+            setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
         },
         [onCarouselAttachmentChange],
     );
@@ -242,13 +253,14 @@ function AttachmentModal({
         }
 
         if (typeof sourceURL === 'string') {
-            fileDownload(sourceURL, file?.name ?? '');
+            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : file?.name;
+            fileDownload(sourceURL, fileName ?? '');
         }
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
         Keyboard.dismiss();
-    }, [isAuthTokenRequiredState, sourceState, file]);
+    }, [isAuthTokenRequiredState, sourceState, file, type]);
 
     /**
      * Execute the onConfirm callback and close the modal.
@@ -280,28 +292,39 @@ function AttachmentModal({
      * Detach the receipt and close the modal.
      */
     const deleteAndCloseModal = useCallback(() => {
-        IOU.detachReceipt(transaction?.transactionID ?? '-1');
+        detachReceipt(transaction?.transactionID);
         setIsDeleteReceiptConfirmModalVisible(false);
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
-    }, [transaction, report]);
+        Navigation.goBack();
+    }, [transaction]);
 
-    const isValidFile = useCallback((fileObject: FileObject) => {
-        if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
-            setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
-            return false;
-        }
+    const isValidFile = useCallback(
+        (fileObject: FileObject) =>
+            validateImageForCorruption(fileObject)
+                .then(() => {
+                    if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                        setIsAttachmentInvalid(true);
+                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
+                        setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
+                        return false;
+                    }
 
-        if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
-            setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
-            return false;
-        }
+                    if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                        setIsAttachmentInvalid(true);
+                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
+                        setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
+                        return false;
+                    }
 
-        return true;
-    }, []);
+                    return true;
+                })
+                .catch(() => {
+                    setIsAttachmentInvalid(true);
+                    setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
+                    setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    return false;
+                }),
+        [],
+    );
 
     const isDirectoryCheck = useCallback((data: FileObject) => {
         if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
@@ -326,49 +349,62 @@ function AttachmentModal({
                 return;
             }
 
-            if (!isValidFile(fileObject)) {
-                return;
-            }
-
-            if (fileObject instanceof File) {
-                /**
-                 * Cleaning file name, done here so that it covers all cases:
-                 * upload, drag and drop, copy-paste
-                 */
-                let updatedFile = fileObject;
-                const cleanName = FileUtils.cleanFileName(updatedFile.name);
-                if (updatedFile.name !== cleanName) {
-                    updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
+            isValidFile(fileObject).then((isValid) => {
+                if (!isValid) {
+                    return;
                 }
-                const inputSource = URL.createObjectURL(updatedFile);
-                const inputModalType = getModalType(inputSource, updatedFile);
-                setIsModalOpen(true);
-                setSourceState(inputSource);
-                setFile(updatedFile);
-                setModalType(inputModalType);
-            } else if (fileObject.uri) {
-                const inputModalType = getModalType(fileObject.uri, fileObject);
-                setIsModalOpen(true);
-                setSourceState(fileObject.uri);
-                setFile(fileObject);
-                setModalType(inputModalType);
-            }
+                if (fileObject instanceof File) {
+                    /**
+                     * Cleaning file name, done here so that it covers all cases:
+                     * upload, drag and drop, copy-paste
+                     */
+                    let updatedFile = fileObject;
+                    const cleanName = cleanFileName(updatedFile.name);
+                    if (updatedFile.name !== cleanName) {
+                        updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
+                    }
+                    const inputSource = URL.createObjectURL(updatedFile);
+                    updatedFile.uri = inputSource;
+                    const inputModalType = getModalType(inputSource, updatedFile);
+                    setIsModalOpen(true);
+                    setSourceState(inputSource);
+                    setFile(updatedFile);
+                    setModalType(inputModalType);
+                } else if (fileObject.uri) {
+                    const inputModalType = getModalType(fileObject.uri, fileObject);
+                    setIsModalOpen(true);
+                    setSourceState(fileObject.uri);
+                    setFile(fileObject);
+                    setModalType(inputModalType);
+                }
+            });
         },
         [isValidFile, getModalType, isDirectoryCheck],
     );
 
     /**
-     * close the modal
+     * Closes the modal.
+     * @param {boolean} [shouldCallDirectly] If true, directly calls `onModalClose`.
+     * This is useful when you plan to continue navigating to another page after closing the modal, to avoid freezing the app due to navigating to another page first and dismissing the modal later.
+     * If `shouldCallDirectly` is false or undefined, it calls `attachmentModalHandler.handleModalClose` to close the modal.
+     * This ensures smooth modal closing behavior without causing delays in closing.
      */
-    const closeModal = useCallback(() => {
-        setIsModalOpen(false);
+    const closeModal = useCallback(
+        (shouldCallDirectly?: boolean) => {
+            setIsModalOpen(false);
 
-        if (typeof onModalClose === 'function') {
-            onModalClose();
-        }
+            if (typeof onModalClose === 'function') {
+                if (shouldCallDirectly) {
+                    onModalClose();
+                    return;
+                }
+                attachmentModalHandler.handleModalClose(onModalClose);
+            }
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [onModalClose]);
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        },
+        [onModalClose],
+    );
 
     /**
      *  open the modal
@@ -398,33 +434,32 @@ function AttachmentModal({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
-                    closeModal();
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            iouType,
-                            transaction?.transactionID ?? '-1',
-                            report?.reportID ?? '-1',
-                            Navigation.getActiveRouteWithoutParams(),
-                        ),
-                    );
+                    closeModal(true);
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
+                    });
                 },
             });
         }
-        if (!isOffline && allowDownload) {
+        if (!isOffline && allowDownload && !isLocalSource) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),
                 onSelected: () => downloadAttachment(),
             });
         }
-        if (TransactionUtils.hasReceipt(transaction) && !TransactionUtils.isReceiptBeingScanned(transaction) && canEditReceipt && !TransactionUtils.hasMissingSmartscanFields(transaction)) {
+
+        const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
+        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canDeleteReceipt && !hasMissingSmartscanFields(transaction)) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),
                 onSelected: () => {
                     setIsDeleteReceiptConfirmModalVisible(true);
                 },
+                shouldCallAfterModalHide: true,
             });
         }
         return menuItems;
@@ -436,9 +471,9 @@ function AttachmentModal({
     let headerTitleNew = headerTitle;
     let shouldShowDownloadButton = false;
     let shouldShowThreeDotsButton = false;
-    if (!isEmptyObject(report)) {
+    if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
         headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
-        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline;
+        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
     const context = useMemo(
@@ -455,11 +490,12 @@ function AttachmentModal({
         [closeModal, nope, sourceForAttachmentView],
     );
 
+    const submitRef = useRef<View | HTMLElement>(null);
+
     return (
         <>
             <Modal
                 type={modalType}
-                onSubmit={submitAndClose}
                 onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
                 isVisible={isModalOpen}
                 onModalShow={() => {
@@ -467,10 +503,23 @@ function AttachmentModal({
                     setShouldLoadAttachment(true);
                 }}
                 onModalHide={() => {
-                    onModalHide();
+                    if (!isPDFLoadError.current) {
+                        onModalHide();
+                    }
                     setShouldLoadAttachment(false);
+                    if (isPDFLoadError.current) {
+                        setIsAttachmentInvalid(true);
+                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
+                        setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    }
                 }}
                 propagateSwipe
+                initialFocus={() => {
+                    if (!submitRef.current) {
+                        return false;
+                    }
+                    return submitRef.current;
+                }}
             >
                 <GestureHandlerRootView style={styles.flex1}>
                     {shouldUseNarrowLayout && <HeaderGap />}
@@ -487,6 +536,7 @@ function AttachmentModal({
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                         threeDotsMenuItems={threeDotsMenuItems}
                         shouldOverlayDots
+                        subTitleLink={currentAttachmentLink ?? ''}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {isLoading && <FullScreenLoadingIndicator />}
@@ -512,6 +562,7 @@ function AttachmentModal({
                                     onClose={closeModal}
                                     source={source}
                                     setDownloadButtonVisibility={setDownloadButtonVisibility}
+                                    attachmentLink={currentAttachmentLink}
                                 />
                             ) : (
                                 !!sourceForAttachmentView &&
@@ -524,6 +575,10 @@ function AttachmentModal({
                                             isAuthTokenRequired={isAuthTokenRequiredState}
                                             file={file}
                                             onToggleKeyboard={setIsConfirmButtonDisabled}
+                                            onPDFLoadError={() => {
+                                                isPDFLoadError.current = true;
+                                                closeModal();
+                                            }}
                                             isWorkspaceAvatar={isWorkspaceAvatar}
                                             maybeIcon={maybeIcon}
                                             fallbackSource={fallbackSource}
@@ -539,15 +594,19 @@ function AttachmentModal({
                     {!!onConfirm && !isConfirmButtonDisabled && (
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
-                                <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                <Animated.View
+                                    style={safeAreaPaddingBottomStyle}
+                                    entering={FadeIn}
+                                >
                                     <Button
+                                        ref={viewRef(submitRef)}
                                         success
                                         large
                                         style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
                                         textStyles={[styles.buttonConfirmText]}
                                         text={translate('common.send')}
                                         onPress={submitAndClose}
-                                        isDisabled={isConfirmButtonDisabled}
+                                        isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
                                         pressOnEnter
                                     />
                                 </Animated.View>
@@ -577,6 +636,13 @@ function AttachmentModal({
                     prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                     confirmText={translate('common.close')}
                     shouldShowCancelButton={false}
+                    onModalHide={() => {
+                        if (!isPDFLoadError.current) {
+                            return;
+                        }
+                        isPDFLoadError.current = false;
+                        onModalHide?.();
+                    }}
                 />
             )}
 
@@ -590,14 +656,6 @@ function AttachmentModal({
 
 AttachmentModal.displayName = 'AttachmentModal';
 
-export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
-    transaction: {
-        key: ({report}) => {
-            const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-            const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-        },
-    },
-})(memo(AttachmentModal));
+export default memo(AttachmentModal);
 
 export type {Attachment, FileObject, ImagePickerResponse};

@@ -7,17 +7,33 @@ import Lottie from '@components/Lottie';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
 const VIDEO_ASPECT_RATIO = 400 / 225;
 
-function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, title, subtitle, headerStyles, headerContentStyles}: EmptyStateComponentProps) {
+function EmptyStateComponent({
+    SkeletonComponent,
+    headerMediaType,
+    headerMedia,
+    buttons,
+    containerStyles,
+    title,
+    titleStyles,
+    subtitle,
+    children,
+    headerStyles,
+    headerContentStyles,
+    lottieWebViewStyles,
+    showsVerticalScrollIndicator,
+    minModalHeight = 400,
+    addBottomSafeAreaPadding = false,
+}: EmptyStateComponentProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!event) {
@@ -53,6 +69,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
                         autoPlay
                         loop
                         style={headerContentStyles}
+                        webStyle={lottieWebViewStyles}
                     />
                 );
             case CONST.EMPTY_STATE_MEDIA.ILLUSTRATION:
@@ -65,30 +82,46 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
             default:
                 return null;
         }
-    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
+    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo, lottieWebViewStyles]);
 
     return (
-        <ScrollView contentContainerStyle={styles.emptyStateScrollView}>
-            <View style={styles.skeletonBackground}>
+        <ScrollView
+            showsVerticalScrollIndicator={showsVerticalScrollIndicator}
+            contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}
+            style={styles.flex1}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+        >
+            <View style={[styles.skeletonBackground, styles.overflowHidden]}>
                 <SkeletonComponent
                     gradientOpacityEnabled
                     shouldAnimate={false}
                 />
             </View>
-            <View style={styles.emptyStateForeground(isSmallScreenWidth)}>
+            <View style={styles.emptyStateForeground}>
                 <View style={styles.emptyStateContent}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
-                    <View style={styles.p8}>
-                        <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>
+                    <View style={shouldUseNarrowLayout ? styles.p5 : styles.p8}>
+                        <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
-                        {!!buttonText && !!buttonAction && (
-                            <Button
-                                success
-                                onPress={buttonAction}
-                            >
-                                {buttonText}
-                            </Button>
-                        )}
+                        {children}
+                        <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
+                            {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled}, index) => (
+                                <View
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    key={index}
+                                    style={styles.flex1}
+                                >
+                                    <Button
+                                        success={success}
+                                        onPress={buttonAction}
+                                        text={buttonText}
+                                        icon={icon}
+                                        large
+                                        isDisabled={isDisabled}
+                                    />
+                                </View>
+                            ))}
+                        </View>
                     </View>
                 </View>
             </View>

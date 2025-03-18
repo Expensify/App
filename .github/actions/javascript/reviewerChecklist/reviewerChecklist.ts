@@ -55,16 +55,16 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems: number) {
                 }
 
                 const whitespace = /([\n\r])/gm;
-                const comment = combinedComments[i].replace(whitespace, '');
+                const comment = combinedComments.at(i)?.replace(whitespace, '');
 
-                console.log(`Comment ${i} starts with: ${comment.slice(0, 20)}...`);
+                console.log(`Comment ${i} starts with: ${comment?.slice(0, 20)}...`);
 
                 // Found the reviewer checklist, so count how many completed checklist items there are
-                if (comment.indexOf(reviewerChecklistContains) !== -1) {
+                if (comment?.indexOf(reviewerChecklistContains) !== -1) {
                     console.log('Found the reviewer checklist!');
                     foundReviewerChecklist = true;
-                    numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) ?? []).length;
-                    numberOfUnfinishedChecklistItems = (comment.match(/- \[ \]/g) ?? []).length;
+                    numberOfFinishedChecklistItems = (comment?.match(/- \[x\]/gi) ?? []).length;
+                    numberOfUnfinishedChecklistItems = (comment?.match(/- \[ \]/g) ?? []).length;
                 }
             }
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -11,9 +12,14 @@ import CONST from '@src/CONST';
 const IMAGE_OFFSET_X = 30;
 const IMAGE_OFFSET_Y = 20;
 
+// This is necessary so we don't send the entire CONST object to the worklet which could lead to performance issues
+// https://docs.swmansion.com/react-native-reanimated/docs/guides/worklets/#capturing-closure
+const ANIMATION_GYROSCOPE_VALUE = CONST.ANIMATION_GYROSCOPE_VALUE;
+
 function AnimatedEmptyStateBackground() {
     const StyleUtils = useStyleUtils();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
     // If window width is greater than the max background width, repeat the background image
     const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
@@ -26,20 +32,19 @@ function AnimatedEmptyStateBackground() {
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
-        if (!isSmallScreenWidth || isReducedMotionEnabled) {
+        if (!shouldUseNarrowLayout || isReducedMotionEnabled) {
             return {};
         }
         /*
          * We use x and y gyroscope velocity and add it to position offset to move background based on device movements.
          * Position the phone was in while entering the screen is the initial position for background image.
          */
-        const {x, y} = animatedSensor.sensor.value;
+        const {x, y} = animatedSensor.sensor.get();
         // The x vs y here seems wrong but is the way to make it feel right to the user
-        // eslint-disable-next-line react-compiler/react-compiler
-        xOffset.value = clamp(xOffset.value + y * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
-        yOffset.value = clamp(yOffset.value - x * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
+        xOffset.set((value) => clamp(value + y * ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_X, IMAGE_OFFSET_X));
+        yOffset.set((value) => clamp(value - x * ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y));
         return {
-            transform: [{translateX: withSpring(xOffset.value)}, {translateY: withSpring(yOffset.value, {overshootClamping: true})}, {scale: 1.15}],
+            transform: [{translateX: withSpring(xOffset.get())}, {translateY: withSpring(yOffset.get(), {overshootClamping: true})}, {scale: 1.15}],
         };
     }, [isReducedMotionEnabled]);
 
@@ -47,7 +52,7 @@ function AnimatedEmptyStateBackground() {
         <View style={StyleUtils.getReportWelcomeBackgroundContainerStyle()}>
             <Animated.Image
                 source={illustrations.EmptyStateBackgroundImage}
-                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
+                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(shouldUseNarrowLayout), animatedStyles]}
                 resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
             />
         </View>

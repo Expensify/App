@@ -5,12 +5,14 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -47,6 +49,7 @@ function NetSuiteImportCustomFieldEdit({
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const config = policy?.connections?.netsuite?.options?.config;
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
@@ -70,9 +73,21 @@ function NetSuiteImportCustomFieldEdit({
                 });
 
                 if (PolicyUtils.isNetSuiteCustomSegmentRecord(customField)) {
-                    updateNetSuiteCustomSegments(policyID, updatedRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
+                    updateNetSuiteCustomSegments(
+                        policyID,
+                        updatedRecords as NetSuiteCustomSegment[],
+                        allRecords as NetSuiteCustomSegment[],
+                        `${importCustomField}_${valueIndex}`,
+                        CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    );
                 } else {
-                    updateNetSuiteCustomLists(policyID, updatedRecords as NetSuiteCustomList[], allRecords as NetSuiteCustomList[]);
+                    updateNetSuiteCustomLists(
+                        policyID,
+                        updatedRecords as NetSuiteCustomList[],
+                        allRecords as NetSuiteCustomList[],
+                        `${importCustomField}_${valueIndex}`,
+                        CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    );
                 }
             }
 
@@ -88,13 +103,13 @@ function NetSuiteImportCustomFieldEdit({
             const key = fieldName as keyof typeof formValues;
             const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths);
             if (!formValues[key]) {
-                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel));
+                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel}));
             } else if (
                 policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments?.find(
                     (customSegment) => customSegment?.[fieldName as keyof typeof customSegment]?.toLowerCase() === formValues[key].toLowerCase(),
                 )
             ) {
-                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel));
+                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel}));
             }
 
             return errors;
@@ -104,7 +119,7 @@ function NetSuiteImportCustomFieldEdit({
 
     const renderForm = useMemo(
         () =>
-            customField && (
+            !!customField && (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM}
                     style={[styles.flexGrow1, styles.ph5]}
@@ -113,7 +128,7 @@ function NetSuiteImportCustomFieldEdit({
                     submitButtonText={translate('common.save')}
                     shouldValidateOnBlur
                     shouldValidateOnChange
-                    isSubmitDisabled={!!config?.syncOptions?.pendingFields?.[importCustomField]}
+                    isSubmitDisabled={!!settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields)}
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -123,15 +138,16 @@ function NetSuiteImportCustomFieldEdit({
                         role={CONST.ROLE.PRESENTATION}
                         spellCheck={false}
                         defaultValue={fieldValue ?? ''}
+                        ref={inputCallbackRef}
                     />
                 </FormProvider>
             ),
-        [config?.syncOptions?.pendingFields, customField, fieldName, fieldValue, importCustomField, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
+        [config?.pendingFields, customField, fieldName, fieldValue, importCustomField, inputCallbackRef, styles.flexGrow1, styles.ph5, translate, updateRecord, validate, valueIndex],
     );
 
     const renderSelection = useMemo(
         () =>
-            customField && (
+            !!customField && (
                 <NetSuiteCustomFieldMappingPicker
                     onInputChange={(value) => {
                         updateRecord({
@@ -152,7 +168,7 @@ function NetSuiteImportCustomFieldEdit({
         <ConnectionLayout
             displayName={NetSuiteImportCustomFieldEdit.displayName}
             headerTitle={`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.flex1]}

@@ -44,7 +44,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     const [shouldHideSkipAnswer, setShouldHideSkipAnswer] = useState(false);
     const [userAnswers, setUserAnswers] = useState<Answer[]>([]);
 
-    const currentQuestion = questions[currentQuestionIndex] || {};
+    const currentQuestion = questions.at(currentQuestionIndex) ?? ({} as WalletAdditionalQuestionDetails);
     const possibleAnswers: Choice[] = currentQuestion.answer
         .map((answer) => {
             if (shouldHideSkipAnswer && answer === SKIP_QUESTION_TEXT) {
@@ -70,7 +70,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
      * Show next question or send all answers for Idology verifications when we've answered enough
      */
     const submitAnswers = () => {
-        if (!userAnswers[currentQuestionIndex]) {
+        if (!userAnswers.at(currentQuestionIndex)) {
             return;
         }
         // Get the number of questions that were skipped by the user.
@@ -83,7 +83,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
             // Auto skip any remaining questions
             if (tempAnswers.length < questions.length) {
                 for (let i = tempAnswers.length; i < questions.length; i++) {
-                    tempAnswers[i] = {question: questions[i].type, answer: SKIP_QUESTION_TEXT};
+                    tempAnswers[i] = {question: questions.at(i)?.type ?? '', answer: SKIP_QUESTION_TEXT};
                 }
             }
 
@@ -123,7 +123,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                     <InputWrapper
                         InputComponent={SingleChoiceQuestion}
                         inputID="answer"
-                        prompt={currentQuestion.prompt}
+                        prompt={currentQuestion?.prompt ?? ''}
                         possibleAnswers={possibleAnswers}
                         currentQuestionIndex={currentQuestionIndex}
                         onValueChange={(value) => {

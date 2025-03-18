@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -9,11 +8,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type WorkspaceUserRestrictedActionProps = {
@@ -22,7 +21,7 @@ type WorkspaceUserRestrictedActionProps = {
 
 function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedActionProps) {
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
     const styles = useThemeStyles();
 
     const openPolicyExpenseReport = useCallback(() => {
@@ -51,7 +50,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
                         height={variables.restrictedActionIllustrationHeight}
                     />
                     <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>
-                        {translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', {workspaceName: policy?.name})}
+                        {translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', {workspaceName: policy?.name ?? ''})}
                     </Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.textAlignCenter, styles.lh20, styles.mt2]}>
                         {translate('workspace.restrictedAction.pleaseReachOutToYourWorkspaceAdmin')}

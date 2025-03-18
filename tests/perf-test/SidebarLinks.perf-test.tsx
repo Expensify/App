@@ -1,33 +1,38 @@
-import {fireEvent, screen} from '@testing-library/react-native';
+import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {measurePerformance} from 'reassure';
-import variables from '@styles/variables';
+import {measureRenders} from 'reassure';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapInAct from '../utils/wrapInActHelper';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/usePermissions.ts');
-jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
+jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isActiveRoute: jest.fn(),
     getTopmostReportId: jest.fn(),
+    getActiveRoute: jest.fn(),
     getTopmostReportActionId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
 }));
 jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     getState: () => ({
+        routes: [{name: 'Report'}],
+    }),
+    getRootState: () => ({
         routes: [],
     }),
+    addListener: () => () => {},
 }));
 jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
+jest.mock('@src/hooks/useLHNEstimatedListSize/index.native.ts');
 
 const getMockedReportsMap = (length = 100) => {
     const mockReports = Object.fromEntries(
@@ -44,7 +49,7 @@ const getMockedReportsMap = (length = 100) => {
     return mockReports;
 };
 
-const mockedResponseMap = getMockedReportsMap(5);
+const mockedResponseMap = getMockedReportsMap(500);
 
 describe('SidebarLinks', () => {
     beforeAll(() => {
@@ -60,13 +65,19 @@ describe('SidebarLinks', () => {
 
         // Initialize the network key for OfflineWithFeedback
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-        Onyx.clear().then(waitForBatchedUpdates);
+        TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One').then(waitForBatchedUpdates);
+    });
+
+    afterEach(() => {
+        Onyx.clear();
     });
 
     test('[SidebarLinks] should render Sidebar with 500 reports stored', async () => {
         const scenario = async () => {
-            // Query for the sidebar
-            await screen.findByTestId('lhn-options-list');
+            await waitFor(async () => {
+                // Query for the sidebar
+                await screen.findByTestId('lhn-options-list');
+            });
         };
 
         await waitForBatchedUpdates();
@@ -79,73 +90,15 @@ describe('SidebarLinks', () => {
             ...mockedResponseMap,
         });
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario, runs: 1});
-    });
-
-    test('[SidebarLinks] should render list itmes', async () => {
-        const scenario = async () => {
-            /**
-             * Query for display names of participants [1, 2].
-             * This will ensure that the sidebar renders a list of items.
-             */
-            await screen.findAllByText('One, Two');
-        };
-
-        await waitForBatchedUpdates();
-
-        Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
-            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-            ...mockedResponseMap,
-        });
-
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
-    });
-
-    test('[SidebarLinks] should scroll through the list of items ', async () => {
-        const scenario = async () => {
-            const eventData = {
-                nativeEvent: {
-                    contentOffset: {
-                        y: variables.optionRowHeight * 5,
-                    },
-                    contentSize: {
-                        // Dimensions of the scrollable content
-                        height: variables.optionRowHeight * 10,
-                        width: 100,
-                    },
-                    layoutMeasurement: {
-                        // Dimensions of the device
-                        height: variables.optionRowHeight * 5,
-                        width: 100,
-                    },
-                },
-            };
-
-            const lhnOptionsList = await screen.findByTestId('lhn-options-list');
-
-            fireEvent.scroll(lhnOptionsList, eventData);
-        };
-
-        await waitForBatchedUpdates();
-
-        Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
-            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-            ...mockedResponseMap,
-        });
-
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 
     test('[SidebarLinks] should click on list item', async () => {
         const scenario = async () => {
-            const button = await screen.findByTestId('1');
-            fireEvent.press(button);
+            await wrapInAct(async () => {
+                const button = await screen.findByTestId('1');
+                fireEvent.press(button);
+            });
         };
 
         await waitForBatchedUpdates();
@@ -158,6 +111,6 @@ describe('SidebarLinks', () => {
             ...mockedResponseMap,
         });
 
-        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 });

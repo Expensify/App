@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {ActivityIndicator, Keyboard, LogBox, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
@@ -14,11 +14,11 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserLocation from '@libs/actions/UserLocation';
-import * as ApiUtils from '@libs/ApiUtils';
+import {setUserLocation} from '@libs/actions/UserLocation';
+import {getCommandURL} from '@libs/ApiUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
-import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
+import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlacesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -63,8 +63,8 @@ function AddressSearch(
         onBlur,
         onInputChange,
         onPress,
+        onCountryChange,
         predefinedPlaces = [],
-        preferredLocale,
         renamedInputKeys = {
             street: 'addressStreet',
             street2: 'addressStreet2',
@@ -84,7 +84,7 @@ function AddressSearch(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
@@ -94,6 +94,7 @@ function AddressSearch(
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
+    const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
     const containerRef = useRef<View>(null);
     const query = useMemo(
         () => ({
@@ -134,7 +135,7 @@ function AddressSearch(
             administrative_area_level_1: state,
             administrative_area_level_2: stateFallback,
             country: countryPrimary,
-        } = GooglePlacesUtils.getAddressComponents(addressComponents, {
+        } = getAddressComponents(addressComponents, {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             street_number: 'long_name',
             route: 'long_name',
@@ -154,7 +155,7 @@ function AddressSearch(
 
         // The state's iso code (short_name) is needed for the StatePicker component but we also
         // need the state's full name (long_name) when we render the state in a TextInput.
-        const {administrative_area_level_1: longStateName} = GooglePlacesUtils.getAddressComponents(addressComponents, {
+        const {administrative_area_level_1: longStateName} = getAddressComponents(addressComponents, {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             administrative_area_level_1: 'long_name',
         });
@@ -165,7 +166,9 @@ function AddressSearch(
             country: countryFallbackLongName = '',
             state: stateAutoCompleteFallback = '',
             city: cityAutocompleteFallback = '',
-        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
+            street: streetAutocompleteFallback = '',
+            streetNumber: streetNumberAutocompleteFallback = '',
+        } = getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
 
         const countryFallback = Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFallbackLongName);
 
@@ -173,7 +176,7 @@ function AddressSearch(
         const country = countryPrimary || countryFallback || '';
 
         const values = {
-            street: `${streetNumber} ${streetName}`.trim(),
+            street: `${streetNumber || streetNumberAutocompleteFallback} ${streetName || streetAutocompleteFallback}`.trim(),
             name: details.name ?? '',
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
@@ -194,7 +197,7 @@ function AddressSearch(
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
         // state / province in a TextInput instead of in a picker.
-        if (country !== CONST.COUNTRY.US) {
+        if (country !== CONST.COUNTRY.US && country !== CONST.COUNTRY.CA) {
             values.state = longStateName;
         }
 
@@ -233,7 +236,7 @@ function AddressSearch(
 
         if (inputID) {
             Object.entries(values).forEach(([key, inputValue]) => {
-                const inputKey = renamedInputKeys?.[key as keyof Address] ?? key;
+                const inputKey = renamedInputKeys?.[key as keyof Omit<Address, 'current'>] ?? key;
                 if (!inputKey) {
                     return;
                 }
@@ -243,6 +246,7 @@ function AddressSearch(
             onInputChange?.(values);
         }
 
+        onCountryChange?.(values.country);
         onPress?.(values);
     };
 
@@ -278,7 +282,7 @@ function AddressSearch(
                 };
 
                 // Update the current user location
-                UserLocation.setUserLocation({longitude, latitude});
+                setUserLocation({longitude, latitude});
                 onPress?.(location);
             },
             (errorData) => {
@@ -326,15 +330,18 @@ function AddressSearch(
         if (!searchValue) {
             return predefinedPlaces ?? [];
         }
+        if (shouldHidePredefinedPlaces) {
+            return [];
+        }
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
-    }, [predefinedPlaces, searchValue]);
+    }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
-    const listEmptyComponent = useCallback(
-        () => (!isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
+    const listEmptyComponent = useMemo(
+        () => (!isTyping ? undefined : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
         [isTyping, styles, translate],
     );
 
-    const listLoader = useCallback(
+    const listLoader = useMemo(
         () => (
             <View style={[styles.pv4]}>
                 <ActivityIndicator
@@ -400,7 +407,7 @@ function AddressSearch(
                         query={query}
                         requestUrl={{
                             useOnPlatform: 'all',
-                            url: isOffline ? '' : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces?proxyUrl='}),
+                            url: isOffline ? '' : getCommandURL({command: 'Proxy_GooglePlaces?proxyUrl='}),
                         }}
                         textInputProps={{
                             InputComp: TextInput,
@@ -429,6 +436,7 @@ function AddressSearch(
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);
+                                setShouldHidePredefinedPlaces(!isOffline);
                                 if (inputID) {
                                     onInputChange?.(text);
                                 } else {
@@ -462,15 +470,14 @@ function AddressSearch(
                         }}
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
-                            predefinedPlaces?.length === 0 &&
-                            shouldShowCurrentLocationButton && (
+                            predefinedPlaces?.length === 0 && shouldShowCurrentLocationButton ? (
                                 <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
                                     <CurrentLocationButton
                                         onPress={getCurrentLocation}
                                         isDisabled={isOffline}
                                     />
                                 </View>
-                            )
+                            ) : undefined
                         }
                         placeholder=""
                         listViewDisplayed

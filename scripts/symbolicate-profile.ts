@@ -32,7 +32,7 @@ if (Object.keys(argsMap).length === 0 || argsMap.help !== undefined) {
     Logger.log('Options:');
     Logger.log('  --profile=<filename>          The .cpuprofile file to symbolicate');
     Logger.log('  --platform=<ios|android>      The platform for which the source map was uploaded');
-    Logger.log('  --gh-token                    Token to use for requests send to the GitHub API. By default tries to pick up from the environment variable GITHUB_TOKEN');
+    Logger.log('  --ghToken                     Token to use for requests send to the GitHub API. By default tries to pick up from the environment variable GITHUB_TOKEN');
     Logger.log('  --help                        Display this help message');
     process.exit(0);
 }
@@ -53,7 +53,7 @@ if (argsMap.platform === undefined) {
 
 const githubToken = argsMap.ghToken ?? process.env.GITHUB_TOKEN;
 if (githubToken === undefined) {
-    Logger.error('No GitHub token provided. Either set a GITHUB_TOKEN environment variable or pass it using --gh-token');
+    Logger.error('No GitHub token provided. Either set a GITHUB_TOKEN environment variable or pass it using --ghToken');
     process.exit(1);
 }
 

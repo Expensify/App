@@ -35,6 +35,7 @@ function VideoPopoverMenu({
             anchorPosition={anchorPosition}
             menuItems={menuItems}
             anchorRef={videoPlayerMenuRef}
+            shouldUseScrollView
         />
     );
 }

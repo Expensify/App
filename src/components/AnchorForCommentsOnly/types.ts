@@ -1,4 +1,4 @@
-import type {StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type AnchorForCommentsOnlyProps = ChildrenProps & {
@@ -16,8 +16,14 @@ type AnchorForCommentsOnlyProps = ChildrenProps & {
     /** Any additional styles to apply */
     style: StyleProp<TextStyle>;
 
+    /** Any additional styles to apply to the wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
     /** Press handler for the link, when not passed, default href is used to create a link like behaviour */
     onPress?: () => void;
+
+    /** Indicates whether an image is wrapped in an anchor (`<a>`) tag with an `href` link */
+    linkHasImage?: boolean;
 };
 
 type BaseAnchorForCommentsOnlyProps = AnchorForCommentsOnlyProps & {

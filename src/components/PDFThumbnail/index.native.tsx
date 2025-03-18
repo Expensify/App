@@ -7,7 +7,7 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const sizeStyles = [styles.w100, styles.h100];
     const [failedToLoad, setFailedToLoad] = useState(false);
@@ -24,14 +24,20 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                         singlePage
                         style={sizeStyles}
                         onError={(error) => {
-                            if (onLoadError) {
-                                onLoadError();
-                            }
                             if ('message' in error && typeof error.message === 'string' && error.message.match(/password/i) && onPassword) {
                                 onPassword();
                                 return;
                             }
+                            if (onLoadError) {
+                                onLoadError();
+                            }
                             setFailedToLoad(true);
+                        }}
+                        onLoadComplete={() => {
+                            if (!onLoadSuccess) {
+                                return;
+                            }
+                            onLoadSuccess();
                         }}
                     />
                 )}

@@ -1,35 +1,30 @@
 import React, {useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Breadcrumbs from '@components/Breadcrumbs';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {buildOldDotURL, openOldDotLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
 
-type AllSettingsScreenOnyxProps = {
-    policies: OnyxCollection<Policy>;
-};
+function AllSettingsScreen() {
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-type AllSettingsScreenProps = AllSettingsScreenOnyxProps;
-
-function AllSettingsScreen({policies}: AllSettingsScreenProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
@@ -44,11 +39,11 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
                 icon: Expensicons.Building,
                 action: () => {
                     waitForNavigate(() => {
-                        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+                        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
                     })();
                 },
-                focused: !isSmallScreenWidth,
-                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                focused: !shouldUseNarrowLayout,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             ...(privateSubscription
                 ? [
@@ -56,23 +51,23 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
                           translationKey: 'allSettingsScreen.subscription',
                           icon: Expensicons.MoneyBag,
                           action: () => {
-                              Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
+                              openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
                           },
                           shouldShowRightIcon: true,
                           iconRight: Expensicons.NewWindow,
-                          link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
+                          link: () => buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
                       },
                   ]
                 : []),
             {
-                translationKey: 'allSettingsScreen.cardsAndDomains',
-                icon: Expensicons.CardsAndDomains,
+                translationKey: 'allSettingsScreen.domains',
+                icon: Expensicons.Globe,
                 action: () => {
-                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
+                    openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
                 },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL),
+                link: () => buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL),
             },
         ];
         return baseMenuItems.map((item) => ({
@@ -85,12 +80,10 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
             shouldShowRightIcon: item.shouldShowRightIcon,
             shouldBlockSelection: !!item.link,
             wrapperStyle: styles.sectionMenuItem,
-            isPaneMenu: true,
             focused: item.focused,
-            hoverAndPressStyle: styles.hoveredComponentBG,
             brickRoadIndicator: item.brickRoadIndicator,
         }));
-    }, [isSmallScreenWidth, policies, privateSubscription, waitForNavigate, translate, styles]);
+    }, [shouldUseNarrowLayout, policies, privateSubscription, waitForNavigate, translate, styles, allConnectionSyncProgresses]);
 
     return (
         <ScreenWrapper
@@ -122,8 +115,4 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
 
 AllSettingsScreen.displayName = 'AllSettingsScreen';
 
-export default withOnyx<AllSettingsScreenProps, AllSettingsScreenOnyxProps>({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(AllSettingsScreen);
+export default AllSettingsScreen;

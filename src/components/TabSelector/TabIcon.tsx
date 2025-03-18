@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Animated, StyleSheet, View} from 'react-native';
 import Icon from '@components/Icon';
 import useTheme from '@hooks/useTheme';
@@ -19,18 +20,20 @@ function TabIcon({icon, activeOpacity = 0, inactiveOpacity = 1}: TabIconProps) {
     const theme = useTheme();
     return (
         <View>
-            {icon && (
+            {!!icon && (
                 <>
                     <Animated.View style={{opacity: inactiveOpacity}}>
                         <Icon
                             src={icon}
                             fill={theme.icon}
+                            small
                         />
                     </Animated.View>
                     <Animated.View style={[StyleSheet.absoluteFill, {opacity: activeOpacity}]}>
                         <Icon
                             src={icon}
                             fill={theme.iconMenu}
+                            small
                         />
                     </Animated.View>
                 </>

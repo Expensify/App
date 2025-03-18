@@ -14,9 +14,6 @@ type SuggestionProps = {
     /** The current input value */
     value: string;
 
-    /** Callback to update the current input value */
-    setValue: (newValue: string) => void;
-
     /** The current selection value */
     selection: TextSelection;
 
@@ -56,7 +53,6 @@ type SuggestionProps = {
 function Suggestions(
     {
         value,
-        setValue,
         selection,
         setSelection,
         updateComment,
@@ -153,7 +149,6 @@ function Suggestions(
 
     const baseProps = {
         value,
-        setValue,
         setSelection,
         selection,
         updateComment,

@@ -2,26 +2,34 @@ import type {ReactElement} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {
+    getLinkedTransactionID,
+    getMemberChangeMessageFragment,
+    getOriginalMessage,
+    getReportActionMessage,
+    getReportActionMessageFragments,
+    getUpdateRoomDescriptionFragment,
+    isAddCommentAction,
+    isApprovedOrSubmittedReportAction as isApprovedOrSubmittedReportActionUtils,
+    isMemberChangeAction,
+    isMoneyRequestAction,
+    isThreadParentMessage,
+} from '@libs/ReportActionsUtils';
+import {getIOUReportActionDisplayMessage, getReportName, hasMissingInvoiceBankAccount, isSettled} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, Transaction} from '@src/types/onyx';
-import type {Message} from '@src/types/onyx/ReportAction';
+import ROUTES from '@src/ROUTES';
+import type {ReportAction} from '@src/types/onyx';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
-type ReportActionItemMessageOnyxProps = {
-    /** The transaction linked to the report action. */
-    transaction: OnyxEntry<Transaction>;
-};
-
-type ReportActionItemMessageProps = ReportActionItemMessageOnyxProps & {
+type ReportActionItemMessageProps = {
     /** The report action */
     action: ReportAction;
 
@@ -35,25 +43,36 @@ type ReportActionItemMessageProps = ReportActionItemMessageOnyxProps & {
     isHidden?: boolean;
 
     /** The ID of the report */
-    reportID: string;
+    reportID: string | undefined;
 };
 
-function ReportActionItemMessage({action, transaction, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
+function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`);
 
-    const actionMessage = action.previousMessage ?? action.message;
-    let fragments: Message[] = [];
-    if (Array.isArray(actionMessage)) {
-        fragments = actionMessage.filter((item): item is Message => !!item);
-    } else {
-        fragments = actionMessage ? [actionMessage] : [];
+    const fragments = getReportActionMessageFragments(action);
+    const isIOUReport = isMoneyRequestAction(action);
+
+    if (isMemberChangeAction(action)) {
+        const fragment = getMemberChangeMessageFragment(action, getReportName);
+
+        return (
+            <View style={[styles.chatItemMessage, style]}>
+                <TextCommentFragment
+                    fragment={fragment}
+                    displayAsGroup={displayAsGroup}
+                    style={style}
+                    source=""
+                    styleAsDeleted={false}
+                />
+            </View>
+        );
     }
-    const isIOUReport = ReportActionsUtils.isMoneyRequestAction(action);
 
-    if (ReportActionsUtils.isMemberChangeAction(action)) {
-        const fragment = ReportActionsUtils.getMemberChangeMessageFragment(action);
-
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
+        const fragment = getUpdateRoomDescriptionFragment(action);
         return (
             <View style={[styles.chatItemMessage, style]}>
                 <TextCommentFragment
@@ -69,14 +88,14 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
 
     let iouMessage: string | undefined;
     if (isIOUReport) {
-        const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? ReportActionsUtils.getOriginalMessage(action) : null;
+        const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? getOriginalMessage(action) : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = ReportUtils.getIOUReportActionDisplayMessage(action, transaction);
+            iouMessage = getIOUReportActionDisplayMessage(action, transaction);
         }
     }
 
-    const isApprovedOrSubmittedReportAction = ReportActionsUtils.isApprovedOrSubmittedReportAction(action);
+    const isApprovedOrSubmittedReportAction = isApprovedOrSubmittedReportActionUtils(action);
 
     const isHoldReportAction = [CONST.REPORT.ACTIONS.TYPE.HOLD, CONST.REPORT.ACTIONS.TYPE.UNHOLD].some((type) => type === action.actionName);
 
@@ -92,11 +111,11 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
                 key={`actionFragment-${action.reportActionID}-${index}`}
                 fragment={fragment}
                 iouMessage={iouMessage}
-                isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(action, reportID)}
+                isThreadParentMessage={isThreadParentMessage(action, reportID)}
                 pendingAction={action.pendingAction}
                 actionName={action.actionName}
-                source={ReportActionsUtils.isAddCommentAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.source : ''}
-                accountID={action.actorAccountID ?? -1}
+                source={isAddCommentAction(action) ? getOriginalMessage(action)?.source : ''}
+                accountID={action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID}
                 style={style}
                 displayAsGroup={displayAsGroup}
                 isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}
@@ -106,20 +125,41 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
                 // to decide if the fragment should be from left to right for RTL display names e.g. Arabic for proper
                 // formatting.
                 isFragmentContainingDisplayName={index === 0}
-                moderationDecision={ReportActionsUtils.getReportActionMessage(action)?.moderationDecision?.decision}
+                moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
             />
         ));
 
         // Approving or submitting reports in oldDot results in system messages made up of multiple fragments of `TEXT` type
         // which we need to wrap in `<Text>` to prevent them rendering on separate lines.
-
         return shouldWrapInText ? <Text style={styles.ltr}>{reportActionItemFragments}</Text> : reportActionItemFragments;
     };
+
+    const openWorkspaceInvoicesPage = () => {
+        const policyID = report?.policyID;
+
+        if (!policyID) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
+    };
+
+    const shouldShowAddBankAccountButton = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && hasMissingInvoiceBankAccount(reportID) && !isSettled(reportID);
 
     return (
         <View style={[styles.chatItemMessage, style]}>
             {!isHidden ? (
-                renderReportActionItemFragments(isApprovedOrSubmittedReportAction)
+                <>
+                    {renderReportActionItemFragments(isApprovedOrSubmittedReportAction)}
+                    {shouldShowAddBankAccountButton && (
+                        <Button
+                            style={[styles.mt2, styles.alignSelfStart]}
+                            success
+                            text={translate('workspace.invoices.paymentMethods.addBankAccount')}
+                            onPress={openWorkspaceInvoicesPage}
+                        />
+                    )}
+                </>
             ) : (
                 <Text style={[styles.textLabelSupporting, styles.lh20]}>{translate('moderation.flaggedContent')}</Text>
             )}
@@ -129,8 +169,4 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
 
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default withOnyx<ReportActionItemMessageProps, ReportActionItemMessageOnyxProps>({
-    transaction: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? -1}`,
-    },
-})(ReportActionItemMessage);
+export default ReportActionItemMessage;

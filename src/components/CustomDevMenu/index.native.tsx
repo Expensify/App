@@ -1,12 +1,12 @@
 import {useEffect} from 'react';
-import DevMenu from 'react-native-dev-menu';
+import {DevSettings} from 'react-native';
 import toggleTestToolsModal from '@userActions/TestTool';
 import type CustomDevMenuElement from './types';
 
 const CustomDevMenu: CustomDevMenuElement = Object.assign(
     () => {
         useEffect(() => {
-            DevMenu.addItem('Open Test Preferences', toggleTestToolsModal);
+            DevSettings.addMenuItem('Open Test Preferences', toggleTestToolsModal);
         }, []);
         // eslint-disable-next-line react/jsx-no-useless-fragment
         return <></>;

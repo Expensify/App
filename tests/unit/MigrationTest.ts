@@ -43,11 +43,11 @@ describe('Migrations', () => {
             return Onyx.multiSet(setQueries)
                 .then(KeyReportActionsDraftByReportActionID)
                 .then(() => {
-                    const connectionID = Onyx.connect({
+                    const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
                         waitForCollectionCallback: true,
                         callback: (allReportActionsDrafts) => {
-                            Onyx.disconnect(connectionID);
+                            Onyx.disconnect(connection);
                             const expectedReportActionDraft1 = {
                                 1: 'a',
                                 2: 'b',
@@ -75,11 +75,11 @@ describe('Migrations', () => {
                 .then(KeyReportActionsDraftByReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsDraftByReportActionID because there are no actions drafts to migrate');
-                    const connectionID = Onyx.connect({
+                    const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
-                            Onyx.disconnect(connectionID);
+                            Onyx.disconnect(connection);
                             const expectedReportActionDraft = {};
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]).toBeUndefined();
@@ -99,11 +99,11 @@ describe('Migrations', () => {
             return Onyx.multiSet(setQueries)
                 .then(KeyReportActionsDraftByReportActionID)
                 .then(() => {
-                    const connectionID = Onyx.connect({
+                    const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
                         waitForCollectionCallback: true,
                         callback: (allReportActionsDrafts) => {
-                            Onyx.disconnect(connectionID);
+                            Onyx.disconnect(connection);
                             expect(allReportActionsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
                         },
                     });

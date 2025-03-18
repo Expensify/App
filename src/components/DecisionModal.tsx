@@ -21,7 +21,7 @@ type DecisionModalProps = {
     secondOptionText: string;
 
     /** onSubmit callback fired after clicking on first button */
-    onFirstOptionSubmit: () => void;
+    onFirstOptionSubmit?: () => void;
 
     /** onSubmit callback fired after clicking on second button */
     onSecondOptionSubmit: () => void;
@@ -47,7 +47,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
         >
             <View style={[styles.m5]}>
                 <View>
-                    <View style={[styles.flexRow, styles.mb4]}>
+                    <View style={[styles.flexRow, styles.mb5]}>
                         <Header
                             title={title}
                             containerStyles={[styles.alignItemsCenter]}
@@ -55,19 +55,21 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
                     </View>
                     <Text>{prompt}</Text>
                 </View>
-                {firstOptionText && (
+                {!!firstOptionText && (
                     <Button
                         success
-                        style={[styles.mt4]}
+                        style={[styles.mt5]}
                         onPress={onFirstOptionSubmit}
                         pressOnEnter
                         text={firstOptionText}
+                        large
                     />
                 )}
                 <Button
-                    style={[styles.mt3, styles.noSelect]}
+                    style={[styles.mt5, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
                     text={secondOptionText}
+                    large
                 />
             </View>
         </Modal>

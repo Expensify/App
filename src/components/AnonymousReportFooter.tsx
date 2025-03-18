@@ -48,7 +48,6 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report, policy}: Anon
                 </View>
                 <View style={[styles.anonymousRoomFooterSignInButton]}>
                     <Button
-                        medium
                         success
                         text={translate('common.signIn')}
                         onPress={() => Session.signOutAndRedirectToSignIn()}

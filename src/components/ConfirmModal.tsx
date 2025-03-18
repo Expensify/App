@@ -19,6 +19,9 @@ type ConfirmModalProps = {
     /** A callback to call when the form has been closed */
     onCancel?: () => void;
 
+    /** A callback to call when backdrop is pressed */
+    onBackdropPress?: () => void;
+
     /** Modal visibility */
     isVisible: boolean;
 
@@ -91,6 +94,9 @@ type ConfirmModalProps = {
     /** Image to display with content */
     image?: IconAsset;
 
+    /** Styles for the image */
+    imageStyles?: StyleProp<ViewStyle>;
+
     /**
      * Whether the modal should enable the new focus manager.
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
@@ -99,6 +105,9 @@ type ConfirmModalProps = {
 
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
+
+    /** Whether the confirm button is loading */
+    isConfirmLoading?: boolean;
 };
 
 function ConfirmModal({
@@ -108,6 +117,7 @@ function ConfirmModal({
     success = true,
     danger = false,
     onCancel = () => {},
+    onBackdropPress,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = true,
     shouldSetModalVisibility = true,
@@ -122,6 +132,7 @@ function ConfirmModal({
     isVisible,
     onConfirm,
     image,
+    imageStyles,
     iconWidth,
     iconHeight,
     iconFill,
@@ -131,14 +142,17 @@ function ConfirmModal({
     shouldReverseStackedButtons,
     shouldEnableNewFocusManagement,
     restoreFocusType,
+    isConfirmLoading,
 }: ConfirmModalProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     return (
         <Modal
-            onSubmit={onConfirm}
             onClose={onCancel}
+            onBackdropPress={onBackdropPress}
             isVisible={isVisible}
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={onModalHide}
@@ -158,6 +172,7 @@ function ConfirmModal({
                 prompt={prompt}
                 success={success}
                 danger={danger}
+                isVisible={isVisible}
                 shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
                 shouldShowCancelButton={shouldShowCancelButton}
                 shouldCenterContent={shouldCenterContent}
@@ -175,6 +190,8 @@ function ConfirmModal({
                 shouldStackButtons={shouldStackButtons}
                 shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
+                imageStyles={imageStyles}
+                isConfirmLoading={isConfirmLoading}
             />
         </Modal>
     );

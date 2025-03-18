@@ -29,6 +29,15 @@ const PROBABILITY_CONSIDERED_SIGNIFICANCE = 0.02;
  */
 const DURATION_DIFF_THRESHOLD_SIGNIFICANCE = 100;
 
+const LowerIsBetter: Record<Unit, boolean> = {
+    ms: true,
+    MB: true,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '%': true,
+    renders: true,
+    FPS: false,
+};
+
 function buildCompareEntry(name: string, compare: Stats, baseline: Stats, unit: Unit): Entry {
     const diff = compare.mean - baseline.mean;
     const relativeDurationDiff = diff / baseline.mean;
@@ -44,7 +53,7 @@ function buildCompareEntry(name: string, compare: Stats, baseline: Stats, unit: 
         baseline,
         current: compare,
         diff,
-        relativeDurationDiff,
+        relativeDurationDiff: LowerIsBetter[unit] ? relativeDurationDiff : -relativeDurationDiff,
         isDurationDiffOfSignificance,
     };
 }
@@ -82,16 +91,23 @@ function compareResults(baselineEntries: Metric | string, compareEntries: Metric
     };
 }
 
-export default (main: Metric | string, delta: Metric | string, outputFile: string, outputFormat = 'all', metricForTest = {}) => {
+type Options = {
+    outputFile: string;
+    outputFormat: 'console' | 'markdown' | 'all';
+    metricForTest: Record<string, Unit>;
+    skippedTests: string[];
+};
+
+export default (main: Metric | string, delta: Metric | string, {outputFile, outputFormat = 'all', metricForTest = {}, skippedTests}: Options) => {
     // IMPORTANT NOTE: make sure you are passing the main/baseline results first, then the delta/compare results:
     const outputData = compareResults(main, delta, metricForTest);
 
     if (outputFormat === 'console' || outputFormat === 'all') {
-        printToConsole(outputData);
+        printToConsole(outputData, skippedTests);
     }
 
     if (outputFormat === 'markdown' || outputFormat === 'all') {
-        return writeToMarkdown(outputFile, outputData);
+        return writeToMarkdown(outputFile, outputData, skippedTests);
     }
 };
 export {compareResults};

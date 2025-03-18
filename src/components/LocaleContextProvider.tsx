@@ -8,7 +8,7 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
@@ -28,7 +28,7 @@ type LocaleContextProviderProps = LocaleContextProviderOnyxProps &
 
 type LocaleContextProps = {
     /** Returns translated string for given locale and phrase */
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: Localize.PhraseParameters<Localize.Phrase<TKey>>) => string;
+    translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
 
     /** Formats number formatted according to locale and options */
     numberFormat: (number: number, options?: Intl.NumberFormatOptions) => string;
@@ -50,7 +50,7 @@ type LocaleContextProps = {
     toLocaleDigit: (digit: string) => string;
 
     /** Formats a number into its localized ordinal representation */
-    toLocaleOrdinal: (number: number) => string;
+    toLocaleOrdinal: (number: number, returnWords?: boolean) => string;
 
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: (digit: string) => string;
@@ -79,8 +79,8 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails, chi
 
     const translate = useMemo<LocaleContextProps['translate']>(
         () =>
-            (phraseKey, ...phraseParameters) =>
-                Localize.translate(locale, phraseKey, ...phraseParameters),
+            (path, ...parameters) =>
+                Localize.translate(locale, path, ...parameters),
         [locale],
     );
 
@@ -101,7 +101,12 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails, chi
 
     const toLocaleDigit = useMemo<LocaleContextProps['toLocaleDigit']>(() => (digit) => LocaleDigitUtils.toLocaleDigit(locale, digit), [locale]);
 
-    const toLocaleOrdinal = useMemo<LocaleContextProps['toLocaleOrdinal']>(() => (number) => LocaleDigitUtils.toLocaleOrdinal(locale, number), [locale]);
+    const toLocaleOrdinal = useMemo<LocaleContextProps['toLocaleOrdinal']>(
+        () =>
+            (number, writtenOrdinals = false) =>
+                LocaleDigitUtils.toLocaleOrdinal(locale, number, writtenOrdinals),
+        [locale],
+    );
 
     const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => LocaleDigitUtils.fromLocaleDigit(locale, localeDigit), [locale]);
 

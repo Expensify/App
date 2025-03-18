@@ -1,11 +1,14 @@
 import NetInfo from '@react-native-community/netinfo';
-import {isBoolean} from 'lodash';
+import {differenceInHours} from 'date-fns/differenceInHours';
+import isBoolean from 'lodash/isBoolean';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Network from '@src/types/onyx/Network';
+import type {ConnectionChanges} from '@src/types/onyx/Network';
 import * as NetworkActions from './actions/Network';
 import AppStateMonitor from './AppStateMonitor';
 import Log from './Log';
@@ -21,15 +24,26 @@ type ResponseJSON = {
 let callbackID = 0;
 const reconnectionCallbacks: Record<string, () => void> = {};
 
+let isServerUp = true;
+let wasServerDown = false;
+
 /**
  * Loop over all reconnection callbacks and fire each one
  */
 const triggerReconnectionCallbacks = throttle(
     (reason) => {
-        Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
-        Object.values(reconnectionCallbacks).forEach((callback) => {
-            callback();
-        });
+        let delay = 0;
+
+        if (wasServerDown && isServerUp) {
+            delay = Math.floor(Math.random() * 61000);
+            wasServerDown = false;
+        }
+        setTimeout(() => {
+            Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
+            Object.values(reconnectionCallbacks).forEach((callback) => {
+                callback();
+            });
+        }, delay);
     },
     5000,
     {trailing: false},
@@ -40,6 +54,7 @@ const triggerReconnectionCallbacks = throttle(
  * then all of the reconnection callbacks are triggered
  */
 function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
+    trackConnectionChanges();
     NetworkActions.setIsOffline(isCurrentlyOffline, reason);
 
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
@@ -53,12 +68,20 @@ function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
 
 // Update the offline status in response to changes in shouldForceOffline
 let shouldForceOffline = false;
+let isPoorConnectionSimulated: boolean | undefined;
+let connectionChanges: ConnectionChanges | undefined;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
             return;
         }
+
+        simulatePoorConnection(network);
+
+        isPoorConnectionSimulated = !!network.shouldSimulatePoorConnection;
+        connectionChanges = network.connectionChanges;
+
         const currentShouldForceOffline = !!network.shouldForceOffline;
         if (currentShouldForceOffline === shouldForceOffline) {
             return;
@@ -70,12 +93,12 @@ Onyx.connect({
         } else {
             // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
             NetInfo.fetch().then((state) => {
-                const isInternetReachable = (state.isInternetReachable ?? false) === false;
-                setOfflineStatus(isInternetReachable, 'NetInfo checked if the internet is reachable');
+                const isInternetUnreachable = (state.isInternetReachable ?? false) === false;
+                setOfflineStatus(isInternetUnreachable || !isServerUp, 'NetInfo checked if the internet is reachable');
                 Log.info(
                     `[NetworkStatus] The force-offline mode was turned off. Getting the device network status from NetInfo. Network state: ${JSON.stringify(
                         state,
-                    )}. Setting the offline status to: ${isInternetReachable}.`,
+                    )}. Setting the offline status to: ${isInternetUnreachable}.`,
                 );
             });
         }
@@ -92,6 +115,69 @@ Onyx.connect({
         accountID = session.accountID;
     },
 });
+
+function simulatePoorConnection(network: Network) {
+    // Starts random network status change when shouldSimulatePoorConnection is turned into true
+    // or after app restart if shouldSimulatePoorConnection is true already
+    if (!isPoorConnectionSimulated && !!network.shouldSimulatePoorConnection) {
+        clearTimeout(network.poorConnectionTimeoutID);
+        setRandomNetworkStatus(true);
+    }
+
+    // Fetch the NetInfo state to set the correct offline status when shouldSimulatePoorConnection is turned into false
+    if (isPoorConnectionSimulated && !network.shouldSimulatePoorConnection) {
+        NetInfo.fetch().then((state) => {
+            const isInternetUnreachable = !state.isInternetReachable;
+            const stringifiedState = JSON.stringify(state);
+            setOfflineStatus(isInternetUnreachable || !isServerUp, 'NetInfo checked if the internet is reachable');
+            Log.info(
+                `[NetworkStatus] The poor connection simulation mode was turned off. Getting the device network status from NetInfo. Network state: ${stringifiedState}. Setting the offline status to: ${isInternetUnreachable}.`,
+            );
+        });
+    }
+}
+
+/** Sets online/offline connection randomly every 2-5 seconds */
+function setRandomNetworkStatus(initialCall = false) {
+    // The check to ensure no new timeouts are scheduled after poor connection simulation is stopped
+    if (!isPoorConnectionSimulated && !initialCall) {
+        return;
+    }
+
+    const statuses = [CONST.NETWORK.NETWORK_STATUS.OFFLINE, CONST.NETWORK.NETWORK_STATUS.ONLINE];
+    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    const randomInterval = Math.random() * (5000 - 2000) + 2000; // random interval between 2-5 seconds
+    Log.info(`[NetworkConnection] Set connection status "${randomStatus}" for ${randomInterval} sec`);
+
+    setOfflineStatus(randomStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE);
+
+    const timeoutID = setTimeout(setRandomNetworkStatus, randomInterval);
+    NetworkActions.setPoorConnectionTimeoutID(timeoutID);
+}
+
+/** Tracks how many times the connection has changed within the time period */
+function trackConnectionChanges() {
+    if (!connectionChanges?.startTime) {
+        NetworkActions.setConnectionChanges({startTime: new Date().getTime(), amount: 1});
+        return;
+    }
+
+    const diffInHours = differenceInHours(new Date(), connectionChanges.startTime);
+    const newAmount = (connectionChanges.amount ?? 0) + 1;
+
+    if (diffInHours < 1) {
+        NetworkActions.setConnectionChanges({amount: newAmount});
+        return;
+    }
+
+    Log.info(
+        `[NetworkConnection] Connection has changed ${newAmount} time(s) for the last ${diffInHours} hour(s). Poor connection simulation is turned ${
+            isPoorConnectionSimulated ? 'on' : 'off'
+        }`,
+    );
+
+    NetworkActions.setConnectionChanges({startTime: new Date().getTime(), amount: 0});
+}
 
 /**
  * Set up the event listener for NetInfo to tell whether the user has
@@ -116,8 +202,22 @@ function subscribeToNetInfo(): () => void {
                 }
                 return response
                     .json()
-                    .then((json: ResponseJSON) => Promise.resolve(json.jsonCode === 200))
-                    .catch(() => Promise.resolve(false));
+                    .then((json: ResponseJSON) => {
+                        if (json.jsonCode !== 200 && isServerUp) {
+                            Log.info('[NetworkConnection] Received non-200 response from reachability test. Setting isServerUp status to false.');
+                            isServerUp = false;
+                            wasServerDown = true;
+                        } else if (json.jsonCode === 200 && !isServerUp) {
+                            Log.info('[NetworkConnection] Received 200 response from reachability test. Setting isServerUp status to true.');
+                            isServerUp = true;
+                        }
+                        return Promise.resolve(json.jsonCode === 200);
+                    })
+                    .catch(() => {
+                        isServerUp = false;
+                        wasServerDown = true;
+                        return Promise.resolve(false);
+                    });
             },
 
             // If a check is taking longer than this time we're considered offline
@@ -133,7 +233,7 @@ function subscribeToNetInfo(): () => void {
             Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
             return;
         }
-        setOfflineStatus(state.isInternetReachable === false, 'NetInfo received a state change event');
+        setOfflineStatus(state.isInternetReachable === false || !isServerUp, 'NetInfo received a state change event');
         Log.info(`[NetworkStatus] NetInfo.addEventListener event coming, setting "offlineStatus" to ${!!state.isInternetReachable} with network state: ${JSON.stringify(state)}`);
         let networkStatus;
         if (!isBoolean(state.isInternetReachable)) {

@@ -1,4 +1,5 @@
-import {isEmpty} from 'lodash';
+import {useRoute} from '@react-navigation/native';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -8,27 +9,39 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
-import {getAdminEmployees, isExpensifyTeam} from '@libs/PolicyUtils';
+import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import {updateXeroExportExporter} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type CardListItem = ListItem & {
     value: string;
 };
 
 function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
-    const {export: exportConfiguration} = policy?.connections?.xero?.config ?? {};
+    const {config} = policy?.connections?.xero ?? {};
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PREFERRED_EXPORTER_SELECT>>();
+    const backTo = route.params?.backTo;
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)));
+    }, [policyID, backTo]);
+
     const data: CardListItem[] = useMemo(() => {
         if (!isEmpty(policyOwner) && isEmpty(exporters)) {
             return [
@@ -55,20 +68,20 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
                 value: exporter.email,
                 text: exporter.email,
                 keyForList: exporter.email,
-                isSelected: exportConfiguration?.exporter === exporter.email,
+                isSelected: (config?.export?.exporter ?? policyOwner) === exporter.email,
             });
             return options;
         }, []);
-    }, [exportConfiguration, exporters, policyOwner, currentUserLogin]);
+    }, [policyOwner, exporters, currentUserLogin, config?.export?.exporter]);
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exportConfiguration?.exporter) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {exporter: row.value});
+            if (row.value !== config?.export?.exporter && policyID) {
+                updateXeroExportExporter(policyID, row.value, config?.export?.exporter);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
+            goBack();
         },
-        [policyID, exportConfiguration],
+        [policyID, config?.export?.exporter, goBack],
     );
 
     const headerContent = useMemo(
@@ -92,9 +105,13 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
             headerContent={headerContent}
             onSelectRow={selectExporter}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
+            onBackButtonPress={goBack}
             title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+            pendingAction={settingsPendingAction([CONST.XERO_CONFIG.EXPORTER], config?.pendingFields)}
+            errors={getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.EXPORTER)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.EXPORTER)}
         />
     );
 }

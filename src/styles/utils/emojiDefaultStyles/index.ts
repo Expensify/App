@@ -1,11 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import display from '@styles/utils/display';
+import FontUtils from '@styles/utils/FontUtils';
 import type EmojiDefaultStyles from './types';
 
 const emojiDefaultStyles: EmojiDefaultStyles = {
-    fontStyle: 'normal',
-    fontWeight: 'normal',
-    ...display.dInlineFlex,
+    ...FontUtils.fontFamily.platform.EXP_NEUE,
+    ...display.dInline,
 };
 
 export default emojiDefaultStyles;

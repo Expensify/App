@@ -17,8 +17,11 @@ import {useRef} from 'react';
  */
 export default function useDeepCompareRef<T>(value: T): T | undefined {
     const ref = useRef<T>();
+    // eslint-disable-next-line react-compiler/react-compiler
     if (!isEqual(value, ref.current)) {
+        // eslint-disable-next-line react-compiler/react-compiler
         ref.current = value;
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     return ref.current;
 }

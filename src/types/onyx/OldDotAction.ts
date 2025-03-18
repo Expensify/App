@@ -2,14 +2,13 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {
     ChangeFieldParams,
-    ChangePolicyParams,
     DelegateSubmitParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,
     MarkReimbursedFromIntegrationParams,
     ShareParams,
     UnshareParams,
-} from '@src/languages/types';
+} from '@src/languages/params';
 
 /**
  *
@@ -21,7 +20,6 @@ type OldDotOriginalMessageActionName =
     | 'DELEGATESUBMIT'
     | 'EXPORTCSV'
     | 'EXPORTINTEGRATION'
-    | 'FORWARDED'
     | 'INTEGRATIONSMESSAGE'
     | 'MANAGERATTACHRECEIPT'
     | 'MANAGERDETACHRECEIPT'
@@ -51,20 +49,6 @@ type OriginalMessageChangeField = {
      *
      */
     originalMessage: Record<string, unknown> & ChangeFieldParams;
-};
-
-/**
- *
- */
-type OriginalMessageChangePolicy = {
-    /**
-     *
-     */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY;
-    /**
-     *
-     */
-    originalMessage: ChangePolicyParams & Record<string, unknown>;
 };
 
 // Currently lacking Params
@@ -120,18 +104,6 @@ type OriginalMessageExportedToIntegration = {
      */
     originalMessage: ExportedToIntegrationParams & Record<string, unknown>;
 };
-
-// Currently lacking Params
-// type OriginalMessagePolicyTask = {
-//     /**
-//      *
-//      */
-//     actionName: typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED;
-//     /**
-//      *
-//      */
-//     originalMessage: ForwardedParams & Record<string, unknown>;
-// };
 
 /**
  *
@@ -362,10 +334,6 @@ type OldDotOriginalMessageMap = {
     /**
      *
      */
-    [CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY]: OriginalMessageChangePolicy;
-    /**
-     *
-     */
     [CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT]: OriginalMessageDelegateSubmit;
     /**
      *
@@ -462,7 +430,6 @@ export default OldDotAction;
 export type {
     OriginalMessageChangeField,
     OldDotOriginalMessageActionName,
-    OriginalMessageChangePolicy,
     OriginalMessageDelegateSubmit,
     OriginalMessageExportedToCSV,
     OriginalMessageExportedToIntegration,

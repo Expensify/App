@@ -1,10 +1,10 @@
 import React, {forwardRef} from 'react';
-import {SectionList as RNSectionList} from 'react-native';
+import BaseSectionList from './BaseSectionList';
 import type {SectionListProps, SectionListRef} from './types';
 
 function SectionList<ItemT, SectionT>(props: SectionListProps<ItemT, SectionT>, ref: SectionListRef<ItemT, SectionT>) {
     return (
-        <RNSectionList
+        <BaseSectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}

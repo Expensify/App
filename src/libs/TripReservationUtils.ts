@@ -1,11 +1,10 @@
-import type {EReceiptColorName} from '@styles/utils/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-function getTripReservationIcon(reservationType: ReservationType): IconAsset {
+function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
             return Expensicons.Plane;
@@ -13,38 +12,49 @@ function getTripReservationIcon(reservationType: ReservationType): IconAsset {
             return Expensicons.Bed;
         case CONST.RESERVATION_TYPE.CAR:
             return Expensicons.CarWithKey;
+        case CONST.RESERVATION_TYPE.TRAIN:
+            return Expensicons.Train;
         default:
             return Expensicons.Luggage;
     }
 }
 
-function getReservationsFromTripTransactions(transactions: Transaction[]): Reservation[] {
+type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number};
+
+function getReservationsFromTripTransactions(transactions: Transaction[]): ReservationData[] {
     return transactions
-        .map((item) => item?.receipt?.reservationList ?? [])
-        .filter((item) => item.length > 0)
-        .flat();
+        .flatMap(
+            (item) =>
+                item?.receipt?.reservationList?.map((reservation, reservationIndex) => ({
+                    reservation,
+                    transactionID: item.transactionID,
+                    reportID: item.reportID,
+                    reservationIndex,
+                })) ?? [],
+        )
+        .sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }
 
-type TripEReceiptData = {
-    /** Icon asset associated with the type of trip reservation */
-    tripIcon?: IconAsset;
-
-    /** EReceipt background color associated with the type of trip reservation */
-    tripBGColor?: EReceiptColorName;
-};
-
-function getTripEReceiptData(transaction?: Transaction): TripEReceiptData {
+function getTripEReceiptIcon(transaction?: Transaction): IconAsset | undefined {
     const reservationType = transaction ? transaction.receipt?.reservationList?.[0]?.type : '';
 
     switch (reservationType) {
         case CONST.RESERVATION_TYPE.FLIGHT:
         case CONST.RESERVATION_TYPE.CAR:
-            return {tripIcon: Expensicons.Plane, tripBGColor: CONST.ERECEIPT_COLORS.PINK};
+            return Expensicons.Plane;
         case CONST.RESERVATION_TYPE.HOTEL:
-            return {tripIcon: Expensicons.Bed, tripBGColor: CONST.ERECEIPT_COLORS.YELLOW};
+            return Expensicons.Bed;
         default:
-            return {};
+            return undefined;
     }
 }
 
-export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptData};
+/**
+ * Extracts the confirmation code from a reservation
+ */
+function getTripReservationCode(reservation: Reservation): string {
+    return `${reservation.confirmations && reservation.confirmations?.length > 0 ? `${reservation.confirmations.at(0)?.value} • ` : ''}`;
+}
+
+export {getTripReservationIcon, getReservationsFromTripTransactions, getTripEReceiptIcon, getTripReservationCode};
+export type {ReservationData};

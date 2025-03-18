@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -14,16 +13,17 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as Link from '@userActions/Link';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type SageIntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
+type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
 
 function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();
@@ -40,10 +40,15 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 iconRight: Expensicons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    fileDownload(CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME);
+                    fileDownload(CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME, '', true);
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
-                    ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, popoverAnchor.current),
+                    showContextMenu({
+                        type: CONST.CONTEXT_MENU_TYPES.LINK,
+                        event,
+                        selection: CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT,
+                        contextMenuAnchor: popoverAnchor.current,
+                    }),
                 numberOfLinesTitle: 2,
             },
             {
@@ -53,10 +58,15 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 iconRight: Expensicons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    Link.openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
+                    openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
-                    ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT, popoverAnchor.current),
+                    showContextMenu({
+                        type: CONST.CONTEXT_MENU_TYPES.LINK,
+                        event,
+                        selection: CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT,
+                        contextMenuAnchor: popoverAnchor.current,
+                    }),
                 numberOfLinesTitle: 3,
             },
         ],
@@ -79,7 +89,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                     <ImageSVG src={Computer} />
                 </View>
 
-                <Text style={[styles.textHeadlineH1, styles.p5, styles.pb6]}>{translate('workspace.intacct.prerequisitesTitle')}</Text>
+                <Text style={[styles.textHeadlineH1, styles.p5, styles.p6]}>{translate('workspace.intacct.prerequisitesTitle')}</Text>
                 <MenuItemList
                     menuItems={menuItems}
                     shouldUseSingleExecution

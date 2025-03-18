@@ -1,12 +1,12 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
-import useEnvironment from '@hooks/useEnvironment';
+import {useOnyx} from 'react-native-onyx';
+import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {getBrowser, isChromeIOS} from '@libs/Browser';
 import Navigation from '@navigation/Navigation';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
@@ -20,22 +20,31 @@ import TestToolMenu from './TestToolMenu';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-type TestToolsModalOnyxProps = {
-    /** Whether the test tools modal is open */
-    isTestToolsModalOpen: OnyxEntry<boolean>;
+function getRouteBasedOnAuthStatus(isAuthenticated: boolean, activeRoute: string) {
+    return isAuthenticated ? ROUTES.SETTINGS_CONSOLE.getRoute(activeRoute) : ROUTES.PUBLIC_CONSOLE_DEBUG.getRoute(activeRoute);
+}
 
-    /** Whether or not logs should be stored */
-    shouldStoreLogs: OnyxEntry<boolean>;
-};
-
-type TestToolsModalProps = TestToolsModalOnyxProps;
-
-function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}: TestToolsModalProps) {
-    const {isProduction} = useEnvironment();
+function TestToolsModal() {
+    const [isTestToolsModalOpen = false] = useOnyx(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN);
+    const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
     const {windowWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const activeRoute = Navigation.getActiveRoute();
+    const isAuthenticated = useIsAuthenticated();
+    const route = getRouteBasedOnAuthStatus(isAuthenticated, activeRoute);
+
+    const shouldShowProfileTool = useMemo(() => {
+        const browser = getBrowser();
+        const isSafariOrFirefox = browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.FIREFOX;
+
+        if (isSafariOrFirefox || isChromeIOS()) {
+            return false;
+        }
+
+        return true;
+    }, []);
 
     return (
         <Modal
@@ -50,7 +59,7 @@ function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}:
                 >
                     {translate('initialSettingsPage.troubleshoot.releaseOptions')}
                 </Text>
-                <ProfilingToolMenu />
+                {shouldShowProfileTool && <ProfilingToolMenu />}
                 <ClientSideLoggingToolMenu />
                 {!!shouldStoreLogs && (
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
@@ -59,12 +68,12 @@ function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}:
                             text={translate('initialSettingsPage.debugConsole.viewConsole')}
                             onPress={() => {
                                 toggleTestToolsModal();
-                                Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(Navigation.getActiveRoute()));
+                                Navigation.navigate(route);
                             }}
                         />
                     </TestToolRow>
                 )}
-                {!isProduction && <TestToolMenu />}
+                <TestToolMenu />
             </View>
         </Modal>
     );
@@ -72,11 +81,4 @@ function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}:
 
 TestToolsModal.displayName = 'TestToolsModal';
 
-export default withOnyx<TestToolsModalProps, TestToolsModalOnyxProps>({
-    isTestToolsModalOpen: {
-        key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
-    },
-    shouldStoreLogs: {
-        key: ONYXKEYS.SHOULD_STORE_LOGS,
-    },
-})(TestToolsModal);
+export default TestToolsModal;

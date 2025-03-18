@@ -11,6 +11,12 @@ You can choose to enable, disable, or edit the default Expensify categories, or 
 
 # Enable, disable, or edit default categories 
 
+Once you have manually added your categories or automatically imported them from a connected accounting system, you can enable or disable the categories to determine whether they can be added to expenses.
+
+{% include info.html %}
+Importing GL & payroll codes from your accounting system is only available on the Control plan.
+{% include end-info.html %}
+
 1. Hover over Settings, then click **Workspaces**. 
 2. Click the **Group** tab on the left. 
 3. Click the desired workspace name. 

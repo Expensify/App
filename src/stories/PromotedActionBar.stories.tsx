@@ -49,21 +49,28 @@ const promotedActions = [
     },
 ] satisfies PromotedAction[];
 
+const defaultPromotedAction = {
+    key: '',
+    icon: Expensicons.ExpensifyLogoNew,
+    text: '',
+    onSelected: () => {},
+};
+
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default: StoryType = Template.bind({});
 Default.args = {
-    promotedActions: [promotedActions[0]],
+    promotedActions: [promotedActions.at(0) ?? defaultPromotedAction],
 };
 
 const TwoPromotedActions: StoryType = Template.bind({});
 TwoPromotedActions.args = {
-    promotedActions: [promotedActions[0], promotedActions[1]],
+    promotedActions: [promotedActions.at(0) ?? defaultPromotedAction, promotedActions.at(1) ?? defaultPromotedAction],
 };
 
 const ThreePromotedActions: StoryType = Template.bind({});
 ThreePromotedActions.args = {
-    promotedActions: [promotedActions[0], promotedActions[1], promotedActions[2]],
+    promotedActions: [promotedActions.at(0) ?? defaultPromotedAction, promotedActions.at(1) ?? defaultPromotedAction, promotedActions.at(2) ?? defaultPromotedAction],
 };
 
 export default story;

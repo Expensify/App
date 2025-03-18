@@ -32,7 +32,17 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'edited',
                 contentModel: HTMLContentModel.textual,
             }),
+            'task-title': HTMLElementModel.fromCustomModel({
+                tagName: 'task-title',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: {...styles.taskTitleMenuItem},
+            }),
             'alert-text': HTMLElementModel.fromCustomModel({
+                tagName: 'alert-text',
+                mixedUAStyles: {...styles.formError, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
+            'deleted-action': HTMLElementModel.fromCustomModel({
                 tagName: 'alert-text',
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
@@ -49,12 +59,22 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             comment: HTMLElementModel.fromCustomModel({
                 tagName: 'comment',
-                mixedUAStyles: {whiteSpace: 'pre'},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.islarge === undefined) {
+                        return {whiteSpace: 'pre'};
+                    }
+                    return {whiteSpace: 'pre', ...styles.onlyEmojisText};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             'email-comment': HTMLElementModel.fromCustomModel({
                 tagName: 'email-comment',
-                mixedUAStyles: {whiteSpace: 'normal'},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.islarge === undefined) {
+                        return {whiteSpace: 'normal'};
+                    }
+                    return {whiteSpace: 'normal', ...styles.onlyEmojisText};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             strong: HTMLElementModel.fromCustomModel({
@@ -82,13 +102,30 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.textSupporting, ...styles.textLineThrough},
                 contentModel: HTMLContentModel.textual,
             }),
-            'uploading-attachment': HTMLElementModel.fromCustomModel({
-                tagName: 'uploading-attachment',
-                mixedUAStyles: {...styles.mt4},
+            blockquote: HTMLElementModel.fromCustomModel({
+                tagName: 'blockquote',
                 contentModel: HTMLContentModel.block,
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.isemojisonly === undefined) {
+                        return;
+                    }
+                    return styles.onlyEmojisTextLineHeight;
+                },
             }),
         }),
-        [styles.formError, styles.mb0, styles.colorMuted, styles.textLabelSupporting, styles.lh16, styles.textSupporting, styles.textLineThrough, styles.mt4, styles.mutedNormalTextLabel],
+        [
+            styles.formError,
+            styles.mb0,
+            styles.colorMuted,
+            styles.textLabelSupporting,
+            styles.lh16,
+            styles.textSupporting,
+            styles.textLineThrough,
+            styles.mutedNormalTextLabel,
+            styles.onlyEmojisText,
+            styles.onlyEmojisTextLineHeight,
+            styles.taskTitleMenuItem,
+        ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -101,7 +138,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            systemFonts={Object.values(FontUtils.fontFamily.single)}
+            systemFonts={Object.values(FontUtils.fontFamily.single).map((font) => font.fontFamily)}
             htmlParserOptions={{
                 recognizeSelfClosing: true,
             }}

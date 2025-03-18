@@ -15,6 +15,10 @@ export default {
         margin: 8,
     },
 
+    m3: {
+        margin: 12,
+    },
+
     m4: {
         margin: 16,
     },
@@ -51,6 +55,10 @@ export default {
         marginHorizontal: 32,
     },
 
+    mhn2: {
+        marginHorizontal: -8,
+    },
+
     mhn5: {
         marginHorizontal: -20,
     },
@@ -81,6 +89,14 @@ export default {
 
     mv5: {
         marginVertical: 20,
+    },
+
+    mv6: {
+        marginVertical: 24,
+    },
+
+    mvAuto: {
+        marginVertical: 'auto',
     },
 
     mhv5: {
@@ -211,8 +227,16 @@ export default {
         marginTop: 0,
     },
 
+    mt0Half: {
+        marginTop: 2,
+    },
+
     mt1: {
         marginTop: 4,
+    },
+
+    mt1Half: {
+        marginTop: 6,
     },
 
     mt2: {
@@ -255,6 +279,10 @@ export default {
         marginTop: 'auto',
     },
 
+    mtn0Half: {
+        marginTop: -2,
+    },
+
     mtn1: {
         marginTop: -4,
     },
@@ -285,6 +313,10 @@ export default {
 
     mb1: {
         marginBottom: 4,
+    },
+
+    mb1half: {
+        marginBottom: 6,
     },
 
     mb2: {
@@ -373,7 +405,7 @@ export default {
         padding: 20,
     },
 
-    pb6: {
+    p6: {
         padding: 24,
     },
 
@@ -401,6 +433,10 @@ export default {
         paddingVertical: 4,
     },
 
+    pv1half: {
+        paddingVertical: 6,
+    },
+
     pv2: {
         paddingVertical: 8,
     },
@@ -415,6 +451,10 @@ export default {
 
     pv5: {
         paddingVertical: 20,
+    },
+
+    pv6: {
+        paddingVertical: 24,
     },
 
     pv10: {
@@ -465,6 +505,10 @@ export default {
         paddingHorizontal: 40,
     },
 
+    ph11: {
+        paddingHorizontal: 44,
+    },
+
     ph15: {
         paddingHorizontal: 60,
     },
@@ -497,7 +541,7 @@ export default {
         paddingRight: 20,
     },
 
-    pr9: {
+    pr8: {
         paddingRight: 32,
     },
 
@@ -537,6 +581,14 @@ export default {
         paddingLeft: 24,
     },
 
+    pl8: {
+        paddingLeft: 32,
+    },
+
+    pt9: {
+        paddingTop: 36,
+    },
+
     pl10: {
         paddingLeft: 40,
     },
@@ -547,6 +599,10 @@ export default {
 
     pt1: {
         paddingTop: 4,
+    },
+
+    pt1half: {
+        paddingTop: 6,
     },
 
     pt2: {
@@ -601,6 +657,10 @@ export default {
         paddingBottom: 20,
     },
 
+    pb6: {
+        paddingBottom: 24,
+    },
+
     pb8: {
         paddingBottom: 32,
     },
@@ -645,11 +705,35 @@ export default {
         gap: 20,
     },
 
+    gap6: {
+        gap: 24,
+    },
+
     gap7: {
         gap: 28,
     },
 
+    gap8: {
+        gap: 32,
+    },
+
     rowGap4: {
         rowGap: 16,
+    },
+
+    columnGap3: {
+        columnGap: 12,
+    },
+
+    minHeight5: {
+        minHeight: 20,
+    },
+
+    minHeight65: {
+        minHeight: 260,
+    },
+
+    maxHeight5: {
+        maxHeight: 20,
     },
 } satisfies Record<string, ViewStyle>;

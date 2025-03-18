@@ -33,7 +33,7 @@ const localeEmojis: LocaleEmojis = {
 };
 
 const importEmojiLocale = (locale: Locale) => {
-    const normalizedLocale = locale.toLowerCase().split('-')[0] as Locale;
+    const normalizedLocale = locale.toLowerCase().split('-').at(0) as Locale;
     if (!localeEmojis[normalizedLocale]) {
         const emojiImportPromise = normalizedLocale === 'en' ? import('./en') : import('./es');
         return emojiImportPromise.then((esEmojiModule) => {

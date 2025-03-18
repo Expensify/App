@@ -4,7 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 // Once we get the sidebar loaded end mark we know that the app is ready to be used:
 export default function waitForAppLoaded(): Promise<void> {
     return new Promise((resolve) => {
-        const connectionId = Onyx.connect({
+        const connection = Onyx.connect({
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
             callback: (isSidebarLoaded) => {
                 if (!isSidebarLoaded) {
@@ -12,7 +12,7 @@ export default function waitForAppLoaded(): Promise<void> {
                 }
 
                 resolve();
-                Onyx.disconnect(connectionId);
+                Onyx.disconnect(connection);
             },
         });
     });

@@ -1,5 +1,6 @@
 function syncSelectors(selectedIndex) {
     const allSelects = document.querySelectorAll('select');
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let i = 0; i < allSelects.length; i++) {
         allSelects[i].selectedIndex = selectedIndex;
     }
@@ -19,6 +20,7 @@ function selectOption(select) {
     allOptions.forEach((option) => {
         if (option.value === selectedValue) {
             const toShow = document.getElementsByClassName(option.value);
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let i = 0; i < toShow.length; i++) {
                 toShow[i].classList.remove('hidden');
             }
@@ -26,6 +28,7 @@ function selectOption(select) {
         }
 
         const toHide = document.getElementsByClassName(option.value);
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < toHide.length; i++) {
             toHide[i].classList.add('hidden');
         }

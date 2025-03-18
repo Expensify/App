@@ -8,12 +8,14 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
+import {updateNetSuiteApprovalAccount} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuiteApprovalAccountOptions} from '@libs/PolicyUtils';
+import {getNetSuiteApprovalAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -21,9 +23,9 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const netsuiteApprovalAccountOptions = useMemo<SelectorType[]>(
         () => getNetSuiteApprovalAccountOptions(policy ?? undefined, config?.approvalAccount),
         // The default option will be language dependent, so we need to recompute the options when the language changes
@@ -35,8 +37,8 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
 
     const updateCollectionAccount = useCallback(
         ({value}: SelectorType) => {
-            if (config?.approvalAccount !== value) {
-                Connections.updateNetSuiteApprovalAccount(policyID, value, config?.approvalAccount ?? CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT);
+            if (config?.approvalAccount !== value && policyID) {
+                updateNetSuiteApprovalAccount(policyID, value, config?.approvalAccount ?? CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
@@ -69,7 +71,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteApprovalAccountSelectPage.displayName}
             headerContent={headerContent}
@@ -81,6 +83,10 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
             title="workspace.netsuite.advancedConfig.approvalAccount"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT], config?.pendingFields)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT)}
         />
     );
 }

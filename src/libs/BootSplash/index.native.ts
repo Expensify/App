@@ -10,7 +10,6 @@ function hide(): Promise<void> {
 
 export default {
     hide,
-    getVisibilityStatus: BootSplash.getVisibilityStatus,
     logoSizeRatio: BootSplash.logoSizeRatio || 1,
     navigationBarHeight: BootSplash.navigationBarHeight || 0,
 };

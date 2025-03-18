@@ -1,23 +1,43 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback} from 'react';
+import {ActivityIndicator} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {filterInactiveCards} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {WorkspaceCardsList} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspaceExpensifyCardListPage from './WorkspaceExpensifyCardListPage';
 import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEmptyState';
 
-type WorkspaceExpensifyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
-
-// TODO: remove when Onyx data is available, and pass the data to 'WorkspaceExpensifyCardListPage' so that we will not make the same 'Onyx' call twice
-const cardsList: OnyxEntry<WorkspaceCardsList> = {};
+type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
-    // const policyID = route.params.policyID ?? '-1';
-    // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const policyID = route.params.policyID;
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+
+    const fetchExpensifyCards = useCallback(() => {
+        openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
+    }, [policyID, workspaceAccountID]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
+
+    useFocusEffect(fetchExpensifyCards);
+
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
 
     return (
         <AccessOrNotFoundWrapper
@@ -25,9 +45,20 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            {/* After BE will be implemented we will probably want to have ActivityIndicator during fetch for cardsList */}
-            {isEmptyObject(cardsList) && <WorkspaceExpensifyCardPageEmptyState route={route} />}
-            {!isEmptyObject(cardsList) && <WorkspaceExpensifyCardListPage route={route} />}
+            {!!isLoading && !paymentBankAccountID && (
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={styles.flex1}
+                    color={theme.spinner}
+                />
+            )}
+            {!!paymentBankAccountID && (
+                <WorkspaceExpensifyCardListPage
+                    cardsList={cardsList}
+                    route={route}
+                />
+            )}
+            {!paymentBankAccountID && !isLoading && <WorkspaceExpensifyCardPageEmptyState route={route} />}
         </AccessOrNotFoundWrapper>
     );
 }

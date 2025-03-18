@@ -1,19 +1,26 @@
 import React from 'react';
+import {View} from 'react-native';
+import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type NetSuiteCustomListPickerProps = {
     /** Selected mapping value */
     value?: string;
 
+    /** Text to display on error message */
+    errorText?: string;
+
     /** Callback to fire when mapping is selected */
     onInputChange?: (value: string) => void;
 };
 
-function NetSuiteCustomFieldMappingPicker({value, onInputChange}: NetSuiteCustomListPickerProps) {
+function NetSuiteCustomFieldMappingPicker({value, errorText, onInputChange}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const options = [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
 
@@ -27,14 +34,26 @@ function NetSuiteCustomFieldMappingPicker({value, onInputChange}: NetSuiteCustom
         })) ?? [];
 
     return (
-        <SelectionList
-            sections={[{data: selectionData}]}
-            onSelectRow={(selected) => {
-                onInputChange?.(selected.value);
-            }}
-            ListItem={RadioListItem}
-            initiallyFocusedOptionKey={value ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}
-        />
+        <>
+            <SelectionList
+                sections={[{data: selectionData}]}
+                onSelectRow={(selected) => {
+                    onInputChange?.(selected.value);
+                }}
+                ListItem={RadioListItem}
+                initiallyFocusedOptionKey={value ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}
+                shouldSingleExecuteRowSelect
+                shouldUpdateFocusedIndex
+            />
+            {!!errorText && (
+                <View style={styles.ph5}>
+                    <FormHelpMessage
+                        isError={!!errorText}
+                        message={errorText}
+                    />
+                </View>
+            )}
+        </>
     );
 }
 

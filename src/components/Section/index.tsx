@@ -67,6 +67,9 @@ type SectionProps = Partial<ChildrenProps> & {
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
 
+    /** Customize the Illustration container */
+    illustrationContainerStyle?: StyleProp<ViewStyle>;
+
     /** Styles to apply to illustration component */
     illustrationStyle?: StyleProp<ViewStyle>;
 
@@ -109,6 +112,7 @@ function Section({
     isCentralPane = false,
     illustration,
     illustrationBackgroundColor,
+    illustrationContainerStyle,
     illustrationStyle,
     contentPaddingOnLargeScreens,
     overlayContent,
@@ -125,9 +129,6 @@ function Section({
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     const lottieIllustration = isLottie ? illustration : undefined;
-
-    const illustrationContainerStyle: StyleProp<ViewStyle> = StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG);
-
     return (
         <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
             {banner}
@@ -140,7 +141,16 @@ function Section({
                 />
             )}
             {!!illustration && (
-                <View style={[styles.w100, styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, illustrationContainerStyle]}>
+                <View
+                    style={[
+                        styles.w100,
+                        styles.dFlex,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                        StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG),
+                        illustrationContainerStyle,
+                    ]}
+                >
                     <View style={[styles.cardSectionIllustration, illustrationStyle]}>
                         {isLottie ? (
                             <Lottie

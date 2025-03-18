@@ -6,7 +6,7 @@ import colors from '../src/styles/theme/colors';
 const theme: ThemeVars = create({
     brandTitle: 'New Expensify UI Docs',
     brandImage: 'logomark.svg',
-    fontBase: 'ExpensifyNeue-Regular',
+    fontBase: 'Expensify Neue',
     fontCode: 'monospace',
     base: 'dark',
     appBg: colors.productDark200,

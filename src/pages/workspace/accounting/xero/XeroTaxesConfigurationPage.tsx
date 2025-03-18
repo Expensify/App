@@ -2,8 +2,9 @@ import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as Xero from '@libs/actions/connections/Xero';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -32,9 +33,10 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.xero.customers')}
                 isActive={isSwitchOn}
-                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_TAX_RATES, !xeroConfig?.importTaxRates)}
+                onToggle={() => Xero.updateXeroImportTaxRates(policyID, !xeroConfig?.importTaxRates, xeroConfig?.importTaxRates)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TAX_RATES)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.IMPORT_TAX_RATES)}
+                pendingAction={PolicyUtils.settingsPendingAction([CONST.XERO_CONFIG.IMPORT_TAX_RATES], xeroConfig?.pendingFields)}
             />
         </ConnectionLayout>
     );

@@ -1,6 +1,6 @@
 type RequestExpensifyCardLimitIncreaseParams = {
     authToken: string | null | undefined;
-    settlementBankAccountID: string;
+    settlementBankAccountID: number;
 };
 
 export default RequestExpensifyCardLimitIncreaseParams;

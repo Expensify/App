@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/dialog/AlertFragment.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/dialog/AlertFragment.java
+index b5e48ae..70a7512 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/dialog/AlertFragment.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/dialog/AlertFragment.java
+@@ -9,12 +9,12 @@ package com.facebook.react.modules.dialog;
+ 
+ import android.annotation.SuppressLint;
+ import android.app.Dialog;
++import android.app.AlertDialog;
+ import android.content.Context;
+ import android.content.DialogInterface;
+ import android.content.res.TypedArray;
+ import android.os.Bundle;
+ import androidx.annotation.Nullable;
+-import androidx.appcompat.app.AlertDialog;
+ import androidx.fragment.app.DialogFragment;
+ import com.facebook.infer.annotation.Nullsafe;
+ 

@@ -1,26 +1,31 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ListItem} from '@components/SelectionList/types';
-import type {CurrencyList} from '@src/types/onyx';
+import type {ListItem, SelectionListProps} from '@components/SelectionList/types';
 
 type CurrencyListItem = ListItem & {
     currencyName: string;
     currencyCode: string;
 };
 
-type CurrencySelectionListOnyxProps = {
-    /** List of available currencies */
-    currencyList: OnyxEntry<CurrencyList>;
-};
-
-type CurrencySelectionListProps = CurrencySelectionListOnyxProps & {
+type CurrencySelectionListProps = Partial<SelectionListProps<CurrencyListItem>> & {
     /** Label for the search text input */
     searchInputLabel: string;
 
     /** Currency item to be selected initially */
     initiallySelectedCurrencyCode?: string;
 
+    /** List of recently used currencies */
+    recentlyUsedCurrencies?: string[];
+
     /** Callback to fire when a currency is selected */
     onSelect: (item: CurrencyListItem) => void;
+
+    /** The array of selected currencies. This prop should be used when multiple currencies can be selected */
+    selectedCurrencies?: string[];
+
+    /** Whether this is a multi-select list */
+    canSelectMultiple?: boolean;
+
+    /** List of excluded currency codes */
+    excludedCurrencies?: string[];
 };
 
-export type {CurrencyListItem, CurrencySelectionListProps, CurrencySelectionListOnyxProps};
+export type {CurrencyListItem, CurrencySelectionListProps};

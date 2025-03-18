@@ -153,7 +153,12 @@ describe('EmojiTest', () => {
     });
 
     it('correct suggests emojis accounting for keywords', () => {
-        const thumbEmojis: Emoji[] = [
+        const thumbEmojisEn: Emoji[] = [
+            {
+                name: 'hand_with_index_finger_and_thumb_crossed',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
+            },
             {
                 code: '👍',
                 name: '+1',
@@ -166,9 +171,27 @@ describe('EmojiTest', () => {
             },
         ];
 
-        expect(EmojiUtils.suggestEmojis(':thumb', 'en')).toEqual(thumbEmojis);
+        const thumbEmojisEs: Emoji[] = [
+            {
+                code: '👍',
+                name: '+1',
+                types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
+            },
+            {
+                code: '👎',
+                name: '-1',
+                types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+            {
+                name: 'mano_con_dedos_cruzados',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
+            },
+        ];
 
-        expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual(thumbEmojis);
+        expect(EmojiUtils.suggestEmojis(':thumb', 'en')).toEqual(thumbEmojisEn);
+
+        expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual(thumbEmojisEs);
 
         expect(EmojiUtils.suggestEmojis(':pulgar', 'es')).toEqual([
             {
@@ -186,6 +209,64 @@ describe('EmojiTest', () => {
                 name: '-1',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
             },
+            {
+                name: 'mano_con_dedos_cruzados',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
+            },
         ]);
+    });
+
+    describe('splitTextWithEmojis', () => {
+        it('should return empty array if no text provided', () => {
+            const processedTextArray = EmojiUtils.splitTextWithEmojis(undefined);
+            expect(processedTextArray).toEqual([]);
+        });
+
+        it('should return empty array if there are no emojis in the text', () => {
+            const text = 'Simple text example with several words without emojis.';
+            const processedTextArray = EmojiUtils.splitTextWithEmojis(text);
+            expect(processedTextArray).toEqual([]);
+        });
+
+        it('should split the text with emojis into array', () => {
+            const textWithOnlyEmojis = '🙂🙂🙂';
+            const textWithEmojis = 'Hello world 🙂🙂🙂 ! 🚀🚀 test2 👍👍🏿 test';
+            const textStartsAndEndsWithEmojis = '🙂 Hello world 🙂🙂🙂 ! 🚀🚀️ test2 👍👍🏿 test 🙂';
+
+            expect(EmojiUtils.splitTextWithEmojis(textWithOnlyEmojis)).toEqual([
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+            ]);
+            expect(EmojiUtils.splitTextWithEmojis(textWithEmojis)).toEqual([
+                {text: 'Hello world ', isEmoji: false},
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+                {text: ' ! ', isEmoji: false},
+                {text: '🚀', isEmoji: true},
+                {text: '🚀', isEmoji: true},
+                {text: ' test2 ', isEmoji: false},
+                {text: '👍', isEmoji: true},
+                {text: '👍🏿', isEmoji: true},
+                {text: ' test', isEmoji: false},
+            ]);
+            expect(EmojiUtils.splitTextWithEmojis(textStartsAndEndsWithEmojis)).toEqual([
+                {text: '🙂', isEmoji: true},
+                {text: ' Hello world ', isEmoji: false},
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+                {text: '🙂', isEmoji: true},
+                {text: ' ! ', isEmoji: false},
+                {text: '🚀', isEmoji: true},
+                {text: '🚀️', isEmoji: true},
+                {text: ' test2 ', isEmoji: false},
+                {text: '👍', isEmoji: true},
+                {text: '👍🏿', isEmoji: true},
+                {text: ' test ', isEmoji: false},
+                {text: '🙂', isEmoji: true},
+            ]);
+        });
     });
 });

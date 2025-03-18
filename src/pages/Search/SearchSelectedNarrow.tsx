@@ -4,7 +4,7 @@ import Button from '@components/Button';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader';
+import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -45,18 +45,18 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
     };
 
     return (
-        <View style={[styles.pb4]}>
+        <View style={[styles.pb3]}>
             <Button
                 onPress={openMenu}
                 ref={buttonRef}
                 style={[styles.w100, styles.ph5]}
-                text={translate('workspace.common.selected', {selectedNumber: itemsLength})}
+                text={translate('workspace.common.selected', {count: itemsLength})}
                 isContentCentered
                 iconRight={Expensicons.DownArrow}
                 isDisabled={options.length === 0}
                 shouldShowRightIcon={options.length !== 0}
+                success
             />
-
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}

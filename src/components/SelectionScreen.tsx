@@ -1,12 +1,13 @@
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -32,7 +33,7 @@ type SelectionScreenProps<T = string> = {
     displayName: string;
 
     /** Title of the selection component */
-    title: TranslationPaths;
+    title?: TranslationPaths;
 
     /** Custom content to display in the header */
     headerContent?: React.ReactNode;
@@ -49,6 +50,9 @@ type SelectionScreenProps<T = string> = {
     /** Default renderer for every item in the list */
     listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
 
+    /** The style is applied for the wrap component of list item */
+    listItemWrapperStyle?: StyleProp<ViewStyle>;
+
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | null | undefined;
 
@@ -56,10 +60,10 @@ type SelectionScreenProps<T = string> = {
     onSelectRow: (selection: SelectorType<T>) => void;
 
     /** Callback to fire when back button is pressed */
-    onBackButtonPress: () => void;
+    onBackButtonPress?: () => void;
 
     /** The current policyID */
-    policyID: string;
+    policyID?: string;
 
     /** Defines which types of access should be verified */
     accessVariants?: AccessVariant[];
@@ -84,6 +88,27 @@ type SelectionScreenProps<T = string> = {
 
     /** A function to run when the X button next to the error is clicked */
     onClose?: () => void;
+
+    /** Whether to single execute `onRowSelect` - this prevents bugs related to double interactions */
+    shouldSingleExecuteRowSelect?: boolean;
+
+    /** Used for dynamic header title translation with parameters */
+    headerTitleAlreadyTranslated?: string;
+
+    /** Whether to update the focused index on a row select */
+    shouldUpdateFocusedIndex?: boolean;
+
+    /** Whether to show the text input */
+    shouldShowTextInput?: boolean;
+
+    /** Label for the text input */
+    textInputLabel?: string;
+
+    /** Value for the text input */
+    textInputValue?: string;
+
+    /** Callback to fire when the text input changes */
+    onChangeText?: (text: string) => void;
 };
 
 function SelectionScreen<T = string>({
@@ -94,6 +119,7 @@ function SelectionScreen<T = string>({
     listFooterContent,
     sections,
     listItem,
+    listItemWrapperStyle,
     initiallyFocusedOptionKey,
     onSelectRow,
     onBackButtonPress,
@@ -106,11 +132,18 @@ function SelectionScreen<T = string>({
     errors,
     errorRowStyles,
     onClose,
+    shouldSingleExecuteRowSelect,
+    headerTitleAlreadyTranslated,
+    textInputLabel,
+    textInputValue,
+    onChangeText,
+    shouldShowTextInput,
+    shouldUpdateFocusedIndex = false,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const policy = PolicyUtils.getPolicy(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     return (
@@ -125,7 +158,7 @@ function SelectionScreen<T = string>({
                 testID={displayName}
             >
                 <HeaderWithBackButton
-                    title={translate(title)}
+                    title={headerTitleAlreadyTranslated ?? (title ? translate(title) : '')}
                     onBackButtonPress={onBackButtonPress}
                 />
                 {headerContent}
@@ -133,17 +166,26 @@ function SelectionScreen<T = string>({
                     pendingAction={pendingAction}
                     style={[styles.flex1]}
                     contentContainerStyle={[styles.flex1]}
+                    shouldDisableOpacity={!sections.length}
                 >
                     <SelectionList
                         onSelectRow={onSelectRow}
                         sections={sections}
                         ListItem={listItem}
                         showScrollIndicator
+                        onChangeText={onChangeText}
                         shouldShowTooltips={false}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         listEmptyContent={listEmptyContent}
+                        textInputLabel={textInputLabel}
+                        textInputValue={textInputValue}
+                        shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
-                        sectionListStyle={[styles.flexGrow0]}
+                        sectionListStyle={!!sections.length && [styles.flexGrow0]}
+                        shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                        shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                        isAlternateTextMultilineSupported
+                        listItemWrapperStyle={listItemWrapperStyle}
                     >
                         <ErrorMessageRow
                             errors={errors}

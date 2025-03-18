@@ -1,12 +1,18 @@
 import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
 import type Options from '@desktop/electronDownloadManagerType';
 import CONST from '@src/CONST';
+import fetchFileDownload from './DownloadUtils';
 import type {FileDownload} from './types';
 
 /**
  * The function downloads an attachment on desktop platforms.
  */
-const fileDownload: FileDownload = (url, fileName) => {
+const fileDownload: FileDownload = (url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed?: () => void) => {
+    if (requestType === CONST.NETWORK.METHOD.POST) {
+        window.electron.send(ELECTRON_EVENTS.DOWNLOAD);
+        return fetchFileDownload(url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed);
+    }
+
     const options: Options = {
         filename: fileName,
         saveAs: true,
@@ -19,7 +25,7 @@ const fileDownload: FileDownload = (url, fileName) => {
         }, CONST.DOWNLOADS_TIMEOUT);
 
         const handleDownloadStatus = (...args: unknown[]) => {
-            const arg = Array.isArray(args) ? args[0] : null;
+            const arg = Array.isArray(args) ? args.at(0) : null;
             const eventUrl = arg && typeof arg === 'object' && 'url' in arg ? arg.url : null;
 
             if (eventUrl === url) {

@@ -2,6 +2,7 @@ import {profiler} from '@perf-profiler/profiler';
 import {getAverageCpuUsage, getAverageCpuUsagePerProcess, getAverageFPSUsage, getAverageRAMUsage} from '@perf-profiler/reporter';
 import {ThreadNames} from '@perf-profiler/types';
 import type {Measure} from '@perf-profiler/types';
+import * as Logger from './logger';
 
 let measures: Measure[] = [];
 const POLLING_STOPPED = {
@@ -11,7 +12,11 @@ const POLLING_STOPPED = {
 };
 let polling = POLLING_STOPPED;
 
-const start = (bundleId: string) => {
+type StartOptions = {
+    onAttachFailed: () => Promise<void>;
+};
+
+const start = (bundleId: string, {onAttachFailed}: StartOptions) => {
     // clear our measurements results
     measures = [];
 
@@ -19,10 +24,16 @@ const start = (bundleId: string) => {
         onMeasure: (measure: Measure) => {
             measures.push(measure);
         },
+        onPidChanged: () => {
+            onAttachFailed();
+        },
     });
+
+    Logger.info(`Starting performance measurements for ${bundleId}`);
 };
 
-const stop = () => {
+const stop = (whoTriggered: string) => {
+    Logger.info(`Stop performance measurements... Was triggered by ${whoTriggered}`);
     polling.stop();
     polling = POLLING_STOPPED;
 

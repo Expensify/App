@@ -1,38 +1,46 @@
 import React from 'react';
+import type {TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
+import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
-import type {SearchAccountDetails} from '@src/types/onyx/SearchResults';
 
 type UserInfoCellProps = {
-    participant: SearchAccountDetails;
+    accountID: number;
+    avatar: AvatarSource | undefined;
     displayName: string;
+    avatarSize?: AvatarSizeName;
+    textStyle?: TextStyle;
+    avatarStyle?: ViewStyle;
 };
 
-function UserInfoCell({participant, displayName}: UserInfoCellProps) {
+function UserInfoCell({avatar, accountID, displayName, avatarSize, textStyle, avatarStyle}: UserInfoCellProps) {
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useWindowDimensions();
-    const avatarURL = participant?.avatarURL ?? participant?.avatar;
-    const isWorkspace = participant?.avatarURL !== undefined;
-    const iconType = isWorkspace ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR;
+    const {isLargeScreenWidth} = useResponsiveLayout();
+
+    if (!isCorrectSearchUserName(displayName)) {
+        return null;
+    }
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
-                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                source={avatarURL}
+                size={avatarSize ?? CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                source={avatar}
                 name={displayName}
-                type={iconType}
-                avatarID={isWorkspace ? participant?.id : participant?.accountID}
-                containerStyles={[styles.pr2]}
+                type={CONST.ICON_TYPE_AVATAR}
+                avatarID={accountID}
+                containerStyles={[styles.pr2, avatarStyle]}
             />
             <Text
                 numberOfLines={1}
-                style={[isLargeScreenWidth ? styles.themeTextColor : [styles.textMicro, styles.textBold], styles.flexShrink1]}
+                style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold, styles.flexShrink1, textStyle]}
             >
                 {displayName}
             </Text>

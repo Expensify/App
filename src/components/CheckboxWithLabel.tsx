@@ -95,8 +95,8 @@ function CheckboxWithLabel(
                     style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.w100]}
                     wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexWrap, styles.flexShrink1]}
                 >
-                    {label && <Text style={[styles.ml1]}>{label}</Text>}
-                    {LabelComponent && <LabelComponent />}
+                    {!!label && <Text style={[styles.ml1]}>{label}</Text>}
+                    {!!LabelComponent && <LabelComponent />}
                 </PressableWithFeedback>
             </View>
             <FormHelpMessage message={errorText} />

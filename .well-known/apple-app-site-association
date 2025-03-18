@@ -2,7 +2,7 @@
     "applinks": {
         "details": [
             {
-                "appIDs": ["368M544MTT.com.chat.expensify.chat"],
+                "appIDs": ["368M544MTT.com.chat.expensify.chat", "452835FXHF.com.expensify.expensifylite"],
                 "components": [
                     {
                        "/": "/r/*",
@@ -91,12 +91,20 @@
                     {
                         "/": "/money2020/*",
                         "comment": "Money 2020"
+                    },
+                    {
+                        "/": "/track-expense/*",
+                        "comment": "Track Expense"
+                    },
+                    {
+                        "/": "/submit-expense/*",
+                        "comment": "Submit Expense"
                     }
                 ]
             }
         ]
     },
     "webcredentials": {
-        "apps": ["368M544MTT.com.chat.expensify.chat"]
+        "apps": ["368M544MTT.com.chat.expensify.chat", "452835FXHF.com.expensify.expensifylite"]
     }
 }

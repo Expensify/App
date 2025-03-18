@@ -8,10 +8,13 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
+import {updateNetSuiteExportVendorBillsTo} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -21,9 +24,9 @@ type MenuListItem = ListItem & {
 
 function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL).map((approvalType) => ({
         value: approvalType,
         text: translate(`workspace.netsuite.advancedConfig.exportVendorBillsTo.values.${approvalType}`),
@@ -42,12 +45,8 @@ function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectio
 
     const selectVendorBillApprovalLevel = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== config?.syncOptions.exportVendorBillsTo) {
-                Connections.updateNetSuiteExportVendorBillsTo(
-                    policyID,
-                    row.value,
-                    config?.syncOptions.exportVendorBillsTo ?? CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED_NONE,
-                );
+            if (row.value !== config?.syncOptions.exportVendorBillsTo && policyID) {
+                updateNetSuiteExportVendorBillsTo(policyID, row.value, config?.syncOptions.exportVendorBillsTo ?? CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED_NONE);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
@@ -72,6 +71,10 @@ function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectio
                 config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL &&
                 config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL
             }
+            pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO], config?.pendingFields)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO)}
         />
     );
 }

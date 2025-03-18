@@ -1,24 +1,17 @@
 import type {PushPayload} from '@ua/react-native-airship';
 import Airship, {EventType} from '@ua/react-native-airship';
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import * as PushNotificationActions from '@userActions/PushNotification';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ShortcutManager from '@libs/ShortcutManager';
 import ForegroundNotifications from './ForegroundNotifications';
 import type {PushNotificationData} from './NotificationType';
 import NotificationType from './NotificationType';
+import parsePushNotificationPayload from './parsePushNotificationPayload';
 import type {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
 import type PushNotificationType from './types';
 
 type NotificationEventActionCallback = (data: PushNotificationData) => Promise<void>;
 
 type NotificationEventActionMap = Partial<Record<EventType, Record<string, NotificationEventActionCallback>>>;
-
-let isUserOptedInToPushNotifications = false;
-Onyx.connect({
-    key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
-    callback: (value) => (isUserOptedInToPushNotifications = value ?? false),
-});
 
 const notificationEventActionMap: NotificationEventActionMap = {};
 
@@ -27,14 +20,8 @@ const notificationEventActionMap: NotificationEventActionMap = {};
  */
 function pushNotificationEventCallback(eventType: EventType, notification: PushPayload) {
     const actionMap = notificationEventActionMap[eventType] ?? {};
-    let payload = notification.extras.payload;
 
-    // On Android, some notification payloads are sent as a JSON string rather than an object
-    if (typeof payload === 'string') {
-        payload = JSON.parse(payload) as string;
-    }
-
-    const data = payload as PushNotificationData;
+    const data = parsePushNotificationPayload(notification.extras.payload);
 
     Log.info(`[PushNotification] Callback triggered for ${eventType}`);
 
@@ -66,21 +53,6 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
 }
 
 /**
- * Check if a user is opted-in to push notifications on this device and update the `pushNotificationsEnabled` NVP accordingly.
- */
-function refreshNotificationOptInStatus() {
-    Airship.push.getNotificationStatus().then((notificationStatus) => {
-        const isOptedIn = notificationStatus.isOptedIn && notificationStatus.areNotificationsAllowed;
-        if (isOptedIn === isUserOptedInToPushNotifications) {
-            return;
-        }
-
-        Log.info('[PushNotification] Push notification opt-in status changed.', false, {isOptedIn});
-        PushNotificationActions.setPushNotificationOptInStatus(isOptedIn);
-    });
-}
-
-/**
  * Configure push notifications and register callbacks. This is separate from namedUser registration because it needs to be executed
  * from a headless JS process, outside of any react lifecycle.
  *
@@ -94,9 +66,6 @@ const init: Init = () => {
     // Note: the NotificationResponse event has a nested PushReceived event,
     // so event.notification refers to the same thing as notification above ^
     Airship.addListener(EventType.NotificationResponse, (event) => pushNotificationEventCallback(EventType.NotificationResponse, event.pushPayload));
-
-    // Keep track of which users have enabled push notifications via an NVP.
-    Airship.addListener(EventType.PushNotificationStatusChangedStatus, refreshNotificationOptInStatus);
 
     ForegroundNotifications.configureForegroundNotifications();
 };
@@ -126,9 +95,6 @@ const register: Register = (notificationID) => {
             // Regardless of the user's opt-in status, we still want to receive silent push notifications.
             Log.info(`[PushNotification] Subscribing to notifications`);
             Airship.contact.identify(notificationID.toString());
-
-            // Refresh notification opt-in status NVP for the new user.
-            refreshNotificationOptInStatus();
         })
         .catch((error: Record<string, unknown>) => {
             Log.warn('[PushNotification] Failed to register for push notifications! Reason: ', error);
@@ -144,6 +110,7 @@ const deregister: Deregister = () => {
     Airship.removeAllListeners(EventType.PushReceived);
     Airship.removeAllListeners(EventType.NotificationResponse);
     ForegroundNotifications.disableForegroundNotifications();
+    ShortcutManager.removeAllDynamicShortcuts();
 };
 
 /**

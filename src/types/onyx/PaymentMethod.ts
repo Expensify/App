@@ -1,4 +1,4 @@
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type BankAccount from './BankAccount';
 import type Fund from './Fund';
@@ -21,7 +21,7 @@ type PaymentMethod = (BankAccount | Fund) & {
     iconWidth?: number;
 
     /** Icon wrapper styles */
-    iconStyles?: ViewStyle[];
+    iconStyles?: StyleProp<ViewStyle>;
 };
 
 export default PaymentMethod;

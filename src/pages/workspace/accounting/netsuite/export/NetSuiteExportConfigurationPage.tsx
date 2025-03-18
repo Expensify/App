@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -6,37 +7,65 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteAllowForeignCurrency, updateNetSuiteExportToNextOpenPeriod} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
+import {
+    areSettingsInErrorFields,
+    findSelectedBankAccountWithDefaultSelect,
+    findSelectedInvoiceItemWithDefaultSelect,
+    findSelectedTaxAccountWithDefaultSelect,
+    settingsPendingAction,
+} from '@libs/PolicyUtils';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
+import {
+    shouldHideExportForeignCurrencyAmount,
+    shouldHideJournalPostingPreference,
+    shouldHideNonReimbursableJournalPostingAccount,
+    shouldHideProvincialTaxPostingAccountSelect,
+    shouldHideReimbursableDefaultVendor,
+    shouldHideReimbursableJournalPostingAccount,
+    shouldHideTaxPostingAccountSelect,
+    shouldShowInvoiceItemMenuItem,
+} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
 function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT>>();
+    const backTo = route?.params?.backTo;
+    const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
     const {canUseNetSuiteUSATax} = usePermissions();
 
     const config = policy?.connections?.netsuite?.options.config;
+    const shouldGoBackToSpecificRoute =
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT ||
+            config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT) &&
+        backTo;
 
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
 
-    const selectedReceivable = useMemo(() => (receivableList ?? []).find((receivable) => receivable.id === config?.receivableAccount), [receivableList, config?.receivableAccount]);
+    const selectedReceivable = useMemo(() => findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount), [receivableList, config?.receivableAccount]);
 
-    const selectedItem = useMemo(() => (items ?? []).find((item) => item.id === config?.invoiceItem), [items, config?.invoiceItem]);
+    const selectedItem = useMemo(() => findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem), [items, config?.invoiceItem]);
 
     const invoiceItemValue = useMemo(() => {
         if (!config?.invoiceItemPreference) {
-            return undefined;
+            return translate('workspace.netsuite.invoiceItem.values.create.label');
         }
         if (config.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
             return translate('workspace.netsuite.invoiceItem.values.create.label');
@@ -47,28 +76,24 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         return selectedItem.name;
     }, [config?.invoiceItemPreference, selectedItem, translate]);
 
-    const selectedTaxPostingAccount = useMemo(
-        () => (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.taxPostingAccount),
-        [taxAccountsList, config?.taxPostingAccount],
-    );
+    const selectedTaxPostingAccount = useMemo(() => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.taxPostingAccount), [taxAccountsList, config?.taxPostingAccount]);
 
     const selectedProvTaxPostingAccount = useMemo(
-        () => (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.provincialTaxPostingAccount),
+        () => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.provincialTaxPostingAccount),
         [taxAccountsList, config?.provincialTaxPostingAccount],
     );
 
-    const menuItems: Array<MenuItem | ToggleItem | DividerLineItem> = [
+    const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
         {
             type: 'menuitem',
-            description: translate('workspace.accounting.preferredExporter'),
-            onPress: () => {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT.getRoute(policyID));
-            },
-            brickRoadIndicator: config?.errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.exporter ?? policyOwner,
-            pendingAction: config?.pendingFields?.exporter,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORTER),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORTER),
+            description: translate('workspace.accounting.preferredExporter'),
+            onPress: !policyID
+                ? undefined
+                : () => {
+                      Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT.getRoute(policyID, Navigation.getActiveRoute()));
+                  },
+            subscribedSettings: [CONST.NETSUITE_CONFIG.EXPORTER],
         },
         {
             type: 'divider',
@@ -76,35 +101,44 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'menuitem',
-            description: translate('common.date'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_DATE_SELECT.getRoute(policyID)),
-            brickRoadIndicator: config?.errorFields?.exportDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: config?.exportDate ? translate(`workspace.netsuite.exportDate.values.${config.exportDate}.label`) : undefined,
-            pendingAction: config?.pendingFields?.exportDate,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_DATE),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_DATE),
+            title: config?.exportDate
+                ? translate(`workspace.netsuite.exportDate.values.${config.exportDate}.label`)
+                : translate(`workspace.netsuite.exportDate.values.${CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE}.label`),
+            description: translate('workspace.accounting.exportDate'),
+            onPress: () => (!policyID ? undefined : Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_DATE_SELECT.getRoute(policyID, Navigation.getActiveRoute()))),
+            subscribedSettings: [CONST.NETSUITE_CONFIG.EXPORT_DATE],
         },
         {
             type: 'menuitem',
-            description: translate('workspace.netsuite.exportReimbursable'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
-            brickRoadIndicator: config?.errorFields?.reimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.reimbursableExpensesExportDestination ? translate(`workspace.netsuite.exportDestination.values.${config.reimbursableExpensesExportDestination}.label`) : undefined,
-            pendingAction: config?.pendingFields?.reimbursableExpensesExportDestination,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION),
+            description: translate('workspace.accounting.exportOutOfPocket'),
+            onPress: !policyID
+                ? undefined
+                : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE, Navigation.getActiveRoute())),
+            subscribedSettings: [
+                CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                ...(!shouldHideReimbursableDefaultVendor(true, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
+                ...(!shouldHideNonReimbursableJournalPostingAccount(true, config) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
+                ...(!shouldHideReimbursableJournalPostingAccount(true, config) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
+                ...(!shouldHideJournalPostingPreference(true, config) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
+            ],
         },
         {
             type: 'menuitem',
-            description: translate('workspace.netsuite.exportNonReimbursable'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
-            brickRoadIndicator: config?.errorFields?.nonreimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: config?.nonreimbursableExpensesExportDestination
                 ? translate(`workspace.netsuite.exportDestination.values.${config.nonreimbursableExpensesExportDestination}.label`)
                 : undefined,
-            pendingAction: config?.pendingFields?.nonreimbursableExpensesExportDestination,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION),
+            description: translate('workspace.accounting.exportCompanyCard'),
+            onPress: !policyID
+                ? undefined
+                : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE, Navigation.getActiveRoute())),
+            subscribedSettings: [
+                CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                ...(!shouldHideReimbursableDefaultVendor(false, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
+                ...(!shouldHideNonReimbursableJournalPostingAccount(false, config) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
+                ...(!shouldHideReimbursableJournalPostingAccount(false, config) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
+                ...(!shouldHideJournalPostingPreference(false, config) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
+            ],
         },
         {
             type: 'divider',
@@ -112,23 +146,17 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'menuitem',
-            description: translate('workspace.netsuite.exportInvoices'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT.getRoute(policyID)),
-            brickRoadIndicator: config?.errorFields?.receivableAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedReceivable ? selectedReceivable.name : undefined,
-            pendingAction: config?.pendingFields?.receivableAccount,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT),
+            description: translate('workspace.netsuite.exportInvoices'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
+            subscribedSettings: [CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT],
         },
         {
             type: 'menuitem',
-            description: translate('workspace.netsuite.invoiceItem.label'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID)),
-            brickRoadIndicator: config?.errorFields?.invoiceItemPreference ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: invoiceItemValue,
-            pendingAction: config?.pendingFields?.invoiceItemPreference,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE),
+            description: translate('workspace.netsuite.invoiceItem.label'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
+            subscribedSettings: [CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE, ...(shouldShowInvoiceItemMenuItem(config) ? [CONST.NETSUITE_CONFIG.INVOICE_ITEM] : [])],
         },
         {
             type: 'divider',
@@ -136,48 +164,40 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'menuitem',
-            description: translate('workspace.netsuite.journalEntriesProvTaxPostingAccount'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
-            brickRoadIndicator: config?.errorFields?.provincialTaxPostingAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedProvTaxPostingAccount ? selectedProvTaxPostingAccount.name : undefined,
-            pendingAction: config?.pendingFields?.provincialTaxPostingAccount,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT),
-            shouldHide: !!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseProvincialTaxNetSuite(selectedSubsidiary?.country),
+            description: translate('workspace.netsuite.journalEntriesProvTaxPostingAccount'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
+            subscribedSettings: [CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT],
+            shouldHide: shouldHideProvincialTaxPostingAccountSelect(selectedSubsidiary, config),
         },
         {
             type: 'menuitem',
-            description: translate('workspace.netsuite.journalEntriesTaxPostingAccount'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
-            brickRoadIndicator: config?.errorFields?.taxPostingAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: selectedTaxPostingAccount ? selectedTaxPostingAccount.name : undefined,
-            pendingAction: config?.pendingFields?.taxPostingAccount,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT),
-            shouldHide: !!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country),
+            description: translate('workspace.netsuite.journalEntriesTaxPostingAccount'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
+            subscribedSettings: [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT],
+            shouldHide: shouldHideTaxPostingAccountSelect(canUseNetSuiteUSATax, selectedSubsidiary, config),
         },
         {
             type: 'toggle',
             title: translate('workspace.netsuite.foreignCurrencyAmount'),
             isActive: !!config?.allowForeignCurrency,
             switchAccessibilityLabel: translate('workspace.netsuite.foreignCurrencyAmount'),
-            onToggle: () => Connections.updateNetSuiteAllowForeignCurrency(policyID, !config?.allowForeignCurrency, config?.allowForeignCurrency),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
-            pendingAction: config?.pendingFields?.allowForeignCurrency,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
-            shouldHide:
-                config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT &&
-                config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT,
+            onToggle: () => (!policyID ? null : updateNetSuiteAllowForeignCurrency(policyID, !config?.allowForeignCurrency, config?.allowForeignCurrency)),
+            onCloseError: !policyID ? undefined : () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY], config?.pendingFields),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
+            shouldHide: shouldHideExportForeignCurrencyAmount(config),
         },
         {
             type: 'toggle',
             title: translate('workspace.netsuite.exportToNextOpenPeriod'),
             isActive: !!config?.exportToNextOpenPeriod,
             switchAccessibilityLabel: translate('workspace.netsuite.exportToNextOpenPeriod'),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
-            onToggle: () => Connections.updateNetSuiteExportToNextOpenPeriod(policyID, !config?.exportToNextOpenPeriod, config?.exportToNextOpenPeriod ?? false),
-            pendingAction: config?.pendingFields?.exportToNextOpenPeriod,
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
+            onCloseError: !policyID ? undefined : () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
+            onToggle: () => (!policyID ? null : updateNetSuiteExportToNextOpenPeriod(policyID, !config?.exportToNextOpenPeriod, config?.exportToNextOpenPeriod ?? false)),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD], config?.pendingFields),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
         },
     ];
 
@@ -189,6 +209,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title="workspace.netsuite.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
+            onBackButtonPress={shouldGoBackToSpecificRoute ? () => Navigation.goBack(backTo) : undefined}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
@@ -220,19 +241,14 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                             return (
                                 <OfflineWithFeedback
                                     key={item.description}
-                                    pendingAction={item.pendingAction}
-                                    errors={item.errors}
-                                    errorRowStyles={[styles.ph5]}
-                                    onClose={item.onCloseError}
+                                    pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
                                 >
                                     <MenuItemWithTopDescription
                                         title={item.title}
                                         description={item.description}
                                         shouldShowRightIcon
                                         onPress={item?.onPress}
-                                        brickRoadIndicator={item?.brickRoadIndicator}
-                                        helperText={item?.helperText}
-                                        errorText={item?.errorText}
+                                        brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     />
                                 </OfflineWithFeedback>
                             );

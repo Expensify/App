@@ -146,6 +146,7 @@ function OptionRow({
     const hoveredBackgroundColor = hoveredStyle?.backgroundColor ? (hoveredStyle.backgroundColor as string) : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const shouldUseShortFormInTooltip = (option.participantsList?.length ?? 0) > 1;
+    const firstIcon = option?.icons?.at(0);
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), shouldUseShortFormInTooltip);
@@ -207,10 +208,11 @@ function OptionRow({
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!!option.icons?.length &&
+                                    firstIcon &&
                                     (option.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            mainAvatar={option.icons[0]}
-                                            secondaryAvatar={option.icons[1]}
+                                            mainAvatar={firstIcon}
+                                            secondaryAvatar={option.icons.at(1)}
                                             backgroundColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                         />

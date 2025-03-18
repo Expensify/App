@@ -1,27 +1,28 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import React, {useEffect, useState} from 'react';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SageIntacctMappingName, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
-type SageIntacctToggleMappingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
+type SageIntacctToggleMappingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
 
 type DisplayTypeTranslationKeys = {
     titleKey: TranslationPaths;
@@ -49,18 +50,30 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? '-1'}`);
+    const policy = usePolicy(route.params.policyID);
     const mappingName: SageIntacctMappingName = route.params.mapping;
     const policyID: string = policy?.id ?? '-1';
-
     const config = policy?.connections?.intacct?.config;
-    const translationKeys = getDisplayTypeTranslationKeys(config?.mappings?.[mappingName]);
-    const [importMapping, setImportMapping] = useState(config?.mappings?.[mappingName] && config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE);
+    const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
+    const isAccordionExpanded = useSharedValue(isImportMappingEnable);
+    const shouldAnimateAccordionSection = useSharedValue(false);
+
+    // We are storing translation keys in the local state for animation purposes.
+    // Otherwise, the values change to undefined immediately after clicking, before the closing animation finishes,
+    // resulting in a janky animation effect.
+    const [translationKeys, setTranslationKey] = useState<DisplayTypeTranslationKeys | undefined>(undefined);
+
+    useEffect(() => {
+        if (!isImportMappingEnable) {
+            return;
+        }
+        setTranslationKey(getDisplayTypeTranslationKeys(config?.mappings?.[mappingName]));
+    }, [isImportMappingEnable, config?.mappings, mappingName]);
 
     return (
         <ConnectionLayout
             displayName={SageIntacctToggleMappingsPage.displayName}
-            headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.intacct.mappingTitle', mappingName))}
+            headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.intacct.mappingTitle', {mappingName}))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -71,48 +84,40 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
         >
             <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5]}>
                 <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleFirstPart')}</Text>
-                <Text style={[styles.textStrong]}>{translate('workspace.intacct.mappingTitle', mappingName)}</Text>
+                <Text style={[styles.textStrong]}>{translate('workspace.intacct.mappingTitle', {mappingName})}</Text>
                 <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleSecondPart')}</Text>
             </Text>
-            <OfflineWithFeedback
-                pendingAction={config?.pendingFields?.[mappingName]}
-                errorRowStyles={[styles.ph5, styles.pt1]}
+            <ToggleSettingOptionRow
+                title={translate('workspace.accounting.import')}
+                switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', {mappingName})}`}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={[styles.mv3, styles.mh5]}
+                isActive={isImportMappingEnable}
+                onToggle={(enabled) => {
+                    const mappingValue = enabled ? CONST.SAGE_INTACCT_MAPPING_VALUE.TAG : CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
+                    updateSageIntacctMappingValue(policyID, mappingName, mappingValue, config?.mappings?.[mappingName]);
+                    isAccordionExpanded.set(enabled);
+                    shouldAnimateAccordionSection.set(true);
+                }}
+                pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
-                onClose={() => clearSageIntacctErrorField(policyID, mappingName)}
+                onCloseError={() => clearSageIntacctErrorField(policyID, mappingName)}
+            />
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                isToggleTriggered={shouldAnimateAccordionSection}
             >
-                <ToggleSettingOptionRow
-                    title={translate('workspace.accounting.import')}
-                    switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', mappingName)}`}
-                    shouldPlaceSubtitleBelowSwitch
-                    wrapperStyle={[styles.mv3, styles.mh5]}
-                    isActive={importMapping ?? false}
-                    onToggle={() => {
-                        if (importMapping) {
-                            setImportMapping(false);
-                            updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.NONE);
-                        } else {
-                            setImportMapping(true);
-                            updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_MAPPING_VALUE.DEFAULT);
-                        }
-                    }}
-                />
-                {importMapping && (
-                    <View>
-                        <MenuItemWithTopDescription
-                            title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
-                            description={translate('workspace.common.displayedAs')}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
-                        />
-                        <Text
-                            style={[styles.textLabelSupporting, styles.ph5]}
-                            numberOfLines={2}
-                        >
-                            {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
-                        </Text>
-                    </View>
-                )}
-            </OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
+                        description={translate('workspace.common.displayedAs')}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
+                        brickRoadIndicator={areSettingsInErrorFields([mappingName], config?.errorFields) ? 'error' : undefined}
+                        hintText={translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
+                    />
+                </OfflineWithFeedback>
+            </Accordion>
         </ConnectionLayout>
     );
 }

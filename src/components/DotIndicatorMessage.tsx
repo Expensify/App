@@ -7,7 +7,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -53,6 +53,39 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
 
     const isErrorMessage = type === 'error';
 
+    const renderMessage = (message: string | ReceiptError, index: number) => {
+        if (isReceiptError(message)) {
+            return (
+                <Text
+                    key={index}
+                    style={styles.offlineFeedback.text}
+                >
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('iou.error.receiptFailureMessage')}</Text>
+                    <TextLink
+                        style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
+                        onPress={() => {
+                            fileDownload(message.source, message.filename);
+                        }}
+                    >
+                        {translateLocal('iou.error.saveFileMessage')}
+                    </TextLink>
+
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{translateLocal('iou.error.loseFileMessage')}</Text>
+                </Text>
+            );
+        }
+
+        return (
+            <Text
+                // eslint-disable-next-line react/no-array-index-key
+                key={index}
+                style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
+            >
+                {message}
+            </Text>
+        );
+    };
+
     return (
         <View style={[styles.dotIndicatorMessage, style]}>
             <View style={styles.offlineFeedback.errorDot}>
@@ -61,36 +94,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                     fill={isErrorMessage ? theme.danger : theme.success}
                 />
             </View>
-            <View style={styles.offlineFeedback.textContainer}>
-                {uniqueMessages.map((message, i) =>
-                    isReceiptError(message) ? (
-                        <Text
-                            key={i}
-                            style={styles.offlineFeedback.text}
-                        >
-                            <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.receiptFailureMessage')}</Text>
-                            <TextLink
-                                style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
-                                onPress={() => {
-                                    fileDownload(message.source, message.filename);
-                                }}
-                            >
-                                {Localize.translateLocal('iou.error.saveFileMessage')}
-                            </TextLink>
-
-                            <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage)]}>{Localize.translateLocal('iou.error.loseFileMessage')}</Text>
-                        </Text>
-                    ) : (
-                        <Text
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={i}
-                            style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
-                        >
-                            {message}
-                        </Text>
-                    ),
-                )}
-            </View>
+            <View style={styles.offlineFeedback.textContainer}>{uniqueMessages.map(renderMessage)}</View>
         </View>
     );
 }

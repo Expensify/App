@@ -3,7 +3,6 @@ import type {RefObject} from 'react';
 import type {Text, View} from 'react-native';
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import type BaseModalProps from '@components/Modal/types';
-import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -38,10 +37,8 @@ type PopoverProps = BaseModalProps &
         /** Whether we want to show the popover on the right side of the screen */
         fromSidebarMediumScreen?: boolean;
 
-        /** Whether handle navigation back when modal show. */
-        shouldHandleNavigationBack?: boolean;
+        /** Whether we should close when browser navigation change. This doesn't affect native platform */
+        shouldCloseWhenBrowserNavigationChanged?: boolean;
     };
 
-type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;
-
-export type {PopoverProps, PopoverWithWindowDimensionsProps};
+export default PopoverProps;

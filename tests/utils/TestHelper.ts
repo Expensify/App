@@ -1,8 +1,11 @@
+import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
+import type {ConnectOptions, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
-import * as Pusher from '@libs/Pusher/pusher';
+import {translateLocal} from '@libs/Localize';
+import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -13,14 +16,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 type MockFetch = jest.MockedFn<typeof fetch> & {
     pause: () => void;
     fail: () => void;
     succeed: () => void;
     resume: () => Promise<void>;
-    mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse['onyxData']) => void;
+    mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse) => void;
 };
+
+type ConnectionCallback<TKey extends OnyxKey> = NonNullable<ConnectOptions<TKey>['callback']>;
+type ConnectionCallbackParams<TKey extends OnyxKey> = Parameters<ConnectionCallback<TKey>>;
 
 type QueueItem = {
     resolve: (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
@@ -60,6 +67,19 @@ function buildPersonalDetails(login: string, accountID: number, firstName = 'Tes
         timezone: CONST.DEFAULT_TIME_ZONE,
         phoneNumber: '',
     };
+}
+
+function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
+    return new Promise<void>((resolve) => {
+        const connectionID = Onyx.connect({
+            ...options,
+            callback: (...params: ConnectionCallbackParams<TKey>) => {
+                Onyx.disconnect(connectionID);
+                (options.callback as (...args: ConnectionCallbackParams<TKey>) => void)?.(...params);
+                resolve();
+            },
+        });
+    });
 }
 
 /**
@@ -183,7 +203,7 @@ function signOutTestUser() {
 function getGlobalFetchMock(): typeof fetch {
     let queue: QueueItem[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let responses = new Map<string, (params: any) => OnyxResponse['onyxData']>();
+    let responses = new Map<string, (params: any) => OnyxResponse>();
     let isPaused = false;
     let shouldFail = false;
 
@@ -202,7 +222,7 @@ function getGlobalFetchMock(): typeof fetch {
                       const responseHandler = command ? responses.get(command) : null;
                       if (responseHandler) {
                           const requestData = options?.body instanceof FormData ? Object.fromEntries(options.body) : {};
-                          return Promise.resolve({jsonCode: 200, onyxData: responseHandler(requestData)});
+                          return Promise.resolve({jsonCode: 200, ...responseHandler(requestData)});
                       }
 
                       return Promise.resolve({jsonCode: 200});
@@ -236,7 +256,7 @@ function getGlobalFetchMock(): typeof fetch {
     };
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
-    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse['onyxData']): void => {
+    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse): void => {
         responses.set(command, responseHandler);
     };
     return mockFetch as typeof fetch;
@@ -296,13 +316,26 @@ function buildTestReportComment(created: string, actorAccountID: number, actionI
     };
 }
 
-function assertFormDataMatchesObject(formData: FormData, obj: Report) {
-    expect(
-        Array.from(formData.entries()).reduce((acc, [key, val]) => {
-            acc[key] = val;
-            return acc;
-        }, {} as Record<string, string | Blob>),
-    ).toEqual(expect.objectContaining(obj));
+function assertFormDataMatchesObject(obj: Report, formData?: FormData) {
+    expect(formData).not.toBeUndefined();
+    if (formData) {
+        expect(
+            Array.from(formData.entries()).reduce((acc, [key, val]) => {
+                acc[key] = val;
+                return acc;
+            }, {} as Record<string, string | Blob>),
+        ).toEqual(expect.objectContaining(obj));
+    }
+}
+
+async function navigateToSidebarOption(index: number): Promise<void> {
+    const hintText = translateLocal('accessibilityHints.navigatesToChat');
+    const optionRow = screen.queryAllByAccessibilityHint(hintText).at(index);
+    if (!optionRow) {
+        return;
+    }
+    fireEvent(optionRow, 'press');
+    await waitForBatchedUpdatesWithAct();
 }
 
 export type {MockFetch, FormData};
@@ -318,4 +351,6 @@ export {
     expectAPICommandToHaveBeenCalled,
     expectAPICommandToHaveBeenCalledWith,
     setupGlobalFetchMock,
+    navigateToSidebarOption,
+    getOnyxData,
 };

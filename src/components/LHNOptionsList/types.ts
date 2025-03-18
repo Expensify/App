@@ -5,7 +5,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -47,8 +47,17 @@ type OptionRowLHNDataProps = {
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
 
+    /** The transaction thread report associated with the current report, if any */
+    oneTransactionThreadReport: OnyxEntry<Report>;
+
+    /** Array of report name value pairs for this report */
+    reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
+
     /** The policy which the user has access to and which the report could be tied to */
     policy?: OnyxEntry<Policy>;
+
+    /** Invoice receiver policy */
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
 
     /** The action from the parent report */
     parentReportAction?: OnyxEntry<ReportAction>;
@@ -71,14 +80,22 @@ type OptionRowLHNDataProps = {
     /** Array of report actions for this report */
     reportActions: OnyxEntry<ReportActions>;
 
+    /**
+     * Array of report actions for the IOU report related to the last action of this report.
+     * If the last action is a report action preview, the last message of the report depends on
+     * the report actions of the IOU report linked to the report action preview.
+     * Changes in the IOU report report actions will affect the last message of this report.
+     */
+    iouReportReportActions: OnyxEntry<ReportActions>;
+
     /** List of transaction violation */
     transactionViolations: OnyxCollection<TransactionViolation[]>;
 
-    /** Whether the user can use violations */
-    canUseViolations: boolean | undefined;
-
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
+
+    /** The last message text from the report */
+    lastMessageTextFromReport: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;

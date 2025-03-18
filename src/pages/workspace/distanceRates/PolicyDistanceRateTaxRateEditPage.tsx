@@ -1,54 +1,57 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateDistanceTaxRate} from '@libs/actions/Policy/DistanceRate';
 import Navigation from '@libs/Navigation/Navigation';
-import type * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
+import {getWorkspaceTaxesSettingsName} from '@libs/TransactionUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
-import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type PolicyDistanceRateTaxRateEditPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT>;
+type PolicyDistanceRateTaxRateEditPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT>;
 
 function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTaxRateEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
-    const customUnits = policy?.customUnits ?? {};
-    const customUnit = customUnits[Object.keys(customUnits)[0]];
+    const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
-    const taxRateExternalID = rate.attributes?.taxRateExternalID;
-    const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, taxRateExternalID ?? '');
+    const taxRateExternalID = rate?.attributes?.taxRateExternalID;
+    const selectedTaxRate = taxRateExternalID ? getWorkspaceTaxesSettingsName(policy, taxRateExternalID) : undefined;
 
-    const onTaxRateChange = (newTaxRate: OptionsListUtils.TaxRatesOption) => {
+    const onTaxRateChange = (newTaxRate: TaxRatesOption) => {
         if (taxRateExternalID === newTaxRate.code) {
             Navigation.goBack();
             return;
         }
-        DistanceRate.updateDistanceTaxRate(policyID, customUnit, [
+        if (!customUnit || !rate) {
+            return;
+        }
+        updateDistanceTaxRate(policyID, customUnit, [
             {
                 ...rate,
                 attributes: {
-                    ...rate.attributes,
+                    ...rate?.attributes,
                     taxRateExternalID: newTaxRate.code,
                 },
             },
         ]);
-        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rateID));
+        Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rateID));
     };
 
     const dismiss = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
+        Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rateID));
     };
 
     return (

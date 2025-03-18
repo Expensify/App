@@ -4,10 +4,10 @@ description: Customize the fields that appear on a report or an invoice
 ---
 <div id="expensify-classic" markdown="1">
 
-Workspace Admins can add additional required fields to a report to include selections for project names, locations, trip information, and more. 
+Workspace Admins can add additional required report fields which allow you to specify header-level details like specific project names, business trip information, locations, and more.
 
 {% include info.html %}
-You cannot create these report fields directly in Expensify if you are connected to an accounting integration (QuickBooks Online, QuickBooks Desktop, Intacct, Xero, or NetSuite). Please refer to the relevant article for instructions on creating fields within that system.
+Report fields are only available on the Control plan. You cannot create these report fields directly in Expensify if you are connected to an accounting integration (QuickBooks Online, QuickBooks Desktop, Intacct, Xero, or NetSuite). Please refer to the relevant article for instructions on creating fields within that system.
 {% include end-info.html %}
 
 To create a custom field for a report, 

@@ -11,11 +11,17 @@ type ModalContentProps = {
      * such as closing the attachment modal through the browser's back button.
      * */
     onDismiss: () => void;
+
+    /** Callback method fired after modal content is mounted. */
+    onModalWillShow: () => void;
 };
 
-function ModalContent({children, onDismiss = () => {}}: ModalContentProps) {
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    React.useEffect(() => () => onDismiss?.(), []);
+function ModalContent({children, onDismiss = () => {}, onModalWillShow = () => {}}: ModalContentProps) {
+    React.useEffect(() => {
+        onModalWillShow();
+        return onDismiss;
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
     return children;
 }
 ModalContent.displayName = 'ModalContent';

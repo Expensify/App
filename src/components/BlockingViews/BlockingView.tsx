@@ -1,8 +1,9 @@
 import type {ImageContentFit} from 'expo-image';
 import React, {useMemo} from 'react';
-import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle, WebStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
+import type {WebStyle} from 'react-native-web';
 import type {MergeExclusive} from 'type-fest';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
@@ -10,6 +11,7 @@ import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,6 +48,9 @@ type BaseBlockingViewProps = {
 
     /** Additional styles to apply to the container */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to add bottom safe area padding to the view. */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 type BlockingViewIconProps = {
@@ -93,7 +98,8 @@ function BlockingView({
     animationWebStyle = {},
     CustomSubtitle,
     contentFitImage,
-    containerStyle,
+    containerStyle: containerStyleProp,
+    addBottomSafeAreaPadding = false,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -101,10 +107,12 @@ function BlockingView({
     const subtitleText = useMemo(
         () => (
             <>
-                <AutoEmailLink
-                    style={[styles.textAlignCenter, subtitleStyle]}
-                    text={subtitle}
-                />
+                {!!subtitle && (
+                    <AutoEmailLink
+                        style={[styles.textAlignCenter, subtitleStyle]}
+                        text={subtitle}
+                    />
+                )}
                 {shouldShowLink ? (
                     <TextLink
                         onPress={onLinkPress}
@@ -129,9 +137,11 @@ function BlockingView({
         );
     }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
 
+    const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: containerStyleProp});
+
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}>
-            {animation && (
+            {!!animation && (
                 <Lottie
                     source={animation}
                     loop
@@ -140,7 +150,7 @@ function BlockingView({
                     webStyle={animationWebStyle}
                 />
             )}
-            {icon && (
+            {!!icon && (
                 <Icon
                     src={icon}
                     fill={iconColor}

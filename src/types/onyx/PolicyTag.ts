@@ -37,28 +37,28 @@ type PolicyTag = OnyxCommon.OnyxValueWithOfflineFeedback<{
 /** Record of policy tags, indexed by their name */
 type PolicyTags = Record<string, PolicyTag>;
 
+/** Single policy tag list */
+type PolicyTagList = {
+    /** Name of the tag list */
+    name: string;
+
+    /** Flag that determines if tags are required */
+    required: boolean;
+
+    /** List of tags */
+    tags: PolicyTags;
+
+    /** Index by which the tag appears in the hierarchy of tags */
+    orderWeight: number;
+
+    /** A list of errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errorFields?: OnyxCommon.ErrorFields;
+};
+
 /** Record of policy tag lists, index by the name of the tag list */
-type PolicyTagList<T extends string = string> = Record<
-    T,
-    OnyxCommon.OnyxValueWithOfflineFeedback<{
-        /** Name of the tag list */
-        name: T;
+type PolicyTagLists = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyTagList>>;
 
-        /** Flag that determines if tags are required */
-        required: boolean;
-
-        /** List of tags */
-        tags: PolicyTags;
-
-        /** Index by which the tag appears in the hierarchy of tags */
-        orderWeight: number;
-
-        /** A list of errors keyed by microtime */
-        errors?: OnyxCommon.Errors;
-
-        /** Error objects keyed by field name containing errors keyed by microtime */
-        errorFields?: OnyxCommon.ErrorFields;
-    }>
->;
-
-export type {PolicyTag, PolicyTags, PolicyTagList};
+export type {PolicyTag, PolicyTags, PolicyTagLists};

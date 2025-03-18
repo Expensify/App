@@ -68,7 +68,7 @@ const lightTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.productLight200,
     dropUIBG: 'rgba(252, 251, 249, 0.92)',
-    receiptDropUIBG: 'rgba(3, 212, 124, 0.84)',
+    fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
     checkBox: colors.green400,
     imageCropBackgroundColor: colors.productLight700,
     fallbackIconColor: colors.green700,
@@ -80,8 +80,8 @@ const lightTheme = {
     mentionBG: colors.blue100,
     ourMentionText: colors.green600,
     ourMentionBG: colors.green100,
-    tooltipHighlightBG: colors.green100,
-    tooltipHighlightText: colors.green500,
+    tooltipHighlightBG: colors.green700,
+    tooltipHighlightText: colors.green400,
     tooltipSupportingText: colors.productDark800,
     tooltipPrimaryText: colors.productDark900,
     trialBannerBackgroundColor: colors.green100,
@@ -94,6 +94,8 @@ const lightTheme = {
     videoPlayerBG: `${colors.productDark100}cc`,
     transparentWhite: `${colors.white}51`,
     emptyFolderBG: colors.yellow600,
+    travelBG: colors.blue600,
+    trialTimer: colors.green600,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
     // Note that it needs to be a screen name, not a route url.
@@ -151,6 +153,8 @@ const lightTheme = {
     },
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+    navigationBarButtonsStyle: CONST.NAVIGATION_BAR_BUTTONS_STYLE.DARK,
+    navigationBarBackgroundColor: `${colors.productLight100}CD`, // CD is 80% opacity (80% of 0xFF)
     colorScheme: CONST.COLOR_SCHEME.LIGHT,
 } satisfies ThemeColors;
 

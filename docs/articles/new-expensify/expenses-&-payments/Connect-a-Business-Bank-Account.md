@@ -80,6 +80,9 @@ Wait until the end of the second business day. If you still don’t see them, pl
 
 Once that's all set, make sure to contact your account manager or concierge, and our team will be able to re-trigger those three test transactions!
 
+## Is my data safe?
+
+We take security seriously. Our measures align with what banks use to protect sensitive financial data. We regularly test and update our security to stay ahead of any threats. Plus, we’re checked daily by McAfee for extra reassurance against hackers. You can verify our security strength below or on the McAfee SECURE site. Discover how Expensify safeguards your information [here](https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security).
 
 {% include faq-end.md %}
 

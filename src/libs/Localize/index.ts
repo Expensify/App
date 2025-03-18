@@ -1,14 +1,15 @@
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
+import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
-import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
@@ -45,31 +46,6 @@ function init() {
     }, {});
 }
 
-type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
-type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
-
-/**
- * Map to store translated values for each locale.
- * This is used to avoid translating the same phrase multiple times.
- *
- * The data is stored in the following format:
- *
- * {
- *  "en": {
- *   "name": "Name",
- * }
- *
- * Note: We are not storing any translated values for phrases with variables,
- * as they have higher chance of being unique, so we'll end up wasting space
- * in our cache.
- */
-const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>>(
-    Object.values(CONST.LOCALES).reduce((cache, locale) => {
-        cache.push([locale, new Map<TranslationPaths, string>()]);
-        return cache;
-    }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
-);
-
 /**
  * Helper function to get the translated string for given
  * locale and phrase. This function is used to avoid
@@ -82,39 +58,53 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
  * available in the given locale. If it is, it translates the
  * phrase and stores the translated value in the cache and returns
  * the translated value.
- *
- * @param language
- * @param phraseKey
- * @param fallbackLanguage
- * @param phraseParameters
  */
 function getTranslatedPhrase<TKey extends TranslationPaths>(
     language: 'en' | 'es' | 'es-ES',
     phraseKey: TKey,
-    fallbackLanguage: 'en' | 'es' | null = null,
-    ...phraseParameters: PhraseParameters<Phrase<TKey>>
+    fallbackLanguage: 'en' | 'es' | null,
+    ...parameters: TranslationParameters<TKey>
 ): string | null {
-    // Get the cache for the above locale
-    const cacheForLocale = translationCache.get(language);
-
-    // Directly access and assign the translated value from the cache, instead of
-    // going through map.has() and map.get() to avoid multiple lookups.
-    const valueFromCache = cacheForLocale?.get(phraseKey);
-
-    // If the phrase is already translated, return the translated value
-    if (valueFromCache) {
-        return valueFromCache;
-    }
-
-    const translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
+    const translatedPhrase = translations?.[language]?.[phraseKey];
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
-            return translatedPhrase(...phraseParameters);
+            /**
+             * If the result of `translatedPhrase` is an object, check if it contains the 'count' parameter
+             * to handle pluralization logic.
+             * Alternatively, before evaluating the translated result, we can check if the 'count' parameter
+             * exists in the passed parameters.
+             */
+            const translateFunction = translatedPhrase as unknown as (...parameters: TranslationParameters<TKey>) => string | PluralForm;
+            const translateResult = translateFunction(...parameters);
+
+            if (typeof translateResult === 'string') {
+                return translateResult;
+            }
+
+            const phraseObject = parameters[0] as {count?: number};
+            if (typeof phraseObject?.count !== 'number') {
+                throw new Error(`Invalid plural form for '${phraseKey}'`);
+            }
+
+            const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
+
+            const pluralResult = translateResult[pluralRule];
+            if (pluralResult) {
+                if (typeof pluralResult === 'string') {
+                    return pluralResult;
+                }
+
+                return pluralResult(phraseObject.count);
+            }
+
+            if (typeof translateResult.other === 'string') {
+                return translateResult.other;
+            }
+
+            return translateResult.other(phraseObject.count);
         }
 
-        // We set the translated value in the cache only for the phrases without parameters.
-        cacheForLocale?.set(phraseKey, translatedPhrase);
         return translatedPhrase;
     }
 
@@ -123,10 +113,10 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbacktranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...phraseParameters);
+    const fallbackTranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...parameters);
 
-    if (fallbacktranslatedPhrase) {
-        return fallbacktranslatedPhrase;
+    if (fallbackTranslatedPhrase) {
+        return fallbackTranslatedPhrase;
     }
 
     if (fallbackLanguage !== CONST.LOCALES.DEFAULT) {
@@ -134,22 +124,29 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     }
 
     // Phrase is not translated, search it in default language (en)
-    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...phraseParameters);
+    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...parameters);
 }
+
+const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
+    maxArgs: 2,
+    equality: 'shallow',
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    skipCache: (params) => !isEmptyObject(params.at(3)),
+});
 
 /**
  * Return translated string for given locale and phrase
  *
  * @param [desiredLanguage] eg 'en', 'es-ES'
- * @param [phraseParameters] Parameters to supply if the phrase is a template literal.
+ * @param [parameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>): string {
+function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', path: TPath, ...parameters: TranslationParameters<TPath>): string {
     // Search phrase in full locale e.g. es-ES
     const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
     // Phrase is not found in full locale, search it in fallback language e.g. es
     const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
 
-    const translatedPhrase = getTranslatedPhrase(language, phraseKey, languageAbbreviation, ...phraseParameters);
+    const translatedPhrase = memoizedGetTranslatedPhrase(language, path, languageAbbreviation, ...parameters);
     if (translatedPhrase !== null && translatedPhrase !== undefined) {
         return translatedPhrase;
     }
@@ -157,21 +154,21 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
     // Phrase is not found in default language, on production and staging log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
-        const phraseString: string = Array.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
+        const phraseString = Array.isArray(path) ? path.join('.') : path;
         Log.alert(`${phraseString} was not found in the en locale`);
         if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
             return CONST.MISSING_TRANSLATION;
         }
         return phraseString;
     }
-    throw new Error(`${phraseKey} was not found in the default language`);
+    throw new Error(`${path} was not found in the default language`);
 }
 
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
-function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variables: PhraseParameters<Phrase<TKey>>) {
-    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
+function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
+    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...parameters);
 }
 
 function getPreferredListFormat(): Intl.ListFormat {
@@ -226,4 +223,3 @@ function getDevicePreferredLocale(): Locale {
 }
 
 export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};
-export type {PhraseParameters, Phrase};

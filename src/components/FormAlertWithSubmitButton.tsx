@@ -1,7 +1,10 @@
+import type {Ref} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
@@ -45,6 +48,9 @@ type FormAlertWithSubmitButtonProps = {
     /** Whether to show the alert text */
     isAlertVisible?: boolean;
 
+    /** React ref being forwarded to the submit button */
+    buttonRef?: Ref<View>;
+
     /** Text for the button */
     buttonText: string;
 
@@ -56,6 +62,12 @@ type FormAlertWithSubmitButtonProps = {
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
+
+    /**
+     * Whether the button should have a background layer in the color of theme.appBG.
+     * This is needed for buttons that allow content to display under them.
+     */
+    shouldBlendOpacity?: boolean;
 };
 
 function FormAlertWithSubmitButton({
@@ -69,6 +81,7 @@ function FormAlertWithSubmitButton({
     disablePressOnEnter = false,
     isSubmitActionDangerous = false,
     footerContent,
+    buttonRef,
     buttonStyles,
     buttonText,
     isAlertVisible = false,
@@ -76,9 +89,16 @@ function FormAlertWithSubmitButton({
     useSmallerSubmitButtonSize = false,
     errorMessageStyle,
     enterKeyEventListenerPriority = 0,
+    shouldBlendOpacity = false,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
+
+    // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
+    // where pressing Enter saves the form instead of adding a new line in multiline input.
+    // More details: https://github.com/Expensify/App/issues/46644
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const pressOnEnter = isAndroidNative ? false : !disablePressOnEnter;
 
     return (
         <FormAlertWrapper
@@ -94,6 +114,7 @@ function FormAlertWithSubmitButton({
                     {isOffline && !enabledWhenOffline ? (
                         <Button
                             success
+                            shouldBlendOpacity={shouldBlendOpacity}
                             isDisabled
                             text={buttonText}
                             style={style}
@@ -103,8 +124,10 @@ function FormAlertWithSubmitButton({
                         />
                     ) : (
                         <Button
+                            ref={buttonRef}
                             success
-                            pressOnEnter={!disablePressOnEnter}
+                            shouldBlendOpacity={shouldBlendOpacity}
+                            pressOnEnter={pressOnEnter}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             text={buttonText}
                             style={style}

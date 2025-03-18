@@ -37,15 +37,15 @@ function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndica
     return (
         <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, styles.pAbsolute, styles.h100, styles.w100, isPreview && styles.hoveredComponentBG]}>
             <Icon
-                fill={theme.border}
+                fill={theme.icon}
                 src={Expensicons.OfflineCloud}
                 width={variables.iconSizeSuperLarge}
                 height={variables.iconSizeSuperLarge}
             />
             {!isPreview && (
                 <View>
-                    <Text style={[styles.notFoundTextHeader]}>{translate('common.youAppearToBeOffline')}</Text>
-                    <Text>{translate('common.attachementWillBeAvailableOnceBackOnline')}</Text>
+                    <Text style={[styles.notFoundTextHeader, styles.ph10]}>{translate('common.youAppearToBeOffline')}</Text>
+                    <Text style={[styles.textAlignCenter, styles.ph11, styles.textSupporting]}>{translate('common.attachementWillBeAvailableOnceBackOnline')}</Text>
                 </View>
             )}
         </View>

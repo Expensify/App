@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -11,16 +10,19 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportField from '@libs/actions/Policy/ReportField';
 import DateUtils from '@libs/DateUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {hasAccountingConnections} from '@libs/PolicyUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {createReportField, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
-import * as ErrorUtils from '@src/libs/ErrorUtils';
-import * as ValidationUtils from '@src/libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -28,7 +30,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import InitialListValueSelector from './InitialListValueSelector';
 import TypeSelector from './TypeSelector';
 
-type CreateReportFieldsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
+type CreateReportFieldsPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
 
 const defaultDate = DateUtils.extractDate(new Date().toString());
 
@@ -47,39 +49,46 @@ function CreateReportFieldsPage({
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            ReportField.createReportField(policyID, {
+            createReportField(policyID, {
                 name: values[INPUT_IDS.NAME],
                 type: values[INPUT_IDS.TYPE],
-                initialValue: values[INPUT_IDS.INITIAL_VALUE],
+                initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
             });
             Navigation.goBack();
         },
-        [policyID],
+        [availableListValuesLength, policyID],
     );
 
     const validateForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-            const {name, type, initialValue} = values;
+            const {name, type, initialValue: formInitialValue} = values;
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
-            if (!ValidationUtils.isRequiredFulfilled(name)) {
+            if (!isRequiredFulfilled(name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
             } else if (Object.values(policy?.fieldList ?? {}).some((reportField) => reportField.name === name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
             } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(
+                addErrorMessage(
                     errors,
                     INPUT_IDS.NAME,
                     translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}),
                 );
             }
 
-            if (!ValidationUtils.isRequiredFulfilled(type)) {
+            if (!isRequiredFulfilled(type)) {
                 errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
             }
 
-            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !ValidationUtils.isRequiredFulfilled(initialValue)) {
+            if (type === CONST.REPORT_FIELD_TYPES.TEXT && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
+                    length: formInitialValue.length,
+                    limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
+                });
+            }
+
+            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
             }
 
@@ -89,17 +98,22 @@ function CreateReportFieldsPage({
     );
 
     useEffect(() => {
-        ReportField.setInitialCreateReportFieldsForm();
+        setInitialCreateReportFieldsForm();
     }, []);
+
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+
+    const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
+            shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 style={styles.defaultModalContainer}
                 testID={CreateReportFieldsPage.displayName}
                 shouldEnableMaxHeight
@@ -117,7 +131,7 @@ function CreateReportFieldsPage({
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
-                    disablePressOnEnter={false}
+                    disablePressOnEnter={!!modal?.isVisible}
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
@@ -142,6 +156,16 @@ function CreateReportFieldsPage({
                                 onTypeSelected={(type) => formRef.current?.resetForm({...inputValues, type, initialValue: type === CONST.REPORT_FIELD_TYPES.DATE ? defaultDate : ''})}
                             />
 
+                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.reportFields.listValues')}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID))}
+                                    title={listValues}
+                                    numberOfLinesTitle={5}
+                                />
+                            )}
+
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.TEXT && (
                                 <InputWrapper
                                     InputComponent={TextPicker}
@@ -158,7 +182,7 @@ function CreateReportFieldsPage({
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
                                 <MenuItemWithTopDescription
-                                    title={translate('common.currentDate')}
+                                    title={translate('common.initialValue')}
                                     description={translate('common.date')}
                                     rightLabel={translate('common.required')}
                                     interactive={false}
@@ -171,15 +195,6 @@ function CreateReportFieldsPage({
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
                                     subtitle={translate('workspace.reportFields.listValuesInputSubtitle')}
-                                    rightLabel={translate('common.required')}
-                                />
-                            )}
-
-                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
-                                <MenuItemWithTopDescription
-                                    description={translate('workspace.reportFields.listValues')}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_LIST_VALUES.getRoute(policyID))}
                                 />
                             )}
                         </View>

@@ -2735,7 +2735,10 @@ const run = () => {
     }
     console.log(`Processing ${regressionOutput.countChanged.length} measurements...`);
     for (let i = 0; i < regressionOutput.countChanged.length; i++) {
-        const measurement = regressionOutput.countChanged[i];
+        const measurement = regressionOutput.countChanged.at(i);
+        if (!measurement) {
+            continue;
+        }
         const baseline = measurement.baseline;
         const current = measurement.current;
         console.log(`Processing measurement ${i + 1}: ${measurement.name}`);

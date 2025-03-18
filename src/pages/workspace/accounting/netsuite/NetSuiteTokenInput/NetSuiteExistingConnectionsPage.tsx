@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -8,13 +7,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS>;
+type ExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS>;
 
 function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
@@ -28,9 +28,15 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
         return {
             title: policy.name,
             key: policy.id,
+            avatarID: policy.id,
             icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
-            description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, date) : translate('workspace.accounting.netsuite'),
+            description: date
+                ? translate('workspace.common.lastSyncDate', {
+                      connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite,
+                      formattedDate: date,
+                  })
+                : translate('workspace.accounting.netsuite'),
             onPress: () => {
                 copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
                 Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
@@ -42,7 +48,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
         <ConnectionLayout
             displayName={NetSuiteExistingConnectionsPage.displayName}
             headerTitle="workspace.common.existingConnections"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.flex1]}

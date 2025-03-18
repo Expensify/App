@@ -1,11 +1,14 @@
-import React, {useMemo} from 'react';
+import type {ReactNode} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -22,7 +25,7 @@ type ToggleSettingOptionRowProps = {
     customTitle?: React.ReactNode;
 
     /** Subtitle of the option */
-    subtitle?: string;
+    subtitle?: string | ReactNode;
 
     /** Accessibility label for the switch */
     switchAccessibilityLabel: string;
@@ -41,6 +44,12 @@ type ToggleSettingOptionRowProps = {
 
     /** Used to apply styles to the Title */
     titleStyle?: StyleProp<TextStyle>;
+
+    /** Used to apply styles to the Subtitle */
+    subtitleStyle?: StyleProp<TextStyle>;
+
+    /** Used to apply styles to the Accordion */
+    accordionStyle?: StyleProp<ViewStyle>;
 
     /** Whether the option is enabled or not */
     isActive: boolean;
@@ -76,6 +85,8 @@ function ToggleSettingOptionRow({
     title,
     customTitle,
     subtitle,
+    subtitleStyle,
+    accordionStyle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     shouldEscapeText = undefined,
@@ -93,9 +104,14 @@ function ToggleSettingOptionRow({
     showLockIcon = false,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isActive);
+
+    useEffect(() => {
+        isAccordionExpanded.set(isActive);
+    }, [isAccordionExpanded, isActive]);
 
     const subtitleHtml = useMemo(() => {
-        if (!subtitle || !shouldParseSubtitle) {
+        if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
             return '';
         }
         return Parser.replace(subtitle, {shouldEscapeText});
@@ -112,15 +128,30 @@ function ToggleSettingOptionRow({
     }, [shouldParseSubtitle, subtitleHtml]);
 
     const subTitleView = useMemo(() => {
-        if (!!subtitle && shouldParseSubtitle) {
-            return (
-                <View style={[styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>
-                    <RenderHTML html={processedSubtitle} />
-                </View>
-            );
+        if (typeof subtitle === 'string') {
+            if (!!subtitle && shouldParseSubtitle) {
+                return (
+                    <View style={[styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>
+                        <RenderHTML html={processedSubtitle} />
+                    </View>
+                );
+            }
+            return <Text style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}>{subtitle}</Text>;
         }
-        return <Text style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>{subtitle}</Text>;
-    }, [subtitle, shouldParseSubtitle, styles.mutedNormalTextLabel, styles.mt1, styles.mr5, styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch, processedSubtitle]);
+
+        return subtitle;
+    }, [
+        subtitle,
+        shouldParseSubtitle,
+        styles.mutedNormalTextLabel,
+        styles.mt1,
+        styles.mr5,
+        styles.flexRow,
+        styles.renderHTML,
+        shouldPlaceSubtitleBelowSwitch,
+        subtitleStyle,
+        processedSubtitle,
+    ]);
 
     return (
         <OfflineWithFeedback
@@ -151,14 +182,23 @@ function ToggleSettingOptionRow({
                     <Switch
                         disabledAction={disabledAction}
                         accessibilityLabel={switchAccessibilityLabel}
-                        onToggle={onToggle}
+                        onToggle={(isOn) => {
+                            shouldAnimateAccordionSection.set(true);
+                            onToggle(isOn);
+                        }}
                         isOn={isActive}
                         disabled={disabled}
                         showLockIcon={showLockIcon}
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                {isActive && subMenuItems}
+                <Accordion
+                    isExpanded={isAccordionExpanded}
+                    style={accordionStyle}
+                    isToggleTriggered={shouldAnimateAccordionSection}
+                >
+                    {subMenuItems}
+                </Accordion>
             </View>
         </OfflineWithFeedback>
     );

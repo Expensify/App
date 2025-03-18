@@ -8,12 +8,14 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
+import {updateNetSuiteCollectionAccount} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuiteCollectionAccountOptions} from '@libs/PolicyUtils';
+import {getNetSuiteCollectionAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -21,9 +23,9 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const netsuiteCollectionAccountOptions = useMemo<SelectorType[]>(
         () => getNetSuiteCollectionAccountOptions(policy ?? undefined, config?.collectionAccount),
         [config?.collectionAccount, policy],
@@ -33,8 +35,8 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
 
     const updateCollectionAccount = useCallback(
         ({value}: SelectorType) => {
-            if (config?.collectionAccount !== value) {
-                Connections.updateNetSuiteCollectionAccount(policyID, value, config?.collectionAccount);
+            if (config?.collectionAccount !== value && policyID) {
+                updateNetSuiteCollectionAccount(policyID, value, config?.collectionAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
@@ -67,7 +69,7 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
     return (
         <SelectionScreen
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteCollectionAccountSelectPage.displayName}
             headerContent={headerContent}
@@ -80,6 +82,10 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}
+            pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT], config?.pendingFields)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT)}
+            errorRowStyles={[styles.ph5, styles.pv3]}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT)}
         />
     );
 }

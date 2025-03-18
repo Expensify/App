@@ -1,3 +1,5 @@
+import type {Comment} from './Transaction';
+
 /**
  * Model of review duplicates request
  */
@@ -7,6 +9,9 @@ type ReviewDuplicates = {
 
     /** ID of transaction we want to keep */
     transactionID: string;
+
+    /** ID of the transaction report we want to keep */
+    reportID: string;
 
     /** Merchant which user want to keep */
     merchant: string;
@@ -20,8 +25,14 @@ type ReviewDuplicates = {
     /** Tax code  which user want to keep */
     taxCode: string;
 
+    /** Calculated tax amount */
+    taxAmount: number;
+
     /** Description  which user want to keep */
     description: string;
+
+    /** NVPs of the transaction that we want to keep */
+    comment: Comment;
 
     /** Whether the transaction is reimbursable */
     reimbursable: boolean;

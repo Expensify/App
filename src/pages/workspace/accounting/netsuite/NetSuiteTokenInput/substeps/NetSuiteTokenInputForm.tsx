@@ -6,19 +6,21 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
+import type {SubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
 
-function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: string}) {
+function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const formInputs = Object.values(INPUT_IDS);
 
@@ -30,7 +32,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: st
                 if (formValues[formInput]) {
                     return;
                 }
-                ErrorUtils.addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
+                addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
             });
             return errors;
         },
@@ -39,6 +41,10 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: st
 
     const connectPolicy = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
+            if (!policyID) {
+                return;
+            }
+
             connectPolicyToNetSuite(policyID, formValues);
             onNext();
         },
@@ -58,7 +64,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: st
                 shouldValidateOnBlur
                 shouldValidateOnChange
             >
-                {formInputs.map((formInput) => (
+                {formInputs.map((formInput, index) => (
                     <View
                         style={styles.mb4}
                         key={formInput}
@@ -66,6 +72,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: st
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={formInput}
+                            ref={index === 0 ? inputCallbackRef : undefined}
                             label={translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.formInputs.${formInput}`)}
                             aria-label={translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.formInputs.${formInput}`)}
                             role={CONST.ROLE.PRESENTATION}

@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -13,32 +13,37 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getCommentLength, getParsedComment, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import variables from '@styles/variables';
-import * as Task from '@userActions/Task';
+import {canModifyTask, editTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskDescriptionPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
 function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescriptionPageProps) {
+    const route = useRoute<PlatformStackRouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors = {};
-            const taskDescriptionLength = ReportUtils.getCommentLength(values.description);
+            const parsedDescription = getParsedComment(values?.description);
+            const taskDescriptionLength = getCommentLength(parsedDescription);
             if (values?.description && taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
+                addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
             }
 
             return errors;
@@ -51,7 +56,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
             if (values.description !== Parser.htmlToMarkdown(report?.description ?? '') && !isEmptyObject(report)) {
                 // Set the description of the report in the store and then call EditTask API
                 // to update the description of the report on the server
-                Task.editTask(report, {description: values.description});
+                editTask(report, {description: values.description});
             }
 
             Navigation.dismissModal(report?.reportID);
@@ -59,7 +64,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
         [report],
     );
 
-    if (!ReportUtils.isTaskReport(report)) {
+    if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal(report?.reportID);
         });
@@ -67,9 +72,9 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID);
-    const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
+    const isOpen = isOpenTaskReport(report);
+    const canActuallyModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID);
+    const isTaskNonEditable = isTaskReport(report) && (!canActuallyModifyTask || !isOpen);
 
     useFocusEffect(
         useCallback(() => {
@@ -89,12 +94,15 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={TaskDescriptionPage.displayName}
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                <HeaderWithBackButton title={translate('task.task')} />
+                <HeaderWithBackButton
+                    title={translate('task.task')}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
@@ -116,13 +124,15 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                                 if (!element) {
                                     return;
                                 }
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(inputRef.current);
+                                }
                                 inputRef.current = element;
-                                updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             shouldSubmitForm
-                            isMarkdownEnabled
+                            type="markdown"
                         />
                     </View>
                 </FormProvider>

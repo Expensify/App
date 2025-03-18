@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -114,36 +114,44 @@ function MagicCodeInput(
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const inputRefs = useRef<BaseTextInputRef | null>();
+    const inputRef = useRef<BaseTextInputRef | null>();
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState<number | undefined>(0);
-    const [editIndex, setEditIndex] = useState(0);
+    const editIndex = useRef(0);
     const [wasSubmitted, setWasSubmitted] = useState(false);
     const shouldFocusLast = useRef(false);
     const inputWidth = useRef(0);
     const lastFocusedIndex = useRef(0);
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
+    const valueRef = useRef(value);
 
     useEffect(() => {
         lastValue.current = input.length;
     }, [input]);
 
+    useEffect(() => {
+        // Note: there are circumstances where the value state isn't updated yet
+        // when e.g. onChangeText gets called the next time. In those cases its safer to access the value from a ref
+        // to not have outdated values.
+        valueRef.current = value;
+    }, [value]);
+
     const blurMagicCodeInput = () => {
-        inputRefs.current?.blur();
+        inputRef.current?.blur();
         setFocusedIndex(undefined);
     };
 
     const focusMagicCodeInput = () => {
         setFocusedIndex(0);
         lastFocusedIndex.current = 0;
-        setEditIndex(0);
-        inputRefs.current?.focus();
+        editIndex.current = 0;
+        inputRef.current?.focus();
     };
 
     const setInputAndIndex = (index: number) => {
         setInput(TEXT_INPUT_EMPTY_STATE);
         setFocusedIndex(index);
-        setEditIndex(index);
+        editIndex.current = index;
     };
 
     useImperativeHandle(ref, () => ({
@@ -151,7 +159,7 @@ function MagicCodeInput(
             focusMagicCodeInput();
         },
         focusLastSelected() {
-            inputRefs.current?.focus();
+            inputRef.current?.focus();
         },
         resetFocus() {
             setInput(TEXT_INPUT_EMPTY_STATE);
@@ -160,7 +168,7 @@ function MagicCodeInput(
         clear() {
             lastFocusedIndex.current = 0;
             setInputAndIndex(0);
-            inputRefs.current?.focus();
+            inputRef.current?.focus();
             onChangeTextProp('');
         },
         blur() {
@@ -212,13 +220,14 @@ function MagicCodeInput(
      */
     const tapGesture = Gesture.Tap()
         .runOnJS(true)
+        // eslint-disable-next-line react-compiler/react-compiler
         .onBegin((event) => {
             const index = Math.floor(event.x / (inputWidth.current / maxLength));
             shouldFocusLast.current = false;
             // TapGestureHandler works differently on mobile web and native app
             // On web gesture handler doesn't block interactions with textInput below so there is no need to run `focus()` manually
             if (!Browser.isMobileChrome() && !Browser.isMobileSafari()) {
-                inputRefs.current?.focus();
+                inputRef.current?.focus();
             }
             setInputAndIndex(index);
             lastFocusedIndex.current = index;
@@ -230,6 +239,12 @@ function MagicCodeInput(
      * the focused input on the next empty one, if exists.
      * It handles both fast typing and only one digit at a time
      * in a specific position.
+     *
+     * Note: this works under the assumption that the backing text input will always have a cleared text,
+     * and entering text will exactly call onChangeText with one new character/digit.
+     * When the OS is inserting one time passwords for example it will call this method successively with one more digit each time.
+     * Thus, this method relies on an internal value ref to make sure to always use the latest value (as state updates are async, and
+     * might happen later than the next call to onChangeText).
      */
     const onChangeText = (textValue?: string) => {
         if (!textValue?.length || !ValidationUtils.isNumeric(textValue)) {
@@ -248,16 +263,17 @@ function MagicCodeInput(
         const numbersArr = addedValue
             .trim()
             .split('')
-            .slice(0, maxLength - editIndex);
-        const updatedFocusedIndex = Math.min(editIndex + (numbersArr.length - 1) + 1, maxLength - 1);
+            .slice(0, maxLength - editIndex.current);
+        const updatedFocusedIndex = Math.min(editIndex.current + (numbersArr.length - 1) + 1, maxLength - 1);
 
-        let numbers = decomposeString(value, maxLength);
-        numbers = [...numbers.slice(0, editIndex), ...numbersArr, ...numbers.slice(numbersArr.length + editIndex, maxLength)];
+        let numbers = decomposeString(valueRef.current, maxLength);
+        numbers = [...numbers.slice(0, editIndex.current), ...numbersArr, ...numbers.slice(numbersArr.length + editIndex.current, maxLength)];
 
         setInputAndIndex(updatedFocusedIndex);
 
         const finalInput = composeToString(numbers);
         onChangeTextProp(finalInput);
+        valueRef.current = finalInput;
     };
 
     /**
@@ -274,11 +290,14 @@ function MagicCodeInput(
             // If keyboard is disabled and no input is focused we need to remove
             // the last entered digit and focus on the correct input
             if (isDisableKeyboard && focusedIndex === undefined) {
-                const indexBeforeLastEditIndex = editIndex === 0 ? editIndex : editIndex - 1;
+                const curEditIndex = editIndex.current;
+                const indexBeforeLastEditIndex = curEditIndex === 0 ? curEditIndex : curEditIndex - 1;
 
-                const indexToFocus = numbers[editIndex] === CONST.MAGIC_CODE_EMPTY_CHAR ? indexBeforeLastEditIndex : editIndex;
-                const formElement = inputRefs.current as HTMLFormElement | null;
-                (formElement?.[indexToFocus] as HTMLInputElement)?.focus();
+                const indexToFocus = numbers.at(curEditIndex) === CONST.MAGIC_CODE_EMPTY_CHAR ? indexBeforeLastEditIndex : curEditIndex;
+                if (indexToFocus !== undefined) {
+                    lastFocusedIndex.current = indexToFocus;
+                    inputRef.current?.focus();
+                }
                 onChangeTextProp(value.substring(0, indexToFocus));
 
                 return;
@@ -286,10 +305,10 @@ function MagicCodeInput(
 
             // If the currently focused index already has a value, it will delete
             // that value but maintain the focus on the same input.
-            if (focusedIndex !== undefined && numbers?.[focusedIndex] !== CONST.MAGIC_CODE_EMPTY_CHAR) {
+            if (focusedIndex !== undefined && numbers?.at(focusedIndex) !== CONST.MAGIC_CODE_EMPTY_CHAR) {
                 setInput(TEXT_INPUT_EMPTY_STATE);
                 numbers = [...numbers.slice(0, focusedIndex), CONST.MAGIC_CODE_EMPTY_CHAR, ...numbers.slice(focusedIndex + 1, maxLength)];
-                setEditIndex(focusedIndex);
+                editIndex.current = focusedIndex;
                 onChangeTextProp(composeToString(numbers));
                 return;
             }
@@ -314,17 +333,18 @@ function MagicCodeInput(
             onChangeTextProp(composeToString(numbers));
 
             if (newFocusedIndex !== undefined) {
-                inputRefs.current?.focus();
+                lastFocusedIndex.current = newFocusedIndex;
+                inputRef.current?.focus();
             }
         }
         if (keyValue === 'ArrowLeft' && focusedIndex !== undefined) {
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
             setInputAndIndex(newFocusedIndex);
-            inputRefs.current?.focus();
+            inputRef.current?.focus();
         } else if (keyValue === 'ArrowRight' && focusedIndex !== undefined) {
             const newFocusedIndex = Math.min(focusedIndex + 1, maxLength - 1);
             setInputAndIndex(newFocusedIndex);
-            inputRefs.current?.focus();
+            inputRef.current?.focus();
         } else if (keyValue === 'Enter') {
             // We should prevent users from submitting when it's offline.
             if (isOffline) {
@@ -332,6 +352,15 @@ function MagicCodeInput(
             }
             setInput(TEXT_INPUT_EMPTY_STATE);
             onFulfill(value);
+        } else if (keyValue === 'Tab' && focusedIndex !== undefined) {
+            const newFocusedIndex = (event as unknown as KeyboardEvent).shiftKey ? focusedIndex - 1 : focusedIndex + 1;
+            if (newFocusedIndex >= 0 && newFocusedIndex < maxLength) {
+                setInputAndIndex(newFocusedIndex);
+                inputRef.current?.focus();
+                if (event?.preventDefault) {
+                    event.preventDefault();
+                }
+            }
         }
     };
 
@@ -370,7 +399,7 @@ function MagicCodeInput(
                             onLayout={(e) => {
                                 inputWidth.current = e.nativeEvent.layout.width;
                             }}
-                            ref={(inputRef) => (inputRefs.current = inputRef)}
+                            ref={(newRef) => (inputRef.current = newRef)}
                             autoFocus={autoFocus}
                             inputMode="numeric"
                             textContentType="oneTimeCode"
@@ -411,12 +440,12 @@ function MagicCodeInput(
                                 focusedIndex === index ? styles.borderColorFocus : {},
                             ]}
                         >
-                            <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(value, maxLength)[index] || ''}</Text>
+                            <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(value, maxLength).at(index) ?? ''}</Text>
                         </View>
                     </View>
                 ))}
             </View>
-            {errorText && (
+            {!!errorText && (
                 <FormHelpMessage
                     isError
                     message={errorText}

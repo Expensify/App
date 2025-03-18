@@ -7,10 +7,10 @@ import useTheme from './useTheme';
 
 const defaultEmptyArray: Array<keyof MarkdownStyle> = [];
 
-function useMarkdownStyle(message: string | null = null, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
+function useMarkdownStyle(message: string | null = null, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray, additionalStyles?: MarkdownStyle): MarkdownStyle {
     const theme = useTheme();
     const hasMessageOnlyEmojis = message != null && message.length > 0 && containsOnlyEmojis(message);
-    const emojiFontSize = hasMessageOnlyEmojis ? variables.fontSizeOnlyEmojis : variables.fontSizeNormal;
+    const emojiFontSize = hasMessageOnlyEmojis ? variables.fontSizeOnlyEmojis : variables.fontSizeEmojisWithinText;
 
     // this map is used to reset the styles that are not needed - passing undefined value can break the native side
     const nonStylingDefaultValues: Record<string, string | number> = useMemo(
@@ -38,6 +38,7 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
             },
             emoji: {
                 fontSize: emojiFontSize,
+                lineHeight: variables.lineHeightXLarge,
             },
             blockquote: {
                 borderColor: theme.border,
@@ -52,13 +53,13 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 paddingRight: 1,
             },
             code: {
-                fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 fontSize: 13, // TODO: should be 15 if inside h1, see StyleUtils.getCodeFontSize
                 color: theme.text,
                 backgroundColor: 'transparent',
             },
             pre: {
-                fontFamily: FontUtils.fontFamily.platform.MONOSPACE,
+                ...FontUtils.fontFamily.platform.MONOSPACE,
                 fontSize: 13,
                 color: theme.text,
                 backgroundColor: 'transparent',
@@ -75,6 +76,19 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 color: theme.mentionText,
                 backgroundColor: theme.mentionBG,
             },
+            inlineImage: {
+                minWidth: variables.inlineImagePreviewMinSize,
+                minHeight: variables.inlineImagePreviewMinSize,
+                maxWidth: variables.inlineImagePreviewMaxSize,
+                maxHeight: variables.inlineImagePreviewMaxSize,
+                borderRadius: variables.componentBorderRadius,
+                marginTop: 4,
+            },
+            loadingIndicator: {
+                primaryColor: theme.spinner,
+                secondaryColor: `${theme.spinner}33`,
+            },
+            loadingIndicatorContainer: {},
         };
 
         if (excludeStyles.length) {
@@ -88,10 +102,41 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
             });
         }
 
+        if (additionalStyles) {
+            Object.keys(additionalStyles).forEach((key) => {
+                if (!isValidStyleKey(styling, key)) {
+                    return;
+                }
+
+                const style = getStyle(styling, key);
+                const additionalStyle = getStyle(additionalStyles, key);
+
+                if (!style || !additionalStyle) {
+                    return;
+                }
+
+                Object.keys(additionalStyle).forEach((styleKey) => {
+                    if (!isValidStyleKey(additionalStyle, styleKey)) {
+                        return;
+                    }
+
+                    style[styleKey] = additionalStyle[styleKey];
+                });
+            });
+        }
+
         return styling;
-    }, [theme, emojiFontSize, excludeStyles, nonStylingDefaultValues]);
+    }, [theme, emojiFontSize, excludeStyles, nonStylingDefaultValues, additionalStyles]);
 
     return markdownStyle;
+}
+
+function isValidStyleKey<T extends MarkdownStyle>(obj: T, key: PropertyKey): key is keyof T {
+    return key in obj;
+}
+
+function getStyle<T extends MarkdownStyle, K extends keyof T>(obj: T, key: K): Record<string, unknown> | undefined {
+    return obj[key] as Record<string, unknown> | undefined;
 }
 
 export default useMarkdownStyle;

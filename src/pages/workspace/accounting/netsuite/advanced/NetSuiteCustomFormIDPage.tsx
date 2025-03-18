@@ -5,22 +5,28 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
+
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const route = useRoute();
@@ -61,7 +67,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
             displayName={NetSuiteCustomFormIDPage.displayName}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
             headerTitle={`workspace.netsuite.advancedConfig.${isReimbursable ? 'customFormIDReimbursable' : 'customFormIDNonReimbursable'}`}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.flex1]}
@@ -69,6 +75,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldIncludeSafeAreaPaddingBottom
             shouldBeBlocked={!config?.customFormIDOptions?.enabled}
+            shouldUseScrollView={false}
         >
             <View style={[styles.flexGrow1, styles.ph5]}>
                 <FormProvider
@@ -80,16 +87,24 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
                     shouldValidateOnBlur
                     shouldValidateOnChange
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={params.expenseType}
-                        label={translate(`workspace.netsuite.advancedConfig.${isReimbursable ? 'customFormIDReimbursable' : 'customFormIDNonReimbursable'}`)}
-                        aria-label={translate(`workspace.netsuite.advancedConfig.${isReimbursable ? 'customFormIDReimbursable' : 'customFormIDNonReimbursable'}`)}
-                        role={CONST.ROLE.PRESENTATION}
-                        spellCheck={false}
-                        inputMode={CONST.INPUT_MODE.NUMERIC}
-                        defaultValue={config?.customFormIDOptions?.[customFormIDKey]?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[exportDestination]]}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={settingsPendingAction([customFormIDKey], config?.pendingFields)}
+                        errors={ErrorUtils.getLatestErrorField(config, customFormIDKey)}
+                        errorRowStyles={[styles.ph5, styles.pv3]}
+                        onClose={() => Policy.clearNetSuiteErrorField(policyID, customFormIDKey)}
+                    >
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            ref={inputCallbackRef}
+                            inputID={params.expenseType}
+                            label={translate(`workspace.netsuite.advancedConfig.${isReimbursable ? 'customFormIDReimbursable' : 'customFormIDNonReimbursable'}`)}
+                            aria-label={translate(`workspace.netsuite.advancedConfig.${isReimbursable ? 'customFormIDReimbursable' : 'customFormIDNonReimbursable'}`)}
+                            role={CONST.ROLE.PRESENTATION}
+                            spellCheck={false}
+                            inputMode={CONST.INPUT_MODE.NUMERIC}
+                            defaultValue={config?.customFormIDOptions?.[customFormIDKey]?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[exportDestination]]}
+                        />
+                    </OfflineWithFeedback>
                 </FormProvider>
             </View>
         </ConnectionLayout>

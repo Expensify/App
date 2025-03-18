@@ -1,14 +1,15 @@
-import {isEmpty} from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
@@ -32,7 +33,7 @@ type ConnectionLayoutProps = {
     title?: TranslationPaths;
 
     /** The current policyID */
-    policyID: string;
+    policyID?: string;
 
     /** Defines which types of access should be verified */
     accessVariants?: AccessVariant[];
@@ -78,7 +79,7 @@ function ConnectionLayoutContent({title, titleStyle, children, titleAlreadyTrans
     const styles = useThemeStyles();
     return (
         <>
-            {title && <Text style={[styles.pb5, titleStyle]}>{titleAlreadyTranslated ?? translate(title)}</Text>}
+            {!!title && <Text style={[styles.pb5, titleStyle]}>{titleAlreadyTranslated ?? translate(title)}</Text>}
             {children}
         </>
     );
@@ -106,7 +107,7 @@ function ConnectionLayout({
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
-    const policy = PolicyUtils.getPolicy(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     const renderSelectionContent = useMemo(

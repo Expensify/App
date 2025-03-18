@@ -1,14 +1,17 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
 import {useMouseContext} from '@hooks/useMouseContext';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
 
@@ -16,6 +19,7 @@ function BaseListItem<TItem extends ListItem>({
     item,
     pressableStyle,
     wrapperStyle,
+    pressableWrapperStyle,
     containerStyle,
     isDisabled = false,
     shouldPreventEnterKeySubmit = false,
@@ -30,12 +34,15 @@ function BaseListItem<TItem extends ListItem>({
     children,
     isFocused,
     shouldSyncFocus = true,
+    shouldDisplayRBR = true,
+    shouldShowBlueBorderOnFocus = false,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
@@ -44,6 +51,7 @@ function BaseListItem<TItem extends ListItem>({
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
+        bind.onMouseLeave();
         e.stopPropagation();
         setMouseUp();
     };
@@ -54,7 +62,7 @@ function BaseListItem<TItem extends ListItem>({
         }
 
         if (typeof rightHandSideComponent === 'function') {
-            return rightHandSideComponent(item);
+            return rightHandSideComponent(item, isFocused);
         }
 
         return rightHandSideComponent;
@@ -88,21 +96,34 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={item.text ?? ''}
-                role={CONST.ROLE.BUTTON}
+                role={getButtonRole(true)}
+                isNested
                 hoverDimmingValue={1}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
+                hoverStyle={[!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
-                style={pressableStyle}
+                style={[
+                    pressableStyle,
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                ]}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
+                wrapperStyle={pressableWrapperStyle}
             >
-                <View style={wrapperStyle}>
+                <View
+                    testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
+                    accessibilityState={{selected: !!isFocused}}
+                    style={[
+                        wrapperStyle,
+                        isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    ]}
+                >
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
+                    {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
@@ -115,7 +136,7 @@ function BaseListItem<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {!item.isSelected && !!item.brickRoadIndicator && (
+                    {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 src={Expensicons.DotIndicator}

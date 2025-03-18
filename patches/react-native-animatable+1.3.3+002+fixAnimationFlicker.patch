@@ -1,0 +1,49 @@
+diff --git a/node_modules/react-native-animatable/createAnimatableComponent.js b/node_modules/react-native-animatable/createAnimatableComponent.js
+index 331d44f..fd92b8e 100644
+--- a/node_modules/react-native-animatable/createAnimatableComponent.js
++++ b/node_modules/react-native-animatable/createAnimatableComponent.js
+@@ -362,14 +362,17 @@ export default function createAnimatableComponent(WrappedComponent) {
+ 
+     setAnimation(animation, callback) {
+       const compiledAnimation = getCompiledAnimation(animation);
++      const animationValue = new Animated.Value(0);
++
+       this.setState(
+-        state => ({
++        {
+           animationStyle: makeInterpolatedStyle(
+             compiledAnimation,
+-            state.animationValue,
++            animationValue,
+           ),
+           compiledAnimation,
+-        }),
++          animationValue,
++        },
+         callback,
+       );
+     }
+@@ -401,7 +404,6 @@ export default function createAnimatableComponent(WrappedComponent) {
+       let currentIteration = iteration || 0;
+       const fromValue = getAnimationOrigin(currentIteration, direction);
+       const toValue = getAnimationTarget(currentIteration, direction);
+-      animationValue.setValue(fromValue);
+ 
+       if (typeof easing === 'string') {
+         easing = EASING_FUNCTIONS[easing];
+@@ -422,7 +424,6 @@ export default function createAnimatableComponent(WrappedComponent) {
+         useNativeDriver,
+         delay: iterationDelay || 0,
+       };
+-
+       Animated.timing(animationValue, config).start(endState => {
+         currentIteration += 1;
+         if (
+@@ -467,7 +468,6 @@ export default function createAnimatableComponent(WrappedComponent) {
+         if (needsInterpolation) {
+           transitionValue = new Animated.Value(0);
+           transitionValues[property] = transitionValue;
+-
+           transitionStyle[property] = transitionValue.interpolate({
+             inputRange: [0, 1],
+             outputRange: [fromValue, toValue],

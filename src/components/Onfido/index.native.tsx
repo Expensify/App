@@ -27,6 +27,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                     countryCode: OnfidoCountryCode.USA,
                 },
             },
+            disableNFC: true,
         })
             .then(onSuccess)
             .catch((error: OnfidoError) => {

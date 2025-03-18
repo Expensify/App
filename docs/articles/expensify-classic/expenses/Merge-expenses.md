@@ -38,20 +38,46 @@ If the expenses exist on two different reports, you will be asked which report y
 
 # FAQs
 
-**Why can’t I merge expenses that are on my submitted report?**
-You cannot merge expenses that are on reports that have already been submitted. 
+**Helpful terminology**
 
-**Can I merge expenses that are under different accounts?**
-No, you cannot merge expenses across two separate accounts. 
+- SmartScanned: Any receipt where the data is automatically entered by Expensify. Expenses are SmartScanned by default unless a user stops the SmartScan and enters the details manually.
+- Credit card expense: Any transaction imported from a personal card, company card feed, or CSV.
+- “Cash” expense: Any expense that wasn't imported from a personal card, company card feed, or CSV. 
 
-**Can you merge expenses with different currencies?**
-Yes, you can merge expenses with different currencies. The conversion amount will be based on the daily exchange rate for the date of the transaction, as long as the converted rates are within +/- 5%. If the currencies are the same, then the amounts must be an exact match to merge.
+**How can the icons and receipt images help me diagnose my issue?**
+
+Look carefully at your expenses. Each expense has an icon that denotes where the expense came from:
+- Cash (banknotes) icon: Added manually or by SmartScanning an expense
+- Credit Card icon: Imported from a connected personal credit card
+- Spreadsheet icon: Imported from a personal CSV import
+- Locked Credit Card icon: Imported from a company card feed or CSV upload
+
+Ideally, your credit card expenses will all also have a SmartScanned receipt attached. If you are in the US and your admin has allowed eReceipts for low-value expenses, your expense may include the locked credit card icon and a QR code for the receipt image.
+
+![Image of different expenses]({{site.url}}/assets/images/Expenses.png){:width="100%"}
+
+If you see any other combination of icon and image, there is likely a duplicate expense and you will need to manually merge the expenses using the steps above.
 
 **Can Expensify automatically merge a cash expense with a credit card expense?**
-Yes, Expensify merges a cash expense with a credit card expense if the receipt is SmartScanned or forwarded to receipts@expensify.com. However, these expenses will not merge if:
-- The card expense added to your Expensify account is older than the receipt you’re trying to merge it with
-- The receipt is dated older than 7 days of the card expense date
-- Either expense date (the date the Expense was incurred, not the date it was added into Expensify) is older than 90 days
-- The transaction was imported with the Expensify API
 
-However, if a receipt does not automatically merge with the card entry, you can complete this process manually.
+Yes, when a card expense is imported that matches the date and amount for a SmartScanned expense, Expensify automatically merges the new expense into the existing SmartScanned expense, and the expense will now show a credit card icon. The same is true if a receipt is SmartScanned and the transaction has already been imported—it will merge as soon as the SmartScan is complete.
+
+When expenses merge automatically, Expensify uses the SmartScanned merchant name over the merchant data from the bank statement. If the SmartScan is stopped, Expensify can no longer guarantee that the data entry is accurate, so the expenses will not merge.
+
+{% include info.html %}
+Expenses created via the Expensify [Expense Importer API](https://integrations.expensify.com/Integration-Server/doc/#expense-creator) will not automatically merge with card feed transactions.
+{% include end-info.html %}
+
+**Why didn’t my expenses merge automatically?**
+
+Here are some possible reasons for receipt merge failures:
+- The cash receipt was not SmartScanned (manual override by the user)
+- The card expense has a different date than the cash expense
+- The expenses have different amounts (same currency)
+- The expense amounts are outside the FX 5% threshold (different currencies)
+- The expense date is older than 90 days (cash or card)
+- It’s a duplicate - the same receipt was added twice (and the other one merged)
+- The cash receipt was submitted as a reimbursable expense, and reimbursed/exported before the credit card transaction was imported
+- The credit card transaction and the receipt are not in the same Expensify user accounts
+
+Using the above instructions, you can manually merge any Unreported/Open cash receipt and card transaction in the same account. 

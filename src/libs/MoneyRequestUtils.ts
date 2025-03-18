@@ -32,21 +32,37 @@ function stripDecimalsFromAmount(amount: string): string {
  * Adds a leading zero to the amount if user entered just the decimal separator
  *
  * @param amount - Changed amount from user input
+ * @param shouldAllowNegative - Should allow negative numbers
  */
-function addLeadingZero(amount: string): string {
+function addLeadingZero(amount: string, shouldAllowNegative = false): string {
+    if (shouldAllowNegative && amount.startsWith('-.')) {
+        return `-0${amount}`;
+    }
     return amount.startsWith('.') ? `0${amount}` : amount;
 }
 
 /**
  * Check if amount is a decimal up to 3 digits
  */
-function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH): boolean {
+function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH, shouldAllowNegative = false): boolean {
     const regexString =
         decimals === 0
-            ? `^\\d{1,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
-            : `^\\d{1,${amountMaxLength}}(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
+            ? `^${shouldAllowNegative ? '-?' : ''}\\d{1,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
+            : `^${shouldAllowNegative ? '-?' : ''}\\d{1,${amountMaxLength}}(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
     const decimalNumberRegex = new RegExp(regexString, 'i');
+    if (shouldAllowNegative) {
+        return amount === '' || amount === '-' || decimalNumberRegex.test(amount);
+    }
     return amount === '' || decimalNumberRegex.test(amount);
+}
+
+/**
+ * Check if percentage is between 0 and 100
+ */
+function validatePercentage(amount: string): boolean {
+    const regexString = '^(100|[0-9]{1,2})$';
+    const percentageRegex = new RegExp(regexString, 'i');
+    return amount === '' || percentageRegex.test(amount);
 }
 
 /**
@@ -80,4 +96,15 @@ function isScanRequest(selectedTab: SelectedTabRequest): boolean {
     return selectedTab === CONST.TAB_REQUEST.SCAN;
 }
 
-export {addLeadingZero, isDistanceRequest, isScanRequest, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, replaceCommasWithPeriod, validateAmount};
+export {
+    addLeadingZero,
+    isDistanceRequest,
+    isScanRequest,
+    replaceAllDigits,
+    stripCommaFromAmount,
+    stripDecimalsFromAmount,
+    stripSpacesFromAmount,
+    replaceCommasWithPeriod,
+    validateAmount,
+    validatePercentage,
+};

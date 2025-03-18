@@ -1,3 +1,6 @@
+// this file is for testing which methods should not be exported so it is not possible to use named imports - that's why we need to disable the no-restricted-syntax rule
+
+/* eslint-disable no-restricted-syntax */
 import * as IOU from '@libs/actions/IOU';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -14,6 +17,11 @@ describe('ReportUtils', () => {
         expect(ReportUtils.getParentReport).toBeUndefined();
     });
 
+    it('does not export getReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getReport).toBeUndefined();
+    });
+
     it('does not export isOneTransactionReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.isOneTransactionReport).toBeUndefined();
@@ -27,11 +35,6 @@ describe('ReportUtils', () => {
     it('does not export getAllReportActions', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getAllReportActions).toBeUndefined();
-    });
-
-    it('does not export getReport', () => {
-        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.getReportOrDraftReport).toBeUndefined();
     });
 });
 
@@ -58,6 +61,11 @@ describe('Task', () => {
     it('does not export getParentReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(Task.getParentReport).toBeUndefined();
+    });
+
+    it('does not export getParentReportAction', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(Task.getParentReportAction).toBeUndefined();
     });
 });
 
