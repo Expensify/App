@@ -13,8 +13,9 @@ import {getCompanyFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canModifyPlan, getWorkspaceAccountID, isCollectPolicy} from '@libs/PolicyUtils';
+import {canModifyPlan, isCollectPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import CONST from '@src/CONST';
 import {downgradeToTeam} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,11 +28,11 @@ type WorkspaceDowngradePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {isOffline} = useNetwork();
     const [isDowngradeWarningModalOpen, setIsDowngradeWarningModalOpen] = useState(false);
 
