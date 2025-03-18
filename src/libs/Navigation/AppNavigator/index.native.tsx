@@ -1,7 +1,7 @@
 import React, {memo, useContext, useEffect} from 'react';
-import {NativeModules} from 'react-native';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
+import CONFIG from '@src/CONFIG';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 type AppNavigatorProps = {
@@ -10,18 +10,17 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
-    const {initialURL, setInitialURL} = useContext(InitialURLContext);
+    const {initialURL} = useContext(InitialURLContext);
 
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !initialURL) {
+        if (!CONFIG.IS_HYBRID_APP || !initialURL) {
             return;
         }
 
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(Navigation.parseHybridAppUrl(initialURL));
-            setInitialURL(undefined);
         });
-    }, [initialURL, setInitialURL]);
+    }, [initialURL]);
 
     if (authenticated) {
         const AuthScreens = require<ReactComponentModule>('./AuthScreens').default;

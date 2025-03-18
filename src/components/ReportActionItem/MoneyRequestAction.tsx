@@ -13,6 +13,7 @@ import {
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -81,6 +82,9 @@ function MoneyRequestAction({
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
 
     const onMoneyRequestPreviewPressed = () => {
+        if (contextMenuRef.current?.isContextMenuOpening) {
+            return;
+        }
         if (isSplitBillAction) {
             Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
             return;
@@ -112,6 +116,10 @@ function MoneyRequestAction({
         }
         return <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isReversedTransaction}">${translate(message)}</deleted-action>`} />;
     }
+
+    // NOTE: this part of code is needed here if we want to replace MoneyRequestPreview with TransactionPreview
+    // const renderCondition = lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction);
+    // return renderCondition ? null : (
     return (
         <MoneyRequestPreview
             iouReportID={requestReportID}

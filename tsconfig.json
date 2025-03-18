@@ -40,6 +40,7 @@
         ".github/**/*",
         ".storybook/**/*",
         "scripts",
+        "modules",
         "modules/index.ts",
         "**/*.nitro/*.ts",
         "**/*.nitro/*.tsx",

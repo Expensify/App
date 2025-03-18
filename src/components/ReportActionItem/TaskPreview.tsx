@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -12,7 +11,6 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
-import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -27,7 +25,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
-import {getTaskTitleFromReport} from '@libs/TaskUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,7 +71,6 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const isTaskCompleted = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-    const taskTitle = Str.htmlEncode(getTaskTitleFromReport(taskReport, action?.childReportName ?? ''));
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const taskOwnerAccountID = taskReport?.ownerAccountID ?? action?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasAssignee = taskAssigneeAccountID > 0;
@@ -83,7 +79,6 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const avatarSize = CONST.AVATAR_SIZE.SMALL;
     const isDeletedParentAction = isCanceledTaskReport(taskReport, action);
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
-    const titleStyle = StyleUtils.getTaskPreviewTitleStyle(iconWrapperStyle.height, isTaskCompleted);
 
     const shouldShowGreenDotIndicator = isOpenTaskReport(taskReport, action) && isReportManager(taskReport);
     if (isDeletedParentAction) {
@@ -131,7 +126,9 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                             </View>
                         </UserDetailsTooltip>
                     )}
-                    <Text style={titleStyle}>{taskTitle}</Text>
+                    <View style={[styles.alignSelfCenter, styles.flex1]}>
+                        <RenderHTML html={`<comment>${taskReport?.reportName ?? action?.childReportName ?? ''}</comment>`} />
+                    </View>
                 </View>
                 {shouldShowGreenDotIndicator && (
                     <View style={iconWrapperStyle}>

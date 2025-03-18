@@ -71,7 +71,6 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                     const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
                     const {icon, title} = getIconAndTitle(route.name, translate);
-
                     const onPress = () => {
                         if (isActive) {
                             return;
