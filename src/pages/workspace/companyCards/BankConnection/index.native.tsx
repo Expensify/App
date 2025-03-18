@@ -106,7 +106,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             }
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         }
-    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired]);
+    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired, assignCard]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {

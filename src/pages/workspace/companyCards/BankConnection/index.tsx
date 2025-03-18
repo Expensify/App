@@ -131,7 +131,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (!shouldBlockWindowOpen) {
             customWindow = openBankConnection(url);
         }
-    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline]);
+    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline, assignCard]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>

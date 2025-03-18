@@ -11,12 +11,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import * as CardUtils from '@libs/CardUtils';
-import {isSelectedFeedExpired} from '@libs/CardUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
-import * as CompanyCards from '@userActions/CompanyCards';
-import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,14 +42,14 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const isFeedExpired = isSelectedFeedExpired(feed ? cardFeeds?.settings?.oAuthAccountDetails?.[feed] : undefined);
 
     const data = assignCard?.data;
-    const cardholderName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
     useEffect(() => {
         if (!assignCard?.isAssigned) {
             return;
         }
         Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-        InteractionManager.runAfterInteractions(() => CompanyCards.clearAssignCardStepAndData());
+        InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard, backTo, policyID]);
 
     const submit = () => {
@@ -62,15 +60,15 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
-        CompanyCards.assignWorkspaceCompanyCard(policyID, data);
+        assignWorkspaceCompanyCard(policyID, data);
     };
 
     const editStep = (step: AssignCardStep) => {
-        CompanyCards.setAssignCardStepAndData({currentStep: step, isEditing: true});
+        setAssignCardStepAndData({currentStep: step, isEditing: true});
     };
 
     const handleBackButtonPress = () => {
-        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
+        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
     };
 
     return (
@@ -96,7 +94,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={CardUtils.maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
+                    title={maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
                 />
