@@ -6,6 +6,7 @@ import type {AppProps} from '@src/App';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import Navigation from '@navigation/Navigation';
 
 type InitialUrlContextType = {
     initialURL: Route | undefined;
@@ -31,6 +32,10 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
         if (url && hybridAppSettings) {
             signInAfterTransitionFromOldDot(hybridAppSettings).then(() => {
                 setInitialURL(url);
+                Navigation.isNavigationReady().then(() => {
+                    Navigation.navigate(Navigation.parseHybridAppUrl(url));
+                });
+
                 if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
                     return;
                 }
