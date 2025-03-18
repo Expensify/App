@@ -5,6 +5,8 @@ import {Animated} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {triggerSidePane} from '@libs/actions/SidePane';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,6 +88,9 @@ function useSidePane() {
                 isOpen: shouldOnlyUpdateNarrowLayout ? undefined : false,
                 isOpenNarrowScreen: shouldOnlyUpdateNarrowLayout ? false : undefined,
             });
+
+            // Focus the composer after closing the side pane
+            focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
         },
         [isExtraLargeScreenWidth, sidePaneNVP],
     );
