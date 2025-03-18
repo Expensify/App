@@ -612,7 +612,9 @@ function PureReportActionItem({
             return options.map((option, i) => ({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
-                onPress: () => addComment(originalReportID, option),
+                onPress: () => {
+                    addComment(originalReportID, option);
+                },
             }));
         }
 
