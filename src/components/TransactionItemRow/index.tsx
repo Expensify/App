@@ -20,11 +20,13 @@ function TransactionItemRow({
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
+    additionalColumn,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
+    additionalColumn?: React.ReactNode;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -72,17 +74,20 @@ function TransactionItemRow({
                                     </View>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ml3, styles.mt0, styles.mb3]}>
-                                <CategoryCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                />
-                                <TagCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                />
+                            <View style={[styles.flexRow, styles.ml3, styles.mt0, styles.mb3, {justifyContent: 'space-between'}]}>
+                                <View style={[styles.alignItemsCenter, styles.gap2]}>
+                                    <CategoryCell
+                                        transactionItem={transactionItem}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    />
+                                    <TagCell
+                                        transactionItem={transactionItem}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    />
+                                </View>
+                                {!!additionalColumn && <View style={styles.mr2}>{additionalColumn}</View>}
                             </View>
                             <TransactionItemRowRBR transaction={transactionItem} />
                         </View>
@@ -134,6 +139,7 @@ function TransactionItemRow({
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
+                                {!!additionalColumn && <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ADDITIONAL)]}>{additionalColumn}</View>}
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                                     <TotalCell
                                         transactionItem={transactionItem}

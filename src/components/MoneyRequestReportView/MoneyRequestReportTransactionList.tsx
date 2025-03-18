@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import TransactionItemRow from '@components/TransactionItemRow';
+import ChatBubbleCell from '@components/TransactionItemRow/DataCells/ChatBubbleCell';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -36,6 +37,7 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
                                 isSelected={false}
                                 shouldShowTooltip
                                 shouldUseNarrowLayout={displayNarrowVersion}
+                                additionalColumn={<ChatBubbleCell transaction={transaction} />}
                             />
                         </View>
                     );
