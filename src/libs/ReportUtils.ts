@@ -1152,12 +1152,10 @@ function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies,
 
     const parentReport = getRootParentReport({report, reports});
 
-    console.log('[wildebug] ~ ReportUtils.ts:1148 ~ getPolicyName ~ parentReport:', parentReport);
     // Rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
-    console.log('[wildebug] ~ ReportUtils.ts:7281 ~ getPolicyName ~ policyName:', policyName);
 
     return policyName;
 }
@@ -4399,7 +4397,6 @@ function getInvoicesChatName({
     const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
 
     if (isCurrentUserReceiver) {
-        console.log('[wildebug] ~ ReportUtils.ts:4392 ~ isCurrentUserReceiver:', isCurrentUserReceiver);
         return getPolicyName({report, policies});
     }
 
@@ -4603,14 +4600,12 @@ function getReportNameInternal({
     }
 
     if (isInvoiceReport(report)) {
-        console.log('[wildebug] ~ ReportUtils.ts:4598 ~ isInvoiceReport(report):', isInvoiceReport(report));
         const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
         const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
         formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
     }
 
     if (isInvoiceRoom(report)) {
-        console.log('[wildebug] ~ ReportUtils.ts:4601 ~ isInvoiceRoom(report):', isInvoiceRoom(report));
         formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails, policies});
     }
 
