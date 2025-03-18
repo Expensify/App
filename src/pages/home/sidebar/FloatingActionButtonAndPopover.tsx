@@ -214,7 +214,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const paidGroupPolicies = useMemo(() => Object.values((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {}).filter((policy) => isPaidGroupPolicy(policy)), [allPolicies]);
     const groupPoliciesWithChatEnabled = useMemo(() => paidGroupPolicies.filter((policy) => policy?.isPolicyExpenseChatEnabled), [paidGroupPolicies]);
-    const canCreateReport = canUseTableReportView && paidGroupPolicies.length > 0;
+    const canCreateReport = true;
 
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:

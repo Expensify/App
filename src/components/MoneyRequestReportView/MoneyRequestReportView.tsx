@@ -2,8 +2,11 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderGap from '@components/HeaderGap';
+import LottieAnimations from '@components/LottieAnimations';
 import MoneyReportHeader from '@components/MoneyReportHeader';
+import useLocalize from '@hooks/useLocalize';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -11,6 +14,7 @@ import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReportFooter from '@pages/home/report/ReportFooter';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
@@ -31,6 +35,27 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
         return;
     }
     return parentReportActions[parentReportActionID];
+}
+
+function SearchMoneyRequestReportEmptyState() {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    return (
+        <View style={styles.flex1}>
+            <EmptyStateComponent
+                cardStyles={[styles.appBG]}
+                cardContentStyles={[styles.pt5, styles.pb0]}
+                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                headerMedia={LottieAnimations.GenericEmptyState}
+                title={translate('search.moneyRequestReport.emptyStateTitle')}
+                subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
+                headerStyles={[styles.emptyStateCardIllustrationContainer, {maxHeight: 85, minHeight: 85}]}
+                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                headerContentStyles={styles.emptyStateFolderWebStyles}
+            />
+        </View>
+    );
 }
 
 const noOp = () => {};
@@ -82,6 +107,7 @@ function MoneyRequestReportView({report, policy, reportMetadata}: MoneyRequestRe
                     Navigation.goBack();
                 }}
             />
+            <SearchMoneyRequestReportEmptyState />
             <MoneyRequestReportActionsList
                 report={report}
                 reportActions={reportActions}
