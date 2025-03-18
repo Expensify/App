@@ -70,7 +70,7 @@ function ReportActionItemParentAction({
     const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
