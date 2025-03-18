@@ -3,7 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {ReportActionListItemType, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
-import {search} from '@libs/actions/Search';
+import * as SearchActions from '@libs/actions/Search';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,7 +63,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             triggeredByHookRef.current = true;
 
             // Trigger the search
-            search({queryJSON, offset});
+            SearchActions.search({queryJSON, offset});
 
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;
