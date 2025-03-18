@@ -766,7 +766,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             !isChronosReport &&
             !isMessageDeleted(reportAction),
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
-            const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : reportIDParam;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID || reportIDParam : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));
