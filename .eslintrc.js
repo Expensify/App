@@ -122,7 +122,7 @@ module.exports = {
         'plugin:@typescript-eslint/recommended-type-checked',
         'plugin:@typescript-eslint/stylistic-type-checked',
         'plugin:you-dont-need-lodash-underscore/all',
-        'plugin:prettier/recommended',
+        'prettier',
     ],
     plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler', 'lodash', 'deprecation'],
     parser: '@typescript-eslint/parser',
@@ -203,6 +203,7 @@ module.exports = {
         'es/no-nullish-coalescing-operators': 'off',
         'es/no-optional-chaining': 'off',
         'deprecation/deprecation': 'off',
+        'arrow-body-style': 'off',
 
         // Import specific rules
         'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
@@ -242,6 +243,13 @@ module.exports = {
                 object: 'Image',
                 property: 'getSize',
                 message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
+            },
+            // Disallow direct HybridAppModule.isHybridApp() usage, because it requires a native call
+            // Use CONFIG.IS_HYBRID_APP, which keeps cached value instead
+            {
+                object: 'HybridAppModule',
+                property: 'isHybridApp',
+                message: 'Use CONFIG.IS_HYBRID_APP instead.',
             },
         ],
         'no-restricted-imports': [
@@ -308,6 +316,7 @@ module.exports = {
                 'jsdoc/no-types': 'off',
                 'react/jsx-filename-extension': 'off',
                 'rulesdir/no-default-props': 'off',
+                'prefer-arrow-callback': 'off',
             },
         },
         {

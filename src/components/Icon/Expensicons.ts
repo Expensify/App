@@ -49,6 +49,7 @@ import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
 import CheckCircle from '@assets/images/check-circle.svg';
+import Checkbox from '@assets/images/checkbox.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
 import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
@@ -204,6 +205,7 @@ import UserEye from '@assets/images/user-eye.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
+import VideoSlash from '@assets/images/video-slash.svg';
 import VolumeHigh from '@assets/images/volume-high.svg';
 import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
@@ -249,6 +251,7 @@ export {
     Cash,
     ChatBubble,
     ChatBubbles,
+    Checkbox,
     Checkmark,
     Chair,
     Close,
@@ -381,6 +384,7 @@ export {
     User,
     UserCheck,
     Users,
+    VideoSlash,
     VolumeHigh,
     VolumeLow,
     Wallet,

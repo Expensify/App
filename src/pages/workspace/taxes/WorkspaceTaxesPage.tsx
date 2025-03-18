@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -82,14 +81,37 @@ function WorkspaceTaxesPage({
 
     const {isOffline} = useNetwork({onReconnect: fetchTaxes});
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchTaxes();
-        }, [fetchTaxes]),
-    );
+    useEffect(() => {
+        fetchTaxes();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const cleanupSelectedOption = useCallback(() => setSelectedTaxesIDs([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
+
+    useEffect(() => {
+        if (selectedTaxesIDs.length === 0 || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedTaxesIDs((prevSelectedTaxesIDs) => {
+            const newSelectedTaxesIDs = [];
+
+            for (const taxID of prevSelectedTaxesIDs) {
+                if (
+                    policy?.taxRates?.taxes?.[taxID] &&
+                    policy?.taxRates?.taxes?.[taxID].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                    canEditTaxRatePolicyUtils(policy, taxID)
+                ) {
+                    newSelectedTaxesIDs.push(taxID);
+                }
+            }
+
+            return newSelectedTaxesIDs;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policy?.taxRates?.taxes]);
 
     useSearchBackPress({
         onClearSelection: () => {
@@ -118,9 +140,9 @@ function WorkspaceTaxesPage({
 
     const updateWorkspaceTaxEnabled = useCallback(
         (value: boolean, taxID: string) => {
-            setPolicyTaxesEnabled(policyID, [taxID], value);
+            setPolicyTaxesEnabled(policy, [taxID], value);
         },
-        [policyID],
+        [policy],
     );
 
     const taxesList = useMemo<ListItem[]>(() => {
@@ -186,29 +208,29 @@ function WorkspaceTaxesPage({
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('statusPage.status')}
+                rightHeaderText={translate('common.enabled')}
             />
         );
     };
 
     const deleteTaxes = useCallback(() => {
-        if (!policyID) {
+        if (!policy?.id) {
             return;
         }
-        deletePolicyTaxes(policyID, selectedTaxesIDs);
+        deletePolicyTaxes(policy, selectedTaxesIDs);
         setSelectedTaxesIDs([]);
         setIsDeleteModalVisible(false);
-    }, [policyID, selectedTaxesIDs]);
+    }, [policy, selectedTaxesIDs]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {
-            if (!policyID) {
+            if (!policy?.id) {
                 return;
             }
-            setPolicyTaxesEnabled(policyID, selectedTaxesIDs, isEnabled);
+            setPolicyTaxesEnabled(policy, selectedTaxesIDs, isEnabled);
             setSelectedTaxesIDs([]);
         },
-        [policyID, selectedTaxesIDs],
+        [policy, selectedTaxesIDs],
     );
 
     const navigateToEditTaxRate = (taxRate: ListItem) => {

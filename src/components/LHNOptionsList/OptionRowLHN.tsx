@@ -36,9 +36,10 @@ import {
     isOneOnOneChat,
     isPolicyExpenseChat,
     isSystemChat,
+    isThread,
     requiresAttentionFromCurrentUser,
 } from '@libs/ReportUtils';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
@@ -61,7 +62,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
     const session = useSession();
-    const shouldShowWokspaceChatTooltip = isPolicyExpenseChat(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
+    const shouldShowWokspaceChatTooltip = isPolicyExpenseChat(report) && !isThread(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, introSelected?.choice);
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
@@ -139,22 +140,24 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             return;
         }
         setIsContextMenuActive(true);
-        ReportActionContextMenu.showContextMenu(
-            CONST.CONTEXT_MENU_TYPES.REPORT,
+        showContextMenu({
+            type: CONST.CONTEXT_MENU_TYPES.REPORT,
             event,
-            '',
-            popoverAnchor.current,
-            reportID,
-            '-1',
-            reportID,
-            undefined,
-            () => {},
-            () => setIsContextMenuActive(false),
-            false,
-            false,
-            optionItem.isPinned,
-            !!optionItem.isUnread,
-        );
+            selection: '',
+            contextMenuAnchor: popoverAnchor.current,
+            report: {
+                reportID,
+                originalReportID: reportID,
+                isPinnedChat: optionItem.isPinned,
+                isUnreadChat: !!optionItem.isUnread,
+            },
+            reportAction: {
+                reportActionID: '-1',
+            },
+            callbacks: {
+                onHide: () => setIsContextMenuActive(false),
+            },
+        });
     };
 
     const emojiCode = optionItem.status?.emojiCode ?? '';
@@ -197,6 +200,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shiftVertical={shouldShowWokspaceChatTooltip ? 0 : variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 onTooltipPress={onOptionPress}
+                shouldHideOnScroll
             >
                 <View>
                     <Hoverable>

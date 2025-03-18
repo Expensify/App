@@ -25,6 +25,7 @@ DerivedData
 *.mobileprovision
 ios-fastlane-json-key.json
 **/.xcode.env.local
+ios/tmp.xcconfig
 
 # Android/IntelliJ
 #
@@ -44,6 +45,9 @@ android/app/src/main/java/com/expensify/chat/generated/
 
 # Vscode
 .vscode
+
+# Fleet
+.fleet
 
 # node.js
 #

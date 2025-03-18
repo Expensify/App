@@ -1,6 +1,6 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {TextInputProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -26,6 +26,7 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -72,9 +73,10 @@ function getContextualSearchQuery(item: SearchQueryItem) {
 type SearchRouterProps = {
     onRouterClose: () => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
+    isSearchRouterDisplayed?: boolean;
 };
 
-function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) {
+function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
@@ -108,6 +110,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
             // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
+                return undefined;
+            }
+
+            if (!isSearchRouterDisplayed) {
                 return undefined;
             }
 
@@ -157,7 +163,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate],
+        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed],
     );
 
     const searchQueryItem = textInputValue
@@ -187,11 +193,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             if (autoScrollToRight) {
                 shouldScrollRef.current = true;
             }
-            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
+            const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
+            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
 
-            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
+            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
             if (!isEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
                 setAutocompleteSubstitutions(updatedSubstitutionsMap);
             }
@@ -214,7 +221,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             }
 
             onRouterClose();
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: updatedQuery}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
@@ -267,7 +274,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                 }
             } else {
                 onRouterClose();
-
                 if (item?.reportID) {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
                 } else if ('login' in item) {
@@ -301,6 +307,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
             testID={SearchRouter.displayName}
+            ref={ref}
         >
             {shouldUseNarrowLayout && (
                 <HeaderWithBackButton
@@ -327,9 +334,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                         caretHidden={shouldHideInputCaret}
                         autocompleteListRef={listRef}
                         shouldShowOfflineMessage
-                        wrapperStyle={[styles.border, styles.alignItemsCenter]}
+                        wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
                         outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
-                        wrapperFocusedStyle={[styles.borderColorFocus]}
+                        wrapperFocusedStyle={styles.borderColorFocus}
                         isSearchingForReports={isSearchingForReports}
                         selection={selection}
                         substitutionMap={autocompleteSubstitutions}
@@ -352,4 +359,4 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
 SearchRouter.displayName = 'SearchRouter';
 
-export default SearchRouter;
+export default forwardRef(SearchRouter);

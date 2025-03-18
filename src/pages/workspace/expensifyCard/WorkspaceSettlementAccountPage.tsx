@@ -11,15 +11,15 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as AccountingUtils from '@libs/AccountingUtils';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import * as CardUtils from '@libs/CardUtils';
+import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Card from '@userActions/Card';
+import {updateSettlementAccount as updateSettlementAccountCard} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,8 +32,8 @@ type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavi
 function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params?.policyID ?? '-1';
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const policyID = route.params?.policyID;
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
@@ -41,12 +41,12 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
 
     const connectionName = reconciliationConnection ?? '';
-    const connectionParam = AccountingUtils.getRouteParamForConnection(connectionName as ConnectionName);
+    const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
-    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '';
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
+    const paymentBankAccountNumber = paymentBankAccountID ? bankAccountsList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '' : '';
 
-    const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList ?? {});
+    const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList ?? {});
 
     const data = useMemo(() => {
         const options = eligibleBankAccounts.map((bankAccount) => {
@@ -78,7 +78,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     }, [eligibleBankAccounts, paymentBankAccountID, styles, translate]);
 
     const updateSettlementAccount = (value: number) => {
-        Card.updateSettlementAccount(workspaceAccountID, policyID, value, paymentBankAccountID);
+        updateSettlementAccountCard(workspaceAccountID, policyID, value, paymentBankAccountID);
         Navigation.goBack();
     };
 
@@ -95,14 +95,20 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
             >
                 <HeaderWithBackButton
                     title={translate('workspace.expensifyCard.settlementAccount')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
+                    onBackButtonPress={() => {
+                        if (route.params?.backTo) {
+                            Navigation.goBack(route.params.backTo);
+                            return;
+                        }
+                        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID));
+                    }}
                 />
                 <SelectionList
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={paymentBankAccountID.toString()}
+                    initiallyFocusedOptionKey={paymentBankAccountID?.toString()}
                     listHeaderContent={
                         <>
                             <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>

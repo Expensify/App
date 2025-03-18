@@ -19,7 +19,15 @@ import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTagForDisplay, getTaxAmount, getTaxName, isAmountMissing, isCreatedMissing, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
+import {
+    getTagForDisplay,
+    getTaxAmount,
+    getTaxName,
+    isAmountMissing,
+    isCreatedMissing,
+    isFetchingWaypointsFromServer,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -29,6 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -239,6 +248,11 @@ function MoneyRequestConfirmationListFooter({
     const isMultilevelTags = useMemo(() => isMultiLevelTagsPolicyUtils(policyTags), [policyTags]);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
+    const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
+    const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowMap = isDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
+
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
         return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
@@ -328,33 +342,33 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
-                <ShowContextMenuContext.Provider value={contextMenuContextValue}>
-                    <MentionReportContext.Provider
-                        key={translate('common.description')}
-                        value={mentionReportContextValue}
-                    >
-                        <MenuItemWithTopDescription
-                            key={translate('common.description')}
-                            shouldShowRightIcon={!isReadOnly}
-                            shouldParseTitle
-                            excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-                            title={iouComment}
-                            description={translate('common.description')}
-                            onPress={() => {
-                                if (!transactionID) {
-                                    return;
-                                }
+                <View key={translate('common.description')}>
+                    <ShowContextMenuContext.Provider value={contextMenuContextValue}>
+                        <MentionReportContext.Provider value={mentionReportContextValue}>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={!isReadOnly}
+                                shouldParseTitle
+                                excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+                                title={iouComment}
+                                description={translate('common.description')}
+                                onPress={() => {
+                                    if (!transactionID) {
+                                        return;
+                                    }
 
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                            }}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                            numberOfLinesTitle={2}
-                        />
-                    </MentionReportContext.Provider>
-                </ShowContextMenuContext.Provider>
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                    );
+                                }}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                                disabled={didConfirm}
+                                interactive={!isReadOnly}
+                                numberOfLinesTitle={2}
+                            />
+                        </MentionReportContext.Provider>
+                    </ShowContextMenuContext.Provider>
+                </View>
             ),
             shouldShow: true,
             isSupplementary: false,
@@ -773,7 +787,7 @@ function MoneyRequestConfirmationListFooter({
                     disabled={didConfirm}
                 />
             )}
-            {isDistanceRequest && (
+            {shouldShowMap && (
                 <View style={styles.confirmationListMapItem}>
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
@@ -818,7 +832,7 @@ function MoneyRequestConfirmationListFooter({
                     <View style={styles.dividerLine} />
                 </>
             )}
-            {!isDistanceRequest &&
+            {!shouldShowMap &&
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (receiptImage || receiptThumbnail
                     ? receiptThumbnailContent

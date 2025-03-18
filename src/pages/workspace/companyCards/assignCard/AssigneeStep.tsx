@@ -17,7 +17,7 @@ import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkspaceAccountID, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -40,7 +40,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const workspaceAccountID = policy?.id ? getWorkspaceAccountID(policy.id) : CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
@@ -194,7 +194,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                 onSubmit={submit}
                 isAlertVisible={shouldShowError}
-                containerStyles={styles.ph5}
+                containerStyles={[styles.ph5, !shouldShowError && styles.mt5]}
                 message={translate('common.error.pleaseSelectOne')}
                 buttonStyles={styles.mb5}
             />
