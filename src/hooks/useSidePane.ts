@@ -65,12 +65,12 @@ function useSidePane() {
             Animated.timing(sidePaneOffset.current, {
                 toValue: shouldApplySidePaneOffset ? variables.sideBarWidth : 0,
                 duration: CONST.ANIMATED_TRANSITION,
-                useNativeDriver: false,
+                useNativeDriver: true,
             }),
             Animated.timing(sidePaneTranslateX.current, {
                 toValue: isPaneHidden ? sidePaneWidth : 0,
                 duration: CONST.ANIMATED_TRANSITION,
-                useNativeDriver: false,
+                useNativeDriver: true,
             }),
         ]).start(() => {
             setShouldHideSidePane(isPaneHidden);
@@ -98,6 +98,7 @@ function useSidePane() {
 
     return {
         sidePane: sidePaneNVP,
+        isPaneHidden,
         shouldHideSidePane,
         shouldHideSidePaneBackdrop,
         shouldHideHelpButton,
