@@ -1,4 +1,5 @@
 import type {TextStyle, ViewStyle} from 'react-native';
+import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -6,6 +7,7 @@ import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
+import {SearchColumns} from '@components/SelectionList/SearchTableHeader';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -30,8 +32,10 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
+import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {canSendInvoice} from './PolicyUtils';
 import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
 import {
@@ -73,6 +77,14 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
 };
+
+let currentAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        currentAccountID = session?.accountID;
+    },
+});
 
 const emptyPersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -116,8 +128,8 @@ function getTransactionItemCommonFormattedProperties(
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
-    const formattedFrom = from?.displayName ?? from?.login ?? '';
-    const formattedTo = to?.displayName ?? to?.login ?? '';
+    const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(from));
+    const formattedTo = formatPhoneNumber(getDisplayNameOrDefault(to));
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
@@ -252,7 +264,7 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
     const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
-    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW) {
+    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW || reportItem.action === CONST.SEARCH.ACTION_TYPES.PAY) {
         return translateLocal('iou.payerOwesAmount', {
             payer: payerName,
             amount: formattedAmount,
@@ -355,7 +367,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     ) as SearchTransaction[];
 
     const allViolations = Object.fromEntries(Object.entries(data).filter(([itemKey]) => isViolationEntry(itemKey))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
-    const shouldShowReview = hasViolations(report.reportID, allViolations, undefined, allReportTransactions);
+    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
+    const isSubmitter = report.ownerAccountID === currentAccountID;
+    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    const isApprover = report.managerID === currentAccountID;
+    const shouldShowReview = hasViolations(report.reportID, allViolations, undefined, allReportTransactions) && (isSubmitter || isApprover || isAdmin);
 
     if (shouldShowReview) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
@@ -366,8 +382,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     if (isTransaction && !data[key].isFromOneTransactionReport) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
-
-    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
 
     const invoiceReceiverPolicy =
         isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
@@ -477,8 +491,11 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
-                reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
             };
+
+            if (isIOUReport) {
+                reportIDToTransactions[reportKey].reportName = getIOUReportName(data, reportIDToTransactions[reportKey]);
+            }
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
@@ -719,8 +736,8 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Document,
             getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query, groupBy: 'reports'});
+                const query = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, policyID});
+                return ROUTES.SEARCH_ROOT.getRoute({query});
             },
         },
         {
@@ -773,6 +790,13 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
     };
 }
 
+/**
+ * Whether to show the empty state or not
+ */
+function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes) {
+    return !isDataLoaded || dataLength === 0 || !Object.hasOwn(SearchColumns, type);
+}
+
 export {
     getListItem,
     getSections,
@@ -790,5 +814,6 @@ export {
     getAction,
     createTypeMenuItems,
     createBaseSavedSearchMenuItem,
+    shouldShowEmptyState,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};

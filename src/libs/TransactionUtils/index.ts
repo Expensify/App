@@ -26,7 +26,18 @@ import {
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportTransactions, isOpenExpenseReport, isProcessingReport, isReportIDApproved, isSettled, isThread} from '@libs/ReportUtils';
+import {
+    getReportTransactions,
+    isCurrentUserSubmitter,
+    isOpenExpenseReport,
+    isProcessingReport,
+    isReportApproved,
+    isReportIDApproved,
+    isReportManuallyReimbursed,
+    isSettled,
+    isTestTransactionReport,
+    isThread,
+} from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -228,6 +239,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         lodashSet(commentJSON, 'customUnit', customUnit);
     }
 
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const isManagerMcTestTransaction = isTestTransactionReport(report);
+
     return {
         ...(!isEmptyObject(pendingFields) ? {pendingFields} : {}),
         transactionID,
@@ -238,7 +252,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        receipt: receipt?.source ? {source: receipt.source, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY} : {},
+        receipt: receipt?.source
+            ? {source: receipt.source, state: isManagerMcTestTransaction ? CONST.IOU.RECEIPT_STATE.SCANCOMPLETE : receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY}
+            : {},
         filename: (receipt?.source ? receipt?.name ?? filename : filename).toString(),
         category,
         tag,
@@ -802,35 +818,54 @@ function isBrokenConnectionViolation(violation: TransactionViolation) {
     );
 }
 
-/**
- * Check if user should see broken connection violation warning.
- */
-function shouldShowBrokenConnectionViolation(
-    transactionOrIDList: Transaction | string[] | undefined,
-    report: OnyxEntry<Report> | SearchReport,
-    policy: OnyxEntry<Policy> | SearchPolicy,
-    transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]> | undefined,
-): boolean {
-    if (!transactionOrIDList) {
+function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy) {
+    if (brokenConnectionViolations.length === 0) {
         return false;
     }
-    let violations: TransactionViolation[];
-    if (Array.isArray(transactionOrIDList)) {
-        if (Array.isArray(transactionViolations)) {
-            // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
-            throw new Error('Invalid argument combination. If a transactionIDList is passed in, then an OnyxCollection of violations is expected');
-        }
-        violations = transactionOrIDList.flatMap((id) => transactionViolations?.[id] ?? []);
-    } else {
-        if (!Array.isArray(transactionViolations)) {
-            // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
-            throw new Error('Invalid argument combination. If a single transaction is passed in, then an array of violations for that transaction is expected');
-        }
-        violations = transactionViolations;
+
+    if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) {
+        return true;
     }
 
+    if (isOpenExpenseReport(report)) {
+        return true;
+    }
+
+    return isProcessingReport(report) && isInstantSubmitEnabled(policy);
+}
+
+/**
+ * Check if user should see broken connection violation warning based on violations list.
+ */
+function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy, transactionViolations: TransactionViolation[]): boolean {
+    const brokenConnectionViolations = transactionViolations.filter((violation) => isBrokenConnectionViolation(violation));
+
+    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
+}
+
+/**
+ * Check if user should see broken connection violation warning based on selected transactions.
+ */
+function shouldShowBrokenConnectionViolationForMultipleTransactions(
+    transactionIDs: string[],
+    report: OnyxEntry<Report> | SearchReport,
+    policy: OnyxEntry<Policy> | SearchPolicy,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+): boolean {
+    const violations = transactionIDs.flatMap((id) => transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []);
+
     const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
-    return brokenConnectionViolations.length > 0 && (!isPolicyAdmin(policy) || isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy)));
+
+    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
+}
+
+function checkIfShouldShowMarkAsCashButton(hasRTERVPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
+    if (hasRTERVPendingViolation) {
+        return true;
+    }
+    return (
+        shouldDisplayBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report)
+    );
 }
 
 /**
@@ -1043,11 +1078,6 @@ function hasWarningTypeViolation(transactionID: string | undefined, transactionV
                 !isViolationDismissed(transaction, violation),
         ) ?? [];
 
-    const hasOnlyDupeDetectionViolation = warningTypeViolations?.every((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-    if (hasOnlyDupeDetectionViolation) {
-        return false;
-    }
-
     return warningTypeViolations.length > 0;
 }
 
@@ -1159,7 +1189,7 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
-function getTransaction(transactionID: string | undefined): OnyxEntry<Transaction> {
+function getTransaction(transactionID: string | number | undefined): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
@@ -1380,7 +1410,7 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
 
 function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
     return {
-        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, false),
+        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
         reportID: originalTransaction?.reportID,
         receiptID: originalTransaction?.receipt?.receiptID ?? CONST.DEFAULT_NUMBER_ID,
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
@@ -1502,6 +1532,7 @@ export {
     hasViolation,
     hasBrokenConnectionViolation,
     shouldShowBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
@@ -1523,6 +1554,7 @@ export {
     isPerDiemRequest,
     isViolationDismissed,
     isBrokenConnectionViolation,
+    checkIfShouldShowMarkAsCashButton,
     shouldShowRTERViolationMessage,
 };
 

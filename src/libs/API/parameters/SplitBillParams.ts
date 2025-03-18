@@ -17,6 +17,7 @@ type SplitBillParams = {
     splitPayerAccountIDs: number[];
     taxCode: string;
     taxAmount: number;
+    description?: string;
 };
 
 export default SplitBillParams;

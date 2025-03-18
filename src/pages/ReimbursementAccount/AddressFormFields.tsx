@@ -152,7 +152,6 @@ function AddressFormFields({
                 value={values?.zipCode}
                 defaultValue={defaultValues?.zipCode}
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
-                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                 containerStyles={styles.mt3}
             />
@@ -167,6 +166,7 @@ function AddressFormFields({
                         modalHeaderTitle={translate('countryStep.selectCountry')}
                         searchInputTitle={translate('countryStep.findCountry')}
                         value={values?.country}
+                        defaultValue={defaultValues?.country}
                         onValueChange={handleCountryChange}
                         stateInputIDToReset={inputKeys.state ?? 'stateInput'}
                     />

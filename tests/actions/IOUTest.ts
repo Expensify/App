@@ -3,8 +3,12 @@ import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {
+    calculateDiffAmount,
     canApproveIOU,
+    canCancelPayment,
     cancelPayment,
+    canIOUBePaid,
+    canUnapproveIOU,
     deleteMoneyRequest,
     payMoneyRequest,
     putOnHold,
@@ -174,7 +178,7 @@ describe('actions/IOU', () => {
             };
 
             // Given a policyExpenseChat report
-            const expenseReport = {
+            const policyExpenseChat = {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
@@ -290,7 +294,7 @@ describe('actions/IOU', () => {
 
             // When the user confirms the category for the tracked expense
             trackExpense({
-                report: expenseReport,
+                report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.CATEGORIZE,
                 participantParams: {
@@ -334,6 +338,21 @@ describe('actions/IOU', () => {
                         // Then the transaction category must match the original category
                         expect(categorizedTransaction?.category).toBe(Object.keys(fakeCategories).at(0) ?? '');
                         resolve();
+                    },
+                });
+            });
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                    callback: (quickAction) => {
+                        Onyx.disconnect(connection);
+                        resolve();
+
+                        // Then the quickAction.action should be set to REQUEST_DISTANCE
+                        expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.REQUEST_DISTANCE);
+                        // Then the quickAction.chatReportID should be set to the given policyExpenseChat reportID
+                        expect(quickAction?.chatReportID).toBe(policyExpenseChat.reportID);
                     },
                 });
             });
@@ -1785,6 +1804,67 @@ describe('actions/IOU', () => {
                 });
             });
         });
+
+        it('should update split chat report lastVisibleActionCreated to the latest IOU action when split bill in a DM', async () => {
+            // Given a DM chat with no expenses
+            const reportID = '1';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+            });
+
+            // When the user split bill twice on the DM
+            splitBill({
+                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                comment: '',
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'test',
+                created: '',
+                existingSplitChatReportID: reportID,
+            });
+
+            await waitForBatchedUpdates();
+
+            splitBill({
+                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                comment: '',
+                amount: 200,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'test',
+                created: '',
+                existingSplitChatReportID: reportID,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the DM lastVisibleActionCreated should be updated to the second IOU action created
+            const iouAction = await new Promise<OnyxEntry<ReportAction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        resolve(Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.amount === 200));
+                    },
+                });
+            });
+
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    callback: (reportVal) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportVal);
+                    },
+                });
+            });
+            expect(report?.lastVisibleActionCreated).toBe(iouAction?.created);
+        });
     });
 
     describe('payMoneyRequestElsewhere', () => {
@@ -1981,9 +2061,10 @@ describe('actions/IOU', () => {
                                     payIOUAction = Object.values(reportActionsForIOUReport ?? {}).find(
                                         (reportAction) => isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                     );
-                                    expect(payIOUAction).toBeTruthy();
-
                                     resolve();
+
+                                    expect(payIOUAction).toBeTruthy();
+                                    expect(payIOUAction?.pendingAction).toBeFalsy();
                                 },
                             });
                         }),
@@ -2310,7 +2391,16 @@ describe('actions/IOU', () => {
             };
             const iouActions: ReportAction[] = [];
             [transaction1, transaction2].forEach((transaction) =>
-                iouActions.push(buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, transaction.amount, transaction.currency, '', [], transaction.transactionID)),
+                iouActions.push(
+                    buildOptimisticIOUReportAction({
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: transaction.amount,
+                        currency: transaction.currency,
+                        comment: '',
+                        participants: [],
+                        transactionID: transaction.transactionID,
+                    }),
+                ),
             );
             const actions: OnyxInputValue<ReportActions> = {};
             iouActions.forEach((iouAction) => (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction));
@@ -3768,7 +3858,16 @@ describe('actions/IOU', () => {
             };
             const iouActions: ReportAction[] = [];
             [transaction1, transaction2].forEach((transaction) =>
-                iouActions.push(buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, transaction.amount, transaction.currency, '', [], transaction.transactionID)),
+                iouActions.push(
+                    buildOptimisticIOUReportAction({
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: transaction.amount,
+                        currency: transaction.currency,
+                        comment: '',
+                        participants: [],
+                        transactionID: transaction.transactionID,
+                    }),
+                ),
             );
             const actions: OnyxInputValue<ReportActions> = {};
             iouActions.forEach((iouAction) => (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction));
@@ -3820,7 +3919,14 @@ describe('actions/IOU', () => {
             const transactionCollectionDataSet: TransactionCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
-            const iouAction: ReportAction = buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, transaction.amount, transaction.currency, '', [], transaction.transactionID);
+            const iouAction: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                comment: '',
+                participants: [],
+                transactionID: transaction.transactionID,
+            });
             const transactionThread = buildTransactionThread(iouAction, iouReport);
 
             const actions: OnyxInputValue<ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
@@ -3878,7 +3984,14 @@ describe('actions/IOU', () => {
             const transactionCollectionDataSet: TransactionCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
-            const iouAction: ReportAction = buildOptimisticIOUReportAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, transaction.amount, transaction.currency, '', [], transaction.transactionID);
+            const iouAction: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                comment: '',
+                participants: [],
+                transactionID: transaction.transactionID,
+            });
             const transactionThread = buildTransactionThread(iouAction, iouReport);
 
             const actions: OnyxInputValue<ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
@@ -4658,6 +4771,137 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
+        });
+    });
+
+    describe('canUnapproveIOU', () => {
+        it('should return false if the report is waiting for a bank account', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'A',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            expect(canUnapproveIOU(fakeReport, undefined)).toBeFalsy();
+        });
+    });
+
+    describe('canCancelPayment', () => {
+        it('should return true if the report is waiting for a bank account', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'A',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID})).toBeTruthy();
+        });
+    });
+
+    describe('canIOUBePaid', () => {
+        it('should return false if the report has negative total', () => {
+            const policyChat = createRandomReport(1);
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number('AA')),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+                total: 100, // positive amount in the DB means negative amount in the UI
+            };
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy)).toBeFalsy();
+        });
+    });
+
+    describe('calculateDiffAmount', () => {
+        it('should return 0 if iouReport is undefined', () => {
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: '1',
+                amount: 100,
+                currency: 'USD',
+            };
+
+            expect(calculateDiffAmount(undefined, fakeTransaction, fakeTransaction)).toBe(0);
+        });
+
+        it('should return 0 when the currency and amount of the transactions are the same', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: fakeReport.reportID,
+                amount: 100,
+                currency: 'USD',
+            };
+
+            expect(calculateDiffAmount(fakeReport, fakeTransaction, fakeTransaction)).toBe(0);
+        });
+
+        it('should return the difference between the updated amount and the current amount when the currency of the updated and current transactions have the same currency', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+                currency: 'USD',
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                amount: 100,
+                currency: 'USD',
+            };
+            const updatedTransaction = {
+                ...fakeTransaction,
+                amount: 200,
+                currency: 'USD',
+            };
+
+            expect(calculateDiffAmount(fakeReport, updatedTransaction, fakeTransaction)).toBe(-100);
+        });
+
+        it('should return null when the currency of the updated and current transactions have different values', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                amount: 100,
+                currency: 'USD',
+            };
+            const updatedTransaction = {
+                ...fakeTransaction,
+                amount: 200,
+                currency: 'EUR',
+            };
+
+            expect(calculateDiffAmount(fakeReport, updatedTransaction, fakeTransaction)).toBeNull();
         });
     });
 });

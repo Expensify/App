@@ -84,11 +84,10 @@ function BaseTextInput(
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
-
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
-    const {hasError = false} = inputProps;
+    const {hasError = false, markdownStyle: propsMarkdownStyle} = inputProps;
+    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles, propsMarkdownStyle);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
@@ -305,7 +304,7 @@ function BaseTextInput(
                         {hasLabel ? (
                             <>
                                 {/* Adding this background to the label only for multiline text input,
-              to prevent text overlapping with label when scrolling */}
+                to prevent text overlapping with label when scrolling */}
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     label={label}
@@ -482,11 +481,11 @@ function BaseTextInput(
                 </View>
             )}
             {/*
-               Text input component doesn't support auto grow by default.
-               We're using a hidden text input to achieve that.
-               This text view is used to calculate width or height of the input value given textStyle in this component.
-               This Text component is intentionally positioned out of the screen.
-           */}
+                 Text input component doesn't support auto grow by default.
+                 We're using a hidden text input to achieve that.
+                 This text view is used to calculate width or height of the input value given textStyle in this component.
+                 This Text component is intentionally positioned out of the screen.
+             */}
             {(!!autoGrow || autoGrowHeight) && !isAutoGrowHeightMarkdown && (
                 // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
                 // Reference: https://github.com/Expensify/App/issues/8158, https://github.com/Expensify/App/issues/26628
