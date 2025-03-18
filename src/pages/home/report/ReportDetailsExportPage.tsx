@@ -15,7 +15,7 @@ import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report'
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
-import {canBeExported as canBeExportedUtil, getIntegrationIcon} from '@libs/ReportUtils';
+import {canBeExported as canBeExportedUtil, getIntegrationIcon, isExported as isExportedUtil} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,6 +32,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const reportID = route.params.reportID;
     const backTo = route.params.backTo;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const policyID = report?.policyID;
 
     const {translate} = useLocalize();
@@ -40,6 +41,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 
     const iconToDisplay = getIntegrationIcon(connectionName);
     const canBeExported = canBeExportedUtil(report);
+    const isExported = isExportedUtil(reportActions);
 
     const confirmExport = useCallback(
         (type = modalStatus) => {
@@ -114,7 +116,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 title="common.export"
                 connectionName={connectionName}
                 onSelectRow={({value}) => {
-                    if (canBeExported) {
+                    if (isExported) {
                         setModalStatus(value);
                     } else {
                         confirmExport(value);
