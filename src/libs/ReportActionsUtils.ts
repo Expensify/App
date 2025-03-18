@@ -1660,8 +1660,13 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
         });
     } else {
         result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.automatic', {label}),
+            text: translateLocal('report.actions.type.exportedToIntegration.automaticOne', {label}),
             url: '',
+        });
+        const url = CONST.HELP_DOC_LINKS[label as keyof typeof CONST.HELP_DOC_LINKS];
+        result.push({
+            text: translateLocal('report.actions.type.exportedToIntegration.automaticTwo'),
+            url: url || '',
         });
     }
 

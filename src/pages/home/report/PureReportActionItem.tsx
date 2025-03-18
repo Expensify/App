@@ -527,27 +527,29 @@ function PureReportActionItem({
 
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
-            showContextMenu(
-                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+            showContextMenu({
+                type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
                 event,
                 selection,
-                popoverAnchorRef.current,
-                reportID,
-                action.reportActionID,
-                originalReportID,
-                draftMessage ?? '',
-                () => setIsContextMenuActive(true),
-                toggleContextMenuFromActiveReportAction,
-                isArchivedRoom,
-                isChronosReport,
-                false,
-                false,
-                disabledActions,
-                false,
-                setIsEmojiPickerActive as () => void,
-                undefined,
-                isThreadReportParentAction,
-            );
+                contextMenuAnchor: popoverAnchorRef.current,
+                report: {
+                    reportID,
+                    originalReportID,
+                    isArchivedRoom,
+                    isChronos: isChronosReport,
+                },
+                reportAction: {
+                    reportActionID: action.reportActionID,
+                    draftMessage,
+                    isThreadReportParentAction,
+                },
+                callbacks: {
+                    onShow: toggleContextMenuFromActiveReportAction,
+                    onHide: toggleContextMenuFromActiveReportAction,
+                    setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
+                },
+                disabledOptions: disabledActions,
+            });
         },
         [
             draftMessage,
@@ -886,8 +888,6 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={getDismissedViolationMessageText(getOriginalMessage(action))} />;
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES)) {
-            children = <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
             children = <ReportActionItemBasicMessage message={getWorkspaceNameUpdatedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION) {
