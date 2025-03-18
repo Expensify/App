@@ -5,10 +5,9 @@ import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import CONST from '@src/CONST';
+import {getCardIssuedMessage, getOriginalMessage, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
@@ -23,42 +22,15 @@ type IssueCardMessageProps = {
 function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID ?? '-1');
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
-
-    const assigneeAccountID = (ReportActionsUtils.getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
-
-    const missingDetails =
-        !privatePersonalDetails?.legalFirstName ||
-        !privatePersonalDetails?.legalLastName ||
-        !privatePersonalDetails?.dob ||
-        !privatePersonalDetails?.phoneNumber ||
-        isEmptyObject(privatePersonalDetails?.addresses) ||
-        privatePersonalDetails.addresses.length === 0;
-
+    const assigneeAccountID = (getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
+    const card = getExpensifyCardFromReportAction({reportAction: action, policyID});
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
-
-    const cardIssuedActionOriginalMessage = ReportActionsUtils.isActionOfType(
-        action,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-    )
-        ? ReportActionsUtils.getOriginalMessage(action)
-        : undefined;
-    const cardID = cardIssuedActionOriginalMessage?.cardID ?? -1;
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
-    const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
-    const shouldShowAddMissingDetailsButton = !isEmptyObject(card) && action?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails && isAssigneeCurrentUser;
+    const shouldShowAddMissingDetailsButton = isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, card);
 
     return (
         <>
-            <RenderHTML
-                html={`<muted-text>${ReportActionsUtils.getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, policyID, shouldDisplayLinkToCard: !!card})}</muted-text>`}
-            />
+            <RenderHTML html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, policyID, card})}</muted-text>`} />
             {shouldShowAddMissingDetailsButton && (
                 <Button
                     onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}

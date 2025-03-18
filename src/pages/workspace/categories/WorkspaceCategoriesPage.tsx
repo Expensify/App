@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -40,7 +39,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
@@ -51,13 +50,14 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicyOption = ListItem & {
     /** Category name is used as a key for the selectedCategories state */
     keyForList: string;
 };
 
-type WorkspaceCategoriesPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceCategoriesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
@@ -92,14 +92,34 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchCategories});
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchCategories();
-        }, [fetchCategories]),
-    );
+    useEffect(() => {
+        fetchCategories();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
+
+    useEffect(() => {
+        if (isEmptyObject(selectedCategories) || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedCategories((prevSelectedCategories) => {
+            const keys = Object.keys(prevSelectedCategories);
+            const newSelectedCategories: Record<string, boolean> = {};
+
+            for (const key of keys) {
+                if (policyCategories?.[key] && policyCategories[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    newSelectedCategories[key] = prevSelectedCategories[key];
+                }
+            }
+
+            return newSelectedCategories;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policyCategories]);
 
     useSearchBackPress({
         onClearSelection: () => setSelectedCategories({}),
@@ -166,7 +186,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('statusPage.status')}
+                rightHeaderText={translate('common.enabled')}
             />
         );
     };

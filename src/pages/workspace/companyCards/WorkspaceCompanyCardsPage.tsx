@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -10,12 +9,21 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import {
+    checkIfFeedConnectionIsBroken,
+    filterInactiveCards,
+    getCompanyFeeds,
+    getFilteredCardList,
+    getSelectedFeed,
+    hasOnlyOneCardToAssign,
+    isCustomFeed,
+    isSelectedFeedExpired,
+} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkspaceAccountID, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage, setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -30,21 +38,21 @@ import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPen
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
 
-type WorkspaceCompanyCardPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
+type WorkspaceCompanyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
 function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const policyID = route.params.policyID;
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`, {selector: filterInactiveCards});
 
     const {cardList, ...cards} = cardsList ?? {};
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
@@ -65,9 +73,11 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     }, [policyID, workspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
-    const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && !cardsList));
+    const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
 
-    useFocusEffect(fetchCompanyCards);
+    useEffect(() => {
+        fetchCompanyCards();
+    }, [fetchCompanyCards]);
 
     useEffect(() => {
         if (isLoading || !selectedFeed || isPending) {
@@ -143,7 +153,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     icon={Illustrations.CompanyCard}
                     headerText={translate('workspace.common.companyCards')}
                     route={route}
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
                     shouldShowOfflineIndicatorInWideScreen
                     includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}

@@ -394,7 +394,7 @@ type SkeletonViewProps = {
     shouldAnimate: boolean;
 };
 
-type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
+type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
@@ -469,6 +469,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether the text input should be shown after list header */
     shouldShowTextInputAfterHeader?: boolean;
 
+    /** Whether the header message should be shown after list header */
+    shouldShowHeaderMessageAfterHeader?: boolean;
+
     /** Whether to include padding bottom */
     includeSafeAreaPaddingBottom?: boolean;
 
@@ -519,6 +522,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
+
+    /** Whether to subscribe to KeyboardShortcut arrow keys events */
+    shouldSubscribeToArrowKeyEvents?: boolean;
 
     /** Custom content to display in the header */
     headerContent?: ReactNode;
@@ -659,6 +665,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Initial number of items to render */
     initialNumToRender?: number;
+
+    /** Whether the screen is focused or not. (useIsFocused state does not work in tab screens, e.g. SearchPageBottomTab) */
+    isScreenFocused?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addBottomSafeAreaPadding?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -695,7 +707,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 export type {
     BaseListItemProps,
-    BaseSelectionListProps,
+    SelectionListProps,
     ButtonOrCheckBoxRoles,
     CommonListItemProps,
     ExtendedTargetedEvent,

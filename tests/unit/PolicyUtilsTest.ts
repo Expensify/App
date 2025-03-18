@@ -2,7 +2,16 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {getActivePolicies, getRateDisplayValue, getSubmitToAccountID, getUnitRateValue, shouldShowPolicy} from '@libs/PolicyUtils';
+import {
+    getActivePolicies,
+    getManagerAccountID,
+    getPolicyNameByID,
+    getRateDisplayValue,
+    getSubmitToAccountID,
+    getUnitRateValue,
+    isWorkspaceEligibleForReportChange,
+    shouldShowPolicy,
+} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
@@ -20,6 +29,12 @@ const CARLOS_ACCOUNT_ID = 1;
 function toLocaleDigitMock(dot: string): string {
     return dot;
 }
+const GENERATED_ACCOUNT_ID = '555555';
+
+jest.mock('@libs/UserUtils', () => ({
+    // generateAccountID: () => GENERATED_ACCOUNT_ID,
+    generateAccountID: jest.fn().mockReturnValue(GENERATED_ACCOUNT_ID),
+}));
 
 const testDate = DateUtils.getDBTime();
 const employeeList: PolicyEmployeeList = {
@@ -67,19 +82,24 @@ const categoryapprover2AccountID = 4;
 const tagapprover1AccountID = 5;
 const tagapprover2AccountID = 6;
 const ownerAccountID = 7;
+const approverAccountID = 8;
+const employeeEmail = 'employee@test.com';
+const adminEmail = 'admin@test.com';
+const categoryApprover1Email = 'categoryapprover1@test.com';
+const approverEmail = 'approver@test.com';
 
 const personalDetails: PersonalDetailsList = {
     '1': {
         accountID: adminAccountID,
-        login: 'admin@test.com',
+        login: adminEmail,
     },
     '2': {
         accountID: employeeAccountID,
-        login: 'employee@test.com',
+        login: employeeEmail,
     },
     '3': {
         accountID: categoryapprover1AccountID,
-        login: 'categoryapprover1@test.com',
+        login: categoryApprover1Email,
     },
     '4': {
         accountID: categoryapprover2AccountID,
@@ -96,6 +116,10 @@ const personalDetails: PersonalDetailsList = {
     '7': {
         accountID: ownerAccountID,
         login: 'owner@test.com',
+    },
+    '8': {
+        accountID: approverAccountID,
+        login: approverEmail,
     },
 };
 
@@ -472,6 +496,247 @@ describe('PolicyUtils', () => {
             const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
             // The result should be false since it is a policy which is pending deletion.
             expect(result).toEqual(false);
+        });
+    });
+
+    describe('getPolicyNameByID', () => {
+        it('should return the policy name for a given policyID', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                name: 'testName',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+
+            expect(getPolicyNameByID('1')).toBe('testName');
+        });
+
+        it('should return the policyID if the name is not set', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                name: null!,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+
+            expect(getPolicyNameByID('1')).toBe('1');
+        });
+    });
+
+    describe('getManagerAccountID', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should return default approver for personal workspaces', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.PERSONAL,
+                approver: categoryApprover1Email,
+            };
+            const report: Report = {
+                ...createRandomReport(0),
+            };
+            const result = getManagerAccountID(policy, report);
+
+            expect(result).toBe(categoryapprover1AccountID);
+        });
+
+        it('should return -1 if there is no employee or default approver', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: undefined,
+                approver: undefined,
+                owner: '',
+            };
+            const report: Report = {
+                ...createRandomReport(0),
+            };
+
+            const result = getManagerAccountID(policy, report);
+
+            expect(result).toBe(-1);
+        });
+
+        it('should return submitsTo account ID', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: undefined,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        submitsTo: adminEmail,
+                    },
+                },
+            };
+            const report: Report = {
+                ...createRandomReport(0),
+                ownerAccountID: employeeAccountID,
+            };
+
+            const result = getManagerAccountID(policy, report);
+
+            expect(result).toBe(adminAccountID);
+        });
+
+        it('should return the default approver', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: undefined,
+                approver: categoryApprover1Email,
+            };
+            const report: Report = {
+                ...createRandomReport(0),
+                ownerAccountID: employeeAccountID,
+            };
+
+            const result = getManagerAccountID(policy, report);
+
+            expect(result).toBe(categoryapprover1AccountID);
+        });
+    });
+
+    describe('isWorkspaceEligibleForReportChange', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('returns false if current user is not a member of the new policy', async () => {
+            const newPolicy = {
+                ...createRandomPolicy(1),
+                employeeList: {},
+            };
+            const report = createRandomReport(0);
+            const oldPolicy = createRandomPolicy(0);
+            const currentUserLogin = 'nonmember@tests.com';
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: 0});
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin);
+            expect(result).toBe(false);
+        });
+
+        it('returns true if current user is the submitter', async () => {
+            const currentUserLogin = employeeEmail;
+            const currentUserAccountID = employeeAccountID;
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+
+            const newPolicy = {
+                ...createRandomPolicy(1),
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const oldPolicy = createRandomPolicy(0);
+            const report = {
+                ...createRandomReport(0),
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin);
+            expect(result).toBe(true);
+        });
+
+        it('returns true if current user is a policy admin', async () => {
+            const currentUserLogin = adminEmail;
+            const currentUserAccountID = adminAccountID;
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+
+            const newPolicy = {
+                ...createRandomPolicy(1),
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                },
+            };
+            const oldPolicy = createRandomPolicy(0);
+            const report = createRandomReport(0);
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin);
+            expect(result).toBe(true);
+        });
+
+        it('returns true if current user is the policy owner', async () => {
+            const currentUserLogin = 'owner@test.com';
+            const currentUserAccountID = ownerAccountID;
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+
+            const newPolicy = {
+                ...createRandomPolicy(1),
+                ownerAccountID: currentUserAccountID,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                },
+            };
+            const oldPolicy = createRandomPolicy(0);
+            const report = createRandomReport(0);
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin);
+            expect(result).toBe(true);
+        });
+
+        it('returns true if current user is the approver and submitter is a member', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+
+            const submitterLogin = employeeEmail;
+            const submitterAccountID = employeeAccountID;
+
+            const newPolicy = {
+                ...createRandomPolicy(1),
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
+                    [submitterLogin]: {email: submitterLogin, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const oldPolicy = {
+                ...createRandomPolicy(0),
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
+                    [submitterLogin]: {email: submitterLogin, role: CONST.POLICY.ROLE.USER, submitsTo: currentUserLogin},
+                },
+                approver: currentUserLogin,
+            };
+            const report = {
+                ...createRandomReport(0),
+                ownerAccountID: submitterAccountID,
+            };
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin);
+            expect(result).toBe(true);
+        });
+
+        it('returns false if current user is approver but submitter not member', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+
+            const newPolicy = {
+                ...createRandomPolicy(1),
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const report = {
+                ...createRandomReport(0),
+                ownerAccountID: employeeAccountID,
+            };
+            const oldPolicy = createRandomPolicy(0);
+
+            expect(isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin)).toBe(false);
         });
     });
 });

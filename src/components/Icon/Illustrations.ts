@@ -9,7 +9,6 @@ import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-master
 import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
-import OtherCompanyCardDetail from '@assets/images/companyCards/card=-generic.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
 import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
@@ -17,7 +16,6 @@ import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-b
 import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
 import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
 import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
-import OtherCompanyCardDetailLarge from '@assets/images/companyCards/large/card-generic-large.svg';
 import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
 import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
 import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-visa-large.svg';
@@ -39,6 +37,7 @@ import ConciergeExclamation from '@assets/images/product-illustrations/concierge
 import CreditCardsBlue from '@assets/images/product-illustrations/credit-cards--blue.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
+import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
@@ -57,6 +56,7 @@ import ReceiptYellow from '@assets/images/product-illustrations/receipt--yellow.
 import ReceiptsSearchYellow from '@assets/images/product-illustrations/receipts-search--yellow.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketOrange from '@assets/images/product-illustrations/rocket--orange.svg';
+import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
 import SafeBlue from '@assets/images/product-illustrations/safe.svg';
 import SmartScan from '@assets/images/product-illustrations/simple-illustration__smartscan.svg';
 import TadaBlue from '@assets/images/product-illustrations/tada--blue.svg';
@@ -65,6 +65,7 @@ import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import ReportReceipt from '@assets/images/simple-illustration__report-receipt.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
@@ -89,8 +90,10 @@ import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustra
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
 import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
+import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
+import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
@@ -153,6 +156,7 @@ import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
     Abracadabra,
+    Encryption,
     BankArrowPink,
     BankMouseGreen,
     BankUserGreen,
@@ -185,6 +189,7 @@ export {
     ReceiptYellow,
     ReceiptWrangler,
     RocketBlue,
+    RocketDude,
     RocketOrange,
     SanFrancisco,
     SafeBlue,
@@ -198,6 +203,7 @@ export {
     MoneyReceipts,
     PinkBill,
     CreditCardsNew,
+    CreditCardsNewGreen,
     InvoiceBlue,
     LaptopwithSecondScreenandHourglass,
     LockOpen,
@@ -228,6 +234,7 @@ export {
     QRCode,
     RealtimeReport,
     HoldExpense,
+    ReceiptFairy,
     ReceiptEnvelope,
     Approval,
     WalletAlt,
@@ -287,7 +294,6 @@ export {
     CapitalOneCompanyCardDetail,
     ChaseCompanyCardDetail,
     CitibankCompanyCardDetail,
-    OtherCompanyCardDetail,
     StripeCompanyCardDetail,
     WellsFargoCompanyCardDetail,
     PerDiem,
@@ -297,11 +303,11 @@ export {
     CapitalOneCompanyCardDetailLarge,
     ChaseCompanyCardDetailLarge,
     CitibankCompanyCardDetailLarge,
-    OtherCompanyCardDetailLarge,
     MasterCardCompanyCardDetailLarge,
     StripeCompanyCardDetailLarge,
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,
     Flash,
     ExpensifyMobileApp,
+    ReportReceipt,
 };

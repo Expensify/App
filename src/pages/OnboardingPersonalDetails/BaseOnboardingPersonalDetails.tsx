@@ -22,7 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
 import {setDisplayName} from '@userActions/PersonalDetails';
-import {completeOnboarding as completeOnboardingAction} from '@userActions/Report';
+import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,7 +59,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            completeOnboardingAction(
+            completeOnboardingReport(
                 onboardingPurposeSelected,
                 CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                 firstName,
@@ -185,7 +185,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.firstName && {defaultValue: currentUserPersonalDetails.firstName})}
                         shouldSaveDraft
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         spellCheck={false}
                     />
                 </View>
@@ -200,7 +199,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.lastName && {defaultValue: currentUserPersonalDetails.lastName})}
                         shouldSaveDraft
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         spellCheck={false}
                     />
                 </View>

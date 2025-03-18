@@ -16,12 +16,14 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -32,7 +34,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
+import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle, SelectionListProps} from './types';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
 
@@ -96,6 +98,7 @@ function BaseSelectionList<TItem extends ListItem>(
         sectionTitleStyles,
         textInputAutoFocus = true,
         shouldShowTextInputAfterHeader = false,
+        shouldShowHeaderMessageAfterHeader = false,
         includeSafeAreaPaddingBottom = true,
         shouldTextInputInterceptSwipe = false,
         listHeaderContent,
@@ -113,7 +116,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemWrapperStyle,
         shouldIgnoreFocus = false,
         scrollEventThrottle,
-        contentContainerStyle,
+        contentContainerStyle: contentContainerStyleProp,
         shouldHighlightSelectedItem = false,
         shouldKeepFocusedItemAtTopOfViewableArea = false,
         shouldDebounceScrolling = false,
@@ -123,7 +126,10 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleStyles,
         initialNumToRender = 12,
         listItemTitleContainerStyles,
-    }: BaseSelectionListProps<TItem>,
+        isScreenFocused = false,
+        shouldSubscribeToArrowKeyEvents = true,
+        addBottomSafeAreaPadding = false,
+    }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -135,6 +141,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
+    const scrollEnabled = useScrollEnabled();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
     const {isKeyboardShown} = useKeyboardState();
@@ -335,7 +342,7 @@ function BaseSelectionList<TItem extends ListItem>(
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: true,
+        isActive: shouldSubscribeToArrowKeyEvents && isFocused,
         onFocusedIndexChange: (index: number) => {
             const focusedItem = flattenedSections.allOptions.at(index);
             if (focusedItem) {
@@ -380,6 +387,9 @@ function BaseSelectionList<TItem extends ListItem>(
      */
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
+            if (!isFocused && !isScreenFocused) {
+                return;
+            }
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
                 if (sections.length > 1 && !item.isSelected) {
@@ -412,6 +422,8 @@ function BaseSelectionList<TItem extends ListItem>(
             setFocusedIndex,
             onSelectRow,
             shouldPreventDefaultFocusOnSelectRow,
+            isFocused,
+            isScreenFocused,
         ],
     );
 
@@ -805,19 +817,36 @@ function BaseSelectionList<TItem extends ListItem>(
         },
     );
 
-    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+    const headerMessageContent = () =>
+        (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
+        !!headerMessage && (
+            <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
+                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+            </View>
+        );
+
+    const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
+    const paddingBottomStyle = useMemo(
+        () => (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle,
+        [footerContent, includeSafeAreaPaddingBottom, isKeyboardShown, safeAreaPaddingBottomStyle],
+    );
+
+    // If the default confirm button is visible and it is bottom-sticky,
+    // we need to add additional padding bottom to the content container.
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: false, // Bottom safe area padding is already applied in the SectionList
+        style: contentContainerStyleProp,
+    });
+
+    const shouldHideContentBottomSafeAreaPadding = showConfirmButton || !!footerContent;
 
     // TODO: test _every_ component that uses SelectionList
     return (
-        <View style={[styles.flex1, (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle, containerStyle]}>
+        <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
             {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
             {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}
-            {(!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) && !!headerMessage && (
-                <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
-                </View>
-            )}
+            {!shouldShowHeaderMessageAfterHeader && headerMessageContent()}
             {!!headerContent && headerContent}
             {flattenedSections.allOptions.length === 0 && (showLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
@@ -859,15 +888,18 @@ function BaseSelectionList<TItem extends ListItem>(
                                 <>
                                     {listHeaderContent}
                                     {renderInput()}
+                                    {shouldShowHeaderMessageAfterHeader && headerMessageContent()}
                                 </>
                             ) : (
                                 listHeaderContent
                             )
                         }
+                        scrollEnabled={scrollEnabled}
                         ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
+                        addBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addBottomSafeAreaPadding}
                         contentContainerStyle={contentContainerStyle}
                         CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRendererComponent : undefined}
                     />
@@ -875,7 +907,10 @@ function BaseSelectionList<TItem extends ListItem>(
                 </>
             )}
             {showConfirmButton && (
-                <FixedFooter style={[styles.mtAuto]}>
+                <FixedFooter
+                    style={styles.mtAuto}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                >
                     <Button
                         success={!shouldUseDefaultTheme}
                         large
@@ -888,7 +923,14 @@ function BaseSelectionList<TItem extends ListItem>(
                     />
                 </FixedFooter>
             )}
-            {!!footerContent && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
+            {!!footerContent && (
+                <FixedFooter
+                    style={styles.mtAuto}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                >
+                    {footerContent}
+                </FixedFooter>
+            )}
         </View>
     );
 }

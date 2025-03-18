@@ -2,9 +2,10 @@
 title: Create a Workspace for Yourself
 description: Get started with Expensify by creating a workspace to track your expenses as a freelancer or individual user.
 ---
-<div id="expensify-classic" markdown="1">
 
 Creating a workspace in Expensify Classic is the first step to organizing your expenses and managing your finances efficiently. This guide walks you through setting up your workspace so you can seamlessly track receipts, submit reports, and stay on top of your spending.
+
+All Expensify accounts include an Individual Workspace, which allows you to track personal expenses. If you want to connect your personal expenses to an accounting or travel integration, you can create a Group Workspace — even if you are the only member.
 
 ---
 # 1. Download the Mobile App
@@ -19,20 +20,20 @@ Your personal assistant, **Concierge**, is available on your Expensify Home page
 - Alerts when more information is needed on a report.
 - Updates on new and improved features.  
 
-**Need help?** Click the green chat bubble in the bottom-right corner to chat with Concierge for direct support.
+**Need help?** Click the green chat bubble at the bottom of your screen to chat with Concierge for direct support.
 
 ---
 # 3. Create a Workspace
 
-## Personal vs. Group Workspaces
-- **Personal Workspace**: A private space for managing your individual expenses.  
+## Individual vs. Group Workspaces
+- **Individual Workspace**: A private space for managing your personal expenses.  
 - **Group Workspace**: Designed for teams, even if you’re the only member. Group workspaces include features like expense approval flows and integrations with accounting, HR, and travel tools.
 
 ## Set Up Your Individual Workspace
 1. Go to **Settings** > **Workspaces**.
 2. Click the **Individual** tab on the left.
 3. Select the workspace type that fits your needs.
-4. Configure your workspace details (e.g., name, expense rules, categories).
+4. Configure your workspace details (e.g., workspace name, categories, tags, etc).
 
 ## Create a Group Workspace
 1. Go to **Settings** > **Workspaces**.
@@ -108,3 +109,14 @@ Monitor spending trends, forecast budgets, and build reports with [the Insights 
 3. Link your authenticator app by scanning the QR code or entering a code.
 
 When logging in, use a Magic Code from your email and the 6-digit code from your authenticator app.
+
+# FAQs
+
+**Is the Individual workspace free??** 
+
+Yes! Individuals can use Expensify for free to track expenses.
+
+**Can I create a Group workspace just for myself?**
+
+Of course! Group workspaces include features like accounting, HR, and travel tool integrations, which you can use even as the only member.
+See pricing details [here](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing)

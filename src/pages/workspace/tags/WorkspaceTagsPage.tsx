@@ -1,6 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -40,7 +39,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     getCleanedTagName,
     getCurrentConnectionName,
@@ -57,9 +56,10 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {PolicyTag, PolicyTagList, TagListItem} from './types';
 
-type WorkspaceTagsPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+type WorkspaceTagsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
@@ -93,10 +93,35 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
-    useFocusEffect(fetchTags);
+    useEffect(() => {
+        fetchTags();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const cleanupSelectedOption = useCallback(() => setSelectedTags({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
+
+    useEffect(() => {
+        if (isEmptyObject(selectedTags) || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedTags((prevSelectedTags) => {
+            const keys = Object.keys(prevSelectedTags);
+            const newSelectedTags: Record<string, boolean> = {};
+            const policyTagList = policyTagLists.at(0);
+
+            for (const key of keys) {
+                if (policyTagList?.tags?.[key] && policyTagList?.tags?.[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    newSelectedTags[key] = prevSelectedTags[key];
+                }
+            }
+
+            return newSelectedTags;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policyTagLists]);
 
     useSearchBackPress({
         onClearSelection: () => {
@@ -206,7 +231,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('statusPage.status')}
+                rightHeaderText={translate(isMultiLevelTags ? 'common.required' : 'common.enabled')}
             />
         );
     };
@@ -228,9 +253,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             Navigation.navigate(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight, backTo) : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight),
             );
+        } else {
+            Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, 0, tag.value, backTo) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value));
         }
-
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, 0, tag.value, backTo) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value));
     };
 
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
