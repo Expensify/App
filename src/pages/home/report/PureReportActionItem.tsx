@@ -709,6 +709,7 @@ function PureReportActionItem({
         dismissTrackExpenseActionableWhisper,
         resolveActionableReportMentionWhisper,
         resolveActionableMentionWhisper,
+        originalReportID,
     ]);
 
     /**
