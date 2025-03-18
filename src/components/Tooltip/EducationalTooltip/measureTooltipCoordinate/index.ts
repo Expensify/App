@@ -7,7 +7,7 @@ export default function measureTooltipCoordinate(target: Readonly<NativeMethods>
     });
 }
 
-function getTooltipCoordinates(target: React.Component & Readonly<NativeMethods>, callback: (rect: LayoutRectangle) => void) {
+function getTooltipCoordinates(target: Readonly<NativeMethods>, callback: (rect: LayoutRectangle) => void) {
     return target?.measureInWindow((x, y, width, height) => {
         callback({height, width, x, y});
     });
