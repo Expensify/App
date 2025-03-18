@@ -1,36 +1,32 @@
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
-import TextInput from '@components/TextInput';
+import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import CONST from '@src/CONST';
+import {getFieldRequiredErrors, isValidTaxID} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 const COMPANY_TAX_ID_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID;
 const STEP_FIELDS = [COMPANY_TAX_ID_KEY];
-function TaxIdBusiness({onNext, isEditing}: SubStepProps) {
+function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
-    const defaultCompanyTaxId = reimbursementAccount?.achData?.companyTaxID ?? '';
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
-    const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxId && reimbursementAccount?.achData?.state !== 'SETUP');
+    // This is default value for the input to be display
+    /* eslint-disable-next-line rulesdir/no-default-id-values */
+    const defaultCompanyTaxID = reimbursementAccount?.achData?.companyTaxID ?? '';
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
+    const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxID && reimbursementAccount?.achData?.state !== 'SETUP');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.companyTaxID && !ValidationUtils.isValidTaxID(values.companyTaxID)) {
+            if (values.companyTaxID && !isValidTaxID(values.companyTaxID)) {
                 errors.companyTaxID = translate('bankAccount.error.taxID');
             }
 
@@ -46,30 +42,22 @@ function TaxIdBusiness({onNext, isEditing}: SubStepProps) {
     });
 
     return (
-        <FormProvider
+        <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+            formTitle={translate('businessInfoStep.enterYourCompanysTaxIdNumber')}
             validate={validate}
             onSubmit={handleSubmit}
-            style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.mb0]}
-        >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterYourCompanysTaxIdNumber')}</Text>
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={COMPANY_TAX_ID_KEY}
-                label={translate('businessInfoStep.taxIDNumber')}
-                aria-label={translate('businessInfoStep.taxIDNumber')}
-                role={CONST.ROLE.PRESENTATION}
-                defaultValue={defaultCompanyTaxId}
-                inputMode={CONST.INPUT_MODE.NUMERIC}
-                disabled={shouldDisableCompanyTaxID}
-                shouldSaveDraft={!isEditing}
-                shouldUseDefaultValue={shouldDisableCompanyTaxID}
-                containerStyles={[styles.mt6]}
-                placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
-            />
-        </FormProvider>
+            inputId={COMPANY_TAX_ID_KEY}
+            inputLabel={translate('businessInfoStep.taxIDNumber')}
+            defaultValue={defaultCompanyTaxID}
+            shouldUseDefaultValue={shouldDisableCompanyTaxID}
+            disabled={shouldDisableCompanyTaxID}
+            shouldShowHelpLinks={false}
+            placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
+        />
     );
 }
 

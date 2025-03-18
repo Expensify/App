@@ -48,7 +48,8 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                                 if (!videoSource || !type) {
                                     return;
                                 }
-                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, type, videoSource, accountID);
+                                const isAuthTokenRequired = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, type, videoSource, accountID, isAuthTokenRequired);
                                 Navigation.navigate(route);
                             }}
                         />

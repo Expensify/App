@@ -13,7 +13,6 @@ import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
-import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
@@ -132,6 +131,10 @@ const headlineFont = {
     ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
 } satisfies TextStyle;
 
+const headlineItalicFont = {
+    ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM_ITALIC,
+} satisfies TextStyle;
+
 const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
@@ -156,12 +159,6 @@ const webViewStyles = (theme: ThemeColors) =>
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
-            },
-
-            strong: {
-                // We set fontFamily and fontWeight directly in order to avoid overriding fontStyle.
-                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
-                fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
             },
 
             a: link(theme),
@@ -193,7 +190,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 ...baseCodeTagStyles(theme),
                 paddingVertical: 8,
                 paddingHorizontal: 12,
-                fontSize: 13,
+                fontSize: undefined,
                 ...FontUtils.fontFamily.platform.MONOSPACE,
                 marginTop: 0,
                 marginBottom: 0,
@@ -204,7 +201,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 paddingLeft: 5,
                 paddingRight: 5,
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
-                // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
             img: {
@@ -227,7 +223,8 @@ const webViewStyles = (theme: ThemeColors) =>
                 marginBottom: 0,
             },
             h1: {
-                fontSize: variables.fontSizeLarge,
+                fontSize: undefined,
+                fontWeight: undefined,
                 marginBottom: 8,
             },
         },
@@ -272,6 +269,18 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             boxShadow: variables.popoverMenuShadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
+        },
+
+        h1: {
+            fontSize: variables.fontSizeLarge,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+            fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+            marginBottom: 8,
+        },
+
+        strong: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+            fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
         },
 
         autoCompleteSuggestionContainer: {
@@ -372,9 +381,6 @@ const styles = (theme: ThemeColors) =>
         },
         verticalAlignTop: {
             verticalAlign: 'top',
-        },
-        verticalAlignBottom: {
-            verticalAlign: 'bottom',
         },
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
@@ -515,6 +521,9 @@ const styles = (theme: ThemeColors) =>
         textBold: {
             fontWeight: FontUtils.fontWeight.bold,
         },
+        textItalic: {
+            ...FontUtils.fontFamily.platform.MONOSPACE_ITALIC,
+        },
 
         textVersion: {
             color: theme.iconColorfulBackground,
@@ -635,6 +644,7 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentBetween,
             ...flex.alignItemsCenter,
             ...sizing.mnw120,
+            ...spacing.gap4,
             minHeight: 64,
         },
 
@@ -783,6 +793,13 @@ const styles = (theme: ThemeColors) =>
 
         buttonDangerText: {
             color: theme.textLight,
+        },
+
+        buttonBlendContainer: {
+            backgroundColor: theme.appBG,
+            opacity: 1,
+            position: 'relative',
+            overflow: 'hidden',
         },
 
         hoveredComponentBG: {
@@ -1704,16 +1721,6 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
-        },
-
-        customEmoji: {
-            alignItems: 'center',
-            justifyContent: 'center',
-            verticalAlign: 'bottom',
-            ...(getPlatform() === CONST.PLATFORM.IOS ? {marginBottom: -variables.fontSizeNormalHeight / 4} : {}),
-            // `fontSizeNormal` value for scale factor 1 is 15
-            ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginBottom: -(variables.fontSizeEmojiNormal - 10)} : {}),
-            ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginRight: -(variables.fontSizeEmojiNormal - 15)} : {}),
         },
 
         sidebarFooterUsername: {
@@ -4271,6 +4278,16 @@ const styles = (theme: ThemeColors) =>
             ...writingDirection.ltr,
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeh2,
+            maxWidth: '100%',
+            ...wordBreak.breakWord,
+        },
+
+        taskTitleMenuItemItalic: {
+            ...writingDirection.ltr,
+            ...headlineItalicFont,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeh2,
             maxWidth: '100%',
             ...wordBreak.breakWord,
         },
@@ -4919,6 +4936,11 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        searchStatusBarContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
         walletIllustration: {
             height: 180,
         },
@@ -5264,6 +5286,11 @@ const styles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        twoFARequiredContainer: {
+            maxWidth: 350,
+            margin: 'auto',
+        },
+
         widthAuto: {
             width: 'auto',
         },
@@ -5458,13 +5485,15 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
-
-        sidePaneOverlay: {
+        sidePaneOverlay: (isOverlayVisible: boolean) => ({
             ...positioning.pFixed,
+            top: 0,
+            bottom: 0,
+            left: 0,
             right: -variables.sideBarWidth,
             backgroundColor: theme.overlay,
-            opacity: variables.overlayOpacity,
-        },
+            opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
+        }),
         sidePaneContainer: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             right: 0,
@@ -5474,6 +5503,10 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
+
+        expenseWidgetRadius: {
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
