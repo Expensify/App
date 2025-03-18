@@ -3,6 +3,7 @@ title: Accelo-Troubleshooting.md
 description: Learn how to troubleshoot and resolve common issues with the Accelo integration in Expensify.
 keywords: [Accelo, Expensify, integration, troubleshooting, expense sync, accounting]
 ---
+<div id="expensify-classic" markdown="1">
 
 The Accelo integration with Expensify primarily operates on Accelo’s end. For detailed support, refer to their [help site](https://help.accelo.com/guides/integrations-guide/expensify/) and [FAQs](https://help.accelo.com/guides/integrations-guide/expensify/#faq).
 
@@ -50,3 +51,5 @@ Contact Concierge and ask for the **"Indirect Tag Uploads"** switch to be enable
 ---
 
 For further assistance, visit the [Accelo help site](https://help.accelo.com/guides/integrations-guide/expensify/) or reach out to Concierge.
+
+</div>
