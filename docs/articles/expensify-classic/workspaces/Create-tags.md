@@ -1,6 +1,7 @@
 ---
 title: Create Tags
 description: Code expenses by creating tags
+keywords: [Expensify Classic, tags, tag expenses]
 ---
 <div id="expensify-classic" markdown="1">
 
