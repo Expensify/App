@@ -51,7 +51,10 @@ function canPay(report: Report, policy: Policy, violations: OnyxCollection<Trans
     const isIOU = isIOUReport(report);
     const isProcessing = isProcessingReport(report);
 
-    return isReportPayer && ((isExpense && isPaymentsEnabled && (isApproved || isClosed) && !hasViolations) || ((isInvoice || isIOU) && isProcessing));
+    if (!isReportPayer){
+        return false;
+    }
+    return (isExpense && isPaymentsEnabled && (isApproved || isClosed) && !hasViolations) || ((isInvoice || isIOU) && isProcessing);
 }
 
 function canExport(report: Report, policy: Policy, violations: OnyxCollection<TransactionViolation[]>) {

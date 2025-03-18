@@ -509,15 +509,12 @@ function ReportPreview({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
     }, [iouReportID]);
 
-    const [reportPreviewAction, setReportPreviewAction] = useState<ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>>(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
-    useEffect(() => {
+    const reportPreviewAction = useMemo(() => {
         if (!iouReport || !policy || !transactions) {
-            return;
+            return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
         }
-
-        const newReportPreviewAction = getReportPreviewAction(iouReport, policy, transactions, violations);
-        setReportPreviewAction(newReportPreviewAction);
-    }, [iouReport, policy, transactions, violations, reportPreviewAction]);
+        return getReportPreviewAction(iouReport, policy, transactions, violations);
+    }, [iouReport, policy, transactions, violations]);
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
