@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -24,6 +24,9 @@ type MoneyRequestReportViewProps = {
 
     /** Current policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Whether Report footer (that includes Composer) should be displayed */
+    shouldDisplayReportFooter: boolean;
 };
 
 function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
@@ -35,7 +38,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 
 const noOp = () => {};
 
-function MoneyRequestReportView({report, policy, reportMetadata}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
 
     const reportID = report?.reportID;
@@ -55,15 +58,6 @@ function MoneyRequestReportView({report, policy, reportMetadata}: MoneyRequestRe
     });
 
     const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
-
-    /**
-     * When false the ReportActionsView will completely unmount, and we will show a loader until it returns true.
-     */
-    const isCurrentReportLoadedFromOnyx = useMemo((): boolean => {
-        // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
-        const isTransitioning = report && report?.reportID !== reportID;
-        return reportID !== '' && !!report?.reportID && !isTransitioning;
-    }, [report, reportID]);
 
     if (!report) {
         return;
@@ -88,7 +82,7 @@ function MoneyRequestReportView({report, policy, reportMetadata}: MoneyRequestRe
                 hasOlderActions={hasOlderActions}
                 hasNewerActions={hasNewerActions}
             />
-            {isCurrentReportLoadedFromOnyx ? (
+            {shouldDisplayReportFooter ? (
                 <ReportFooter
                     onComposerFocus={noOp}
                     onComposerBlur={noOp}

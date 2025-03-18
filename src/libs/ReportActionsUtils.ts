@@ -622,12 +622,12 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], a
     return currentAction.actorAccountID === previousAction.actorAccountID;
 }
 
-// Todo - combine this with `isConsecutiveActionMadeByPreviousActor` so as to not duplicate logic
+// Todo combine with `isConsecutiveActionMadeByPreviousActor` so as to not duplicate logic (issue: https://github.com/Expensify/App/issues/58625)
 function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex: number) {
     const currentAction = reportActions.at(actionIndex);
     const nextAction = findNextAction(reportActions, actionIndex);
 
-    // Todo first should have avatar - verify that this works with long chats
+    // Todo first should have avatar - verify that this works with long chats (issue: https://github.com/Expensify/App/issues/58625)
     if (actionIndex === 0) {
         return false;
     }

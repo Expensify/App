@@ -1,7 +1,7 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FlatList from '@components/FlatList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -59,6 +59,12 @@ function isChatOnlyReportAction(action: OnyxTypes.ReportAction) {
     return action.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU && action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
+function getTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Transaction>, reportID: string) {
+    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
+        return transaction?.reportID === reportID;
+    });
+}
+
 /**
  * TODO make this component have the same functionalities as `ReportActionsList`
  *  - onLayout
@@ -82,7 +88,9 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
-    const [transactions = {}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (allTransactions): OnyxTypes.Transaction[] => getTransactionsForReportID(allTransactions, reportID),
+    });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`);
 
     const canPerformWriteAction = canUserPerformWriteAction(report);
@@ -101,10 +109,6 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
 
         return filteredActions.toReversed();
     }, [reportActions, isOffline, canPerformWriteAction]);
-
-    const transactionList = Object.values(transactions).filter((transaction): transaction is Transaction => {
-        return transaction?.reportID === reportID;
-    });
 
     const reportActionIDs = useMemo(() => {
         return reportActions?.map((action) => action.reportActionID) ?? [];
@@ -193,7 +197,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                     onEndReachedThreshold={0.75}
                     onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
-                    ListHeaderComponent={<MoneyRequestReportTransactionList transactions={transactionList} />}
+                    ListHeaderComponent={<MoneyRequestReportTransactionList transactions={transactions} />}
                     keyboardShouldPersistTaps="handled"
                 />
             ) : (

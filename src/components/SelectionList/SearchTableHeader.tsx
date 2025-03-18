@@ -1,12 +1,13 @@
 import React, {useCallback} from 'react';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
-import type {SortableColumnName} from '@components/SelectionList/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {getShouldShowMerchant} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import SortableTableHeader from './SortableTableHeader';
+import type {SortableColumnName} from './types';
 
 type ShouldShowSearchColumnFn = (data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) => boolean;
 
@@ -106,6 +107,7 @@ type SearchTableHeaderProps = {
 };
 
 function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting}: SearchTableHeaderProps) {
+    const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
@@ -136,6 +138,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
             shouldShowSorting={shouldShowSorting}
             sortBy={sortBy}
             sortOrder={sortOrder}
+            containerStyles={styles.pl4}
             onSortPress={(columnName, order) => {
                 if (columnName === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
                     return;
