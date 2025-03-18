@@ -1096,6 +1096,11 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 iouType: CONST.IOU.TYPE,
                 reportID: 'string',
             });
+        case 'accountant':
+            return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
+                accountID: 'number',
+                login: 'string',
+            });
         case 'modifiedAttendees':
             return validateArray<ArrayElement<Transaction, 'attendees'>>(value, {
                 email: 'string',

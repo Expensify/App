@@ -4524,7 +4524,7 @@ describe('actions/IOU', () => {
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When a track expense is created
             trackExpense({
-                report: {reportID: ''},
+                report: {reportID: '123', policyID: 'A'},
                 isDraftPolicy: false,
                 action,
                 participantParams: {
