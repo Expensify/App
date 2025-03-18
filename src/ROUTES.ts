@@ -478,13 +478,12 @@ const ROUTES = {
         getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members/${accountID}` as const, backTo),
     },
     ROOM_INVITE: {
-        route: 'r/:reportID/invite/:role?',
-        getRoute: (reportID: string | undefined, role?: string, backTo?: string) => {
+        route: 'r/:reportID/invite',
+        getRoute: (reportID: string | undefined, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the ROOM_INVITE route');
             }
-            const route = role ? (`r/${reportID}/invite/${role}` as const) : (`r/${reportID}/invite` as const);
-            return getUrlWithBackToParam(route, backTo);
+            return getUrlWithBackToParam(`r/${reportID}/invite` as const, backTo);
         },
     },
     MONEY_REQUEST_HOLD_REASON: {

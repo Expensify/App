@@ -5204,16 +5204,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
-
-    if (action === CONST.IOU.ACTION.SHARE) {
-        if (isSearchTopmostFullScreenRoute() && activeReportID) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(activeReportID), {forceReplace: true});
-            });
-        }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID, CONST.IOU.SHARE.ROLE.ACCOUNTANT)));
-    }
-
     notifyNewAction(activeReportID, payeeAccountID);
 }
 
