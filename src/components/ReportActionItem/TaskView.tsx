@@ -45,7 +45,7 @@ function TaskView({report}: TaskViewProps) {
     useEffect(() => {
         setTaskReport(report);
     }, [report]);
-    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(report?.reportName ?? ''), {disabledRules: ['image']});
+    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(report?.reportName ?? ''), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
     const taskTitle = `<task-title>${convertToLTR(titleWithoutImage)}</task-title>`;
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false);
 

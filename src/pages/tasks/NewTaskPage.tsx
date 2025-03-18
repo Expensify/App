@@ -139,7 +139,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                                 shouldShowRightIcon
                                 rightLabel={translate('common.required')}
                                 shouldParseTitle
-                                excludedMarkdownRules={['image']}
+                                excludedMarkdownRules={[...CONST.TASK_TITLE_DISABLED_RULES]}
                             />
                             <MenuItemWithTopDescription
                                 description={translate('task.description')}

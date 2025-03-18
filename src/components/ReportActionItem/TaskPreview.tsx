@@ -65,9 +65,9 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const {translate} = useLocalize();
     const theme = useTheme();
     const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
-    const taskTitle = taskReport?.reportName ?? action?.childReportName ?? '';
+    const taskTitle = action?.childReportName ?? taskReport?.reportName ?? '';
 
-    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: ['image']});
+    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
