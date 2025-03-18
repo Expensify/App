@@ -4565,10 +4565,6 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    console.log({trackedExpenseParams}); // s77rt
-
-    // s77rt: check optimistic data (accounant is an admin and invited to the expense report)
-
     const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams} = trackedExpenseParams;
 
     const policyID = policyParams?.policyID;
