@@ -11,9 +11,20 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as Report from '@userActions/Report';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {Section} from '@libs/OptionsListUtils';
+import {
+    filterAndOrderOptions,
+    formatSectionsFromSearchTerm,
+    getEmptyOptions,
+    getHeaderMessage,
+    getParticipantsOption,
+    getPolicyExpenseReportOption,
+    getValidOptions,
+    isCurrentUser,
+    orderOptions,
+} from '@libs/OptionsListUtils';
+import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,15 +58,15 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     useEffect(() => {
-        Report.searchInServer(debouncedSearchTerm.trim());
+        searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            OptionsListUtils.getEmptyOptions();
+            getEmptyOptions();
         }
 
-        const optionList = OptionsListUtils.getValidOptions(
+        const optionList = getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
@@ -67,7 +78,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             },
         );
 
-        const orderedOptions = OptionsListUtils.orderOptions(optionList);
+        const orderedOptions = orderOptions(optionList);
 
         return {
             ...optionList,
@@ -85,7 +96,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             shouldAcceptName: true,
@@ -97,7 +108,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
      * Returns the sections needed for the OptionsSelector
      */
     const [sections, header] = useMemo(() => {
-        const newSections: OptionsListUtils.Section[] = [];
+        const newSections: Section[] = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
@@ -105,7 +116,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         const restOfRecents = [...chatOptions.recentReports].slice(5);
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, [], chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
+        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, [], chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
         newSections.push(formatResults.section);
 
         newSections.push({
@@ -122,19 +133,19 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
 
         if (
             chatOptions.userToInvite &&
-            !OptionsListUtils.isCurrentUser({...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? -1, status: chatOptions.userToInvite?.status ?? undefined})
+            !isCurrentUser({...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID, status: chatOptions.userToInvite?.status ?? undefined})
         ) {
             newSections.push({
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
         }
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(
+        const headerMessage = getHeaderMessage(
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
@@ -182,7 +193,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
-            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onSelectRow={selectAccountant}
             shouldSingleExecuteRowSelect
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
