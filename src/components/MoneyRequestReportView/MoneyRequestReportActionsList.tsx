@@ -5,8 +5,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FlatList from '@components/FlatList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
-import useReportActionsLoading from '@hooks/useReportActionsLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -110,7 +110,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
         return reportActions?.map((action) => action.reportActionID) ?? [];
     }, [reportActions]);
 
-    const {loadOlderChats, loadNewerChats} = useReportActionsLoading({
+    const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
         reportActions,
         allReportActionIDs: reportActionIDs,

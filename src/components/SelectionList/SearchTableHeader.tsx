@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SortableColumnName} from '@components/SelectionList/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {getShouldShowMerchant} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -15,7 +16,7 @@ type SearchColumnConfig = {
     isColumnSortable?: boolean;
 };
 
-const shouldShowColumnConfig: Record<SearchColumnType, ShouldShowSearchColumnFn> = {
+const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnFn> = {
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: () => true,
@@ -28,6 +29,8 @@ const shouldShowColumnConfig: Record<SearchColumnType, ShouldShowSearchColumnFn>
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (data, metadata) => metadata?.columnsToShow?.shouldShowTaxColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => true,
+    // This column is never displayed on Search
+    [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
 };
 
 const expenseHeaders: SearchColumnConfig[] = [
@@ -108,11 +111,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
     const shouldShowColumn = useCallback(
-        (columnName: SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) => {
-            if (columnName === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
-                return false;
-            }
-
+        (columnName: SortableColumnName) => {
             const shouldShowFun = shouldShowColumnConfig[columnName];
             return shouldShowFun(data, metadata);
         },

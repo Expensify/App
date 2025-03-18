@@ -1,14 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SortOrder} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import SortableHeaderText from './SortableHeaderText';
-
-type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
+import type {SortableColumnName} from './types';
 
 type ColumnConfig = {
     columnName: SortableColumnName;

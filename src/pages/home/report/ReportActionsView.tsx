@@ -8,10 +8,10 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
-import useReportActionsLoading from '@hooks/useReportActionsLoading';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
@@ -222,7 +222,7 @@ function ReportActionsView({
         return allReportActions?.map((action) => action.reportActionID) ?? [];
     }, [allReportActions]);
 
-    const {loadOlderChats, loadNewerChats} = useReportActionsLoading({
+    const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
         reportActionID,
         reportActions,

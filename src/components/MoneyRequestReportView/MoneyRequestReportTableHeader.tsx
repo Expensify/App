@@ -2,12 +2,13 @@ import React from 'react';
 import {View} from 'react-native';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import SortableTableHeader from '@components/SelectionList/SortableTableHeader';
+import type {SortableColumnName} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 type ColumnConfig = {
-    columnName: SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
+    columnName: SortableColumnName;
     translationKey: TranslationPaths | undefined;
     isColumnSortable?: boolean;
 };
@@ -53,7 +54,7 @@ const columnConfig: ColumnConfig[] = [
 type SearchTableHeaderProps = {
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
-    onSortPress: (column: SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS, order: SortOrder) => void;
+    onSortPress: (column: SortableColumnName, order: SortOrder) => void;
     shouldShowSorting: boolean;
 };
 
