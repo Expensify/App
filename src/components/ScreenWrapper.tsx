@@ -343,7 +343,7 @@ function ScreenWrapper(
         return isOfflineIndicatorTranslucent ? styles.navigationBarBG : styles.appBG;
     }, [bottomContent, isOffline, isOfflineIndicatorTranslucent, isSoftKeyNavigation, styles.appBG, styles.navigationBarBG]);
     const mobileOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: !bottomContent,
+        addBottomSafeAreaPadding: !showBottomContent,
         styleProperty: isSoftKeyNavigation ? 'bottom' : 'paddingBottom',
     });
 
