@@ -14,8 +14,17 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfFeedConnectionIsBroken, flatAllCardsList, getBankName, getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {
+    checkIfFeedConnectionIsBroken,
+    filterInactiveCards,
+    flatAllCardsList,
+    getBankName,
+    getCardFeedIcon,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    isCustomFeed,
+} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +52,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
@@ -52,7 +61,8 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
     const bankName = getBankName(selectedFeed);
-    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`]);
+    const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`]);
+    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
 
     return (
         <View>

@@ -1827,7 +1827,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-keyboard-controller (1.15.2):
+  - react-native-keyboard-controller (1.16.7):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1871,7 +1871,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pager-view (6.5.1):
+  - react-native-pager-view (6.5.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1884,7 +1884,7 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-pager-view/common (= 6.5.1)
+    - react-native-pager-view/common (= 6.5.2)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1893,7 +1893,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pager-view/common (6.5.1):
+  - react-native-pager-view/common (6.5.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2395,6 +2395,27 @@ PODS:
     - React-logger (= 0.76.3)
     - React-perflogger (= 0.76.3)
     - React-utils (= 0.76.3)
+  - ReactNativeHybridApp (0.0.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNAppleAuthentication (2.2.2):
     - React-Core
   - RNCClipboard (1.15.0):
@@ -2522,7 +2543,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.238):
+  - RNLiveMarkdown (0.1.244):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2542,10 +2563,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/newarch (= 0.1.238)
+    - RNLiveMarkdown/newarch (= 0.1.244)
     - RNReanimated/worklets
     - Yoga
-  - RNLiveMarkdown/newarch (0.1.238):
+  - RNLiveMarkdown/newarch (0.1.244):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2636,7 +2657,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated (3.16.4):
+  - RNReanimated (3.17.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2648,7 +2669,9 @@ PODS:
     - React-Fabric
     - React-featureflags
     - React-graphics
+    - React-hermes
     - React-ImageManager
+    - React-jsi
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -2656,10 +2679,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 3.16.4)
-    - RNReanimated/worklets (= 3.16.4)
+    - RNReanimated/reanimated (= 3.17.1)
+    - RNReanimated/worklets (= 3.17.1)
     - Yoga
-  - RNReanimated/reanimated (3.16.4):
+  - RNReanimated/reanimated (3.17.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2671,7 +2694,9 @@ PODS:
     - React-Fabric
     - React-featureflags
     - React-graphics
+    - React-hermes
     - React-ImageManager
+    - React-jsi
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -2679,9 +2704,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 3.16.4)
+    - RNReanimated/reanimated/apple (= 3.17.1)
     - Yoga
-  - RNReanimated/reanimated/apple (3.16.4):
+  - RNReanimated/reanimated/apple (3.17.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2693,7 +2718,9 @@ PODS:
     - React-Fabric
     - React-featureflags
     - React-graphics
+    - React-hermes
     - React-ImageManager
+    - React-jsi
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -2702,7 +2729,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNReanimated/worklets (3.16.4):
+  - RNReanimated/worklets (3.17.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2714,7 +2741,33 @@ PODS:
     - React-Fabric
     - React-featureflags
     - React-graphics
+    - React-hermes
     - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RNReanimated/worklets/apple (= 3.17.1)
+    - Yoga
+  - RNReanimated/worklets/apple (3.17.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -2963,6 +3016,7 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "ReactNativeHybridApp (from `../node_modules/@expensify/react-native-hybrid-app`)"
   - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
@@ -3233,6 +3287,8 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  ReactNativeHybridApp:
+    :path: "../node_modules/@expensify/react-native-hybrid-app"
   RNAppleAuthentication:
     :path: "../node_modules/@invertase/react-native-apple-authentication"
   RNCClipboard:
@@ -3382,10 +3438,10 @@ SPEC CHECKSUMS:
   react-native-geolocation: b9bd12beaf0ebca61a01514517ca8455bd26fa06
   react-native-image-picker: ba5067f7d833b9081102c0a33dd0188eb21d92dc
   react-native-key-command: aae312752fcdfaa2240be9a015fc41ce54087546
-  react-native-keyboard-controller: dbd7fb6a233505f937c9242d6d8bb5ebe659ec32
+  react-native-keyboard-controller: 2dd8ddb3c2acbd006404dc58ebc856c7704fea5a
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: fb5112b1fa754975485884ae85a3fb6a684f49d5
-  react-native-pager-view: abc5ef92699233eb726442c7f452cac82f73d0cb
+  react-native-pager-view: 93b83d425b1800720006cec04759535c11bf89bf
   react-native-pdf: dd6ae39a93607a80919bef9f3499e840c693989d
   react-native-performance: 3c608307be10964f8a97d3af462f37125b6d8fa5
   react-native-plaid-link-sdk: f91a22b45b7c3d4cd6c47273200dc57df35068b0
@@ -3421,6 +3477,7 @@ SPEC CHECKSUMS:
   React-utils: 2bcaf4f4dfe361344bce2fae428603d518488630
   ReactCodegen: ae99a130606068ed40d1d9c0d5f25fda142a0647
   ReactCommon: 89c87b343deacc8610b099ac764848f0ce937e3e
+  ReactNativeHybridApp: 18cab0d029f08d51391a07c5c2c7872287544485
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCClipboard: 8212ca9e8370d0e23bfb7f5a591380da5a63456d
   RNCPicker: b978067931744f5a7316b48b8dcf145d4d722672
@@ -3433,12 +3490,12 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 364e6862a112045bb5c5d35601f0bdb0304af979
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: a06be8b281567f9c2cd16c7f7c6b4f5f9d0ff68b
+  RNLiveMarkdown: 2b444567d0e462e8fc5be59658152e3cdc4e3830
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: d184c8d3213acf4c97ec71fbbb6f9d4954552d80
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
   RNReactNativeHapticFeedback: 73756a3477a5a622fa16862a3ab0d0fc5e5edff5
-  RNReanimated: 1b622aa38321705e0865a0c156a2bdf0a85d7ebc
+  RNReanimated: a41aa31f84a4d787d165125e5c874a2057154315
   RNScreens: e389d6a6a66a4f0d3662924ecae803073ccce8ec
   RNShare: bd4fe9b95d1ee89a200778cc0753ebe650154bb0
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
