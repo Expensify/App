@@ -1184,7 +1184,7 @@ const CONST = {
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
                 CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
-                CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
+                CHANGE_POLICY: 'CHANGEPOLICY',
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
                 CHRONOS_OOO_LIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
@@ -1943,7 +1943,6 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
-        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     XERO_CONFIG: {
@@ -2969,6 +2968,18 @@ const CONST = {
         },
     },
 
+    HELP_DOC_LINKS: {
+        'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        'QuickBooks Desktop': '',
+        quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        NetSuite: 'https://help.expensify.com/articles/new-expensify/connections/netsuite/Configure-Netsuite',
+        Xero: 'https://help.expensify.com/articles/new-expensify/connections/xero/Configure-Xero',
+        Intacct: 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
+        FinancialForce: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
+        'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
+        Certinia: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
+    },
+
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
         NAME_PER_DIEM_INTERNATIONAL: 'Per Diem International',
@@ -3482,6 +3493,13 @@ const CONST = {
     SEARCH_QUERY_LIMIT: 1000,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     STATE_CHARACTER_LIMIT: 32,
+
+    // Test receipt data
+    TEST_RECEIPT: {
+        AMOUNT: 1800,
+        CURRENCY: 'USD',
+        FILENAME: 'test_receipt',
+    },
 
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -6236,6 +6254,8 @@ const CONST = {
         FLIGHT: 'flight',
         TRAIN: 'train',
     },
+
+    RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
 
     CANCELLATION_POLICY: {
         UNKNOWN: 'UNKNOWN',

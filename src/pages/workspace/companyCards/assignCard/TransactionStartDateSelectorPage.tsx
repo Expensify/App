@@ -1,62 +1,61 @@
+import {format} from 'date-fns';
 import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setTransactionStartDate} from '@libs/actions/CompanyCards';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AssignCardForm';
 
-type TransactionStartDateSelectorModalProps = {
-    /** Whether the modal is visible */
-    isVisible: boolean;
+type TransactionStartDateSelectorModalProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE>;
 
-    /** The date to display in the date picker */
-    date: string;
-
-    /** Function to call when the user selects a date */
-    handleSelectDate: (date: string) => void;
-
-    /** Function to call when the user closes the type selector modal */
-    onClose: () => void;
-};
-
-function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, onClose}: TransactionStartDateSelectorModalProps) {
+function TransactionStartDateSelectorPage({route}: TransactionStartDateSelectorModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const startDate = assignCard?.startDate ?? assignCard?.data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+    const policyID = route.params.policyID;
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ASSIGN_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ASSIGN_CARD_FORM> =>
         getFieldRequiredErrors(values, [INPUT_IDS.START_DATE]);
 
+    const goBack = () => {
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, route.params.feed, route.params.backTo));
+    };
+
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ASSIGN_CARD_FORM>) => {
-        handleSelectDate(values[INPUT_IDS.START_DATE]);
-        onClose();
+        setTransactionStartDate(values[INPUT_IDS.START_DATE]);
+        goBack();
     };
 
     return (
-        <Modal
-            type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible={isVisible}
-            onClose={onClose}
-            onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
                 style={styles.pb0}
-                includePaddingTop={false}
-                testID={TransactionStartDateSelectorModal.displayName}
+                testID={TransactionStartDateSelectorPage.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('common.date')}
                     shouldShowBackButton
-                    onBackButtonPress={onClose}
+                    onBackButtonPress={goBack}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.ASSIGN_CARD_FORM}
@@ -71,14 +70,14 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
                         inputID={INPUT_IDS.START_DATE}
                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                         maxDate={new Date()}
-                        defaultValue={date}
+                        defaultValue={startDate}
                     />
                 </FormProvider>
             </ScreenWrapper>
-        </Modal>
+        </AccessOrNotFoundWrapper>
     );
 }
 
-TransactionStartDateSelectorModal.displayName = 'TransactionStartDateSelectorModal';
+TransactionStartDateSelectorPage.displayName = 'TransactionStartDateSelectorPage';
 
-export default TransactionStartDateSelectorModal;
+export default TransactionStartDateSelectorPage;
