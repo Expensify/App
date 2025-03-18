@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -95,7 +95,7 @@ function AccountValidatePage() {
             />
             <ValidateCodeActionForm
                 descriptionPrimary={<Text style={[styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>}
-                descriptionSecondary={(
+                descriptionSecondary={
                     <View>
                         <Text style={[styles.mb3]}>
                             {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
@@ -106,7 +106,7 @@ function AccountValidatePage() {
                             <Text style={styles.textStrong}>{email}</Text>.
                         </Text>
                     </View>
-                )}
+                }
                 handleSubmitForm={(code) => {
                     mergeWithValidateCodeAction(email, code);
                 }}

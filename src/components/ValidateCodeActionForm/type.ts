@@ -7,7 +7,7 @@ type ValidateCodeActionFormProps = {
     descriptionPrimary: ReactNode;
 
     /** Secondary description of the modal */
-    descriptionSecondary: ReactNode;
+    descriptionSecondary?: ReactNode;
 
     /** The pending action for submitting form */
     validatePendingAction?: PendingAction | null;
