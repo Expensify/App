@@ -268,7 +268,7 @@ type TrackedExpenseReportInformation = {
     linkedTrackedExpenseReportID: string;
     transactionThreadReportID: string | undefined;
     reportPreviewReportActionID: string | undefined;
-    expenseReportID: string | undefined;
+    chatReportID: string | undefined;
 };
 type TrackedExpenseParams = {
     onyxData?: OnyxData;
@@ -4568,11 +4568,11 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams} = trackedExpenseParams;
 
     const policyID = policyParams?.policyID;
-    const expenseReportID = reportInformation?.expenseReportID;
+    const chatReportID = reportInformation?.chatReportID;
     const accountantEmail = addSMSDomainIfPhoneNumber(accountantParams?.accountant?.login);
     const accountantAccountID = accountantParams?.accountant?.accountID;
 
-    if (!policyID || !expenseReportID || !accountantEmail || !accountantAccountID) {
+    if (!policyID || !chatReportID || !accountantEmail || !accountantAccountID) {
         return;
     }
 
@@ -4631,13 +4631,13 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         failureData?.push(...addAccountantToWorkspaceFailureData);
     }
 
-    const expenseReportParticipants = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]?.participants;
-    if (!expenseReportParticipants?.[accountantAccountID]) {
+    const chatReportParticipants = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]?.participants;
+    if (!chatReportParticipants?.[accountantAccountID]) {
         const {
             optimisticData: inviteAccountantToRoomOptimisticData,
             successData: inviteAccountantToRoomSuccessData,
             failureData: inviteAccountantToRoomFailureData,
-        } = buildInviteToRoomOnyxData(expenseReportID, {accountantEmail: accountantAccountID});
+        } = buildInviteToRoomOnyxData(chatReportID, {accountantEmail: accountantAccountID});
         optimisticData?.push(...inviteAccountantToRoomOptimisticData);
         successData?.push(...inviteAccountantToRoomSuccessData);
         failureData?.push(...inviteAccountantToRoomFailureData);
@@ -5105,7 +5105,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 linkedTrackedExpenseReportID,
                 transactionThreadReportID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
-                expenseReportID: report.reportID,
+                chatReportID: chatReport?.reportID,
             };
             const trackedExpenseParams: TrackedExpenseParams = {
                 onyxData,
@@ -5150,7 +5150,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 linkedTrackedExpenseReportID,
                 transactionThreadReportID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
-                expenseReportID: report.reportID,
+                chatReportID: chatReport?.reportID,
             };
             const trackedExpenseParams: TrackedExpenseParams = {
                 onyxData,
