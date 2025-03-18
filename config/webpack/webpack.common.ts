@@ -300,9 +300,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     compress: {
                         passes: 2,
                     },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    keep_classnames: /ImageManipulator|ImageModule/,
                     mangle: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        keep_classnames: true,
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         keep_fnames: true,
                     },
