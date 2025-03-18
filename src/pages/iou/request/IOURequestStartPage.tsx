@@ -113,12 +113,6 @@ function IOURequestStartPage({
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
-    if (!transaction?.transactionID) {
-        // The draft transaction is initialized only after the component is mounted,
-        // which will lead to briefly displaying the Not Found page without this loader.
-        return <FullScreenLoadingIndicator />;
-    }
-
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
