@@ -29,4 +29,12 @@ function toggleTestToolsModal() {
     throttledToggle();
 }
 
-export default toggleTestToolsModal;
+/** Closes the test tools modal if it is currently open */
+function closeTestToolsModal() {
+    if (!isTestToolsModalOpen) {
+        return;
+    }
+    Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, false);
+}
+
+export {toggleTestToolsModal, closeTestToolsModal};

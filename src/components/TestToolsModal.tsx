@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getBrowser, isChromeIOS} from '@libs/Browser';
 import Navigation from '@navigation/Navigation';
-import toggleTestToolsModal from '@userActions/TestTool';
+import {closeTestToolsModal, toggleTestToolsModal} from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,7 +50,8 @@ function TestToolsModal() {
         <Modal
             isVisible={!!isTestToolsModalOpen}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-            onClose={toggleTestToolsModal}
+            onClose={closeTestToolsModal}
+            shouldHandleNavigationBack
         >
             <View style={[StyleUtils.getTestToolsModalStyle(windowWidth)]}>
                 <Text

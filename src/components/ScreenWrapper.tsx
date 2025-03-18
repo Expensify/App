@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import addViewportResizeListener from '@libs/VisualViewport';
-import toggleTestToolsModal from '@userActions/TestTool';
+import {toggleTestToolsModal} from '@userActions/TestTool';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
