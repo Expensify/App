@@ -2718,13 +2718,12 @@ function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, sh
 
 function clearCreateChatError(report: OnyxEntry<Report>) {
     const metaData = getReportMetadata(report?.reportID);
-    // If the meta data do not exist we assume the report is optimistic so that
-    // we don't avoid deletion of the report because of lack of meta data information.
-    const isOptimisticReport = !metaData || metaData.isOptimisticReport;
+    const isOptimisticReport = metaData?.isOptimisticReport;
     if (report?.errorFields?.createChat && !isOptimisticReport) {
         clearReportFieldKeyErrors(report.reportID, 'createChat');
         return;
     }
+
     navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true);
 }
 
