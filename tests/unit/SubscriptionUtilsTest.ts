@@ -553,7 +553,7 @@ describe('SubscriptionUtils', () => {
             });
         });
 
-        it('should return the discount info if the user is on a free trial and trial was started more than 24 hours before', async () => { 
+        it('should return the discount info if the user is on a free trial and trial was started more than 24 hours before', async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
