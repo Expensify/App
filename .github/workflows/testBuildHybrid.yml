@@ -15,7 +15,7 @@ on:
         default: ''
       # Do not modify! GH preserves `workflow_dispatch` as event that triggered this workflow even if it was called from `testBuild.yml`. This is workaround for that issue.
       DISPATCHED_MANUALLY:
-        description: Leave checked! This is a workaround to a GH workflow bug.
+        description: Leave checked! This is a workaround for a GH workflow bug.
         type: boolean
         default: true
   workflow_call:
