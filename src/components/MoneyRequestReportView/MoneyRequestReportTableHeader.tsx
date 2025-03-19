@@ -82,4 +82,4 @@ function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, shouldSh
 MoneyRequestReportTableHeader.displayName = 'MoneyRequestReportTableHeader';
 
 export default MoneyRequestReportTableHeader;
-export {columnConfig}
+export {columnConfig};
