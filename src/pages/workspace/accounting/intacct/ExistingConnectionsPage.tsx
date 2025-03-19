@@ -14,7 +14,7 @@ import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Polic
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -36,7 +36,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             title: policy.name,
             key: policy.id,
             avatarID: policy.id,
-            icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+            icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
             shouldShowRightIcon: true,
             description: date
