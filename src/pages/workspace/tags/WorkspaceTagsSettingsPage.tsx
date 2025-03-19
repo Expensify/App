@@ -104,18 +104,16 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                     />
                 </View>
             </OfflineWithFeedback>
-            {!!policy?.areRulesEnabled && (
-                <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
-                    <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal]}>{translate('workspace.tags.trackBillable')}</Text>
-                        <Switch
-                            isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
-                            accessibilityLabel={translate('workspace.tags.trackBillable')}
-                            onToggle={() => toggleBillableExpenses(policy)}
-                        />
-                    </View>
-                </OfflineWithFeedback>
-            )}
+            <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
+                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    <Text style={[styles.textNormal]}>{translate('workspace.tags.trackBillable')}</Text>
+                    <Switch
+                        isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
+                        accessibilityLabel={translate('workspace.tags.trackBillable')}
+                        onToggle={() => toggleBillableExpenses(policy)}
+                    />
+                </View>
+            </OfflineWithFeedback>
         </View>
     );
     return (
