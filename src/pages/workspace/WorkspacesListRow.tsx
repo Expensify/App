@@ -68,7 +68,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** ID of the policy */
     policyID?: string;
 
-    /** is policy defualt */
+    /** is policy default */
     isDefault?: boolean;
 };
 

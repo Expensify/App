@@ -77,7 +77,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     currency: string,
     isDeleting = false,
     isUpdating = false,
-    isOnhold = false,
+    isOnHold = false,
 ): TReport {
     // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
     if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
@@ -93,12 +93,12 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
 
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
-        if (!isOnhold) {
+        if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? -amount : amount;
         }
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
-        if (!isOnhold) {
+        if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? amount : -amount;
         }
     }

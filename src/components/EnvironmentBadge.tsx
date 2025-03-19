@@ -23,7 +23,7 @@ function EnvironmentBadge() {
     const success = environment === CONST.ENVIRONMENT.STAGING;
     const error = environment !== CONST.ENVIRONMENT.STAGING && environment !== CONST.ENVIRONMENT.ADHOC;
 
-    const badgeEnviromentStyle = StyleUtils.getEnvironmentBadgeStyle(success, error, adhoc);
+    const badgeEnvironmentStyle = StyleUtils.getEnvironmentBadgeStyle(success, error, adhoc);
 
     // If we are on production, don't show any badge
     if (isProduction) {
@@ -37,7 +37,7 @@ function EnvironmentBadge() {
             success={success}
             error={error}
             text={text}
-            badgeStyles={[styles.alignSelfStart, styles.headerEnvBadge, styles.environmentBadge, badgeEnviromentStyle]}
+            badgeStyles={[styles.alignSelfStart, styles.headerEnvBadge, styles.environmentBadge, badgeEnvironmentStyle]}
             textStyles={styles.headerEnvBadgeText}
             environment={environment}
             pressable

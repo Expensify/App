@@ -23,7 +23,7 @@ import DateOfBirth from './substeps/DateOfBirth';
 import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
 import type {CustomSubStepProps} from './types';
-import {getInitialSubstep, getSubstepValues} from './utils';
+import {getInitialSubStep, getSubStepValues} from './utils';
 
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
@@ -39,9 +39,9 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
-    const values = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
+    const values = useMemo(() => getSubStepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
 
-    const startFrom = useMemo(() => getInitialSubstep(values), [values]);
+    const startFrom = useMemo(() => getInitialSubStep(values), [values]);
 
     const handleFinishStep = useCallback(() => {
         if (!values) {

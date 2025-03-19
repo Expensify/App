@@ -32,7 +32,7 @@ const FS = {
      * Initializes the FullStory metadata with the provided metadata information.
      */
     consentAndIdentify: (value: OnyxEntry<UserMetadata>) => {
-        // On the first subscribe for UserMetadta, this function will be called. We need
+        // On the first subscribe for UserMetadata, this function will be called. We need
         // to confirm that we actually have any value here before proceeding.
         if (!value?.accountID) {
             return;

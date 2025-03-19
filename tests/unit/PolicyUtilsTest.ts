@@ -77,10 +77,10 @@ const employeeList: PolicyEmployeeList = {
 
 const adminAccountID = 1;
 const employeeAccountID = 2;
-const categoryapprover1AccountID = 3;
-const categoryapprover2AccountID = 4;
-const tagapprover1AccountID = 5;
-const tagapprover2AccountID = 6;
+const categoryApprover1AccountID = 3;
+const categoryApprover2AccountID = 4;
+const tagApprover1AccountID = 5;
+const tagApprover2AccountID = 6;
 const ownerAccountID = 7;
 const approverAccountID = 8;
 const employeeEmail = 'employee@test.com';
@@ -98,19 +98,19 @@ const personalDetails: PersonalDetailsList = {
         login: employeeEmail,
     },
     '3': {
-        accountID: categoryapprover1AccountID,
+        accountID: categoryApprover1AccountID,
         login: categoryApprover1Email,
     },
     '4': {
-        accountID: categoryapprover2AccountID,
+        accountID: categoryApprover2AccountID,
         login: 'categoryapprover2@test.com',
     },
     '5': {
-        accountID: tagapprover1AccountID,
+        accountID: tagApprover1AccountID,
         login: 'tagapprover1@test.com',
     },
     '6': {
-        accountID: tagapprover2AccountID,
+        accountID: tagApprover2AccountID,
         login: 'tagapprover2@test.com',
     },
     '7': {
@@ -347,7 +347,7 @@ describe('PolicyUtils', () => {
                     [transaction1.transactionID]: transaction1,
                     [transaction2.transactionID]: transaction2,
                 });
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover1AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover1AccountID);
             });
             it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
                 const policy: Policy = {
@@ -380,7 +380,7 @@ describe('PolicyUtils', () => {
                     [transaction1.transactionID]: transaction1,
                     [transaction2.transactionID]: transaction2,
                 });
-                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover2AccountID);
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover2AccountID);
             });
             describe('Has no transaction match with the category approver rule', () => {
                 it('should return the first tag approver if has any transaction tag match with with the tag approver rule ', async () => {
@@ -416,7 +416,7 @@ describe('PolicyUtils', () => {
                         [transaction1.transactionID]: transaction1,
                         [transaction2.transactionID]: transaction2,
                     });
-                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover1AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
                     const policy: Policy = {
@@ -451,7 +451,7 @@ describe('PolicyUtils', () => {
                         [transaction1.transactionID]: transaction1,
                         [transaction2.transactionID]: transaction2,
                     });
-                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagapprover2AccountID);
+                    expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover2AccountID);
                 });
             });
         });
@@ -487,7 +487,7 @@ describe('PolicyUtils', () => {
             // The result should be true, since it is an active paid policy.
             expect(result).toBe(true);
         });
-        it('should returnfalse', () => {
+        it('should return false', () => {
             // Given a control workspace which is pending delete.
             const policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -545,7 +545,7 @@ describe('PolicyUtils', () => {
             };
             const result = getManagerAccountID(policy, report);
 
-            expect(result).toBe(categoryapprover1AccountID);
+            expect(result).toBe(categoryApprover1AccountID);
         });
 
         it('should return -1 if there is no employee or default approver', () => {
@@ -601,7 +601,7 @@ describe('PolicyUtils', () => {
 
             const result = getManagerAccountID(policy, report);
 
-            expect(result).toBe(categoryapprover1AccountID);
+            expect(result).toBe(categoryApprover1AccountID);
         });
     });
 

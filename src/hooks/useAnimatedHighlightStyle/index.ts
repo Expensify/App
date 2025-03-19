@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {Easing, interpolate, interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
 
@@ -44,7 +44,7 @@ type Props = {
 };
 
 /**
- * Returns a highlight style that interpolates the colour, height and opacity giving a fading effect.
+ * Returns a highlight style that interpolates the color, height and opacity giving a fading effect.
  */
 export default function useAnimatedHighlightStyle({
     borderRadius,
@@ -62,7 +62,7 @@ export default function useAnimatedHighlightStyle({
     const [startHighlight, setStartHighlight] = useState(false);
     const repeatableProgress = useSharedValue(0);
     const nonRepeatableProgress = useSharedValue(shouldHighlight ? 0 : 1);
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const theme = useTheme();
 
     const highlightBackgroundStyle = useAnimatedStyle(() => ({

@@ -147,8 +147,8 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: translateLocal('spreadsheet.importSuccessfullTitle'),
-                        prompt: translateLocal('spreadsheet.importPerDiemRatesSuccessfullDescription', {rates: ratesLength}),
+                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
+                        prompt: translateLocal('spreadsheet.importPerDiemRatesSuccessfulDescription', {rates: ratesLength}),
                     },
                 },
             },

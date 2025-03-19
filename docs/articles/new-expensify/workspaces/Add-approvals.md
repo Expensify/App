@@ -44,7 +44,7 @@ Note: When Add approvals is enabled, the workspace must have a default approval 
 3. Select the workspace where you want to add approvals 
 4. Click **Workflows** in the left menu 
 5. Under **Add approvals**, click on **Add approval workflow**
-6. Choose the workspace member whose expenses should go through the custom approval workfow 
+6. Choose the workspace member whose expenses should go through the custom approval workflow 
 7. Click **Next** 
 8. Choose the workspace member who should be the first approver on submitted expenses in the approval workflow 
 9. Click **Next** 
@@ -62,7 +62,7 @@ Note: When Add approvals is enabled, the workspace must have a default approval 
 
 **To delete an approval workflow:**
 
-1. On the **Workflows** page, click the approval workflow that shoudld be deleted 
+1. On the **Workflows** page, click the approval workflow that should be deleted 
 2. Click **Delete** 
 3. In the window that appears,click **Delete** again 
 

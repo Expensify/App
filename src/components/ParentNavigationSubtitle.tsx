@@ -22,7 +22,7 @@ type ParentNavigationSubtitleProps = {
     /** parent Report Action ID */
     parentReportActionID?: string;
 
-    /** PressableWithoutFeedack additional styles */
+    /** PressableWithoutFeedback additional styles */
     pressableStyles?: StyleProp<ViewStyle>;
 };
 

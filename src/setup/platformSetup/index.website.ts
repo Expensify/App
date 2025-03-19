@@ -8,7 +8,7 @@ import type PlatformSpecificUpdater from './types';
 
 /**
  * Download the latest app version from the server, and if it is different than the current one,
- * then refresh. If the page is visibile, prompt the user to refresh.
+ * then refresh. If the page is visible, prompt the user to refresh.
  */
 function webUpdate() {
     fetch('/version.json', {cache: 'no-cache'})

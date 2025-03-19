@@ -1125,7 +1125,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 
 /**
  * Get the policy type from a given report
- * @param policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @param policies must have OnyxKey prefix (i.e 'policy_') for keys
  */
 function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollection<Policy>): string {
     return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.type ?? '';
@@ -5617,8 +5617,8 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
             originalMessage.IOUDetails = {amount, comment, currency};
             originalMessage.paymentType = paymentType;
         } else {
-            // In case of pay someone action, we dont store the comment
-            // and there is no single transctionID to link the action to.
+            // In case of pay someone action, we don't store the comment
+            // and there is no single transactionID to link the action to.
             delete originalMessage.IOUTransactionID;
             delete originalMessage.comment;
             originalMessage.paymentType = paymentType;

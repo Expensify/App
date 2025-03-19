@@ -91,7 +91,7 @@ function BaseTextInput(
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
+    // Disabling this line for safeness as nullish coalescing works only if value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;
@@ -233,7 +233,7 @@ function BaseTextInput(
         }
         if (newValue && newValue.length > 0) {
             hasValueRef.current = true;
-            // When the componment is uncontrolled, we need to manually activate the label:
+            // When the component is uncontrolled, we need to manually activate the label:
             if (value === undefined) {
                 activateLabel();
             }
@@ -282,7 +282,7 @@ function BaseTextInput(
                     tabIndex={-1}
                     accessibilityLabel={label}
                     // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
-                    // or if multiline is not supplied we calculate the textinput height, using onLayout.
+                    // or if multiline is not supplied we calculate the TextInput height, using onLayout.
                     onLayout={onLayout}
                     style={[
                         autoGrowHeight &&

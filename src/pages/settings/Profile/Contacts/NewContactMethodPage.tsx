@@ -57,8 +57,8 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
 
     const handleValidateMagicCode = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-        const validateIfnumber = validateNumber(phoneLogin);
-        const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
+        const validateIfNumber = validateNumber(phoneLogin);
+        const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
         addPendingContactMethod(submitDetail);
         setIsValidateCodeActionModalVisible(true);
     }, []);
@@ -84,7 +84,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
             const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-            const validateIfnumber = validateNumber(phoneLogin);
+            const validateIfNumber = validateNumber(phoneLogin);
 
             const errors = {};
 
@@ -101,12 +101,12 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                 );
             }
 
-            if (!!values.phoneOrEmail && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
+            if (!!values.phoneOrEmail && !(validateIfNumber || Str.isValidEmail(values.phoneOrEmail))) {
                 addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.invalidContactMethod'));
             }
 
-            if (!!values.phoneOrEmail && loginList?.[validateIfnumber || values.phoneOrEmail.toLowerCase()]) {
-                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited'));
+            if (!!values.phoneOrEmail && loginList?.[validateIfNumber || values.phoneOrEmail.toLowerCase()]) {
+                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmitted'));
             }
 
             return errors;

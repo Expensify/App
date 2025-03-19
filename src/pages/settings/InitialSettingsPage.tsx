@@ -88,7 +88,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
@@ -180,7 +180,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, privatePersonalDetails]);
 
     /**
-     * Retuns a list of menu items data for workspace section
+     * Returns a list of menu items data for workspace section
      * @returns object with translationKey, style and items for the workspace section
      */
     const workspaceMenuItemsData: Menu = useMemo(() => {
@@ -224,7 +224,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [allConnectionSyncProgresses, freeTrialText, policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan]);
 
     /**
-     * Retuns a list of menu items data for general section
+     * Returns a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
      */
     const generalMenuItemsData: Menu = useMemo(() => {
@@ -240,9 +240,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.QuestionMark,
                     iconRight: Expensicons.NewWindow,
                     shouldShowRightIcon: true,
-                    link: CONST.NEWHELP_URL,
+                    link: CONST.NEW_HELP_URL,
                     action: () => {
-                        openExternalLink(CONST.NEWHELP_URL);
+                        openExternalLink(CONST.NEW_HELP_URL);
                     },
                 },
                 {
@@ -263,7 +263,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                   }
                                   resetExitSurveyForm(() => {
                                       if (shouldOpenBookACall) {
-                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
+                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_BOOK_CALL.route);
                                           return;
                                       }
                                       Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
@@ -301,7 +301,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [styles.pt4, setRootStatusBarEnabled, isActingAsDelegate, shouldOpenBookACall, signOut]);
 
     /**
-     * Retuns JSX.Element with menu items
+     * Returns JSX.Element with menu items
      * @param menuItemsData list with menu items data
      * @returns the menu items for passed data
      */
@@ -420,7 +420,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
         (e) => {
-            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // If the layout measurement is 0, it means the FlashList is not displayed but the onScroll may be triggered with offset value 0.
             // We should ignore this case.
             if (e.nativeEvent.layoutMeasurement.height === 0) {
                 return;

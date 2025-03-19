@@ -18,7 +18,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
 import type {Policy} from '@src/types/onyx';
-import {getCustomListInitialSubstep, getSubstepValues} from './customUtils';
+import {getCustomListInitialSubStep, getSubStepValues} from './customUtils';
 import ChooseCustomListStep from './substeps/ChooseCustomListStep';
 import ConfirmCustomListStep from './substeps/ConfirmCustomListStep';
 import CustomListMappingStep from './substeps/CustomListMappingStep';
@@ -37,8 +37,8 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
     const formRef = useRef<FormRef | null>(null);
 
-    const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
-    const startFrom = useMemo(() => getCustomListInitialSubstep(values), [values]);
+    const values = useMemo(() => getSubStepValues(draftValues), [draftValues]);
+    const startFrom = useMemo(() => getCustomListInitialSubStep(values), [values]);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);

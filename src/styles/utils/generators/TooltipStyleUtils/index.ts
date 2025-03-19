@@ -235,7 +235,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 borderRadius: variables.componentBorderRadiusSmall,
                 ...tooltipVerticalPadding,
                 ...spacing.ph2,
-                zIndex: variables.tooltipzIndex,
+                zIndex: variables.tooltipZIndex,
                 width: tooltipWidth,
                 maxWidth,
                 top: rootWrapperTop,

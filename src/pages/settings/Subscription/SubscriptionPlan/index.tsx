@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SaveWithExpensifyButton from './SaveWithExpensifyButton';
 import SubscriptionPlanCard from './SubscriptionPlanCard';
-import type {PersonalPolicyTypeExludedProps} from './SubscriptionPlanCard';
+import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
 function SubscriptionPlan() {
     const {translate} = useLocalize();
@@ -35,7 +35,7 @@ function SubscriptionPlan() {
 
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
 
-    function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps): number {
+    function getSubscriptionPrice(plan: PersonalPolicyTypeExcludedProps): number {
         if (!privateSubscription?.type) {
             return 0;
         }
@@ -83,7 +83,7 @@ function SubscriptionPlan() {
         },
     ];
 
-    const handlePlanPress = (planType: PersonalPolicyTypeExludedProps) => {
+    const handlePlanPress = (planType: PersonalPolicyTypeExcludedProps) => {
         // If the selected plan and the current plan are the same, and the user has no policies, return.
         if (planType === subscriptionPlan || !ownerPolicies.length) {
             return;

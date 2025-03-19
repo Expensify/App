@@ -47,7 +47,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
     const policyID: string = policy?.id ?? '-1';
     const sageIntacctConfig = policy?.connections?.intacct?.config;
 
-    const mapingItems = useMemo(
+    const mappingItems = useMemo(
         () =>
             Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
                 const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
@@ -95,7 +95,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 onCloseError={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
             />
 
-            {mapingItems.map((section) => (
+            {mappingItems.map((section) => (
                 <OfflineWithFeedback
                     key={section.description}
                     pendingAction={settingsPendingAction(section.subscribedSettings, sageIntacctConfig?.pendingFields)}

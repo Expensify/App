@@ -80,7 +80,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                         source={details.avatar}
                         avatarID={accountID}
                         type={CONST.ICON_TYPE_AVATAR}
-                        size={CONST.AVATAR_SIZE.XLARGE}
+                        size={CONST.AVATAR_SIZE.X_LARGE}
                         fallbackIcon={fallbackIcon}
                     />
                     {!!(details.displayName ?? '') && (

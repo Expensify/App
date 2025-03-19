@@ -13,14 +13,14 @@ type PressableWithFeedbackProps = PressableProps & {
     wrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /**
-     * Determines what opacity value should be applied to the underlaying view when Pressable is pressed.
+     * Determines what opacity value should be applied to the underlying view when Pressable is pressed.
      * To disable dimming, pass 1 as pressDimmingValue
      * @default variables.pressDimValue
      */
     pressDimmingValue?: number;
 
     /**
-     * Determines what opacity value should be applied to the underlaying view when pressable is hovered.
+     * Determines what opacity value should be applied to the underlying view when pressable is hovered.
      * To disable dimming, pass 1 as hoverDimmingValue
      * @default variables.hoverDimValue
      */
