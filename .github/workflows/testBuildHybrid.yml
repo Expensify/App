@@ -3,16 +3,19 @@ name: Build and deploy hybrid apps for testing
 on:
   workflow_dispatch:
     inputs:
+      # Pull Request number from App repo for correct placement of ND app. If not specified defaults to main branch.
       APP_PULL_REQUEST_NUMBER:
-        description: Pull Request number from App repo for correct placement of ND app. If not specified defaults to main branch.
+        description: App PR number. Defaults to main.
         required: false
         default: ''
+      # Pull Request number from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both specified. If nothing is specified defaults to Mobile-Expensify's main
       HYBRIDAPP_PULL_REQUEST_NUMBER:
-        description: Pull Request number from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both specified. If nothing is specified defaults to Mobile-Expensify's main
+        description: Mobile-Expensify PR number. Defaults to main. Overrides MOBILE-EXPENSIFY set in App's PR description.
         required: false
         default: ''
+      # Do not modify! GH preserves `workflow_dispatch` as event that triggered this workflow even if it was called from `testBuild.yml`. This is workaround for that issue.
       DISPATCHED_MANUALLY:
-        description: Do not modify! GH preserves `workflow_dispatch` as event that triggered this workflow even if it was called from `testBuild.yml`. This is workaround for that issue.
+        description: Leave checked! This is a workaround to a GH workflow bug.
         type: boolean
         default: true
   workflow_call:
