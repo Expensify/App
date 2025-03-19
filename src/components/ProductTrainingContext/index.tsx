@@ -20,6 +20,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
 import TOOLTIPS from './TOOLTIPS';
+import variables from '@styles/variables';
 
 type ProductTrainingContextType = {
     shouldRenderTooltip: (tooltipName: ProductTrainingTooltipName) => boolean;
@@ -266,9 +267,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         role={CONST.ROLE.BUTTON}
                     >
                         <Icon
-                            src={Expensicons.Clear}
+                            src={Expensicons.Close}
                             fill={theme.icon}
-                            medium
+                            width={variables.iconSizeSemiSmall}
+                            height={variables.iconSizeSemiSmall}
                         />
                     </PressableWithoutFeedback>
                 </View>
