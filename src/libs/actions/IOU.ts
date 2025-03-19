@@ -4646,7 +4646,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
-    // s77rt what if we don't have the permission to add them to the ws?
     const policyEmployeeList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyParams?.policyID}`]?.employeeList;
     if (!policyEmployeeList?.[accountantEmail]) {
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, false, false));
