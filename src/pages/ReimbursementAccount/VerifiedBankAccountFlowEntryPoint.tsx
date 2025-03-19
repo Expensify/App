@@ -219,7 +219,9 @@ function VerifiedBankAccountFlowEntryPoint({
                     )}
                     {shouldShowContinueSetupButton === true ? (
                         <OfflineWithFeedback
-                            errors={reimbursementAccount?.maxAttemptsReached ? getMicroSecondOnyxErrorWithTranslationKey('connectBankAccountStep.maxAttemptsReached') : getLatestError(errors)}
+                            errors={
+                                reimbursementAccount?.maxAttemptsReached ? getMicroSecondOnyxErrorWithTranslationKey('connectBankAccountStep.maxAttemptsReached') : getLatestError(errors)
+                            }
                             shouldShowErrorMessages
                             onClose={resetReimbursementAccount}
                         >
