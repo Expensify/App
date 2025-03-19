@@ -235,7 +235,6 @@ function SearchAutocompleteInput(
                         }}
                         isLoading={!!isSearchingForReports}
                         ref={ref}
-                        onKeyPress={handleKeyPress(onSubmit)}
                         type="markdown"
                         multiline={false}
                         parser={parser}
