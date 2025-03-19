@@ -2653,7 +2653,8 @@ const styles = (theme: ThemeColors) =>
             height: variables.contentHeaderDesktopHeight,
             zIndex: variables.popoverzIndex,
             position: 'relative',
-            paddingHorizontal: 20,
+            paddingLeft: 20,
+            paddingRight: 12,
         },
 
         headerBarDesktopHeight: {

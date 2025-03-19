@@ -1019,6 +1019,7 @@ const translations = {
         categorySelection: 'Select a category to better organize your spend.',
         error: {
             invalidCategoryLength: 'The category name exceeds 255 characters. Please shorten it or choose a different category.',
+            invalidTagLength: 'The tag name exceeds 255 characters. Please shorten it or choose a different tag.',
             invalidAmount: 'Please enter a valid amount before continuing.',
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
@@ -1395,8 +1396,8 @@ const translations = {
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
         twoFactorAuthIsRequiredDescription: 'For security purposes, Xero requires two-factor authentication to connect the integration.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Two-factor authentication required',
-        twoFactorAuthIsRequiredForAdminsTitle: 'You need to enable two-factor authentication',
-        twoFactorAuthIsRequiredForAdminsDescription: 'The Xero accounting connection requires the use of two-factor authentication. To continue using Expensify, please enable it.',
+        twoFactorAuthIsRequiredForAdminsTitle: 'Please enable two-factor authentication',
+        twoFactorAuthIsRequiredForAdminsDescription: 'Your Xero accounting connection requires two-factor authentication. Please enable it to continue.',
         twoFactorAuthCannotDisable: 'Cannot disable 2FA',
         twoFactorAuthRequired: 'Two-factor authentication (2FA) is required for your Xero connection and cannot be disabled.',
     },
@@ -2065,7 +2066,11 @@ const translations = {
             phrase3: 'or ',
             phrase4: 'verify your account here',
         },
-        hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
+        hasPhoneLoginError: {
+            phrase1: 'To connect a bank account, please',
+            link: 'add an email as your primary login',
+            phrase2: ' and try again. You can add your phone number as a secondary login.',
+        },
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again.',
         error: {
@@ -2655,7 +2660,11 @@ const translations = {
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
-        phoneError: 'To book travel, your default contact method must be a valid email',
+        phoneError: {
+            phrase1: 'Please',
+            link: 'add a work email as your primary login',
+            phrase2: ' to book travel.',
+        },
         domainSelector: {
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
