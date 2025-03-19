@@ -1,13 +1,13 @@
 import {Str} from 'expensify-common';
 import React, {memo, useEffect, useState} from 'react';
-import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import {Gallery} from '@components/Icon/Expensicons';
+import * as Expensicons from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -84,13 +84,6 @@ type AttachmentViewProps = Attachment & {
     /** The reportID related to the attachment */
     reportID?: string;
 };
-
-function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined) {
-    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
-    const isFileNameImage = fileName && Str.isImage(fileName);
-
-    return isSourceImage || isFileNameImage;
-}
 
 function AttachmentView({
     source,
@@ -236,7 +229,9 @@ function AttachmentView({
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isFileImage = checkIsFileImage(source, file?.name);
+    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
+    const isFileNameImage = file?.name && Str.isImage(file.name);
+    const isFileImage = isSourceImage || isFileNameImage;
 
     if (isFileImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
@@ -263,7 +258,7 @@ function AttachmentView({
                     <>
                         <View style={styles.imageModalImageCenterContainer}>
                             <DefaultAttachmentView
-                                icon={Gallery}
+                                icon={Expensicons.Gallery}
                                 fileName={file?.name}
                                 shouldShowDownloadIcon={shouldShowDownloadIcon}
                                 shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
@@ -329,5 +324,4 @@ AttachmentView.displayName = 'AttachmentView';
 
 export default memo(AttachmentView);
 
-export {checkIsFileImage};
 export type {AttachmentViewProps};
