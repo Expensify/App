@@ -52,7 +52,7 @@ const columnConfig: ColumnConfig[] = [
 ];
 
 type SearchTableHeaderProps = {
-    sortBy?: SearchColumnType;
+    sortBy?: SortableColumnName;
     sortOrder?: SortOrder;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
     shouldShowSorting: boolean;
