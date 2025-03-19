@@ -176,7 +176,6 @@ function ReportActionsList({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
     const participantsContext = useContext(PersonalDetailsContext);
-    const [scrollOffset, setScrollOffset] = useState(0);
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
@@ -517,7 +516,6 @@ function ReportActionsList({
     };
 
     const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        setScrollOffset(event.nativeEvent.contentOffset.y);
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         handleUnreadFloatingButton();
         onScroll?.(event);
@@ -719,14 +717,6 @@ function ReportActionsList({
 
     const onEndReached = useCallback(() => {
         loadOlderChats(false);
-
-        requestAnimationFrame(() => {
-            reportScrollManager.ref?.current?.scrollToOffset({
-                offset: scrollingVerticalOffset.current - scrollOffset,
-                animated: false,
-            });
-        });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [loadOlderChats]);
 
     // Parse Fullstory attributes on initial render
