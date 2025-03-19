@@ -59,7 +59,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
+    const welcomeMessage = 'xdddd';
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
 
     const filteredOptions = moneyRequestOptions.filter(
