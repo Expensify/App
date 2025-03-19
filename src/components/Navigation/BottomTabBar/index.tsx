@@ -32,7 +32,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import BOTTOM_TABS from './BOTTOM_TABS';
 
@@ -114,6 +114,12 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
     const showSettingsPage = useCallback(() => {
+        const LAST_VISITED_SETTINGS_PATH = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH) as Route | null;
+        console.log('path to which should we be directed ', LAST_VISITED_SETTINGS_PATH);
+        if (LAST_VISITED_SETTINGS_PATH !== null) {
+            Navigation.navigate(LAST_VISITED_SETTINGS_PATH);
+            return;
+        }
         const rootState = navigationRef.getRootState();
         const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
 
