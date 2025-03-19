@@ -7,19 +7,20 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useNetwork from './useNetwork';
 
-type UseReportActionLoadingArguments = {
+type UseLoadReportActionsArguments = {
     /** The id of the current report */
     reportID: string;
 
-    /** The id of the report Action (if specific action was linked to */
+    /** The id of the reportAction (if specific action was linked to */
     reportActionID?: string;
 
-    /** The id of the current report */
+    /** The list of reportActions linked to the current report  */
     reportActions: ReportAction[];
 
+    /** The IDs of all reportActions linked to the current report (may contain some extra actions) */
     allReportActionIDs: string[];
 
-    /** The transaction thread report associated with the current report, if any */
+    /** The transaction thread report associated with the current transaction, if any */
     transactionThreadReport: OnyxEntry<Report>;
 
     /** If the report has newer actions to load */
@@ -30,10 +31,10 @@ type UseReportActionLoadingArguments = {
 };
 
 /**
- * Provides reusable logic to get the functions for loading older/newer report actions.
+ * Provides reusable logic to get the functions for loading older/newer reportActions.
  * Used in the report displaying components
  */
-function useReportActionsLoading({reportID, reportActionID, reportActions, allReportActionIDs, transactionThreadReport, hasOlderActions, hasNewerActions}: UseReportActionLoadingArguments) {
+function useLoadReportActions({reportID, reportActionID, reportActions, allReportActionIDs, transactionThreadReport, hasOlderActions, hasNewerActions}: UseLoadReportActionsArguments) {
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
 
@@ -51,7 +52,7 @@ function useReportActionsLoading({reportID, reportActionID, reportActions, allRe
     }, [reportActions, allReportActionIDs, reportID, transactionThreadReport?.reportID]);
 
     /**
-     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * Retrieves the next set of reportActions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
     const loadOlderChats = useCallback(
@@ -61,7 +62,7 @@ function useReportActionsLoading({reportID, reportActionID, reportActions, allRe
                 return;
             }
 
-            // Don't load more chats if we're already at the beginning of the chat history
+            // Don't load more reportActions if we're already at the beginning of the chat history
             if (!oldestReportAction || !hasOlderActions) {
                 return;
             }
@@ -125,4 +126,4 @@ function useReportActionsLoading({reportID, reportActionID, reportActions, allRe
     };
 }
 
-export default useReportActionsLoading;
+export default useLoadReportActions;

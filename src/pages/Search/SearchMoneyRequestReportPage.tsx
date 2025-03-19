@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -10,12 +10,12 @@ import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchQueryJSON} from '@components/Search/types';
+import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,14 +48,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
-    /**
-     * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
-     */
-    const isCurrentReportLoadedFromOnyx = useMemo((): boolean => {
-        // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
-        const isTransitioning = report && report?.reportID !== reportID;
-        return reportID !== '' && !!report?.reportID && !isTransitioning;
-    }, [report, reportID]);
+    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportID);
 
     useEffect(() => {
         openReport(reportID);
@@ -73,6 +66,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                     report={report}
                     reportMetadata={reportMetadata}
                     policy={policy}
+                    shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                 />
             </ScreenWrapper>
         );
@@ -98,12 +92,13 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                     <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
                 </View>
                 <View style={[styles.flexColumn, styles.flex1]}>
-                    <DragAndDropProvider isDisabled={!isCurrentReportLoadedFromOnyx || !canUserPerformWriteAction(report)}>
+                    <DragAndDropProvider isDisabled={isEditingDisabled}>
                         <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                             <MoneyRequestReportView
                                 report={report}
                                 reportMetadata={reportMetadata}
                                 policy={policy}
+                                shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                             />
                         </View>
                         <PortalHost name="suggestions" />

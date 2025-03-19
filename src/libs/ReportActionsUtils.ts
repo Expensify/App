@@ -416,6 +416,11 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
             return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
         }
 
+        // Ensure that neither first's nor second's created property is undefined
+        if (first.created === undefined || second.created === undefined) {
+            return (first.created === undefined ? -1 : 1) * invertedMultiplier;
+        }
+
         // Then sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
@@ -622,12 +627,12 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], a
     return currentAction.actorAccountID === previousAction.actorAccountID;
 }
 
-// Todo - combine this with `isConsecutiveActionMadeByPreviousActor` so as to not duplicate logic
+// Todo combine with `isConsecutiveActionMadeByPreviousActor` so as to not duplicate logic (issue: https://github.com/Expensify/App/issues/58625)
 function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex: number) {
     const currentAction = reportActions.at(actionIndex);
     const nextAction = findNextAction(reportActions, actionIndex);
 
-    // Todo first should have avatar - verify that this works with long chats
+    // Todo first should have avatar - verify that this works with long chats (issue: https://github.com/Expensify/App/issues/58625)
     if (actionIndex === 0) {
         return false;
     }
