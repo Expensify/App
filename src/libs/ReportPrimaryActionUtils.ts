@@ -262,17 +262,17 @@ function getTransactionThreadReportPrimaryAction(
     reportTransaction: Transaction,
     violations: TransactionViolation[],
     policy?: Policy,
-): ValueOf<typeof CONST.TRANSACTION.TRANSACTION_PRIMARY_ACTIONS> | '' {
+): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
     if (isHoldCreator(reportTransaction, transactionThreadReport.reportID)) {
-        return CONST.TRANSACTION.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD;
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
     if (isReviewDuplicatesAction(parentReport, [reportTransaction], policy)) {
-        return CONST.TRANSACTION.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
     if (isMarkAsCashActionForTransaction(parentReport, violations, policy)) {
-        return CONST.TRANSACTION.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH;
+        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
     return '';

@@ -16,8 +16,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import getPrimaryAction from '@libs/ReportPrimaryActionUtils';
-import getSecondaryActions from '@libs/ReportSecondaryActionUtils';
+import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
+import getSecondaryReportActions from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
     getArchiveReason,
@@ -51,6 +51,7 @@ import {
     canApproveIOU,
     cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
+    deleteMoneyRequest,
     getNextApproverAccountID,
     payInvoice,
     payMoneyRequest,
@@ -312,11 +313,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     if (!moneyRequestReport) {
         return null;
     }
-    if (!policy) {
-        return null;
-    }
 
-    const primaryAction = getPrimaryAction(moneyRequestReport, policy, transactions, violations);
+    const primaryAction = getReportPrimaryAction(moneyRequestReport, transactions, violations, policy); // useMemo
 
     const primaryActions = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -337,7 +335,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             <SettlementButton
                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                 currency={moneyRequestReport?.currency}
-                confirmApproval={confirmApproval}
                 policyID={moneyRequestReport?.policyID}
                 chatReportID={chatReport?.reportID}
                 iouReport={moneyRequestReport}
@@ -345,7 +342,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
                 shouldHidePaymentOptions={!shouldShowPayButton}
-                shouldShowApproveButton={shouldShowApproveButton}
                 shouldDisableApproveButton={shouldDisableApproveButton}
                 formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
                 isDisabled={isOffline && !canAllowSettlement}
@@ -381,15 +377,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 }}
             />
         ),
-        [CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES]: (
-            <Button
-                success
-                text={translate('iou.reviewDuplicates')}
-                onPress={() => {
-                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
-                }}
-            />
-        ),
         [CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH]: (
             <Button
                 success
@@ -399,7 +386,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         ),
     };
 
-    const secondaryActions = getSecondaryActions(moneyRequestReport, policy, transactions, violations);
+    const secondaryActions = getSecondaryReportActions(moneyRequestReport, transactions, violations, policy); // useMemo
 
     const secondaryActionsImpl: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
@@ -415,10 +402,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             text: translate('common.download'),
             icon: Expensicons.Download,
             onSelected: () => {
-                if (isOffline) {
-                    return;
-                }
-
                 exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs}, () => {
                     setDownloadErrorModalVisible(true);
                 });
@@ -447,6 +430,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             onSelected: () => {
                 if (isDelegateAccessRestricted) {
                     setIsNoDelegateAccessMenuVisible(true);
+                    return;
                 }
 
                 unapproveExpenseReport(moneyRequestReport);
@@ -467,7 +451,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING,
             onSelected: () => {
                 if (!connectedIntegration) {
-                    return;
+                    throw new Error('No connected integration');
                 }
                 exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
             },
@@ -478,7 +462,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED,
             onSelected: () => {
                 if (!connectedIntegration) {
-                    return;
+                    throw new Error('No connected integration');
                 }
                 markAsManuallyExported(moneyRequestReport.reportID, connectedIntegration);
             },
@@ -488,14 +472,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.Stopwatch,
             value: CONST.REPORT.SECONDARY_ACTIONS.HOLD,
             onSelected: () => {
-                const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
-
-                const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
-                if (!moneyRequestAction) {
-                    return;
+                if (!requestParentReportAction) {
+                    throw new Error('Parent action does not exist');
                 }
 
-                changeMoneyRequestHoldStatus(moneyRequestAction);
+                changeMoneyRequestHoldStatus(requestParentReportAction);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
@@ -503,7 +484,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             onSelected: () => {
-                // TODO waiting for https://github.com/Expensify/App/pull/57553
+                Navigation.navigate(ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.getRoute(moneyRequestReport.reportID));
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
@@ -511,7 +492,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
-                // TODO waiting for https://github.com/Expensify/App/pull/58020/files
+                if (transactionThreadReportID) {
+                    if (!requestParentReportAction) {
+                        throw new Error('requestParentReportAction is not defined');
+                    }
+                    deleteMoneyRequest(transaction?.transactionID, requestParentReportAction);
+                } else {
+                    // TODO waiting for https://github.com/Expensify/App/pull/58020/files
+                }
             },
         },
     };

@@ -78,7 +78,7 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
     const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
-    const isSingleTransactionView = isMoneyRequest(report) || isTrackExpenseReport(report);
+    const isSingleTransactionView = isTrackExpenseReport(report);
     const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
