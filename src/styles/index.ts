@@ -4025,6 +4025,17 @@ const styles = (theme: ThemeColors) =>
             verticalAlign: 'middle',
         },
 
+        chatBubbleCell: {
+            width: 24,
+            height: 20,
+            verticalAlign: 'middle',
+        },
+
+        chatBubbleCellText: {
+            fontSize: 9,
+            lineHeight: 12,
+        },
+
         emojiReactionBubbleText: {
             verticalAlign: 'middle',
         },

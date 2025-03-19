@@ -64,15 +64,15 @@ function ChatBubbleCell({transaction}: {transaction: Transaction}) {
 
     return (
         threadMessages.count > 0 && (
-            <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, {width: 24, height: 20, verticalAlign: 'middle', textAlign: 'center'}]}>
+            <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, styles.chatBubbleCell]}>
                 <Icon
                     src={ChatBubble}
-                    additionalStyles={{position: 'absolute'}}
+                    additionalStyles={styles.pAbsolute}
                     fill={threadMessages.isUnread ? theme.iconMenu : theme.icon}
                     width={20}
                     height={24}
                 />
-                <Text style={{fontSize: 9, lineHeight: 12, fontWeight: 'bold', color: theme.appBG}}>{threadMessages.count}</Text>
+                <Text style={[styles.textBold, styles.appBG, styles.chatBubbleCellText]}>{threadMessages.count}</Text>
             </View>
         )
     );
