@@ -517,7 +517,7 @@ function ReportPreview({
             <Button
                 success={isWaitingForSubmissionFromCurrentUser}
                 text={translate('common.submit')}
-                onPress={() => iouReport && submitReport(iouReport)}
+                onPress={() => submitReport(iouReport)}
                 isDisabled={shouldDisableSubmitButton}
             />
         ),
