@@ -277,11 +277,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         PusherConnectionManager.init();
         initializePusher();
 
+        const url = new URL(currentUrl);
+        const delegatorEmail = url.searchParams.get('delegatorEmail') ?? '';
+
         // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
         if (!CONFIG.IS_HYBRID_APP) {
             // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
             // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-            if (SessionUtils.didUserLogInDuringSession()) {
+            if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
                 App.openApp();
             } else {
                 Log.info('[AuthScreens] Sending ReconnectApp');
@@ -293,8 +296,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         App.setUpPoliciesAndNavigate(session);
 
-        const url = new URL(currentUrl);
-        const delegatorEmail = url.searchParams.get('delegatorEmail') ?? '';
         if (delegatorEmail) {
             connect(delegatorEmail, true);
         }

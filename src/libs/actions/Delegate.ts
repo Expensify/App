@@ -148,7 +148,6 @@ function connect(email: string, isFromOldDot = false) {
                 return;
             }
             const restrictedToken = response.restrictedToken;
-
             const policyID = activePolicyID;
 
             return SequentialQueue.waitForIdle()
