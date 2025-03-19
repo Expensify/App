@@ -54,6 +54,9 @@ type BaseBlockingViewProps = {
 
     /** Accessibility label for the view */
     accessibilityLabel: string;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
 type BlockingViewIconProps = {
@@ -104,6 +107,7 @@ function BlockingView({
     contentFitImage,
     containerStyle: containerStyleProp,
     addBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -141,7 +145,7 @@ function BlockingView({
         );
     }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
 
-    const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: containerStyleProp});
+    const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: containerStyleProp});
 
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]} accessibilityLabel={accessibilityLabel}>
