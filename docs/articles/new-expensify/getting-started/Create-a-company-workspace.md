@@ -38,10 +38,10 @@ If you use <b>QuickBooks Online (QBO)</b>, <b>Xero</b>, <b>NetSuite</b>, or <b>S
 ## Integration Guides:
 
 <ol type="a">
-   <li>[Connect to QuickBooks Online](https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online)</li>
-   <li>[Connect to Xero](https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero)</li>
-   <li>[Connect to NetSuite](https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite)</li> 
-   <li>[Connect to Sage Intacct](https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct)</li> 
+   <li><a href='https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online'>Connect to QuickBooks Online</a></li>
+   <li><a href='https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero'>Connect to Xero</a></li>
+   <li><a href='https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite'>Connect to NetSuite</a></li> 
+   <li><a href='https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct'>Connect to Sage Intacct</a></li> 
 </ol>
 
 # 3. Add categories

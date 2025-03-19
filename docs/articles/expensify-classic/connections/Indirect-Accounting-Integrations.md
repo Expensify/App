@@ -1,50 +1,71 @@
 ---
-title: Indirect Accounting Integrations
-description: Learn how to export your expenses and reports to a built-for-purpose flat file that works with your accounting platform. 
+title: Indirect-Accounting-Integrations.md
+description: Learn how to export expenses and reports using a flat-file template compatible with your accounting software.
+keywords: [accounting integration, export template, indirect integration, flat-file import, Expensify reports]
 ---
-<!-- The lines above are required by Jekyll to process the .md file -->
 
-# Overview
+# Indirect Accounting Integrations
 
-Along with the direct integrations Expensify supports, there's also an option to integrate with other accounting solutions via a flat-file import.
+Expensify supports both **direct** and **indirect** accounting integrations. If your accounting software isn’t directly integrated, you can still export expenses and reports using a **flat-file import**.
 
-When you set up one of these accounting packages in Expensify, we will automatically create and add a relevant export template. The template will allow you to quickly and easily transfer expense and report data to your accounting package.
+When you select an accounting package, Expensify automatically generates a relevant export template. This makes it easy to transfer your financial data to your accounting system.
 
-# How to Set Up an Indirect Accounting Integration
+---
 
-## Home Page
+## Setting Up an Indirect Accounting Integration
 
-After selecting your Group Plan type for your first workspace, you'll be taken through a few workspace setup tasks on the home page. When you reach the **Accounting Software** task, select your accounting solution from the available options.
+### From the Home Page
 
-You'll receive a confirmation message, and the respective export template will be added to the account. From then on, it will show in the **Export to** option on the **Reports** page and at the top of each report.
+1. Select your **Group Plan** type while setting up your first workspace.
+2. On the **Home** page, navigate to the **Accounting Software** task.
+3. Choose your accounting software from the available options.
+4. A confirmation message will appear, and the relevant export template will be added to your account.
+5. The template will now be available under the **Export To** option on the **Reports** page and at the top of each report.
 
-## Workspace Settings
+### From Workspace Settings
 
-Head to **Settings** > **Workspaces** > **Group** > _Your desired workspace_ > **Connections** and select an accounting package from the options listed here. You'll receive a confirmation message, and the respective export template will be added to the account. From then on, it will show in the **Export to** option on the **Reports** page and at the top of each report.
+1. Go to **Settings** > **Workspaces** > **Group** > _Your workspace_ > **Connections**.
+2. Select an accounting package from the available options.
+3. A confirmation message will appear, and the relevant export template will be added to your account.
+4. The template will now be available under the **Export To** option on the **Reports** page and at the top of each report.
 
-# How to Export a Report for My Accounting Package
+---
 
-You can export reports to these templates in two ways:
+## Exporting Reports for Your Accounting Software
 
-To export a report, click **Export To** in the top-left of a report and select your accounting package from the dropdown menu.
+Expensify provides two ways to export reports:
 
-To export multiple reports, tick the checkbox next to the reports on the **Reports** page, then click **Export To** and select your accounting package from the dropdown menu.
+### Export a Single Report
+1. Open the report you want to export.
+2. Click **Export To** in the top-left corner.
+3. Select your accounting package from the dropdown menu.
 
-{% include faq-begin.md %}
+### Export Multiple Reports
+1. Navigate to the **Reports** page.
+2. Select the checkboxes next to the reports you want to export.
+3. Click **Export To** and choose your accounting package from the dropdown menu.
 
-## Which accounting packages offer this indirect integration with Expensify?
+---
 
-We support a pre-configured flat-file integration for the following accounting packages:
+# FAQ
 
- - Sage
- - Microsoft Dynamics
- - MYOB
- - Oracle
- - SAP
+## Which accounting packages support indirect integration with Expensify?
 
-## What if my accounting package isn’t listed here?
+Expensify offers pre-configured flat-file integrations for the following accounting platforms:
 
-If your accounting package isn’t listed, but it still accepts a flat-file import, select **Other** when completing the Accounting Software task on your Home page or head to **Settings** > **Workspaces** > **Group** > _Your desired workspace_ > **Export Formats**.  This option allows you to create your own templates to export your expense and report data into a format compatible with your accounting system.
+- **Sage**
+- **Microsoft Dynamics**
+- **MYOB**
+- **Oracle**
+- **SAP**
 
+## What if my accounting package isn’t listed?
 
-{% include faq-end.md %}
+If your accounting software supports flat-file imports but isn’t listed above, you can create a custom export template:
+
+1. Select **Other** when completing the **Accounting Software** task on your **Home** page.
+2. Alternatively, go to **Settings** > **Workspaces** > **Group** > _Your workspace_ > **Export Formats**.
+3. Create a custom export template that matches the format required by your accounting system.
+
+---
+

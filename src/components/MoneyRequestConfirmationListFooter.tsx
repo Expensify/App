@@ -19,7 +19,15 @@ import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTagForDisplay, getTaxAmount, getTaxName, isAmountMissing, isCreatedMissing, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
+import {
+    getTagForDisplay,
+    getTaxAmount,
+    getTaxName,
+    isAmountMissing,
+    isCreatedMissing,
+    isFetchingWaypointsFromServer,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -29,6 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -177,6 +186,12 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The unit */
     unit: Unit | undefined;
+
+    /** The PDF load error callback */
+    onPDFLoadError?: () => void;
+
+    /** The PDF password callback */
+    onPDFPassword?: () => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -225,6 +240,8 @@ function MoneyRequestConfirmationListFooter({
     transaction,
     transactionID,
     unit,
+    onPDFLoadError,
+    onPDFPassword,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -238,6 +255,11 @@ function MoneyRequestConfirmationListFooter({
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
     const isMultilevelTags = useMemo(() => isMultiLevelTagsPolicyUtils(policyTags), [policyTags]);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
+
+    const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
+    const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowMap = isDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
 
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
@@ -694,6 +716,8 @@ function MoneyRequestConfirmationListFooter({
                         <PDFThumbnail
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             previewSourceURL={resolvedReceiptImage as string}
+                            onLoadError={onPDFLoadError}
+                            onPassword={onPDFPassword}
                         />
                     </PressableWithoutFocus>
                 ) : (
@@ -737,13 +761,15 @@ function MoneyRequestConfirmationListFooter({
             translate,
             shouldDisplayReceipt,
             resolvedReceiptImage,
+            onPDFLoadError,
+            onPDFPassword,
             isThumbnail,
             resolvedThumbnail,
             receiptThumbnail,
             fileExtension,
             isDistanceRequest,
-            reportID,
             transactionID,
+            reportID,
         ],
     );
 
@@ -773,7 +799,7 @@ function MoneyRequestConfirmationListFooter({
                     disabled={didConfirm}
                 />
             )}
-            {isDistanceRequest && (
+            {shouldShowMap && (
                 <View style={styles.confirmationListMapItem}>
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
@@ -818,7 +844,7 @@ function MoneyRequestConfirmationListFooter({
                     <View style={styles.dividerLine} />
                 </>
             )}
-            {!isDistanceRequest &&
+            {!shouldShowMap &&
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (receiptImage || receiptThumbnail
                     ? receiptThumbnailContent

@@ -521,6 +521,9 @@ const styles = (theme: ThemeColors) =>
         textBold: {
             fontWeight: FontUtils.fontWeight.bold,
         },
+        textItalic: {
+            ...FontUtils.fontFamily.platform.MONOSPACE_ITALIC,
+        },
 
         textVersion: {
             color: theme.iconColorfulBackground,
@@ -576,6 +579,10 @@ const styles = (theme: ThemeColors) =>
 
         borderRadiusComponentLarge: {
             borderRadius: variables.componentBorderRadiusLarge,
+        },
+
+        borderRadiusComponentNormal: {
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
@@ -790,6 +797,13 @@ const styles = (theme: ThemeColors) =>
 
         buttonDangerText: {
             color: theme.textLight,
+        },
+
+        buttonBlendContainer: {
+            backgroundColor: theme.appBG,
+            opacity: 1,
+            position: 'relative',
+            overflow: 'hidden',
         },
 
         hoveredComponentBG: {
@@ -1138,19 +1152,12 @@ const styles = (theme: ThemeColors) =>
             marginLeft: variables.chatInputSpacing,
         },
 
-        offlineIndicator: {
+        offlineIndicatorChat: {
             marginLeft: variables.chatInputSpacing,
         },
 
-        offlineIndicatorMobile: {
-            paddingLeft: 20,
-            paddingTop: 5,
-            paddingBottom: 30,
-            marginBottom: -25,
-        },
-
-        offlineIndicatorRow: {
-            height: 25,
+        offlineIndicatorContainer: {
+            height: CONST.OFFLINE_INDICATOR_HEIGHT,
         },
 
         deletedAttachmentIndicator: {
@@ -2646,7 +2653,8 @@ const styles = (theme: ThemeColors) =>
             height: variables.contentHeaderDesktopHeight,
             zIndex: variables.popoverzIndex,
             position: 'relative',
-            paddingHorizontal: 20,
+            paddingLeft: 20,
+            paddingRight: 12,
         },
 
         headerBarDesktopHeight: {
@@ -4185,8 +4193,8 @@ const styles = (theme: ThemeColors) =>
 
         eReceiptWaypointAddress: {
             ...FontUtils.fontFamily.platform.MONOSPACE,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.lineHeightNormal,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightSmall,
             color: theme.textColorfulBackground,
         },
 
@@ -4224,10 +4232,26 @@ const styles = (theme: ThemeColors) =>
         },
 
         eReceiptContainer: {
-            width: 335,
-            minHeight: 540,
-            borderRadius: 20,
+            width: variables.eReceiptBGHWidth,
+            minHeight: variables.eReceiptBGHeight,
             overflow: 'hidden',
+        },
+
+        eReceiptContentContainer: {
+            ...sizing.w100,
+            ...spacing.p5,
+            minWidth: variables.eReceiptBodyWidth,
+            minHeight: variables.eReceiptBodyHeight,
+        },
+
+        eReceiptContentWrapper: {
+            ...sizing.w100,
+            ...spacing.ph5,
+            ...spacing.pt10,
+            ...spacing.pb4,
+            ...sizing.h100,
+            position: 'absolute',
+            left: 0,
         },
 
         loginHeroBody: {
@@ -4700,8 +4724,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 2,
             borderColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
-            height: 200,
-            maxWidth: 400,
+            height: 180,
+            maxWidth: 360,
         },
 
         pdfErrorPlaceholder: {
@@ -4924,6 +4948,11 @@ const styles = (theme: ThemeColors) =>
 
         headerStatusBarContainer: {
             minHeight: variables.componentSizeSmall,
+        },
+
+        searchStatusBarContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
         },
 
         walletIllustration: {
@@ -5271,6 +5300,11 @@ const styles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        twoFARequiredContainer: {
+            maxWidth: 350,
+            margin: 'auto',
+        },
+
         widthAuto: {
             width: 'auto',
         },
@@ -5433,7 +5467,17 @@ const styles = (theme: ThemeColors) =>
 
         progressBarWrapper: {
             height: 2,
+            width: '100%',
+            backgroundColor: theme.transparent,
             overflow: 'hidden',
+            position: 'absolute',
+            bottom: -1,
+        },
+
+        progressBar: {
+            height: '100%',
+            backgroundColor: theme.success,
+            width: '100%',
         },
 
         accountSwitcherAnchorPosition: {
@@ -5455,7 +5499,6 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
-
         sidePaneOverlay: (isOverlayVisible: boolean) => ({
             ...positioning.pFixed,
             top: 0,
@@ -5474,6 +5517,21 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
+
+        expenseWidgetRadius: {
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        navigationBarBG: {
+            backgroundColor: theme.navigationBarBackgroundColor,
+        },
+
+        stickToBottom: {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

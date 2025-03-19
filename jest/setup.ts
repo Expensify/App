@@ -84,6 +84,11 @@ jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardCon
 
 jest.mock('react-native-app-logs', () => require<typeof RNAppLogs>('react-native-app-logs/jest'));
 
+jest.mock('@libs/runOnLiveMarkdownRuntime', () => {
+    const runOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue) => worklet;
+    return runOnLiveMarkdownRuntime;
+});
+
 jest.mock('@src/libs/actions/Timing', () => ({
     start: jest.fn(),
     end: jest.fn(),
@@ -92,6 +97,13 @@ jest.mock('@src/libs/actions/Timing', () => ({
 jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({
     defineTask: jest.fn(),
     onBackgroundTaskExecution: jest.fn(),
+}));
+
+jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
+    isHybridApp: jest.fn(),
+    closeReactNativeApp: jest.fn(),
+    completeOnboarding: jest.fn(),
+    switchAccount: jest.fn(),
 }));
 
 // This makes FlatList render synchronously for easier testing.
