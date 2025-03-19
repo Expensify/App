@@ -585,7 +585,8 @@ const styles = (theme: ThemeColors) =>
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            display: shouldDisplayTopLevelBottomTabBar ? 'flex' : 'none',
+            opacity: shouldDisplayTopLevelBottomTabBar ? 1 : 0,
+            height: shouldDisplayTopLevelBottomTabBar ? 'auto' : 0,
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             paddingBottom: bottomSafeAreaOffset,
             bottom: 0,
