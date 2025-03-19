@@ -25,6 +25,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
 
+    console.log(values);
     const items = useMemo(
         () =>
             corpayFields?.formFields?.map((field) => {
