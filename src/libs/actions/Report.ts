@@ -1436,7 +1436,7 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
 /**
  * Sets the last read time on a report
  */
-function markCommentAsUnread(reportID: string | undefined, reportActionCreated: string) {
+function markCommentAsUnread(reportID: string | undefined, reportAction: ReportAction) {
     if (!reportID) {
         Log.warn('7339cd6c-3263-4f89-98e5-730f0be15784 Invalid report passed to MarkCommentAsUnread. Not calling the API because it wil fail.');
         return;
@@ -1460,9 +1460,10 @@ function markCommentAsUnread(reportID: string | undefined, reportActionCreated: 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions ?? []);
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
+
     // If no action created date is provided, use the last action's from other user
     const actionCreationTime =
-        reportActionCreated || (latestReportActionFromOtherUsers?.created ?? getReportLastVisibleActionCreated(report, transactionThreadReport) ?? DateUtils.getDBTime(0));
+        reportAction?.created || (latestReportActionFromOtherUsers?.created ?? getReportLastVisibleActionCreated(report, transactionThreadReport) ?? DateUtils.getDBTime(0));
 
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
@@ -1482,6 +1483,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActionCreated: 
     const parameters: MarkAsUnreadParams = {
         reportID,
         lastReadTime,
+        reportActionID: reportAction?.reportActionID ?? '',
     };
 
     API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData});

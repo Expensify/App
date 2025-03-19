@@ -317,7 +317,7 @@ describe('actions/Report', () => {
 
                 // When the user manually marks a message as "unread"
                 jest.advanceTimersByTime(10);
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
+                Report.markCommentAsUnread(REPORT_ID, reportActions['1']);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -443,7 +443,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report, undefined)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
+                Report.markCommentAsUnread(REPORT_ID, reportActions['1']);
                 return waitForBatchedUpdates();
             })
             .then(() => {
