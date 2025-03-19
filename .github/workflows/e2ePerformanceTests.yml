@@ -221,7 +221,7 @@ jobs:
         if: always()
         run: |
           # Get the size of the output file in bytes
-          file_size=$(stat -f%z "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md")
+          file_size=$(stat -c %s "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md")
 
           # If file is larger than 61440 bytes (60KB), split it
           if [ $file_size -gt 61440 ]; then
