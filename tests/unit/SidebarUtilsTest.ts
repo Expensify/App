@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -195,6 +196,82 @@ describe('SidebarUtils', () => {
 
             expect(result).toBeNull();
         });
+
+        it('returns isPinned true only when report.isPinned is true', () => {
+            const MOCK_REPORT_PINNED: OnyxEntry<Report> = {
+                reportID: '1',
+                isPinned: true,
+            };
+            const MOCK_REPORT_UNPINNED: OnyxEntry<Report> = {
+                reportID: '2',
+                isPinned: false,
+            };
+
+            const optionDataPinned = SidebarUtils.getOptionData({
+                report: MOCK_REPORT_PINNED,
+                reportNameValuePairs: {},
+                reportActions: {},
+                personalDetails: {},
+                preferredLocale: CONST.LOCALES.DEFAULT,
+                policy: undefined,
+                parentReportAction: undefined,
+                hasViolations: false,
+                oneTransactionThreadReport: undefined,
+            });
+            const optionDataUnpinned = SidebarUtils.getOptionData({
+                report: MOCK_REPORT_UNPINNED,
+                reportNameValuePairs: {},
+                reportActions: {},
+                personalDetails: {},
+                preferredLocale: CONST.LOCALES.DEFAULT,
+                policy: undefined,
+                parentReportAction: undefined,
+                hasViolations: false,
+                oneTransactionThreadReport: undefined,
+            });
+
+            expect(optionDataPinned?.isPinned).toBe(true);
+            expect(optionDataUnpinned?.isPinned).toBe(false);
+        });
+
+        it('returns null when report is archived', async () => {
+            const MOCK_REPORT: Report = {
+                reportID: '5',
+            };
+
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${MOCK_REPORT.reportID}`, reportNameValuePairs);
+
+            await waitForBatchedUpdates();
+
+            const MOCK_REPORT_ACTION = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 12345,
+                created: '2024-08-08 18:20:44.171',
+                message: [
+                    {
+                        type: '',
+                        text: '',
+                    },
+                ],
+                errors: {
+                    someError: 'Some error occurred',
+                },
+            };
+            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': MOCK_REPORT_ACTION,
+            };
+            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
+
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+
+            expect(result).toBeNull();
+        });
     });
 
     describe('shouldShowRedBrickRoad', () => {
@@ -339,6 +416,25 @@ describe('SidebarUtils', () => {
 
             expect(result).toBe(false);
         });
+
+        it('returns false when report is archived', () => {
+            const MOCK_REPORT: Report = {
+                reportID: '5',
+                errorFields: {
+                    export: {
+                        error: 'Some error occurred',
+                    },
+                },
+            };
+            // This report with reportID 5 is already archived from previous tests
+            // where we set reportNameValuePairs with private_isArchived
+            const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
+            const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
+
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+
+            expect(result).toBe(false);
+        });
     });
 
     describe('getWelcomeMessage', () => {
@@ -414,6 +510,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 preferredLocale: CONST.LOCALES.EN,
+                oneTransactionThreadReport: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -455,6 +552,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     hasViolations: false,
                     lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -487,6 +585,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     hasViolations: false,
                     lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -523,9 +622,77 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     hasViolations: false,
                     lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
+            });
+            it('returns the last action message as an alternate text if the action is INVITETOROOM type', async () => {
+                // When a report has last action of INVITETOROOM type
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                };
+                const session = {
+                    authToken: 'sensitive-auth-token',
+                    encryptedAuthToken: 'sensitive-encrypted-token',
+                    email: 'user@example.com',
+                    accountID: 12345,
+                };
+                const report: Report = {
+                    ...createRandomReport(4),
+                    chatType: 'policyRoom',
+                    lastMessageHtml: 'invited 1 user',
+                    lastMessageText: 'invited 1 user',
+                    lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+                    participants: {
+                        '12345': {
+                            notificationPreference: 'daily',
+                            role: 'admin',
+                        },
+                    },
+                    policyID: '1',
+                };
+                const lastAction: ReportAction = {
+                    ...createRandomReportAction(2),
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: '<muted-text>invited <mention-user accountID=19268914></mention-user></muted-text>',
+                            text: 'invited',
+                            isEdited: false,
+                            whisperedTo: [],
+                            isDeletedParentAction: false,
+                            deleted: '',
+                        },
+                    ],
+                    originalMessage: {
+                        lastModified: '2025-03-04 10:32:10.416',
+                        targetAccountIDs: [19268914],
+                    },
+                    actorAccountID: 12345,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
+                };
+                const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                await Onyx.set(ONYXKEYS.SESSION, session);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                const result = SidebarUtils.getOptionData({
+                    report,
+                    reportActions,
+                    reportNameValuePairs: {},
+                    hasViolations: false,
+                    personalDetails: {},
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
+                    oneTransactionThreadReport: undefined,
+                });
+
+                // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
+                expect(result?.alternateText).toBe(`You invited 1 user`);
             });
         });
     });

@@ -1,6 +1,4 @@
-import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import DateUtils from '@libs/DateUtils';
 import {buildNextStep} from '@libs/NextStepUtils';
 import {buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -78,6 +76,30 @@ describe('libs/NextStepUtils', () => {
         });
 
         describe('it generates an optimistic nextStep once a report has been opened', () => {
+            test('Fix violations', () => {
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: `${currentUserEmail}`,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'fix the issue(s)',
+                    },
+                ];
+
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, true);
+
+                expect(result).toMatchObject(optimisticNextStep);
+            });
+
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
@@ -273,7 +295,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ` on the ${format(lastDayOfMonth(new Date()), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
+                            text: ` on the last day of the month`,
                         },
                     ];
 
@@ -285,14 +307,11 @@ describe('libs/NextStepUtils', () => {
                         },
                     }).then(() => {
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
-
                         expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
 
                 test('monthly on the last business day', () => {
-                    const lastBusinessDayOfMonth = DateUtils.getLastBusinessDayOfMonth(new Date());
-
                     // Waiting for userSubmitter's expense(s) to automatically submit on lastBusinessDayOfMonth of each month
                     optimisticNextStep.message = [
                         {
@@ -311,7 +330,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ` on the ${format(setDate(new Date(), lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
+                            text: ` on the last business day of the month`,
                         },
                     ];
 

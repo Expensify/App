@@ -77,11 +77,11 @@ function handleOpenWorkspaceSplitAction(
 }
 
 /**
- * Handles the SWITCH_POLICY_ID action.
- * Information about the currently selected policy can be found in the last ReportsSplitNavigator or Search_Root.
- * As the policy can only be changed from Search or Inbox Tab, after changing the policy a new ReportsSplitNavigator or Search_Root with the changed policy has to be pushed to the navigation state.
+ * Handles the SWITCH_POLICY_ID action for `SearchFullscreenNavigator`.
+ * Information about the currently selected policy can be found in the last Search_Root.
+ * After user changes the policy while on Search, a new Search_Root with the changed policy inside query param has to be pushed to the navigation state.
  */
-function handleSwitchPolicyID(
+function handleSwitchPolicyIDFromSearchAction(
     state: StackNavigationState<ParamListBase>,
     action: SwitchPolicyIdActionType,
     configOptions: RouterConfigOptions,
@@ -110,6 +110,23 @@ function handleSwitchPolicyID(
         setActiveWorkspaceID(action.payload.policyID);
         return stackRouter.getStateForAction(state, newAction, configOptions);
     }
+    // We don't have other navigators that should handle switch policy action.
+    return null;
+}
+
+/**
+ * Handles the SWITCH_POLICY_ID action for `ReportsSplitNavigator`.
+ * Information about the currently selected policy can be found in the last ReportsSplitNavigator.
+ * After user changes the policy while on Inbox, a new ReportsSplitNavigator with the changed policy has to be pushed to the navigation state.
+ */
+function handleSwitchPolicyIDAction(
+    state: StackNavigationState<ParamListBase>,
+    action: SwitchPolicyIdActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+    setActiveWorkspaceID: (workspaceID: string | undefined) => void,
+) {
+    const lastRoute = state.routes.at(-1);
     if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
         const newAction = StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {policyID: action.payload.policyID});
 
@@ -182,37 +199,42 @@ function handlePushSearchPageAction(
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
     setActiveWorkspaceID: (workspaceID: string | undefined) => void,
 ) {
-    const currentParams = action.payload.params as RootNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-    const queryJSON = SearchQueryUtils.buildSearchQueryJSON(currentParams.q);
-
-    if (!queryJSON) {
-        return null;
-    }
-
-    if (!queryJSON.policyID) {
-        const policyID = getPolicyIDFromState(state as State<RootNavigatorParamList>);
-
-        if (policyID) {
-            queryJSON.policyID = policyID;
-        } else {
-            delete queryJSON.policyID;
+    let updatedAction = action;
+    const currentParams = action.payload.params as RootNavigatorParamList[typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR];
+    if (currentParams?.screen === SCREENS.SEARCH.ROOT) {
+        const searchParams = currentParams?.params;
+        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(searchParams.q);
+        if (!queryJSON) {
+            return null;
         }
-    } else {
-        setActiveWorkspaceID(queryJSON.policyID);
+
+        if (!queryJSON.policyID) {
+            const policyID = getPolicyIDFromState(state as State<RootNavigatorParamList>);
+
+            if (policyID) {
+                queryJSON.policyID = policyID;
+            } else {
+                delete queryJSON.policyID;
+            }
+        } else {
+            setActiveWorkspaceID(queryJSON.policyID);
+        }
+
+        updatedAction = {
+            ...action,
+            payload: {
+                ...action.payload,
+                params: {
+                    ...action.payload.params,
+                    params: {
+                        q: SearchQueryUtils.buildSearchQueryString(queryJSON),
+                    },
+                },
+            },
+        };
     }
 
-    const modifiedAction = {
-        ...action,
-        payload: {
-            ...action.payload,
-            params: {
-                ...action.payload.params,
-                q: SearchQueryUtils.buildSearchQueryString(queryJSON),
-            },
-        },
-    };
-
-    return stackRouter.getStateForAction(state, modifiedAction, configOptions);
+    return stackRouter.getStateForAction(state, updatedAction, configOptions);
 }
 
 /**
@@ -253,7 +275,8 @@ export {
     handleDismissModalAction,
     handlePushReportSplitAction,
     handlePushSearchPageAction,
-    handleSwitchPolicyID,
+    handleSwitchPolicyIDAction,
+    handleSwitchPolicyIDFromSearchAction,
     handleNavigatingToModalFromModal,
     workspaceSplitsWithoutEnteringAnimation,
     reportsSplitsWithEnteringAnimation,

@@ -1,8 +1,7 @@
 ---
 title: Managing Primary and Secondary Logins in Expensify
-description: Learn how to update or add an email address to your Expensify Classic account with this step-by-step guide.
+description: Learn how to update or add an email address and manage devices tied to your Expensify account.
 ---
-<div id="expensify-classic" markdown="1">
 
 Your **primary email address** on Expensify is used for receiving all notifications and updates. Adding a **secondary email address** enables you to:
 - Change your primary email to a new email.
@@ -50,7 +49,8 @@ If you previously added your personal email as a Secondary Login on a company ac
 # FAQ
 
 ## What does changing the primary login do?
-Changing your primary login updates:
+
+When you change the primary login on your account, the newly updated login will show under the following:
 - The email address displayed on reports (old and new).
 - Workspace account settings.
 - Your account’s default email.
@@ -58,4 +58,13 @@ Changing your primary login updates:
 ## Can I have multiple secondary logins?
 Yes, you can add an unlimited number of secondary logins to your account.
 
-</div>
+## How can I view and manage the devices connected to my Expensify account?
+You can check which devices have accessed your Expensify account and remove any you no longer want to have access.
+
+Device management is only available on the Expensify website:
+
+1. Hover over **Settings** and select **Account**.
+2. Scroll down to the **Device Management** section under **Account Details**.
+3. Click **Device Management** to expand the list of connected devices.
+4. Review the devices with access to your account.
+5. To remove a device, click the **Revoke** button next to the device in question.
