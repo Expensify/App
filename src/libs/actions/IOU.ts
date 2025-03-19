@@ -159,7 +159,6 @@ import {
     isAmountMissing,
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
-    isDuplicate,
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold,
