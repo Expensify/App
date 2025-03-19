@@ -7682,9 +7682,6 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
     Object.values(iouReportActions).forEach((action) => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = getTransaction(transactionID);
-        if (!transaction) {
-            return;
-        }
 
         if (transaction?.comment?.hold) {
             holdReportActions.push(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
