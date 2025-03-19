@@ -108,6 +108,7 @@ const SCREENS = {
             PRIORITY_MODE: 'Settings_Preferences_PriorityMode',
             LANGUAGE: 'Settings_Preferences_Language',
             THEME: 'Settings_Preferences_Theme',
+            PAYMENT_CURRENCY: 'Settings_Payment_Currency',
         },
 
         WALLET: {
