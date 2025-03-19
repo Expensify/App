@@ -350,6 +350,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             {
                 icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                 text: translate('iou.createExpense'),
+                testID: 'create-expense',
                 shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
                 onSelected: () =>
                     interceptAnonymousUser(() => {

@@ -28,7 +28,7 @@ function SearchButton({style}: SearchButtonProps) {
         <Tooltip text={translate('common.search')}>
             <PressableWithoutFeedback
                 ref={pressableRef}
-                nativeID="searchButton"
+                testID="searchButton"
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 // eslint-disable-next-line react-compiler/react-compiler

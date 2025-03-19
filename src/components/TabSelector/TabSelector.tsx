@@ -27,22 +27,23 @@ type TabSelectorProps = MaterialTopTabBarProps & {
 type IconAndTitle = {
     icon: IconAsset;
     title: string;
+    testID?: string;
 };
 
 function getIconAndTitle(route: string, translate: LocaleContextProps['translate']): IconAndTitle {
     switch (route) {
         case CONST.TAB_REQUEST.MANUAL:
-            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual')};
+            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
-            return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan')};
+            return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
         case CONST.TAB.NEW_CHAT:
-            return {icon: Expensicons.User, title: translate('tabSelector.chat')};
+            return {icon: Expensicons.User, title: translate('tabSelector.chat'), testID: 'chat'};
         case CONST.TAB.NEW_ROOM:
-            return {icon: Expensicons.Hashtag, title: translate('tabSelector.room')};
+            return {icon: Expensicons.Hashtag, title: translate('tabSelector.room'), testID: 'room'};
         case CONST.TAB_REQUEST.DISTANCE:
-            return {icon: Expensicons.Car, title: translate('common.distance')};
+            return {icon: Expensicons.Car, title: translate('common.distance'), testID: 'distance'};
         case CONST.TAB_REQUEST.PER_DIEM:
-            return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem')};
+            return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -70,7 +71,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                     const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
-                    const {icon, title} = getIconAndTitle(route.name, translate);
+                    const {icon, title, testID} = getIconAndTitle(route.name, translate);
                     const onPress = () => {
                         if (isActive) {
                             return;
@@ -102,6 +103,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                             inactiveOpacity={inactiveOpacity}
                             backgroundColor={backgroundColor}
                             isActive={isActive}
+                            testID={testID}
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                         />
                     );
