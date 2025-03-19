@@ -70,7 +70,7 @@ function WorkspaceSwitcherPage() {
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput, shouldShowCreateWorkspace} = useWorkspaceList({
         policies,
-        isOffline,
+        shouldShowPendingDeletePolicy: !!isOffline,
         currentUserLogin,
         selectedPolicyID: activeWorkspaceID,
         searchTerm: debouncedSearchTerm,
