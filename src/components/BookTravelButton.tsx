@@ -69,14 +69,14 @@ function BookTravelButton({text}: BookTravelButtonProps) {
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
             setErrorMessage(
                 <Text style={[styles.flexRow, StyleUtils.getDotIndicatorTextStyles(true)]}>
-                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneErrorIntro')}</Text>{' '}
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase1')}</Text>{' '}
                     <TextLink
                         style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
                     >
-                        {translate('travel.phoneErrorLink')}
+                        {translate('travel.phoneError.link')}
                     </TextLink>
-                    .
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase2')}</Text>
                 </Text>,
             );
             return;

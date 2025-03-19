@@ -2035,8 +2035,8 @@ const translations = {
             phrase4: 'verify your account here',
         },
         hasPhoneLoginError: {
-            phrase1: 'To add a verified bank account please',
-            link: 'ensure your primary login is a valid email',
+            phrase1: 'To connect a bank account, please',
+            link: 'add an email as your primary login',
             phrase2: ' and try again. You can add your phone number as a secondary login.',
         },
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
@@ -2627,8 +2627,11 @@ const translations = {
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
-        phoneErrorIntro: 'To book travel, please',
-        phoneErrorLink: 'add a work email address',
+        phoneError: {
+            phrase1: 'Please',
+            link: 'add a work email as your primary login',
+            phrase2: ' to book travel.'
+        },
         domainSelector: {
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
