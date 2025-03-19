@@ -45,14 +45,13 @@ function SearchRouterModal() {
                 behavior="padding"
                 style={[styles.flex1, {maxHeight: windowHeight}]}
             >
-                {isSearchRouterDisplayed && (
-                    <FocusTrapForModal active={isSearchRouterDisplayed}>
-                        <SearchRouter
-                            onRouterClose={closeSearchRouter}
-                            shouldHideInputCaret={shouldHideInputCaret}
-                        />
-                    </FocusTrapForModal>
-                )}
+                <FocusTrapForModal active={isSearchRouterDisplayed}>
+                    <SearchRouter
+                        isSearchRouterDisplayed={isSearchRouterDisplayed}
+                        onRouterClose={closeSearchRouter}
+                        shouldHideInputCaret={shouldHideInputCaret}
+                    />
+                </FocusTrapForModal>
             </KeyboardAvoidingView>
         </Modal>
     );
