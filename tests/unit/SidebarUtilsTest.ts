@@ -286,7 +286,7 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBeNull();
         });
@@ -467,7 +467,7 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBe(false);
         });
