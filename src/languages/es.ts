@@ -2653,7 +2653,7 @@ const translations = {
         phoneError: {
             phrase1: 'Para reservar viajes,',
             link: 'añade una dirección de correo electrónico de trabajo',
-            phrase2: '.'
+            phrase2: '.',
         },
         domainSelector: {
             title: 'Dominio',

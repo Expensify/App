@@ -2630,7 +2630,7 @@ const translations = {
         phoneError: {
             phrase1: 'Please',
             link: 'add a work email as your primary login',
-            phrase2: ' to book travel.'
+            phrase2: ' to book travel.',
         },
         domainSelector: {
             title: 'Domain',
