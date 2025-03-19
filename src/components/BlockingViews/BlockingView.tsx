@@ -53,7 +53,7 @@ type BaseBlockingViewProps = {
     addBottomSafeAreaPadding?: boolean;
 
     /** Accessibility label for the view */
-    accessibilityLabel: string;
+    accessibilityLabel?: string;
 
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
@@ -148,7 +148,10 @@ function BlockingView({
     const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: containerStyleProp});
 
     return (
-        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]} accessibilityLabel={accessibilityLabel}>
+        <View
+            style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
+            accessibilityLabel={accessibilityLabel}
+        >
             {!!animation && (
                 <Lottie
                     source={animation}
