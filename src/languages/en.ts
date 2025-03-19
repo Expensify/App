@@ -2736,6 +2736,7 @@ const translations = {
             requested: 'Requested',
             distanceRates: 'Distance rates',
             defaultDescription: 'One place for all your receipts and expenses.',
+            descriptionHint: 'Share information about this workspace with all members.',
             welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
