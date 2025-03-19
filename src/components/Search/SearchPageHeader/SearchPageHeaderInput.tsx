@@ -18,6 +18,7 @@ import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types'
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
+import HelpButton from '@components/SidePane/HelpButton';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -291,60 +292,64 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         setIsAutocompleteListVisible(true);
     };
     // we need `- BORDER_WIDTH` to achieve the effect that the input will not "jump"
-    const popoverHorizontalPosition = 12 - BORDER_WIDTH;
+    const leftPopoverHorizontalPosition = 12 - BORDER_WIDTH;
+    const rightPopoverHorizontalPosition = 4 - BORDER_WIDTH;
     const autocompleteInputStyle = isAutocompleteListVisible
         ? [
               styles.border,
               styles.borderRadiusComponentLarge,
               styles.pAbsolute,
               styles.pt2,
-              {top: 8 - BORDER_WIDTH, left: popoverHorizontalPosition, right: popoverHorizontalPosition},
+              {top: 8 - BORDER_WIDTH, left: leftPopoverHorizontalPosition, right: rightPopoverHorizontalPosition},
               {boxShadow: variables.popoverMenuShadow},
           ]
         : [styles.pt4];
     const inputWrapperActiveStyle = isAutocompleteListVisible ? styles.ph2 : null;
 
     return (
-        <View
-            dataSet={{dragArea: false}}
-            style={[styles.searchResultsHeaderBar, isAutocompleteListVisible && styles.ph3]}
-        >
-            <View style={[styles.appBG, ...autocompleteInputStyle]}>
-                <SearchInputSelectionWrapper
-                    value={textInputValue}
-                    onSearchQueryChange={onSearchQueryChange}
-                    isFullWidth
-                    onSubmit={() => {
-                        const focusedOption = listRef.current?.getFocusedOption();
-                        if (focusedOption) {
-                            return;
-                        }
-                        submitSearch(textInputValue);
-                    }}
-                    autoFocus={false}
-                    onFocus={showAutocompleteList}
-                    onBlur={hideAutocompleteList}
-                    wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
-                    wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
-                    outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
-                    rightComponent={inputRightComponent}
-                    autocompleteListRef={listRef}
-                    ref={textInputRef}
-                    selection={selection}
-                    substitutionMap={autocompleteSubstitutions}
-                />
-                <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
-                    <SearchAutocompleteList
-                        autocompleteQueryValue={autocompleteQueryValue}
-                        searchQueryItem={searchQueryItem}
-                        onListItemPress={onListItemPress}
-                        setTextQuery={setTextAndUpdateSelection}
-                        updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                        ref={listRef}
-                        shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.zIndex10, styles.mr3]}>
+            <View
+                dataSet={{dragArea: false}}
+                style={[styles.searchResultsHeaderBar, styles.flex1, isAutocompleteListVisible && styles.pr1, isAutocompleteListVisible && styles.pl3]}
+            >
+                <View style={[styles.appBG, ...autocompleteInputStyle]}>
+                    <SearchInputSelectionWrapper
+                        value={textInputValue}
+                        onSearchQueryChange={onSearchQueryChange}
+                        isFullWidth
+                        onSubmit={() => {
+                            const focusedOption = listRef.current?.getFocusedOption();
+                            if (focusedOption) {
+                                return;
+                            }
+                            submitSearch(textInputValue);
+                        }}
+                        autoFocus={false}
+                        onFocus={showAutocompleteList}
+                        onBlur={hideAutocompleteList}
+                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
+                        wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
+                        outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
+                        rightComponent={inputRightComponent}
+                        autocompleteListRef={listRef}
+                        ref={textInputRef}
+                        selection={selection}
+                        substitutionMap={autocompleteSubstitutions}
                     />
+                    <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
+                        <SearchAutocompleteList
+                            autocompleteQueryValue={autocompleteQueryValue}
+                            searchQueryItem={searchQueryItem}
+                            onListItemPress={onListItemPress}
+                            setTextQuery={setTextAndUpdateSelection}
+                            updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                            ref={listRef}
+                            shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
+                        />
+                    </View>
                 </View>
             </View>
+            <HelpButton style={[styles.mt1Half]} />
         </View>
     );
 }
