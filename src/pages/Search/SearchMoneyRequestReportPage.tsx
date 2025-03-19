@@ -42,30 +42,6 @@ const defaultReportMetadata = {
     isOptimisticReport: false,
 };
 
-// NOTE FOR KUBA:
-// When https://github.com/Expensify/App/pull/58360 is merged we should use the empty state component in MoneyRequestReportTableHeader,
-// for now it will be used in TemporaryMoneyRequestReportView.
-function SearchMoneyRequestReportEmptyState() {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-
-    return (
-        <View style={styles.flex1}>
-            <EmptyStateComponent
-                cardStyles={[styles.appBG]}
-                cardContentStyles={[styles.pt5, styles.pb0]}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={LottieAnimations.GenericEmptyState}
-                title={translate('search.moneyRequestReport.emptyStateTitle')}
-                subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, {maxHeight: 85, minHeight: 85}]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                headerContentStyles={styles.emptyStateFolderWebStyles}
-            />
-        </View>
-    );
-}
-
 // // NOTE FOR KUBA:
 // // When the correct header is ready we will need to disable the buttons in case of offline/failure state
 // // and we will need to render Composer component and comment components conditionally in case of failure state

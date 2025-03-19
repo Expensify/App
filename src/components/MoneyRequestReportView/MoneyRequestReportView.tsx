@@ -37,27 +37,6 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function SearchMoneyRequestReportEmptyState() {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-
-    return (
-        <View style={styles.flex1}>
-            <EmptyStateComponent
-                cardStyles={[styles.appBG]}
-                cardContentStyles={[styles.pt5, styles.pb0]}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={LottieAnimations.GenericEmptyState}
-                title={translate('search.moneyRequestReport.emptyStateTitle')}
-                subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, {maxHeight: 85, minHeight: 85}]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                headerContentStyles={styles.emptyStateFolderWebStyles}
-            />
-        </View>
-    );
-}
-
 const noOp = () => {};
 
 function MoneyRequestReportView({report, policy, reportMetadata}: MoneyRequestReportViewProps) {
@@ -107,7 +86,6 @@ function MoneyRequestReportView({report, policy, reportMetadata}: MoneyRequestRe
                     Navigation.goBack();
                 }}
             />
-            <SearchMoneyRequestReportEmptyState />
             <MoneyRequestReportActionsList
                 report={report}
                 reportActions={reportActions}

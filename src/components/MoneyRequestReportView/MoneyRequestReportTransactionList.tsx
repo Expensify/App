@@ -1,8 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
+import EmptyStateComponent from '@components/EmptyStateComponent';
+import LottieAnimations from '@components/LottieAnimations';
 import TransactionItemRow from '@components/TransactionItemRow';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 
@@ -11,13 +15,34 @@ type MoneyRequestReportTransactionListProps = {
     transactions: OnyxTypes.Transaction[];
 };
 
+function SearchMoneyRequestReportEmptyState() {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    return (
+        <View style={styles.flex1}>
+            <EmptyStateComponent
+                cardStyles={[styles.appBG]}
+                cardContentStyles={[styles.pt5, styles.pb0]}
+                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                headerMedia={LottieAnimations.GenericEmptyState}
+                title={translate('search.moneyRequestReport.emptyStateTitle')}
+                subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
+                headerStyles={[styles.emptyStateCardIllustrationContainer, {maxHeight: 85, minHeight: 85}]}
+                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                headerContentStyles={styles.emptyStateFolderWebStyles}
+            />
+        </View>
+    );
+}
+
 function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
 
-    return (
+    return transactions.length > 0 ? (
         <>
             {!displayNarrowVersion && (
                 <MoneyRequestReportTableHeader
@@ -42,6 +67,8 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
                 })}
             </View>
         </>
+    ) : (
+        <SearchMoneyRequestReportEmptyState />
     );
 }
 
