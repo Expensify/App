@@ -1483,7 +1483,7 @@ function markCommentAsUnread(reportID: string | undefined, reportAction: ReportA
     const parameters: MarkAsUnreadParams = {
         reportID,
         lastReadTime,
-        reportActionID: reportAction?.reportActionID ?? '',
+        reportActionID: reportAction?.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData});
