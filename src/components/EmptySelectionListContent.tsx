@@ -15,7 +15,7 @@ type EmptySelectionListContentProps = {
     contentType: string;
 };
 
-const CONTENT_TYPES = [CONST.IOU.TYPE.CREATE];
+const CONTENT_TYPES = [CONST.IOU.TYPE.CREATE, CONST.IOU.TYPE.SUBMIT];
 type ContentType = TupleToUnion<typeof CONTENT_TYPES>;
 
 function isContentType(contentType: unknown): contentType is ContentType {
@@ -29,8 +29,8 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
     if (!isContentType(contentType)) {
         return null;
     }
-
-    const EmptySubtitle = <Text style={[styles.textAlignCenter]}>{translate(`emptyList.${contentType}.subtitleText`)}</Text>;
+    const translationKeyContentType = CONST.IOU.TYPE.CREATE;
+    const EmptySubtitle = <Text style={[styles.textAlignCenter]}>{translate(`emptyList.${translationKeyContentType}.subtitleText`)}</Text>;
 
     return (
         <ScrollView contentContainerStyle={[styles.flexGrow1]}>
@@ -39,7 +39,7 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
                     icon={Illustrations.ToddWithPhones}
                     iconWidth={variables.emptySelectionListIconWidth}
                     iconHeight={variables.emptySelectionListIconHeight}
-                    title={translate(`emptyList.${contentType}.title`)}
+                    title={translate(`emptyList.${translationKeyContentType}.title`)}
                     shouldShowLink={false}
                     CustomSubtitle={EmptySubtitle}
                     containerStyle={[styles.mb8, styles.ph15]}
