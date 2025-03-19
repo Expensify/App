@@ -275,6 +275,7 @@ export default {
     searchFiltersTooltipShiftHorizontalNarrow: -10,
     searchFiltersTooltipShiftVerticalNarrow: 5,
     bottomTabInboxTooltipShiftHorizontal: 36,
+    expenseReportsTypeTooltipShiftHorizontal: 10,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
