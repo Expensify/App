@@ -15,6 +15,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
     const styles = useThemeStyles();
     const textInputRef = useRef<HTMLFormElement | null>(null);
     const removeVisibilityListenerRef = useRef<RemoveVisibilityListener>(null);
+    const isAutoFocusEnabled = typeof ref === 'function' || props.autoFocus;
 
     useEffect(() => {
         let removeVisibilityListener = removeVisibilityListenerRef.current;
@@ -57,6 +58,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
         <BaseTextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            autoFocus={isAutoFocusEnabled}
             ref={(element) => {
                 textInputRef.current = element as HTMLFormElement;
 
