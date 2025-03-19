@@ -1,5 +1,5 @@
 import {format, parseISO} from 'date-fns';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -18,7 +18,8 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getDefaultCardName, maskCardNumber} from '@libs/CardUtils';
+import {filterInactiveCards, getCardFeedIcon, getDefaultCardName, maskCardNumber} from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -56,8 +57,9 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [allBankCards, allBankCardsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`);
+    const [allBankCards, allBankCardsMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`, {selector: filterInactiveCards});
     const card = allBankCards?.[cardID];
 
     const cardBank = card?.bank ?? '';
@@ -76,6 +78,16 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const updateCard = () => {
         updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank as CompanyCardFeed);
     };
+
+    const lastScrape = useMemo(() => {
+        if (!card?.lastScrape) {
+            return '';
+        }
+        if (!preferredLocale) {
+            return card.lastScrape ?? '';
+        }
+        return format(DateUtils.getLocalDateFromDatetime(preferredLocale, card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    }, [preferredLocale, card?.lastScrape]);
 
     if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
         return <NotFoundPage />;
@@ -164,7 +176,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                     />
                                 }
                                 description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
-                                title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : card?.lastScrape}
+                                title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
                                 interactive={false}
                             />
                             <MenuItemWithTopDescription

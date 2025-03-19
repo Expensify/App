@@ -135,13 +135,13 @@ const chatOptions: Array<{type: SearchDataTypes; status: ChatSearchStatus; icon:
     {
         type: CONST.SEARCH.DATA_TYPES.CHAT,
         status: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS,
-        icon: Expensicons.Document,
+        icon: Expensicons.Paperclip,
         text: 'common.attachments',
     },
     {
         type: CONST.SEARCH.DATA_TYPES.CHAT,
         status: CONST.SEARCH.STATUS.CHAT.LINKS,
-        icon: Expensicons.Paperclip,
+        icon: Expensicons.Link,
         text: 'common.links',
     },
     {
@@ -188,7 +188,7 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     }
 
     return (
-        <View style={[shouldShowSelectedDropdown ? styles.ph5 : styles.pr5, styles.mb2, styles.searchStatusBarContainer]}>
+        <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchStatusBarContainer]}>
             {shouldShowSelectedDropdown ? (
                 <ButtonWithDropdownMenu
                     onPress={() => null}
