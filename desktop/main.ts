@@ -8,6 +8,7 @@ import {autoUpdater} from 'electron-updater';
 import {machineId} from 'node-machine-id';
 import checkForUpdates from '@libs/checkForUpdates';
 import {translate} from '@libs/Localize';
+import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -593,13 +594,13 @@ const mainWindow = (): Promise<void> => {
 
                 // Handle renderer process crashes by relaunching the app
                 browserWindow.webContents.on('render-process-gone', (event, detailed) => {
-                    console.debug('App crashed');
-                    console.debug('render-process-gone', detailed);
                     if (detailed.reason === 'crashed') {
                         // relaunch app
                         app.relaunch({args: process.argv.slice(1).concat(['--relaunch'])});
                         app.exit(0);
                     }
+                    Log.info('App crashed  render-process-gone');
+                    Log.info(JSON.stringify(detailed));
                 });
 
                 app.on('before-quit', () => {
