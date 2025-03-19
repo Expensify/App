@@ -782,6 +782,7 @@ const CONST = {
         NSQS: 'nsqs',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
+        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

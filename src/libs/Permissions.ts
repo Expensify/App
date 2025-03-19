@@ -58,6 +58,10 @@ function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
 }
 
+function canUseHelpSidePanel(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.HELP_SIDE_PANEL) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -71,4 +75,5 @@ export default {
     canUseNSQS,
     canUseCustomRules,
     canUseTableReportView,
+    canUseHelpSidePanel,
 };
