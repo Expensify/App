@@ -32,8 +32,7 @@ function PreferencesPage() {
     const isPlatformMuted = mutedPlatforms[platform];
     const [user] = useOnyx(ONYXKEYS.USER);
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
-    const personalPolicyID = getPersonalPolicy()?.id;
-    const personalPolicy = usePolicy(personalPolicyID);
+    const personalPolicy = usePolicy(getPersonalPolicy()?.id);
 
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
