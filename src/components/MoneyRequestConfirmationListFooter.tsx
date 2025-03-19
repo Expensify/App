@@ -698,7 +698,7 @@ function MoneyRequestConfirmationListFooter({
                                 return;
                             }
 
-                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action));
+                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType));
                         }}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
@@ -717,7 +717,7 @@ function MoneyRequestConfirmationListFooter({
                                 return;
                             }
 
-                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action));
+                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType));
                         }}
                         disabled={!shouldDisplayReceipt || isThumbnail}
                         accessibilityRole={CONST.ROLE.BUTTON}
@@ -758,6 +758,8 @@ function MoneyRequestConfirmationListFooter({
             isDistanceRequest,
             reportID,
             transactionID,
+            action,
+            iouType,
         ],
     );
 

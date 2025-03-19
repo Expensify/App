@@ -21,6 +21,7 @@ import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, is
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import {detachReceipt} from '@userActions/IOU';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -129,6 +130,15 @@ type AttachmentModalProps = {
     /** A function as a child to pass modal launching methods to */
     children?: React.FC<ChildrenProps>;
 
+    /** The iou action of the expense creation flow of which we are displaying the receipt for. */
+    iouAction?: IOUAction;
+
+    /** The iou type of the expense creation flow of which we are displaying the receipt for. */
+    iouType?: IOUType;
+
+    /** The id of the draft transaction linked to the receipt. */
+    draftTransactionID?: string;
+
     fallbackSource?: AvatarSource;
 
     canEditReceipt?: boolean;
@@ -167,7 +177,8 @@ function AttachmentModal({
     accountID = undefined,
     shouldDisableSendButton = false,
     draftTransactionID,
-    action,
+    iouAction,
+    iouType: iouTypeProp,
     attachmentLink = '',
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
@@ -187,7 +198,7 @@ function AttachmentModal({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
-    const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
+    const iouType = useMemo(() => iouTypeProp ?? (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction, iouTypeProp]);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
@@ -440,7 +451,7 @@ function AttachmentModal({
                     Navigation.isNavigationReady().then(() => {
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                action ?? CONST.IOU.ACTION.EDIT,
+                                iouAction ?? CONST.IOU.ACTION.EDIT,
                                 iouType,
                                 draftTransactionID ?? transaction?.transactionID,
                                 report?.reportID,
@@ -451,7 +462,7 @@ function AttachmentModal({
                 },
             });
         }
-        if (!isOffline && allowDownload && !isLocalSource) {
+        if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),

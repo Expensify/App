@@ -1771,9 +1771,11 @@ const ROUTES = {
     MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
 
     TRANSACTION_RECEIPT: {
-        route: 'r/:reportID/transaction/:transactionID/receipt/:action?',
-        getRoute: (reportID: string, transactionID: string, readonly = false, isFromReviewDuplicates = false, action?: IOUAction) =>
-            `r/${reportID}/transaction/${transactionID}/receipt${action ? '/' + action : ''}?readonly=${readonly}${isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''}` as const,
+        route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
+        getRoute: (reportID: string, transactionID: string, readonly = false, isFromReviewDuplicates = false, action?: IOUAction, iouType?: IOUType) =>
+            `r/${reportID}/transaction/${transactionID}/receipt${action ? `/${action}` : ''}${iouType ? `/${iouType}` : ''}?readonly=${readonly}${
+                isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''
+            }` as const,
     },
 
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {

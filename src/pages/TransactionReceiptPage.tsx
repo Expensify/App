@@ -2,7 +2,6 @@ import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import {openReport} from '@libs/actions/Report';
-import {shouldUseTransactionDraft as shouldUseTransactionDraftUtil} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RootNavigatorParamList, State} from '@libs/Navigation/types';
@@ -29,15 +28,14 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route.params.transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const userAction = 'action' in route.params && route.params.action ? route.params.action : undefined;
 
-    const shouldUseTransactionDraft = shouldUseTransactionDraftUtil(userAction);
-    const transaction = shouldUseTransactionDraft ? transactionDraft : transactionMain;
+    const isDraftTransaction = !!route?.params?.action;
+    const transaction = isDraftTransaction ? transactionDraft : transactionMain;
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const readonly = route.params.readonly === 'true';
     const isFromReviewDuplicates = route.params.isFromReviewDuplicates === 'true';
-    const imageSource = shouldUseTransactionDraft ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
+    const imageSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
@@ -46,7 +44,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const isTrackExpenseAction = isTrackExpenseReportReportActionsUtils(parentReportAction);
 
     useEffect(() => {
-        if (report && transaction) {
+        if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
         openReport(route.params.reportID);
@@ -59,7 +57,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
         // We have to handle going back to correct screens, if it was opened from RHP just close the modal, otherwise go to Report Page
         const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
         const secondToLastRoute = rootState.routes.at(-2);
-        if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || isDraftTransaction) {
             Navigation.dismissModal();
         } else {
             const isOneTransactionThread = isOneTransactionThreadReportUtils(report?.reportID, report?.parentReportID, parentReportAction);
@@ -72,24 +70,25 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID || isFromReviewDuplicates
+        isTrackExpenseReport || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID || isFromReviewDuplicates
             ? !transaction
-            : moneyRequestReportID !== transaction?.reportID && !shouldUseTransactionDraft;
+            : moneyRequestReportID !== transaction?.reportID;
 
     return (
         <AttachmentModal
             source={imageSource}
-            isAuthTokenRequired={!isLocalFile}
+            isAuthTokenRequired={!isLocalFile && !isDraftTransaction}
             report={report}
             isReceiptAttachment
-            canEditReceipt={(canEditReceipt && !readonly) || shouldUseTransactionDraft}
-            canDeleteReceipt={canDeleteReceipt && !readonly}
-            allowDownload={!isEReceipt || shouldUseTransactionDraft}
+            canEditReceipt={(canEditReceipt && !readonly) || isDraftTransaction}
+            canDeleteReceipt={canDeleteReceipt && !readonly && !isDraftTransaction}
+            allowDownload={!isEReceipt}
             isTrackExpenseAction={isTrackExpenseAction}
-            originalFileName={shouldUseTransactionDraft ? transaction?.filename : receiptURIs?.filename}
+            originalFileName={isDraftTransaction ? transaction?.filename : receiptURIs?.filename}
             defaultOpen
-            action={userAction}
-            draftTransactionID={shouldUseTransactionDraft ? route.params.transactionID : undefined}
+            iouAction={route.params.action}
+            iouType={route.params.iouType}
+            draftTransactionID={isDraftTransaction ? route.params.transactionID : undefined}
             onModalClose={onModalClose}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
