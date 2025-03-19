@@ -5,6 +5,7 @@ import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
     DeleteMembersFromWorkspaceParams,
+    OpenPolicyMemberProfilePageParams,
     OpenWorkspaceMembersPageParams,
     RequestWorkspaceOwnerChangeParams,
     UpdateWorkspaceMembersRoleParams,
@@ -1086,6 +1087,15 @@ function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]
     API.read(READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE, params);
 }
 
+function openPolicyMemberProfilePage(policyID: string, accountID: number) {
+    const params: OpenPolicyMemberProfilePageParams = {
+        policyID,
+        accountID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, params);
+}
+
 function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
 }
@@ -1253,6 +1263,7 @@ export {
     importPolicyMembers,
     downloadMembersCSV,
     clearInviteDraft,
+    openPolicyMemberProfilePage,
 };
 
 export type {NewCustomUnit};

@@ -96,6 +96,7 @@ import type {
     Request,
     TaxRatesWithDefault,
     Transaction,
+    TransactionViolations,
 } from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, Rate, TaxRate} from '@src/types/onyx/Policy';
@@ -230,6 +231,13 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
+let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allTransactionViolations = value),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -332,13 +340,33 @@ function deleteWorkspace(policyID: string, policyName: string) {
             : []),
     ];
 
+    const policy = getPolicy(policyID);
+    // Restore the old report stateNum and statusNum
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                errors: reimbursementAccount?.errors ?? null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                avatarURL: policy?.avatarURL,
+                pendingAction: null,
+            },
+        },
+    ];
+
     const reportsToArchive = Object.values(allReports ?? {}).filter(
         (report) => ReportUtils.isPolicyRelatedReport(report, policyID) && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
     );
     const finallyData: OnyxUpdate[] = [];
     const currentTime = DateUtils.getDBTime();
     reportsToArchive.forEach((report) => {
-        const {reportID, ownerAccountID} = report ?? {};
+        const {reportID, ownerAccountID, oldPolicyName} = report ?? {};
         const isInvoiceReceiverReport = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -381,39 +409,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
             },
         });
 
-        // We are temporarily adding this workaround because 'DeleteWorkspace' doesn't
-        // support receiving the optimistic reportActions' ids for the moment.
-        finallyData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [optimisticClosedReportAction.reportActionID]: null,
-            },
-        });
-    });
-
-    const policy = getPolicy(policyID);
-    // Restore the old report stateNum and statusNum
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-            value: {
-                errors: reimbursementAccount?.errors ?? null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                avatarURL: policy?.avatarURL,
-                pendingAction: null,
-            },
-        },
-    ];
-
-    reportsToArchive.forEach((report) => {
-        const {reportID, oldPolicyName} = report ?? {};
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -423,6 +418,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 isPinned: report?.isPinned,
             },
         });
+
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
@@ -430,6 +426,33 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 private_isArchived: null,
             },
         });
+
+        // We are temporarily adding this workaround because 'DeleteWorkspace' doesn't
+        // support receiving the optimistic reportActions' ids for the moment.
+        finallyData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticClosedReportAction.reportActionID]: null,
+            },
+        });
+
+        if (report?.iouReportID) {
+            const reportTransactions = ReportUtils.getReportTransactions(report.iouReportID);
+            for (const transaction of reportTransactions) {
+                const violations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                    value: violations?.filter((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION),
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: violations,
+                });
+            }
+        }
     });
 
     const params: DeleteWorkspaceParams = {policyID};
@@ -794,7 +817,7 @@ function leaveWorkspace(policyID?: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingAction: policy?.pendingAction,
+                pendingAction: policy?.pendingAction ?? null,
                 employeeList: {
                     [sessionEmail]: {
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove'),
@@ -1059,7 +1082,12 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
             });
             return;
         }
-        const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionAccountID, cleanAccountID], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, cleanAccountID);
+        const optimisticReport = ReportUtils.buildOptimisticChatReport({
+            participantList: [sessionAccountID, cleanAccountID],
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID,
+            ownerAccountID: cleanAccountID,
+        });
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
 
         workspaceMembersChats.reportCreationData[login] = {
@@ -1703,6 +1731,8 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 areCategoriesEnabled: true,
+                areCompanyCardsEnabled: true,
+                areExpensifyCardsEnabled: false,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
@@ -1808,11 +1838,13 @@ function buildPolicyData(
                 },
                 customUnits,
                 areCategoriesEnabled: true,
+                areCompanyCardsEnabled: true,
                 areTagsEnabled: false,
                 areDistanceRatesEnabled: false,
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
+                areExpensifyCardsEnabled: false,
                 employeeList: {
                     [sessionEmail]: {
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -2139,11 +2171,13 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 },
                 customUnits,
                 areCategoriesEnabled: true,
+                areCompanyCardsEnabled: true,
                 areTagsEnabled: false,
                 areDistanceRatesEnabled: false,
                 areWorkflowsEnabled: false,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
+                areExpensifyCardsEnabled: false,
                 employeeList: {
                     [sessionEmail]: {
                         role: CONST.POLICY.ROLE.ADMIN,
@@ -2452,11 +2486,13 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         },
         customUnits,
         areCategoriesEnabled: true,
+        areCompanyCardsEnabled: true,
         areTagsEnabled: false,
         areDistanceRatesEnabled: false,
         areWorkflowsEnabled: false,
         areReportFieldsEnabled: false,
         areConnectionsEnabled: false,
+        areExpensifyCardsEnabled: false,
         employeeList: {
             [sessionEmail]: {
                 role: CONST.POLICY.ROLE.ADMIN,

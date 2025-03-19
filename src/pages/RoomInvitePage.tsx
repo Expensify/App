@@ -16,7 +16,7 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
+import {inviteToRoom, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -30,10 +30,9 @@ import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberI
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
-import {isPolicyEmployee as isPolicyEmployeePolicyUtil} from '@libs/PolicyUtils';
-import {getReportName, isHiddenForCurrentUser} from '@libs/ReportUtils';
+import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {inviteToRoom} from '@userActions/Report';
+import {getReportName, isHiddenForCurrentUser} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -184,7 +183,7 @@ function RoomInvitePage({
 
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
-    const isPolicyEmployee = useMemo(() => (report?.policyID ? isPolicyEmployeePolicyUtil(report.policyID, policies as Record<string, Policy>) : false), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => (report?.policyID ? isPolicyEmployeeUtil(report.policyID, policies as Record<string, Policy>) : false), [report?.policyID, policies]);
     const backRoute = useMemo(() => {
         return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo));
     }, [isPolicyEmployee, reportID, backTo]);
@@ -208,7 +207,7 @@ function RoomInvitePage({
             inviteToRoom(reportID, invitedEmailsToAccountIDs);
         }
         clearUserSearchPhrase();
-        Navigation.navigate(backRoute);
+        Navigation.goBack(backRoute);
     }, [selectedOptions, backRoute, reportID, validate]);
 
     const goBack = useCallback(() => {

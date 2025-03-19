@@ -685,7 +685,11 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             const activeRoute = Navigation.getActiveRoute();
             if (closePopover) {
-                hideContextMenu(false, () => Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute)));
+                hideContextMenu(false, () => {
+                    KeyboardUtils.dismiss().then(() => {
+                        Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
+                    });
+                });
                 return;
             }
 
@@ -757,11 +761,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             !!reportID &&
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            canDeleteReportAction(moneyRequestAction ?? reportAction, reportID) &&
+            canDeleteReportAction(moneyRequestAction ?? reportAction, isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : reportID) &&
             !isArchivedRoom &&
             !isChronosReport &&
             !isMessageDeleted(reportAction),
-        onPress: (closePopover, {reportID, reportAction, moneyRequestAction}) => {
+        onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID || reportIDParam : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));

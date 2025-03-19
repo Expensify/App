@@ -1,7 +1,8 @@
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+import type {ScrollViewProps} from './ScrollView';
 import ScrollView from './ScrollView';
 
 const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;

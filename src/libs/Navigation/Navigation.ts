@@ -25,6 +25,7 @@ import getPolicyIDFromState from './helpers/getPolicyIDFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
+import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
@@ -485,8 +486,8 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
         return;
     }
 
-    const params: Record<string, string> = {
-        reportID: targetReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+    const params: Record<string, string | undefined> = {
+        reportID: targetReport?.reportID,
     };
 
     if (reportActionID) {
@@ -560,6 +561,11 @@ function popToTop() {
     navigationRef.current?.dispatch(StackActions.popToTop());
 }
 
+function popRootToTop() {
+    const rootState = navigationRef.getRootState();
+    navigationRef.current?.dispatch({...StackActions.popToTop(), target: rootState.key});
+}
+
 function removeScreenFromNavigationState(screen: string) {
     isNavigationReady().then(() => {
         navigationRef.current?.dispatch((state) => {
@@ -571,6 +577,11 @@ function removeScreenFromNavigationState(screen: string) {
             });
         });
     });
+}
+
+function isTopmostRouteModalScreen() {
+    const topmostRouteName = navigationRef.getRootState()?.routes?.at(-1)?.name;
+    return isSideModalNavigator(topmostRouteName);
 }
 
 function removeScreenByKey(key: string) {
@@ -610,11 +621,13 @@ export default {
     setNavigationActionToMicrotaskQueue,
     navigateToReportWithPolicyCheck,
     popToTop,
+    popRootToTop,
     removeScreenFromNavigationState,
     removeScreenByKey,
     getReportRouteByID,
     switchPolicyID,
     replaceWithSplitNavigator,
+    isTopmostRouteModalScreen,
 };
 
 export {navigationRef};
