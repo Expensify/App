@@ -3,17 +3,12 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import EmptyStateComponent from '@components/EmptyStateComponent';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
@@ -80,8 +75,6 @@ function ReportActionsView({
     hasOlderActions,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`, {
@@ -282,16 +275,7 @@ function ReportActionsView({
     }
 
     if (visibleReportActions.length === 0) {
-        return (
-            <EmptyStateComponent
-                SkeletonComponent={SearchRowSkeleton}
-                title={translate('report.noActivityYet')}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                headerMedia={Illustrations.EmptyState}
-                headerStyles={styles.emptyFolderDarkBG}
-                headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
-            />
-        );
+        return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
     // AutoScroll is disabled when we do linking to a specific reportAction

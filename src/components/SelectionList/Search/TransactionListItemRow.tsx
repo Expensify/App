@@ -416,13 +416,15 @@ function TransactionListItemRow({
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
-                        participant={item.from}
+                        accountID={item.from.accountID}
+                        avatar={item.from.avatar}
                         displayName={item.formattedFrom}
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
-                        participant={item.to}
+                        accountID={item.to.accountID}
+                        avatar={item.to.avatar}
                         displayName={item.formattedTo}
                     />
                 </View>
