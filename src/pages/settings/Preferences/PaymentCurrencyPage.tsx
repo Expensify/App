@@ -31,7 +31,6 @@ function PaymentCurrencyPage() {
                         title={translate('billingCurrency.paymentCurrency')}
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.goBack()}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
                     />
 
                     <Text style={[styles.mh5, styles.mv4]}>{translate('billingCurrency.paymentCurrencyDescription')}</Text>

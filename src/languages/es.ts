@@ -1436,7 +1436,7 @@ const translations = {
         changePaymentCurrency: 'Cambiar moneda de facturación',
         changeBillingCurrency: 'Cambiar la moneda de pago',
         paymentCurrency: 'Moneda de pago',
-        paymentCurrencyDescription: 'Select a standardized currency that all personal expenses should be converted to.',
+        paymentCurrencyDescription: 'Selecciona una moneda estándar a la que se deben convertir todos los gastos personales.',
         note: 'Nota: Cambiar tu moneda de pago puede afectar cuánto pagarás por Expensify. Consulta nuestra',
         noteLink: 'página de precios',
         noteDetails: 'para conocer todos los detalles.',
