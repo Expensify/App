@@ -217,7 +217,7 @@ jobs:
         if: always()
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
 
-      - name: Split and post large output files
+      - name: Split up too large output files
         if: always()
         run: |
           # Get the size of the output file in bytes
