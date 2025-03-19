@@ -223,10 +223,10 @@ jobs:
           # Get the size of the output file in bytes
           file_size=$(stat -f%z "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md")
 
-          # If file is larger than 65536 bytes (64KB), split it
-          if [ $file_size -gt 65536 ]; then
-            # Split the file into chunks of 65000 characters (leaving room for headers)
-            split -b 65000 "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md" "./Host_Machine_Files/\$WORKING_DIRECTORY/output_"
+          # If file is larger than 61440 bytes (60KB), split it
+          if [ $file_size -gt 61440 ]; then
+            # Split the file into chunks of 60KB files
+            split -b 61440 "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md" "./Host_Machine_Files/\$WORKING_DIRECTORY/output_"
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -240,9 +240,10 @@ jobs:
 
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
 
-            if [ -f "./Host_Machine_Files/\$WORKING_DIRECTORY/output_0.md" ]; then
-            # Post each split file as a separate comment
-              for file in "./Host_Machine_Files/\$WORKING_DIRECTORY/output_*"; do
+            # Check if there are any split files
+            if ls "./Host_Machine_Files/\$WORKING_DIRECTORY"/output_* 1> /dev/null 2>&1; then
+              # Post each split file as a separate comment
+              for file in "./Host_Machine_Files/\$WORKING_DIRECTORY/output_"*; do
                 if [ -f "$file" ]; then
                   # Add a header to indicate which part this is
                   echo "## Performance Test Results (Part $(basename "$file" | sed 's/output_//'))" > temp.md
