@@ -55,7 +55,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
@@ -135,8 +135,10 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isReportApproved,
     isReportManager,
+    isSelectedManagerMcTest,
     isSelfDM,
     isSettled,
+    isTestTransactionReport,
     isTrackExpenseReport,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
@@ -1109,6 +1111,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
+    const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS>;
@@ -1242,6 +1245,65 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${iou.report.policyID}`,
             value: policyRecentlyUsed.destinations,
         });
+    }
+
+    if (isMoneyRequestToManagerMcTest) {
+        const date = new Date();
+        const isTestReceipt = transaction.filename?.includes(CONST.TEST_RECEIPT.FILENAME) && isScanRequest;
+        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+        const optimisticIOUReportAction = buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total ?? 0,
+            currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency ?? '',
+            comment: '',
+            participants: [managerMcTestParticipant],
+            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            iouReportID: iou.report.reportID,
+            transactionID: transaction.transactionID,
+        });
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
+                value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: DateUtils.getDBTime(date.valueOf())},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
+                value: {
+                    ...iou.report,
+                    total: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total,
+                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency,
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    hasOutstandingChildRequest: false,
+                    pendingFields: {
+                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
+                value: {
+                    [optimisticIOUReportAction.reportActionID]: {
+                        ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    ...transaction,
+                    amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
+                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
+                    receipt: {...transaction.receipt, state: CONST.IOU.RECEIPT_STATE.SCANCOMPLETE},
+                },
+            },
+        );
     }
 
     const redundantParticipants: Record<number, null> = {};
@@ -2632,20 +2694,16 @@ function getSendInvoiceInformation(
     optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
-        buildOptimisticMoneyRequestEntities(
-            optimisticInvoiceReport,
-            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        buildOptimisticMoneyRequestEntities({
+            iouReport: optimisticInvoiceReport,
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
             currency,
-            trimmedComment,
-            receiver.login ?? '',
-            [receiver],
-            optimisticTransaction.transactionID,
-            undefined,
-            false,
-            false,
-            false,
-        );
+            comment: trimmedComment,
+            payeeEmail: receiver.login ?? '',
+            participants: [receiver],
+            transactionID: optimisticTransaction.transactionID,
+        });
 
     // STEP 6: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForInvoice({
@@ -2799,23 +2857,20 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // 5. REPORT_PREVIEW action for the chatReport
     // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
-        buildOptimisticMoneyRequestEntities(
+        buildOptimisticMoneyRequestEntities({
             iouReport,
-            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
             currency,
             comment,
             payeeEmail,
-            [participant],
-            optimisticTransaction.transactionID,
-            undefined,
-            false,
-            false,
-            false,
-            undefined,
-            linkedTrackedExpenseReportAction?.childReportID,
+            participants: [participant],
+            transactionID: optimisticTransaction.transactionID,
+            paymentType: isSelectedManagerMcTest(participant.login) ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
+
+            existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
             linkedTrackedExpenseReportAction,
-        );
+        });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
@@ -3041,20 +3096,16 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     // 5. REPORT_PREVIEW action for the chatReport
     // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
-        buildOptimisticMoneyRequestEntities(
+        buildOptimisticMoneyRequestEntities({
             iouReport,
-            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
             currency,
             comment,
             payeeEmail,
-            [participant],
-            optimisticTransaction.transactionID,
-            undefined,
-            false,
-            false,
-            false,
-        );
+            participants: [participant],
+            transactionID: optimisticTransaction.transactionID,
+        });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
@@ -3273,23 +3324,19 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // 2. IOU action for the iouReport (if tracking in the Expense chat), otherwise – for chatReport
     // 3. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
     // 4. REPORT_PREVIEW action for the chatReport (if tracking in the Expense chat)
-    const [, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities(
-        shouldUseMoneyReport && iouReport ? iouReport : chatReport,
-        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+    const [, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities({
+        iouReport: shouldUseMoneyReport && iouReport ? iouReport : chatReport,
+        type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
         amount,
         currency,
         comment,
         payeeEmail,
-        [participant],
-        optimisticTransaction.transactionID,
-        undefined,
-        false,
-        false,
-        false,
-        !shouldUseMoneyReport,
-        linkedTrackedExpenseReportAction?.childReportID,
+        participants: [participant],
+        transactionID: optimisticTransaction.transactionID,
+        isPersonalTrackingExpense: !shouldUseMoneyReport,
+        existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
         linkedTrackedExpenseReportAction,
-    );
+    });
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
     if (shouldUseMoneyReport && iouReport) {
@@ -4705,7 +4752,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 reimbursible,
                 description: parsedComment,
             };
-
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
         }
@@ -5451,16 +5497,16 @@ function createSplitsAndOnyxData({
         // 4. Transaction Thread and the CREATED action for it
         // 5. REPORT_PREVIEW action for the chatReport
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
-            buildOptimisticMoneyRequestEntities(
-                oneOnOneIOUReport,
-                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                splitAmount,
+            buildOptimisticMoneyRequestEntities({
+                iouReport: oneOnOneIOUReport,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: splitAmount,
                 currency,
                 comment,
-                currentUserEmailForIOUSplit,
-                [participant],
-                oneOnOneTransaction.transactionID,
-            );
+                payeeEmail: currentUserEmailForIOUSplit,
+                participants: [participant],
+                transactionID: oneOnOneTransaction.transactionID,
+            });
 
         // Add optimistic personal details for new participants
         const oneOnOnePersonalDetailListAction: OnyxTypes.PersonalDetailsList = shouldCreateOptimisticPersonalDetails
@@ -6229,17 +6275,16 @@ function completeSplitBill(
         });
 
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
-            buildOptimisticMoneyRequestEntities(
-                oneOnOneIOUReport,
-                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                splitAmount,
-                currency ?? '',
-                parsedComment,
-                currentUserEmailForIOUSplit,
-                [participant],
-                oneOnOneTransaction.transactionID,
-                undefined,
-            );
+            buildOptimisticMoneyRequestEntities({
+                iouReport: oneOnOneIOUReport,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: splitAmount,
+                currency: currency ?? '',
+                comment: parsedComment,
+                payeeEmail: currentUserEmailForIOUSplit,
+                participants: [participant],
+                transactionID: oneOnOneTransaction.transactionID,
+            });
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
@@ -7324,19 +7369,18 @@ function getSendMoneyParams(
     };
 
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, optimisticIOUReportAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
-        buildOptimisticMoneyRequestEntities(
-            optimisticIOUReport,
-            CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        buildOptimisticMoneyRequestEntities({
+            iouReport: optimisticIOUReport,
+            type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
             amount,
             currency,
             comment,
-            recipientEmail,
-            [recipient],
-            optimisticTransaction.transactionID,
-            paymentMethodType,
-            false,
-            true,
-        );
+            payeeEmail: recipientEmail,
+            participants: [recipient],
+            transactionID: optimisticTransaction.transactionID,
+            paymentType: paymentMethodType,
+            isSendMoneyFlow: true,
+        });
 
     const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
@@ -8303,10 +8347,7 @@ function canIOUBePaid(
     }
 
     if (isInvoiceReportReportUtils(iouReport)) {
-        if (isOpenInvoiceReportReportUtils(iouReport)) {
-            return false;
-        }
-        if (iouSettled) {
+        if (isChatReportArchived || iouSettled || isOpenInvoiceReportReportUtils(iouReport)) {
             return false;
         }
         if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {

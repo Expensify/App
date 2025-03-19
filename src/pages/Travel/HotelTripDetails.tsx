@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -41,9 +42,10 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
             <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{Str.recapitalize(reservation.start.longName ?? '')}</Text>
             <MenuItemWithTopDescription
                 description={translate('common.address')}
-                title={reservation.start.address}
+                title={StringUtils.removeDoubleQuotes(reservation.start.address)}
                 interactive={false}
                 numberOfLinesTitle={2}
+                pressableTestID={CONST.RESERVATION_ADDRESS_TEST_ID}
             />
             <MenuItemWithTopDescription
                 description={translate('travel.hotelDetails.checkIn')}
