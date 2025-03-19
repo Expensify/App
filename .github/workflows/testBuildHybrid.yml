@@ -8,7 +8,7 @@ on:
         description: App PR number. Defaults to main.
         required: false
         default: ''
-      # Pull Request number from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both specified. If nothing is specified defaults to Mobile-Expensify's main
+      # Pull Request number from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified defaults to Mobile-Expensify's main
       HYBRIDAPP_PULL_REQUEST_NUMBER:
         description: Mobile-Expensify PR number. Defaults to main. Overrides MOBILE-EXPENSIFY set in App's PR description.
         required: false
