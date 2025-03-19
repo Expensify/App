@@ -252,7 +252,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 setIsNoDelegateAccessMenuVisible(true);
-            } else if (isAnyTransactionOnHold || hasDuplicate) {
+            } else if (isAnyTransactionOnHold) {
                 setIsHoldMenuVisible(true);
             } else if (isInvoiceReport(moneyRequestReport)) {
                 startAnimation();
@@ -262,7 +262,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport, startAnimation, hasDuplicate],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport, startAnimation],
     );
 
     const confirmApproval = () => {
@@ -324,6 +324,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (hasOnlyHeldExpenses) {
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expensesOnHold')};
         }
+
+        if (hasDuplicate) {
+            return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.duplicateTransaction')};
+        }
+
         if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
             return {
                 icon: getStatusIcon(Expensicons.Hourglass),
@@ -344,10 +349,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         if (hasScanningReceipt) {
             return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
-        }
-
-        if (hasDuplicate) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: 'Potential duplicate expenses identified. Review duplicates to enable submission.'};
         }
     };
 

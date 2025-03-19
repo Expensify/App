@@ -7686,7 +7686,7 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
             return;
         }
 
-        if (!!transaction?.comment?.hold || isDuplicate(transactionID, true)) {
+        if (transaction?.comment?.hold) {
             holdReportActions.push(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
             holdTransactions.push(transaction);
         }
