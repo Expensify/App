@@ -3914,6 +3914,12 @@ const translations = {
                 disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
             },
+            workflowWarningModal: {
+                featureEnabledTitle: 'Not so fast...',
+                featureEnabledText:
+                    'Expensify Cards in this workspace rely on approval workflows to define their Smart Limits.\n\nPlease change the limit types of any cards with Smart Limits before disabling workflows.',
+                confirmText: 'Go to Expensify Cards',
+            },
             rules: {
                 title: 'Rules',
                 subtitle: 'Require receipts, flag high spend, and more.',
@@ -4412,6 +4418,8 @@ const translations = {
                 business: 'Business',
                 chooseInvoiceMethod: 'Choose a payment method below:',
                 addBankAccount: 'Add bank account',
+                addDebitOrCreditCard: 'Add debit or credit card',
+                addCorporateCard: 'Add corporate card',
                 payingAsIndividual: 'Paying as an individual',
                 payingAsBusiness: 'Paying as a business',
             },

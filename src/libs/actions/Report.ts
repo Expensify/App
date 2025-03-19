@@ -4982,7 +4982,9 @@ function changeReportPolicy(reportID: string, policyID: string) {
 
     // 2. If the old workspace had a workspace chat, mark the report preview action as deleted
     if (reportToMove?.parentReportID && reportToMove?.parentReportActionID) {
-        const oldReportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove?.parentReportID}`]?.[reportToMove?.parentReportActionID];
+        const workspaceChatReportID = reportToMove.parentReportID;
+        const reportPreviewActionID = reportToMove.parentReportActionID;
+        const oldReportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`]?.[reportPreviewActionID];
         const deletedTime = DateUtils.getDBTime();
         const firstMessage = Array.isArray(oldReportPreviewAction?.message) ? oldReportPreviewAction.message.at(0) : null;
         const updatedReportPreviewAction = {
@@ -5008,13 +5010,34 @@ function changeReportPolicy(reportID: string, policyID: string) {
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove?.parentReportID}`,
-            value: {[reportToMove?.parentReportActionID]: updatedReportPreviewAction},
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
+            value: {[reportPreviewActionID]: updatedReportPreviewAction},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove?.parentReportID}`,
-            value: {[reportToMove?.parentReportActionID]: oldReportPreviewAction},
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
+            value: {[reportPreviewActionID]: oldReportPreviewAction},
+        });
+
+        // Update the workspace chat report
+        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`];
+        const lastMessageText = getLastVisibleMessage(workspaceChatReportID, {[reportPreviewActionID]: updatedReportPreviewAction as ReportAction})?.lastMessageText;
+        const lastVisibleActionCreated = getReportLastMessage(workspaceChatReportID, {[reportPreviewActionID]: updatedReportPreviewAction as ReportAction})?.lastVisibleActionCreated;
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
+            value: {
+                hasOutstandingChildRequest: false,
+                iouReportID: null,
+                lastMessageText,
+                lastVisibleActionCreated,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
+            value: chatReport,
         });
     }
 
@@ -5082,15 +5105,19 @@ function changeReportPolicy(reportID: string, policyID: string) {
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove.reportID}`,
         value: {
             [optimisticMovedReportAction.reportActionID]: {
-                ...optimisticMovedReportAction,
                 pendingAction: null,
+                errors: null,
             },
         },
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove.reportID}`,
-        value: {[optimisticMovedReportAction.reportActionID]: null},
+        value: {
+            [optimisticMovedReportAction.reportActionID]: {
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
     });
 
     // Call the ChangeReportPolicy API endpoint

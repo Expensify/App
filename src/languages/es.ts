@@ -3959,6 +3959,12 @@ const translations = {
                 disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
             },
+            workflowWarningModal: {
+                featureEnabledTitle: 'No tan rápido...',
+                featureEnabledText:
+                    'Las Tarjetas Expensify de este espacio de trabajo dependen actualmente de la aprobación para definir sus Límites Inteligentes.\n\nPor favor, modifica los tipos de límite de cualquier Tarjeta Expensify con Límites Inteligentes antes de deshabilitar las flujos de trabajo.',
+                confirmText: 'Ir a Tarjeta Expensify',
+            },
             rules: {
                 title: 'Reglas',
                 subtitle: 'Solicita recibos, resalta gastos de alto importe y mucho más.',
@@ -4458,6 +4464,8 @@ const translations = {
                 business: 'Empresas',
                 chooseInvoiceMethod: 'Elija un método de pago:',
                 addBankAccount: 'Añadir cuenta bancaria',
+                addDebitOrCreditCard: 'Agrega una tarjeta de débito o crédito',
+                addCorporateCard: 'Agrega una tarjeta corporativa',
                 payingAsIndividual: 'Pago individual',
                 payingAsBusiness: 'Pagar como una empresa',
             },
