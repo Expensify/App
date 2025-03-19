@@ -13,7 +13,7 @@ type ColumnConfig = {
     isColumnSortable?: boolean;
 };
 
-const columnConfig: ColumnConfig[] = [
+const columnConfig = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
@@ -49,7 +49,7 @@ const columnConfig: ColumnConfig[] = [
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
         translationKey: 'common.total',
     },
-];
+] satisfies ColumnConfig[];
 
 type SearchTableHeaderProps = {
     sortBy?: SortableColumnName;
@@ -82,3 +82,4 @@ function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, shouldSh
 MoneyRequestReportTableHeader.displayName = 'MoneyRequestReportTableHeader';
 
 export default MoneyRequestReportTableHeader;
+export {columnConfig}
