@@ -115,6 +115,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type PurchaseList from './PurchaseList';
 
 export type {
     TryNewDot,
@@ -218,6 +219,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    PurchaseList,
     ReportUserIsTyping,
     PolicyReportField,
     RecentlyUsedReportFields,
