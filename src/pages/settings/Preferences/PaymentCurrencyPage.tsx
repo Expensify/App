@@ -43,7 +43,7 @@ function PaymentCurrencyPage() {
                                 return;
                             }
                             if (option.currencyCode !== paymentCurrency) {
-                                updateGeneralSettings(personalPolicyID ?? '-1', personalPolicy?.name ?? '-1', option.currencyCode);
+                                updateGeneralSettings(personalPolicyID, personalPolicy?.name ?? '', option.currencyCode);
                             }
                             Navigation.goBack();
                         }}

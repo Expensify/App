@@ -14,12 +14,12 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {togglePlatformMute, updateNewsletterSubscription} from '@libs/actions/User';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import getPlatform from '@libs/getPlatform';
 import LocaleUtils from '@libs/LocaleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -73,7 +73,7 @@ function PreferencesPage() {
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
                                         isOn={user?.isSubscribedToNewsletter ?? true}
-                                        onToggle={User.updateNewsletterSubscription}
+                                        onToggle={updateNewsletterSubscription}
                                     />
                                 </View>
                             </View>
@@ -85,7 +85,7 @@ function PreferencesPage() {
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
                                         isOn={isPlatformMuted ?? false}
-                                        onToggle={() => User.togglePlatformMute(platform, mutedPlatforms)}
+                                        onToggle={() => togglePlatformMute(platform, mutedPlatforms)}
                                     />
                                 </View>
                             </View>
