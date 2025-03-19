@@ -199,6 +199,12 @@ You can upload bulk receipt images or add receipt details in bulk.
 3. Under Personal Cards, click **Import Transactions from File**. 
 4. Click **Upload** and select a .csv, .xls, .ofx, or a .qfx file.
 
+# Expenses detected as duplicates
+
+Expenses added to a report with an exact match on both the date and amount will be flagged as duplicates. However, if only the date or amount matches, they will not be detected as duplicates.
+
+To resolve duplicates, you can [merge](https://help.expensify.com/articles/expensify-classic/expenses/Merge-expenses) the duplicate expenses.
+
 {% include faq-begin.md %}
 
 **What’s the difference between a reimbursable and non-reimbursable expense?**
