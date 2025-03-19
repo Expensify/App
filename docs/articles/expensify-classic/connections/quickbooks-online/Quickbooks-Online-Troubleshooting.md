@@ -22,7 +22,7 @@ This error occurs when the account category applied to an expense in Expensify i
 6. If enabled, go to **Chart of Accounts** and click **Edit** on the relevant account.
 7. Mark the account as billable and select an **income account**.
 8. Sync your QuickBooks Online connection:  
-   **Settings > Workspaces > Workspace Name > Connections**.
+   **Settings > Workspaces > [Workspace Name] > Connections**.
 9. Reattempt exporting: Open the report, click **Export**, and select **QuickBooks Online**.
 
 ---
@@ -58,7 +58,7 @@ This occurs when a submitter has an **Employee Record** in QuickBooks Online, pr
 1. Log in to **QuickBooks Online**.
 2. Manually create Vendor Records with emails matching the ones in Expensify.
 3. Disable **Automatically Create Entities**:  
-   **Settings > Workspaces > Workspace Name > Connections > Configure > Advanced**.
+   **Settings > Workspaces > [Workspace Name] > Connections > Configure > Advanced**.
 
 ---
 
@@ -70,7 +70,7 @@ This error occurs when exporting **reimbursable expenses** as **Journal Entries*
 ## How to Fix It
 You have three options:
 - Change the **export type** for reimbursable expenses:  
-  **Settings > Workspaces > Workspace Name > Connections > Configure > Export**.
+  **Settings > Workspaces > [Workspace Name] > Connections > Configure > Export**.
 - Enable **Automatically Create Entities**:  
   **Settings > Workspaces > Workspace Name > Connections > Configure > Advanced**.
 - Manually create vendor records in QuickBooks Online.
@@ -101,7 +101,7 @@ This error occurs when the QuickBooks Online credentials used to establish the c
 _Alternate error message: "QuickBooks Reconnect Error: OAuth Token Rejected."_
 
 ## How to Fix It
-1. Go to **Settings > Workspaces > Workspace Name > Connections**.
+1. Go to **Settings > Workspaces > [Workspace Name] > Connections**.
 2. Click **Sync Now**.
 3. In the pop-up window, click **Reconnect** and enter your QuickBooks Online credentials.
 4. If using new credentials, reconfigure your settings and reselect your categories/tags.  
@@ -138,7 +138,7 @@ The currency on the **Vendor Record** in QuickBooks Online does not match the cu
 5. Reattempt exporting.
 
 _If the issue persists, confirm the A/P account currency:_  
-1. Navigate to **Settings > Workspaces > Workspace Name > Connections**.
+1. Navigate to **Settings > Workspaces > [Workspace Name] > Connections**.
 2. Under **Exports**, verify that both A/P accounts have the correct currency.
 
 ---
