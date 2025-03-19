@@ -55,7 +55,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getReportPreviewAction(report, REPORT_TRANSACTIONS, VIOLATIONS, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+        expect(getReportPreviewAction(REPORT_TRANSACTIONS, VIOLATIONS,report,  policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
     it('canApprove should return true for report being processed', async () => {
@@ -72,7 +72,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getReportPreviewAction(report, REPORT_TRANSACTIONS, VIOLATIONS, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+        expect(getReportPreviewAction(REPORT_TRANSACTIONS, VIOLATIONS, report, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
     });
 
     it('canPay should return true for expense report with payments enabled', async () => {
@@ -87,7 +87,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getReportPreviewAction(report, REPORT_TRANSACTIONS, VIOLATIONS, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+        expect(getReportPreviewAction( REPORT_TRANSACTIONS, VIOLATIONS,report,  policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('canPay should return true for submitted invoice', async () => {
@@ -103,7 +103,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getReportPreviewAction(report, REPORT_TRANSACTIONS, VIOLATIONS, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+        expect(getReportPreviewAction(REPORT_TRANSACTIONS, VIOLATIONS, report, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('canExport should return true for finished reports', async () => {
@@ -126,7 +126,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getReportPreviewAction(report, REPORT_TRANSACTIONS, VIOLATIONS, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
+        expect(getReportPreviewAction(REPORT_TRANSACTIONS, VIOLATIONS, report, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
     it('canReview should return true for reports where there are violations, user is submitter or approver and Workflows are enabled', async () => {
@@ -150,6 +150,6 @@ describe('getReportPreviewAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(getReportPreviewAction(report, REPORT_TRANSACTIONS, VIOLATIONS, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+        expect(getReportPreviewAction(REPORT_TRANSACTIONS, VIOLATIONS,report,  policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
     });
 });

@@ -82,11 +82,14 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
 }
 
 function getReportPreviewAction(
-    report: Report,
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
+    report?: Report,
     policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
+    if (!report) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
+    }
     if (canSubmit(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }

@@ -509,10 +509,7 @@ function ReportPreview({
     }, [iouReportID]);
 
     const reportPreviewAction = useMemo(() => {
-        if (!iouReport) {
-            return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
-        }
-        return getReportPreviewAction(iouReport, transactions, violations, policy);
+        return getReportPreviewAction(transactions, violations, iouReport, policy);
     }, [iouReport, policy, transactions, violations]);
 
     const reportPreviewActions = {
@@ -590,7 +587,7 @@ function ReportPreview({
             <Button
                 text={translate('common.view')}
                 onPress={() => {
-                    navigateToDetailsPage(iouReport);
+                    openReportFromPreview();
                 }}
                 isDisabled={shouldDisableSubmitButton}
             />
@@ -685,7 +682,7 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                <View style={{paddingTop: 16}}>{reportPreviewActions[reportPreviewAction]}</View>
+                                <View style={styles.pt4}>{reportPreviewActions[reportPreviewAction]}</View>
                             </View>
                         </View>
                     </View>
