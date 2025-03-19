@@ -55,7 +55,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getReportPreviewAction(REPORT_TRANSACTIONS, VIOLATIONS,report,  policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+        expect(getReportPreviewAction(REPORT_TRANSACTIONS, VIOLATIONS, report, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
     it('canApprove should return true for report being processed', async () => {
@@ -87,7 +87,7 @@ describe('getReportPreviewAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getReportPreviewAction( REPORT_TRANSACTIONS, VIOLATIONS,report,  policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+        expect(getReportPreviewAction(REPORT_TRANSACTIONS, VIOLATIONS, report, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('canPay should return true for submitted invoice', async () => {
@@ -150,6 +150,6 @@ describe('getReportPreviewAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(getReportPreviewAction(REPORT_TRANSACTIONS, VIOLATIONS,report,  policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+        expect(getReportPreviewAction(REPORT_TRANSACTIONS, VIOLATIONS, report, policy as Policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
     });
 });

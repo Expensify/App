@@ -70,7 +70,6 @@ import {
     isReportOwner,
     isSettled,
     isTripRoom as isTripRoomReportUtils,
-    navigateToDetailsPage,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
