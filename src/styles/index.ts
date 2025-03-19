@@ -586,7 +586,7 @@ const styles = (theme: ThemeColors) =>
             // On natives we can use absolute positioning.
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             opacity: shouldDisplayTopLevelBottomTabBar ? 1 : 0,
-            height: shouldDisplayTopLevelBottomTabBar ? 'auto' : 0,
+            pointerEvents: shouldDisplayTopLevelBottomTabBar ? 'auto' : 'none',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             paddingBottom: bottomSafeAreaOffset,
             bottom: 0,
