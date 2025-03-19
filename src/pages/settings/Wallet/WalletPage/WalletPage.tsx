@@ -611,7 +611,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                     anchorRef={paymentMethodButtonRef as RefObject<View>}
                 >
                     {!showConfirmDeleteModal && (
-                        <View style={[styles.mv5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}>
+                        <View style={[!isPopoverBottomMount ? styles.pv4 : styles.pt5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}>
                             {isPopoverBottomMount && (
                                 <MenuItem
                                     title={paymentMethod.formattedSelectedPaymentMethod.title}
@@ -668,7 +668,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                     }}
                     anchorRef={paymentMethodButtonRef as RefObject<View>}
                 >
-                    <View style={[styles.mv5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}>
+                    <View style={[!isPopoverBottomMount ? styles.pv4 : styles.pt5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}>
                         {isPopoverBottomMount && (
                             <MenuItem
                                 title={paymentMethod.formattedSelectedPaymentMethod.title}
