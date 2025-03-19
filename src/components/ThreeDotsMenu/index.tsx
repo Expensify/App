@@ -129,6 +129,7 @@ function ThreeDotsMenu({
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
+                shouldUseNewModal
             />
         </>
     );

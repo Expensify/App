@@ -19,6 +19,7 @@ type WindowDimensions = {
     windowWidth: number;
     windowHeight: number;
     isSmallScreenWidth: boolean;
+    isExtraLargeScreenWidth: boolean;
 };
 
 type GetModalStyles = {
@@ -46,7 +47,7 @@ type GetModalStylesStyleUtil = {
 
 const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({theme, styles}) => ({
     getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}): GetModalStyles => {
-        const {windowWidth, isSmallScreenWidth} = windowDimensions;
+        const {windowWidth, windowHeight, isSmallScreenWidth, isExtraLargeScreenWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,
@@ -244,7 +245,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 modalStyle = {
                     ...modalStyle,
                     ...{
-                        marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
+                        marginLeft: isSmallScreenWidth ? 0 : isExtraLargeScreenWidth ? windowWidth - 2 * variables.sideBarWidth : windowWidth - variables.sideBarWidth,
                         width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                         flexDirection: 'row',
                         justifyContent: 'flex-end',
@@ -254,6 +255,44 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                     height: '100%',
                     overflow: 'hidden',
+                };
+
+                animationIn = {
+                    from: {
+                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                    },
+                    to: {
+                        translateX: 0,
+                    },
+                };
+                animationOut = {
+                    from: {
+                        translateX: 0,
+                    },
+                    to: {
+                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                    },
+                };
+                hideBackdrop = true;
+                swipeDirection = undefined;
+                shouldAddBottomSafeAreaPadding = true;
+                shouldAddTopSafeAreaPadding = true;
+                break;
+            case 'sidePane':
+                modalStyle = {
+                    ...modalStyle,
+                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
+                    marginTop: isExtraLargeScreenWidth ? windowHeight / 2 : 0,
+                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                    height: '100%',
+                };
+                modalContainerStyle = {
+                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                    height: windowHeight,
+                    overflow: 'hidden',
+                    justifyContent: 'flex-end',
+                    borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
+                    borderLeftColor: theme.border,
                 };
 
                 animationIn = {
