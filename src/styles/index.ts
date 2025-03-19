@@ -1148,19 +1148,12 @@ const styles = (theme: ThemeColors) =>
             marginLeft: variables.chatInputSpacing,
         },
 
-        offlineIndicator: {
+        offlineIndicatorChat: {
             marginLeft: variables.chatInputSpacing,
         },
 
-        offlineIndicatorMobile: {
-            paddingLeft: 20,
-            paddingTop: 5,
-            paddingBottom: 30,
-            marginBottom: -25,
-        },
-
-        offlineIndicatorRow: {
-            height: 25,
+        offlineIndicatorContainer: {
+            height: CONST.OFFLINE_INDICATOR_HEIGHT,
         },
 
         deletedAttachmentIndicator: {
@@ -5506,6 +5499,17 @@ const styles = (theme: ThemeColors) =>
 
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        navigationBarBG: {
+            backgroundColor: theme.navigationBarBackgroundColor,
+        },
+
+        stickToBottom: {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
         },
     } satisfies Styles);
 
