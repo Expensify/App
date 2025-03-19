@@ -1839,9 +1839,6 @@ describe('ReportUtils', () => {
             };
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
         });
-
-
-        
     });
 
     describe('canEditWriteCapability', () => {
