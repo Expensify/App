@@ -632,7 +632,8 @@ https://help.expensify.com/articles/new-expensify/settings/Add-personal-informat
 https://help.expensify.com/articles/new-expensify/settings/Update-your-name,https://help.expensify.com/articles/new-expensify/settings/Manage-Profile-and-Account-Preferences
 https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Assign-Company-Cards,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Manage-Company-Cards
 https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Configure-Company-Card-Settings,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Manage-Company-Cards
-https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Connect-Company-Cards,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Troubleshoot-Company-Cards
+https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Connect-Company-Cards,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Troubleshooting-Company-Cards
+https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Troubleshoot-Company-Cards,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Troubleshooting-Company-Cards
 https://help.expensify.com/articles/expensify-classic/travel/Approve-travel-expenses.md,https://help.expensify.com/articles/new-expensify/travel/Approve-travel-expenses
 https://help.expensify.com/articles/expensify-classic/travel/Book-with-Expensify-Travel.md,https://help.expensify.com/articles/new-expensify/travel/Book-with-Expensify-Travel
 https://help.expensify.com/articles/expensify-classic/travel/Configure-travel-policy-and-preferences.md,https://help.expensify.com/articles/new-expensify/travel/Configure-travel-policy-and-preferences
@@ -662,3 +663,15 @@ https://help.expensify.com/articles/expensify-classic/reports/Add-comments-and-a
 https://help.expensify.com/articles/expensify-classic/expensify-card/Statements,https://help.expensify.com/articles/expensify-classic/expensify-card/Expensify-Card-Statements
 https://help.expensify.com/articles/expensify-classic/expensify-billing/Out-of-date-Billing,https://help.expensify.com/articles/expensify-classic/expensify-billing/Out-of-Date-Billing
 https://help.expensify.com/articles/expensify-classic/settings/Set-time-zone,https://help.expensify.com/articles/expensify-classic/settings/Set-Time-Zone
+https://help.expensify.com/articles/expensify-classic/reports/Assign-tag-and-category-approvers,https://help.expensify.com/articles/expensify-classic/reports/Report-Approvals#Assign-Tag-and-Category-Approvers
+https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit,https://help.expensify.com/articles/expensify-classic/reports/Report-Approvals#Automate-Receipt-Audits
+https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule,https://help.expensify.com/articles/expensify-classic/reports/Report-Approvals#Set-a-Random-Report-Audit-Schedule
+https://help.expensify.com/articles/expensify-classic/reports/Require-review-for-over-limit-expenses,https://help.expensify.com/articles/expensify-classic/reports/Report-Approvals#Require-Review-for-Over-Limit-Expenses
+https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Get-reimbursed-faster-as-a-non-US-employee,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments
+https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Third-Party-Payments,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments
+https://help.expensify.com/articles/expensify-classic/expensify-partner-program/Referral-Program,https://use.expensify.com/accountants-program
+https://help.expensify.com/articles/expensify-classic/reports/Track-report-history,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
+https://help.expensify.com/articles/expensify-classic/reports/Submit-or-retract-a-report,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
+https://help.expensify.com/articles/expensify-classic/reports/Edit-a-report,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
+https://help.expensify.com/articles/expensify-classic/reports/Report-statuses,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
+https://help.expensify.com/articles/expensify-classic/reports/Add-expenses-to-a-report,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
