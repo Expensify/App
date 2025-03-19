@@ -88,7 +88,7 @@ platform :android do
     setGradleOutputsInEnv()
   end
 
-  desc "Generate a production HybridApp AAB"
+  desc "Generate a debug HybridApp AAB"
   lane :build_hybrid_debug do
     ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
     gradle(
