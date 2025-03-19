@@ -270,7 +270,7 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if (isLoadingInitialReportActions && visibleReportActions.length === 0 && !isOffline) {
+    if (isLoadingInitialReportActions && !isOffline) {
         return <ReportActionsSkeletonView />;
     }
 
