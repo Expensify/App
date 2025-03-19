@@ -1,6 +1,6 @@
-import {pluginMetro} from '@rnef/plugin-metro';
 import {platformAndroid} from '@rnef/platform-android';
 import {platformIOS} from '@rnef/platform-ios';
+import {pluginMetro} from '@rnef/plugin-metro';
 
 export default {
     remoteCacheProvider: null,
