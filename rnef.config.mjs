@@ -3,7 +3,7 @@ import {platformAndroid} from '@rnef/platform-android';
 import {platformIOS} from '@rnef/platform-ios';
 
 export default {
-    remoteCacheProvider: 'github-actions',
+    remoteCacheProvider: null,
     plugins: [pluginMetro()],
     platforms: {
         ios: platformIOS(),
