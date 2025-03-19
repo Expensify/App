@@ -61,7 +61,7 @@ import {
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isOldDotReportAction,
-    isReimbursementDeQueuedAction,
+    isReimbursementDeQueuedOrCancelledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
     isReportActionAttachment,
@@ -87,7 +87,7 @@ import {
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
     getOriginalReportID,
-    getReimbursementDeQueuedActionMessage,
+    getReimbursementDeQueuedOrCancelledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
     getReportAutomaticallyApprovedMessage,
@@ -477,9 +477,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction});
                     Clipboard.setString(modifyExpenseMessage);
-                } else if (isReimbursementDeQueuedAction(reportAction)) {
+                } else if (isReimbursementDeQueuedOrCancelledAction(reportAction)) {
                     const {expenseReportID} = getOriginalMessage(reportAction) ?? {};
-                    const displayMessage = getReimbursementDeQueuedActionMessage(reportAction, expenseReportID);
+                    const displayMessage = getReimbursementDeQueuedOrCancelledActionMessage(reportAction, expenseReportID);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
                     const displayMessage = getIOUReportActionDisplayMessage(reportAction, transaction);

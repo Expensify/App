@@ -70,8 +70,8 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             isClosedExpenseReportWithNoExpenses={ReportUtils.isClosedExpenseReportWithNoExpenses(iouReport)}
             isCurrentUserTheOnlyParticipant={ReportUtils.isCurrentUserTheOnlyParticipant}
             missingPaymentMethod={missingPaymentMethod}
-            reimbursementDeQueuedActionMessage={ReportUtils.getReimbursementDeQueuedActionMessage(
-                action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
+            reimbursementDeQueuedOrCancelledActionMessage={ReportUtils.getReimbursementDeQueuedOrCancelledActionMessage(
+                action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED>>,
                 report,
             )}
             modifiedExpenseMessage={ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction: action})}
