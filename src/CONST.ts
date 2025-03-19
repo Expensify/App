@@ -1321,6 +1321,11 @@ const CONST = {
             },
             THREAD_DISABLED: ['CREATED'],
         },
+        TRANSACTION_LIST: {
+            COLUMNS: {
+                COMMENTS: 'comments',
+            },
+        },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
         },
@@ -6860,6 +6865,8 @@ const CONST = {
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
     ILLUSTRATION_ASPECT_RATIO: 39 / 22,
+
+    OFFLINE_INDICATOR_HEIGHT: 25,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

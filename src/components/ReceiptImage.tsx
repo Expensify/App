@@ -5,9 +5,11 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
+import EReceiptWithSizeCalculation from './EReceiptWithSizeCalculation';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
+import type {TransactionListItemType} from './SelectionList/types';
 import ThumbnailImage from './ThumbnailImage';
 
 type Style = {height: number; borderRadius: number; margin: number};
@@ -85,6 +87,12 @@ type ReceiptImageProps = (
 
     /** Callback to be called on pressing the image */
     onPress?: () => void;
+
+    /** Whether the receipt is a per diem request */
+    isPerDiemRequest?: boolean;
+
+    /** The transaction data in search */
+    transactionItem?: TransactionListItemType;
 };
 
 function ReceiptImage({
@@ -105,6 +113,8 @@ function ReceiptImage({
     fallbackIconBackground,
     isEmptyReceipt = false,
     onPress,
+    transactionItem,
+    isPerDiemRequest,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -127,12 +137,21 @@ function ReceiptImage({
         );
     }
 
-    if (isEReceipt || isThumbnail) {
+    if (isEReceipt && !isPerDiemRequest) {
+        return (
+            <EReceiptWithSizeCalculation
+                transactionID={transactionID}
+                transactionItem={transactionItem}
+            />
+        );
+    }
+
+    if (isThumbnail || (isEReceipt && isPerDiemRequest)) {
         const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
         return (
             <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
-                    transactionID={transactionID ?? '-1'}
+                    transactionID={transactionID}
                     iconSize={iconSize}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}

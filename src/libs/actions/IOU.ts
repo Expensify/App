@@ -5,6 +5,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
@@ -9089,7 +9090,14 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     notifyNewAction(Navigation.getTopmostReportId() ?? iouReport?.reportID, userAccountID);
 }
 
-function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxEntry<OnyxTypes.Report>, payAsBusiness = false) {
+function payInvoice(
+    paymentMethodType: PaymentMethodType,
+    chatReport: OnyxTypes.Report,
+    invoiceReport: OnyxEntry<OnyxTypes.Report>,
+    payAsBusiness = false,
+    methodID?: number,
+    paymentMethod?: PaymentMethod,
+) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
         optimisticData,
@@ -9118,6 +9126,14 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         paymentMethodType,
         payAsBusiness,
     };
+
+    if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        params.bankAccountID = methodID;
+    }
+
+    if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        params.fundID = methodID;
+    }
 
     if (policyID) {
         params = {

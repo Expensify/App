@@ -109,9 +109,6 @@ type ReportActionsListProps = {
     /** ID of the list */
     listID: number;
 
-    /** Callback executed on content size change */
-    onContentSizeChange: (w: number, h: number) => void;
-
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
 };
@@ -154,7 +151,6 @@ function ReportActionsList({
     onLayout,
     isComposerFullSize,
     listID,
-    onContentSizeChange,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
@@ -678,12 +674,6 @@ function ReportActionsList({
         },
         [isScrollToBottomEnabled, onLayout, reportScrollManager],
     );
-    const onContentSizeChangeInner = useCallback(
-        (w: number, h: number) => {
-            onContentSizeChange(w, h);
-        },
-        [onContentSizeChange],
-    );
 
     const retryLoadNewerChatsError = useCallback(() => {
         loadNewerChats(true);
@@ -768,7 +758,6 @@ function ReportActionsList({
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
-                    onContentSizeChange={onContentSizeChangeInner}
                     onScroll={trackVerticalScrolling}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
