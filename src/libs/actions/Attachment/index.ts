@@ -11,7 +11,7 @@ Onyx.connect({
     callback: (value) => (attachments = value),
 });
 
-function getAttachmentSource(attachmentID: number) {
+function getAttachmentSource(attachmentID: string) {
     const attachment: OnyxTypes.Attachment | undefined = attachments?.[attachmentID];
     if (attachment?.localSource && attachment?.localVersion === attachment?.remoteVersion) {
         return attachment?.localSource;

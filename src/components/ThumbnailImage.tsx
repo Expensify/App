@@ -41,7 +41,7 @@ type ThumbnailImageProps = {
     /** Height of the thumbnail image */
     imageHeight?: number;
 
-    attachmentID?: number;
+    attachmentID?: string;
 
     fileName: string;
 

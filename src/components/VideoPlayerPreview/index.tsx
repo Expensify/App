@@ -20,7 +20,9 @@ type VideoDimensions = {
 };
 
 type VideoPlayerPreviewProps = {
-    attachmentID?: number;
+    /** attachmentID of the video */
+    attachmentID?: string;
+
     /** Url to a video. */
     videoUrl: string;
 

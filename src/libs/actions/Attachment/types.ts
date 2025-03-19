@@ -1,5 +1,5 @@
 export type CacheAttachmentProps = {
-    attachmentID: number;
+    attachmentID: string;
     src: string;
     fileName?: string;
 };
