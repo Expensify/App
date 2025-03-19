@@ -38,6 +38,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import KeyboardUtils from '@src/utils/keyboard';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -72,7 +73,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     );
 
     const openRoleSelectionModal = useCallback(() => {
-        setIsRoleSelectionModalVisible(true);
+        KeyboardUtils.dismiss().then(() => {
+            setIsRoleSelectionModalVisible(true);
+        });
     }, []);
 
     const getDefaultWelcomeNote = useCallback(() => {
