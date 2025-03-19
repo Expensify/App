@@ -26,18 +26,7 @@ import {
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {
-    getReportTransactions,
-    isCurrentUserSubmitter,
-    isOpenExpenseReport,
-    isProcessingReport,
-    isReportApproved,
-    isReportIDApproved,
-    isReportManuallyReimbursed,
-    isSettled,
-    isTestTransactionReport,
-    isThread,
-} from '@libs/ReportUtils';
+import {getReportTransactions, isCurrentUserSubmitter, isOpenExpenseReport, isProcessingReport, isReportIDApproved, isSettled, isTestTransactionReport, isThread} from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
