@@ -1893,7 +1893,7 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            const transaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+            const optimisticTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     waitForCollectionCallback: true,
@@ -1905,7 +1905,7 @@ describe('actions/IOU', () => {
             });
 
             // Then the data from the transaction draft should be merged into the optimistic transaction
-            expect(transaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
+            expect(optimisticTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
         });
     });
 
