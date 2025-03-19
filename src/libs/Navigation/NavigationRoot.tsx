@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {CurrentRenderContext, DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -46,6 +46,13 @@ type NavigationRootProps = {
 };
 
 /**
+ * Save currentUrl to sessionStorage
+ */
+function savePathToSessionStorage(path: string) {
+    sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH, path);
+}
+
+/**
  * Intercept navigation state changes and log it
  */
 function parseAndLogRoute(state: NavigationState) {
@@ -54,7 +61,6 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     const currentPath = customGetPathFromState(state, linkingConfig.config);
-
     const focusedRoute = findFocusedRoute(state);
 
     if (focusedRoute && !CONST.EXCLUDE_FROM_LAST_VISITED_PATH.includes(focusedRoute?.name)) {
@@ -72,6 +78,11 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     Navigation.setIsNavigationReady();
+
+    if (currentPath.includes('/settings')) {
+        console.log('currentPath', currentPath);
+        savePathToSessionStorage(currentPath);
+    }
 
     // Fullstory Page navigation tracking
     const focusedRouteName = focusedRoute?.name;
@@ -217,6 +228,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
         cleanPreservedNavigatorStates(state);
+
+        // console.log('state', state);
     };
 
     return (
