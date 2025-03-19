@@ -210,9 +210,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
 
-    const hasDuplicate = hasDuplicateTransactions(moneyRequestReport?.reportID);
+    const hasDuplicates = hasDuplicateTransactions(moneyRequestReport?.reportID);
     const shouldShowStatusBar =
-        hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions || hasDuplicate;
+        hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions || hasDuplicates;
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to theirself, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
@@ -269,7 +269,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
             setIsNoDelegateAccessMenuVisible(true);
-        } else if (isAnyTransactionOnHold || hasDuplicate) {
+        } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
@@ -325,7 +325,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expensesOnHold')};
         }
 
-        if (hasDuplicate) {
+        if (hasDuplicates) {
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.duplicateTransaction')};
         }
 
