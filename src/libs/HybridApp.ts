@@ -91,5 +91,3 @@ function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryN
     currentHybridApp = hybridApp;
     currentTryNewDot = tryNewDot;
 }
-
-export default {shouldUseOldApp};

@@ -52,6 +52,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -238,12 +239,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (CONFIG.IS_HYBRID_APP && session?.authToken) {
-            HybridAppActions.resetSignInFlow();
-        }
-
-        if (account?.isLoading) {
+        if (account?.isLoading || hybridApp?.readyToShowAuthScreens) {
             return;
+        }
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppActions.resetSignInFlow();
         }
         if (account?.errors) {
             SessionActions.clearAccountMessages();
@@ -299,7 +299,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         } else {
             SessionActions.signIn(validateCode, recoveryCodeOr2faCode);
         }
-    }, [session?.authToken, account?.isLoading, account?.errors, account?.requiresTwoFactorAuth, isUsingRecoveryCode, recoveryCode, twoFactorAuthCode, credentials?.accountID, validateCode]);
+    }, [account?.isLoading, account?.errors, account?.requiresTwoFactorAuth, hybridApp?.readyToShowAuthScreens, isUsingRecoveryCode, recoveryCode, twoFactorAuthCode, credentials?.accountID, validateCode]);
 
     return (
         <SafariFormWrapper>

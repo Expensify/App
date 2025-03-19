@@ -1,7 +1,6 @@
 import React, {memo, useContext, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
-import HybridApp from '@libs/HybridApp';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,19 +13,15 @@ type AppNavigatorProps = {
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
     const {initialURL} = useContext(InitialURLContext);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
     const shouldShowAuthScreens = useMemo(() => {
         if (!CONFIG.IS_HYBRID_APP) {
             return authenticated;
         }
-        if (HybridApp.shouldUseOldApp(tryNewDot) && !hybridApp?.isSingleNewDotEntry) {
-            return false;
-        }
 
         return authenticated && (!hybridApp?.useNewDotSignInPage || hybridApp?.readyToShowAuthScreens);
-    }, [tryNewDot, hybridApp?.isSingleNewDotEntry, hybridApp?.useNewDotSignInPage, hybridApp?.readyToShowAuthScreens, authenticated]);
+    }, [hybridApp?.useNewDotSignInPage, hybridApp?.readyToShowAuthScreens, authenticated]);
 
     useEffect(() => {
         if (!CONFIG.IS_HYBRID_APP || !initialURL || !shouldShowAuthScreens) {
