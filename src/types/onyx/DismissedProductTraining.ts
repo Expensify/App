@@ -19,10 +19,10 @@ const {
  */
 type DismissedProductTrainingElement = {
     /** The timestamp of when the user dismissed the product training element. */
-    dismissedTime: string;
+    timestamp: string;
 
     /** The method of how the user dismissed the product training element, click or x. */
-    dismissedMethod: 'click' | 'x';
+    dismissedMethod: 'click' | 'x' | 'elsewhere';
 };
 /**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.

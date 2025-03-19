@@ -216,7 +216,7 @@ function dismissProductTraining(elementName: string, isDismissedUsingX = false) 
             key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
             value: {
                 [elementName]: {
-                    dismissedTime: DateUtils.getDBTime(date.valueOf()),
+                    timestamp: DateUtils.getDBTime(date.valueOf()),
                     dismissedMethod,
                 },
             },
