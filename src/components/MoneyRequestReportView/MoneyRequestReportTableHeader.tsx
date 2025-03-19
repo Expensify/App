@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SortOrder} from '@components/Search/types';
 import SortableTableHeader from '@components/SelectionList/SortableTableHeader';
 import type {SortableColumnName} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
