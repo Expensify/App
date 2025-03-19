@@ -14,7 +14,7 @@ import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthentica
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
-import * as MemberActions from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -69,7 +69,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={() => {
-                        MemberActions.clearWorkspaceOwnerChangeFlow(policyID);
+                        clearWorkspaceOwnerChangeFlow(policyID);
                         Navigation.goBack();
                         Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
                     }}
