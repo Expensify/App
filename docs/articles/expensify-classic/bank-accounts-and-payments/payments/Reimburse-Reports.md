@@ -1,12 +1,15 @@
 ---
 title: Reimburse Reports
-description: 
+description: Learn how to reimburse reports in Expensify using direct deposit, global reimbursement, third-party payment providers, or manual tracking methods.
+keywords: [Expensify Classic, reimburse reports, direct deposit, USD, ACH, global reimbursement]
 ---
 <div id="expensify-classic" markdown="1">
 
 Once a report is submitted and approved, you can reimburse the expenses directly via direct deposit or global reimbursement, use an indirect reimbursement method (such as a third-party payment processor), or mark the report as reimbursed outside of Expensify (if your organization bundles reimbursements in payroll, for instance).
- 
-## Direct Deposit - USD
+
+---
+
+# Direct Deposit - USD
 
 Before a report can be reimbursed via direct deposit:
 - The reimburser must [connect a verified business bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account)
@@ -20,7 +23,9 @@ To reimburse a report via direct deposit (USD):
 
 If the reimbursement is less than $200, it will typically be deposited into the employee's bank account immediately. If the reimbursement is more than $200, the deposit will be processed within one to five business days. 
 
-## Direct Deposit - Global Reimbursement
+---
+
+# Direct Deposit - Global Reimbursement
 Before a report can be reimbursed via global reimbursement:
 - A workspace admin must [set up global reimbursements](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Enable-Global-Reimbursements)
 - Employees must [connect a deposit account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-US-Bank-Account)
@@ -33,26 +38,31 @@ To reimburse a report via global reimbursement:
 
 The reimbursement should be processed within five business days. If the payment hasn't been processed within that timeframe, reach out to Expensify Support for assistance.
 
-## Indirect Reimbursement
+---
+
+# Indirect Reimbursement
 If you are reimbursing reports outside of Expensify via paper check or payroll, you’ll want to manually mark the report as paid to track the payment history.
 
 To label a report as Reimbursed after sending a payment outside of Expensify:
 1. Open the report
 2. Click **Reimburse**.
-3. Select **I’ll do it manually - just mark it as reimbursed**. This changes the report status to Reimbursed.
+3. Select **I’ll do it manually - just mark it as reimbursed**. This changes the report status to **Reimbursed**.
 
 Once the recipient has received the payment, the submitter can return to the report and click **Confirm**. This will change the report status to **`Reimbursed: CONFIRMED`**.
 
-### Reimburse a report via a third-party payment provider
+## Reimburse a report via a third-party payment provider
 
 If both the reimburser and the payment recipient have Venmo accounts, you can [connect them directly to Expensify](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Third-Party-Payments) to send and receive reimbursements. 
 
-### Reimburse a report via ABA batch file
+## Reimburse a report via ABA batch file
+
 Workspace Admins can reimburse AUD expense reports by downloading an ABA file containing the accounts needing payment and uploading the file to the bank. This can be done for a single report or for a batch of payments.
 
 More information on reimbursing reports via ABA batch file can be found **[here](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Australian-Reports)**.
 
-{% include faq-begin.md %}
+---
+
+# FAQ
 
 ## Is there a maximum report total?
 
@@ -89,7 +99,5 @@ You can give another employee access to reimburse reports by doing the following
 ## Why can’t I trigger direct ACH reimbursements in bulk?
 
 Expensify does not offer bulk reimbursement, but you can automate reimbursements by setting a threshold amount under **Settings > Workspaces > [Workspace Name] > Reimbursement**. After setting a threshold amount, an employee's reimbursement is triggered once a report is **Final Approved**. If the total of a report is more than the threshold amount, the reimbursement will need to be manually triggered.
-
-{% include faq-end.md %}
 
 </div>
