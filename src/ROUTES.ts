@@ -158,6 +158,7 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION: 'settings/subscription/request-early-cancellation-survey',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
+    SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
     SETTINGS_THEME: 'settings/preferences/theme',
     SETTINGS_WORKSPACES: {route: 'settings/workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/workspaces', backTo)},
     SETTINGS_SECURITY: 'settings/security',
@@ -1772,10 +1773,17 @@ const ROUTES = {
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
-        getRoute: (reportID: string, transactionID: string, readonly = false, isFromReviewDuplicates = false, action?: IOUAction, iouType?: IOUType) =>
-            `r/${reportID}/transaction/${transactionID}/receipt${action ? `/${action}` : ''}${iouType ? `/${iouType}` : ''}?readonly=${readonly}${
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false, action?: IOUAction, iouType?: IOUType) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
+            }
+            if (!transactionID) {
+                Log.warn('Invalid transactionID is used to build the TRANSACTION_RECEIPT route');
+            }
+            return `r/${reportID}/transaction/${transactionID}/receipt${action ? `/${action}` : ''}${iouType ? `/${iouType}` : ''}?readonly=${readonly}${
                 isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''
-            }` as const,
+            }` as const;
+        },
     },
 
     TRANSACTION_DUPLICATE_REVIEW_PAGE: {

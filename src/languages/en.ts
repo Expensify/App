@@ -1437,6 +1437,7 @@ const translations = {
         changeBillingCurrency: 'Change billing currency',
         changePaymentCurrency: 'Change payment currency',
         paymentCurrency: 'Payment currency',
+        paymentCurrencyDescription: 'Select a standardized currency that all personal expenses should be converted to.',
         note: 'Note: Changing your payment currency can impact how much you’ll pay for Expensify. Refer to our',
         noteLink: 'pricing page',
         noteDetails: 'for full details.',
@@ -3914,6 +3915,12 @@ const translations = {
                 disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
             },
+            workflowWarningModal: {
+                featureEnabledTitle: 'Not so fast...',
+                featureEnabledText:
+                    'Expensify Cards in this workspace rely on approval workflows to define their Smart Limits.\n\nPlease change the limit types of any cards with Smart Limits before disabling workflows.',
+                confirmText: 'Go to Expensify Cards',
+            },
             rules: {
                 title: 'Rules',
                 subtitle: 'Require receipts, flag high spend, and more.',
@@ -4412,6 +4419,8 @@ const translations = {
                 business: 'Business',
                 chooseInvoiceMethod: 'Choose a payment method below:',
                 addBankAccount: 'Add bank account',
+                addDebitOrCreditCard: 'Add debit or credit card',
+                addCorporateCard: 'Add corporate card',
                 payingAsIndividual: 'Paying as an individual',
                 payingAsBusiness: 'Paying as a business',
             },
