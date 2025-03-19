@@ -804,6 +804,17 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 }
 
 /**
+ * Check if there is rter violation in all transactionViolations with given transactionIDs.
+ */
+function hasRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
+    return !!transactionViolations?.every(
+        (violation: TransactionViolation) =>
+            violation.name === CONST.VIOLATIONS.RTER &&
+            (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530),
+    );
+}
+
+/**
  * Check if there is broken connection violation.
  */
 function hasBrokenConnectionViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
@@ -875,6 +886,17 @@ function allHavePendingRTERViolation(transactionIds: string[], transactionViolat
     const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
         const filteredTransactionViolations = getTransactionViolations(transactionId, transactionViolations);
         return hasPendingRTERViolation(filteredTransactionViolations);
+    });
+    return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
+}
+
+/**
+ * Check if there is rter violation in all transactionViolations with given transactionIDs.
+ */
+function allHaveRTERViolation(transactionIds: string[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+    const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
+        const filteredTransactionViolations = getTransactionViolations(transactionId, transactionViolations);
+        return hasRTERViolation(filteredTransactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
 }
@@ -1490,6 +1512,7 @@ export {
     getOriginalAmount,
     getFormattedAttendees,
     getMerchant,
+    allHaveRTERViolation,
     getMerchantOrDescription,
     getMCCGroup,
     getCreated,
