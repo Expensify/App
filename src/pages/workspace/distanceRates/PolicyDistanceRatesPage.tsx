@@ -52,7 +52,7 @@ function PolicyDistanceRatesPage({
         params: {policyID},
     },
 }: PolicyDistanceRatesPageProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -184,7 +184,19 @@ function PolicyDistanceRatesPage({
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
     };
 
+    const toggleRate = (rate: RateForList) => {
+        if (selectedDistanceRates.find((selectedRate) => selectedRate.customUnitRateID === rate.value) !== undefined) {
+            setSelectedDistanceRates((prev) => prev.filter((selectedRate) => selectedRate.customUnitRateID !== rate.value));
+        } else {
+            setSelectedDistanceRates((prev) => [...prev, customUnitRates[rate.value]]);
+        }
+    };
+
     const openRateDetails = (rate: RateForList) => {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleRate(rate);
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rate.value));
     };
 
@@ -226,14 +238,6 @@ function PolicyDistanceRatesPage({
         );
         setSelectedDistanceRates([]);
         setIsDeleteModalVisible(false);
-    };
-
-    const toggleRate = (rate: RateForList) => {
-        if (selectedDistanceRates.find((selectedRate) => selectedRate.customUnitRateID === rate.value) !== undefined) {
-            setSelectedDistanceRates((prev) => prev.filter((selectedRate) => selectedRate.customUnitRateID !== rate.value));
-        } else {
-            setSelectedDistanceRates((prev) => [...prev, customUnitRates[rate.value]]);
-        }
     };
 
     const toggleAllRates = () => {
