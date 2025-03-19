@@ -20,7 +20,7 @@ If your organization is recognized as **tax-exempt** by the IRS or other local t
 4. Our team will review your submission and request any additional information if needed.
 5. Once verified, your account will be updated, and tax will no longer be applied to future billing.
 
-![Click the request tax exempt status button]({{site.url}}/assets/images/Tax-Exempt---Classic---CardDetailsUpdate2.png){:width="100%"}
+![Click the request tax exempt status button]({{site.url}}/assets/images/Tax Exempt - Classic - CardDetailsUpdate2.png){:width="100%"}
 
 If you need to **remove** your tax-exempt status, contact your **Account Manager** or **Concierge** to make that request.
 
