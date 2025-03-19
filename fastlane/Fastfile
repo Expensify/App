@@ -74,7 +74,9 @@ platform :android do
       ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
       gradle(
         project_dir: 'Mobile-Expensify/Android',
-        task: "bundleProductionRelease",
+        task: 'bundle',
+        flavor: 'Production',
+        build_type: 'Release',
         flags: "--refresh-dependencies",
         properties: {
             "android.injected.signing.store.file" => './upload-key.keystore',
@@ -91,7 +93,9 @@ platform :android do
       ENV["ENVFILE"]="Mobile-Expensify/.env.adhoc.hybridapp.android"
       gradle(
         project_dir: 'Mobile-Expensify/Android',
-        task: 'assembleAdhoc',
+        task: 'assemble',
+        flavor: 'adhoc',
+        build_type: 'Release',
         properties: {
             "android.injected.signing.store.file" => './upload-key.keystore',
             "android.injected.signing.store.password" => ENV["ANDROID_UPLOAD_KEYSTORE_PASSWORD"],
