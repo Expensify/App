@@ -1937,8 +1937,8 @@ const translations = {
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
-            `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours. Please try validating your number:`,
-        validationFailed: 'Validation failed because it hasn’t been 24 hours since your last attempt.',
+            `We've been unable to deliver SMS messages to ${login}, so we've suspended it temporarily. Please try validating your number:`,
+        validationFailed: 'Validation failed because enough time hasn’t passed since your last attempt.',
         validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
         pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
             if (!timeData) {
