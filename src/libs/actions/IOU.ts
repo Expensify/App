@@ -5471,7 +5471,7 @@ function createSplitsAndOnyxData({
         }
 
         // STEP 3: Build optimistic transaction
-        const oneOnOneTransaction = buildOptimisticTransaction({
+        let oneOnOneTransaction = buildOptimisticTransaction({
             originalTransactionID: splitTransaction.transactionID,
             transactionParams: {
                 amount: isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
@@ -5488,6 +5488,10 @@ function createSplitsAndOnyxData({
                 source: CONST.IOU.TYPE.SPLIT,
             },
         });
+
+        if (isDistanceRequest) {
+            oneOnOneTransaction = fastMerge(existingTransaction, oneOnOneTransaction, false);
+        }
 
         // STEP 4: Build optimistic reportActions. We need:
         // 1. CREATED action for the chatReport

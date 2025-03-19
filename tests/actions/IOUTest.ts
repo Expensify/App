@@ -1865,6 +1865,48 @@ describe('actions/IOU', () => {
             });
             expect(report?.lastVisibleActionCreated).toBe(iouAction?.created);
         });
+
+        it('optimistic transaction should be merged with the draft transaction if it is a distance request', async () => {
+            // Given a workspace expense chat and a draft split transaction
+            const workspaceReportID = '1';
+            const transactionAmount = 100;
+            const draftTransaction = {
+                amount: transactionAmount,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'test',
+                created: '',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, draftTransaction);
+
+            // When doing a distance split expense
+            splitBill({
+                participants: [{reportID: workspaceReportID}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                existingSplitChatReportID: workspaceReportID,
+                ...draftTransaction,
+                comment: '',
+            });
+
+            await waitForBatchedUpdates();
+
+            const transaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        resolve(Object.values(transactions ?? {}).find((transaction) => transaction?.amount === -(transactionAmount / 2)));
+                    },
+                });
+            });
+
+            // Then the data from the transaction draft should be merged into the optimistic transaction
+            expect(transaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
+        });
     });
 
     describe('payMoneyRequestElsewhere', () => {
