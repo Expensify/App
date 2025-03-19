@@ -8346,10 +8346,7 @@ function canIOUBePaid(
     }
 
     if (isInvoiceReportReportUtils(iouReport)) {
-        if (isOpenInvoiceReportReportUtils(iouReport)) {
-            return false;
-        }
-        if (iouSettled) {
+        if (isChatReportArchived || iouSettled || isOpenInvoiceReportReportUtils(iouReport)) {
             return false;
         }
         if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
