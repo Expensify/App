@@ -217,6 +217,20 @@ jobs:
         if: always()
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
 
+      - name: Split and post large output files
+        if: always()
+        run: |
+          # Get the size of the output file in bytes
+          file_size=$(stat -f%z "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md")
+
+          # If file is larger than 65536 bytes (64KB), split it
+          if [ $file_size -gt 65536 ]; then
+            # Split the file into chunks of 65000 characters (leaving room for headers)
+            split -b 65000 "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md" "./Host_Machine_Files/\$WORKING_DIRECTORY/output_"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Check if test failed, if so post the results and add the DeployBlocker label
         id: checkIfRegressionDetected
         run: |
@@ -225,7 +239,22 @@ jobs:
             echo "performanceRegressionDetected=true" >> "$GITHUB_OUTPUT"
 
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
-            gh pr comment ${{ inputs.PR_NUMBER }} -F "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
+
+            if [ -f "./Host_Machine_Files/\$WORKING_DIRECTORY/output_0.md" ]; then
+            # Post each split file as a separate comment
+              for file in "./Host_Machine_Files/\$WORKING_DIRECTORY/output_*"; do
+                if [ -f "$file" ]; then
+                  # Add a header to indicate which part this is
+                  echo "## Performance Test Results (Part $(basename "$file" | sed 's/output_//'))" > temp.md
+                  cat "$file" >> temp.md
+                  gh pr comment ${{ inputs.PR_NUMBER }} -F temp.md
+                  rm temp.md
+                fi
+              done
+            else
+              gh pr comment ${{ inputs.PR_NUMBER }} -F "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
+            fi
+
             gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
           else
             echo "performanceRegressionDetected=false" >> "$GITHUB_OUTPUT"
