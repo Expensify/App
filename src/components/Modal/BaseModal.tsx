@@ -91,8 +91,7 @@ function BaseModal(
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {sidePaneOffset} = useSidePane();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const sidePaneStyle = shouldApplySidePaneOffset && !shouldUseNarrowLayout ? {paddingRight: sidePaneOffset.current} : undefined;
+    const sidePaneStyle = shouldApplySidePaneOffset && !isSmallScreenWidth ? {paddingRight: sidePaneOffset.current} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
