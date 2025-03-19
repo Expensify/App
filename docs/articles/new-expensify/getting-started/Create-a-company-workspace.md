@@ -1,28 +1,16 @@
 ---
-title: Create a company workspace
-description: Get started with Expensify by creating a workspace for your company
+title: Configure your Expensify Workspace
+description: Get started with Expensify by creating a workspace for your company 
 ---
 <div id="new-expensify" markdown="1">
 
-To create an Expensify account for your company, follow the six steps below and enjoy a free 7-day trial, which won’t begin until workspace activity has begun.
+Setting up an Expensify workspace is the first step to managing company expenses efficiently. Follow this guide to create and configure your workspace, invite members, and enable key features. Your first workspace comes with a free 30-day trial and access to a <b>Setup Specialist</b> for assistance. Reach out via the <b>#admins chat room</b> or <b>Concierge</b> in your Inbox.
 
-{% include info.html %}
-After you create your new company workspace, you can schedule a free private onboarding session with one of our Setup Specialists. After you complete the steps below, check your email and notifications in Expensify for your unique signup link.
-{% include end-info.html %}
+# 1. Create a workspace 
 
-# 1. Meet Concierge
+Workspaces help manage company expenses, enforce policies, and integrate with accounting software. Each workspace has its own set of rules, settings, company card feeds, and integrations. Once invited to a workspace, members can submit expenses according to its rules.
 
-Concierge is your personal assistant who walks you through setting up your account and also provides:
-- Reminders to do things like submit your expenses
-- Alerts when more information is needed on an expense report
-- Updates on new and improved account features
-
-You can get support any time by locating your chat with Concierge in your chat inbox. You can ask questions and receive direct support in this thread.
-
-# 2. Create a new workspace
-
-Members can submit and manage their expenses in a workspace in Expensify. Each workspace has its own set of rules, settings, and integrations.
-
+## Steps to Create a Workspace:
 <ol type="a">
    <li>Click your profile photo or icon in the bottom left menu.</li>
    <li>Scroll down and click <b>Workspaces</b> in the left menu.</li>
@@ -38,17 +26,53 @@ Members can submit and manage their expenses in a workspace in Expensify. Each w
 
 ![Options to make changes like a custom workspace name]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_3.png){:width="100%"}
 
-# 3. Invite members
+# 2. Connect to your accounting software
+
+If you use <b>QuickBooks Online (QBO)</b>, <b>Xero</b>, <b>NetSuite</b>, or <b>Sage Intacct</b>, connect your workspace for seamless imports and exports.
+
+## Benefits of Connecting:
+
+<b>Import</b>: Expensify syncs your chart of accounts for accurate expense coding.
+<b>Export</b>: Approved expense reports are sent directly to your accounting software.
+
+## Integration Guides:
 
 <ol type="a">
-   <li>From the workspace view, click <b>Members</b> on the left.</li>
-   <li>Click <b>Invite member</b>.</li>
-   <li>Use the search field to find the individual by name, email, or phone number. <i>Note: You can select multiple people</i>.</li> 
-   <li>Click <b>Next</b>.</li> 
-   <li>(Optional) Enter a custom message into the Message field.</li> 
-   <li>Click <b>Invite</b>.</li>
+   <li><a href='https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online'>Connect to QuickBooks Online</a></li>
+   <li><a href='https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero'>Connect to Xero</a></li>
+   <li><a href='https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite'>Connect to NetSuite</a></li> 
+   <li><a href='https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct'>Connect to Sage Intacct</a></li> 
 </ol>
-Once the invite is accepted, the new members will appear in your members list. 
+
+# 3. Add categories
+
+Categories help organize expenses. If you connected to accounting software, Expensify imports your chart of accounts automatically.
+
+## Steps to Manage Categories:
+
+<ol type="a">
+   <li>Click <b>Categories</b> in the left menu.</li>
+   <li>Enable or disable categories:</li>
+   <li>Disable: Click a category and toggle it off.</li>
+   <li>Add: Click <b>Add Category</b>, enter a name, and click <b>Save</b>.</li>
+</ol>
+
+[Learn more about expense categories](https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-categories).
+
+{% include info.html %}
+Categories are enabled by default. However, if you want to completely disable all categories, you can do so by clicking **More Features** in the left menu and clicking the Categories toggle to disable it.
+{% include end-info.html %}
+
+# 4. Invite members
+
+## Steps to Invite Team Members:
+
+<ol type="a">
+   <li>Click <b>Members</b> in the left menu.</li>
+   <li>Click <b>Invite Member</b>.</li>
+   <li>Search by name, email, or phone number (multiple selections allowed).</li>
+   <li>Click <b>Next</b>, optionally add a message, and click <b>Invite</b>.</li>
+</ol>
 
 {% include info.html %}
 You can also invite members on the workspace’s Profile page by clicking **Share** to share the workspace’s URL or QR code.
@@ -60,11 +84,11 @@ You can also invite members on the workspace’s Profile page by clicking **Shar
 
 ![Enter a custom message into the Message field]({{site.url}}/assets/images/ExpensifyHelp_InviteMembers_3.png){:width="100%"}
 
-# 4. Set admins
+# 5. Assign admins
 
-Admins are members of your workspace who have permission to manage the workspace. The table below shows the difference between member and admin permissions:
+Admins manage workspace settings, reports, and approvals. The table below shows key differences between members and admins:
 
-| Employee                                  | Workspace Admin                            |
+| Member                                    | Admin                                      |
 | ----------------------------------------- | ------------------------------------------ |
 | &#10004; Submit their own reports         | &#10004; Submit their own reports          |
 | &#10004; Approve reports submitted to them| &#10004; Approve reports submitted to them |
@@ -72,50 +96,73 @@ Admins are members of your workspace who have permission to manage the workspace
 |                                           | &#10004; Approve all workspace reports     |
 |                                           | &#10004; Edit workspace settings           |
 
-To assign a member as an admin, 
+## Steps to Assign Admins:
 
 <ol type="a">
-   <li>From the Members page of your workspace, click any member’s name.</li>
-   <li>Click <b>Role</b> to change their role to Admin.</li>
+   <li>Click <b>Members</b>b> in the left menu.</li>
+   <li>Select a member’s name.</li>
+   <li>Click <b>Role</b>b> and set them as <b>Admin</b>b>.</li>
 </ol>
 
-# 5. Add categories
+# 6. Set Up Approval Workflows
 
-Categories help you code your expenses.
+Approval workflows streamline expense review and reimbursement.
+
+## Enable Approvals:
 
 <ol type="a">
-   <li>Click <b>Categories</b> in the left menu.</li>
-   <li>Disable or add categories.</li> 
-      <ul>
-         <li><b>To disable a category</b>: Click the category, then click the green toggle to disable it.</li>
-         <li><b>To add a new category</b>: Click <b>Add category</b> in the top right. Then enter a name for the category and click <b>Save</b>.</li>
-      </ul>
+    <li>Click <b>Workflows</b> in the left menu.</li>
+    <li>Toggle <b>Add Approvals</b> on.</li>
 </ol>
 
-{% include info.html %}
-Categories are enabled by default. However, if you want to completely disable all categories, you can do so by clicking **More Features** in the left menu and clicking the Categories toggle to disable it.
-{% include end-info.html %}
-
-# 6. Add more features
-
-The items that appear in your left menu under each workspace are determined by the features that are enabled for the workspace. For example, you can choose to enable or disable any of the following features: 
-- Distance rates
-- Workflows
-- Categories
-- Tags
-- Taxes 
-
-Once enabled, a new menu option for the feature will appear in the left menu with additional settings for the feature. 
-
-To add more features,
+## Configure a Default Approval Workflow:
 
 <ol type="a">
-   <li>Click <b>More features</b> in the left menu.</li>
-   <li>Enable any desired feature.</li> 
-   <li>Click the related menu item that appears in the left menu to update its settings.</li>
+   <li>Click <b>Workflow</b>s in the left menu.</li>
+   <li>Under <b>Expenses from Everyone</b>, set a <b>First Approver</b>.</li>
+   <li>Add additional approvers if needed.</li>
+   <li>Click <b>Save</b>.</li>
 </ol>
 
-Easily monitor when your Free Trial starts and how many days are left on your Subscription page. We’ll also notify you when your trial starts and ends, at which point you’ll add a billing card to continue using all your favorite features!
+Note: A default approval workflow is required when approvals are enabled.
+
+## Configure Custom Workflows for Specific Members:
+
+<ol type="a">
+   <li>Click <b>Workflows</b> in the left menu.</li>
+   <li>Click <b>Add Approval Workflow</b>.</li>
+   <li>Select a member and their first approver.</li>
+   <li>Click <b>Next</b> and continue adding approvers.</li>
+   <li>Click <b>Add Workflow</b> to save.</li>
+</ol>
+
+# 7. Enable Additional Features
+
+You can customize your workspace by enabling features such as:
+
+- [Expensify Cards](https://help.expensify.com/new-expensify/hubs/expensify-card/)
+- [Rules](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules)
+- [Distance rates](https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates)
+- [Workflows - Payments](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account)
+- [Workflows - Delayed submission](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows)
+- [Tags](https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags)
+- [Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-taxes)
+
+## Steps to Enable Features:
+
+<ol type="a">
+   <li>Click <b>More Features</b> in the left menu.</li>
+   <li>Enable desired features.</li>
+   <li>Click the new menu item to configure settings.</li>
+</ol>
+
+# 8. Monitor Your Free Trial
+
+Track your Free Trial start date and remaining days on the Subscription page.
+
+- Your <b>Setup Specialist</b> and <b>Concierge</b> are available for support.
+- You’ll receive notifications when your trial starts and ends.
+- To continue using Expensify, add a <b>billing card<b/> before your trial ends.
 
 ![Hightlight the free trial start and end date]({{site.url}}/assets/images/ExpensifyHelp-FreeTrial-1.png){:width="100%"}
  

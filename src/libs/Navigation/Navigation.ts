@@ -25,6 +25,7 @@ import getPolicyIDFromState from './helpers/getPolicyIDFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
+import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
@@ -33,7 +34,7 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import switchPolicyID from './helpers/switchPolicyID';
 import {linkingConfig} from './linkingConfig';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
+import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -481,12 +482,12 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
     const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
     if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
-        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID ?? '-1', reportActionID, referrer));
+        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID, reportActionID, referrer));
         return;
     }
 
-    const params: Record<string, string> = {
-        reportID: targetReport?.reportID ?? '-1',
+    const params: Record<string, string | undefined> = {
+        reportID: targetReport?.reportID,
     };
 
     if (reportActionID) {
@@ -504,6 +505,24 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
             params,
         }),
     );
+}
+
+function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navigationRef.getRootState().routes): NavigationRoute | null {
+    if (!reportID || !routes?.length) {
+        return null;
+    }
+    for (const route of routes) {
+        if (route.name === SCREENS.REPORT && !!route.params && 'reportID' in route.params && route.params.reportID === reportID) {
+            return route;
+        }
+        if (route.state?.routes) {
+            const partialRoute = getReportRouteByID(reportID, route.state.routes);
+            if (partialRoute) {
+                return partialRoute;
+            }
+        }
+    }
+    return null;
 }
 
 /**
@@ -542,10 +561,33 @@ function popToTop() {
     navigationRef.current?.dispatch(StackActions.popToTop());
 }
 
+function popRootToTop() {
+    const rootState = navigationRef.getRootState();
+    navigationRef.current?.dispatch({...StackActions.popToTop(), target: rootState.key});
+}
+
 function removeScreenFromNavigationState(screen: string) {
     isNavigationReady().then(() => {
         navigationRef.current?.dispatch((state) => {
             const routes = state.routes?.filter((item) => item.name !== screen);
+            return CommonActions.reset({
+                ...state,
+                routes,
+                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            });
+        });
+    });
+}
+
+function isTopmostRouteModalScreen() {
+    const topmostRouteName = navigationRef.getRootState()?.routes?.at(-1)?.name;
+    return isSideModalNavigator(topmostRouteName);
+}
+
+function removeScreenByKey(key: string) {
+    isNavigationReady().then(() => {
+        navigationRef.current?.dispatch((state) => {
+            const routes = state.routes?.filter((item) => item.key !== key);
             return CommonActions.reset({
                 ...state,
                 routes,
@@ -579,9 +621,13 @@ export default {
     setNavigationActionToMicrotaskQueue,
     navigateToReportWithPolicyCheck,
     popToTop,
+    popRootToTop,
     removeScreenFromNavigationState,
+    removeScreenByKey,
+    getReportRouteByID,
     switchPolicyID,
     replaceWithSplitNavigator,
+    isTopmostRouteModalScreen,
 };
 
 export {navigationRef};

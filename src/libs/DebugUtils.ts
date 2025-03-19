@@ -1041,6 +1041,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     linkedTrackedExpenseReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     linkedTrackedExpenseReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     bank: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    liabilityType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1077,6 +1078,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 customUnit: 'object',
                 source: 'string',
                 originalTransactionID: 'string',
+                liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
                 splits: 'array',
                 dismissedViolations: 'object',
             });
