@@ -39,7 +39,6 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const feed = assignCard?.data?.bankName as CompanyCardFeed | undefined;
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const isFeedExpired = isSelectedFeedExpired(feed ? cardFeeds?.settings?.oAuthAccountDetails?.[feed] : undefined);
 
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
@@ -56,6 +55,9 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         if (!policyID) {
             return;
         }
+
+        const isFeedExpired = isSelectedFeedExpired(feed ? cardFeeds?.settings?.oAuthAccountDetails?.[feed] : undefined);
+
         if (isFeedExpired) {
             setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
