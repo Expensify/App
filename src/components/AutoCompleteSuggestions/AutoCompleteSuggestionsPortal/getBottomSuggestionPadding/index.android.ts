@@ -1,27 +1,21 @@
 import {Dimensions} from 'react-native';
 
 function getBottomSuggestionPadding(): number {
-    const {width, height} = Dimensions.get('window');
-    const aspectRatio = height / width;
+    const {height} = Dimensions.get('window');
     const basePadding = 30;
-
-    // Calculate an adaptive offset based on screen characteristics
-    if (aspectRatio > 2.1) {
-        // For taller devices, calculate the offset based on the aspect ratio
-        // The formula below creates a linear relationship between aspect ratio and padding
-        // As the aspect ratio increases, the padding becomes more negative
-
-        // Calculate how much the aspect ratio exceeds the threshold
-        const aspectRatioExcess = aspectRatio - 2;
-
-        // Scale factor: for every 0.1 increase in aspect ratio above 2.0,
-        // we decrease the padding by approximately 34px
-        const scaleFactor = -320;
-
-        // Calculate the dynamic padding
-        return Math.round(basePadding + aspectRatioExcess * scaleFactor);
+    const referenceHeightMin = 900;
+    const referencePaddingMin = -10;
+    const referenceHeightMax = 1000;
+    const referencePaddingMax = -44;  
+    
+    if (height >= referenceHeightMin && height < referenceHeightMax) {
+        // Calculate the padding adjustment rate per pixel of height
+        const paddingRate = (referencePaddingMax - referencePaddingMin) / (referenceHeightMax - referenceHeightMin);
+        
+        const padding = referencePaddingMin + (height - referenceHeightMin) * paddingRate;
+        return Math.round(Math.max(-60, Math.min(-5, padding)));
     }
-
+    
     return basePadding;
 }
 
