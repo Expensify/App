@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
 import ConnectToNSQSFlow from '@components/ConnectToNSQSFlow';
