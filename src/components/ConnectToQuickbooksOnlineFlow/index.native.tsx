@@ -46,6 +46,7 @@ function ConnectToQuickbooksOnlineFlow({policyID, session}: ConnectToQuickbooksO
                 <HeaderWithBackButton
                     title={translate('workspace.accounting.title')}
                     onBackButtonPress={() => setWebViewOpen(false)}
+                    shouldDisplayHelpButton={false}
                 />
                 <FullPageOfflineBlockingView>
                     <WebView

@@ -77,6 +77,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                     shouldShowCloseButton
                     onCloseButtonPress={onModalClose}
                     shouldShowBackButton={false}
+                    shouldDisplayHelpButton={false}
                 />
                 {isLoading && <FullScreenLoadingIndicator />}
                 <View style={[styles.flex1]}>
