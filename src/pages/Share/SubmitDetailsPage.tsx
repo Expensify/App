@@ -173,6 +173,7 @@ function SubmitDetailsPage({
                         receiptFilename={getFileName(currentAttachment?.content ?? '')}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
+                        isDistanceRequest={false}
                         onPDFLoadError={() => {
                             showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
                         }}
