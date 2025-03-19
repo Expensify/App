@@ -29,6 +29,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
+        [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: ROUTES.REQUIRE_TWO_FACTOR_AUTH,
 
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
@@ -143,6 +144,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PREFERENCES.THEME]: {
                             path: ROUTES.SETTINGS_THEME,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: {
+                            path: ROUTES.SETTINGS_PAYMENT_CURRENCY,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.CLOSE]: {
@@ -1656,6 +1661,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
                     path: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                 },
+            },
+        },
+        [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: {
+            initialRouteName: SCREENS.SHARE.ROOT,
+            screens: {
+                [SCREENS.SHARE.ROOT]: {path: ROUTES.SHARE_ROOT},
+                [SCREENS.SHARE.SHARE_DETAILS]: {path: ROUTES.SHARE_DETAILS.route},
+                [SCREENS.SHARE.SUBMIT_DETAILS]: {path: ROUTES.SHARE_SUBMIT_DETAILS.route},
             },
         },
     },

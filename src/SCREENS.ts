@@ -108,6 +108,7 @@ const SCREENS = {
             PRIORITY_MODE: 'Settings_Preferences_PriorityMode',
             LANGUAGE: 'Settings_Preferences_Language',
             THEME: 'Settings_Preferences_Theme',
+            PAYMENT_CURRENCY: 'Settings_Payment_Currency',
         },
 
         WALLET: {
@@ -212,6 +213,7 @@ const SCREENS = {
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
     WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
+    REQUIRE_TWO_FACTOR_AUTH: 'RequireTwoFactorAuth',
 
     MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
@@ -676,6 +678,11 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
+    SHARE: {
+        ROOT: 'Share_Root',
+        SHARE_DETAILS: 'Share_Details',
+        SUBMIT_DETAILS: 'Submit_Details',
+    },
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
