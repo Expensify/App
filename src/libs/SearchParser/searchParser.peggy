@@ -146,3 +146,8 @@ identifier
       }
       return value[0];
     }
+
+quotedString "quote"
+  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:[^"”“\r\n]* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
+      return [...start, '"', ...inner, '"', ...end].join("");
+    }
