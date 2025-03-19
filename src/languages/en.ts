@@ -27,6 +27,7 @@ import type {
     BillingBannerCardOnDisputeParams,
     BillingBannerDisputePendingParams,
     BillingBannerInsufficientFundsParams,
+    BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -5597,8 +5598,9 @@ const translations = {
                 subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `Update your payment card by ${date} to continue using all of your favorite features.`,
             },
             policyOwnerAmountOwedOverdue: {
-                title: 'Your payment info is outdated',
-                subtitle: 'Please update your payment information.',
+                title: 'No se pudo procesar tu pago',
+                subtitle: ({date, amountOwed}: BillingBannerOwnerAmountOwedOverdueParams) =>
+                    `No se ha podido procesar tu cargo de ${amountOwed} del día ${date}. Por favor, añade una tarjeta de pago para saldar la cantidad adeudada.`,
             },
             policyOwnerUnderInvoicing: {
                 title: 'Your payment info is outdated',

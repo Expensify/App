@@ -44,7 +44,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
         case PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE:
             return {
                 title: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle'),
+                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle', {date: endDateFormatted ?? '', amountOwed}),
                 isError: true,
                 isRetryAvailable: true,
             };
