@@ -84,7 +84,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
-
+    const shouldPreventDisable = getEnabledCategoriesCount(policyCategories) === 1 && policy?.requiresCategory;
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     const fetchCategories = useCallback(() => {
@@ -107,7 +107,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
 
-    const updateWorkspaceRequiresCategory = useCallback(
+    const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
             setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}});
         },
@@ -140,16 +140,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                                 setShowCannotDisableLastCategoryModal(true);
                                 return;
                             }
-                            updateWorkspaceRequiresCategory(newValue, value.name);
+                            updateWorkspaceCategoryEnabled(newValue, value.name);
                         }}
-                        showLockIcon={getEnabledCategoriesCount(policyCategories) === 1 && policy?.requiresCategory && value.enabled}
+                        showLockIcon={shouldPreventDisable && value.enabled}
                     />
                 ),
             });
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory, policy?.requiresCategory]);
+    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceCategoryEnabled, policy?.requiresCategory]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 

@@ -56,9 +56,10 @@ function CategorySettingsPage({
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
-    const [showCannotDisableLastCategoryModal, setShowCannotDisableLastCategoryModal] = useState(false);
+    const [isCannotDisableLastCategoryModalVisible, setIsCannotDisableLastCategoryModalVisible] = useState(false);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = !!backTo;
+    const shouldPreventDisable = policyCategory?.enabled && policy?.requiresCategory && getEnabledCategoriesCount(policyCategories) === 1;
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -114,9 +115,9 @@ function CategorySettingsPage({
         return <NotFoundPage />;
     }
 
-    const updateWorkspaceRequiresCategory = (value: boolean) => {
-        if (policy?.requiresCategory && getEnabledCategoriesCount(policyCategories) === 1 && !value) {
-            setShowCannotDisableLastCategoryModal(true);
+    const updateWorkspaceCategoryEnabled = (value: boolean) => {
+        if (shouldPreventDisable && !value) {
+            setIsCannotDisableLastCategoryModalVisible(true);
             return;
         }
         setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
@@ -166,9 +167,9 @@ function CategorySettingsPage({
                             danger
                         />
                         <ConfirmModal
-                            isVisible={showCannotDisableLastCategoryModal}
-                            onConfirm={() => setShowCannotDisableLastCategoryModal(false)}
-                            onCancel={() => setShowCannotDisableLastCategoryModal(false)}
+                            isVisible={isCannotDisableLastCategoryModalVisible}
+                            onConfirm={() => setIsCannotDisableLastCategoryModalVisible(false)}
+                            onCancel={() => setIsCannotDisableLastCategoryModalVisible(false)}
                             title={translate('workspace.categories.cannotDisableAllCategories.title')}
                             prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
                             confirmText={translate('common.buttonConfirm')}
@@ -187,8 +188,8 @@ function CategorySettingsPage({
                                         <Switch
                                             isOn={policyCategory.enabled}
                                             accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                            onToggle={updateWorkspaceRequiresCategory}
-                                            showLockIcon={getEnabledCategoriesCount(policyCategories) === 1 && policy?.requiresCategory && policyCategory.enabled}
+                                            onToggle={updateWorkspaceCategoryEnabled}
+                                            showLockIcon={shouldPreventDisable}
                                         />
                                     </View>
                                 </View>
