@@ -207,9 +207,9 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
     API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
 }
 
-function dismissProductTraining(elementName: string, isDismissedUsingX = false) {
+function dismissProductTraining(elementName: string, isDismissedUsingCloseButton = false) {
     const date = new Date();
-    const dismissedMethod = isDismissedUsingX ? 'x' : 'click';
+    const dismissedMethod = isDismissedUsingCloseButton ? 'x' : 'click';
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

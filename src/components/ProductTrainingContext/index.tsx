@@ -210,12 +210,12 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
 
     const hideProductTrainingTooltip = useCallback(
-        (isDismissedUsingX = false) => {
+        (isDismissedUsingCloseButton = false) => {
             if (!shouldShowProductTrainingTooltip) {
                 return;
             }
             const tooltip = TOOLTIPS[tooltipName];
-            tooltip.onHideTooltip(isDismissedUsingX);
+            tooltip.onHideTooltip(isDismissedUsingCloseButton);
             unregisterTooltip(tooltipName);
         },
         [tooltipName, shouldShowProductTrainingTooltip, unregisterTooltip],
