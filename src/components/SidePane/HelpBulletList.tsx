@@ -15,7 +15,7 @@ function HelpBulletList({items, styles}: HelpBulletListProps) {
         <View
             // eslint-disable-next-line react/no-array-index-key
             key={`bullet-list-item-${index}`}
-            style={[styles.flexRow, styles.alignItemsStart, styles.mt2]}
+            style={[styles.flexRow, styles.alignItemsStart, styles.mt3]}
         >
             <Text style={[styles.textNormal, styles.pr2, styles.userSelectNone]}>{CONST.DOT_SEPARATOR}</Text>
             <View style={[styles.flex1]}>{item}</View>
