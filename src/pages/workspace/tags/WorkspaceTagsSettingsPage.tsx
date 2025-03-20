@@ -49,7 +49,7 @@ function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
 }
 
 function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const styles = useThemeStyles();
