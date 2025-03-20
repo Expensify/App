@@ -3930,14 +3930,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        cardMenuItem: {
-            paddingLeft: 8,
-            paddingRight: 0,
-            borderRadius: variables.buttonBorderRadius,
-            height: variables.componentSizeLarge,
-            alignItems: 'center',
-        },
-
         emptyCardSectionTitle: {
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,

@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,9 +21,10 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 function EnabledPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     const [isVisible, setIsVisible] = useState(false);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-
     const {translate} = useLocalize();
 
     const closeModal = useCallback(() => {
@@ -51,7 +53,7 @@ function EnabledPage() {
                             },
                             icon: Expensicons.Close,
                             iconFill: theme.danger,
-                            wrapperStyle: [styles.cardMenuItem],
+                            outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                         },
                     ]}
                     containerStyles={[styles.twoFactorAuthSection]}
