@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {ChatBubbleCounter} from '@components/Icon/Expensicons';
@@ -34,7 +34,7 @@ function ChatBubbleCell({transaction}: {transaction: Transaction}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const threadMessages = getTransactionMessagesCountAndUnreadInfo(transaction);
+    const threadMessages = useMemo(() => getTransactionMessagesCountAndUnreadInfo(transaction), [transaction]);
     const StyleUtils = useStyleUtils();
 
     const elementSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
