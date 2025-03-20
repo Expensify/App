@@ -177,7 +177,6 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
         },
         [visibleReportActions, reportActions, parentReportAction, report, transactionThreadReport, mostRecentIOUReportActionID, shouldUseThreadDividerLine, firstVisibleReportActionID],
     );
-
     return (
         <View style={styles.flex1}>
             {report ? (

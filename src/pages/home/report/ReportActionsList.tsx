@@ -153,6 +153,10 @@ function ReportActionsList({
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
+    console.log('______________________________');
+    console.log(sortedVisibleReportActions);
+    console.log('______________________________');
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
@@ -613,7 +617,6 @@ function ReportActionsList({
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
-
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
             <ReportActionsListItemRenderer
@@ -713,7 +716,9 @@ function ReportActionsList({
     useLayoutEffect(parseFSAttributes, []);
 
     const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
-
+    console.log('_______jest befeore____________');
+    console.log(sortedVisibleReportActions);
+    console.log('_______jest befeore____________');
     return (
         <>
             <FloatingMessageCounter

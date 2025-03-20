@@ -2406,12 +2406,18 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
-function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: string, reportActionID: string, reportName: string, creatorPersonalDetails: PersonalDetails) {
+function buildNewReportOptimisticData(
+    policy: OnyxEntry<Policy>,
+    reportID: string,
+    reportActionID: string,
+    reportName: string,
+    creatorPersonalDetails: PersonalDetails,
+    reportPreviewReportActionID: string,
+) {
     const {accountID, login} = creatorPersonalDetails;
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
     const timeOfCreation = DateUtils.getDBTime();
-    const reportPreviewActionID = rand64();
 
     const optimisticDataValue: OptimisticNewReport = {
         reportID,
@@ -2472,7 +2478,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         automatic: false,
         avatar: creatorPersonalDetails.avatar,
         isAttachmentOnly: false,
-        reportActionID: reportPreviewActionID,
+        reportActionID: reportPreviewReportActionID,
         message: createReportActionMessage,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
@@ -2491,7 +2497,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
-            value: {[reportActionID]: optimisticReportPreview},
+            value: {[reportPreviewReportActionID]: optimisticReportPreview},
         },
     ];
 
@@ -2541,14 +2547,23 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
     const policy = getPolicy(policyID);
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
+    const reportPreviewReportActionID = rand64();
+
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportName = `${creatorPersonalDetails.firstName || 'User'}'s report`;
 
-    const {optimisticData, successData, failureData} = buildNewReportOptimisticData(policy, optimisticReportID, reportActionID, reportName, creatorPersonalDetails);
+    const {optimisticData, successData, failureData} = buildNewReportOptimisticData(
+        policy,
+        optimisticReportID,
+        reportActionID,
+        reportName,
+        creatorPersonalDetails,
+        reportPreviewReportActionID,
+    );
 
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
-        {reportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID},
+        {reportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, reportPreviewReportActionID},
         {optimisticData, successData, failureData},
     );
     return optimisticReportID;
