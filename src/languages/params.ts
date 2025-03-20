@@ -656,6 +656,10 @@ type PolicyExpenseChatNameParams = {
     displayName: string;
 };
 
+type CurrencyInputDisabledTextParams = {
+    currency: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -891,4 +895,5 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
+    CurrencyInputDisabledTextParams,
 };
