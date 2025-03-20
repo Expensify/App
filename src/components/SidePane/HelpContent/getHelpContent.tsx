@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import Chat from './chat';
 import AdminsChatRoom from './chat/admins';
 import Concierge from './chat/concierge';
+import ExpenseChat from './chat/expense';
 import ExpenseReportChat from './chat/expenseReport';
 import WorkspaceChat from './chat/workspace';
 import Search from './search';
@@ -47,7 +48,7 @@ const helpContentMap: HelpContent = {
                     content: ExpenseReportChat,
                 },
                 [`:${CONST.REPORT.HELP_TYPE.EXPENSE}`]: {
-                    content: () => null,
+                    content: ExpenseChat,
                     children: {
                         [`:${CONST.IOU.EXPENSE_TYPE.DISTANCE}`]: {
                             content: () => null,
