@@ -186,7 +186,7 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
-          ANDROID_FLAVOR: ${{ vars.ANDROID_FLAVOR }}
+          ANDROID_BUILD_TYPE: ${{ vars.ANDROID_BUILD_TYPE }}
 
       - name: Upload Android app to Google Play
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
