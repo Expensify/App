@@ -15,9 +15,15 @@ Onyx.connect({
 });
 
 /**
+<<<<<<<< HEAD:src/libs/actions/ReimbursementAccount/resetUSDBankAccountFlow.ts
  * Reset user's USD reimbursement account. This will delete the bank account if one is connected.
  */
 function resetUSDBankAccountFlow(bankAccountID: number | undefined, session: OnyxEntry<OnyxTypes.Session>, policyID: string | undefined) {
+========
+ * Reset user's USD reimbursement account. This will delete the bank account
+ */
+function resetUSDBankAccount(bankAccountID: number | undefined, session: OnyxEntry<OnyxTypes.Session>, policyID: string | undefined) {
+>>>>>>>> 3addd36d219d9a333f40ae773ef9c6ddf1504c23:src/libs/actions/ReimbursementAccount/resetUSDBankAccount.ts
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
@@ -143,4 +149,8 @@ function resetUSDBankAccountFlow(bankAccountID: number | undefined, session: Ony
     );
 }
 
+<<<<<<<< HEAD:src/libs/actions/ReimbursementAccount/resetUSDBankAccountFlow.ts
 export default resetUSDBankAccountFlow;
+========
+export default resetUSDBankAccount;
+>>>>>>>> 3addd36d219d9a333f40ae773ef9c6ddf1504c23:src/libs/actions/ReimbursementAccount/resetUSDBankAccount.ts

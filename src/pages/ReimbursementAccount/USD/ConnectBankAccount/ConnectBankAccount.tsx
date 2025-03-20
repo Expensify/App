@@ -47,7 +47,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                 onBackButtonPress={onBackButtonPress}
                 setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 setUSDBankAccountStep={setUSDBankAccountStep}
-                isNonUSDWorkspace={isNonUSDWorkspace}
+                isNonUSDWorkspace={false}
             />
         );
     }

@@ -21,7 +21,7 @@ type FinishChatCardProps = {
     /** Boolean required to display Enable2FACard component */
     requiresTwoFactorAuth: boolean;
 
-    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    /** Method to set the state of USD bank account step */
     setUSDBankAccountStep: (step: string | null) => void;
 };
 

@@ -2,8 +2,8 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
-import resetNonUSDBankAccountFlow from './resetNonUSDBankAccountFlow';
-import resetUSDBankAccountFlow from './resetUSDBankAccountFlow';
+import resetNonUSDBankAccount from './resetNonUSDBankAccount';
+import resetUSDBankAccount from './resetUSDBankAccount';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {setBankAccountFormValidationErrors, resetReimbursementAccount} from './errors';
@@ -46,8 +46,8 @@ function cancelResetBankAccount() {
 }
 
 export {
-    resetUSDBankAccountFlow,
-    resetNonUSDBankAccountFlow,
+    resetUSDBankAccount,
+    resetNonUSDBankAccount,
     setBankAccountSubStep,
     hideBankAccountErrors,
     updateReimbursementAccountDraft,
