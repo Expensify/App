@@ -6835,6 +6835,8 @@ const CONST = {
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
+        GBR_RBR_CHAT: 'chatGBRRBR',
+        ACCOUNT_SWITCHER: 'accountSwitcher',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,

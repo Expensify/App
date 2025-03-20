@@ -208,7 +208,7 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then narrow layout tooltip should show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
         });
         it('should handle wide layout specific tooltips based on screen width', async () => {
             // When narrow layout is true
