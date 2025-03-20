@@ -7,6 +7,7 @@ import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import Chat from './chat';
 import AdminsChatRoom from './chat/admins';
+import Concierge from './chat/concierge';
 import Search from './search';
 import Settings from './settings';
 import Workspaces from './settings/workspaces';
@@ -34,10 +35,10 @@ const helpContentMap: HelpContent = {
                 [`:${CONST.REPORT.HELP_TYPE.POLICY_ADMINS}`]: {
                     content: AdminsChatRoom,
                 },
-                [`:${CONST.REPORT.HELP_TYPE.POLICY_EXPENSE_CHAT}`]: {
-                    content: () => null,
-                },
                 [`:${CONST.REPORT.HELP_TYPE.CHAT_CONCIERGE}`]: {
+                    content: Concierge,
+                },
+                [`:${CONST.REPORT.HELP_TYPE.POLICY_EXPENSE_CHAT}`]: {
                     content: () => null,
                 },
                 [`:${CONST.REPORT.HELP_TYPE.EXPENSE_REPORT}`]: {
