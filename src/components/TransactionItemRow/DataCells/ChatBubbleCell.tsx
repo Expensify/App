@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {ChatBubbleCounter} from '@components/Icon/Expensicons';
 import Text from '@components/Text';

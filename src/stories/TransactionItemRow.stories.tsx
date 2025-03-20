@@ -3,7 +3,6 @@ import React from 'react';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import TransactionItemRow from '@components/TransactionItemRow';
-import ChatBubbleCell from '@components/TransactionItemRow/DataCells/ChatBubbleCell';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 import transaction from './objects/Transaction';
