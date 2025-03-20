@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -13,23 +14,27 @@ import {
     isOneTransactionThread as isOneTransactionThreadReportUtils,
     isTrackExpenseReport as isTrackExpenseReportReportUtils,
 } from '@libs/ReportUtils';
-import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
+import {getRequestType, hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import navigationRef from '@navigation/navigationRef';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type TransactionReceiptProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT>;
 
 function TransactionReceipt({route}: TransactionReceiptProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route.params.transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const reportID = route.params.reportID;
+    const transactionID = route.params.transactionID;
+    const action = route.params.action;
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
 
-    const isDraftTransaction = !!route?.params?.action;
+    const isDraftTransaction = !!action;
     const transaction = isDraftTransaction ? transactionDraft : transactionMain;
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
@@ -42,15 +47,52 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const canDeleteReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, true);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isTrackExpenseAction = isTrackExpenseReportReportActionsUtils(parentReportAction);
+    const iouType = route.params.iouType;
 
     useEffect(() => {
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport(route.params.reportID);
+        openReport(reportID);
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    const receiptPath = transaction?.receipt?.source;
+
+    useEffect(() => {
+        if (!isDraftTransaction || !iouType || !transaction?.transactionID || !report?.reportID) {
+            return;
+        }
+
+        const requestType = getRequestType(transaction);
+        const receiptFilename = transaction?.filename;
+        const receiptType = transaction?.receipt?.type;
+        navigateToStartStepIfScanFileCannotBeRead(
+            receiptFilename,
+            receiptPath,
+            () => {},
+            requestType,
+            iouType,
+            transactionID,
+            reportID,
+            receiptType,
+            () => {
+                Navigation.goBack(
+                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                        CONST.IOU.ACTION.CREATE,
+                        iouType,
+                        transactionID,
+                        reportID,
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID),
+                    ),
+                );
+            },
+        );
+
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [receiptPath, isDraftTransaction, iouType, transaction?.transactionID, report?.reportID]);
 
     const onModalClose = () => {
         // Receipt Page can be opened either from Reports or from Search RHP view
@@ -86,9 +128,9 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={isDraftTransaction ? transaction?.filename : receiptURIs?.filename}
             defaultOpen
-            iouAction={route.params.action}
-            iouType={route.params.iouType}
-            draftTransactionID={isDraftTransaction ? route.params.transactionID : undefined}
+            iouAction={action}
+            iouType={iouType}
+            draftTransactionID={isDraftTransaction ? transactionID : undefined}
             onModalClose={onModalClose}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
