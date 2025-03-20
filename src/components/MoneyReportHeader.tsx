@@ -52,6 +52,7 @@ import {
     cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
     deleteMoneyRequest,
+    getNavigationUrlOnMoneyRequestDelete,
     getNextApproverAccountID,
     payInvoice,
     payMoneyRequest,
@@ -62,6 +63,7 @@ import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -134,6 +136,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isCancelPaymentModalVisible, setIsCancelPaymentModalVisible] = useState(false);
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation} = usePaymentAnimations();
     const styles = useThemeStyles();
@@ -496,14 +499,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
-                if (transactionThreadReportID) {
-                    if (!requestParentReportAction) {
-                        throw new Error('requestParentReportAction is not defined');
-                    }
-                    deleteMoneyRequest(transaction?.transactionID, requestParentReportAction);
-                } else {
-                    // TODO waiting for https://github.com/Expensify/App/pull/58020/files
-                }
+                setIsDeleteModalVisible(true);
             },
         },
     };
@@ -532,7 +528,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 success={false}
                                 onPress={() => {}}
                                 shouldAlwaysShowDropdownMenu
-                                customText="More"
+                                customText={translate('common.more')}
                                 options={applicableSecondaryActions}
                                 isSplitButton={false}
                             />
@@ -548,7 +544,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             success={false}
                             onPress={() => {}}
                             shouldAlwaysShowDropdownMenu
-                            customText="More"
+                            customText={translate('common.more')}
                             options={applicableSecondaryActions}
                             isSplitButton={false}
                             wrapperStyle={[!primaryAction && styles.flexGrow4]}
@@ -614,6 +610,34 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 prompt={translate('iou.cancelPaymentConfirmation')}
                 confirmText={translate('iou.cancelPayment')}
                 cancelText={translate('common.dismiss')}
+                danger
+                shouldEnableNewFocusManagement
+            />
+            <ConfirmModal
+                title={translate('iou.deleteExpense', {count: 1})}
+                isVisible={isDeleteModalVisible}
+                onConfirm={() => {
+                    setIsDeleteModalVisible(false);
+                    let goBackRoute: Route | undefined;
+                    if (transactionThreadReportID) {
+                        if (!requestParentReportAction || !transaction?.transactionID) {
+                            throw new Error('Missing data!');
+                        }
+                        // it's deleting transacation but not the report which leads to bug (that is actually also on staging)
+                        deleteMoneyRequest(transaction?.transactionID, requestParentReportAction);
+                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false);
+                    } else {
+                        // TODO waiting for https://github.com/Expensify/App/pull/58020/files
+                    }
+
+                    if (goBackRoute) {
+                        Navigation.navigate(goBackRoute);
+                    }
+                }}
+                onCancel={() => setIsDeleteModalVisible(false)}
+                prompt={translate('iou.deleteConfirmation', {count: 1})}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
                 danger
                 shouldEnableNewFocusManagement
             />

@@ -3,15 +3,17 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
-import {getCurrentUserAccountID} from './actions/Report';
+import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
+    getAllPolicies,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     hasAccountingConnections,
     hasIntegrationAutoSync,
     hasNoPolicyOtherThanPersonalType,
     isPrefferedExporter,
+    isWorkspaceEligibleForReportChange,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
 import {
@@ -92,12 +94,17 @@ function isUnapproveAction(report: Report, policy?: Policy): boolean {
     return isExpenseReport && isReportApprover && isReportApproved;
 }
 
-function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]): boolean {
-    // TODO Can user that is not admin/approver cancel the payment?
-
+function isCancelPaymentAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport) {
+        return false;
+    }
+
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isPayer = isPayerUtils(getSession(), report, false, policy);
+
+    if (!isAdmin || !isPayer) {
         return false;
     }
 
@@ -132,7 +139,6 @@ function isExportAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
-    // TODO this check should be here otherwise there will be option to export invoice to the nowhere
     const hasAccountingConnection = hasAccountingConnections(policy);
     if (!hasAccountingConnection) {
         return false;
@@ -175,7 +181,6 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
-    // TODO check for accounting connection should be done here otherwise export button will show for any approved report
     const hasAccountingConnection = hasAccountingConnections(policy);
     if (!hasAccountingConnection) {
         return false;
@@ -262,6 +267,13 @@ function isChangeWorkspaceAction(report: Report, reportTransactions: Transaction
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const areWorkflowsEnabled = !!(policy && policy.areWorkflowsEnabled);
     const isClosedReport = isClosedReportUtils(report);
+
+    const policies = getAllPolicies();
+    const policiesEligibleForChange = policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policy, getCurrentUserEmail()));
+
+    if (policiesEligibleForChange.length <= 1) {
+        return false;
+    }
 
     if (isExpenseReport && isReportSubmitter && !areWorkflowsEnabled && isClosedReport) {
         return true;
@@ -391,8 +403,6 @@ function getSecondaryTransactionThreadActions(parentReport: Report, reportTransa
     if (isHoldActionForTransation(parentReport, reportTransaction)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
-
-    options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DOWNLOAD);
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 

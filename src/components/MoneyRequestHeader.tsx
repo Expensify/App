@@ -10,8 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest} from '@libs/actions/IOU';
-import {exportReportToCSV} from '@libs/actions/Report';
+import {deleteMoneyRequest, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -40,6 +39,7 @@ import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -75,6 +75,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     );
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
@@ -198,20 +199,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 changeMoneyRequestHoldStatus(parentReportAction);
             },
         },
-        // todo should it download parent repot?
-        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DOWNLOAD]: {
-            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DOWNLOAD,
-            text: translate('common.download'),
-            icon: Expensicons.Download,
-            onSelected: () => {
-                if (!reportID) {
-                    return;
-                }
-                exportReportToCSV({reportID, transactionIDList: [transaction.transactionID]}, () => {
-                    setDownloadErrorModalVisible(true);
-                });
-            },
-        },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
             text: translate('iou.viewDetails'),
@@ -225,11 +212,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: Expensicons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
-                if (!parentReportAction) {
-                    throw new Error('Parent action does not exist');
-                }
-
-                deleteMoneyRequest(transaction?.transactionID, parentReportAction);
+                setIsDeleteModalVisible(true);
             },
         },
     };
@@ -264,7 +247,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                                 success={false}
                                 onPress={() => {}}
                                 shouldAlwaysShowDropdownMenu
-                                customText="More"
+                                customText={translate('common.more')}
                                 options={applicableSecondaryActions}
                                 isSplitButton={false}
                             />
@@ -280,7 +263,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             success={false}
                             onPress={() => {}}
                             shouldAlwaysShowDropdownMenu
-                            customText="More"
+                            customText={translate('common.more')}
                             options={applicableSecondaryActions}
                             isSplitButton={false}
                             wrapperStyle={[!primaryAction && styles.flexGrow4]}
@@ -305,6 +288,29 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={downloadErrorModalVisible}
                 onClose={() => setDownloadErrorModalVisible(false)}
+            />
+            <ConfirmModal
+                title={translate('iou.deleteExpense', {count: 1})}
+                isVisible={isDeleteModalVisible}
+                onConfirm={() => {
+                    setIsDeleteModalVisible(false);
+                    if (!parentReportAction) {
+                        throw new Error('Parent action does not exist');
+                    }
+
+                    deleteMoneyRequest(transaction?.transactionID, parentReportAction);
+
+                    const goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, parentReportAction, true);
+                    if (goBackRoute) {
+                        Navigation.navigate(goBackRoute);
+                    }
+                }}
+                onCancel={() => setIsDeleteModalVisible(false)}
+                prompt={translate('iou.deleteConfirmation', {count: 1})}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+                shouldEnableNewFocusManagement
             />
         </View>
     );

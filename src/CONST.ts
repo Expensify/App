@@ -1177,7 +1177,6 @@ const CONST = {
         },
         TRANSACTION_SECONDARY_ACTIONS: {
             HOLD: 'hold',
-            DOWNLOAD: 'download',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
         },
