@@ -95,6 +95,7 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
             helpContentComponents.push(activeHelpContent.content);
         } else {
             if (helpContentComponents.length === 0) {
+                // eslint-disable-next-line react/no-unescaped-entities
                 helpContentComponents.push(() => <Text style={styles.textHeadlineH1}>We couldn't find any help content for this route.</Text>);
             }
             isExactMatch = false;
