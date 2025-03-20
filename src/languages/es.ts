@@ -1016,6 +1016,7 @@ const translations = {
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
+            invalidTagLength: 'La longitud de la etiqueta escogida excede el máximo permitido (255). Por favor, escoge otra etiqueta o acorta la etiqueta primero.',
             invalidAmount: 'Por favor, ingresa un importe válido antes de continuar.',
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
@@ -1133,6 +1134,10 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+    },
+    share: {
+        shareToExpensify: 'Compartir para Expensify',
+        messageInputLabel: 'Mensaje',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -2083,8 +2088,11 @@ const translations = {
             phrase3: 'o',
             phrase4: 'verifica aquí tu cuenta',
         },
-        hasPhoneLoginError:
-            'Para añadir una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
+        hasPhoneLoginError: {
+            phrase1: 'Para añadir una cuenta bancaria verificada,',
+            link: 'asegúrate de que tu nombre de usuario principal sea un correo electrónico válido',
+            phrase2: ' y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
+        },
         hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         hasCurrencyError: '¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Por favor, configúrala en USD e inténtalo nuevamente.',
         error: {
@@ -2678,7 +2686,11 @@ const translations = {
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
-        phoneError: 'Para reservar viajes, tu método de contacto predeterminado debe ser un correo electrónico válido',
+        phoneError: {
+            phrase1: 'Para reservar viajes,',
+            link: 'añade una dirección de correo electrónico de trabajo',
+            phrase2: '.',
+        },
         domainSelector: {
             title: 'Dominio',
             subtitle: 'Elige un dominio para configurar Expensify Travel.',

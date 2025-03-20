@@ -164,7 +164,7 @@ function SearchAutocompleteInput(
             'worklet';
 
             tagSharedValue.set(tagAutocompleteList);
-        });
+        })();
     }, [tagSharedValue, tagAutocompleteList]);
 
     const parser = useCallback(
@@ -174,14 +174,6 @@ function SearchAutocompleteInput(
             return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
         },
         [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
-    );
-
-    const additionalMarkdownStyle = useMemo(
-        () => ({
-            mentionHere: styles.br1,
-            mentionUser: styles.br1,
-        }),
-        [styles.br1],
     );
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
@@ -216,7 +208,6 @@ function SearchAutocompleteInput(
                         enterKeyHint="search"
                         accessibilityLabel={translate('search.searchPlaceholder')}
                         disabled={disabled}
-                        markdownStyle={additionalMarkdownStyle}
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}

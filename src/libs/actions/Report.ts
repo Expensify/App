@@ -1161,6 +1161,17 @@ function openReport(
 }
 
 /**
+ * This will return an optimistic report object for a given user we want to create a chat with without saving it, when the only thing we know about recipient is his accountID. *
+ * @param accountID accountID of the user that the optimistic chat report is created with.
+ */
+function getOptimisticChatReport(accountID: number): OptimisticChatReport {
+    return buildOptimisticChatReport({
+        participantList: [accountID, currentUserAccountID],
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    });
+}
+
+/**
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
  * @param userLogins list of user logins to start a chat report with.
@@ -1511,6 +1522,11 @@ function togglePinnedState(reportID: string | undefined, isPinnedChat: boolean) 
     };
 
     API.write(WRITE_COMMANDS.TOGGLE_PINNED_CHAT, parameters, {optimisticData});
+}
+
+/** Saves the report draft to Onyx */
+function saveReportDraft(reportID: string, report: Report) {
+    return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`, report);
 }
 
 /**
@@ -5191,6 +5207,8 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
+    getOptimisticChatReport,
+    saveReportDraft,
     prepareOnboardingOnyxData,
     dismissChangePolicyModal,
     changeReportPolicy,

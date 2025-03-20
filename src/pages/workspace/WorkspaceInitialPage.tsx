@@ -35,6 +35,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -114,6 +115,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
@@ -444,6 +446,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS_WORKSPACES.route)}
                     policyAvatar={policyAvatar}
                     style={styles.headerBarDesktopHeight}
+                    shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 
                 <ScrollView contentContainerStyle={[styles.flexColumn]}>
