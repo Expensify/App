@@ -24,6 +24,7 @@ import createReportActionContextMenuStyleUtils from './generators/ReportActionCo
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
+import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
@@ -68,12 +69,12 @@ const workspaceColorOptions: SVGAvatarColorStyle[] = [
 ];
 
 const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
-    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow600, color: colors.yellow100},
-    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.blue800, color: colors.ice400},
-    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue400, color: colors.blue100},
-    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400},
-    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400},
-    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400},
+    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow800, color: colors.yellow400, titleColor: colors.yellow500},
+    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.ice800, color: colors.ice400, titleColor: colors.ice500},
+    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue800, color: colors.blue400, titleColor: colors.blue500},
+    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400, titleColor: colors.green500},
+    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400, titleColor: colors.tangerine500},
+    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400, titleColor: colors.pink500},
 };
 
 const eReceiptColors: EReceiptColorName[] = [
@@ -331,10 +332,11 @@ type SafeAreaPadding = {
 };
 
 /**
- * Takes safe area insets and returns padding to use for a View
+ * Takes safe area insets and returns platform specific padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
+function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
     const platform = getPlatform();
+
     let insetsPercentage = insetsPercentageProp;
     if (insetsPercentage == null) {
         switch (platform) {
@@ -1231,7 +1233,7 @@ const staticStyleUtils = {
     getPaymentMethodMenuWidth,
     getSafeAreaInsets,
     getSafeAreaMargins,
-    getSafeAreaPadding,
+    getPlatformSafeAreaPadding,
     getSignInWordmarkWidthStyle,
     getTextColorStyle,
     getTransparentColor,
@@ -1257,6 +1259,7 @@ const staticStyleUtils = {
     getBorderRadiusStyle,
     getHighResolutionInfoWrapperStyle,
     getItemBackgroundColorStyle,
+    getNavigationBarType,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1614,14 +1617,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getSearchTableColumnStyles: (columnName: string, shouldExtendDateColumn = false): ViewStyle => {
+    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                columnWidth = getWidthStyle(shouldExtendDateColumn ? variables.w92 : variables.w52);
+                columnWidth = getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52);
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:

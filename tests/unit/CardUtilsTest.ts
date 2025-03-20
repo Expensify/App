@@ -4,6 +4,7 @@ import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import {
     checkIfFeedConnectionIsBroken,
+    filterInactiveCards,
     flatAllCardsList,
     formatCardExpiration,
     getBankCardDetailsImage,
@@ -21,7 +22,7 @@ import {
     isExpensifyCardFullySetUp,
     maskCardNumber,
 } from '@src/libs/CardUtils';
-import type {CardFeeds, CompanyCardFeed, ExpensifyCardSettings, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 const shortDate = '0924';
@@ -707,6 +708,25 @@ describe('CardUtils', () => {
         it('should return false when both policy and cardSettings are undefined', () => {
             const result = isExpensifyCardFullySetUp(undefined, undefined);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('filterInactiveCards', () => {
+        it('should filter out closed, deactivated and suspended cards', () => {
+            const activeCards = {card1: {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN}};
+            const closedCards = {
+                card2: {cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.CLOSED},
+                card3: {cardID: 3, state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED},
+                card4: {cardID: 4, state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED},
+            };
+            const cardList = {...activeCards, ...closedCards} as unknown as CardList;
+            const filteredList = filterInactiveCards(cardList);
+            expect(filteredList).toEqual(activeCards);
+        });
+
+        it('should return an empty object if undefined card list is passed', () => {
+            const cards = filterInactiveCards(undefined);
+            expect(cards).toEqual({});
         });
     });
 });
