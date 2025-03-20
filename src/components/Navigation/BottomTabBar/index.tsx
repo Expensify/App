@@ -60,6 +60,10 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
         isTooltipAllowed && selectedTab !== BOTTOM_TABS.HOME,
     );
+    const [isFabActionActive, setIsFabActionActive] = useState(isCreateMenuActive);
+    useEffect(() => {
+        setIsFabActionActive(isCreateMenuActive);
+    }, [isCreateMenuActive]);
 
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReportIDs));
@@ -267,7 +271,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                         role={CONST.ROLE.BUTTON}
                         isActive={isCreateMenuActive}
                         ref={localFabRef}
-                        onPress={() => toggleCreateMenu(localFabRef)}
+                        onPress={() => toggleCreateMenu(localFabRef, isFabActionActive)}
                         isTooltipAllowed={isTooltipAllowed}
                     />
                 </View>

@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, {useContext, useRef} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {FABPopoverContext} from '@components/FABPopoverProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
@@ -16,8 +16,11 @@ type CustomEmojiWithDefaultPressableActionProps = {
 
 function CustomEmojiWithDefaultPressableAction({emojiKey, children}: CustomEmojiWithDefaultPressableActionProps) {
     const styles = useThemeStyles();
-
-    const {toggleCreateMenu} = useContext(FABPopoverContext);
+    const {toggleCreateMenu, isCreateMenuActive} = useContext(FABPopoverContext);
+    const [isFabActionActive, setIsFabActionActive] = useState(isCreateMenuActive);
+    useEffect(() => {
+        setIsFabActionActive(isCreateMenuActive);
+    }, [isCreateMenuActive]);
     const localFabRef = useRef<HTMLDivElement>(null);
 
     const {translate} = useLocalize();
@@ -25,9 +28,9 @@ function CustomEmojiWithDefaultPressableAction({emojiKey, children}: CustomEmoji
     if (emojiKey === 'actionMenuIcon') {
         return (
             <PressableWithoutFeedback
-                onPress={() => toggleCreateMenu(localFabRef)}
-                onLongPress={() => {}}
+                onPress={() => toggleCreateMenu(localFabRef, isFabActionActive)}
                 ref={localFabRef}
+                onLongPress={() => {}}
                 style={[styles.verticalAlignBottom, styles.userSelectNone]}
                 role={CONST.ROLE.BUTTON}
                 shouldUseHapticsOnLongPress={false}
