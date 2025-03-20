@@ -108,6 +108,9 @@ type ConfirmModalProps = {
 
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
+
+    /** Whether to handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
 };
 
 function ConfirmModal({
@@ -143,6 +146,7 @@ function ConfirmModal({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     isConfirmLoading,
+    shouldHandleNavigationBack,
 }: ConfirmModalProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -160,6 +164,7 @@ function ConfirmModal({
             innerContainerStyle={image ? styles.pt0 : {}}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
         >
             <ConfirmContent
                 title={title}
