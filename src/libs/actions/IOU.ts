@@ -679,8 +679,11 @@ Onyx.connect({
     callback: (value) => (personalDetailsList = value),
 });
 
-// After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
-// It is a helper function used only in this file.
+/**
+ * @private
+ * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
+ * It is a helper function used only in this file.
+ */
 function dismissModalAndOpenReportInInboxTab(reportID?: string) {
     if (isSearchTopmostFullScreenRoute() || !reportID) {
         Navigation.dismissModal();
