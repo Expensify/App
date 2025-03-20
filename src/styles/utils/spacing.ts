@@ -355,6 +355,10 @@ export default {
         marginBottom: 40,
     },
 
+    mb11: {
+        marginBottom: 44,
+    },
+
     mb12: {
         marginBottom: 48,
     },
@@ -619,6 +623,10 @@ export default {
 
     pt5: {
         paddingTop: 20,
+    },
+
+    pt6: {
+        paddingTop: 24,
     },
 
     pt8: {
