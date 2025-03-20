@@ -39,7 +39,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const session = useSession();
 
     const policyName = policy?.name ?? '';
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id;
     const adminEmail = session?.email ?? '';
     const urlWithTrailingSlash = addTrailingForwardSlashUtil(environmentURL);
 
