@@ -4,6 +4,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import type {ThemeStyles} from '@styles/index';
+import CONST from '@src/CONST';
 import Chat from './chat';
 import Search from './search';
 import Settings from './settings';
@@ -28,6 +29,40 @@ const helpContentMap: HelpContent = {
     children: {
         r: {
             content: Chat,
+            children: {
+                [`:${CONST.REPORT.HELP_TYPE.POLICY_ADMINS}`]: {
+                    content: () => null,
+                },
+                [`:${CONST.REPORT.HELP_TYPE.POLICY_EXPENSE_CHAT}`]: {
+                    content: () => null,
+                },
+                [`:${CONST.REPORT.HELP_TYPE.CHAT_CONCIERGE}`]: {
+                    content: () => null,
+                },
+                [`:${CONST.REPORT.HELP_TYPE.EXPENSE_REPORT}`]: {
+                    content: () => null,
+                },
+                [`:${CONST.REPORT.HELP_TYPE.EXPENSE}`]: {
+                    content: () => null,
+                    children: {
+                        [`:${CONST.IOU.EXPENSE_TYPE.DISTANCE}`]: {
+                            content: () => null,
+                        },
+                        [`:${CONST.IOU.EXPENSE_TYPE.MANUAL}`]: {
+                            content: () => null,
+                        },
+                        [`:${CONST.IOU.EXPENSE_TYPE.SCAN}`]: {
+                            content: () => null,
+                        },
+                        [`:${CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD}`]: {
+                            content: () => null,
+                        },
+                        [`:${CONST.IOU.EXPENSE_TYPE.PENDING_EXPENSIFY_CARD}`]: {
+                            content: () => null,
+                        },
+                    },
+                },
+            },
         },
         home: {
             content: Chat,
