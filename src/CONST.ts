@@ -1374,6 +1374,16 @@ const CONST = {
             BILL: 'bill',
         },
         CHAT_TYPE: chatTypes,
+        HELP_TYPE: {
+            ...chatTypes,
+            CHAT_CONCIERGE: 'concierge',
+            EXPENSE_REPORT: 'expenseReport',
+            EXPENSE: 'expense',
+            CHAT: 'chat',
+            IOU: 'iou',
+            TASK: 'task',
+            INVOICE: 'invoice',
+        },
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
@@ -2658,6 +2668,14 @@ const CONST = {
             MANUAL: 'manual',
             SCAN: 'scan',
             PER_DIEM: 'per-diem',
+        },
+        EXPENSE_TYPE: {
+            DISTANCE: 'distance',
+            MANUAL: 'manual',
+            SCAN: 'scan',
+            PER_DIEM: 'per-diem',
+            EXPENSIFY_CARD: 'expensifyCard',
+            PENDING_EXPENSIFY_CARD: 'pendingExpensifyCard',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
