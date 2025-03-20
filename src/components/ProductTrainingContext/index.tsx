@@ -319,12 +319,9 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         hideTooltip,
     ]);
 
-    const hideProductTrainingTooltip = useCallback(
-        () => {
-           hideTooltip(false);
-        },
-        [hideTooltip],
-    );
+    const hideProductTrainingTooltip = useCallback(() => {
+        hideTooltip(false);
+    }, [hideTooltip]);
 
     return {
         renderProductTrainingTooltip,
