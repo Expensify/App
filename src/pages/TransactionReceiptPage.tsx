@@ -61,7 +61,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
     const receiptPath = transaction?.receipt?.source;
 
     useEffect(() => {
-        if (!isDraftTransaction || !iouType || !transaction?.transactionID || !report?.reportID) {
+        if (!isDraftTransaction || !iouType || !transaction) {
             return;
         }
 
@@ -77,7 +77,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             transactionID,
             reportID,
             receiptType,
-            () => {
+            () =>
                 Navigation.goBack(
                     ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                         CONST.IOU.ACTION.CREATE,
@@ -86,13 +86,12 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
                         reportID,
                         ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID),
                     ),
-                );
-            },
+                ),
         );
 
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [receiptPath, isDraftTransaction, iouType, transaction?.transactionID, report?.reportID]);
+    }, [receiptPath]);
 
     const onModalClose = () => {
         // Receipt Page can be opened either from Reports or from Search RHP view
