@@ -75,28 +75,16 @@ platform :android do
     gradle(
       project_dir: 'Mobile-Expensify/Android',
       task: "bundle",
-      build_type: "Release",
+      build_type: ENV["ANDROID_BUILD_TYPE"] || "Release",
       flags: "--refresh-dependencies",
-      flavor: ENV["ANDROID_FLAVOR"],
       properties: {
-        "android.injected.signing.store.file" => './upload-key.keystore',
+        "android.injected.signing.store.file" => '/Users/andrew/Downloads/upload-key.keystore',
         "android.injected.signing.store.password" => ENV["ANDROID_UPLOAD_KEYSTORE_PASSWORD"],
         "android.injected.signing.key.alias" => ENV["ANDROID_UPLOAD_KEYSTORE_ALIAS"],
         "android.injected.signing.key.password" => ENV["ANDROID_UPLOAD_KEY_PASSWORD"],
       }
     )
     setGradleOutputsInEnv()
-  end
-
-  desc "Generate a debug HybridApp AAB"
-  lane :build_hybrid_debug do
-    ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
-    gradle(
-      project_dir: 'Mobile-Expensify/Android',
-      task: "bundle",
-      build_type: "Debug",
-      flavor: ENV["ANDROID_FLAVOR"],
-    )
   end
 
   desc "Generate AdHoc HybridApp apk"
