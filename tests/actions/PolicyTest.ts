@@ -246,7 +246,7 @@ describe('actions/Policy', () => {
                 },
             });
             expect(onboarding?.hasCompletedGuidedSetupFlow).toBeTruthy();
-        })
+        });
 
         it('create a new workspace with enabled workflows if the onboarding choice is newDotManageTeam or newDotLookingAround', async () => {
             Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
