@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 // In this file we manage a queue of Onyx updates while the SequentialQueue is processing. There are functions to get the updates and clear the queue after saving the updates in Onyx.
 
 let queuedOnyxUpdates: OnyxUpdate[] = [];
+let queuedOnyxOptimisticUpdates: OnyxUpdate[] = [];
 let currentAccountID: number | undefined;
 
 Onyx.connect({
@@ -20,6 +21,15 @@ Onyx.connect({
  */
 function queueOnyxUpdates(updates: OnyxUpdate[]): Promise<void> {
     queuedOnyxUpdates = queuedOnyxUpdates.concat(updates);
+
+    return Promise.resolve();
+}
+
+/**
+ * @param updates Onyx updates to queue for later
+ */
+function queueOnyxOptimisticUpdates(updates: OnyxUpdate[]): Promise<void> {
+    queuedOnyxOptimisticUpdates = queuedOnyxOptimisticUpdates.concat(updates);
 
     return Promise.resolve();
 }
@@ -44,15 +54,23 @@ function flushQueue(): Promise<void> {
         ];
 
         queuedOnyxUpdates = queuedOnyxUpdates.filter((update) => preservedKeys.includes(update.key as OnyxKey));
+        queuedOnyxOptimisticUpdates = queuedOnyxOptimisticUpdates.filter((update) => preservedKeys.includes(update.key as OnyxKey));
     }
 
-    return Onyx.update(queuedOnyxUpdates).then(() => {
-        queuedOnyxUpdates = [];
-    });
+    return Onyx.update(queuedOnyxUpdates)
+        .then(() => {
+            queuedOnyxUpdates = [];
+            return Promise.resolve();
+        })
+        .then(() => Onyx.update(queuedOnyxOptimisticUpdates))
+        .then(() => {
+            queuedOnyxOptimisticUpdates = [];
+            return Promise.resolve();
+        });
 }
 
 function isEmpty() {
     return queuedOnyxUpdates.length === 0;
 }
 
-export {queueOnyxUpdates, flushQueue, isEmpty};
+export {queueOnyxUpdates, flushQueue, isEmpty, queueOnyxOptimisticUpdates};
