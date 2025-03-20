@@ -475,6 +475,8 @@ describe('actions/IOU', () => {
 
             // Accountant should be added to the workspace as an admin
             expect(policyOnyx?.employeeList?.[accountant.login].role).toBe(CONST.POLICY.ROLE.ADMIN);
+
+            // s77rt: add case where accountant is already a member in the workspace, their role should change to admin
         });
     });
 
