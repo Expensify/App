@@ -78,7 +78,7 @@ platform :android do
       build_type: ENV["ANDROID_BUILD_TYPE"] || "Release",
       flags: "--refresh-dependencies",
       properties: {
-        "android.injected.signing.store.file" => '/Users/andrew/Downloads/upload-key.keystore',
+        "android.injected.signing.store.file" => './upload-key.keystore',
         "android.injected.signing.store.password" => ENV["ANDROID_UPLOAD_KEYSTORE_PASSWORD"],
         "android.injected.signing.key.alias" => ENV["ANDROID_UPLOAD_KEYSTORE_ALIAS"],
         "android.injected.signing.key.password" => ENV["ANDROID_UPLOAD_KEY_PASSWORD"],
