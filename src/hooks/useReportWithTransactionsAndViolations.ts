@@ -5,6 +5,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction, TransactionViolation} from '@src/types/onyx';
 
+const DEFAULT_TRANSACTIONS: Transaction[] = [];
+const DEFAULT_VIOLATIONS: Record<string, TransactionViolation[]> = {};
+
 function useReportWithTransactionsAndViolations(reportID?: string): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -18,7 +21,7 @@ function useReportWithTransactionsAndViolations(reportID?: string): [OnyxEntry<R
                 ),
             ),
     });
-    return [report, transactions ?? [], violations ?? {}];
+    return [report, transactions ?? DEFAULT_TRANSACTIONS, violations ?? DEFAULT_VIOLATIONS];
 }
 
 export default useReportWithTransactionsAndViolations;
