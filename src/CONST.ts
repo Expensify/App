@@ -390,6 +390,7 @@ const CONST = {
     ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
     ANIMATED_PROGRESS_BAR_DURATION: 750,
     ANIMATION_IN_TIMING: 100,
+    COMPOSER_FOCUS_DELAY: 150,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -6713,6 +6714,7 @@ const CONST = {
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
+        HAS_QBO_EXPORT_ERROR: 'hasQBOExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
         HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
         HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
