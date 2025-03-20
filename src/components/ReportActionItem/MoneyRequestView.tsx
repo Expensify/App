@@ -158,12 +158,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
     const pendingTransactionAmount = transaction?.pendingAction && isDistanceRequest && !hasRoute ? undefined : transactionAmount;
-    const formattedTransactionAmount =
-        pendingTransactionAmount !== null && pendingTransactionAmount !== undefined ? convertToDisplayString(pendingTransactionAmount, transactionCurrency) : '';
-    const formattedPerAttendeeAmount =
-        pendingTransactionAmount !== null && pendingTransactionAmount !== undefined
-            ? convertToDisplayString(pendingTransactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency)
-            : '';
+    const isAmountDefined = pendingTransactionAmount !== null && pendingTransactionAmount !== undefined;
+    const formattedTransactionAmount = isAmountDefined ? convertToDisplayString(pendingTransactionAmount, transactionCurrency) : '';
+    const formattedPerAttendeeAmount = isAmountDefined ? convertToDisplayString(pendingTransactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency) : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCardName(transaction);
