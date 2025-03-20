@@ -76,6 +76,7 @@ function DiagnosticData({styles, route, children, isExactMatch}: DiagnosticDataP
                     <View style={[styles.sectionDividerLine, styles.mv5]} />
                 </>
             )}
+            <Text style={[styles.textLabelSupportingNormal, styles.mb4]}>Diagnostic data (visible only on staging)</Text>
             <Text style={[styles.textHeadlineH1, styles.mb4]}>{diagnosticTitle}</Text>
             <Text style={styles.textNormal}>{route}</Text>
         </>
@@ -93,6 +94,9 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
             activeHelpContent = activeHelpContent.children[part];
             helpContentComponents.push(activeHelpContent.content);
         } else {
+            if (helpContentComponents.length === 0) {
+                helpContentComponents.push(() => <Text style={styles.textHeadlineH1}>We couldn't find any help content for this route.</Text>);
+            }
             isExactMatch = false;
             break;
         }
@@ -111,7 +115,7 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
         );
     });
 
-    if (isProduction && content) {
+    if (isProduction) {
         return content;
     }
 
