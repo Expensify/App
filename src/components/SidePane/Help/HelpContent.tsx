@@ -55,7 +55,12 @@ function HelpContent({closeSidePane}: HelpContentProps) {
                 shouldShowCloseButton={isExtraLargeScreenWidth}
                 shouldDisplayHelpButton={false}
             />
-            <ScrollView style={[styles.ph5, styles.pb5]}>{getHelpContent(styles, route, isProduction)}</ScrollView>
+            <ScrollView
+                style={[styles.ph5, styles.pb5]}
+                userSelect="auto"
+            >
+                {getHelpContent(styles, route, isProduction)}
+            </ScrollView>
         </>
     );
 }
