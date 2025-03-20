@@ -40,8 +40,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors = {};
-            const parsedDescription = getParsedComment(values?.description);
-            const taskDescriptionLength = getCommentLength(parsedDescription);
+            const taskDescriptionLength = getCommentLength(values.description);
             if (values?.description && taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
                 addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
             }
