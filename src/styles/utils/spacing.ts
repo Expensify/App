@@ -11,10 +11,6 @@ export default {
         margin: 0,
     },
 
-    m1: {
-        margin: 4,
-    },
-
     m2: {
         margin: 8,
     },

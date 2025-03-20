@@ -163,7 +163,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             {
                 text: ' to ',
             },
-            ...(shouldShowFixMessage ? [{text: 'xdddxd'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
+            ...(shouldShowFixMessage ? [{text: 'fix the issue(s)'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
         ],
     };
 
