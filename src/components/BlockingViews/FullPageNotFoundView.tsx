@@ -10,6 +10,7 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
+import StatsCounter from '@libs/actions/StatsCounter';
 
 type FullPageNotFoundViewProps = {
     /** TestID for test */
@@ -80,6 +81,7 @@ function FullPageNotFoundView({
     const {translate} = useLocalize();
 
     if (shouldShow) {
+        StatsCounter('FullPageNotFoundView');
         return (
             <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
                 <HeaderWithBackButton
