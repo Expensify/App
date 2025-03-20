@@ -78,6 +78,7 @@ import DelegateNoAccessModal from './DelegateNoAccessModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
@@ -100,11 +101,14 @@ type MoneyReportHeaderProps = {
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID: string | undefined;
 
+    /** Whether back button should be displayed in header */
+    shouldDisplayBackButton?: boolean;
+
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
 };
 
-function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -209,7 +213,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
 
     const confirmPayment = useCallback(
-        (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+        (type?: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
             if (!type || !chatReport) {
                 return;
             }
@@ -221,7 +225,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 setIsHoldMenuVisible(true);
             } else if (isInvoiceReport(moneyRequestReport)) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
+                payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
             } else {
                 startAnimation();
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
@@ -506,6 +510,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImpl[action]);
 
+    const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
+
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -513,7 +519,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
-                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldShowBackButton={shouldShowBackButton}
                 shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
