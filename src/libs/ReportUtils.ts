@@ -8813,7 +8813,7 @@ function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, rep
         return undefined;
     }
     const paymentType = getOriginalMessage(reportAction)?.paymentType;
-    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         return isEmpty(userWallet) || userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
     }
 
