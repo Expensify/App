@@ -6,15 +6,15 @@ import type {TranslationPaths} from '@src/languages/types';
 const {
     CONCEIRGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
-    WORKSAPCE_CHAT_CREATE,
-    QUICK_ACTION_BUTTON,
-    SEARCH_FILTER_BUTTON_TOOLTIP,
     BOTTOM_NAV_INBOX_TOOLTIP,
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
+    EXPENSE_REPORTS_FILTER,
+    GBR_RBR_CHAT,
+    ACCOUNT_SWITCHER,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
@@ -41,7 +41,9 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(CONCEIRGE_LHN_GBR),
         name: CONCEIRGE_LHN_GBR,
         priority: 1300,
-        shouldShow: ({shouldUseNarrowLayout}) => !!shouldUseNarrowLayout,
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
+        shouldShow: () => false,
     },
     [RENAME_SAVED_SEARCH]: {
         content: [
@@ -61,60 +63,63 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         ],
         onHideTooltip: () => dismissProductTraining(GLOBAL_CREATE_TOOLTIP),
         name: GLOBAL_CREATE_TOOLTIP,
-        priority: 1200,
-        shouldShow: () => true,
-    },
-    [QUICK_ACTION_BUTTON]: {
-        content: [
-            {text: 'productTrainingTooltip.quickActionButton.part1', isBold: true},
-            {text: 'productTrainingTooltip.quickActionButton.part2', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(QUICK_ACTION_BUTTON),
-        name: QUICK_ACTION_BUTTON,
-        priority: 1150,
-        shouldShow: () => true,
-    },
-    [WORKSAPCE_CHAT_CREATE]: {
-        content: [
-            {text: 'productTrainingTooltip.workspaceChatCreate.part1', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatCreate.part2', isBold: true},
-            {text: 'productTrainingTooltip.workspaceChatCreate.part3', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(WORKSAPCE_CHAT_CREATE),
-        name: WORKSAPCE_CHAT_CREATE,
-        priority: 1100,
-        shouldShow: () => true,
-    },
-    [SEARCH_FILTER_BUTTON_TOOLTIP]: {
-        content: [
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part2', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(SEARCH_FILTER_BUTTON_TOOLTIP),
-        name: SEARCH_FILTER_BUTTON_TOOLTIP,
-        priority: 1000,
+        priority: 1950,
         shouldShow: () => true,
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: true},
             {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part4', isBold: true},
         ],
         onHideTooltip: () => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP),
         name: BOTTOM_NAV_INBOX_TOOLTIP,
-        priority: 900,
+        priority: 1700,
         shouldShow: () => true,
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: true},
         ],
         onHideTooltip: () => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
-        priority: 800,
+        priority: 1800,
+        shouldShow: () => true,
+    },
+    [EXPENSE_REPORTS_FILTER]: {
+        content: [
+            {text: 'productTrainingTooltip.expenseReportsFilter.part1', isBold: false},
+            {text: 'productTrainingTooltip.expenseReportsFilter.part2', isBold: true},
+            {text: 'productTrainingTooltip.expenseReportsFilter.part3', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(EXPENSE_REPORTS_FILTER),
+        name: EXPENSE_REPORTS_FILTER,
+        priority: 2000,
+        shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
+    },
+    [GBR_RBR_CHAT]: {
+        content: [
+            {text: 'productTrainingTooltip.GBRRBRChat.part1', isBold: false},
+            {text: 'productTrainingTooltip.GBRRBRChat.part2', isBold: true},
+            {text: 'productTrainingTooltip.GBRRBRChat.part3', isBold: false},
+            {text: 'productTrainingTooltip.GBRRBRChat.part4', isBold: true},
+        ],
+        onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
+        name: GBR_RBR_CHAT,
+        priority: 1900,
+        shouldShow: () => true,
+    },
+    [ACCOUNT_SWITCHER]: {
+        content: [
+            {text: 'productTrainingTooltip.accountSwitcher.part1', isBold: false},
+            {text: 'productTrainingTooltip.accountSwitcher.part2', isBold: true},
+            {text: 'productTrainingTooltip.accountSwitcher.part3', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(ACCOUNT_SWITCHER),
+        name: ACCOUNT_SWITCHER,
+        priority: 1600,
         shouldShow: () => true,
     },
     [SCAN_TEST_TOOLTIP]: {

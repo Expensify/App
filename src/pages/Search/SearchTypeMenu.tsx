@@ -52,6 +52,11 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
         shouldShowSavedSearchesMenuItemTitle && isFocused,
     );
+    const {
+        shouldShowProductTrainingTooltip: shouldShowExpenseReportsTypeTooltip,
+        renderProductTrainingTooltip: renderExpenseReportsTypeTooltip,
+        hideProductTrainingTooltip: hideExpenseReportsTypeTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.EXPENSE_REPORTS_FILTER, true);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -88,9 +93,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     <SavedSearchItemThreeDotMenu
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
                         isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                        hideProductTrainingTooltip={index === 0 && shouldShowProductTrainingTooltip ? hideProductTrainingTooltip : undefined}
-                        shouldRenderTooltip={index === 0 && shouldShowProductTrainingTooltip}
-                        renderTooltipContent={renderProductTrainingTooltip}
+                        hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
+                        shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
+                        renderTooltipContent={renderSavedSearchTooltip}
                     />
                 ),
                 style: [styles.alignItemsCenter],
@@ -101,23 +106,23 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
                 tooltipShiftVertical: variables.savedSearchShiftVertical,
                 tooltipWrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
-                renderTooltipContent: renderProductTrainingTooltip,
+                renderTooltipContent: renderSavedSearchTooltip,
             };
         },
         [
             allCards,
             hash,
             getOverflowMenu,
+            shouldShowSavedSearchTooltip,
+            hideSavedSearchTooltip,
             styles.alignItemsCenter,
             styles.mh4,
             styles.pv2,
             styles.productTrainingTooltipWrapper,
+            renderSavedSearchTooltip,
             personalDetails,
             reports,
             taxRates,
-            shouldShowProductTrainingTooltip,
-            hideProductTrainingTooltip,
-            renderProductTrainingTooltip,
             cardFeedNamesWithType,
         ],
     );
@@ -186,7 +191,12 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         >
             <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                 {typeMenuItems.map((item, index) => {
+                    const shouldShowTooltip = item.translationPath === 'common.expenseReports' && index !== activeItemIndex && shouldShowExpenseReportsTypeTooltip;
+
                     const onPress = singleExecution(() => {
+                        if (shouldShowTooltip) {
+                            hideExpenseReportsTypeTooltip();
+                        }
                         clearAllFilters();
                         clearSelectedTransactions();
                         Navigation.navigate(item.getRoute(queryJSON.policyID));
@@ -205,6 +215,15 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             focused={index === activeItemIndex}
                             onPress={onPress}
                             shouldIconUseAutoWidthStyle
+                            shouldRenderTooltip={shouldShowTooltip}
+                            renderTooltipContent={renderExpenseReportsTypeTooltip}
+                            tooltipAnchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
+                            tooltipShiftHorizontal={variables.expenseReportsTypeTooltipShiftHorizontal}
+                            tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
+                            onEducationTooltipPress={onPress}
                         />
                     );
                 })}
