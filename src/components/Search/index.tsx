@@ -10,6 +10,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -151,6 +152,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const previousReportActions = usePrevious(reportActions);
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
+    const {canUseTableReportView} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
     // const { setIsOnSearch } = useSearchContext();
 
@@ -427,6 +429,11 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
 
         const backTo = Navigation.getActiveRoute();
+
+        if (canUseTableReportView && isReportListItemType(item)) {
+            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+            return;
+        }
 
         if (isReportActionListItemType(item)) {
             const reportActionID = item.reportActionID;

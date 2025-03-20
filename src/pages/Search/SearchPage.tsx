@@ -425,6 +425,7 @@ function SearchPage({route}: SearchPageProps) {
                                         activeWorkspaceID={policyID}
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
+                                        shouldDisplayHelpButton={false}
                                     />
                                     <SearchTypeMenu queryJSON={queryJSON} />
                                 </View>

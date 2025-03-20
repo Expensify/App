@@ -8,6 +8,7 @@ import {getButtonRole} from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
@@ -268,7 +269,7 @@ function ReportPreview({
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const confirmPayment = useCallback(
-        (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+        (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
             if (!type) {
                 return;
             }
@@ -281,7 +282,7 @@ function ReportPreview({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, payAsBusiness);
+                    payInvoice(type, chatReport, iouReport, payAsBusiness, methodID, paymentMethod);
                 } else {
                     payMoneyRequest(type, chatReport, iouReport);
                 }
