@@ -1012,7 +1012,6 @@ const READ_COMMANDS = {
     OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
     OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
-    GET_EMPHEMERAL_TOKEN: 'GetEmphemeralToken',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1084,7 +1083,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
     [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
-    [READ_COMMANDS.GET_EMPHEMERAL_TOKEN]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
@@ -1100,6 +1098,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     COMPLETE_HYBRID_APP_ONBOARDING: 'CompleteHybridAppOnboarding',
     CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP: 'ConnectPolicyToQuickbooksDesktop',
     BANK_ACCOUNT_CREATE_CORPAY: 'BankAccount_CreateCorpay',
+    GET_EMPHEMERAL_TOKEN: 'GetEmphemeralToken',
 
     // PayMoneyRequestOnSearch only works online (pattern C) and we need to play the success sound only when the request is successful
     PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',
@@ -1123,6 +1122,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY]: Parameters.BankAccountCreateCorpayParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH]: Parameters.PayMoneyRequestOnSearchParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT]: Parameters.LogOutParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_EMPHEMERAL_TOKEN]: null;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
