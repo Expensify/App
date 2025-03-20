@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy as PolicyType, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
@@ -448,6 +448,43 @@ describe('actions/Policy', () => {
                     },
                 });
             });
+        });
+
+        it('should remove violation from expense report', async () => {
+            const policyID = '123';
+            const expenseChatReportID = '1';
+            const expenseReportID = '2';
+            const transactionID = '3';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`, {
+                ...createRandomReport(Number(expenseChatReportID)),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                iouReportID: expenseReportID,
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reportID: expenseReportID,
+                transactionID,
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
+                {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
+            ]);
+
+            Policy.deleteWorkspace(policyID, 'test');
+
+            await waitForBatchedUpdates();
+
+            const violations = await new Promise<OnyxEntry<TransactionViolations>>((resolve) => {
+                Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    callback: resolve,
+                });
+            });
+
+            expect(violations?.every((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION)).toBe(true);
         });
     });
 
