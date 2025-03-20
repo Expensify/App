@@ -156,7 +156,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
-    const pendingTransactionAmount = transaction?.pendingAction && isDistanceRequest ? undefined : transactionAmount;
+    const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
+    const pendingTransactionAmount = transaction?.pendingAction && isDistanceRequest && !hasRoute ? undefined : transactionAmount;
     const formattedTransactionAmount =
         pendingTransactionAmount !== null && pendingTransactionAmount !== undefined ? convertToDisplayString(pendingTransactionAmount, transactionCurrency) : '';
     const formattedPerAttendeeAmount =
@@ -235,7 +236,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
     const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
