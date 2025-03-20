@@ -9,6 +9,7 @@ import Chat from './chat';
 import AdminsChatRoom from './chat/admins';
 import Concierge from './chat/concierge';
 import ExpenseChat from './chat/expense';
+import ManualExpense from './chat/expense/manual';
 import ExpenseReportChat from './chat/expenseReport';
 import WorkspaceChat from './chat/workspace';
 import Search from './search';
@@ -50,11 +51,8 @@ const helpContentMap: HelpContent = {
                 [`:${CONST.REPORT.HELP_TYPE.EXPENSE}`]: {
                     content: ExpenseChat,
                     children: {
-                        [`:${CONST.IOU.EXPENSE_TYPE.DISTANCE}`]: {
-                            content: () => null,
-                        },
                         [`:${CONST.IOU.EXPENSE_TYPE.MANUAL}`]: {
-                            content: () => null,
+                            content: ManualExpense,
                         },
                         [`:${CONST.IOU.EXPENSE_TYPE.SCAN}`]: {
                             content: () => null,
