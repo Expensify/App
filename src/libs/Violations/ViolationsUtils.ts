@@ -2,6 +2,8 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -168,6 +170,7 @@ const ViolationsUtils = {
         policyTagList: PolicyTagLists,
         policyCategories: PolicyCategories,
         hasDependentTags: boolean,
+        isInvoiceTransaction: boolean,
     ): OnyxUpdate {
         const isPartialTransaction = TransactionUtils.isPartialMerchant(TransactionUtils.getMerchant(updatedTransaction)) && TransactionUtils.isAmountMissing(updatedTransaction);
         if (isPartialTransaction) {
@@ -205,7 +208,7 @@ const ViolationsUtils = {
 
             // Add 'missingCategory' violation if category is required and not set
             if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
-                newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION});
+                newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
         }
 
@@ -222,6 +225,61 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
         }
 
+        const isControlPolicy = policy.type === CONST.POLICY.TYPE.CORPORATE;
+        const inputDate = new Date(updatedTransaction.modifiedCreated ?? updatedTransaction.created);
+        const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
+        const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === 'receiptRequired');
+        const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
+        const shouldShowReceiptRequiredViolation =
+            !isInvoiceTransaction &&
+            policy.maxExpenseAmountNoReceipt &&
+            Math.abs(amount) > policy.maxExpenseAmountNoReceipt &&
+            !TransactionUtils.hasReceipt(updatedTransaction) &&
+            isControlPolicy;
+        const shouldShowOverLimitViolation = !isInvoiceTransaction && policy.maxExpenseAmount && Math.abs(amount) > policy.maxExpenseAmount && isControlPolicy;
+        const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
+        // Add 'futureDate' violation if transaction date is in the future and policy type is corporate
+        if (!hasFutureDateViolation && shouldDisplayFutureDateViolation) {
+            newTransactionViolations.push({name: CONST.VIOLATIONS.FUTURE_DATE, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+        }
+
+        // Remove 'futureDate' violation if transaction date is not in the future
+        if (hasFutureDateViolation && !shouldDisplayFutureDateViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.FUTURE_DATE});
+        }
+
+        if (!hasReceiptRequiredViolation && shouldShowReceiptRequiredViolation) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+                data: {
+                    formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency),
+                },
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
+
+        if (hasReceiptRequiredViolation && !shouldShowReceiptRequiredViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
+        }
+
+        if (!hasOverLimitViolation && shouldShowOverLimitViolation) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.OVER_LIMIT,
+                data: {
+                    formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmount, policy.outputCurrency),
+                },
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
+
+        if (hasOverLimitViolation && !shouldShowOverLimitViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
+        }
+
         return {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
@@ -236,7 +294,7 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate']): string {
+    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -323,7 +381,7 @@ const ViolationsUtils = {
                     rterType,
                 });
             case 'smartscanFailed':
-                return translate('violations.smartscanFailed');
+                return translate('violations.smartscanFailed', {canEdit});
             case 'someTagLevelsRequired':
                 return translate('violations.someTagLevelsRequired', {tagName});
             case 'tagOutOfPolicy':

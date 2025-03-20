@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {convertToDisplayString} from './CurrencyUtils';
 import {isPolicyAdmin, shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError, shouldShowTaxRateError} from './PolicyUtils';
 import {getOneTransactionThreadReportID} from './ReportActionsUtils';
@@ -69,6 +70,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     const reportActions = (altReportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
     const reportErrors = getAllReportErrors(report, reportActions);
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions);
+    const oneTransactionThreadReport = reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
     let doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
     if (!doesReportContainErrors) {
@@ -81,8 +83,6 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     }
 
     if (oneTransactionThreadReportID && !doesReportContainErrors) {
-        const oneTransactionThreadReport = reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-
         if (shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport, allTransactionViolations)) {
             doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
@@ -98,7 +98,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
         const itemParentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
         itemParentReportAction = report.parentReportActionID ? itemParentReportActions[report.parentReportActionID] : undefined;
     }
-    const reportOption = {...report, isUnread: isUnread(report), isUnreadWithMention: isUnreadWithMention(report)};
+    const reportOption = {...report, isUnread: isUnread(report, oneTransactionThreadReport), isUnreadWithMention: isUnreadWithMention(report)};
     const shouldShowGreenDotIndicator = requiresAttentionFromCurrentUser(reportOption, itemParentReportAction);
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 };
@@ -113,6 +113,7 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, allConn
         () => Object.values(cleanPolicies).some(shouldShowCustomUnitsError),
         () => Object.values(cleanPolicies).some(shouldShowTaxRateError),
         () => Object.values(cleanPolicies).some(shouldShowEmployeeListError),
+        () => Object.values(cleanPolicies).some(shouldShowQBOReimbursableExportDestinationAccountError),
         () =>
             Object.values(cleanPolicies).some((cleanPolicy) =>
                 shouldShowSyncError(cleanPolicy, isConnectionInProgress(allConnectionProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
@@ -213,7 +214,7 @@ function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: Onyx
 /**
  * @returns a map where the keys are policyIDs and the values are truthy booleans if policy has unread content
  */
-function getWorkspacesUnreadStatuses(reports: OnyxCollection<Report>): Record<string, boolean> {
+function getWorkspacesUnreadStatuses(reports: OnyxCollection<Report>, reportActions: OnyxCollection<ReportActions>): Record<string, boolean> {
     if (!reports) {
         return {};
     }
@@ -226,9 +227,12 @@ function getWorkspacesUnreadStatuses(reports: OnyxCollection<Report>): Record<st
             return;
         }
 
+        const currentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, currentReportActions);
+        const oneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
         // setting it Unread so we add additional condition here to avoid read workspace indicator from being bold.
-        workspacesUnreadStatuses[policyID] = isUnread(report) && !!report.lastActorAccountID;
+        workspacesUnreadStatuses[policyID] = isUnread(report, oneTransactionThreadReport) && !!report.lastActorAccountID;
     });
 
     return workspacesUnreadStatuses;

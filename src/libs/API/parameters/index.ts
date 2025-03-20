@@ -32,6 +32,7 @@ export type {default as GetOlderActionsParams} from './GetOlderActionsParams';
 export type {default as GetPolicyCategoriesParams} from './GetPolicyCategories';
 export type {default as GetReportPrivateNoteParams} from './GetReportPrivateNoteParams';
 export type {default as GetRouteParams} from './GetRouteParams';
+export type {default as CreateAppReportParams} from './CreateAppReportParams';
 export type {default as GetStatementPDFParams} from './GetStatementPDFParams';
 export type {default as HandleRestrictedEventParams} from './HandleRestrictedEventParams';
 export type {default as LogOutParams} from './LogOutParams';
@@ -51,7 +52,6 @@ export type {default as ReferTeachersUniteVolunteerParams} from './ReferTeachers
 export type {default as ReportVirtualExpensifyCardFraudParams} from './ReportVirtualExpensifyCardFraudParams';
 export type {default as RequestContactMethodValidateCodeParams} from './RequestContactMethodValidateCodeParams';
 export type {default as RequestNewValidateCodeParams} from './RequestNewValidateCodeParams';
-export type {default as RequestPhysicalExpensifyCardParams} from './RequestPhysicalExpensifyCardParams';
 export type {default as RequestReplacementExpensifyCardParams} from './RequestReplacementExpensifyCardParams';
 export type {default as RequestUnlinkValidationLinkParams} from './RequestUnlinkValidationLinkParams';
 export type {default as RequestAccountValidationLinkParams} from './RequestAccountValidationLinkParams';
@@ -185,6 +185,7 @@ export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as SetPolicyTagsRequired} from './SetPolicyTagsRequired';
 export type {default as RenamePolicyTaglistParams} from './RenamePolicyTaglistParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
+export type {default as SwitchToOldDotOnCompanySizeParams} from './SwitchToOldDotOnCompanySizeParams';
 export type {default as TrackExpenseParams} from './TrackExpenseParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
@@ -204,6 +205,7 @@ export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPagePa
 export type {default as OpenPolicyReportFieldsPageParams} from './OpenPolicyReportFieldsPageParams';
 export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
+export type {default as OpenPolicyMemberProfilePageParams} from './OpenPolicyMemberProfilePageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
 export type {default as EnableDistanceRequestTaxParams} from './EnableDistanceRequestTaxParams';
@@ -283,7 +285,7 @@ export type {default as UpdateNSQSProjectsMappingParams} from './UpdateNSQSProje
 export type {default as UpdateNSQSExporterParams} from './UpdateNSQSExporterParams';
 export type {default as UpdateNSQSExportDateParams} from './UpdateNSQSExportDateParams';
 export type {default as UpdateNSQSAutoSyncParams} from './UpdateNSQSAutoSyncParams';
-export type {default as UpdateNSQSApprovalAccountParams} from './UpdateNSQSApprovalAccountParams';
+export type {default as UpdateNSQSPaymentAccountParams} from './UpdateNSQSPaymentAccountParams';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
@@ -368,6 +370,7 @@ export type {default as BankAccountCreateCorpayParams} from './BankAccountCreate
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
 export type {default as ImportPerDiemRatesParams} from './ImportPerDiemRatesParams';
 export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
+export type {default as ExportReportPDFParams} from './ExportReportPDFParams';
 export type {default as UpdateWorkspaceCustomUnitParams} from './UpdateWorkspaceCustomUnitParams';
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
 export type {default as OpenWorkspacePlanPageParams} from './OpenWorkspacePlanPage';
@@ -378,3 +381,5 @@ export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboar
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
+export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
+export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';

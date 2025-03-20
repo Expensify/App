@@ -24,12 +24,14 @@ import createReportActionContextMenuStyleUtils from './generators/ReportActionCo
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
+import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import searchHeaderHeight from './searchHeaderHeight';
+import getSearchBottomTabHeaderStyles from './searchBottomTabHeaderStyles.ts';
+import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import type {
     AllStyles,
     AvatarSize,
@@ -67,12 +69,12 @@ const workspaceColorOptions: SVGAvatarColorStyle[] = [
 ];
 
 const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
-    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow600, color: colors.yellow100},
-    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.blue800, color: colors.ice400},
-    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue400, color: colors.blue100},
-    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400},
-    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400},
-    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400},
+    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow800, color: colors.yellow400, titleColor: colors.yellow500},
+    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.ice800, color: colors.ice400, titleColor: colors.ice500},
+    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue800, color: colors.blue400, titleColor: colors.blue500},
+    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400, titleColor: colors.green500},
+    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400, titleColor: colors.tangerine500},
+    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400, titleColor: colors.pink500},
 };
 
 const eReceiptColors: EReceiptColorName[] = [
@@ -330,10 +332,11 @@ type SafeAreaPadding = {
 };
 
 /**
- * Takes safe area insets and returns padding to use for a View
+ * Takes safe area insets and returns platform specific padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
+function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
     const platform = getPlatform();
+
     let insetsPercentage = insetsPercentageProp;
     if (insetsPercentage == null) {
         switch (platform) {
@@ -627,8 +630,14 @@ function getModalPaddingStyles({
 /**
  * Returns the font size for the HTML code tag renderer.
  */
-function getCodeFontSize(isInsideH1: boolean) {
-    return isInsideH1 ? 15 : 13;
+function getCodeFontSize(isInsideH1: boolean, isInsideTaskTitle?: boolean) {
+    if (isInsideH1 && !isInsideTaskTitle) {
+        return 15;
+    }
+    if (isInsideTaskTitle) {
+        return 19;
+    }
+    return 13;
 }
 
 /**
@@ -955,18 +964,21 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
 }
 
 /**
- * Returns padding vertical based on number of lines
+ * Returns vertical padding based on number of lines.
  */
-function getComposeTextAreaPadding(isComposerFullSize: boolean): TextStyle {
-    let paddingValue = 5;
+function getComposeTextAreaPadding(isComposerFullSize: boolean, textContainsOnlyEmojis: boolean): TextStyle {
+    let paddingTop = 8;
+    let paddingBottom = 8;
     // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
     if (!isComposerFullSize) {
-        paddingValue = 8;
+        paddingTop = 8;
+        paddingBottom = 8;
     }
-    return {
-        paddingTop: paddingValue,
-        paddingBottom: paddingValue,
-    };
+    // We need to reduce the top padding because emojis have a bigger font height.
+    if (textContainsOnlyEmojis) {
+        paddingTop = 3;
+    }
+    return {paddingTop, paddingBottom};
 }
 
 /**
@@ -1172,7 +1184,7 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
 
 const staticStyleUtils = {
     positioning,
-    searchHeaderHeight,
+    searchHeaderDefaultOffset,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
@@ -1221,7 +1233,7 @@ const staticStyleUtils = {
     getPaymentMethodMenuWidth,
     getSafeAreaInsets,
     getSafeAreaMargins,
-    getSafeAreaPadding,
+    getPlatformSafeAreaPadding,
     getSignInWordmarkWidthStyle,
     getTextColorStyle,
     getTransparentColor,
@@ -1236,6 +1248,7 @@ const staticStyleUtils = {
     getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
+    getSearchBottomTabHeaderStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
@@ -1246,6 +1259,7 @@ const staticStyleUtils = {
     getBorderRadiusStyle,
     getHighResolutionInfoWrapperStyle,
     getItemBackgroundColorStyle,
+    getNavigationBarType,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1603,14 +1617,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getSearchTableColumnStyles: (columnName: string, shouldExtendDateColumn = false): ViewStyle => {
+    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                columnWidth = getWidthStyle(shouldExtendDateColumn ? variables.w92 : variables.w52);
+                columnWidth = getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52);
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:

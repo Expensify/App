@@ -42,23 +42,25 @@ import {
     removeMembers,
     updateWorkspaceMembersRole,
 } from '@libs/actions/Policy/Member';
+import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import {close} from '@userActions/Modal';
-import {dismissAddedWithPrimaryLoginMessages, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
+import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PolicyEmployeeList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyEmployeeList} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -67,7 +69,7 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
-    PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
 
 /**
  * Inverts an object, equivalent of _.invert
@@ -113,6 +115,18 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
+
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const policyApproverEmail = policy?.approver;
+    const {approvalWorkflows} = useMemo(
+        () =>
+            convertPolicyEmployeesToApprovalWorkflows({
+                employees: policy?.employeeList ?? {},
+                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                personalDetails: personalDetails ?? {},
+            }),
+        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+    );
 
     const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
 
@@ -225,18 +239,39 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return;
         }
 
-        const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         // Remove the admin from the list
         const accountIDsToRemove = session?.accountID ? selectedEmployees.filter((id) => id !== session.accountID) : selectedEmployees;
-        const newEmployeesCount = previousEmployeesCount - accountIDsToRemove.length;
+
+        // Check if any of the account IDs are approvers
+        const hasApprovers = accountIDsToRemove.some((accountID) => isApprover(policy, accountID));
+
+        if (hasApprovers) {
+            const ownerEmail = ownerDetails.login;
+            accountIDsToRemove.forEach((accountID) => {
+                const removedApprover = personalDetails?.[accountID];
+                if (!removedApprover?.login || !ownerEmail) {
+                    return;
+                }
+                const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+                    approvalWorkflows,
+                    removedApprover,
+                    ownerDetails,
+                });
+                updatedWorkflows.forEach((workflow) => {
+                    if (workflow?.removeApprovalWorkflow) {
+                        const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+                        removeApprovalWorkflowAction(policyID, updatedWorkflow);
+                    } else {
+                        updateApprovalWorkflow(policyID, workflow, [], []);
+                    }
+                });
+            });
+        }
+
         setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
             removeMembers(accountIDsToRemove, route.params.policyID);
-            if (newEmployeesCount === 1 && policy?.preventSelfApproval) {
-                // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
-                setPolicyPreventSelfApproval(route.params.policyID, false);
-            }
         });
     };
 
@@ -630,7 +665,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         <WorkspacePageWithSections
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
             icon={!selectionModeHeader ? ReceiptWrangler : undefined}
             headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             testID={WorkspaceMembersPage.displayName}

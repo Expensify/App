@@ -1,7 +1,8 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -19,6 +20,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -28,19 +30,21 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@libs/actions/Policy/PerDiem';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {openExternalLink} from '@userActions/Link';
+import {turnOffMobileSelectionMode} from '@userActions/MobileSelectionMode';
 import {close} from '@userActions/Modal';
+import {deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -106,7 +110,7 @@ function generateSingleSubRateData(customUnitRates: Rate[], rateID: string, subR
     };
 }
 
-type WorkspacePerDiemPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspacePerDiemPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
@@ -120,10 +124,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const [selectedPerDiem, setSelectedPerDiem] = useState<SubRateData[]>([]);
     const [deletePerDiemConfirmModalVisible, setDeletePerDiemConfirmModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
-    const isFocused = useIsFocused();
     const policyID = route.params.policyID;
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyID);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const {selectionMode} = useMobileSelectionMode();
 
     const customUnit = getPerDiemCustomUnit(policy);
@@ -150,12 +154,8 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }, [fetchPerDiem]),
     );
 
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        setSelectedPerDiem([]);
-    }, [isFocused]);
+    const cleanupSelectedOption = useCallback(() => setSelectedPerDiem([]), []);
+    useCleanupSelectedOptions(cleanupSelectedOption);
 
     const subRatesList = useMemo<PolicyOption[]>(
         () =>
@@ -233,6 +233,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const openSubRateDetails = (rate: PolicyOption) => {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleSubRate(rate);
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rate.rateID, rate.subRateID));
     };
 
@@ -266,6 +270,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     isDisabled={!selectedPerDiem.length}
                 />
             );
+        }
+
+        if (!policy?.areCategoriesEnabled || !hasEnabledOptions(policyCategories ?? {})) {
+            return null;
         }
 
         return (
@@ -326,7 +334,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
                 },
             },
-            {
+        ];
+
+        if (hasVisibleSubRates) {
+            menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
@@ -338,11 +349,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         setIsDownloadFailureModalVisible(true);
                     });
                 },
-            },
-        ];
+            });
+        }
 
         return menuItems;
-    }, [translate, isOffline, policyID]);
+    }, [translate, hasVisibleSubRates, isOffline, policyID]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 

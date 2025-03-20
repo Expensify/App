@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getParsedComment} from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
 
 type CustomRulesSectionProps = {
@@ -16,6 +17,13 @@ function CustomRulesSection({policyID}: CustomRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const parsedRules = useMemo(() => {
+        const customRules = policy?.customRules ?? '';
+        const options = policy?.isLoading ? {shouldEscapeText: false} : undefined;
+
+        return getParsedComment(customRules, options);
+    }, [policy]);
+    const rulesDescription = typeof parsedRules === 'string' ? parsedRules : '';
 
     return (
         <Section
@@ -27,16 +35,17 @@ function CustomRulesSection({policyID}: CustomRulesSectionProps) {
         >
             <View style={[styles.mt3]}>
                 {/* <OfflineWithFeedback
-              pendingAction={item.pendingAction}
-              key={translate(item.descriptionTranslationKey)}
-          > */}
+                    pendingAction={policy?.pendingFields?.customRules}
+                    errors={policy?.errors?.customRules}
+                > */}
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={policy?.customRules ?? ''}
+                    title={rulesDescription}
                     description={translate('workspace.rules.customRules.subtitle')}
+                    shouldShowRightIcon
+                    interactive
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
                     onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(policyID))}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    numberOfLinesTitle={2}
+                    shouldRenderAsHTML
                 />
                 {/* </OfflineWithFeedback> */}
             </View>

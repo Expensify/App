@@ -12,6 +12,7 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {getExpensifyCardFromReportAction} from './CardMessageUtils';
 import {extractCollectionItemID} from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
@@ -28,15 +29,28 @@ import {
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
+    getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogEmployeeLeftMessage,
+    getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
     getReportAction,
-    getReportActionMessage,
     getReportActionMessageText,
     getSortedReportActions,
     getUpdateRoomDescriptionMessage,
+    getWorkspaceCategoryUpdateMessage,
+    getWorkspaceCurrencyUpdateMessage,
+    getWorkspaceCustomUnitRateAddedMessage,
+    getWorkspaceDescriptionUpdatedMessage,
+    getWorkspaceFrequencyUpdateMessage,
+    getWorkspaceReportFieldAddMessage,
+    getWorkspaceReportFieldDeleteMessage,
+    getWorkspaceReportFieldUpdateMessage,
+    getWorkspaceTagUpdateMessage,
+    getWorkspaceUpdateFieldMessage,
     isActionOfType,
     isCardIssuedAction,
     isInviteOrRemovedAction,
@@ -64,6 +78,7 @@ import {
     getReportNameValuePairs,
     getReportNotificationPreference,
     getReportParticipantsTitle,
+    getReportSubtitlePrefix,
     getWorkspaceNameUpdatedMessage,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
@@ -99,7 +114,7 @@ import {
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
 
-type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; messageText?: string; messageHtml?: string};
+type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; phrase4?: string; messageText?: string; messageHtml?: string};
 
 const visibleReportActionItems: ReportActions = {};
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -330,6 +345,10 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     const errors = getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
 
+    if (isArchivedReportWithID(report.reportID)) {
+        return null;
+    }
+
     if (shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
         return {
             reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
@@ -361,6 +380,7 @@ function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportA
  */
 function getOptionData({
     report,
+    oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
     personalDetails,
@@ -373,6 +393,7 @@ function getOptionData({
     invoiceReceiverPolicy,
 }: {
     report: OnyxEntry<Report>;
+    oneTransactionThreadReport: OnyxEntry<Report>;
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     reportActions: OnyxEntry<ReportActions>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -450,7 +471,7 @@ function getOptionData({
     result.statusNum = report.statusNum;
     // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
     // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = isUnread(report) && !!report.lastActorAccountID;
+    result.isUnread = isUnread(report, oneTransactionThreadReport) && !!report.lastActorAccountID;
     result.isUnreadWithMention = isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -510,12 +531,28 @@ function getOptionData({
     const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !result.private_isArchived) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
+        const prefix = getReportSubtitlePrefix(report);
 
         if (isRenamedAction(lastAction)) {
             result.alternateText = getRenamedAction(lastAction);
         } else if (isTaskAction(lastAction)) {
             result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(lastAction).text);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
+            const actionMessage = getReportActionMessageText(lastAction);
+            result.alternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';
         } else if (isInviteOrRemovedAction(lastAction)) {
+            let actorDetails;
+            if (lastAction.actorAccountID) {
+                actorDetails = personalDetails?.[lastAction?.actorAccountID];
+            }
+            let actorDisplayName = lastAction?.person?.[0]?.text;
+            if (!actorDetails && actorDisplayName && lastAction.actorAccountID) {
+                actorDetails = {
+                    displayName: actorDisplayName,
+                    accountID: lastAction.actorAccountID,
+                };
+            }
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, hasMultipleParticipants) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0;
@@ -524,7 +561,7 @@ function getOptionData({
                     ? translate(preferredLocale, 'workspace.invite.invited')
                     : translate(preferredLocale, 'workspace.invite.removed');
             const users = translate(preferredLocale, targetAccountIDsLength > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
-            result.alternateText = formatReportLastMessageText(`${lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
+            result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
             const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]);
             if (roomName) {
                 const preposition =
@@ -537,14 +574,50 @@ function getOptionData({
             result.alternateText = `${lastActorDisplayName} ${getUpdateRoomDescriptionMessage(lastAction)}`;
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
             result.alternateText = getWorkspaceNameUpdatedMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION)) {
+            result.alternateText = getWorkspaceDescriptionUpdatedMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY)) {
+            result.alternateText = getWorkspaceCurrencyUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY)) {
+            result.alternateText = getWorkspaceFrequencyUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE)) {
+            result.alternateText = translateLocal('workspaceActions.upgradedWorkspace');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE)) {
+            result.alternateText = translateLocal('workspaceActions.downgradedWorkspace');
+        } else if (
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY) ||
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME)
+        ) {
+            result.alternateText = getWorkspaceCategoryUpdateMessage(lastAction);
+        } else if (isTagModificationAction(lastAction?.actionName)) {
+            result.alternateText = getCleanedTagName(getWorkspaceTagUpdateMessage(lastAction) ?? '');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
+            result.alternateText = getWorkspaceCustomUnitRateAddedMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD)) {
+            result.alternateText = getWorkspaceReportFieldAddMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD)) {
+            result.alternateText = getWorkspaceReportFieldUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_REPORT_FIELD)) {
+            result.alternateText = getWorkspaceReportFieldDeleteMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
+            result.alternateText = getWorkspaceUpdateFieldMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
+            result.alternateText = getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
+            result.alternateText = getPolicyChangeLogMaxExpenseAmountMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
+            result.alternateText = getPolicyChangeLogDefaultBillableMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
+            result.alternateText = getPolicyChangeLogDefaultTitleEnforcedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction});
+            const card = getExpensifyCardFromReportAction({reportAction: lastAction, policyID: report.policyID});
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, card});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`));
-        } else if (isTagModificationAction(lastAction?.actionName)) {
-            result.alternateText = getCleanedTagName(getReportActionMessage(lastAction)?.text ?? '');
         } else if (lastAction && isOldDotReportAction(lastAction)) {
             result.alternateText = getMessageOfOldDotReportAction(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
@@ -562,10 +635,12 @@ function getOptionData({
                 lastMessageTextFromReport.length > 0
                     ? formatReportLastMessageText(Parser.htmlToText(lastMessageText))
                     : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
+
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
             }
         }
+        result.alternateText = prefix + result.alternateText;
     } else {
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
@@ -576,7 +651,6 @@ function getOptionData({
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
     if (isJoinRequestInAdminRoom(report)) {
-        result.isPinned = true;
         result.isUnread = true;
         result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
@@ -648,19 +722,16 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant);
     const displayNamesWithTooltipsText = displayNamesWithTooltips
-        .map(({displayName, pronouns}, index) => {
-            const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
-
+        .map(({displayName}, index) => {
             if (index === displayNamesWithTooltips.length - 1) {
-                return `${formattedText}.`;
+                return `${displayName}.`;
             }
             if (index === displayNamesWithTooltips.length - 2) {
-                return `${formattedText} ${translateLocal('common.and')}`;
+                return `${displayName} ${translateLocal('common.and')}`;
             }
             if (index < displayNamesWithTooltips.length - 2) {
-                return `${formattedText},`;
+                return `${displayName},`;
             }
-
             return '';
         })
         .join(' ');
@@ -690,9 +761,11 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report?.reportName ?? ''});
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
     } else if (isAdminRoom(report)) {
-        welcomeMessage.showReportName = false;
-        welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
-        welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
+        welcomeMessage.showReportName = true;
+        welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOneFirst');
+        welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomWorkspaceName', {workspaceName});
+        welcomeMessage.phrase3 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOneLast');
+        welcomeMessage.phrase4 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.showReportName = false;
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});

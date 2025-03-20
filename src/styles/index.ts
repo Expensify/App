@@ -5,8 +5,6 @@ import type {LineLayer} from 'react-map-gl';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
-// eslint-disable-next-line no-restricted-imports -- will be removed in the future PR
-import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
@@ -22,7 +20,6 @@ import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import borders from './utils/borders';
 import chatContentScrollViewPlatformStyles from './utils/chatContentScrollViewPlatformStyles';
-import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
 import editedLabelStyles from './utils/editedLabelStyles';
@@ -74,8 +71,6 @@ type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | nu
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
-type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
-
 type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
 
 type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth'>;
@@ -92,7 +87,7 @@ type Styles = Record<
     | MapDirectionStyle
     | MapDirectionLayerStyle
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomAnimation | CustomPickerStyle)
+    | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomPickerStyle)
 >;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -136,6 +131,10 @@ const headlineFont = {
     ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
 } satisfies TextStyle;
 
+const headlineItalicFont = {
+    ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM_ITALIC,
+} satisfies TextStyle;
+
 const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
@@ -160,12 +159,6 @@ const webViewStyles = (theme: ThemeColors) =>
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
-            },
-
-            strong: {
-                // We set fontFamily and fontWeight directly in order to avoid overriding fontStyle.
-                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
-                fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
             },
 
             a: link(theme),
@@ -197,7 +190,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 ...baseCodeTagStyles(theme),
                 paddingVertical: 8,
                 paddingHorizontal: 12,
-                fontSize: 13,
+                fontSize: undefined,
                 ...FontUtils.fontFamily.platform.MONOSPACE,
                 marginTop: 0,
                 marginBottom: 0,
@@ -205,11 +198,9 @@ const webViewStyles = (theme: ThemeColors) =>
 
             code: {
                 ...baseCodeTagStyles(theme),
-                ...(codeStyles.codeTextStyle as MixedStyleDeclaration),
                 paddingLeft: 5,
                 paddingRight: 5,
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
-                // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
             img: {
@@ -232,7 +223,8 @@ const webViewStyles = (theme: ThemeColors) =>
                 marginBottom: 0,
             },
             h1: {
-                fontSize: variables.fontSizeLarge,
+                fontSize: undefined,
+                fontWeight: undefined,
                 marginBottom: 8,
             },
         },
@@ -277,6 +269,18 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             boxShadow: variables.popoverMenuShadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
+        },
+
+        h1: {
+            fontSize: variables.fontSizeLarge,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+            fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+            marginBottom: 8,
+        },
+
+        strong: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+            fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
         },
 
         autoCompleteSuggestionContainer: {
@@ -438,7 +442,15 @@ const styles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeExtraSmall,
         },
-
+        textDoubleDecker: {
+            fontSize: variables.fontSizeSmall,
+            opacity: 0.8,
+            fontWeight: FontUtils.fontWeight.bold,
+            lineHeight: 12,
+        },
+        noPaddingBottom: {
+            paddingBottom: 0,
+        },
         textNormal: {
             fontSize: variables.fontSizeNormal,
         },
@@ -509,6 +521,9 @@ const styles = (theme: ThemeColors) =>
         textBold: {
             fontWeight: FontUtils.fontWeight.bold,
         },
+        textItalic: {
+            ...FontUtils.fontFamily.platform.MONOSPACE_ITALIC,
+        },
 
         textVersion: {
             color: theme.iconColorfulBackground,
@@ -566,6 +581,24 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
+        borderRadiusComponentNormal: {
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
+            // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
+            // On natives we can use absolute positioning.
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            display: shouldDisplayTopLevelBottomTabBar ? 'flex' : 'none',
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            paddingBottom: bottomSafeAreaOffset,
+            bottom: 0,
+
+            // There is a missing border right on the wide layout
+            borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
+            borderColor: theme.border,
+        }),
+
         bottomTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -615,6 +648,7 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentBetween,
             ...flex.alignItemsCenter,
             ...sizing.mnw120,
+            ...spacing.gap4,
             minHeight: 64,
         },
 
@@ -763,6 +797,13 @@ const styles = (theme: ThemeColors) =>
 
         buttonDangerText: {
             color: theme.textLight,
+        },
+
+        buttonBlendContainer: {
+            backgroundColor: theme.appBG,
+            opacity: 1,
+            position: 'relative',
+            overflow: 'hidden',
         },
 
         hoveredComponentBG: {
@@ -1086,7 +1127,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchHeaderGap: {
-            zIndex: variables.searchTopBarZIndex + 1,
+            zIndex: variables.searchTopBarZIndex + 2,
             backgroundColor: theme.appBG,
         },
 
@@ -1111,19 +1152,12 @@ const styles = (theme: ThemeColors) =>
             marginLeft: variables.chatInputSpacing,
         },
 
-        offlineIndicator: {
+        offlineIndicatorChat: {
             marginLeft: variables.chatInputSpacing,
         },
 
-        offlineIndicatorMobile: {
-            paddingLeft: 20,
-            paddingTop: 5,
-            paddingBottom: 30,
-            marginBottom: -25,
-        },
-
-        offlineIndicatorRow: {
-            height: 25,
+        offlineIndicatorContainer: {
+            height: CONST.OFFLINE_INDICATOR_HEIGHT,
         },
 
         deletedAttachmentIndicator: {
@@ -1580,6 +1614,19 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             flexWrap: 'wrap',
             ...wordBreak.breakWord,
+        },
+
+        searchSplitContainer: {
+            flex: 1,
+            flexDirection: 'row',
+        },
+
+        searchSidebar: {
+            width: variables.sideBarWidth,
+            height: '100%',
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderColor: theme.border,
         },
 
         // Sidebar Styles
@@ -2606,7 +2653,8 @@ const styles = (theme: ThemeColors) =>
             height: variables.contentHeaderDesktopHeight,
             zIndex: variables.popoverzIndex,
             position: 'relative',
-            paddingHorizontal: 20,
+            paddingLeft: 20,
+            paddingRight: 12,
         },
 
         headerBarDesktopHeight: {
@@ -2684,6 +2732,25 @@ const styles = (theme: ThemeColors) =>
         defaultModalContainer: {
             backgroundColor: theme.componentBG,
             borderColor: theme.transparent,
+        },
+
+        modalContainer: {height: '100%'},
+
+        modalAnimatedContainer: {width: '100%'},
+
+        modalContainerBox: {
+            zIndex: 2,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+
+        modalBackdrop: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'black',
         },
 
         reportActionContextMenuMiniButton: {
@@ -2869,8 +2936,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 88,
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, shouldShowHelpPanel: boolean) =>
-            ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, marginRight: shouldShowHelpPanel ? variables.sideBarWidth : 0, flex: 1} satisfies ViewStyle),
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
         avatarInnerTextChat: {
@@ -3093,6 +3159,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             opacity: 0,
             left: -9999,
+            top: -9999,
         },
 
         containerWithSpaceBetween: {
@@ -3305,10 +3372,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        codeWordWrapper: {
-            ...codeStyles.codeWordWrapper,
-        },
-
         codeWordStyle: {
             borderLeftWidth: 0,
             borderRightWidth: 0,
@@ -3319,7 +3382,6 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
             paddingRight: 0,
             justifyContent: 'center',
-            ...codeStyles.codeWordStyle,
         },
 
         codeFirstWordStyle: {
@@ -3334,10 +3396,6 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: 4,
             borderBottomRightRadius: 4,
             paddingRight: 5,
-        },
-
-        codePlainTextStyle: {
-            ...codeStyles.codePlainTextStyle,
         },
 
         fullScreenLoading: {
@@ -3390,16 +3448,6 @@ const styles = (theme: ThemeColors) =>
                 transform: [{translateY: translateY.get()}],
             };
         },
-
-        makeSlideInTranslation: (translationType: Translation, fromValue: number) =>
-            ({
-                from: {
-                    [translationType]: fromValue,
-                },
-                to: {
-                    [translationType]: 0,
-                },
-            } satisfies CustomAnimation),
 
         growlNotificationBox: {
             backgroundColor: theme.inverse,
@@ -3713,7 +3761,13 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
-        searchTopBarStyle: {
+        narrowSearchHeaderStyle: {
+            paddingTop: 12,
+            backgroundColor: theme.appBG,
+            flex: 1,
+        },
+
+        narrowSearchRouterInactiveStyle: {
             left: 0,
             right: 0,
             position: 'absolute',
@@ -4139,8 +4193,8 @@ const styles = (theme: ThemeColors) =>
 
         eReceiptWaypointAddress: {
             ...FontUtils.fontFamily.platform.MONOSPACE,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.lineHeightNormal,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightSmall,
             color: theme.textColorfulBackground,
         },
 
@@ -4178,10 +4232,26 @@ const styles = (theme: ThemeColors) =>
         },
 
         eReceiptContainer: {
-            width: 335,
-            minHeight: 540,
-            borderRadius: 20,
+            width: variables.eReceiptBGHWidth,
+            minHeight: variables.eReceiptBGHeight,
             overflow: 'hidden',
+        },
+
+        eReceiptContentContainer: {
+            ...sizing.w100,
+            ...spacing.p5,
+            minWidth: variables.eReceiptBodyWidth,
+            minHeight: variables.eReceiptBodyHeight,
+        },
+
+        eReceiptContentWrapper: {
+            ...sizing.w100,
+            ...spacing.ph5,
+            ...spacing.pt10,
+            ...spacing.pb4,
+            ...sizing.h100,
+            position: 'absolute',
+            left: 0,
         },
 
         loginHeroBody: {
@@ -4222,6 +4292,16 @@ const styles = (theme: ThemeColors) =>
             ...writingDirection.ltr,
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeh2,
+            maxWidth: '100%',
+            ...wordBreak.breakWord,
+        },
+
+        taskTitleMenuItemItalic: {
+            ...writingDirection.ltr,
+            ...headlineItalicFont,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeh2,
             maxWidth: '100%',
             ...wordBreak.breakWord,
         },
@@ -4380,12 +4460,8 @@ const styles = (theme: ThemeColors) =>
                 fontSize: variables.fontSizeLabel,
             } satisfies TextStyle),
 
-        animatedTabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
-        }),
-
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
         }),
 
         tabOpacity: (
@@ -4648,8 +4724,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 2,
             borderColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
-            height: 200,
-            maxWidth: 400,
+            height: 180,
+            maxWidth: 360,
         },
 
         pdfErrorPlaceholder: {
@@ -4872,6 +4948,11 @@ const styles = (theme: ThemeColors) =>
 
         headerStatusBarContainer: {
             minHeight: variables.componentSizeSmall,
+        },
+
+        searchStatusBarContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
         },
 
         walletIllustration: {
@@ -5219,6 +5300,11 @@ const styles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        twoFARequiredContainer: {
+            maxWidth: 350,
+            margin: 'auto',
+        },
+
         widthAuto: {
             width: 'auto',
         },
@@ -5384,7 +5470,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             backgroundColor: theme.transparent,
             overflow: 'hidden',
-            marginBottom: -1,
+            position: 'absolute',
+            bottom: -1,
         },
 
         progressBar: {
@@ -5411,6 +5498,43 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.text,
             marginHorizontal: 8,
             alignSelf: 'center',
+        },
+        // We have to use 10000 here as sidePane has to be displayed on top of modals which have z-index of 9999
+        sidePaneContainer: {zIndex: 10000},
+        sidePaneOverlay: (isOverlayVisible: boolean) => ({
+            ...positioning.pFixed,
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: -variables.sideBarWidth,
+            backgroundColor: theme.overlay,
+            opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
+        }),
+        sidePaneContent: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            top: 0,
+            bottom: 0,
+            right: 0,
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            height: '100%',
+            backgroundColor: theme.modalBackground,
+            borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
+            borderLeftColor: theme.border,
+        }),
+
+        expenseWidgetRadius: {
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        navigationBarBG: {
+            backgroundColor: theme.navigationBarBackgroundColor,
+        },
+
+        stickToBottom: {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
         },
     } satisfies Styles);
 

@@ -33,12 +33,13 @@ export {
     goToWithdrawalAccountSetupStep,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
-    resetFreePlanBankAccount,
+    resetUSDBankAccount,
+    resetNonUSDBankAccount,
     hideBankAccountErrors,
     setBankAccountSubStep,
     updateReimbursementAccountDraft,
-    requestResetFreePlanBankAccount,
-    cancelResetFreePlanBankAccount,
+    requestResetBankAccount,
+    cancelResetBankAccount,
 } from './ReimbursementAccount';
 export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
 export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
@@ -95,6 +96,7 @@ function openPersonalBankAccountSetupView(exitReportID?: string, policyID?: stri
         }
         if (!isUserValidated) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+            return;
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
     });
@@ -615,7 +617,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
  * @param policyID - ID of the policy we're setting the bank account on
  * @param isConfirmPage - If we're submitting from the confirmation substep, to trigger all external checks
  */
-function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>, policyID: string, isConfirmPage: boolean) {
+function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>, policyID: string | undefined, isConfirmPage: boolean) {
     API.write(
         WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT,
         {

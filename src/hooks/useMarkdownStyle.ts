@@ -67,10 +67,12 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
             mentionHere: {
                 color: theme.ourMentionText,
                 backgroundColor: theme.ourMentionBG,
+                borderRadius: variables.componentBorderRadiusSmall,
             },
             mentionUser: {
                 color: theme.mentionText,
                 backgroundColor: theme.mentionBG,
+                borderRadius: variables.componentBorderRadiusSmall,
             },
             mentionReport: {
                 color: theme.mentionText,

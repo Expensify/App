@@ -8,17 +8,19 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
-import Navigation from '@libs/Navigation/Navigation';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {addPersonalBankAccount, clearPersonalBankAccount, validatePlaidSelection} from '@userActions/BankAccounts';
 import {continueSetup} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 function AddPersonalBankAccountPage() {
@@ -30,22 +32,21 @@ function AddPersonalBankAccountPage() {
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const {canUseInternationalBankAccount} = usePermissions();
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-
-    const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
+    const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
 
     const goBack = useCallback(() => {
-        switch (topMostCentralPane?.name) {
-            case SCREENS.SETTINGS.WALLET.ROOT:
-                Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
+        switch (topmostFullScreenRoute?.name) {
+            case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
+                Navigation.goBack(ROUTES.SETTINGS_WALLET);
                 break;
-            case SCREENS.REPORT:
+            case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
                 Navigation.closeRHPFlow();
                 break;
             default:
                 Navigation.goBack();
                 break;
         }
-    }, [topMostCentralPane]);
+    }, [topmostFullScreenRoute?.name]);
 
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
@@ -91,13 +92,16 @@ function AddPersonalBankAccountPage() {
                         onBackButtonPress={shouldShowSuccess ? exitFlow : Navigation.goBack}
                     />
                     {shouldShowSuccess ? (
-                        <ConfirmationPage
-                            heading={translate('addPersonalBankAccountPage.successTitle')}
-                            description={translate('addPersonalBankAccountPage.successMessage')}
-                            shouldShowButton
-                            buttonText={translate('common.continue')}
-                            onButtonPress={() => exitFlow(true)}
-                        />
+                        <ScrollView contentContainerStyle={styles.flexGrow1}>
+                            <ConfirmationPage
+                                heading={translate('addPersonalBankAccountPage.successTitle')}
+                                description={translate('addPersonalBankAccountPage.successMessage')}
+                                shouldShowButton
+                                buttonText={translate('common.continue')}
+                                onButtonPress={() => exitFlow(true)}
+                                containerStyle={styles.h100}
+                            />
+                        </ScrollView>
                     ) : (
                         <FormProvider
                             formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}

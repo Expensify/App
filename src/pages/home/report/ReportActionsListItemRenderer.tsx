@@ -1,12 +1,11 @@
 import React, {memo, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isChatThread, isInvoiceRoom, isPolicyExpenseChat, isTripRoom} from '@libs/ReportUtils';
+import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
-import TripSummary from './TripSummary';
 
 type ReportActionsListItemRendererProps = {
     /** All the data of the action item */
@@ -42,7 +41,7 @@ type ReportActionsListItemRendererProps = {
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
 
-    /** Linked report action ID */
+    /** Report action ID that was referenced in the deeplink to report  */
     linkedReportActionID?: string;
 
     /** Whether we should display "Replies" divider */
@@ -144,11 +143,6 @@ function ReportActionsListItemRenderer({
 
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
-    const shouldDisplayTripSummary = shouldDisplayParentAction && isTripRoom(report);
-
-    if (shouldDisplayTripSummary) {
-        return <TripSummary report={report} />;
-    }
 
     if (shouldDisplayParentAction && isChatThread(report)) {
         return (

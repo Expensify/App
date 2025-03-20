@@ -1,4 +1,3 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -17,6 +16,7 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -33,7 +33,7 @@ import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canEditTaxRate as canEditTaxRatePolicyUtils, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, shouldShowSyncError} from '@libs/PolicyUtils';
-import type {FullScreenNavigatorParamList} from '@navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -44,7 +44,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TaxRate} from '@src/types/onyx';
 
-type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
+type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
 
 function WorkspaceTaxesPage({
     policy,
@@ -52,7 +52,8 @@ function WorkspaceTaxesPage({
         params: {policyID},
     },
 }: WorkspaceTaxesPageProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -62,7 +63,6 @@ function WorkspaceTaxesPage({
     const {selectionMode} = useMobileSelectionMode();
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    const isFocused = useIsFocused();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -81,18 +81,37 @@ function WorkspaceTaxesPage({
 
     const {isOffline} = useNetwork({onReconnect: fetchTaxes});
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchTaxes();
-        }, [fetchTaxes]),
-    );
+    useEffect(() => {
+        fetchTaxes();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const cleanupSelectedOption = useCallback(() => setSelectedTaxesIDs([]), []);
+    useCleanupSelectedOptions(cleanupSelectedOption);
 
     useEffect(() => {
-        if (isFocused) {
+        if (selectedTaxesIDs.length === 0 || !canSelectMultiple) {
             return;
         }
-        setSelectedTaxesIDs([]);
-    }, [isFocused]);
+
+        setSelectedTaxesIDs((prevSelectedTaxesIDs) => {
+            const newSelectedTaxesIDs = [];
+
+            for (const taxID of prevSelectedTaxesIDs) {
+                if (
+                    policy?.taxRates?.taxes?.[taxID] &&
+                    policy?.taxRates?.taxes?.[taxID].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                    canEditTaxRatePolicyUtils(policy, taxID)
+                ) {
+                    newSelectedTaxesIDs.push(taxID);
+                }
+            }
+
+            return newSelectedTaxesIDs;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policy?.taxRates?.taxes]);
 
     useSearchBackPress({
         onClearSelection: () => {
@@ -121,9 +140,9 @@ function WorkspaceTaxesPage({
 
     const updateWorkspaceTaxEnabled = useCallback(
         (value: boolean, taxID: string) => {
-            setPolicyTaxesEnabled(policyID, [taxID], value);
+            setPolicyTaxesEnabled(policy, [taxID], value);
         },
-        [policyID],
+        [policy],
     );
 
     const taxesList = useMemo<ListItem[]>(() => {
@@ -189,33 +208,37 @@ function WorkspaceTaxesPage({
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('statusPage.status')}
+                rightHeaderText={translate('common.enabled')}
             />
         );
     };
 
     const deleteTaxes = useCallback(() => {
-        if (!policyID) {
+        if (!policy?.id) {
             return;
         }
-        deletePolicyTaxes(policyID, selectedTaxesIDs);
+        deletePolicyTaxes(policy, selectedTaxesIDs);
         setSelectedTaxesIDs([]);
         setIsDeleteModalVisible(false);
-    }, [policyID, selectedTaxesIDs]);
+    }, [policy, selectedTaxesIDs]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {
-            if (!policyID) {
+            if (!policy?.id) {
                 return;
             }
-            setPolicyTaxesEnabled(policyID, selectedTaxesIDs, isEnabled);
+            setPolicyTaxesEnabled(policy, selectedTaxesIDs, isEnabled);
             setSelectedTaxesIDs([]);
         },
-        [policyID, selectedTaxesIDs],
+        [policy, selectedTaxesIDs],
     );
 
     const navigateToEditTaxRate = (taxRate: ListItem) => {
         if (!taxRate.keyForList) {
+            return;
+        }
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleTax(taxRate);
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxRate.keyForList));

@@ -1,5 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -10,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
 
@@ -33,6 +35,7 @@ function BaseListItem<TItem extends ListItem>({
     isFocused,
     shouldSyncFocus = true,
     shouldDisplayRBR = true,
+    shouldShowBlueBorderOnFocus = false,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
@@ -93,10 +96,12 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={item.text ?? ''}
-                role={CONST.ROLE.BUTTON}
+                role={getButtonRole(true)}
+                isNested
                 hoverDimmingValue={1}
+                pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
                 hoverStyle={[!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
                 style={[

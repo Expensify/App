@@ -93,6 +93,7 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
         screenIndex,
         prevScreen,
         nextScreen,
+        lastScreenIndex,
         moveTo,
         resetScreenIndex,
         goToTheLastStep,

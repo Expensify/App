@@ -43,7 +43,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
                 <RequireTwoFactorAuthenticationModal
                     onSubmit={() => {
                         setIsRequire2FAModalOpen(false);
-                        Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID)));
+                        Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID)));
                     }}
                     onCancel={() => setIsRequire2FAModalOpen(false)}
                     isVisible={isRequire2FAModalOpen}
@@ -59,6 +59,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
                 <HeaderWithBackButton
                     title={translate('workspace.accounting.title')}
                     onBackButtonPress={() => setWebViewOpen(false)}
+                    shouldDisplayHelpButton={false}
                 />
                 <FullPageOfflineBlockingView>
                     <WebView

@@ -13,12 +13,15 @@ import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
 import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
+import getPlatform from '@libs/getPlatform';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -31,7 +34,8 @@ import type {LHNOptionsListProps, RenderItemProps} from './types';
 const keyExtractor = (item: string) => `report_${item}`;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
-    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
+    const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
+    const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashList<string>>(null);
     const route = useRoute();
 
@@ -49,6 +53,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const {translate, preferredLocale} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
     const shouldShowEmptyLHN = data.length === 0;
+    const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -61,6 +68,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
         onFirstItemRendered();
     }, [onFirstItemRendered]);
+
+    // Controls the visibility of the educational tooltip based on user scrolling.
+    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const emptyLHNSubtitle = useMemo(
         () => (
@@ -121,6 +132,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemFullReport?.parentReportID}`];
             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(reportID, itemReportActions, isOffline)}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
             const itemParentReportAction = itemFullReport?.parentReportActionID ? itemParentReportActions?.[itemFullReport?.parentReportActionID] : undefined;
 
@@ -171,6 +183,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={itemFullReport}
+                    oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
@@ -206,12 +219,26 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactions,
             transactionViolations,
             onLayoutItem,
+            isOffline,
         ],
     );
 
     const extraData = useMemo(
-        () => [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
-        [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
+        () => [
+            reportActions,
+            reports,
+            reportNameValuePairs,
+            transactionViolations,
+            policy,
+            personalDetails,
+            data.length,
+            draftComments,
+            optionMode,
+            preferredLocale,
+            transactions,
+            isOffline,
+        ],
+        [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale, transactions, isOffline],
     );
 
     const previousOptionMode = usePrevious(optionMode);
@@ -237,14 +264,18 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 return;
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+            if (isWebOrDesktop) {
+                saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
+            }
+            triggerScrollEvent();
         },
-        [route, saveScrollOffset],
+        [estimatedItemSize, isWebOrDesktop, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
     );
 
     const onLayout = useCallback(() => {
         const offset = getScrollOffset(route);
 
-        if (!(offset && flashListRef.current)) {
+        if (!(offset && flashListRef.current) || isWebOrDesktop) {
             return;
         }
 
@@ -255,7 +286,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             flashListRef.current.scrollToOffset({offset});
         });
-    }, [route, flashListRef, getScrollOffset]);
+    }, [getScrollOffset, route, isWebOrDesktop]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
@@ -267,6 +298,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     title={translate('common.emptyLHN.title')}
                     shouldShowLink={false}
                     CustomSubtitle={emptyLHNSubtitle}
+                    accessibilityLabel={translate('common.emptyLHN.title')}
                 />
             ) : (
                 <FlashList
@@ -279,12 +311,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
-                    estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
+                    estimatedItemSize={estimatedItemSize}
+                    overrideProps={{estimatedHeightSize: estimatedItemSize * CONST.LHN_VIEWPORT_ITEM_COUNT}}
                     extraData={extraData}
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
                     estimatedListSize={estimatedListSize}
+                    initialScrollIndex={isWebOrDesktop ? getScrollIndex(route) : undefined}
                 />
             )}
         </View>

@@ -109,6 +109,8 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
                     ...(qboConfig?.collectionAccountID ? [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID] : []),
                 ],
+                pendingFields: {...qboConfig?.pendingFields, ...policy?.connections?.quickbooksOnline?.config?.pendingFields},
+                errorFields: {...qboConfig?.errorFields, ...policy?.connections?.quickbooksOnline?.config?.errorFields},
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
@@ -225,9 +227,9 @@ function getAccountingIntegrationData(
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT.getRoute(policyID)),
                 subscribedImportSettings: [CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID)),
-                subscribedExportSettings: [CONST.NSQS_CONFIG.EXPORTER, CONST.NSQS_CONFIG.EXPORT_DATE],
+                subscribedExportSettings: [CONST.NSQS_CONFIG.EXPORTER, CONST.NSQS_CONFIG.EXPORT_DATE, CONST.NSQS_CONFIG.PAYMENT_ACCOUNT],
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.getRoute(policyID)),
-                subscribedAdvancedSettings: [CONST.NSQS_CONFIG.AUTO_SYNC, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT],
+                subscribedAdvancedSettings: [CONST.NSQS_CONFIG.AUTO_SYNC],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.NSQS)),
                 pendingFields: policy?.connections?.netsuiteQuickStart?.config?.pendingFields,
                 errorFields: policy?.connections?.netsuiteQuickStart?.config?.errorFields,

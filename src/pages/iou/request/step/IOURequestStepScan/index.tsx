@@ -3,8 +3,9 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {RESULTS} from 'react-native-permissions';
 import type Webcam from 'react-webcam';
-import type {TupleToUnion} from 'type-fest';
+import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -20,31 +21,41 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
+import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
-import {base64ToFile, resizeImageIfNeeded, splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import variables from '@styles/variables';
 import {
+    getMoneyRequestParticipantsFromReport,
     replaceReceipt,
     requestMoney,
+    setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     startSplitBill,
@@ -58,6 +69,7 @@ import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getLocationPermission} from './LocationPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
 
@@ -92,12 +104,16 @@ function IOURequestStepScan({
     const cameraRef = useRef<Webcam>(null);
     const trackRef = useRef<MediaStreamTrack | null>(null);
     const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
+    const [elementTop, setElementTop] = useState(0);
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
@@ -199,7 +215,33 @@ function IOURequestStepScan({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
 
-    const hideRecieptModal = () => {
+    // this effect will pre-fetch location in web and desktop if the location permission is already granted to optimize the flow
+    useEffect(() => {
+        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
+        if (!gpsRequired) {
+            return;
+        }
+
+        getLocationPermission().then((status) => {
+            if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+                return;
+            }
+
+            clearUserLocation();
+            getCurrentPosition(
+                (successData) => {
+                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
+                },
+                () => {},
+                {
+                    maximumAge: CONST.GPS.MAX_AGE,
+                    timeout: CONST.GPS.TIMEOUT,
+                },
+            );
+        });
+    }, [transaction?.amount, iouType]);
+
+    const hideReceiptModal = () => {
         setIsAttachmentInvalid(false);
     };
 
@@ -212,36 +254,6 @@ function IOURequestStepScan({
         setAttachmentValidReason(reason);
         setPdfFile(null);
     };
-
-    function validateReceipt(file: FileObject) {
-        return validateImageForCorruption(file)
-            .then(() => {
-                const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-                if (
-                    !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-                    )
-                ) {
-                    setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-                    return false;
-                }
-
-                if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
-                    return false;
-                }
-
-                if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-                    return false;
-                }
-                return true;
-            })
-            .catch(() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                return false;
-            });
-    }
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
@@ -260,18 +272,23 @@ function IOURequestStepScan({
         }
     }, [iouType, reportID, transactionID]);
 
-    const navigateToConfirmationPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-        }
-    }, [iouType, reportID, transactionID]);
+    const navigateToConfirmationPage = useCallback(
+        (isTestTransaction = false) => {
+            switch (iouType) {
+                case CONST.IOU.TYPE.REQUEST:
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    break;
+                case CONST.IOU.TYPE.SEND:
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+                    break;
+                default:
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType, transactionID, reportID),
+                    );
+            }
+        },
+        [iouType, reportID, transactionID],
+    );
 
     const createTransaction = useCallback(
         (receipt: Receipt, participant: Participant) => {
@@ -314,7 +331,7 @@ function IOURequestStepScan({
     );
 
     const navigateToConfirmationStep = useCallback(
-        (file: FileObject, source: string, locationPermissionGranted = false) => {
+        (file: FileObject, source: string, locationPermissionGranted = false, isTestTransaction = false) => {
             if (backTo) {
                 Navigation.goBack(backTo);
                 return;
@@ -324,13 +341,33 @@ function IOURequestStepScan({
             // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if ((transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) || iouType === CONST.IOU.TYPE.CREATE) {
-                navigateToParticipantPage();
+                if (activePolicy && isPaidGroupPolicy(activePolicy) && !shouldRestrictUserBillableActions(activePolicy.id)) {
+                    const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+                    setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                                CONST.IOU.ACTION.CREATE,
+                                iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                                transactionID,
+                                activePolicyExpenseChat?.reportID,
+                            ),
+                        );
+                    });
+                } else {
+                    if (isTestTransaction) {
+                        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+                        setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, selected: true}]);
+                        navigateToConfirmationPage(true);
+                        return;
+                    }
+                    navigateToParticipantPage();
+                }
                 return;
             }
 
             // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-            const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
+            const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
@@ -434,28 +471,31 @@ function IOURequestStepScan({
                 createTransaction(receipt, participant);
                 return;
             }
-            navigateToConfirmationPage();
+            setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+                navigateToConfirmationPage();
+            });
         },
         [
             backTo,
             transaction?.isFromGlobalCreate,
-            transaction?.attendees,
             transaction?.currency,
             transaction?.created,
+            transaction?.attendees,
             iouType,
             report,
             transactionID,
             shouldSkipConfirmation,
             navigateToConfirmationPage,
+            activePolicy,
+            currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.login,
             navigateToParticipantPage,
             personalDetails,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
+            createTransaction,
             reportID,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
-            createTransaction,
         ],
     );
 
@@ -471,7 +511,7 @@ function IOURequestStepScan({
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(originalFile).then((isFileValid) => {
+        validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
             if (!isFileValid) {
                 return;
             }
@@ -515,6 +555,42 @@ function IOURequestStepScan({
             });
         });
     };
+
+    /**
+     * Sets a test receipt from CONST.TEST_RECEIPT_URL and navigates to the confirmation step
+     */
+    const setTestReceiptAndNavigate = useCallback(() => {
+        try {
+            const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.png`;
+
+            readFileAsync(
+                TestReceipt as string,
+                filename,
+                (file) => {
+                    const source = URL.createObjectURL(file);
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, undefined);
+                    navigateToConfirmationStep(file, source, false, true);
+                },
+                (error) => {
+                    console.error('Error reading test receipt:', error);
+                },
+                'image/png',
+            );
+        } catch (error) {
+            console.error('Error in setTestReceiptAndNavigate:', error);
+        }
+    }, [transactionID, isEditing, navigateToConfirmationStep]);
+
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive,
+        {
+            onConfirm: setTestReceiptAndNavigate,
+            onDismiss: () => {
+                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP);
+            },
+        },
+    );
 
     const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
         setCameraPermissionState('granted');
@@ -793,8 +869,27 @@ function IOURequestStepScan({
             {(isDraggingOverWrapper) => (
                 <>
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
-                    <View style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}>
-                        {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
+                    <View
+                        onLayout={(e) => {
+                            setElementTop(isSmallScreenWidth ? e.nativeEvent.layout.height + 10 : e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 8));
+                        }}
+                        style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
+                    >
+                        <EducationalTooltip
+                            shouldRender={shouldShowProductTrainingTooltip}
+                            renderTooltipContent={renderProductTrainingTooltip}
+                            shouldHideOnNavigate
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
+                            wrapperStyle={styles.productTrainingTooltipWrapper}
+                            shiftVertical={-elementTop}
+                        >
+                            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
+                            </View>
+                        </EducationalTooltip>
                         <ReceiptDropUI
                             onDrop={(e) => {
                                 const file = e?.dataTransfer?.files[0];
@@ -807,8 +902,8 @@ function IOURequestStepScan({
                         />
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                            onConfirm={hideRecieptModal}
-                            onCancel={hideRecieptModal}
+                            onConfirm={hideReceiptModal}
+                            onCancel={hideReceiptModal}
                             isVisible={isAttachmentInvalid}
                             prompt={getConfirmModalPrompt()}
                             confirmText={translate('common.close')}

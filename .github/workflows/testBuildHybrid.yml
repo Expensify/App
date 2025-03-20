@@ -3,67 +3,103 @@ name: Build and deploy hybrid apps for testing
 on:
   workflow_dispatch:
     inputs:
-      PULL_REQUEST_NUMBER:
-        description: Pull Request number for correct placement of apps
+      # Pull Request number from App repo for correct placement of ND app. If not specified defaults to main branch.
+      APP_PULL_REQUEST_NUMBER:
+        description: App PR number. Defaults to main.
+        required: false
+        default: ''
+      # Pull Request number from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified defaults to Mobile-Expensify's main
+      HYBRIDAPP_PULL_REQUEST_NUMBER:
+        description: Mobile-Expensify PR number. Defaults to main. Overrides MOBILE-EXPENSIFY set in App's PR description.
+        required: false
+        default: ''
+      # Do not modify! GH preserves `workflow_dispatch` as the event that triggered this workflow even if it was called from `testBuild.yml`. This is a workaround for that issue.
+      DISPATCHED_MANUALLY:
+        description: Leave checked! This is a workaround for a GH workflow bug.
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      APP_PR_NUMBER:
+        description: Pull Request number from App repo needed for download link construction
+        type: string
         required: true
-  pull_request_target:
-    types: [opened, synchronize, labeled]
-    branches: ['*ci-test/**']
-
+      APP_REF:
+        description: Git ref to checkout in App
+        type: string
+        required: true
+      IOS_HYBRID:
+        description: Should build iOS app?
+        type: boolean
+        default: true
+      ANDROID_HYBRID:
+        description: Should build Android app?
+        type: boolean
+        default: true
+    
+    outputs:
+      ANDROID_LINK:
+        value: ${{ jobs.androidHybrid.outputs.S3_APK_PATH }}
+      IOS_LINK:
+        value: ${{ jobs.iosHybrid.outputs.IOS_PATH }}
+  
+ 
 env:
-  PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+  # This variable is needed for fastlane to construct correct path, -hybrid suffix is needed to distinguish hybrid apps from standalone New Dot 
+  PULL_REQUEST_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER || github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || inputs.APP_PR_NUMBER}}-hybrid
 
 jobs:
-  validateActor:
+  prep:
     runs-on: ubuntu-latest
-    outputs:
-      READY_TO_BUILD: ${{ fromJSON(steps.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) && fromJSON(steps.hasReadyToBuildLabel.outputs.HAS_READY_TO_BUILD_LABEL) }}
     steps:
-      - name: Is Expensify employee
-        id: isExpensifyEmployee
-        run: |
-          if gh api /orgs/Expensify/teams/expensify-expensify/memberships/${{ github.actor }} --silent; then
-            echo "IS_EXPENSIFY_EMPLOYEE=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "IS_EXPENSIFY_EMPLOYEE=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - id: hasReadyToBuildLabel
-        name: Set HAS_READY_TO_BUILD_LABEL flag
-        run: |
-          echo "HAS_READY_TO_BUILD_LABEL=$(gh pr view "${{ env.PULL_REQUEST_NUMBER }}" --repo Expensify/App --json labels --jq '.labels[].name' | grep -q 'Ready To Build' && echo 'true')" >> "$GITHUB_OUTPUT"
-          if [[ "$HAS_READY_TO_BUILD_LABEL" != 'true' ]]; then
-            echo "The 'Ready to Build' label is not attached to the PR #${{ env.PULL_REQUEST_NUMBER }}"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Validate that user is an Expensify employee
+        if: github.event.inputs.DISPATCHED_MANUALLY
+        uses: ./.github/actions/composite/validateActor
+        with:
+          REQUIRE_APP_DEPLOYER: false
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
-  getBranchRef:
+      - name: Validate input
+        if: github.event.inputs.DISPATCHED_MANUALLY
+        run: |
+          if [[ -z "${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" && -z "${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER }}" ]]; then
+            echo "Invalid input. You have to pass at least one PR number"
+            exit 1
+          fi
+
+  getNewDotRef:
     runs-on: ubuntu-latest
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+    needs: [prep]
     outputs:
       REF: ${{ steps.getHeadRef.outputs.REF }}
     steps:
       - name: Checkout
-        if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/checkout@v4
 
       - name: Check if pull request number is correct
-        if: ${{ github.event_name == 'workflow_dispatch' }}
         id: getHeadRef
         run: |
           set -e
-          echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+
+          if [[ -n "${{ inputs.APP_REF }}" ]]; then
+            echo "REF=${{ inputs.APP_REF }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi 
+
+          if [[ -z "${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" ]]; then
+            echo "REF=" >> "$GITHUB_OUTPUT"
+          else
+            echo "REF=$(gh pr view ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }} -R Expensify/App --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
   getOldDotPR:
     runs-on: ubuntu-latest
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+    needs: [prep]
     outputs:
       OLD_DOT_PR: ${{ steps.old-dot-pr.outputs.result }}
     steps:
@@ -74,10 +110,14 @@ jobs:
           github-token: ${{ github.token }}
           result-encoding: string
           script: |
+            if ('${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER}}') return '${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER}}';
+
+            if (!'${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}') return '';
+
             const pullRequest = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: '${{ env.PULL_REQUEST_NUMBER }}',
+              pull_number: '${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}',
             });
             
             const body = pullRequest.data.body;
@@ -86,9 +126,9 @@ jobs:
 
             return found.trim();
 
-  getOldDotBranchRef:
+  getOldDotRef:
       runs-on: ubuntu-latest
-      needs: getOldDotPR
+      needs: [getOldDotPR]
       outputs:
         OLD_DOT_REF: ${{ steps.getHeadRef.outputs.REF }}
       steps:
@@ -99,37 +139,29 @@ jobs:
           id: getHeadRef
           run: |
             set -e
-            if [[ ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} == '' ]]; then
+            if [[ -z "${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER }}" && -z "${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}" ]]; then
               echo "REF=" >> "$GITHUB_OUTPUT"
             else
-              echo "REF=$(gh pr view ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+              echo "PR=${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }}" >> "$GITHUB_OUTPUT"
+              echo "REF=$(gh pr view ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
             fi
           env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
 
   postGitHubCommentBuildStarted:
-    runs-on: ubuntu-latest
-    needs: [validateActor, getBranchRef]
-    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
-    steps:
-      - name: Add build start comment
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ github.token }}
-          script: |
-            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: process.env.PULL_REQUEST_NUMBER,
-              body: `🚧 @${{ github.actor }} has triggered a test hybrid app build. You can view the [workflow run here](${workflowURL}).`
-            });
+    name: Post build started comment
+    uses: ./.github/workflows/postBuildStartedComment.yml
+    needs: [getNewDotRef, getOldDotPR, getOldDotRef]
+    secrets: inherit
+    with: 
+      APP_PULL_REQUEST_NUMBER: ${{ inputs.APP_PULL_REQUEST_NUMBER }}
+      HYBRIDAPP_PULL_REQUEST_NUMBER: ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }}
 
   androidHybrid:
     name: Build Android HybridApp
-    needs: [validateActor, getBranchRef, getOldDotBranchRef]
-    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+    if: ${{ github.event.inputs.DISPATCHED_MANUALLY || inputs.ANDROID_HYBRID }}
+    needs: [getNewDotRef, getOldDotPR, getOldDotRef]
     runs-on: ubuntu-latest-xl
     outputs:
       S3_APK_PATH: ${{ steps.exportAndroidS3Path.outputs.S3_APK_PATH }}
@@ -138,7 +170,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+          ref: ${{ needs.getNewDotRef.outputs.REF || 'main' }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
@@ -146,13 +178,17 @@ jobs:
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
+          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}" ]]; then
+            echo "Building from Mobile-Expensify main branch"
+          fi
 
       - name: Checkout Old Dot to author specified branch or commit
-        if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != '' }}
+        if: ${{ needs.getOldDotRef.outputs.OLD_DOT_REF != '' }}
         run: |
           cd Mobile-Expensify
-          git fetch origin ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
-          git checkout ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
+          git fetch origin ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
+          git checkout ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
+          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -172,7 +208,7 @@ jobs:
         run: |
             cp .env.staging .env.adhoc
             sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-            echo "PULL_REQUEST_NUMBER=${{ inputs.pull_request_number }}" >> .env.adhoc
+            echo "PULL_REQUEST_NUMBER=${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" >> .env.adhoc
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -192,8 +228,8 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read "op://Mobile-Deploy-CI/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
-          op read "op://Mobile-Deploy-CI/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+          op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
+          op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
 
           # Copy the keystore to the Android directory for Fullstory
           cp ./upload-key.keystore Mobile-Expensify/Android
@@ -205,9 +241,9 @@ jobs:
           export-env: false
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
-          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
-          ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
 
       - name: Build Android app
         id: build
@@ -240,17 +276,19 @@ jobs:
 
   iosHybrid:
     name: Build and deploy iOS for testing
-    needs: [validateActor, getBranchRef, getOldDotBranchRef]
-    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+    if: ${{ github.event.inputs.DISPATCHED_MANUALLY || inputs.IOS_HYBRID }}
+    needs: [getNewDotRef, getOldDotPR, getOldDotRef]
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
     runs-on: macos-15-xlarge
+    outputs:
+      IOS_PATH: ${{ steps.export-ios-path.outputs.IOS_PATH }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
-          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+          ref: ${{ needs.getNewDotRef.outputs.REF || 'main'}}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
@@ -258,13 +296,17 @@ jobs:
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
+          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}" ]]; then
+            echo "Building from Mobile-Expensify main branch"
+          fi
 
       - name: Checkout Old Dot to author specified branch or commit
-        if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != '' }}
+        if: ${{ needs.getOldDotRef.outputs.OLD_DOT_REF != '' }}
         run: |
           cd Mobile-Expensify
-          git fetch origin ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
-          git checkout ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
+          git fetch origin ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
+          git checkout ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
+          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -279,7 +321,7 @@ jobs:
         run: |
           cp .env.staging .env.adhoc
           sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+          echo "PULL_REQUEST_NUMBER=${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" >> .env.adhoc
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.204.0
@@ -315,10 +357,10 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read "op://Mobile-Deploy-CI/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
-          op read "op://Mobile-Deploy-CI/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
-          op read "op://Mobile-Deploy-CI/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
-          op read "op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Build AdHoc app
         run: bundle exec fastlane ios build_adhoc_hybrid
@@ -338,46 +380,47 @@ jobs:
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios
-          path: ./ios_paths.json
-
-  postGithubComment:
-    runs-on: ubuntu-latest
-    name: Post a GitHub comment with app download links for testing
-    needs: [validateActor, getBranchRef, androidHybrid, iosHybrid]
-    if: ${{ always() }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
-        with:
-          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
-
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
-
-      - name: Read JSONs with iOS paths
-        id: get_ios_path
-        if: ${{ needs.iosHybrid.result == 'success' }}
+      - name: Export iOS path
+        id: export-ios-path
         run: |
-          content_ios="$(cat ./ios/ios_paths.json)"
+          content_ios="$(cat ./ios_paths.json)"
           content_ios="${content_ios//'%'/'%25'}"
           content_ios="${content_ios//$'\n'/'%0A'}"
           content_ios="${content_ios//$'\r'/'%0D'}"
           ios_path=$(echo "$content_ios" | jq -r '.html_path')
-          echo "ios_path=$ios_path" >> "$GITHUB_OUTPUT"
+          echo "IOS_PATH=$ios_path" >> "$GITHUB_OUTPUT"
 
-      - name: Publish links to apps for download
-        if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
+  postGithubComment:
+    runs-on: ubuntu-latest
+    name: Post a GitHub comment with app download links for testing
+    if: github.event.inputs.DISPATCHED_MANUALLY
+    needs: [getNewDotRef, getOldDotPR, androidHybrid, iosHybrid]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.getNewDotRef.outputs.REF }}
+
+      - name: Publish links to apps for download on NewDot PR
+        if: github.event.inputs.APP_PULL_REQUEST_NUMBER != ''
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
-          PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
+          PR_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}
+          REPO: App
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.androidHybrid.result }}
           IOS: ${{ needs.iosHybrid.result }}
           ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
-          IOS_LINK: ${{ steps.get_ios_path.outputs.ios_path }}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.IOS_PATH }}
+
+      - name: Publish links to apps for download on OldDot PR
+        if: needs.getOldDotPR.outputs.OLD_DOT_PR != ''
+        uses: ./.github/actions/javascript/postTestBuildComment
+        with:
+          PR_NUMBER: ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}
+          REPO: Mobile-Expensify
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ANDROID: ${{ needs.androidHybrid.result }}
+          IOS: ${{ needs.iosHybrid.result }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.IOS_PATH }}
