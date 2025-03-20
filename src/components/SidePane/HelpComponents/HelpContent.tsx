@@ -1,8 +1,9 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 // Importing from the react-native-gesture-handler package instead of the `components/ScrollView` to fix scroll issue:
 // https://github.com/react-native-modal/react-native-modal/issues/236
 import {ScrollView} from 'react-native-gesture-handler';
+import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getHelpContent from '@components/SidePane/HelpContent/getHelpContent';
@@ -12,7 +13,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getHelpPaneReportType} from '@libs/ReportUtils';
 import {substituteRouteParameters} from '@libs/SidePaneUtils';
+import {getExpenseType} from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type HelpContentProps = {
     closeSidePane: (shouldUpdateNarrow?: boolean) => void;
@@ -23,11 +29,23 @@ function HelpContent({closeSidePane}: HelpContentProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
-    const route = useRootNavigationState((state) => {
-        const params = (findFocusedRoute(state)?.params as Record<string, string>) ?? {};
-        const activeRoute = Navigation.getActiveRouteWithoutParams();
-        return substituteRouteParameters(activeRoute, params);
+
+    const routeParams = useRootNavigationState((state) => (findFocusedRoute(state)?.params as Record<string, string>) ?? {});
+    const reportID = routeParams.reportID ?? CONST.DEFAULT_NUMBER_ID;
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? CONST.DEFAULT_NUMBER_ID}`, {
+        canEvict: false,
     });
+    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    const linkedTransactionID = useMemo(() => (isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined), [parentReportAction]);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+
+    const route = useMemo(() => {
+        const expenseType = getExpenseType(transaction);
+        const overrides = {reportID: expenseType ? `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}` : `:${getHelpPaneReportType(report)}`};
+        const activeRoute = Navigation.getActiveRouteWithoutParams();
+        return substituteRouteParameters(activeRoute, routeParams, overrides);
+    }, [transaction, report, routeParams]);
 
     const wasPreviousNarrowScreen = useRef(!isExtraLargeScreenWidth);
     useEffect(() => {
