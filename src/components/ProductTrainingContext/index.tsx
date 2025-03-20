@@ -236,7 +236,8 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         styles.flexWrap,
                         styles.textAlignCenter,
                         styles.gap3,
-                        styles.p2,
+                        styles.pv2,
+                        styles.ph1,
                     ]}
                 >
                     <Icon
@@ -261,7 +262,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         onPress={() => {
                             hideProductTrainingTooltip(true);
                         }}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                         role={CONST.ROLE.BUTTON}
                     >
@@ -299,14 +299,14 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.flexWrap,
         styles.textAlignCenter,
         styles.gap3,
-        styles.p2,
+        styles.pv2,
+        styles.ph1,
         styles.productTrainingTooltipText,
         styles.textWrap,
         styles.mw100,
         styles.flex1,
         styles.justifyContentBetween,
         styles.ph2,
-        styles.pv2,
         styles.gap2,
         styles.textBold,
         theme.tooltipHighlightText,
