@@ -10,6 +10,7 @@ import AdminsChatRoom from './chat/admins';
 import Concierge from './chat/concierge';
 import ExpenseChat from './chat/expense';
 import ManualExpense from './chat/expense/manual';
+import ScanExpense from './chat/expense/scan';
 import ExpenseReportChat from './chat/expenseReport';
 import WorkspaceChat from './chat/workspace';
 import Search from './search';
@@ -55,7 +56,7 @@ const helpContentMap: HelpContent = {
                             content: ManualExpense,
                         },
                         [`:${CONST.IOU.EXPENSE_TYPE.SCAN}`]: {
-                            content: () => null,
+                            content: ScanExpense,
                         },
                         [`:${CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD}`]: {
                             content: () => null,
