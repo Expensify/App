@@ -102,12 +102,12 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             Navigation.dismissModal();
         } else {
             const isOneTransactionThread = isOneTransactionThreadReportUtils(report?.reportID, report?.parentReportID, parentReportAction);
-            const reportID = isOneTransactionThread ? report?.parentReportID : report?.reportID;
-            if (!reportID) {
+            const dismissModalReportID = isOneTransactionThread ? report?.parentReportID : report?.reportID;
+            if (!dismissModalReportID) {
                 Navigation.dismissModal();
                 return;
             }
-            Navigation.dismissModalWithReport({reportID});
+            Navigation.dismissModalWithReport({reportID: dismissModalReportID});
         }
     };
 
