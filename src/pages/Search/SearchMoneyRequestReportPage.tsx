@@ -36,48 +36,6 @@ const defaultReportMetadata = {
     isOptimisticReport: false,
 };
 
-// // NOTE FOR KUBA:
-// // When the correct header is ready we will need to disable the buttons in case of offline/failure state
-// // and we will need to render Composer component and comment components conditionally in case of failure state
-// /**
-//  * TODO
-//  * This is a completely temporary component, displayed to:
-//  *  - show other devs that SearchMoneyRequestReportPage works
-//  *  - unblock work for other devs for Report Creation (https://github.com/Expensify/App/issues/57654)
-//  *
-//  *  This component is not displayed to any users.
-//  *  It will be removed once we fully implement SearchMoneyRequestReportPage (https://github.com/Expensify/App/issues/57508)
-//  */
-// function TemporaryMoneyRequestReportView({report, policy}: TemporaryMoneyRequestReportViewProps) {
-//     const styles = useThemeStyles();
-//
-//     return (
-//         <View style={[styles.flex1]}>
-//             <OfflineWithFeedback
-//                 style={[styles.flex1]}
-//                 contentContainerStyle={[styles.flex1]}
-//                 pendingAction={report?.pendingAction}
-//                 errors={report?.errorFields?.create}
-//                 errorRowStyles={[styles.ph5, styles.pv3]}
-//                 shouldShowErrorMessages
-//             >
-//                 <HeaderGap />
-//                 <MoneyReportHeader
-//                     report={report}
-//                     policy={policy}
-//                     reportActions={[]}
-//                     transactionThreadReportID={undefined}
-//                     onBackButtonPress={() => {
-//                         Navigation.goBack();
-//                     }}
-//                 />
-//                 {!report?.total && <SearchMoneyRequestReportEmptyState />}
-//             </OfflineWithFeedback>
-//             <OfflineIndicator containerStyles={[styles.m1]} />
-//         </View>
-//     );
-// }
-
 function SearchMoneyRequestReportPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

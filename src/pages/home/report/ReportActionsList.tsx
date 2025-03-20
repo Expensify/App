@@ -154,10 +154,6 @@ function ReportActionsList({
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
-    console.log('______________________________');
-    console.log(sortedVisibleReportActions);
-    console.log('______________________________');
-
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
@@ -730,9 +726,7 @@ function ReportActionsList({
     useLayoutEffect(parseFSAttributes, []);
 
     const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
-    console.log('_______jest befeore____________');
-    console.log(sortedVisibleReportActions);
-    console.log('_______jest befeore____________');
+
     return (
         <>
             <FloatingMessageCounter

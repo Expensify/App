@@ -5151,6 +5151,7 @@ const translations = {
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos',
             emptyStateSubtitle: 'Puedes agregar gastos a este informe usando el botón de arriba.',
+            emptyStateHeader: 'Esperando a que agregues gasto(s).',
         },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
