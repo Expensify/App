@@ -205,6 +205,7 @@ export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPagePa
 export type {default as OpenPolicyReportFieldsPageParams} from './OpenPolicyReportFieldsPageParams';
 export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
+export type {default as OpenPolicyMemberProfilePageParams} from './OpenPolicyMemberProfilePageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
 export type {default as EnableDistanceRequestTaxParams} from './EnableDistanceRequestTaxParams';
@@ -381,3 +382,4 @@ export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboard
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
+export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';

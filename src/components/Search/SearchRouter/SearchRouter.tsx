@@ -312,6 +312,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                 <HeaderWithBackButton
                     title={translate('common.search')}
                     onBackButtonPress={() => onRouterClose()}
+                    shouldDisplayHelpButton={false}
                 />
             )}
             {isRecentSearchesDataLoaded && (
