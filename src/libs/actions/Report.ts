@@ -4865,7 +4865,7 @@ function dismissChangePolicyModal() {
             value: {
                 [CONST.CHANGE_POLICY_TRAINING_MODAL]: {
                     timestamp: DateUtils.getDBTime(date.valueOf()),
-                    dismissedMethod: 'click'
+                    dismissedMethod: 'click',
                 },
             },
         },
