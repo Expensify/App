@@ -511,11 +511,7 @@ function PureReportActionItem({
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(isActiveReportAction(action.reportActionID));
-
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
-            type: ActionSheetAwareScrollView.Actions.CLOSE_POPOVER,
-        });
-    }, [actionSheetAwareScrollViewContext, action.reportActionID]);
+    }, [action.reportActionID]);
 
     const handleShowContextMenu = useCallback(
         (callback: () => void) => {
