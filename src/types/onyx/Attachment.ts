@@ -3,13 +3,9 @@ import type * as OnyxCommon from './OnyxCommon';
 type Attachment = OnyxCommon.OnyxValueWithOfflineFeedback<{
     attachmentID?: string;
 
-    localSource?: string;
+    localSource?: string | Uint8Array;
 
-    localVersion?: string;
-
-    remoteVersion?: string;
-
-    source?: string;
+    remoteSource?: string;
 }>;
 
 export default Attachment;

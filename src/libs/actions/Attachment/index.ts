@@ -1,38 +1,35 @@
 import Onyx, {OnyxCollection} from 'react-native-onyx';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Attachment} from '@src/types/onyx';
 import {CacheAttachmentProps} from './types';
 
-let attachments: OnyxCollection<OnyxTypes.Attachment> | undefined;
+let attachments: OnyxCollection<Attachment> | undefined;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.ATTACHMENT,
     waitForCollectionCallback: true,
     callback: (value) => (attachments = value),
 });
 
-function getAttachmentSource(attachmentID: string) {
-    const attachment: OnyxTypes.Attachment | undefined = attachments?.[attachmentID];
-    if (attachment?.localSource && attachment?.localVersion === attachment?.remoteVersion) {
-        return attachment?.localSource;
-    }
-    return attachment?.source;
+function getAttachmentSource(attachmentID: string, src: string) {
+    const attachment: Attachment | undefined = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
+    return attachment?.localSource;
 }
 
 function cacheAttachment({attachmentID, src}: CacheAttachmentProps) {
     const attachment = attachments?.[attachmentID];
-    // Exit from the function if the cachedSource is exist and the img version is same to remote source version
-    if (attachment?.localVersion === attachment?.remoteVersion) {
+    // Exit from the function if the image is not changed or the image has already been cached
+    if (attachment && attachment.remoteSource === src && attachment.localSource) {
         return;
     }
     fetch(src)
-        .then((response) => response.blob())
-        .then((blob) => {
-            const fileUrl = URL.createObjectURL(blob);
+        .then((response) => response.arrayBuffer())
+        .then((arrayBuffer) => {
+            // Convert ArrayBuffer to Uint8Array for proper serialization
+            const arrayBufferView = new Uint8Array(arrayBuffer);
 
+            // Store the array buffer and mime type directly in Onyx/IndexedDB
             Onyx.merge(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                localSource: fileUrl,
-                localVersion: attachment?.remoteVersion,
+                localSource: arrayBufferView,
             });
         });
 }

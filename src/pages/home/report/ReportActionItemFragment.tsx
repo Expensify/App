@@ -93,7 +93,6 @@ function ReportActionItemFragment({
     displayAsGroup = false,
     moderationDecision,
 }: ReportActionItemFragmentProps) {
-    console.log('fragment', fragment);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();

@@ -75,7 +75,14 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
     const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] || attachmentURLID;
-    const imageSource = getAttachmentSource(attachmentID) || processedPreviewSource;
+    const imageSource = getAttachmentSource(attachmentID, previewSource) || processedPreviewSource;
+    // const processedImageSource = useMemo(() => {
+    //     if (typeof imageSource === 'string') {
+    //         return imageSource;
+    //     }
+    //     const blob = new Blob([imageSource], {type: 'image/jpeg'});
+    //     return URL.createObjectURL(blob);
+    // }, [imageSource]);
 
     const fileType = getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
@@ -88,7 +95,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     }
     const thumbnailImageComponent = (
         <ThumbnailImage
-            previewSourceURL={imageSource}
+            previewSourceURL={imageSource as string}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             fallbackIcon={fallbackIcon}
