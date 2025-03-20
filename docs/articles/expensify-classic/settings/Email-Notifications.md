@@ -23,7 +23,7 @@ Emails can sometimes be delayed and may take up to 30–60 minutes to arrive. If
 
 Confirm that the Email address on your Expensify account is valid, then click the link in the banner labeled **"here."** If successful, you will see a confirmation that your Email was unblocked.
 
-![Expensify Email Error](https://help.expensify.com/assets/images/Email_Error_Classic.png){:width="100%"}
+![Expensify Email Error](https://help.expensify.com/assets/images/Email Error - Classic.png){:width="100%"}
 
 **If unsuccessful, another error may appear:**
 
