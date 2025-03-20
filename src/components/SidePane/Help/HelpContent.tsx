@@ -1,8 +1,10 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
+// Importing from the react-native-gesture-handler package instead of the `components/ScrollView` to fix scroll issue:
+// https://github.com/react-native-modal/react-native-modal/issues/236
+import {ScrollView} from 'react-native-gesture-handler';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScrollView from '@components/ScrollView';
 import getHelpContent from '@components/SidePane/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
