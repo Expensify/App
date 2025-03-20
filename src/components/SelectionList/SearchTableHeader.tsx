@@ -1,11 +1,13 @@
 import React, {useCallback} from 'react';
 import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {getShouldShowMerchant} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import SortableTableHeader from './SortableTableHeader';
+import type {SortableColumnName} from './types';
 
 type ShouldShowSearchColumnFn = (data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) => boolean;
 
@@ -15,7 +17,7 @@ type SearchColumnConfig = {
     isColumnSortable?: boolean;
 };
 
-const shouldShowColumnConfig: Record<SearchColumnType, ShouldShowSearchColumnFn> = {
+const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnFn> = {
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: () => true,
@@ -28,6 +30,8 @@ const shouldShowColumnConfig: Record<SearchColumnType, ShouldShowSearchColumnFn>
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (data, metadata) => metadata?.columnsToShow?.shouldShowTaxColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => true,
+    // This column is never displayed on Search
+    [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
 };
 
 const expenseHeaders: SearchColumnConfig[] = [
@@ -103,16 +107,13 @@ type SearchTableHeaderProps = {
 };
 
 function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting}: SearchTableHeaderProps) {
+    const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
     const shouldShowColumn = useCallback(
-        (columnName: SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) => {
-            if (columnName === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
-                return false;
-            }
-
+        (columnName: SortableColumnName) => {
             const shouldShowFun = shouldShowColumnConfig[columnName];
             return shouldShowFun(data, metadata);
         },
@@ -137,6 +138,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
             shouldShowSorting={shouldShowSorting}
             sortBy={sortBy}
             sortOrder={sortOrder}
+            containerStyles={styles.pl4}
             onSortPress={(columnName, order) => {
                 if (columnName === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
                     return;
