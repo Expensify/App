@@ -111,6 +111,7 @@ import {
     getIOUForwardedMessage,
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
+    getPolicyChangeMessage,
     getRejectedReportMessage,
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallySubmittedMessage,
@@ -166,6 +167,10 @@ type PureReportActionItemProps = {
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
+    /** Array of report actions for the report for this action */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportActions: OnyxTypes.ReportAction[];
+
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -195,6 +200,7 @@ type PureReportActionItemProps = {
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
+    /** Report action ID that was referenced in the deeplink to report  */
     linkedReportActionID?: string;
 
     /** Callback to be called on onPress */
@@ -525,27 +531,29 @@ function PureReportActionItem({
 
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
-            showContextMenu(
-                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+            showContextMenu({
+                type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
                 event,
                 selection,
-                popoverAnchorRef.current,
-                reportID,
-                action.reportActionID,
-                originalReportID,
-                draftMessage ?? '',
-                () => setIsContextMenuActive(true),
-                toggleContextMenuFromActiveReportAction,
-                isArchivedRoom,
-                isChronosReport,
-                false,
-                false,
-                disabledActions,
-                false,
-                setIsEmojiPickerActive as () => void,
-                undefined,
-                isThreadReportParentAction,
-            );
+                contextMenuAnchor: popoverAnchorRef.current,
+                report: {
+                    reportID,
+                    originalReportID,
+                    isArchivedRoom,
+                    isChronos: isChronosReport,
+                },
+                reportAction: {
+                    reportActionID: action.reportActionID,
+                    draftMessage,
+                    isThreadReportParentAction,
+                },
+                callbacks: {
+                    onShow: toggleContextMenuFromActiveReportAction,
+                    onHide: toggleContextMenuFromActiveReportAction,
+                    setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
+                },
+                disabledOptions: disabledActions,
+            });
         },
         [
             draftMessage,
@@ -876,6 +884,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getReportActionText(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
+            children = <ReportActionItemBasicMessage message={getPolicyChangeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
@@ -1296,6 +1306,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
         lodashIsEqual(prevProps.report?.fieldList, nextProps.report?.fieldList) &&
         lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
+        lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
         lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&

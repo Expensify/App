@@ -22,8 +22,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -148,7 +148,7 @@ function NewChatPage() {
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
-    const {insets, safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+    const {insets, safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const selectionListRef = useRef<SelectionListHandle>(null);
 
@@ -229,7 +229,11 @@ function NewChatPage() {
     const selectOption = useCallback(
         (option?: Option) => {
             if (option?.isSelfDM) {
-                Navigation.dismissModal(option.reportID);
+                if (!option.reportID) {
+                    Navigation.dismissModal();
+                    return;
+                }
+                Navigation.dismissModalWithReport({reportID: option.reportID});
                 return;
             }
             if (selectedOptions.length && option) {

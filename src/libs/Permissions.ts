@@ -54,6 +54,10 @@ function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
 }
 
+function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -66,4 +70,5 @@ export default {
     canUseInternationalBankAccount,
     canUseNSQS,
     canUseCustomRules,
+    canUseTableReportView,
 };
