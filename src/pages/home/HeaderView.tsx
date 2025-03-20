@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
@@ -28,6 +28,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
+import {getConnection, initializeConnection, stopConnection} from '@libs/actions/WebRTC';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -44,6 +45,7 @@ import {
     getReportDescription,
     getReportName,
     hasReportNameError,
+    isAdminRoom as isAdminRoomReportUtils,
     isArchivedReport,
     isChatRoom as isChatRoomReportUtils,
     isChatThread as isChatThreadReportUtils,
@@ -207,6 +209,30 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
+    const [isOnboarding, setIsOnboarding] = useState(!!getConnection('openai'));
+    const [isInitializing, setIsInitializing] = useState(false);
+
+    const onPressSelfOnboarding = async () => {
+        if (isOnboarding) {
+            try {
+                stopConnection();
+                setIsOnboarding(false);
+            } catch (error) {
+                console.error('[HeaderView] Failed to stop recording:', error);
+            }
+            return;
+        }
+
+        try {
+            setIsInitializing(true);
+            await initializeConnection('openai', report?.reportID);
+            setIsOnboarding(true);
+        } catch (error) {
+            console.error('[HeaderView] Failed to start recording:', error);
+        } finally {
+            setIsInitializing(false);
+        }
+    };
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
 
@@ -342,6 +368,15 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                         </View>
                                     )}
                                 </PressableWithoutFeedback>
+                                {isAdminRoomReportUtils(report) && (
+                                    <Button
+                                        text={isOnboarding ? 'Stop Onboarding' : 'Self-Onboarding'}
+                                        onPress={onPressSelfOnboarding}
+                                        style={[styles.alignItemsEnd, styles.flex1]}
+                                        isLoading={isInitializing}
+                                        isDisabled={isInitializing}
+                                    />
+                                )}
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
