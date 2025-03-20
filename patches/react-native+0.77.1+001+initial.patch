@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/React/Views/RCTModalHostViewManager.m b/node_modules/react-native/React/Views/RCTModalHostViewManager.m
-index 8407662..df454fc 100644
+index eccf05f..e2ae7e2 100644
 --- a/node_modules/react-native/React/Views/RCTModalHostViewManager.m
 +++ b/node_modules/react-native/React/Views/RCTModalHostViewManager.m
 @@ -64,6 +64,13 @@ - (void)presentModalHostView:(RCTModalHostView *)modalHostView
@@ -13,6 +13,6 @@ index 8407662..df454fc 100644
 +      if (window && window.rootViewController && [window.rootViewController.view isFirstResponder]) {
 +        [window.rootViewController.view resignFirstResponder];
 +      }
-       [[self _topMostViewControllerFrom:[modalHostView reactViewController]] presentViewController:viewController
-                                                                                           animated:animated
-                                                                                         completion:completionBlock];
+       [[modalHostView reactViewController] presentViewController:viewController
+                                                         animated:animated
+                                                       completion:completionBlock];

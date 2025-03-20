@@ -6517,7 +6517,7 @@ const CONST = {
         CASH_BACK: 'earnedCashback',
     },
 
-    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
+    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN, SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT] as string[],
 
     CANCELLATION_TYPE: {
         MANUAL: 'manual',
@@ -6824,11 +6824,10 @@ const CONST = {
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
-        QUICK_ACTION_BUTTON: 'quickActionButton',
-        WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
-        SEARCH_FILTER_BUTTON_TOOLTIP: 'filterButtonTooltip',
         BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
