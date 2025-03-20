@@ -405,9 +405,9 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     waitForCollectionCallback: false,
-                    callback: (reportActions) => {
+                    callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(reportActions);
+                        resolve(value);
                     },
                 });
             });
@@ -429,7 +429,7 @@ describe('actions/IOU', () => {
                     participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
                 },
                 policyParams: {
-                    policy: policy,
+                    policy,
                 },
                 transactionParams: {
                     amount: transaction.amount,
@@ -438,7 +438,7 @@ describe('actions/IOU', () => {
                     merchant: transaction.merchant,
                     billable: false,
                     actionableWhisperReportActionID: reportActionableTrackExpense?.reportActionID,
-                    linkedTrackedExpenseReportAction: linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: selfDMReport.reportID,
                 },
                 accountantParams: {
@@ -451,9 +451,9 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
                     waitForCollectionCallback: false,
-                    callback: (report) => {
+                    callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(report);
+                        resolve(value);
                     },
                 });
             });
@@ -461,9 +461,9 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                     waitForCollectionCallback: false,
-                    callback: (policy) => {
+                    callback: (value) => {
                         Onyx.disconnect(connection);
-                        resolve(policy);
+                        resolve(value);
                     },
                 });
             });
