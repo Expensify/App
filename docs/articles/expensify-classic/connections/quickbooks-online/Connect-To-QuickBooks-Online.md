@@ -10,7 +10,7 @@ Expensify's integration with QuickBooks Online allows you to import expense acco
 ## Before You Begin
 
 To avoid errors and ensure compatibility, consider the following:
-- The features available in Expensify depend on your QuickBooks Online subscription.
+- Certain features in Expensify may not be compatible with your QuickBooks Online setup.
 - If a feature is enabled in Expensify but not supported by your QuickBooks Online plan, an export error will occur.
 - **Expensify does not support QuickBooks Online Self-Employed.**
 
