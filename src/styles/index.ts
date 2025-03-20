@@ -4549,6 +4549,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 16,
             margin: 20,
             overflow: 'hidden',
+            borderWidth: 2,
+            borderColor: theme.cardBG,
         },
 
         reportPreviewBox: {
