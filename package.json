@@ -46,7 +46,7 @@
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
     "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint",
-    "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 eslint --max-warnings=0 --config ./.eslintrc.changed.js $(git diff --diff-filter=AM --name-only origin/main HEAD -- \"*.ts\" \"*.tsx\")",
+    "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 eslint --max-warnings=0 --config ./.eslintrc.changed.js $(git diff --diff-filter=AM --name-only origin/main HEAD -- \"*.ts\" \"*.tsx\" \":!modules/**\")",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
     "prettier": "prettier --write .",
@@ -169,6 +169,7 @@
     "react-native-launch-arguments": "^4.0.2",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
+    "react-native-nitro-modules": "0.21.0",
     "react-native-onyx": "2.0.94",
     "react-native-pager-view": "6.5.2",
     "react-native-pdf": "6.7.3",
@@ -251,6 +252,7 @@
     "@trivago/prettier-plugin-sort-imports": "^4.2.0",
     "@types/base-64": "^1.0.2",
     "@types/canvas-size": "^1.2.2",
+    "contacts-nitro-module": "./modules/ContactsNitroModule",
     "@types/concurrently": "^7.0.0",
     "@types/howler": "^2.2.12",
     "@types/jest": "^29.5.2",
@@ -400,5 +402,8 @@
   "engines": {
     "node": "20.18.1",
     "npm": "10.8.2"
-  }
+  },
+  "workspaces": [
+    "modules/ContactsNitroModule"
+  ]
 }

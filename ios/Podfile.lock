@@ -28,6 +28,28 @@ PODS:
     - AppAuth/Core
   - AppLogs (0.1.0)
   - boost (1.84.0)
+  - ContactsModule (0.0.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - NitroModules
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - DoubleConversion (1.1.6)
   - EXAV (15.0.1):
     - ExpoModulesCore
@@ -311,6 +333,29 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
+  - NitroModules (0.21.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - NWWebSocket (0.5.4)
   - Onfido (29.7.2)
   - onfido-react-native-sdk (10.6.0):
@@ -2916,6 +2961,7 @@ DEPENDENCIES:
   - AirshipServiceExtension
   - AppLogs (from `../node_modules/react-native-app-logs/AppLogsPod`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
+  - ContactsModule (from `../modules/ContactsNitroModule`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAV (from `../node_modules/expo-av/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
@@ -2934,6 +2980,7 @@ DEPENDENCIES:
   - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - "pusher-websocket-react-native (from `../node_modules/@pusher/pusher-websocket-react-native`)"
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -3092,6 +3139,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-app-logs/AppLogsPod"
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
+  ContactsModule:
+    :path: "../modules/ContactsNitroModule"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXAV:
@@ -3127,6 +3176,8 @@ EXTERNAL SOURCES:
     :tag: hermes-2024-11-12-RNv0.76.2-5b4aa20c719830dcf5684832b89a6edb95ac3d64
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
+  NitroModules:
+    :path: "../node_modules/react-native-nitro-modules"
   onfido-react-native-sdk:
     :path: "../node_modules/@onfido/react-native-sdk"
   pusher-websocket-react-native:
@@ -3392,6 +3443,7 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
+  NitroModules: bbe10b61d6fefce0176ba06e6a34eea92efb7704
   NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
@@ -3493,7 +3545,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: 2b444567d0e462e8fc5be59658152e3cdc4e3830
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: d184c8d3213acf4c97ec71fbbb6f9d4954552d80
-  RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
+  RNPermissions: 9e5c26aaa982fe00743281f6f47fbdc050ebc58f
   RNReactNativeHapticFeedback: 73756a3477a5a622fa16862a3ab0d0fc5e5edff5
   RNReanimated: a41aa31f84a4d787d165125e5c874a2057154315
   RNScreens: e389d6a6a66a4f0d3662924ecae803073ccce8ec
