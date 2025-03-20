@@ -102,6 +102,7 @@ type SettingsNavigatorParamList = {
         forwardTo?: Routes;
     };
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
@@ -804,6 +805,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE]: {
         login: string;
         currentRole: string;
+        showValidateActionModal?: string;
+        newRole?: ValueOf<typeof CONST.DELEGATE_ROLE>;
     };
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
         login: string;
@@ -1598,6 +1601,9 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: {
         domain: string;
     };
+    [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
+        domain: string;
+    };
 };
 
 type ReportsSplitNavigatorParamList = {
@@ -1642,6 +1648,11 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: {
+        policyID: string;
+        feed: string;
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE.PER_DIEM]: {
@@ -1825,6 +1836,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         policyID?: string;
     };
     [SCREENS.NOT_FOUND]: undefined;
+    [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: undefined;
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList> & {policyID?: string};
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList> & {policyID?: string};
     [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
