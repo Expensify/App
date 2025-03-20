@@ -209,7 +209,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
     }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
 
-    const hideProductTrainingTooltip = useCallback(
+    const hideTooltip = useCallback(
         (isDismissedUsingCloseButton = false) => {
             if (!shouldShowProductTrainingTooltip) {
                 return;
@@ -261,7 +261,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     {!tooltip?.shouldRenderActionButtons && (
                         <PressableWithoutFeedback
                             onPress={() => {
-                                hideProductTrainingTooltip(true);
+                                hideTooltip(true);
                             }}
                             accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                             role={CONST.ROLE.BUTTON}
@@ -316,8 +316,15 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         translate,
         config.onConfirm,
         config.onDismiss,
-        hideProductTrainingTooltip,
+        hideTooltip,
     ]);
+
+    const hideProductTrainingTooltip = useCallback(
+        () => {
+           hideTooltip(false);
+        },
+        [hideTooltip],
+    );
 
     return {
         renderProductTrainingTooltip,
