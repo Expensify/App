@@ -17,7 +17,7 @@ function HelpBulletList({items, styles}: HelpBulletListProps) {
             key={`bullet-list-item-${index}`}
             style={[styles.flexRow, styles.alignItemsStart, styles.mt2]}
         >
-            <Text style={[styles.textNormal, styles.pr2]}>{CONST.DOT_SEPARATOR}</Text>
+            <Text style={[styles.textNormal, styles.pr2, styles.userSelectNone]}>{CONST.DOT_SEPARATOR}</Text>
             <View style={[styles.flex1]}>{item}</View>
         </View>
     ));
