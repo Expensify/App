@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {convertToDisplayString} from './CurrencyUtils';
 import {isPolicyAdmin, shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError, shouldShowTaxRateError} from './PolicyUtils';
 import {getOneTransactionThreadReportID} from './ReportActionsUtils';
@@ -112,6 +113,7 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, allConn
         () => Object.values(cleanPolicies).some(shouldShowCustomUnitsError),
         () => Object.values(cleanPolicies).some(shouldShowTaxRateError),
         () => Object.values(cleanPolicies).some(shouldShowEmployeeListError),
+        () => Object.values(cleanPolicies).some(shouldShowQBOReimbursableExportDestinationAccountError),
         () =>
             Object.values(cleanPolicies).some((cleanPolicy) =>
                 shouldShowSyncError(cleanPolicy, isConnectionInProgress(allConnectionProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
