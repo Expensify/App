@@ -11,6 +11,7 @@ import Concierge from './chat/concierge';
 import ExpenseChat from './chat/expense';
 import ExpensifyCardExpense from './chat/expense/expensifyCard';
 import ManualExpense from './chat/expense/manual';
+import ExpensifyCardPendingExpense from './chat/expense/pendingExpensifyCard';
 import ScanExpense from './chat/expense/scan';
 import ExpenseReportChat from './chat/expenseReport';
 import WorkspaceChat from './chat/workspace';
@@ -63,7 +64,7 @@ const helpContentMap: HelpContent = {
                             content: ExpensifyCardExpense,
                         },
                         [`:${CONST.IOU.EXPENSE_TYPE.PENDING_EXPENSIFY_CARD}`]: {
-                            content: () => null,
+                            content: ExpensifyCardPendingExpense,
                         },
                     },
                 },
