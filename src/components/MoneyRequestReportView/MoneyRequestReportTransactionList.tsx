@@ -9,57 +9,78 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {compareValues} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import MoneyRequestReportTableHeader, {columnConfig} from './MoneyRequestReportTableHeader';
+import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 
 type MoneyRequestReportTransactionListProps = {
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
 };
 
-const columnConfigNames = columnConfig.map(({columnName}) => columnName);
-const unwantedColumnConfigNames = [CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS];
+const moneyRequestReportSortableColumnNames = [
+    CONST.SEARCH.TABLE_COLUMNS.DATE,
+    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+];
 
-type SortableColumnConfigName = Exclude<TupleToUnion<typeof columnConfigNames>, TupleToUnion<typeof unwantedColumnConfigNames>>;
+type MoneyRequestReportSortableColumnName = TupleToUnion<typeof moneyRequestReportSortableColumnNames>;
 
-const isSortableColumnConfigName = (key: SortableColumnName): key is SortableColumnConfigName => {
-    const isInColumnConfig = !!columnConfigNames.find((val) => val === key);
-    const isInUnwanted = unwantedColumnConfigNames.find((val) => val === key);
-    return isInColumnConfig && !isInUnwanted;
+const initialSortingProperties: {
+    sortBy: MoneyRequestReportSortableColumnName;
+    sortOrder: SortOrder;
+} = {
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
 };
+
+const isMoneyRequestReportSortableColumnName = (key: SortableColumnName): key is MoneyRequestReportSortableColumnName => !!moneyRequestReportSortableColumnNames.find((val) => val === key);
+const areTransactionValuesEqual = (transactions: OnyxTypes.Transaction[], key: keyof OnyxTypes.Transaction) => {
+    const firstValidTransaction = transactions.find((transaction) => transaction !== undefined);
+    return !firstValidTransaction || transactions.every((transaction: OnyxTypes.Transaction) => transaction[key] === firstValidTransaction[key]);
+};
+const getTransactionKey = (key: MoneyRequestReportSortableColumnName) => (key === CONST.SEARCH.TABLE_COLUMNS.DATE ? 'created' : key);
 
 function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
-    const [sortingProperties, setSortingProperties] = useState<{
-        sortBy: SortableColumnConfigName;
-        sortOrder: SortOrder;
-    }>({
-        sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+    // We don't want to sort the array again if all column values are the same,
+    // but we still want to show the user that the table is sorted by selected column
+    // so there are 2 state properties
+    const [sortingProperties, setSortingProperties] = useState({
+        visualIndicator: initialSortingProperties,
+        operationalProperties: initialSortingProperties,
     });
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const sortedTransactions = useMemo(() => {
+        const {sortBy, sortOrder} = sortingProperties.operationalProperties;
         return transactions.toSorted((valueA: OnyxTypes.Transaction, valueB: OnyxTypes.Transaction) => {
-            const key = sortingProperties.sortBy === CONST.SEARCH.TABLE_COLUMNS.DATE ? 'created' : sortingProperties.sortBy;
-            return compareValues(valueA[key], valueB[key], sortingProperties.sortOrder, key);
+            const key = getTransactionKey(sortBy);
+            return compareValues(valueA[key], valueB[key], sortOrder, key);
         });
-    }, [sortingProperties, transactions]);
+    }, [sortingProperties.operationalProperties, transactions]);
 
     return (
         <>
             {!displayNarrowVersion && (
                 <MoneyRequestReportTableHeader
                     shouldShowSorting
-                    sortBy={sortingProperties.sortBy}
-                    sortOrder={sortingProperties.sortOrder}
+                    sortBy={sortingProperties.visualIndicator.sortBy}
+                    sortOrder={sortingProperties.visualIndicator.sortOrder}
                     onSortPress={(sortBy, sortOrder) => {
-                        if (!isSortableColumnConfigName(sortBy)) {
+                        if (!isMoneyRequestReportSortableColumnName(sortBy)) {
                             return;
                         }
 
-                        setSortingProperties({sortBy, sortOrder});
+                        const newSortingProperties = {sortBy, sortOrder};
+                        const shouldUpdateOperationalProperties = !areTransactionValuesEqual(transactions, getTransactionKey(sortBy));
+
+                        setSortingProperties(({operationalProperties}) => ({
+                            visualIndicator: newSortingProperties,
+                            operationalProperties: shouldUpdateOperationalProperties ? newSortingProperties : operationalProperties,
+                        }));
                     }}
                 />
             )}
