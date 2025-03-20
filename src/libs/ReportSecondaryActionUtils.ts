@@ -269,7 +269,8 @@ function isChangeWorkspaceAction(report: Report, reportTransactions: Transaction
     const isClosedReport = isClosedReportUtils(report);
 
     const policies = getAllPolicies();
-    const policiesEligibleForChange = policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policy, getCurrentUserEmail()));
+    const currentUserEmail = getCurrentUserEmail();
+    const policiesEligibleForChange = policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policy, currentUserEmail));
 
     if (policiesEligibleForChange.length <= 1) {
         return false;
@@ -366,7 +367,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
-    if (isCancelPaymentAction(report, reportTransactions)) {
+    if (isCancelPaymentAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
@@ -412,5 +413,4 @@ function getSecondaryTransactionThreadActions(parentReport: Report, reportTransa
 
     return options;
 }
-export default getSecondaryReportActions;
-export {getSecondaryTransactionThreadActions};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions};
