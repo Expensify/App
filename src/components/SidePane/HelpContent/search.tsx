@@ -8,7 +8,7 @@ import type {ThemeStyles} from '@styles/index';
 function Search({styles}: {styles: ThemeStyles}) {
     return (
         <>
-            <Text style={[styles.textHeadlineH1, styles.mv4]}>Reports</Text>
+            <Text style={[styles.textHeadlineH1, styles.mb4]}>Reports</Text>
             <Text style={styles.textNormal}>Virtually all data can be analyzed and reported upon in the Reports page. The major elements of this page include:</Text>
 
             <Text style={[styles.textHeadlineH2, styles.mv4]}>Data type</Text>
