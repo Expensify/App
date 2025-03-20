@@ -93,21 +93,3 @@ identifier
       });
       return result;
     }
-
-quotedString "quote"
-  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”")    // Opening quote
-    inner:([^"”“\r\n] 
-    / (!closingQuote "“" {return "“"}) / (!closingQuote "”" {return "”"}) / (!closingQuote "\"" {return "\""} )
-    )*                                              // Allow anything inside, but exclude true closing quotes
-    end:closingQuote                                // Detect the actual closing quote
-{
-    return [...start, '"', ...inner, '"'].join("");
-}
-
-closingQuote
-  = ("“" / "\"" / "”") &validClosingCondition       // A quote that is followed by a valid closing pattern
-
-validClosingCondition
-  = [ \t\n\r\xA0a-zA-Z0-9]* [a-zA-Z0-9]* [ \t\n\r\xA0]* operator  // Case 1: Followed by WORD + OPERATOR (new key-value pair)
-  / [ \t\n\r\xA0a-zA-Z]* !operator !.  // Case 2: Followed by any number of spaces, or words, with no operator, and then an END OF INPUT.
-  / [,] // Case 3: Followed by a comma
