@@ -6538,6 +6538,9 @@ const translations = {
         body: '¿Estás seguro de que quieres descartar los cambios que hiciste?',
         confirmText: 'Descartar cambios',
     },
+    aiSales: {
+        talkWithSales: 'Habla con ventas',
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof en>;

@@ -6018,6 +6018,9 @@ const translations = {
         body: 'Are you sure you want to discard the changes you made?',
         confirmText: 'Discard changes',
     },
+    aiSales: {
+        talkWithSales: 'Talk with sales',
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof translations>;
