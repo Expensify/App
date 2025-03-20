@@ -1,6 +1,6 @@
 ---
 title: Export Expenses from the Expenses Page
-description: Learn how to efficiently filter and export expenses from the Expenses page, with additional details for mobile users.
+description: Learn how to efficiently filter and export expenses from the Expenses page
 ---
 
 # Export Expenses
