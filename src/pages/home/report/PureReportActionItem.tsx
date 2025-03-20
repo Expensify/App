@@ -544,54 +544,54 @@ function PureReportActionItem({
      * @param [event] - A press event.
      */
     const showPopover = useCallback(
-      (event: GestureResponderEvent | MouseEvent) => {
-          // Block menu on the message being Edited or if the report action item has errors
-          if (draftMessage !== undefined || !isEmptyObject(action.errors) || !shouldDisplayContextMenu) {
-              return;
-          }
+        (event: GestureResponderEvent | MouseEvent) => {
+            // Block menu on the message being Edited or if the report action item has errors
+            if (draftMessage !== undefined || !isEmptyObject(action.errors) || !shouldDisplayContextMenu) {
+                return;
+            }
 
-          handleShowContextMenu(() => {
-            setIsContextMenuActive(true);
-            const selection = SelectionScraper.getCurrentSelection();
-            showContextMenu({
-                type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-                event,
-                selection,
-                contextMenuAnchor: popoverAnchorRef.current,
-                report: {
-                    reportID,
-                    originalReportID,
-                    isArchivedRoom,
-                    isChronos: isChronosReport,
-                },
-                reportAction: {
-                    reportActionID: action.reportActionID,
-                    draftMessage,
-                    isThreadReportParentAction,
-                },
-                callbacks: {
-                    onShow: toggleContextMenuFromActiveReportAction,
-                    onHide: toggleContextMenuFromActiveReportAction,
-                    setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
-                },
-                disabledOptions: disabledActions,
+            handleShowContextMenu(() => {
+                setIsContextMenuActive(true);
+                const selection = SelectionScraper.getCurrentSelection();
+                showContextMenu({
+                    type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                    event,
+                    selection,
+                    contextMenuAnchor: popoverAnchorRef.current,
+                    report: {
+                        reportID,
+                        originalReportID,
+                        isArchivedRoom,
+                        isChronos: isChronosReport,
+                    },
+                    reportAction: {
+                        reportActionID: action.reportActionID,
+                        draftMessage,
+                        isThreadReportParentAction,
+                    },
+                    callbacks: {
+                        onShow: toggleContextMenuFromActiveReportAction,
+                        onHide: toggleContextMenuFromActiveReportAction,
+                        setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
+                    },
+                    disabledOptions: disabledActions,
+                });
             });
-          });
-      },
-      [
-          draftMessage,
-          action,
-          reportID,
-          toggleContextMenuFromActiveReportAction,
-          originalReportID,
-          shouldDisplayContextMenu,
-          disabledActions,
-          isArchivedRoom,
-          isChronosReport,
-          handleShowContextMenu,
-          isThreadReportParentAction,
-      ],
-  );
+        },
+        [
+            draftMessage,
+            action,
+            reportID,
+            toggleContextMenuFromActiveReportAction,
+            originalReportID,
+            shouldDisplayContextMenu,
+            disabledActions,
+            isArchivedRoom,
+            isChronosReport,
+            handleShowContextMenu,
+            isThreadReportParentAction,
+        ],
+    );
 
     const toggleReaction = useCallback(
         (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
