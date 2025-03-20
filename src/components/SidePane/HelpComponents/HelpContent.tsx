@@ -5,7 +5,7 @@ import React, {useEffect, useRef} from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import getHelpContent from '@components/SidePane/getHelpContent';
+import getHelpContent from '@components/SidePane/HelpContent/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';

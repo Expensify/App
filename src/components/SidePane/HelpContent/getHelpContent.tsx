@@ -4,11 +4,11 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import type {ThemeStyles} from '@styles/index';
-import Chat from './HelpContent/chat';
-import Search from './HelpContent/search';
-import Settings from './HelpContent/settings';
-import Workspaces from './HelpContent/settings/workspaces';
-import PolicyID from './HelpContent/settings/workspaces/policyID';
+import Chat from './chat';
+import Search from './search';
+import Settings from './settings';
+import Workspaces from './settings/workspaces';
+import PolicyID from './settings/workspaces/policyID';
 
 type ContentComponent = (props: {styles: ThemeStyles}) => ReactNode;
 

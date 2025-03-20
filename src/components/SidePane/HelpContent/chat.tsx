@@ -1,8 +1,8 @@
 /* eslint-disable react/no-unescaped-entities */
 import React from 'react';
 import {View} from 'react-native';
-import BulletList from '@components/SidePane/HelpBulletList';
-import ExpandableHelp from '@components/SidePane/HelpExpandable';
+import BulletList from '@components/SidePane/HelpComponents/HelpBulletList';
+import ExpandableHelp from '@components/SidePane/HelpComponents/HelpExpandable';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import type {ThemeStyles} from '@styles/index';

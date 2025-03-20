@@ -1,6 +1,6 @@
 import React from 'react';
 import useSidePane from '@hooks/useSidePane';
-import Help from './Help';
+import Help from './HelpModal';
 
 function SidePane() {
     const {shouldHideSidePane, isPaneHidden, sidePaneTranslateX, shouldHideSidePaneBackdrop, closeSidePane} = useSidePane();
