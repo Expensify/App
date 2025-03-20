@@ -258,20 +258,22 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             );
                         })}
                     </Text>
-                    <PressableWithoutFeedback
-                        onPress={() => {
-                            hideProductTrainingTooltip(true);
-                        }}
-                        accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
-                        role={CONST.ROLE.BUTTON}
-                    >
-                        <Icon
-                            src={Expensicons.Close}
-                            fill={theme.icon}
-                            width={variables.iconSizeSemiSmall}
-                            height={variables.iconSizeSemiSmall}
-                        />
-                    </PressableWithoutFeedback>
+                    {!tooltip?.shouldRenderActionButtons && (
+                        <PressableWithoutFeedback
+                            onPress={() => {
+                                hideProductTrainingTooltip(true);
+                            }}
+                            accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
+                            role={CONST.ROLE.BUTTON}
+                        >
+                            <Icon
+                                src={Expensicons.Close}
+                                fill={theme.icon}
+                                width={variables.iconSizeSemiSmall}
+                                height={variables.iconSizeSemiSmall}
+                            />
+                        </PressableWithoutFeedback>
+                    )}
                 </View>
                 {!!tooltip?.shouldRenderActionButtons && (
                     <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph2, styles.pv2, styles.gap2]}>
