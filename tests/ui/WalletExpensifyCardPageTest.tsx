@@ -11,7 +11,7 @@ import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import ExpensifyCardPage from '@pages/settings/Wallet/ExpensifyCardPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,13 +25,9 @@ TestHelper.setupGlobalFetchMock();
 // Create a stack navigator for the settings pages.
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-/**
- * Renders the ExpensifyCardPage inside a navigation container with necessary providers.
- *
- * @param {typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD} initialRouteName - The initial route to render.
- * @param {SettingsNavigatorParamList[typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD]} initialParams - Initial parameters for the route.
- * @returns {RenderAPI} The rendered component.
- */
+const userCardID = '1234';
+
+// Renders the ExpensifyCardPage inside a navigation container with necessary providers.
 const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD]) => {
     return render(
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
@@ -81,7 +77,7 @@ describe('ExpensifyCardPage', () => {
         // Add a mock card to Onyx storage to simulate a valid card being loaded.
         await act(async () => {
             await Onyx.merge(ONYXKEYS.CARD_LIST, {
-                '1234': {
+                [userCardID]: {
                     cardID: 1234,
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
                     domainName: 'xyz',
@@ -122,7 +118,7 @@ describe('ExpensifyCardPage', () => {
         // Add a mock card to Onyx storage with additional delegated access data.
         await act(async () => {
             await Onyx.merge(ONYXKEYS.CARD_LIST, {
-                '1234': {
+                [userCardID]: {
                     cardID: 1234,
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
                     domainName: 'xyz',
