@@ -7,6 +7,8 @@ keywords: [Expensify Classic, distance rates, time rates]
 
 You can set default rates at the workspace level to track employees' billable time and mileage expenses. Configuring these settings will ensure consistent reimbursement calculations and accurate billing for your team. 
 
+---
+
 # Set Time and Distance Rates  
 
 1. Hover over **Settings**, then **Workspaces > Group**.
