@@ -309,7 +309,7 @@ function BaseModal(
                             </View>
                         </FocusTrapForModal>
                     </ModalContent>
-                    <NavigationBar />
+                    {!keyboardStateContextValue?.isKeyboardShown && <NavigationBar />}
                 </ModalComponent>
             </View>
         </ModalContext.Provider>
