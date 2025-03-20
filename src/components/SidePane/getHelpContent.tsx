@@ -4,7 +4,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import type {ThemeStyles} from '@styles/index';
-import Inbox from './HelpContent/inbox';
+import Chat from './HelpContent/chat';
 import Search from './HelpContent/search';
 import Settings from './HelpContent/settings';
 import Workspaces from './HelpContent/settings/workspaces';
@@ -27,10 +27,10 @@ const helpContentMap: HelpContent = {
     content: () => null,
     children: {
         r: {
-            content: Inbox,
+            content: Chat,
         },
         home: {
-            content: Inbox,
+            content: Chat,
         },
         search: {
             content: Search,
