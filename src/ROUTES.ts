@@ -1073,7 +1073,7 @@ const ROUTES = {
     },
     WORKSPACE_JOIN_USER: {
         route: 'settings/workspaces/:policyID/join',
-        getRoute: (policyID: string, inviterEmail: string) => `settings/workspaces/${policyID}/join?email=${inviterEmail}` as const,
+        getRoute: (policyID: string | undefined, inviterEmail: string) => `settings/workspaces/${policyID}/join?email=${inviterEmail}` as const,
     },
     WORKSPACE_SETTINGS_CURRENCY: {
         route: 'settings/workspaces/:policyID/settings/currency',

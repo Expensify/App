@@ -276,7 +276,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 /**
  * Helper method to return workspace avatar color styles
  */
-function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
+function getDefaultWorkspaceAvatarColor(text: string | undefined = ''): ViewStyle {
     const colorHash = hashText(text.trim(), workspaceColorOptions.length);
     return workspaceColorOptions.at(colorHash) ?? {backgroundColor: colors.blue200, fill: colors.blue700};
 }
