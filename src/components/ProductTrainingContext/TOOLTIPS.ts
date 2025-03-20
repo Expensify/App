@@ -15,6 +15,7 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
+    EXPENSE_REPORTS_FILTER,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
@@ -97,13 +98,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: true},
             {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part4', isBold: true},
         ],
         onHideTooltip: () => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP),
         name: BOTTOM_NAV_INBOX_TOOLTIP,
-        priority: 900,
+        priority: 1700,
         shouldShow: () => true,
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
@@ -116,6 +118,17 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
         priority: 800,
         shouldShow: () => true,
+    },
+    [EXPENSE_REPORTS_FILTER]: {
+        content: [
+            {text: 'productTrainingTooltip.expenseReportsFilter.part1', isBold: false},
+            {text: 'productTrainingTooltip.expenseReportsFilter.part2', isBold: true},
+            {text: 'productTrainingTooltip.expenseReportsFilter.part3', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(EXPENSE_REPORTS_FILTER),
+        name: EXPENSE_REPORTS_FILTER,
+        priority: 2000,
+        shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
     },
     [SCAN_TEST_TOOLTIP]: {
         content: [
