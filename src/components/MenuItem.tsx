@@ -605,7 +605,12 @@ function MenuItem(
         if (!copyValue) {
             return;
         }
-        showContextMenu(CONST.CONTEXT_MENU_TYPES.TEXT, event, copyValue, popoverAnchor.current);
+        showContextMenu({
+            type: CONST.CONTEXT_MENU_TYPES.TEXT,
+            event,
+            selection: copyValue,
+            contextMenuAnchor: popoverAnchor.current,
+        });
         onSecondaryInteraction?.(event);
     };
 
