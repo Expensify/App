@@ -50,6 +50,12 @@ type FullPageNotFoundViewProps = {
 
     /** Whether we should display the button that opens new SearchRouter */
     shouldDisplaySearchRouter?: boolean;
+
+    /** Whether to add bottom safe area padding to the view. */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -67,6 +73,8 @@ function FullPageNotFoundView({
     shouldForceFullScreen = false,
     subtitleStyle,
     shouldDisplaySearchRouter,
+    addBottomSafeAreaPadding = true,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -93,6 +101,8 @@ function FullPageNotFoundView({
                         shouldShowLink={shouldShowLink}
                         onLinkPress={onLinkPress}
                         subtitleStyle={subtitleStyle}
+                        addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                        addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     />
                 </View>
             </ForceFullScreenView>

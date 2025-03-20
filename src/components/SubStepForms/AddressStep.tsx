@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 type AddressValues = {
@@ -63,6 +64,9 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
     /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
+
+    /** Translation key of street field */
+    streetTranslationKey?: TranslationPaths;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -82,6 +86,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
     onCountryChange,
+    streetTranslationKey = 'common.streetAddress',
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -128,7 +133,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                 {!!formPOBoxDisclaimer && <Text style={[styles.textSupporting]}>{formPOBoxDisclaimer}</Text>}
                 <AddressFormFields
                     inputKeys={inputFieldsIDs}
-                    streetTranslationKey="common.streetAddress"
+                    streetTranslationKey={streetTranslationKey}
                     defaultValues={defaultValues}
                     shouldSaveDraft={!isEditing}
                     shouldDisplayStateSelector={shouldDisplayStateSelector}

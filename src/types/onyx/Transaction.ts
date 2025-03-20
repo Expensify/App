@@ -83,6 +83,9 @@ type Comment = {
 
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
+
+    /** Defines the type of liability for the transaction */
+    liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 };
 
 /** Model of transaction custom unit */
