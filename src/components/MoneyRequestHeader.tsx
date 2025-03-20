@@ -13,7 +13,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteMoneyRequest, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getTransactionThreadReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
+import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {changeMoneyRequestHoldStatus, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
@@ -151,7 +151,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         return null;
     }
 
-    const primaryAction = getTransactionThreadReportPrimaryAction(report, parentReport, transaction, transactionViolations, policy);
+    const primaryAction = getTransactionThreadPrimaryAction(report, parentReport, transaction, transactionViolations, policy);
 
     const primaryActionOptions = {
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD]: (

@@ -256,7 +256,7 @@ function isMarkAsCashActionForTransaction(parentReport: Report, violations: Tran
     return isReportSubmitter || isReportApprover || isAdmin;
 }
 
-function getTransactionThreadReportPrimaryAction(
+function getTransactionThreadPrimaryAction(
     transactionThreadReport: Report,
     parentReport: Report,
     reportTransaction: Transaction,
@@ -278,4 +278,4 @@ function getTransactionThreadReportPrimaryAction(
     return '';
 }
 
-export {getReportPrimaryAction, getTransactionThreadReportPrimaryAction};
+export {getReportPrimaryAction, getTransactionThreadPrimaryAction};

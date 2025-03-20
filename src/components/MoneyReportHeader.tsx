@@ -17,7 +17,7 @@ import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextS
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
-import getSecondaryReportActions from '@libs/ReportSecondaryActionUtils';
+import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
     getArchiveReason,
