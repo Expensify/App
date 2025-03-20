@@ -534,7 +534,7 @@ function getOptionData({
         const prefix = getReportSubtitlePrefix(report);
 
         if (isRenamedAction(lastAction)) {
-            result.alternateText = getRenamedAction(lastAction);
+            result.alternateText = getRenamedAction(lastAction, personalDetails);
         } else if (isTaskAction(lastAction)) {
             result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(lastAction).text);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
