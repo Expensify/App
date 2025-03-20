@@ -82,7 +82,6 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
 }
 
 function getReportPreviewAction(
-    reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     report?: Report,
     policy?: Policy,
