@@ -3,17 +3,13 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import EmptyStateComponent from '@components/EmptyStateComponent';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
-import useLocalize from '@hooks/useLocalize';
+import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {getNewerActions, getOlderActions, updateLoadingInitialReportAction} from '@libs/actions/Report';
+import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -79,8 +75,6 @@ function ReportActionsView({
     hasOlderActions,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`, {
@@ -91,12 +85,9 @@ function ReportActionsView({
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
     const didLayout = useRef(false);
-    const didLoadOlderChats = useRef(false);
-    const didLoadNewerChats = useRef(false);
     const {isOffline} = useNetwork();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const contentListHeight = useRef(0);
     const isFocused = useIsFocused();
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
@@ -157,20 +148,16 @@ function ReportActionsView({
         });
 
         if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
-            const optimisticIOUAction = buildOptimisticIOUReportAction(
-                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                0,
-                CONST.CURRENCY.USD,
-                '',
-                [],
-                rand64(),
-                undefined,
-                report.reportID,
-                false,
-                false,
-                false,
-                DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
-            ) as OnyxTypes.ReportAction;
+            const optimisticIOUAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 0,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [],
+                transactionID: rand64(),
+                iouReportID: report.reportID,
+                created: DateUtils.subtractMillisecondsFromDateTime(actions.at(-1)?.created ?? '', 1),
+            }) as OnyxTypes.ReportAction;
             moneyRequestActions.push(optimisticIOUAction);
             actions.splice(actions.length - 1, 0, optimisticIOUAction);
         }
@@ -211,21 +198,12 @@ function ReportActionsView({
         [reportActions, isOffline, canPerformWriteAction],
     );
 
-    const reportActionIDMap = useMemo(() => {
-        const reportActionIDs = allReportActions?.map((action) => action.reportActionID);
-        return reportActions.map((action) => ({
-            reportActionID: action.reportActionID,
-            reportID: reportActionIDs?.includes(action.reportActionID) ? reportID : transactionThreadReport?.reportID,
-        }));
-    }, [allReportActions, reportID, transactionThreadReport, reportActions]);
-
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const lastActionCreated = visibleReportActions.at(0)?.created;
     const isNewestAction = (actionCreated: string | undefined, lastVisibleActionCreated: string | undefined) =>
         actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
     const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
-    const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
 
     useEffect(() => {
         // update ref with current state
@@ -233,78 +211,19 @@ function ReportActionsView({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
-    const onContentSizeChange = useCallback((w: number, h: number) => {
-        contentListHeight.current = h;
-    }, []);
+    const allReportActionIDs = useMemo(() => {
+        return allReportActions?.map((action) => action.reportActionID) ?? [];
+    }, [allReportActions]);
 
-    /**
-     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
-     * displaying.
-     */
-    const loadOlderChats = useCallback(
-        (force = false) => {
-            // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
-            if (!force && isOffline) {
-                return;
-            }
-
-            // Don't load more chats if we're already at the beginning of the chat history
-            if (!oldestReportAction || !hasOlderActions) {
-                return;
-            }
-
-            didLoadOlderChats.current = true;
-
-            if (!isEmptyObject(transactionThreadReport)) {
-                // Get older actions based on the oldest reportAction for the current report
-                const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
-                getOlderActions(oldestActionCurrentReport?.reportID, oldestActionCurrentReport?.reportActionID);
-
-                // Get older actions based on the oldest reportAction for the transaction thread report
-                const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
-                getOlderActions(oldestActionTransactionThreadReport?.reportID, oldestActionTransactionThreadReport?.reportActionID);
-            } else {
-                // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-                getOlderActions(reportID, oldestReportAction.reportActionID);
-            }
-        },
-        [isOffline, oldestReportAction, reportID, reportActionIDMap, transactionThreadReport, hasOlderActions],
-    );
-
-    const loadNewerChats = useCallback(
-        (force = false) => {
-            if (
-                !force &&
-                (!reportActionID ||
-                    !isFocused ||
-                    !newestReportAction ||
-                    !hasNewerActions ||
-                    isOffline ||
-                    // If there was an error only try again once on initial mount. We should also still load
-                    // more in case we have cached messages.
-                    didLoadNewerChats.current ||
-                    newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            ) {
-                return;
-            }
-
-            didLoadNewerChats.current = true;
-
-            // If this is a one transaction report, ensure we load newer actions for both this report and the report associated with the transaction
-            if (!isEmptyObject(transactionThreadReport)) {
-                // Get newer actions based on the newest reportAction for the current report
-                const newestActionCurrentReport = reportActionIDMap.find((item) => item.reportID === reportID);
-                getNewerActions(newestActionCurrentReport?.reportID, newestActionCurrentReport?.reportActionID);
-
-                // Get newer actions based on the newest reportAction for the transaction thread report
-                const newestActionTransactionThreadReport = reportActionIDMap.find((item) => item.reportID === transactionThreadReport.reportID);
-                getNewerActions(newestActionTransactionThreadReport?.reportID, newestActionTransactionThreadReport?.reportActionID);
-            } else if (newestReportAction) {
-                getNewerActions(reportID, newestReportAction.reportActionID);
-            }
-        },
-        [reportActionID, isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
-    );
+    const {loadOlderChats, loadNewerChats} = useLoadReportActions({
+        reportID,
+        reportActionID,
+        reportActions,
+        allReportActionIDs,
+        transactionThreadReport,
+        hasOlderActions,
+        hasNewerActions,
+    });
 
     /**
      * Runs when the FlatList finishes laying out
@@ -351,21 +270,12 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if (isLoadingInitialReportActions && visibleReportActions.length === 0 && !isOffline) {
+    if (isLoadingInitialReportActions && !isOffline) {
         return <ReportActionsSkeletonView />;
     }
 
     if (visibleReportActions.length === 0) {
-        return (
-            <EmptyStateComponent
-                SkeletonComponent={SearchRowSkeleton}
-                title={translate('report.noActivityYet')}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                headerMedia={Illustrations.EmptyState}
-                headerStyles={styles.emptyFolderDarkBG}
-                headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
-            />
-        );
+        return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
     // AutoScroll is disabled when we do linking to a specific reportAction
@@ -384,7 +294,6 @@ function ReportActionsView({
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 listID={listID}
-                onContentSizeChange={onContentSizeChange}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />
             <UserTypingEventListener report={report} />
