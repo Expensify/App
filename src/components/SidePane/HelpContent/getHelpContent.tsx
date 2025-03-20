@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import Chat from './chat';
 import AdminsChatRoom from './chat/admins';
 import Concierge from './chat/concierge';
+import WorkspaceChat from './chat/workspace';
 import Search from './search';
 import Settings from './settings';
 import Workspaces from './settings/workspaces';
@@ -39,7 +40,7 @@ const helpContentMap: HelpContent = {
                     content: Concierge,
                 },
                 [`:${CONST.REPORT.HELP_TYPE.POLICY_EXPENSE_CHAT}`]: {
-                    content: () => null,
+                    content: WorkspaceChat,
                 },
                 [`:${CONST.REPORT.HELP_TYPE.EXPENSE_REPORT}`]: {
                     content: () => null,
