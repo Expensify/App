@@ -1,78 +1,60 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-import {ChatBubble} from '@components/Icon/Expensicons';
+import {ChatBubbleCounter} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOUActionForReportID, getReportAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
+import variables from '@styles/variables';
+import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
-type MessagesCountAndStatus = {
-    reportID: string | undefined;
-    count: number;
-    isUnread: boolean;
-};
+const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
+    lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
 
+/*
+ * Child is retrieved because we want to get the unread status & messages count of the expense, not the report itself.
+ * We can get the child's message count from the report, but we cannot get the child's unread info from there.
+ */
 function getTransactionMessagesCountAndUnreadInfo(transaction: Transaction) {
-    const result: MessagesCountAndStatus = {
-        reportID: undefined,
-        count: 0,
-        isUnread: false,
+    const iouReportAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+    const childReport = iouReportAction ? getReportOrDraftReport(iouReportAction.childReportID) : undefined;
+
+    return {
+        count: (iouReportAction && iouReportAction.childVisibleActionCount) ?? 0,
+        isUnread: isChatThread(childReport) && isReportUnread(childReport),
     };
-
-    const iouReport = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-
-    if (!iouReport) {
-        return result;
-    }
-
-    const count = iouReport.childVisibleActionCount;
-    const action = getReportAction(transaction.reportID, iouReport.reportActionID);
-
-    if (!action) {
-        return result;
-    }
-
-    result.reportID = action.reportID;
-
-    if (!count) {
-        return result;
-    }
-
-    result.count = count;
-
-    const {childReportID} = action;
-    const reportOrDraftReport = getReportOrDraftReport(childReportID);
-    const isThread = isChatThread(reportOrDraftReport);
-
-    if (!isThread) {
-        return result;
-    }
-
-    const {lastReadTime = '', lastMentionedTime = '', lastVisibleActionCreated = ''} = reportOrDraftReport;
-    result.isUnread = lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
-
-    return result;
 }
 
 function ChatBubbleCell({transaction}: {transaction: Transaction}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const threadMessages = getTransactionMessagesCountAndUnreadInfo(transaction);
+    const StyleUtils = useStyleUtils();
+
+    const elementSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
+    const fontSize = shouldUseNarrowLayout ? variables.fontSizeXXSmall : variables.fontSizeExtraSmall;
+    const lineHeight = shouldUseNarrowLayout ? 11.6 : 12;
 
     return (
         threadMessages.count > 0 && (
-            <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, styles.chatBubbleCell]}>
+            <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, StyleUtils.getWidthAndHeightStyle(elementSize)]}>
                 <Icon
-                    src={ChatBubble}
+                    src={ChatBubbleCounter}
                     additionalStyles={styles.pAbsolute}
                     fill={threadMessages.isUnread ? theme.iconMenu : theme.icon}
-                    width={20}
-                    height={24}
+                    width={elementSize}
+                    height={elementSize}
                 />
-                <Text style={[styles.textBold, styles.appBG, styles.chatBubbleCellText]}>{threadMessages.count}</Text>
+                <Text style={[styles.textBold, StyleUtils.getLineHeightStyle(lineHeight), StyleUtils.getColorStyle(theme.appBG), StyleUtils.getFontSizeStyle(fontSize)]}>
+                    {threadMessages.count}
+                </Text>
             </View>
         )
     );

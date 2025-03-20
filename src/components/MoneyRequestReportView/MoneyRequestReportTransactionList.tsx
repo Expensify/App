@@ -37,7 +37,7 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
                                 isSelected={false}
                                 shouldShowTooltip
                                 shouldUseNarrowLayout={displayNarrowVersion}
-                                additionalColumn={<ChatBubbleCell transaction={transaction} />}
+                                shouldShowChatBubbleComponent
                             />
                         </View>
                     );

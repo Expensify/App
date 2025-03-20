@@ -56,7 +56,7 @@ function Template({transactionItem, shouldUseNarrowLayout, isSelected, shouldSho
                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                     isSelected={isSelected}
                     shouldShowTooltip={shouldShowTooltip}
-                    additionalColumn={<ChatBubbleCell transaction={transactionItem} />}
+                    shouldShowChatBubbleComponent
                 />
             </ThemeStylesProvider>
         </ThemeProvider>

@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import Text from '@components/Text';
+import ChatBubbleCell from '@components/TransactionItemRow/DataCells/ChatBubbleCell';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -20,19 +21,24 @@ function TransactionItemRow({
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
-    additionalColumn,
+    shouldShowChatBubbleComponent = false,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
-    additionalColumn?: React.ReactNode;
+    shouldShowChatBubbleComponent?: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
+    const transactionItemRowRBRStyles = !shouldShowChatBubbleComponent || hasCategoryOrTag ? [styles.ml3, styles.mb3, styles.mtn1] : [];
+    const shouldShowChatBubble = {
+        nextToRBR: shouldShowChatBubbleComponent && !hasCategoryOrTag,
+        nextToCategoryOrTag: shouldShowChatBubbleComponent && hasCategoryOrTag,
+    };
 
     return (
         <View style={styles.flex1}>
@@ -75,38 +81,34 @@ function TransactionItemRow({
                                     </View>
                                 </View>
                             </View>
-                            {hasCategoryOrTag && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ml3, styles.mt0, styles.mb3, {justifyContent: 'space-between'}]}>
-                                    <View style={[styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
-                                        <CategoryCell
-                                            transactionItem={transactionItem}
-                                            shouldShowTooltip={shouldShowTooltip}
-                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        />
-                                        <TagCell
-                                            transactionItem={transactionItem}
-                                            shouldShowTooltip={shouldShowTooltip}
-                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        />
-                                    </View>
-                                    {!!additionalColumn && <View style={styles.mr3}>{additionalColumn}</View>}
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentBetween, hasCategoryOrTag && [styles.ml3, styles.mt0, styles.mb3]]}>
+                                <View style={[styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
+                                    <CategoryCell
+                                        transactionItem={transactionItem}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    />
+                                    <TagCell
+                                        transactionItem={transactionItem}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    />
                                 </View>
-                            )}
-                            {!!additionalColumn && !hasCategoryOrTag && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ml3, styles.mt0, styles.mb3, styles.mr3, {justifyContent: 'space-between'}]}>
-                                    <View>
-                                        <TransactionItemRowRBR transaction={transactionItem} />
+                                {shouldShowChatBubble.nextToCategoryOrTag && (
+                                    <View style={styles.mr3}>
+                                        <ChatBubbleCell transaction={transactionItem} />
                                     </View>
-                                    {additionalColumn}
-                                </View>
-                            )}
-                            {!additionalColumn ||
-                                (hasCategoryOrTag && (
+                                )}
+                            </View>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentBetween, shouldShowChatBubble.nextToRBR && [styles.m3, styles.mt0]]}>
+                                <View>
                                     <TransactionItemRowRBR
-                                        containerStyles={[styles.ml3, styles.mt0, styles.mb3, styles.mtn1]}
+                                        containerStyles={transactionItemRowRBRStyles}
                                         transaction={transactionItem}
                                     />
-                                ))}
+                                </View>
+                                {shouldShowChatBubble.nextToRBR && <ChatBubbleCell transaction={transactionItem} />}
+                            </View>
                         </View>
                     )}
                 </Hoverable>
@@ -156,7 +158,9 @@ function TransactionItemRow({
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                {!!additionalColumn && <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>{additionalColumn}</View>}
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
+                                    {shouldShowChatBubbleComponent && <ChatBubbleCell transaction={transactionItem} />}
+                                </View>
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                                     <TotalCell
                                         transactionItem={transactionItem}
