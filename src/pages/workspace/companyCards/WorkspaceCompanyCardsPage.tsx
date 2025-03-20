@@ -9,7 +9,16 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import {
+    checkIfFeedConnectionIsBroken,
+    filterInactiveCards,
+    getCompanyFeeds,
+    getFilteredCardList,
+    getSelectedFeed,
+    hasOnlyOneCardToAssign,
+    isCustomFeed,
+    isSelectedFeedExpired,
+} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -41,7 +50,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`, {selector: filterInactiveCards});
 
     const {cardList, ...cards} = cardsList ?? {};
 

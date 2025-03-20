@@ -39,8 +39,14 @@ import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionMo
 import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import variables from '@styles/variables';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
-import {openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
-import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, removeMembers, requestWorkspaceOwnerChange, updateWorkspaceMembersRole} from '@userActions/Policy/Member';
+import {
+    clearWorkspaceOwnerChangeFlow,
+    isApprover as isApproverUserAction,
+    openPolicyMemberProfilePage,
+    removeMembers,
+    requestWorkspaceOwnerChange,
+    updateWorkspaceMembersRole,
+} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -100,8 +106,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     );
 
     useEffect(() => {
-        openPolicyCompanyCardsPage(policyID, workspaceAccountID);
-    }, [policyID, workspaceAccountID]);
+        openPolicyMemberProfilePage(policyID, accountID);
+    }, [policyID, accountID]);
 
     const memberCards = useMemo(() => {
         if (!workspaceCards) {

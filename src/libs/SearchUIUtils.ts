@@ -7,7 +7,6 @@ import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import {SearchColumns} from '@components/SelectionList/SearchTableHeader';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -32,8 +31,10 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
+import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {canSendInvoice} from './PolicyUtils';
 import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
 import {
@@ -126,8 +127,8 @@ function getTransactionItemCommonFormattedProperties(
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
-    const formattedFrom = from?.displayName ?? from?.login ?? '';
-    const formattedTo = to?.displayName ?? to?.login ?? '';
+    const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(from));
+    const formattedTo = formatPhoneNumber(getDisplayNameOrDefault(to));
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
@@ -792,7 +793,7 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
  * Whether to show the empty state or not
  */
 function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes) {
-    return !isDataLoaded || dataLength === 0 || !Object.hasOwn(SearchColumns, type);
+    return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
 export {

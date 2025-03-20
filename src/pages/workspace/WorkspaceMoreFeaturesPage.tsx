@@ -13,7 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyFeeds} from '@libs/CardUtils';
+import {filterInactiveCards, getAllCardsForWorkspace, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -83,15 +83,20 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const policyID = policy?.id;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID.toString()}`);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
     const [isDisableCompanyCardsWarningModalOpen, setIsDisableCompanyCardsWarningModalOpen] = useState(false);
+    const [isDisableWorkflowWarningModalOpen, setIsDisableWorkflowWarningModalOpen] = useState(false);
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
+    const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {
@@ -99,6 +104,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         }
         setIsOrganizeWarningModalOpen(true);
     }, [hasAccountingConnection]);
+
+    const onDisabledWorkflowPress = useCallback(() => {
+        if (!isSmartLimitEnabled) {
+            return;
+        }
+        setIsDisableWorkflowWarningModalOpen(true);
+    }, [isSmartLimitEnabled]);
 
     const spendItems: Item[] = [
         {
@@ -182,6 +194,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enablePolicyWorkflows(policyID, isEnabled);
             },
+            disabled: isSmartLimitEnabled,
+            disabledAction: onDisabledWorkflowPress,
         },
         {
             icon: Illustrations.Rules,
@@ -526,6 +540,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     onCancel={() => setIsDisableCompanyCardsWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.companyCards.disableCardPrompt')}
                     confirmText={translate('workspace.moreFeatures.companyCards.disableCardButton')}
+                    cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.workflowWarningModal.featureEnabledTitle')}
+                    isVisible={isDisableWorkflowWarningModalOpen}
+                    onConfirm={() => {
+                        setIsDisableWorkflowWarningModalOpen(false);
+                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+                    }}
+                    onCancel={() => setIsDisableWorkflowWarningModalOpen(false)}
+                    prompt={translate('workspace.moreFeatures.workflowWarningModal.featureEnabledText')}
+                    confirmText={translate('workspace.moreFeatures.workflowWarningModal.confirmText')}
                     cancelText={translate('common.cancel')}
                 />
             </ScreenWrapper>

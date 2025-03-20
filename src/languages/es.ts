@@ -1016,6 +1016,7 @@ const translations = {
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
+            invalidTagLength: 'La longitud de la etiqueta escogida excede el máximo permitido (255). Por favor, escoge otra etiqueta o acorta la etiqueta primero.',
             invalidAmount: 'Por favor, ingresa un importe válido antes de continuar.',
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
@@ -1055,6 +1056,7 @@ const translations = {
         explainHold: 'Explica la razón para retener esta solicitud.',
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para retener.',
+        expenseWasPutOnHold: 'Este gasto está retenido',
         expenseOnHold: 'Este gasto está retenido. Revisa los comentarios para saber como proceder.',
         expensesOnHold: 'Todos los gastos están retenidos. Revisa los comentarios para saber como proceder.',
         expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revisa los duplicados para eliminar la retención.',
@@ -1392,8 +1394,9 @@ const translations = {
         enableTwoFactorAuth: 'Activar la autenticación de dos factores',
         pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
         twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
-        twoFactorAuthIsRequiredForAdminsDescription:
-            'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthIsRequiredForAdminsHeader: 'Autenticación de dos factores requerida',
+        twoFactorAuthIsRequiredForAdminsTitle: 'Por favor, habilita la autenticación de dos factores',
+        twoFactorAuthIsRequiredForAdminsDescription: 'Tu conexión de contabilidad con Xero requiere autenticación de dos factores. Por favor, habilítala para continuar.',
         twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
         twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
     },
@@ -1434,6 +1437,7 @@ const translations = {
         changePaymentCurrency: 'Cambiar moneda de facturación',
         changeBillingCurrency: 'Cambiar la moneda de pago',
         paymentCurrency: 'Moneda de pago',
+        paymentCurrencyDescription: 'Selecciona una moneda estándar a la que se deben convertir todos los gastos personales.',
         note: 'Nota: Cambiar tu moneda de pago puede afectar cuánto pagarás por Expensify. Consulta nuestra',
         noteLink: 'página de precios',
         noteDetails: 'para conocer todos los detalles.',
@@ -2080,8 +2084,11 @@ const translations = {
             phrase3: 'o',
             phrase4: 'verifica aquí tu cuenta',
         },
-        hasPhoneLoginError:
-            'Para añadir una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
+        hasPhoneLoginError: {
+            phrase1: 'Para añadir una cuenta bancaria verificada,',
+            link: 'asegúrate de que tu nombre de usuario principal sea un correo electrónico válido',
+            phrase2: ' y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
+        },
         hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         hasCurrencyError: '¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Por favor, configúrala en USD e inténtalo nuevamente.',
         error: {
@@ -2675,7 +2682,11 @@ const translations = {
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
-        phoneError: 'Para reservar viajes, tu método de contacto predeterminado debe ser un correo electrónico válido',
+        phoneError: {
+            phrase1: 'Para reservar viajes,',
+            link: 'añade una dirección de correo electrónico de trabajo',
+            phrase2: '.',
+        },
         domainSelector: {
             title: 'Dominio',
             subtitle: 'Elige un dominio para configurar Expensify Travel.',
@@ -3039,6 +3050,16 @@ const translations = {
                     'La verificación no está disponible cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación diferente.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación diferente.',
+            },
+            exportDestinationAccountsMisconfigurationError: {
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Elige una cuenta válida para la exportación de facturas de proveedor.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Elige una cuenta válida para la exportación de asientos contables.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Elige una cuenta válida para la exportación de cheques.',
+            },
+            exportDestinationSetupAccountsInfo: {
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Para usar la exportación de facturas de proveedor, configura una cuenta receptora de pagos en QuickBooks Online.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Para usar la exportación de asientos contables, configura una cuenta contable en QuickBooks Online.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Para usar la exportación de cheques, configura una cuenta bancaria en QuickBooks Online.',
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión.',
@@ -3957,6 +3978,12 @@ const translations = {
                 disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
             },
+            workflowWarningModal: {
+                featureEnabledTitle: 'No tan rápido...',
+                featureEnabledText:
+                    'Las Tarjetas Expensify de este espacio de trabajo dependen actualmente de la aprobación para definir sus Límites Inteligentes.\n\nPor favor, modifica los tipos de límite de cualquier Tarjeta Expensify con Límites Inteligentes antes de deshabilitar las flujos de trabajo.',
+                confirmText: 'Ir a Tarjeta Expensify',
+            },
             rules: {
                 title: 'Reglas',
                 subtitle: 'Solicita recibos, resalta gastos de alto importe y mucho más.',
@@ -4456,6 +4483,8 @@ const translations = {
                 business: 'Empresas',
                 chooseInvoiceMethod: 'Elija un método de pago:',
                 addBankAccount: 'Añadir cuenta bancaria',
+                addDebitOrCreditCard: 'Agrega una tarjeta de débito o crédito',
+                addCorporateCard: 'Agrega una tarjeta corporativa',
                 payingAsIndividual: 'Pago individual',
                 payingAsBusiness: 'Pagar como una empresa',
             },
@@ -6434,6 +6463,7 @@ const translations = {
             theresAReportWithErrors: 'Hay un informe con errores',
             theresAWorkspaceWithCustomUnitsErrors: 'Hay un espacio de trabajo con errores en las unidades personalizadas',
             theresAProblemWithAWorkspaceMember: 'Hay un problema con un miembro del espacio de trabajo',
+            theresAProblemWithAWorkspaceQBOExport: 'Hubo un problema con la configuración de exportación de la conexión del espacio de trabajo.',
             theresAProblemWithAContactMethod: 'Hay un problema con un método de contacto',
             aContactMethodRequiresVerification: 'Un método de contacto requiere verificación',
             theresAProblemWithAPaymentMethod: 'Hay un problema con un método de pago',
@@ -6502,7 +6532,7 @@ const translations = {
         },
         scanTestTooltip: {
             part1: '¿Quieres ver cómo funciona Escanear?',
-            part2: ' \n¡Prueba con un recibo de prueba!',
+            part2: '¡Prueba con un recibo de prueba!',
             part3: '¡Elige a',
             part4: ' nuestro gerente',
             part5: ' de prueba para probarlo!',

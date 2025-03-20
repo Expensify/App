@@ -21,6 +21,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearInviteDraft} from '@libs/actions/Policy/Member';
 import {clearAvatarErrors, clearPolicyErrorField, deleteWorkspace, deleteWorkspaceAvatar, openPolicyProfilePage, updateWorkspaceAvatar} from '@libs/actions/Policy/Policy';
+import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
 import Navigation from '@libs/Navigation/Navigation';
@@ -64,7 +65,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const hasCardFeedOrExpensifyCard =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
