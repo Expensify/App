@@ -1232,7 +1232,7 @@ function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
 
-function getAllPolicies(): Policy[] {
+function getAllPolicies() {
     return Object.values(allPolicies ?? {}).filter((p) => !!p);
 }
 
