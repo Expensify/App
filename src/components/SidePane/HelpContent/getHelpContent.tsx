@@ -9,6 +9,7 @@ import Chat from './chat';
 import AdminsChatRoom from './chat/admins';
 import Concierge from './chat/concierge';
 import ExpenseChat from './chat/expense';
+import ExpensifyCardExpense from './chat/expense/expensifyCard';
 import ManualExpense from './chat/expense/manual';
 import ScanExpense from './chat/expense/scan';
 import ExpenseReportChat from './chat/expenseReport';
@@ -59,7 +60,7 @@ const helpContentMap: HelpContent = {
                             content: ScanExpense,
                         },
                         [`:${CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD}`]: {
-                            content: () => null,
+                            content: ExpensifyCardExpense,
                         },
                         [`:${CONST.IOU.EXPENSE_TYPE.PENDING_EXPENSIFY_CARD}`]: {
                             content: () => null,
