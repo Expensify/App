@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import Chat from './chat';
+import AdminsChatRoom from './chat/admins';
 import Search from './search';
 import Settings from './settings';
 import Workspaces from './settings/workspaces';
@@ -31,7 +32,7 @@ const helpContentMap: HelpContent = {
             content: Chat,
             children: {
                 [`:${CONST.REPORT.HELP_TYPE.POLICY_ADMINS}`]: {
-                    content: () => null,
+                    content: AdminsChatRoom,
                 },
                 [`:${CONST.REPORT.HELP_TYPE.POLICY_EXPENSE_CHAT}`]: {
                     content: () => null,
