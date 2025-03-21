@@ -96,25 +96,26 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
     }, [
         shouldUseNarrowLayout,
         styles.flex0,
-        styles.mr2,
         styles.flexBasis100,
-        styles.alignItemsCenter,
         styles.justifyContentCenter,
         styles.flexRow,
         styles.gap2,
+        styles.alignItemsCenter,
         styles.flex1,
-        translate,
+        styles.mr2,
+        TalkToSalesButton,
         GuideBookingButton,
+        translate,
         dismissButton,
     ]);
 
-    // if (!firstDayFreeTrial || !lastDayFreeTrial || !discountInfo) {
-    //     return null;
-    // }
+    if (!firstDayFreeTrial || !lastDayFreeTrial || !discountInfo) {
+        return null;
+    }
 
-    // if (isDismissed && !isSubscriptionPage) {
-    //     return null;
-    // }
+    if (isDismissed && !isSubscriptionPage) {
+        return null;
+    }
 
     const title = isSubscriptionPage ? (
         <Text style={styles.textStrong}>

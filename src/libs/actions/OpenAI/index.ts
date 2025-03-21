@@ -1,5 +1,8 @@
-function connectToOpenAIRealtime() {}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function initializeOpenAIRealtime(adminsReportID: number) {}
 
 function getEmphemeralToken() {}
 
-export {connectToOpenAIRealtime, getEmphemeralToken};
+function stopConnection() {}
+
+export {getEmphemeralToken, initializeOpenAIRealtime, stopConnection};

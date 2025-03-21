@@ -6540,6 +6540,7 @@ const translations = {
     },
     aiSales: {
         talkWithSales: 'Habla con ventas',
+        hangUp: 'Colgar',
     },
 };
 

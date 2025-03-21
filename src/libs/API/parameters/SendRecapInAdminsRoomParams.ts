@@ -1,5 +1,5 @@
 type SendRecapInAdminsRoomParams = {
-    reportID: string;
+    reportID: number;
     recap: string;
 };
 

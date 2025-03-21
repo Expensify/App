@@ -6020,6 +6020,7 @@ const translations = {
     },
     aiSales: {
         talkWithSales: 'Talk with sales',
+        hangUp: 'Hang up',
     },
 };
 

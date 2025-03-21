@@ -8,7 +8,7 @@ import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {BackArrow, CalendarSolid, DotIndicator, FallbackAvatar, Phone} from '@components/Icon/Expensicons';
+import {BackArrow, CalendarSolid, Close, DotIndicator, FallbackAvatar, Phone} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -28,7 +28,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {connectToOpenAIRealtime} from '@libs/actions/OpenAI';
+import {initializeOpenAIRealtime, stopConnection} from '@libs/actions/OpenAI';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,6 +46,7 @@ import {
     getReportDescription,
     getReportName,
     hasReportNameError,
+    isAdminRoom,
     isArchivedReport,
     isChatRoom as isChatRoomReportUtils,
     isChatThread as isChatThreadReportUtils,
@@ -115,6 +116,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [isDismissedDiscountBanner, setIsDismissedDiscountBanner] = useState(false);
+    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -122,6 +124,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
     const {canUseTalkToAISales} = usePermissions();
+    const shouldShowTalkToSales = canUseTalkToAISales && isAdminRoom(report);
 
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
@@ -225,14 +228,30 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         />
     );
 
+    const talkToSalesIcon = () => {
+        if (talkToAISales?.isLoading) {
+            return undefined;
+        }
+        if (talkToAISales?.isTalkingToAISales) {
+            return Close;
+        }
+        return Phone;
+    };
+
     const talkToSalesButton = (
         <Button
-            text={translate('aiSales.talkWithSales')}
+            text={talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : translate('aiSales.talkWithSales')}
             onPress={() => {
-                connectToOpenAIRealtime();
+                if (talkToAISales?.isTalkingToAISales) {
+                    stopConnection();
+                    return;
+                }
+
+                initializeOpenAIRealtime(Number(report?.reportID) ?? -1);
             }}
             style={shouldUseNarrowLayout && [styles.flex1]}
-            icon={Phone}
+            icon={talkToSalesIcon()}
+            isLoading={talkToAISales?.isLoading}
         />
     );
 
@@ -412,7 +431,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             </View>
             {true && (
                 <EarlyDiscountBanner
-                    TalkToSalesButton={canUseTalkToAISales ? talkToSalesButton : undefined}
+                    TalkToSalesButton={shouldShowTalkToSales ? talkToSalesButton : undefined}
                     GuideBookingButton={shouldShowGuideBookingButtonInEarlyDiscountBanner ? guideBookingButton : undefined}
                     isSubscriptionPage={false}
                     onDismissedDiscountBanner={() => setIsDismissedDiscountBanner(true)}
