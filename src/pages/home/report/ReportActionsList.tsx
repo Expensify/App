@@ -454,7 +454,9 @@ function ReportActionsList({
                     if (Navigation.getReportRHPActiveRoute()) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                    })
                     return;
                 }
 
@@ -575,6 +577,7 @@ function ReportActionsList({
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
+    console.log(lastAction?.created, report.lastVisibleActionCreated);
     useEffect(() => {
         if (report.reportID !== prevReportID) {
             return;
