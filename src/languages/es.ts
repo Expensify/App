@@ -3841,6 +3841,10 @@ const translations = {
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
             importCategories: 'Importar categorías',
+            cannotDisableAllCategories: {
+                title: 'No se pueden deshabilitar todas las categorías',
+                description: `No puedes deshabilitar todas las categorías cuando se requieren en el espacio de trabajo.`,
+            },
         },
         moreFeatures: {
             subtitle: 'Utiliza los botones de abajo para activar más funciones a medida que creces. Cada función aparecerá en el menú de navegación para una mayor personalización.',
@@ -4087,6 +4091,10 @@ const translations = {
             importTags: 'Importar categorías',
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
+            cannotDisableAllTags: {
+                title: 'No se pueden desactivar todas las etiquetas',
+                description: `No puedes desactivar todas las etiquetas cuando se requieren en el espacio de trabajo.`,
+            },
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
