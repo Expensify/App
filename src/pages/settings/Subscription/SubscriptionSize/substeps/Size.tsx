@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStepFormSubmit from '@hooks/useStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidSubscriptionSize} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
@@ -37,8 +37,8 @@ function Size({onNext}: SizeProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.SUBSCRIPTION_SIZE]);
-            if (values[INPUT_IDS.SUBSCRIPTION_SIZE] && !ValidationUtils.isValidSubscriptionSize(values[INPUT_IDS.SUBSCRIPTION_SIZE])) {
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.SUBSCRIPTION_SIZE]);
+            if (values[INPUT_IDS.SUBSCRIPTION_SIZE] && !isValidSubscriptionSize(values[INPUT_IDS.SUBSCRIPTION_SIZE])) {
                 errors.subscriptionSize = translate('subscription.subscriptionSize.error.size');
             }
 
@@ -59,6 +59,7 @@ function Size({onNext}: SizeProps) {
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
         >
             <View>
                 <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscription.subscriptionSize.yourSize')}</Text>
