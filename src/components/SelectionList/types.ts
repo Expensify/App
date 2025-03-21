@@ -11,6 +11,7 @@ import type {
     TextInput,
     TextStyle,
     ViewStyle,
+    ViewToken,
 } from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
@@ -671,6 +672,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
+    onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
