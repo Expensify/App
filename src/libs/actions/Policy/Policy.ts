@@ -1454,7 +1454,7 @@ function updateGeneralSettings(policyID: string | undefined, name: string, curre
     });
 }
 
-function updateWorkspaceDescription(policyID: string, description: string, currentDescription: string) {
+function updateWorkspaceDescription(policyID: string, description: string, currentDescription: string | undefined) {
     if (description === currentDescription) {
         return;
     }
