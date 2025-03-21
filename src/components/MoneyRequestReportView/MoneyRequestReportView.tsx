@@ -4,6 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -38,8 +40,10 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 
 function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const reportID = report?.reportID;
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false});
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
 
@@ -56,6 +60,15 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     });
 
     const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
+    const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
+
+    if (isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) {
+        return <ReportActionsSkeletonView />;
+    }
+
+    if (reportActions.length === 0) {
+        return <ReportActionsSkeletonView shouldAnimate={false} />;
+    }
 
     if (!report) {
         return;
@@ -74,12 +87,16 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     Navigation.goBack();
                 }}
             />
-            <MoneyRequestReportActionsList
-                report={report}
-                reportActions={reportActions}
-                hasOlderActions={hasOlderActions}
-                hasNewerActions={hasNewerActions}
-            />
+            {report && !isLoadingApp ? (
+                <MoneyRequestReportActionsList
+                    report={report}
+                    reportActions={reportActions}
+                    hasOlderActions={hasOlderActions}
+                    hasNewerActions={hasNewerActions}
+                />
+            ) : (
+                <ReportActionsSkeletonView />
+            )}
             {shouldDisplayReportFooter ? (
                 <ReportFooter
                     report={report}
