@@ -5211,7 +5211,6 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
     const result = formula
         // We don't translate because the server response is always in English
         .replaceAll('{report:type}', 'Expense Report')
-        .replaceAll('{report:id}', `Expense Report #${report.reportID}`)
         .replaceAll('{report:startdate}', createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
         .replaceAll('{report:total}', report.total !== undefined ? convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
         .replaceAll('{report:currency}', report.currency ?? '')
@@ -5357,7 +5356,7 @@ function buildOptimisticExpenseReport(
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
     if (!!titleReportField && isPaidGroupPolicyExpenseReport(expenseReport)) {
-        expenseReport.reportName = populateOptimisticReportFormula(titleReportField.type === 'formula' ? titleReportField.defaultValue : '{report:id}', expenseReport, policy);
+        expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
 
     expenseReport.fieldList = policy?.fieldList;
