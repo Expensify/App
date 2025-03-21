@@ -31,9 +31,10 @@ function HelpContent({closeSidePane}: HelpContentProps) {
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
 
     const routeParams = useRootNavigationState((state) => (findFocusedRoute(state)?.params as Record<string, string>) ?? {});
-    const reportID = routeParams.reportID ?? CONST.DEFAULT_NUMBER_ID;
+    const reportID = routeParams.reportID || CONST.DEFAULT_NUMBER_ID;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? CONST.DEFAULT_NUMBER_ID}`, {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID || CONST.DEFAULT_NUMBER_ID}`, {
         canEvict: false,
     });
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
