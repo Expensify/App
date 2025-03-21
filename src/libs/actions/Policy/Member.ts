@@ -844,15 +844,10 @@ function clearWorkspaceOwnerChangeFlow(policyID: string) {
     });
 }
 
-// s77rt should we remove invitedEmailsToAccountIDs?
-function buildAddMembersToWorkspaceOnyxData(
-    logins: string[],
-    accountIDs: number[],
-    invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    policyID: string,
-    policyMemberAccountIDs: number[],
-    role: string,
-) {
+function buildAddMembersToWorkspaceOnyxData(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, policyID: string, policyMemberAccountIDs: number[], role: string) {
+    const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
+    const accountIDs = Object.values(invitedEmailsToAccountIDs);
+
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
     const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
@@ -936,7 +931,7 @@ function buildAddMembersToWorkspaceOnyxData(
     ];
     failureData.push(...membersChats.onyxFailureData, ...announceRoomChat.onyxFailureData, ...announceRoomMembers.failureData, ...adminRoomMembers.failureData);
 
-    return {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats};
+    return {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins};
 }
 
 /**
@@ -944,12 +939,7 @@ function buildAddMembersToWorkspaceOnyxData(
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string, policyMemberAccountIDs: number[], role: string) {
-    const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
-    const accountIDs = Object.values(invitedEmailsToAccountIDs);
-
-    const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats} = buildAddMembersToWorkspaceOnyxData(
-        logins,
-        accountIDs,
+    const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
         policyID,
         policyMemberAccountIDs,

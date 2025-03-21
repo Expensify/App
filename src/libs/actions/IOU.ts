@@ -4667,7 +4667,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
             failureData: addAccountantToWorkspaceFailureData,
-        } = buildAddMembersToWorkspaceOnyxData([accountantEmail], [accountantAccountID], {[accountantEmail]: accountantAccountID}, policyID, policyMemberAccountIDs, CONST.POLICY.ROLE.ADMIN);
+        } = buildAddMembersToWorkspaceOnyxData({[accountantEmail]: accountantAccountID}, policyID, policyMemberAccountIDs, CONST.POLICY.ROLE.ADMIN);
         optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         successData?.push(...addAccountantToWorkspaceSuccessData);
         failureData?.push(...addAccountantToWorkspaceFailureData);
