@@ -199,6 +199,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const filteredTransactions = transactions?.filter((t) => t) ?? [];
+    const isEmpty = filteredTransactions.length === 0;
     const shouldShowSubmitButton = canSubmitReport(moneyRequestReport, policy, filteredTransactions, violations);
 
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
@@ -213,7 +214,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowStatusBar =
-        hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
+        hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions || isEmpty;
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to theirself, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
@@ -345,6 +346,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         if (hasScanningReceipt) {
             return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+        }
+        if (isEmpty) {
+            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('search.moneyRequestReport.emptyStateHeader')};
         }
     };
 

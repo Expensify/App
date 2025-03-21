@@ -59,6 +59,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
             <ScreenWrapper
                 testID={SearchMoneyRequestReportPage.displayName}
                 shouldEnableMaxHeight
+                shouldShowOfflineIndicator
                 offlineIndicatorStyle={styles.mtAuto}
                 headerGapStyles={styles.searchHeaderGap}
             >

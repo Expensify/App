@@ -5122,6 +5122,11 @@ const translations = {
             exported: 'Exported',
             posted: 'Posted',
         },
+        moneyRequestReport: {
+            emptyStateTitle: 'This report has no expenses',
+            emptyStateSubtitle: 'You can add expenses to this report \n using the button above.',
+            emptyStateHeader: 'Waiting for you to add expense(s).',
+        },
         noCategory: 'No category',
         noTag: 'No tag',
         expenseType: 'Expense type',

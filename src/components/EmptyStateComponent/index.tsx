@@ -1,4 +1,5 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
+import isEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -25,6 +26,8 @@ function EmptyStateComponent({
     subtitle,
     children,
     headerStyles,
+    cardStyles,
+    cardContentStyles,
     headerContentStyles,
     lottieWebViewStyles,
     showsVerticalScrollIndicator,
@@ -93,26 +96,24 @@ function EmptyStateComponent({
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
         >
-            <View style={[styles.skeletonBackground, styles.overflowHidden]}>
-                <SkeletonComponent
-                    gradientOpacityEnabled
-                    shouldAnimate={false}
-                />
-            </View>
+            {!!SkeletonComponent && (
+                <View style={[styles.skeletonBackground, styles.overflowHidden]}>
+                    <SkeletonComponent
+                        gradientOpacityEnabled
+                        shouldAnimate={false}
+                    />
+                </View>
+            )}
             <View style={styles.emptyStateForeground}>
-                <View style={styles.emptyStateContent}>
+                <View style={[styles.emptyStateContent, cardStyles]}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
-                    <View style={shouldUseNarrowLayout ? styles.p5 : styles.p8}>
+                    <View style={[shouldUseNarrowLayout ? styles.p5 : styles.p8, cardContentStyles]}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
                         {children}
-                        <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
-                            {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled}, index) => (
-                                <View
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={index}
-                                    style={styles.flex1}
-                                >
+                        {!isEmpty(buttons) && (
+                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
+                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled}) => (
                                     <Button
                                         success={success}
                                         onPress={buttonAction}
@@ -120,10 +121,11 @@ function EmptyStateComponent({
                                         icon={icon}
                                         large
                                         isDisabled={isDisabled}
+                                        style={styles.flex1}
                                     />
-                                </View>
-                            ))}
-                        </View>
+                                ))}
+                            </View>
+                        )}
                     </View>
                 </View>
             </View>
