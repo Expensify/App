@@ -170,3 +170,5 @@ type Purchase = {
 type PurchaseList = Purchase[];
 
 export default PurchaseList;
+
+export type {Purchase};

@@ -2,10 +2,12 @@ import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import type {AccountData} from '@src/types/onyx/Fund';
+import type {Purchase} from '@src/types/onyx/PurchaseList';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type BillingStatusResult = {
@@ -19,7 +21,13 @@ type BillingStatusResult = {
     rightIcon?: IconAsset;
 };
 
-function getBillingStatus(translate: LocaleContextProps['translate'], accountData?: AccountData): BillingStatusResult | undefined {
+type GetBillingStatusProps = {
+    translate: LocaleContextProps['translate'];
+    accountData?: AccountData;
+    purchase?: Purchase;
+};
+
+function getBillingStatus({translate, accountData, purchase}: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = getAmountOwed();
@@ -31,6 +39,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
     const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
 
     const isCurrentCardExpired = DateUtils.isCardExpired(accountData?.cardMonth ?? 0, accountData?.cardYear ?? 0);
+    const {purchaseAmountWithCurrency, isBillingTypeProper, purchaseDateFormatted, isPurchase} = getPurchaseDetails(purchase);
 
     switch (subscriptionStatus?.status) {
         case PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
@@ -44,7 +53,10 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
         case PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE:
             return {
                 title: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle', {date: endDateFormatted ?? '', amountOwed}),
+                subtitle:
+                    isBillingTypeProper && isPurchase
+                        ? translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle', {date: purchaseDateFormatted ?? '', purchaseAmountOwed: purchaseAmountWithCurrency})
+                        : translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.generalSubtitle'),
                 isError: true,
                 isRetryAvailable: true,
             };
@@ -137,6 +149,24 @@ function getNextBillingDate(): string {
     const nextBillingDate = startOfMonth(addMonths(today, 1));
 
     return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+}
+
+function getPurchaseDetails(purchase?: Purchase) {
+    const purchaseAmount = purchase?.message.billableAmount;
+    const purchaseCurrency = purchase?.currency;
+    const isBillingTypeProper = purchase?.message.billingType === 'failed_2018';
+    const purchaseCurrencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(purchaseCurrency ?? CONST.CURRENCY.USD);
+    const purchaseDate = purchase?.created;
+    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
+
+    const formattedAmount = CurrencyUtils.convertToFrontendAmountAsString(purchaseAmount, purchaseCurrency);
+
+    return {
+        purchaseAmountWithCurrency: purchaseCurrencySymbol + formattedAmount,
+        isBillingTypeProper,
+        purchaseDateFormatted,
+        isPurchase: !!purchase,
+    };
 }
 
 export default {getBillingStatus, getNextBillingDate};
