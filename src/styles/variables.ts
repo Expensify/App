@@ -266,17 +266,12 @@ export default {
 
     searchTypeColumnWidth: 52,
 
-    composerTooltipShiftHorizontal: 4,
-    composerTooltipShiftVertical: -10,
     gbrTooltipShiftHorizontal: -15,
+    gbrTooltipShiftVertical: -10,
     fabTooltipShiftHorizontal: -11,
-    workspaceLHNtooltipShiftHorizontal: 23,
-    searchFiltersTooltipShiftHorizontal: -4,
-    quickActionTooltipShiftHorizontal: 24,
+    workspaceLHNTooltipShiftHorizontal: 23,
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
-    searchFiltersTooltipShiftHorizontalNarrow: -10,
-    searchFiltersTooltipShiftVerticalNarrow: 5,
     bottomTabInboxTooltipShiftHorizontal: 36,
 
     inlineImagePreviewMinSize: 64,
