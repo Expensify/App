@@ -83,7 +83,15 @@ import Navigation, {navigationRef} from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import Permissions from './Permissions';
-import {getAccountIDsByLogins, getDisplayNameOrDefault, getEffectiveDisplayName, getLoginsByAccountIDs, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {
+    getAccountIDsByLogins,
+    getDisplayNameOrDefault,
+    getEffectiveDisplayName,
+    getLoginsByAccountIDs,
+    getPersonalDetailByEmail,
+    getPersonalDetailsByIDs,
+    getShortMentionIfFound,
+} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
 import {
     arePaymentsEnabled,
@@ -4306,7 +4314,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
         return text ?? '';
     }
 
-    const mentionReportRegex = /<mention-report reportID="(\d+)" *\/>/gi;
+    const mentionReportRegex = /<mention-report reportID="?(\d+)"?(?: *\/>|><\/mention-report>)/gi;
     const matches = html.matchAll(mentionReportRegex);
 
     const reportIDToName: Record<string, string> = {};
@@ -4317,11 +4325,16 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
         }
     }
 
-    const mentionUserRegex = /<mention-user accountID="(\d+)" *\/>/gi;
+    const mentionUserRegex = /(?:<mention-user accountID="?(\d+)"?(?: *\/>|><\/mention-user>))/gi;
     const accountIDToName: Record<string, string> = {};
     const accountIDs = Array.from(html.matchAll(mentionUserRegex), (mention) => Number(mention[1]));
     const logins = getLoginsByAccountIDs(accountIDs);
-    accountIDs.forEach((id, index) => (accountIDToName[id] = logins.at(index) ?? ''));
+    accountIDs.forEach((id, index) => {
+        const login = logins.at(index);
+        const user = allPersonalDetails?.[id];
+        const displayName = formatPhoneNumber(login ?? '') || getDisplayNameOrDefault(user);
+        accountIDToName[id] = getShortMentionIfFound(displayName, id.toString(), currentUserPersonalDetails, login) ?? '';
+    });
 
     const textMessage = Str.removeSMSDomain(Parser.htmlToText(html, {reportIDToName, accountIDToName}));
     parsedReportActionMessageCache[key] = textMessage;
@@ -4574,7 +4587,7 @@ function getReportNameInternal({
             return report?.reportName ?? '';
         }
         if (isCardIssuedAction(parentReportAction)) {
-            return getCardIssuedMessage({reportAction: parentReportAction, personalDetails});
+            return getCardIssuedMessage({reportAction: parentReportAction});
         }
         return reportActionMessage;
     }
