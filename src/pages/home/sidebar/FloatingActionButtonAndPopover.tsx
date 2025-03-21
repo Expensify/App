@@ -454,15 +454,17 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const canModifyTask = canModifyTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
-    const openTravel = useCallback(() => {
-        const isPolicyProvisioned = activePolicy?.travelSettings?.spotnanaCompanyID ?? activePolicy?.travelSettings?.associatedTravelDomainAccountID;
-        const isTravelEnabled = activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
-
+    const isTravelEnabled = useMemo(() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
-            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
-            return;
+            return false;
         }
 
+        const isPolicyProvisioned = activePolicy?.travelSettings?.spotnanaCompanyID ?? activePolicy?.travelSettings?.associatedTravelDomainAccountID;
+
+        return activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
+    }, [activePolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);
+
+    const openTravel = useCallback(() => {
         if (isTravelEnabled) {
             openTravelDotLink(activePolicy?.id)
                 ?.then(() => {})
@@ -472,7 +474,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         } else {
             Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
         }
-    }, [activePolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);
+    }, [activePolicy, isTravelEnabled]);
 
     const menuItems = [
         ...expenseMenuItems,
@@ -541,6 +543,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                   {
                       icon: Expensicons.Suitcase,
                       text: translate('travel.bookTravel'),
+                      rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
                       onSelected: () => interceptAnonymousUser(() => openTravel()),
                   },
               ]
