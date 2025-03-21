@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactRootView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactRootView.java
-index ed1aba8..0a9284f 100644
+index a42933c..3d01cec 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactRootView.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactRootView.java
-@@ -891,7 +891,9 @@ public class ReactRootView extends FrameLayout implements RootView, ReactRoot {
+@@ -923,7 +923,9 @@ public class ReactRootView extends FrameLayout implements RootView, ReactRoot {
            sendEvent(
                "keyboardDidHide",
                createKeyboardEventPayload(
@@ -13,7 +13,7 @@ index ed1aba8..0a9284f 100644
                    0,
                    PixelUtil.toDIPFromPixel(mVisibleViewArea.width()),
                    0));
-@@ -940,7 +942,9 @@ public class ReactRootView extends FrameLayout implements RootView, ReactRoot {
+@@ -972,7 +974,9 @@ public class ReactRootView extends FrameLayout implements RootView, ReactRoot {
          sendEvent(
              "keyboardDidHide",
              createKeyboardEventPayload(
