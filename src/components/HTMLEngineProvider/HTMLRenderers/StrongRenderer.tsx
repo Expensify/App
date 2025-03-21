@@ -1,29 +1,19 @@
 import React from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
-import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function StrongRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
+function StrongRenderer({tnode, TDefaultRenderer, style, ...props}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
 
-    return 'data' in tnode ? (
-        <Text style={[styles.webViewStyles.baseFontStyle, styles.strong, isChildOfTaskTitle && styles.taskTitleMenuItem]}>{tnode.data}</Text>
-    ) : (
-        <TNodeChildrenRenderer
+    return (
+        <TDefaultRenderer
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
             tnode={tnode}
-            renderChild={(props) => {
-                return (
-                    <Text
-                        style={[styles.webViewStyles.baseFontStyle, styles.strong, isChildOfTaskTitle && styles.taskTitleMenuItem]}
-                        key={props.key}
-                    >
-                        {props.childElement}
-                    </Text>
-                );
-            }}
+            style={[style as StyleProp<TextStyle>, isChildOfTaskTitle && styles.taskTitleMenuItem, {fontStyle: (style.fontStyle as TextStyle['fontStyle']) ?? 'normal'}]}
         />
     );
 }
