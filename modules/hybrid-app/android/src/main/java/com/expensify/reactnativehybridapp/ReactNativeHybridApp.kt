@@ -28,4 +28,8 @@ class ReactNativeHybridApp(reactContext: ReactApplicationContext) :
   ) {
     Log.d(NAME, "`switchAccount` should never be called in standalone `New Expensify` app")
   }
+
+  override fun sendAuthToken(authToken: String?) {
+    Log.d(NAME, "`sendAuthToken` should never be called in standalone `New Expensify` app")
+  }
 }
