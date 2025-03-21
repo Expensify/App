@@ -234,6 +234,12 @@ describe('DateUtils', () => {
                 expect(formattedDate).toEqual(expectedResult);
             });
         });
+
+        it('returns the correct date when the date with time is used', () => {
+            const datetimeStr = '2022-11-07 17:48:00';
+            const expectedResult = '2022-11-07';
+            expect(DateUtils.formatWithUTCTimeZone(datetimeStr)).toEqual(expectedResult);
+        });
     });
 
     describe('getLastBusinessDayOfMonth', () => {
