@@ -2653,7 +2653,8 @@ const styles = (theme: ThemeColors) =>
             height: variables.contentHeaderDesktopHeight,
             zIndex: variables.popoverzIndex,
             position: 'relative',
-            paddingHorizontal: 20,
+            paddingLeft: 20,
+            paddingRight: 12,
         },
 
         headerBarDesktopHeight: {
@@ -3033,6 +3034,12 @@ const styles = (theme: ThemeColors) =>
         sectionMenuItemTopDescription: {
             ...spacing.ph8,
             ...spacing.mhn8,
+            width: 'auto',
+        },
+
+        sectionMenuItemIcon: {
+            ...spacing.ph8,
+            ...spacing.mhn5,
             width: 'auto',
         },
 
@@ -3476,7 +3483,8 @@ const styles = (theme: ThemeColors) =>
 
         noSelect: {
             boxShadow: 'none',
-            outlineStyle: 'none',
+            // After https://github.com/facebook/react-native/pull/46284 RN accepts only 3 options and undefined
+            outlineStyle: undefined,
         },
 
         boxShadowNone: {
@@ -5498,6 +5506,8 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
+        // We have to use 10000 here as sidePane has to be displayed on top of modals which have z-index of 9999
+        sidePaneContainer: {zIndex: 10000},
         sidePaneOverlay: (isOverlayVisible: boolean) => ({
             ...positioning.pFixed,
             top: 0,
@@ -5507,8 +5517,10 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.overlay,
             opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
         }),
-        sidePaneContainer: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
+        sidePaneContent: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            top: 0,
+            bottom: 0,
             right: 0,
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             height: '100%',
