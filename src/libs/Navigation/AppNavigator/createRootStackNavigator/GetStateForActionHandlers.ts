@@ -7,7 +7,7 @@ import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {OpenWorkspaceSplitActionType, PushActionType, SwitchPolicyIdActionType} from './types';
+import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, SwitchPolicyIdActionType} from './types';
 
 const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
@@ -237,6 +237,29 @@ function handlePushSearchPageAction(
     return stackRouter.getStateForAction(state, updatedAction, configOptions);
 }
 
+function handleReplaceReportsSplitNavigatorAction(
+    state: StackNavigationState<ParamListBase>,
+    action: ReplaceActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
+
+    if (!stateWithReportsSplitNavigator) {
+        Log.hmmm('[handleReplaceReportsSplitNavigatorAction] ReportsSplitNavigator has not been found in the navigation state.');
+        return null;
+    }
+
+    const lastReportsSplitNavigator = stateWithReportsSplitNavigator.routes.at(-1);
+
+    // ReportScreen should always be opened with an animation when replacing the navigator
+    if (lastReportsSplitNavigator?.key) {
+        reportsSplitsWithEnteringAnimation.add(lastReportsSplitNavigator.key);
+    }
+
+    return stateWithReportsSplitNavigator;
+}
+
 /**
  * Handles the DISMISS_MODAL action.
  * If the last route is a modal route, it has to be popped from the navigation stack.
@@ -275,6 +298,7 @@ export {
     handleDismissModalAction,
     handlePushReportSplitAction,
     handlePushSearchPageAction,
+    handleReplaceReportsSplitNavigatorAction,
     handleSwitchPolicyIDAction,
     handleSwitchPolicyIDFromSearchAction,
     handleNavigatingToModalFromModal,
