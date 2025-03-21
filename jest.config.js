@@ -12,7 +12,11 @@ module.exports = {
         '^.+\\.[jt]sx?$': 'babel-jest',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
-    transformIgnorePatterns: ['<rootDir>/node_modules/(?!react-native)/'],
+    transformIgnorePatterns: [
+        '<rootDir>/node_modules/(?!react-native)/',
+        // Prevent Babel from transforming worklets in this file so they are treated as normal functions, otherwise FormatSelectionUtilsTest won't run.
+        '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
+    ],
     testPathIgnorePatterns: ['<rootDir>/node_modules'],
     globals: {
         __DEV__: true,

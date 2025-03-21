@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+import {exec} from 'child_process';
 import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
 import contextMenu from 'electron-context-menu';
@@ -6,7 +8,7 @@ import type {ElectronLog} from 'electron-log';
 import {autoUpdater} from 'electron-updater';
 import {machineId} from 'node-machine-id';
 import checkForUpdates from '@libs/checkForUpdates';
-import * as Localize from '@libs/Localize';
+import {translate} from '@libs/Localize';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -15,6 +17,8 @@ import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
+
+console.log('[dev] main');
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
@@ -71,9 +75,9 @@ function pasteAsPlainText(browserWindow: BrowserWindow | BrowserView | WebviewTa
 function createContextMenu(preferredLocale: Locale = LOCALES.DEFAULT): () => void {
     return contextMenu({
         labels: {
-            cut: Localize.translate(preferredLocale, 'desktopApplicationMenu.cut'),
-            paste: Localize.translate(preferredLocale, 'desktopApplicationMenu.paste'),
-            copy: Localize.translate(preferredLocale, 'desktopApplicationMenu.copy'),
+            cut: translate(preferredLocale, 'desktopApplicationMenu.cut'),
+            paste: translate(preferredLocale, 'desktopApplicationMenu.paste'),
+            copy: translate(preferredLocale, 'desktopApplicationMenu.copy'),
         },
         append: (defaultActions, parameters, browserWindow) => [
             {
@@ -81,10 +85,10 @@ function createContextMenu(preferredLocale: Locale = LOCALES.DEFAULT): () => voi
                 visible: parameters.isEditable && parameters.editFlags.canPaste,
                 role: 'pasteAndMatchStyle',
                 accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
-                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAndMatchStyle'),
+                label: translate(preferredLocale, 'desktopApplicationMenu.pasteAndMatchStyle'),
             },
             {
-                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAsPlainText'),
+                label: translate(preferredLocale, 'desktopApplicationMenu.pasteAsPlainText'),
                 visible: parameters.isEditable && parameters.editFlags.canPaste && clipboard.readText().length > 0,
                 accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
                 click: () => pasteAsPlainText(browserWindow),
@@ -126,7 +130,7 @@ let hasUpdate = false;
 let downloadedVersion: string;
 let isSilentUpdating = false;
 
-// Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
+// Note that we have to subscribe to this separately and cannot use translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
 // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
 const preferredLocale: Locale = CONST.LOCALES.DEFAULT;
@@ -134,7 +138,9 @@ const preferredLocale: Locale = CONST.LOCALES.DEFAULT;
 const appProtocol = CONST.DEEPLINK_BASE_URL.replace('://', '');
 
 const quitAndInstallWithUpdate = () => {
+    console.log('[dev] quitAndInstallWithUpdate');
     if (!downloadedVersion) {
+        console.log('[dev] !downloadedVersion');
         return;
     }
     hasUpdate = true;
@@ -148,14 +154,16 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
         // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
         menuItem.enabled = false;
     }
-
+    console.log('[dev] manuallyCheckForUpdates');
     autoUpdater
         .checkForUpdates()
         .catch((error: unknown) => {
+            console.log('[dev] manuallyCheckForUpdates: catch');
             isSilentUpdating = false;
             return {error};
         })
         .then((result) => {
+            console.log('[dev] manuallyCheckForUpdates: then');
             const downloadPromise = result && 'downloadPromise' in result ? result.downloadPromise : undefined;
 
             if (!browserWindow) {
@@ -165,23 +173,23 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
             if (downloadPromise) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message', {isSilentUpdating}),
-                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
+                    message: translate(preferredLocale, 'checkForUpdatesModal.available.title'),
+                    detail: translate(preferredLocale, 'checkForUpdatesModal.available.message', {isSilentUpdating}),
+                    buttons: [translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && 'error' in result && result.error) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
-                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.message'),
-                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
+                    message: translate(preferredLocale, 'checkForUpdatesModal.error.title'),
+                    detail: translate(preferredLocale, 'checkForUpdatesModal.error.message'),
+                    buttons: [translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
                 });
             } else {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.message'),
-                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
+                    message: translate(preferredLocale, 'checkForUpdatesModal.notAvailable.title'),
+                    detail: translate(preferredLocale, 'checkForUpdatesModal.notAvailable.message'),
+                    buttons: [translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
                     cancelId: 2,
                 });
             }
@@ -210,7 +218,12 @@ const showKeyboardShortcutsPage = (browserWindow: BrowserWindow) => {
 /** Actual auto-update listeners */
 const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater => ({
     init: () => {
+        console.log('[dev] electronUpdater.init');
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
+            console.log('[dev] ELECTRON_EVENTS.UPDATE_DOWNLOADED');
+            console.log('[dev] info:', info);
+            console.log('[dev] isSilentUpdating:', isSilentUpdating);
+
             const systemMenu = Menu.getApplicationMenu();
             const updateMenuItem = systemMenu?.getMenuItemById(`update`);
             const checkForUpdatesMenuItem = systemMenu?.getMenuItemById(`checkForUpdates`);
@@ -218,23 +231,54 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
             downloadedVersion = info.version;
 
             if (updateMenuItem) {
+                console.log('[dev] updateMenuItem', updateMenuItem);
                 updateMenuItem.visible = true;
             }
             if (checkForUpdatesMenuItem) {
+                console.log('[dev] checkForUpdatesMenuItem', checkForUpdatesMenuItem);
                 checkForUpdatesMenuItem.visible = false;
             }
             if (browserWindow.isVisible() && !isSilentUpdating) {
+                console.log('[dev] browserWindow.isVisible() && !isSilentUpdating');
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
-                quitAndInstallWithUpdate();
+                console.log('[dev] else');
+
+                autoUpdater
+                    .checkForUpdates()
+                    .then((result) => {
+                        console.log('[dev] result', result);
+                        if (result?.updateInfo.version === downloadedVersion) {
+                            console.log('[dev] if - versions match, installing');
+                            quitAndInstallWithUpdate();
+                        } else {
+                            console.log('[dev] else - downloading new update');
+                            return autoUpdater.downloadUpdate().then(() => {
+                                console.log('[dev] download complete, installing');
+                                quitAndInstallWithUpdate();
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.log('[dev] error', error);
+                        log.error('Error during update check or download:', error);
+                    });
             }
         });
 
-        ipcMain.on(ELECTRON_EVENTS.START_UPDATE, quitAndInstallWithUpdate);
-        autoUpdater.checkForUpdates();
+        console.log('[dev] ipcMain.on(ELECTRON_EVENTS.START_UPDATE, quitAndInstallWithUpdate)');
+        ipcMain.on(ELECTRON_EVENTS.START_UPDATE, () => {
+            console.log('[dev] ELECTRON_EVENTS.START_UPDATE');
+            quitAndInstallWithUpdate();
+        });
+        autoUpdater.checkForUpdates().then((result) => {
+            console.log('[dev] update result 1: ', result);
+        });
     },
     update: () => {
-        autoUpdater.checkForUpdates();
+        autoUpdater.checkForUpdates().then((result) => {
+            console.log('[dev] update result 2:', result);
+        });
     },
 });
 
@@ -242,7 +286,7 @@ const localizeMenuItems = (submenu: MenuItemConstructorOptions[], updatedLocale:
     submenu.map((menu) => {
         const newMenu: MenuItemConstructorOptions = {...menu};
         if (menu.id) {
-            const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}` as TranslationPaths);
+            const labelTranslation = translate(updatedLocale, `desktopApplicationMenu.${menu.id}` as TranslationPaths);
             if (labelTranslation) {
                 newMenu.label = labelTranslation;
             }
@@ -261,7 +305,7 @@ const mainWindow = (): Promise<void> => {
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
-        console.debug('CONFIG: ', CONFIG);
+        console.log('CONFIG: ', CONFIG);
         app.dock.setIcon(`${__dirname}/../icon-dev.png`);
         app.setName('New Expensify Dev');
     }
@@ -310,7 +354,25 @@ const mainWindow = (): Promise<void> => {
                 });
 
                 ipcMain.handle(ELECTRON_EVENTS.REQUEST_DEVICE_ID, () => machineId());
+                ipcMain.handle(ELECTRON_EVENTS.OPEN_LOCATION_SETTING, () => {
+                    if (process.platform !== 'darwin') {
+                        // Platform not supported for location settings
+                        return Promise.resolve(undefined);
+                    }
 
+                    return new Promise((resolve, reject) => {
+                        const command = 'open x-apple.systempreferences:com.apple.preference.security?Privacy_Location';
+
+                        exec(command, (error) => {
+                            if (error) {
+                                console.error('Error opening location settings:', error);
+                                reject(error);
+                                return;
+                            }
+                            resolve(undefined);
+                        });
+                    });
+                });
                 /*
                  * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
                  * This causes CORS errors because the referer and origin headers are wrong and the API responds with an Access-Control-Allow-Origin that doesn't match app://-
@@ -343,7 +405,6 @@ const mainWindow = (): Promise<void> => {
                     }
                     callback({responseHeaders: details.responseHeaders});
                 });
-                /* eslint-enable */
 
                 // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
                 if (__DEV__) {
@@ -353,14 +414,14 @@ const mainWindow = (): Promise<void> => {
                 const initialMenuTemplate: MenuItemConstructorOptions[] = [
                     {
                         id: 'mainMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
                         submenu: [
                             {id: 'about', role: 'about'},
-                            {id: 'update', label: Localize.translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
-                            {id: 'checkForUpdates', label: Localize.translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
+                            {id: 'update', label: translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
+                            {id: 'checkForUpdates', label: translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
                             {
                                 id: 'viewShortcuts',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
                                 accelerator: 'CmdOrCtrl+J',
                                 click: () => {
                                     showKeyboardShortcutsPage(browserWindow);
@@ -378,12 +439,12 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'fileMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.fileMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.fileMenu`),
                         submenu: [{id: 'closeWindow', role: 'close', accelerator: 'Cmd+w'}],
                     },
                     {
                         id: 'editMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.editMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.editMenu`),
                         submenu: [
                             {id: 'undo', role: 'undo'},
                             {id: 'redo', role: 'redo'},
@@ -406,7 +467,7 @@ const mainWindow = (): Promise<void> => {
                             {type: 'separator'},
                             {
                                 id: 'speechSubmenu',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.speechSubmenu`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.speechSubmenu`),
                                 submenu: [
                                     {id: 'startSpeaking', role: 'startSpeaking'},
                                     {id: 'stopSpeaking', role: 'stopSpeaking'},
@@ -416,7 +477,7 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'viewMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.viewMenu`),
                         submenu: [
                             {id: 'reload', role: 'reload'},
                             {id: 'forceReload', role: 'forceReload'},
@@ -431,7 +492,7 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'historyMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.historyMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.historyMenu`),
                         submenu: [
                             {
                                 id: 'back',
@@ -472,33 +533,33 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'helpMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.helpMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.helpMenu`),
                         role: 'help',
                         submenu: [
                             {
                                 id: 'learnMore',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.learnMore`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.learnMore`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.LEARN_MORE);
                                 },
                             },
                             {
                                 id: 'documentation',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.documentation`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.documentation`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.DOCUMENTATION);
                                 },
                             },
                             {
                                 id: 'communityDiscussions',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.communityDiscussions`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.communityDiscussions`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.COMMUNITY_DISCUSSIONS);
                                 },
                             },
                             {
                                 id: 'searchIssues',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.searchIssues`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.searchIssues`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.SEARCH_ISSUES);
                                 },
@@ -588,8 +649,11 @@ const mainWindow = (): Promise<void> => {
                     browserWindow.show();
                 });
 
+                console.log('[dev] expectedUpdateVersion:', expectedUpdateVersion);
+                console.log('[dev] app.getVersion():', app.getVersion());
                 // Hide the app if we expected to upgrade to a new version but never did.
                 if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
+                    console.log('[dev] expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion');
                     browserWindow.hide();
                     app.hide();
                 }
@@ -637,6 +701,7 @@ const mainWindow = (): Promise<void> => {
 
                 // Automatically check for and install the latest version in the background
                 ipcMain.on(ELECTRON_EVENTS.SILENT_UPDATE, () => {
+                    console.log('[dev] ELECTRON_EVENTS.SILENT_UPDATE');
                     if (isSilentUpdating) {
                         return;
                     }
@@ -667,6 +732,7 @@ const mainWindow = (): Promise<void> => {
                     return;
                 }
 
+                console.log('[dev] checkForUpdates(electronUpdater(browserWindowRef));');
                 checkForUpdates(electronUpdater(browserWindowRef));
             })
     );
