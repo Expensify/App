@@ -5530,6 +5530,15 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
         }),
+        carouselArrowButton: {
+            borderRadius: 50,
+            width: 28,
+            height: 28,
+            backgroundColor: colors.productLight400,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 4,
+        },
 
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,

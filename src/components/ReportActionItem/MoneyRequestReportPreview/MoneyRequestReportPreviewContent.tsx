@@ -76,7 +76,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {MoneyRequestReportPreviewContentProps} from '.';
 
 function MoneyRequestReportPreviewContent({
@@ -108,6 +107,7 @@ function MoneyRequestReportPreviewContent({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -126,6 +126,8 @@ function MoneyRequestReportPreviewContent({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const carouselRef = useRef<FlatList<Transaction> | null>(null);
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -160,8 +162,6 @@ function MoneyRequestReportPreviewContent({
         ...styles.defaultCheckmarkWrapper,
         transform: [{scale: thumbsUpScale.get()}],
     }));
-
-    // console.log(JSON.stringify(iouReport));
 
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
@@ -325,6 +325,7 @@ function MoneyRequestReportPreviewContent({
 
     const shouldShowSettlementButton = !shouldShowSubmitButton && (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
 
+    // commented on design testing purposes
     // const shouldShowRBR = hasErrors && !iouSettled;
     const shouldShowRBR = true;
 
@@ -396,9 +397,6 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBSUP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    const flatListRef = useRef<FlatList<Transaction> | null>(null);
-    const [currentIndex, setCurrentIndex] = useState(0);
-
     // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
@@ -407,33 +405,13 @@ function MoneyRequestReportPreviewContent({
         }
     }).current;
 
+    // yet to be updated, doesn't handle a case when first element scrolled to the left (visible in 100%)
     const handleChange = (index: number) => {
         if (index >= transactions.length - 1) {
             return;
         }
-        flatListRef.current?.scrollToIndex({index, animated: true});
+        carouselRef.current?.scrollToIndex({index, animated: true});
     };
-
-    const setIndex = (index: number) => {
-        flatListRef.current?.scrollToIndex({index, animated: true});
-    };
-
-    const arrowComponent = (src: IconAsset, index: number) => (
-        <PressableWithFeedback
-            accessibilityRole="button"
-            accessible
-            accessibilityLabel="button"
-            style={{borderRadius: 50, width: 28, height: 28, backgroundColor: colors.productLight400, alignItems: 'center', justifyContent: 'center', marginLeft: 4}}
-            onPress={() => handleChange(index)}
-        >
-            <Icon
-                src={src}
-                small
-                fill={colors.productLight700}
-                isButtonIcon
-            />
-        </PressableWithFeedback>
-    );
 
     const renderFlatlistItem = (itemInfo: ListRenderItemInfo<Transaction>) => {
         if (itemInfo.index > 9) {
@@ -448,8 +426,6 @@ function MoneyRequestReportPreviewContent({
         }
         return null;
     };
-
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <OfflineWithFeedback
@@ -502,8 +478,34 @@ function MoneyRequestReportPreviewContent({
                                         {!shouldUseNarrowLayout && (
                                             <View style={[styles.flexRow, {alignItems: 'center'}]}>
                                                 <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, {marginRight: 4}]}>{supportText}</Text>
-                                                {arrowComponent(Expensicons.BackArrow, currentIndex)}
-                                                {arrowComponent(Expensicons.ArrowRight, currentIndex + 1)}
+                                                <PressableWithFeedback
+                                                    accessibilityRole="button"
+                                                    accessible
+                                                    accessibilityLabel="button"
+                                                    style={styles.carouselArrowButton}
+                                                    onPress={() => handleChange(currentIndex)}
+                                                >
+                                                    <Icon
+                                                        src={Expensicons.BackArrow}
+                                                        small
+                                                        fill={colors.productLight700}
+                                                        isButtonIcon
+                                                    />
+                                                </PressableWithFeedback>
+                                                <PressableWithFeedback
+                                                    accessibilityRole="button"
+                                                    accessible
+                                                    accessibilityLabel="button"
+                                                    style={styles.carouselArrowButton}
+                                                    onPress={() => handleChange(currentIndex + 1)}
+                                                >
+                                                    <Icon
+                                                        src={Expensicons.ArrowRight}
+                                                        small
+                                                        fill={colors.productLight700}
+                                                        isButtonIcon
+                                                    />
+                                                </PressableWithFeedback>
                                             </View>
                                         )}
                                     </View>
@@ -523,7 +525,7 @@ function MoneyRequestReportPreviewContent({
                                     <FlatList
                                         horizontal
                                         data={transactions.slice(0, 11)}
-                                        ref={flatListRef}
+                                        ref={carouselRef}
                                         nestedScrollEnabled
                                         scrollEnabled
                                         keyExtractor={(item) => item.transactionID}
@@ -542,7 +544,7 @@ function MoneyRequestReportPreviewContent({
                                                 accessible
                                                 accessibilityLabel="button"
                                                 style={styles.carouselDots(index, currentIndex)}
-                                                onPress={() => setIndex(index)}
+                                                onPress={() => carouselRef.current?.scrollToIndex({index, animated: true})}
                                             />
                                         ))}
                                     </View>
