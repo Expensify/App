@@ -563,8 +563,13 @@ const dismissModalWithReport = (navigateToReportPayload: NavigateToReportWithPol
             dismissModal();
             return;
         }
+        if (getIsNarrowLayout()) {
+            const forceReplace = true;
+            navigateToReportWithPolicyCheck(navigateToReportPayload, forceReplace);
+            return;
+        }
         dismissModal();
-        navigateToReportWithPolicyCheck(navigateToReportPayload, getIsNarrowLayout());
+        navigateToReportWithPolicyCheck(navigateToReportPayload);
     });
 };
 
