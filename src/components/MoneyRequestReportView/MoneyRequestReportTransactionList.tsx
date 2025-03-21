@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 
@@ -17,6 +18,11 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
 
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
 
+    const dateColumnSize = useMemo(() => {
+        const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
+        return shouldShowYearForSomeTransaction ? 'wide' : 'normal';
+    }, [transactions]);
+
     return (
         <>
             {!displayNarrowVersion && (
@@ -24,6 +30,7 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
                     shouldShowSorting
                     sortBy="date"
                     sortOrder="desc"
+                    dateColumnSize={dateColumnSize}
                     onSortPress={() => {}}
                 />
             )}
@@ -35,6 +42,7 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
                                 transactionItem={transaction}
                                 isSelected={false}
                                 shouldShowTooltip
+                                dateColumnSize={dateColumnSize}
                                 shouldUseNarrowLayout={displayNarrowVersion}
                             />
                         </View>

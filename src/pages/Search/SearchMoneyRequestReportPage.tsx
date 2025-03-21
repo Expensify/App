@@ -1,5 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import type {FlatList} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -19,6 +20,8 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
+import type {ActionListContextType, ReactionListRef, ScrollPosition} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
 
@@ -42,7 +45,6 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
 
     const {reportID} = route.params;
-
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
@@ -50,8 +52,13 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportID);
 
+    const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
+    const flatListRef = useRef<FlatList>(null);
+    const reactionListRef = useRef<ReactionListRef>(null);
+    const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
+
     useEffect(() => {
-        openReport(reportID);
+        openReport(reportID, '', [], undefined, undefined, false, [], true);
     }, [reportID]);
 
     if (shouldUseNarrowLayout) {
@@ -73,39 +80,43 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
     }
 
     return (
-        <ScreenWrapper
-            testID={SearchMoneyRequestReportPage.displayName}
-            shouldEnableMaxHeight
-            offlineIndicatorStyle={styles.mtAuto}
-            headerGapStyles={styles.searchHeaderGap}
-        >
-            <View style={styles.searchSplitContainer}>
-                <View style={styles.searchSidebar}>
-                    <View style={styles.flex1}>
-                        <HeaderGap />
-                        <TopBar
-                            breadcrumbLabel={translate('common.reports')}
-                            shouldDisplaySearch={false}
-                        />
-                        <SearchTypeMenu queryJSON={tempJSONQuery} />
-                    </View>
-                    <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
-                </View>
-                <View style={[styles.flexColumn, styles.flex1]}>
-                    <DragAndDropProvider isDisabled={isEditingDisabled}>
-                        <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                            <MoneyRequestReportView
-                                report={report}
-                                reportMetadata={reportMetadata}
-                                policy={policy}
-                                shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                            />
+        <ActionListContext.Provider value={actionListValue}>
+            <ReactionListContext.Provider value={reactionListRef}>
+                <ScreenWrapper
+                    testID={SearchMoneyRequestReportPage.displayName}
+                    shouldEnableMaxHeight
+                    offlineIndicatorStyle={styles.mtAuto}
+                    headerGapStyles={styles.searchHeaderGap}
+                >
+                    <View style={styles.searchSplitContainer}>
+                        <View style={styles.searchSidebar}>
+                            <View style={styles.flex1}>
+                                <HeaderGap />
+                                <TopBar
+                                    breadcrumbLabel={translate('common.reports')}
+                                    shouldDisplaySearch={false}
+                                />
+                                <SearchTypeMenu queryJSON={tempJSONQuery} />
+                            </View>
+                            <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
                         </View>
-                        <PortalHost name="suggestions" />
-                    </DragAndDropProvider>
-                </View>
-            </View>
-        </ScreenWrapper>
+                        <View style={[styles.flexColumn, styles.flex1]}>
+                            <DragAndDropProvider isDisabled={isEditingDisabled}>
+                                <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                                    <MoneyRequestReportView
+                                        report={report}
+                                        reportMetadata={reportMetadata}
+                                        policy={policy}
+                                        shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                    />
+                                </View>
+                                <PortalHost name="suggestions" />
+                            </DragAndDropProvider>
+                        </View>
+                    </View>
+                </ScreenWrapper>
+            </ReactionListContext.Provider>
+        </ActionListContext.Provider>
     );
 }
 

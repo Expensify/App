@@ -2262,6 +2262,9 @@ function getReportActions(report: Report) {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
 }
 
+/**
+ * @private
+ */
 function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale): boolean {
     // The user has never gone offline or never come back online
     if (!lastOfflineAt || !lastOnlineAt) {
@@ -2282,6 +2285,16 @@ function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, 
 
     // The action was created after the user went back online.
     return false;
+}
+
+/**
+ * Whether a message is NOT from the active user, and it was received while the user was offline.
+ */
+function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale) {
+    const wasByCurrentUser = wasActionTakenByCurrentUser(action);
+    const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, locale);
+
+    return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }
 
 export {
@@ -2397,7 +2410,7 @@ export {
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
     getReportActionsLength,
-    wasActionCreatedWhileOffline,
+    wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
