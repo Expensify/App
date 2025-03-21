@@ -883,10 +883,12 @@ function allHavePendingRTERViolation(transactionIds: string[], transactionViolat
  * Check if there is rter violation in all transactionViolations with given transactionIDs.
  */
 function allHaveRTERViolation(transactionIds: string[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
-    const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
-        return hasBrokenConnectionViolation(transactionId, transactionViolations);
-    });
-    return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
+    return (
+        transactionIds.length > 0 &&
+        transactionIds.every((transactionId) => {
+            return hasBrokenConnectionViolation(transactionId, transactionViolations);
+        })
+    );
 }
 
 /**
