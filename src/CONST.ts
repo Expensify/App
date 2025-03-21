@@ -6726,6 +6726,7 @@ const CONST = {
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
+        HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
     },
 
     DEBUG: {
