@@ -163,6 +163,7 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
 
     return (
         <DiagnosticData
+            key="diagnostic-data"
             styles={styles}
             route={route}
             isExactMatch={isExactMatch}
