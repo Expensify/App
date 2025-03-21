@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -8,29 +7,24 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
 import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
-import * as PolicyAction from '@userActions/Policy/Policy';
+import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Session} from '@src/types/onyx';
 import type {ConnectToQuickbooksOnlineFlowProps} from './types';
-
-type ConnectToQuickbooksOnlineFlowOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-};
 
 const renderLoading = () => <FullScreenLoadingIndicator />;
 
-function ConnectToQuickbooksOnlineFlow({policyID, session}: ConnectToQuickbooksOnlineFlowProps & ConnectToQuickbooksOnlineFlowOnyxProps) {
+function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlowProps) {
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setWebViewOpen] = useState(false);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const authToken = session?.authToken ?? null;
 
     useEffect(() => {
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
-        PolicyAction.enablePolicyTaxes(policyID, false);
+        enablePolicyTaxes(policyID, false);
         setWebViewOpen(true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -46,6 +40,7 @@ function ConnectToQuickbooksOnlineFlow({policyID, session}: ConnectToQuickbooksO
                 <HeaderWithBackButton
                     title={translate('workspace.accounting.title')}
                     onBackButtonPress={() => setWebViewOpen(false)}
+                    shouldDisplayHelpButton={false}
                 />
                 <FullPageOfflineBlockingView>
                     <WebView
@@ -68,8 +63,4 @@ function ConnectToQuickbooksOnlineFlow({policyID, session}: ConnectToQuickbooksO
 
 ConnectToQuickbooksOnlineFlow.displayName = 'ConnectToQuickbooksOnlineFlow';
 
-export default withOnyx<ConnectToQuickbooksOnlineFlowProps & ConnectToQuickbooksOnlineFlowOnyxProps, ConnectToQuickbooksOnlineFlowOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ConnectToQuickbooksOnlineFlow);
+export default ConnectToQuickbooksOnlineFlow;
