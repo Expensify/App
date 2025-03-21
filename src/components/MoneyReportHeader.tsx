@@ -317,18 +317,24 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
-    if (!moneyRequestReport) {
-        return null;
-    }
-
-    const primaryAction = getReportPrimaryAction(moneyRequestReport, transactions, violations, policy); // useMemo
+    const primaryAction = useMemo(() => {
+        if (!moneyRequestReport) {
+            return '';
+        }
+        return getReportPrimaryAction(moneyRequestReport, transactions, violations, policy);
+    }, [moneyRequestReport, policy, transactions, violations]);
 
     const primaryActions = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
             <Button
                 success
                 text={translate('common.submit')}
-                onPress={() => submitReport(moneyRequestReport)}
+                onPress={() => {
+                    if (!moneyRequestReport) {
+                        return;
+                    }
+                    submitReport(moneyRequestReport);
+                }}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
@@ -361,7 +367,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 text={translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegration!})}
                 onPress={() => {
-                    if (!connectedIntegration) {
+                    if (!connectedIntegration || !moneyRequestReport) {
                         return;
                     }
                     exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
@@ -393,7 +399,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         ),
     };
 
-    const secondaryActions = getSecondaryReportActions(moneyRequestReport, transactions, violations, policy); // useMemo
+    const secondaryActions = useMemo(() => {
+        if (!moneyRequestReport) {
+            return [];
+        }
+        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy);
+    }, [moneyRequestReport, policy, transactions, violations]);
 
     const secondaryActionsImpl: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
@@ -409,6 +420,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             text: translate('common.download'),
             icon: Expensicons.Download,
             onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
                 exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs}, () => {
                     setDownloadErrorModalVisible(true);
                 });
@@ -419,6 +433,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             text: translate('common.submit'),
             icon: Expensicons.Send,
             onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
                 submitReport(moneyRequestReport);
             },
         },
@@ -427,6 +444,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.ThumbsUp,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
                 approveMoneyRequest(moneyRequestReport);
             },
         },
@@ -457,9 +477,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: getIntegrationIcon(connectedIntegration),
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING,
             onSelected: () => {
-                if (!connectedIntegration) {
-                    throw new Error('No connected integration');
+                if (!connectedIntegration || !moneyRequestReport) {
+                    throw new Error('Missing data');
                 }
+
                 exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
             },
         },
@@ -468,9 +489,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.CheckCircle,
             value: CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED,
             onSelected: () => {
-                if (!connectedIntegration) {
-                    throw new Error('No connected integration');
+                if (!connectedIntegration || !moneyRequestReport) {
+                    throw new Error('Missing data');
                 }
+
                 markAsManuallyExported(moneyRequestReport.reportID, connectedIntegration);
             },
         },
@@ -491,6 +513,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
                 Navigation.navigate(ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.getRoute(moneyRequestReport.reportID));
             },
         },

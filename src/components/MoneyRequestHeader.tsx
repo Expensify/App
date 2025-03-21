@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -147,11 +147,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
-    if (!report || !parentReport || !transaction) {
-        return null;
-    }
-
-    const primaryAction = getTransactionThreadPrimaryAction(report, parentReport, transaction, transactionViolations, policy);
+    const primaryAction = useMemo(() => {
+        if (!report || !parentReport || !transaction) {
+            return '';
+        }
+        return getTransactionThreadPrimaryAction(report, parentReport, transaction, transactionViolations, policy);
+    }, [parentReport, policy, report, transaction, transactionViolations]);
 
     const primaryActionOptions = {
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD]: (
@@ -184,7 +185,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         ),
     };
 
-    const secondaryActions = getSecondaryTransactionThreadActions(parentReport, transaction);
+    const secondaryActions = useMemo(() => {
+        if (!parentReport || !transaction) {
+            return [];
+        }
+        return getSecondaryTransactionThreadActions(parentReport, transaction);
+    }, [parentReport, transaction]);
 
     const secondaryActionsImpl: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
@@ -294,8 +300,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 isVisible={isDeleteModalVisible}
                 onConfirm={() => {
                     setIsDeleteModalVisible(false);
-                    if (!parentReportAction) {
-                        throw new Error('Parent action does not exist');
+                    if (!parentReportAction || !transaction) {
+                        throw new Error('Data missing');
                     }
 
                     deleteMoneyRequest(transaction?.transactionID, parentReportAction);
