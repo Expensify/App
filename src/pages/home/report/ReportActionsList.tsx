@@ -455,7 +455,7 @@ function ReportActionsList({
                         return;
                     }
 
-                    // If the component is focused, and we try to navigate to the current report, we should not perform navigation.
+                    // If the component is focused and we try to navigate to the current report, we should not perform navigation.
                     if (isFocused && report.reportID === Navigation.getTopmostReportId()) {
                         return;
                     }
