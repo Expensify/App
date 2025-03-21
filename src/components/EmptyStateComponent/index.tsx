@@ -1,4 +1,5 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
+import isEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -110,23 +111,18 @@ function EmptyStateComponent({
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
                         {children}
-                        {!!buttons && (
+                        {!isEmpty(buttons) && (
                             <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
-                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled}, index) => (
-                                    <View
-                                        // eslint-disable-next-line react/no-array-index-key
-                                        key={index}
+                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled}) => (
+                                    <Button
+                                        success={success}
+                                        onPress={buttonAction}
+                                        text={buttonText}
+                                        icon={icon}
+                                        large
+                                        isDisabled={isDisabled}
                                         style={styles.flex1}
-                                    >
-                                        <Button
-                                            success={success}
-                                            onPress={buttonAction}
-                                            text={buttonText}
-                                            icon={icon}
-                                            large
-                                            isDisabled={isDisabled}
-                                        />
-                                    </View>
+                                    />
                                 ))}
                             </View>
                         )}

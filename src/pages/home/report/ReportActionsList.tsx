@@ -614,6 +614,7 @@ function ReportActionsList({
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
+
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
             <ReportActionsListItemRenderer

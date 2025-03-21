@@ -5331,6 +5331,13 @@ const styles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        emptyStateMoneyRequestReport: {
+            maxHeight: 85,
+            minHeight: 85,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
         pendingStateCardIllustration: {
             width: 233,
             height: 162,

@@ -348,7 +348,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
         if (isEmpty) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: 'Waiting for you to add expense(s)'};
+            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('search.moneyRequestReport.emptyStateHeader')};
         }
     };
 

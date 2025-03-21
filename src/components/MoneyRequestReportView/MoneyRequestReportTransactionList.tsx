@@ -1,3 +1,4 @@
+import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -28,7 +29,7 @@ function SearchMoneyRequestReportEmptyState() {
                 headerMedia={LottieAnimations.GenericEmptyState}
                 title={translate('search.moneyRequestReport.emptyStateTitle')}
                 subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, {maxHeight: 85, minHeight: 85}]}
+                headerStyles={[styles.emptyStateMoneyRequestReport]}
                 lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                 headerContentStyles={styles.emptyStateFolderWebStyles}
             />
@@ -42,7 +43,7 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
 
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
 
-    return transactions.length > 0 ? (
+    return !isEmpty(transactions) ? (
         <>
             {!displayNarrowVersion && (
                 <MoneyRequestReportTableHeader
