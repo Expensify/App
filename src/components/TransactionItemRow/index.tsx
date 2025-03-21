@@ -34,19 +34,14 @@ function TransactionItemRow({
 
     const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
-    const transactionItemRowRBRStyles = !shouldShowChatBubbleComponent || hasCategoryOrTag ? [styles.ml3, styles.mb3, styles.mtn1] : [];
-    const shouldShowChatBubble = {
-        nextToRBR: shouldShowChatBubbleComponent && !hasCategoryOrTag,
-        nextToCategoryOrTag: shouldShowChatBubbleComponent && hasCategoryOrTag,
-    };
 
     return (
         <View style={styles.flex1}>
             {shouldUseNarrowLayout ? (
                 <Hoverable>
                     {(hovered) => (
-                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly]}>
-                            <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.mb3, styles.ml3]}>
+                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3]}>
+                            <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
                                 <View style={[styles.mr3]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
@@ -81,33 +76,25 @@ function TransactionItemRow({
                                     </View>
                                 </View>
                             </View>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentBetween, hasCategoryOrTag && [styles.ml3, styles.mt0, styles.mb3]]}>
-                                <View style={[styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
-                                    <CategoryCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                    <TagCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
+                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.mb3]}>
+                                <View style={[styles.flexColumn, styles.gap2]}>
+                                    {hasCategoryOrTag && (
+                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                            <CategoryCell
+                                                transactionItem={transactionItem}
+                                                shouldShowTooltip={shouldShowTooltip}
+                                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                            />
+                                            <TagCell
+                                                transactionItem={transactionItem}
+                                                shouldShowTooltip={shouldShowTooltip}
+                                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                            />
+                                        </View>
+                                    )}
+                                    <TransactionItemRowRBR transaction={transactionItem} />
                                 </View>
-                                {shouldShowChatBubble.nextToCategoryOrTag && (
-                                    <View style={styles.mr3}>
-                                        <ChatBubbleCell transaction={transactionItem} />
-                                    </View>
-                                )}
-                            </View>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentBetween, shouldShowChatBubble.nextToRBR && [styles.m3, styles.mt0]]}>
-                                <View>
-                                    <TransactionItemRowRBR
-                                        containerStyles={transactionItemRowRBRStyles}
-                                        transaction={transactionItem}
-                                    />
-                                </View>
-                                {shouldShowChatBubble.nextToRBR && <ChatBubbleCell transaction={transactionItem} />}
+                                {shouldShowChatBubbleComponent && <ChatBubbleCell transaction={transactionItem} />}
                             </View>
                         </View>
                     )}

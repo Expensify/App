@@ -39,20 +39,27 @@ function ChatBubbleCell({transaction}: {transaction: Transaction}) {
 
     const elementSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
     const fontSize = shouldUseNarrowLayout ? variables.fontSizeXXSmall : variables.fontSizeExtraSmall;
-    const lineHeight = shouldUseNarrowLayout ? 11.6 : 12;
 
     return (
         threadMessages.count > 0 && (
             <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, StyleUtils.getWidthAndHeightStyle(elementSize)]}>
                 <Icon
                     src={ChatBubbleCounter}
-                    additionalStyles={styles.pAbsolute}
+                    additionalStyles={[styles.pAbsolute]}
                     fill={threadMessages.isUnread ? theme.iconMenu : theme.icon}
                     width={elementSize}
                     height={elementSize}
                 />
-                <Text style={[styles.textBold, StyleUtils.getLineHeightStyle(lineHeight), StyleUtils.getColorStyle(theme.appBG), StyleUtils.getFontSizeStyle(fontSize)]}>
-                    {threadMessages.count}
+                <Text
+                    style={[
+                        styles.textBold,
+                        StyleUtils.getLineHeightStyle(variables.lineHeightXSmall),
+                        StyleUtils.getColorStyle(theme.appBG),
+                        StyleUtils.getFontSizeStyle(fontSize),
+                        {top: -1},
+                    ]}
+                >
+                    {threadMessages.count > 99 ? '99+' : threadMessages.count}
                 </Text>
             </View>
         )
