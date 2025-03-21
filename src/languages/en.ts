@@ -4881,7 +4881,7 @@ const translations = {
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers, and hyphens.',
         pleaseEnterRoomName: 'Please enter a room name.',
         pleaseSelectWorkspace: 'Please select a workspace.',
-        renamedRoomAction: ({memberName, oldName, newName}: RenamedRoomActionParams) =>
+        renamedRoomAction: ({oldName, newName, memberName}: RenamedRoomActionParams) => `${memberName ? `${memberName} ` : ''}renamed this room to "${newName}" (previously "${oldName}")`,
             memberName ? `${memberName} renamed this room to "${newName}" (previously "${oldName}")` : `renamed this room to "${newName}" (previously "${oldName}")`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Room renamed to ${newName}`,
         social: 'social',
