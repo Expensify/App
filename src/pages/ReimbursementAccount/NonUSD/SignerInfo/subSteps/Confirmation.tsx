@@ -3,68 +3,107 @@ import {useOnyx} from 'react-native-onyx';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
+import getValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForSignerInfo';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type ConfirmationProps = SubStepProps & {isSecondSigner: boolean};
+type ConfirmationProps = SubStepProps;
 
-const SINGER_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {
-    SIGNER_FULL_NAME,
-    SECOND_SIGNER_FULL_NAME,
-    SIGNER_JOB_TITLE,
-    SECOND_SIGNER_JOB_TITLE,
-    SIGNER_DATE_OF_BIRTH,
-    SECOND_SIGNER_DATE_OF_BIRTH,
-    SIGNER_COPY_OF_ID,
-    SECOND_SIGNER_COPY_OF_ID,
-    SIGNER_ADDRESS_PROOF,
-    SECOND_SIGNER_ADDRESS_PROOF,
-    OWNS_MORE_THAN_25_PERCENT,
-} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {OWNS_MORE_THAN_25_PERCENT} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-function Confirmation({onNext, onMove, isEditing, isSecondSigner}: ConfirmationProps) {
+function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
-    const values = useMemo(() => getSubStepValues(SINGER_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getValuesForSignerInfo(['currentUser'], reimbursementAccountDraft), [reimbursementAccountDraft]);
 
-    const IDs = values[isSecondSigner ? SECOND_SIGNER_COPY_OF_ID : SIGNER_COPY_OF_ID];
-    const proofs = values[isSecondSigner ? SECOND_SIGNER_ADDRESS_PROOF : SIGNER_ADDRESS_PROOF];
+    const policyID = reimbursementAccount?.achData?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const currency = policy?.outputCurrency ?? '';
+    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
 
     const summaryItems = [
         {
-            title: values[isSecondSigner ? SECOND_SIGNER_JOB_TITLE : SIGNER_JOB_TITLE],
+            title: values.jobTitle,
             description: translate('signerInfoStep.jobTitle'),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(0);
+            },
+        },
+        {
+            title: String(values.directors.find((director) => director.directorID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY)?.occupation),
+            description: translate('signerInfoStep.occupation'),
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(1);
             },
         },
-        {
-            title: IDs ? IDs.map((id) => id.name).join(', ') : '',
+    ];
+
+    if (isDocumentNeededStatus.isCopyOfIDNeeded && values.copyOfId.length > 0) {
+        summaryItems.push({
+            title: values.copyOfId.map((id) => id.name).join(', '),
             description: translate('signerInfoStep.id'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(3);
+                onMove(5);
             },
-        },
-        {
-            title: proofs ? proofs.map((proof) => proof.name).join(', ') : '',
+        });
+    }
+
+    if (isDocumentNeededStatus.isAddressProofNeeded && values.addressProof.length > 0) {
+        summaryItems.push({
+            title: values.addressProof.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOf'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(3);
+                onMove(5);
             },
-        },
-    ];
+        });
+    }
+
+    if (isDocumentNeededStatus.isProofOfDirecorsNeeded && values.proofOfDirectors.length > 0) {
+        summaryItems.push({
+            title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
+            description: translate('signerInfoStep.proofOfDirectors'),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(5);
+            },
+        });
+    }
+
+    if (isDocumentNeededStatus.isCodiceFiscaleNeeded && values.codiceFisclaleTaxID.length > 0) {
+        summaryItems.push({
+            title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
+            description: translate('signerInfoStep.codiceFiscale'),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(5);
+            },
+        });
+    }
+
+    if (isDocumentNeededStatus.isPRDandFSGNeeded && values.PRDandFSG.length > 0) {
+        summaryItems.push({
+            title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
+            description: translate('signerInfoStep.PRDandSFD'),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(5);
+            },
+        });
+    }
 
     if (!isUserOwner) {
         summaryItems.unshift({
-            title: `${values[isSecondSigner ? SECOND_SIGNER_FULL_NAME : SIGNER_FULL_NAME]}`,
+            title: values.fullName,
             description: translate('signerInfoStep.legalName'),
             shouldShowRightIcon: true,
             onPress: () => {
@@ -72,12 +111,21 @@ function Confirmation({onNext, onMove, isEditing, isSecondSigner}: ConfirmationP
             },
         });
 
-        summaryItems.splice(2, 0, {
-            title: values[isSecondSigner ? SECOND_SIGNER_DATE_OF_BIRTH : SIGNER_DATE_OF_BIRTH],
+        summaryItems.splice(3, 0, {
+            title: values.dateOfBirth,
             description: translate('common.dob'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(2);
+                onMove(3);
+            },
+        });
+
+        summaryItems.splice(4, 0, {
+            title: `${values.street}, ${values.city}, ${values.state}, ${values.zipCode}`,
+            description: translate('ownershipInfoStep.address'),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(4);
             },
         });
     }
