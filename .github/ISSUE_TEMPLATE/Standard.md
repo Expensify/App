@@ -34,7 +34,7 @@ Can the user still use Expensify without this being fixed? Have you informed the
 <!---
 Check off any platforms that are affected by this issue
 --->
-Which of our officially supported platforms is this issue occurring on?
+On which of our officially supported platforms was this issue tested and **confirmed**?
 - [ ] Android: Standalone
 - [ ] Android: HybridApp
 - [ ] Android: mWeb Chrome
@@ -49,7 +49,7 @@ Which of our officially supported platforms is this issue occurring on?
 <details>
   <summary>Add any screenshot/video evidence</summary>
 
-  
+
 </details>
 
 [View all open jobs on GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22)
