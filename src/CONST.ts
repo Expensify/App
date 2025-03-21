@@ -390,6 +390,7 @@ const CONST = {
     ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
     ANIMATED_PROGRESS_BAR_DURATION: 750,
     ANIMATION_IN_TIMING: 100,
+    COMPOSER_FOCUS_DELAY: 150,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -430,6 +431,8 @@ const CONST = {
 
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
+
+    API_TRANSACTION_TAG_MAX_LENGTH: 255,
 
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
@@ -781,6 +784,7 @@ const CONST = {
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NSQS: 'nsqs',
         CUSTOM_RULES: 'customRules',
+        TABLE_REPORT_VIEW: 'tableReportView',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1026,7 +1030,7 @@ const CONST = {
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
-    FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
+    FEES_URL: `${EXPENSIFY_URL}/fees`,
     SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
@@ -1183,7 +1187,7 @@ const CONST = {
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
                 CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
-                CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
+                CHANGE_POLICY: 'CHANGEPOLICY',
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
                 CHRONOS_OOO_LIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
@@ -1319,6 +1323,11 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
+        },
+        TRANSACTION_LIST: {
+            COLUMNS: {
+                COMMENTS: 'comments',
+            },
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
@@ -1492,8 +1501,6 @@ const CONST = {
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
-        SKELETON_FADE_DURATION: 300,
-        SKELETON_SLIDE_DURATION: 1200,
         TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
@@ -1533,6 +1540,20 @@ const CONST = {
         LIGHT: 'light',
         DARK: 'dark',
     },
+    NAVIGATION_BAR_TYPE: {
+        // We consider there to be no navigation bar in one of these cases:
+        // 1. The device has physical navigation buttons
+        // 2. The device uses gesture navigation without a gesture bar.
+        // 3. The device uses hidden (auto-hiding) soft keys.
+        NONE: 'none',
+        SOFT_KEYS: 'soft-keys',
+        GESTURE_BAR: 'gesture-bar',
+    },
+    // Currently, in Android there is no native API to detect the type of navigation bar (soft keys vs. gesture).
+    // The navigation bar on (standard) Android devices is around 30-50dpi tall. (Samsung: 40dpi, Huawei: ~34dpi)
+    // To leave room to detect soft-key navigation bars on non-standard Android devices,
+    // we set this height threshold to 30dpi, since gesture bars will never be taller than that. (Samsung & Huawei: ~14-15dpi)
+    NAVIGATION_BAR_ANDROID_SOFT_KEYS_MINIMUM_HEIGHT_THRESHOLD: 30,
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Expense',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
@@ -2462,7 +2483,7 @@ const CONST = {
         BANCORP_WALLET_PROGRAM_ID: '660',
         PROGRAM_ISSUERS: {
             EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
-            BANCORP_BANK: 'The Bancorp Bank',
+            BANCORP_BANK: 'The Bancorp Bank, N.A.',
         },
     },
 
@@ -2961,6 +2982,18 @@ const CONST = {
         },
     },
 
+    HELP_DOC_LINKS: {
+        'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        'QuickBooks Desktop': '',
+        quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        NetSuite: 'https://help.expensify.com/articles/new-expensify/connections/netsuite/Configure-Netsuite',
+        Xero: 'https://help.expensify.com/articles/new-expensify/connections/xero/Configure-Xero',
+        Intacct: 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
+        FinancialForce: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
+        'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
+        Certinia: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
+    },
+
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
         NAME_PER_DIEM_INTERNATIONAL: 'Per Diem International',
@@ -3371,7 +3404,7 @@ const CONST = {
             `(?<!^[^\`\n]*(?:\`[^\`\n]*\`[^\`\n]*)*\`[^\`\n]*)@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*|@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*(?![^\n]*\`)`,
             'gim',
         ),
-        REPORT_ID_FROM_PATH: /\/r\/(\d+)/,
+        REPORT_ID_FROM_PATH: /(?<!\/search)\/r\/(\d+)/,
         DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
         WHITESPACE: /\s+/g,
 
@@ -3474,6 +3507,13 @@ const CONST = {
     SEARCH_QUERY_LIMIT: 1000,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     STATE_CHARACTER_LIMIT: 32,
+
+    // Test receipt data
+    TEST_RECEIPT: {
+        AMOUNT: 1800,
+        CURRENCY: 'USD',
+        FILENAME: 'test_receipt',
+    },
 
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -5007,11 +5047,9 @@ const CONST = {
         CONTENT_TYPES: {
             SUBMIT_EXPENSE: 'submitExpense',
             START_CHAT: 'startChat',
-            PAY_SOMEONE: 'paySomeone',
             REFER_FRIEND: 'referralFriend',
             SHARE_CODE: 'shareCode',
         },
-        REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/expenses/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },
@@ -6231,6 +6269,8 @@ const CONST = {
         TRAIN: 'train',
     },
 
+    RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
+
     CANCELLATION_POLICY: {
         UNKNOWN: 'UNKNOWN',
         NON_REFUNDABLE: 'NON_REFUNDABLE',
@@ -6239,6 +6279,7 @@ const CONST = {
     },
 
     DOT_SEPARATOR: '•',
+    BULLET: '●',
 
     DEFAULT_TAX: {
         defaultExternalID: 'id_TAX_EXEMPT',
@@ -6366,6 +6407,7 @@ const CONST = {
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
             POLICY_ID: 'policyID',
+            GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
             DATE: 'date',
@@ -6402,6 +6444,7 @@ const CONST = {
             SORT_BY: 'sort-by',
             SORT_ORDER: 'sort-order',
             POLICY_ID: 'workspace',
+            GROUP_BY: 'group-by',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expense-type',
@@ -6427,6 +6470,12 @@ const CONST = {
         DATE_MODIFIERS: {
             BEFORE: 'Before',
             AFTER: 'After',
+        },
+    },
+
+    EXPENSE: {
+        TYPE: {
+            CASH_CARD_NAME: 'Cash Expense',
         },
     },
 
@@ -6474,7 +6523,7 @@ const CONST = {
         CASH_BACK: 'earnedCashback',
     },
 
-    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
+    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN, SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT] as string[],
 
     CANCELLATION_TYPE: {
         MANUAL: 'manual',
@@ -6670,6 +6719,7 @@ const CONST = {
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
+        HAS_QBO_EXPORT_ERROR: 'hasQBOExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
         HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
         HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
@@ -6780,11 +6830,10 @@ const CONST = {
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
-        QUICK_ACTION_BUTTON: 'quickActionButton',
-        WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
-        SEARCH_FILTER_BUTTON_TOOLTIP: 'filterButtonTooltip',
         BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
@@ -6792,6 +6841,7 @@ const CONST = {
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
     },
+    CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
@@ -6823,6 +6873,9 @@ const CONST = {
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+    ILLUSTRATION_ASPECT_RATIO: 39 / 22,
+
+    OFFLINE_INDICATOR_HEIGHT: 25,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
