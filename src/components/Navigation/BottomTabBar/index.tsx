@@ -49,6 +49,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
     const {orderedReportIDs} = useReportIDs();
     const [user] = useOnyx(ONYXKEYS.USER);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const platform = getPlatform();
@@ -58,10 +59,10 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         isTooltipAllowed && selectedTab !== BOTTOM_TABS.HOME,
     );
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReportIDs));
+        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, reports));
         // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
         // That's why reportActions is added as a dependency here
-    }, [activeWorkspaceID, orderedReportIDs, reportActions]);
+    }, [activeWorkspaceID, reports, reportActions]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === BOTTOM_TABS.HOME) {
