@@ -4219,7 +4219,7 @@ function prepareOnboardingOnyxData(
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {hasCompletedGuidedSetupFlow: false},
+            value: {hasCompletedGuidedSetupFlow: onboarding?.hasCompletedGuidedSetupFlow ?? null},
         });
     }
 
