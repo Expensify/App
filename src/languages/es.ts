@@ -2139,6 +2139,8 @@ const translations = {
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
             fullName: 'Please enter a valid full name.',
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido.',
+            // TODO: add translation
+            occupation: 'Please enter a valid occupation.',
         },
     },
     addPersonalBankAccount: {

@@ -36,7 +36,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = getFieldRequiredErrors(values, shouldGatherBothEmails ? [SIGNER_EMAIL, SECOND_SIGNER_EMAIL] : [SIGNER_EMAIL]);
-            if (values[SIGNER_EMAIL] && !Str.isValidEmail(String(values[SIGNER_EMAIL]))) {
+            if (values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
                 errors[SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
@@ -65,6 +65,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
                 aria-label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
                 role={CONST.ROLE.PRESENTATION}
                 inputID={SIGNER_EMAIL}
+                inputMode={CONST.INPUT_MODE.EMAIL}
                 containerStyles={[styles.mt6]}
             />
             {shouldGatherBothEmails && (
@@ -74,6 +75,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
                     aria-label={`${translate('common.email')} 2`}
                     role={CONST.ROLE.PRESENTATION}
                     inputID={SECOND_SIGNER_EMAIL}
+                    inputMode={CONST.INPUT_MODE.EMAIL}
                     containerStyles={[styles.mt6]}
                 />
             )}

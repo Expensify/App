@@ -24,11 +24,11 @@ type YesNoStepProps = {
     /** The style of the submit button */
     submitButtonStyles?: StyleProp<ViewStyle>;
 
-    /** Wheather data is loading or not */
+    /** Indicates if button should be in isLoading state */
     isLoading?: boolean;
 };
 
-function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles, isLoading}: YesNoStepProps) {
+function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles, isLoading = false}: YesNoStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(defaultValue);

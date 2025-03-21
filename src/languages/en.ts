@@ -2119,6 +2119,7 @@ const translations = {
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
             fullName: 'Please enter a valid full name.',
             ownershipPercentage: 'Please enter a valid percentage number.',
+            occupation: 'Please enter a valid occupation.',
         },
     },
     addPersonalBankAccount: {
