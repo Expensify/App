@@ -6116,8 +6116,8 @@ const translations = {
             policyOwnerAmountOwedOverdue: {
                 title: 'No se pudo procesar tu pago',
                 generalSubtitle: 'Por favor, añade una tarjeta de pago para saldar la cantidad adeudada.',
-                subtitle: ({date, amountOwed}: BillingBannerOwnerAmountOwedOverdueParams) =>
-                    `No se ha podido procesar tu cargo de ${amountOwed} del día ${date}. Por favor, añade una tarjeta de pago para saldar la cantidad adeudada.`,
+                subtitle: ({date, purchaseAmountOwed}: BillingBannerOwnerAmountOwedOverdueParams) =>
+                    `No se ha podido procesar tu cargo de ${purchaseAmountOwed} del día ${date}. Por favor, añade una tarjeta de pago para saldar la cantidad adeudada.`,
             },
             policyOwnerUnderInvoicing: {
                 title: 'Tu información de pago está desactualizada',

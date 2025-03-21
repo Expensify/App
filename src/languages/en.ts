@@ -5600,8 +5600,8 @@ const translations = {
             policyOwnerAmountOwedOverdue: {
                 title: 'Your payment could not be processed',
                 generalSubtitle: 'Please add a payment card to clear the amount owed.',
-                subtitle: ({date, amountOwed}: BillingBannerOwnerAmountOwedOverdueParams) =>
-                    `Your ${date} charge of ${amountOwed} could not be processed. Please add a payment card to clear the amount owed.`,
+                subtitle: ({date, purchaseAmountOwed}: BillingBannerOwnerAmountOwedOverdueParams) =>
+                    `Your ${date} charge of ${purchaseAmountOwed} could not be processed. Please add a payment card to clear the amount owed.`,
             },
             policyOwnerUnderInvoicing: {
                 title: 'Your payment info is outdated',
