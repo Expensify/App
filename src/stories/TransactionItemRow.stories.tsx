@@ -55,6 +55,7 @@ function Template({transactionItem, shouldUseNarrowLayout, isSelected, shouldSho
                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                     isSelected={isSelected}
                     shouldShowTooltip={shouldShowTooltip}
+                    shouldShowChatBubbleComponent
                 />
             </ThemeStylesProvider>
         </ThemeProvider>

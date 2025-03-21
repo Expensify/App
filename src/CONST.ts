@@ -5013,6 +5013,7 @@ const CONST = {
     EVENTS: {
         SCROLLING: 'scrolling',
     },
+    SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
@@ -5194,6 +5195,7 @@ const CONST = {
         REPORT_ACTION: 'REPORT_ACTION',
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
+        TEXT: 'TEXT',
     },
 
     PROMOTED_ACTIONS: {
