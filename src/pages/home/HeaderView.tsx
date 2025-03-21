@@ -28,6 +28,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
+import {connectToOpenAIRealtime} from '@libs/actions/OpenAI';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -227,7 +228,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const talkToSalesButton = (
         <Button
             text={translate('aiSales.talkWithSales')}
-            onPress={() => {}}
+            onPress={() => {
+                connectToOpenAIRealtime();
+            }}
             style={shouldUseNarrowLayout && [styles.flex1]}
             icon={Phone}
         />
@@ -407,7 +410,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 )}
                 <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
             </View>
-            {shouldShowEarlyDiscountBanner && (
+            {true && (
                 <EarlyDiscountBanner
                     TalkToSalesButton={canUseTalkToAISales ? talkToSalesButton : undefined}
                     GuideBookingButton={shouldShowGuideBookingButtonInEarlyDiscountBanner ? guideBookingButton : undefined}

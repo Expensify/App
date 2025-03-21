@@ -108,13 +108,13 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         dismissButton,
     ]);
 
-    if (!firstDayFreeTrial || !lastDayFreeTrial || !discountInfo) {
-        return null;
-    }
+    // if (!firstDayFreeTrial || !lastDayFreeTrial || !discountInfo) {
+    //     return null;
+    // }
 
-    if (isDismissed && !isSubscriptionPage) {
-        return null;
-    }
+    // if (isDismissed && !isSubscriptionPage) {
+    //     return null;
+    // }
 
     const title = isSubscriptionPage ? (
         <Text style={styles.textStrong}>
