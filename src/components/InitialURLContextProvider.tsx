@@ -1,6 +1,7 @@
 import React, {createContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
+import Navigation from '@navigation/Navigation';
 import {useOnyx} from 'react-native-onyx';
 import {setupNewDotAfterTransitionFromOldDot} from '@libs/actions/Session';
 import type {AppProps} from '@src/App';
@@ -39,6 +40,10 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
                 setupCalled.current = true;
                 setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
                     setInitialURL(url);
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.navigate(Navigation.parseHybridAppUrl(url));
+                    });
+
                     if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
                         return;
                     }
