@@ -5,6 +5,7 @@ import {mediaDevices} from 'react-native-webrtc-web-shim';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {playStreamSound} from '@libs/Sound';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -186,7 +187,7 @@ function initializeOpenAIRealtime(adminsReportID: number) {
 function handleFunctionCall(message: OpenAIRealtimeMessage) {
     if (message.name === 'SendRecapInAdminsRoom') {
         API.write(WRITE_COMMANDS.SEND_RECAP_IN_ADMINS_ROOM, {
-            reportID: currentAdminsReportID ?? -1,
+            reportID: currentAdminsReportID ?? CONST.DEFAULT_NUMBER_ID,
             recap: message.arguments,
         });
     }
