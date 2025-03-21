@@ -59,14 +59,14 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                 editTask(report, {description: values.description});
             }
 
-            Navigation.dismissModal(report?.reportID);
+            Navigation.dismissModalWithReport({reportID: report?.reportID});
         },
         [report],
     );
 
     if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal(report?.reportID);
+            Navigation.dismissModalWithReport({reportID: report?.reportID});
         });
     }
     const inputRef = useRef<AnimatedTextInputRef | null>(null);

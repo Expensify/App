@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -12,6 +13,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
+import isProductTrainingElementDismissed from '@libs/TooltipUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -98,7 +101,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
-            const isDismissed = !!dismissedProductTraining?.[tooltipName];
+            const isDismissed = isProductTrainingElementDismissed(tooltipName, dismissedProductTraining);
 
             if (isDismissed) {
                 return false;
@@ -113,9 +116,8 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
-            // We need to make an exception for the QAB tooltip because it is shown in a modal, otherwise it would be hidden if a modal is visible
+            // We need to make an exception for these tooltips because it is shown in a modal, otherwise it would be hidden if a modal is visible
             if (
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
@@ -203,6 +205,22 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
      */
     useLayoutEffect(parseFSAttributes, []);
 
+    const shouldShowProductTrainingTooltip = useMemo(() => {
+        return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
+    }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
+
+    const hideTooltip = useCallback(
+        (isDismissedUsingCloseButton = false) => {
+            if (!shouldShowProductTrainingTooltip) {
+                return;
+            }
+            const tooltip = TOOLTIPS[tooltipName];
+            tooltip.onHideTooltip(isDismissedUsingCloseButton);
+            unregisterTooltip(tooltipName);
+        },
+        [tooltipName, shouldShowProductTrainingTooltip, unregisterTooltip],
+    );
+
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
         return (
@@ -218,7 +236,8 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         styles.flexWrap,
                         styles.textAlignCenter,
                         styles.gap3,
-                        styles.p2,
+                        styles.pv2,
+                        styles.ph1,
                     ]}
                 >
                     <Icon
@@ -239,6 +258,22 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             );
                         })}
                     </Text>
+                    {!tooltip?.shouldRenderActionButtons && (
+                        <PressableWithoutFeedback
+                            onPress={() => {
+                                hideTooltip(true);
+                            }}
+                            accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
+                            role={CONST.ROLE.BUTTON}
+                        >
+                            <Icon
+                                src={Expensicons.Close}
+                                fill={theme.icon}
+                                width={variables.iconSizeSemiSmall}
+                                height={variables.iconSizeSemiSmall}
+                            />
+                        </PressableWithoutFeedback>
+                    )}
                 </View>
                 {!!tooltip?.shouldRenderActionButtons && (
                     <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph2, styles.pv2, styles.gap2]}>
@@ -258,42 +293,35 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
             </View>
         );
     }, [
+        tooltipName,
+        styles.alignItemsCenter,
+        styles.flexRow,
+        styles.justifyContentStart,
+        styles.justifyContentCenter,
+        styles.flexWrap,
+        styles.textAlignCenter,
+        styles.gap3,
+        styles.pv2,
+        styles.ph1,
+        styles.productTrainingTooltipText,
+        styles.textWrap,
+        styles.mw100,
+        styles.flex1,
+        styles.justifyContentBetween,
+        styles.ph2,
+        styles.gap2,
+        styles.textBold,
+        theme.tooltipHighlightText,
+        theme.icon,
+        translate,
         config.onConfirm,
         config.onDismiss,
-        styles.alignItemsCenter,
-        styles.flex1,
-        styles.flexRow,
-        styles.flexWrap,
-        styles.gap3,
-        styles.justifyContentBetween,
-        styles.justifyContentCenter,
-        styles.mw100,
-        styles.p2,
-        styles.productTrainingTooltipText,
-        styles.pv2,
-        styles.textAlignCenter,
-        styles.textBold,
-        styles.textWrap,
-        styles.gap2,
-        styles.justifyContentStart,
-        styles.ph2,
-        theme.tooltipHighlightText,
-        tooltipName,
-        translate,
+        hideTooltip,
     ]);
 
-    const shouldShowProductTrainingTooltip = useMemo(() => {
-        return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
-    }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
-
     const hideProductTrainingTooltip = useCallback(() => {
-        if (!shouldShowProductTrainingTooltip) {
-            return;
-        }
-        const tooltip = TOOLTIPS[tooltipName];
-        tooltip.onHideTooltip();
-        unregisterTooltip(tooltipName);
-    }, [tooltipName, shouldShowProductTrainingTooltip, unregisterTooltip]);
+        hideTooltip(false);
+    }, [hideTooltip]);
 
     return {
         renderProductTrainingTooltip,
