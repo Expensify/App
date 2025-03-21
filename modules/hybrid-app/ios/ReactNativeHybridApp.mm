@@ -13,11 +13,14 @@ RCT_EXPORT_MODULE()
 
 - (void)completeOnboarding:(BOOL)status {
     NSLog(@"[ReactNativeHybridApp] `completeOnboarding` should never be called in standalone `New Expensify` app");
-
 }
 
 - (void)switchAccount:(NSString *)newDotCurrentAccountEmail authToken:(NSString *)authToken policyID:(NSString *)policyID accountID:(NSString *)accountID {
     NSLog(@"[ReactNativeHybridApp] `switchAccount` should never be called in standalone `New Expensify` app");
+}
+
+- (void)sendAuthToken:(NSString *)authToken {
+    NSLog(@"[ReactNativeHybridApp] `sendAuthToken` should never be called in standalone `New Expensify` app");
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
