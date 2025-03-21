@@ -30,6 +30,7 @@ type ShareTrackedExpenseParams = {
     guidedSetupData?: string;
     description?: string;
     accountantEmail: string;
+    policyName?: string;
 };
 
 export default ShareTrackedExpenseParams;
