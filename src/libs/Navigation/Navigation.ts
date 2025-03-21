@@ -562,7 +562,8 @@ const dismissModalWithReport = (navigateToReportPayload: NavigateToReportWithPol
         if (topmostReportID === navigateToReportPayload.reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             dismissModal();
             return;
-        }
+        } 
+        dismissModal();
         navigateToReportWithPolicyCheck(navigateToReportPayload, getIsNarrowLayout());
     });
 };
