@@ -1084,7 +1084,7 @@ const translations = {
         holdEducationalTitle: 'This request is on',
         holdEducationalText: 'hold',
         whatIsHoldExplain: 'Hold is like hitting “pause” on an expense to ask for more details before approval or payment.',
-        holdIsLeftBehind: 'Held expenses are left behind on report approval or payment.',
+        holdIsLeftBehind: 'Held expenses move to another report upon approval or payment.',
         unholdWhenReady: 'Approvers can unhold expenses when they’re ready for approval or payment.',
         changePolicyEducational: {
             title: 'You moved this report!',
