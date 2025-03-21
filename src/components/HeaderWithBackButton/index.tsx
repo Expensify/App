@@ -196,7 +196,7 @@ function HeaderWithBackButton({
                 )}
                 {middleContent}
                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                    <View style={[styles.pr2]}>
+                    <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
                         {children}
                         {shouldShowDownloadButton &&
                             (!isDownloading ? (

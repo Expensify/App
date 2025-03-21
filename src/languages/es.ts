@@ -813,7 +813,22 @@ const translations = {
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
         importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
-        importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `Se han agregado ${members} miembros.` : 'Se ha agregado 1 miembro.'),
+        importMembersSuccessfullDescription: ({added, updated}: ImportMembersSuccessfullDescriptionParams) => {
+            if (!added && !updated) {
+                return 'No se han añadido ni actualizado miembros.';
+            }
+
+            if (added && updated) {
+                const getPluralSuffix = (count: number) => (count > 1 ? 's' : '');
+                return `${added} miembro${getPluralSuffix(added)} añadido${getPluralSuffix(added)}, ${updated} miembro${getPluralSuffix(updated)} actualizado${getPluralSuffix(updated)}.`;
+            }
+
+            if (updated) {
+                return updated > 1 ? `${updated} miembros han sido actualizados.` : '1 miembro ha sido actualizado.';
+            }
+
+            return added > 1 ? `Se han agregado ${added} miembros` : 'Se ha agregado 1 miembro.';
+        },
         importTagsSuccessfullDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importPerDiemRatesSuccessfullDescription: ({rates}: ImportPerDiemRatesSuccessfullDescriptionParams) =>
             rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.',
@@ -1941,8 +1956,8 @@ const translations = {
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
-            `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido durante 24 horas. Por favor, intenta validar tu número:`,
-        validationFailed: 'La validación falló porque no han pasado 24 horas desde tu último intento.',
+            `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido temporalmente. Por favor, intenta validar tu número:`,
+        validationFailed: 'La validación falló porque no ha pasado suficiente tiempo desde tu último intento.',
         validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
         pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
             if (!timeData) {
@@ -2766,6 +2781,7 @@ const translations = {
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
             defaultDescription: 'Un solo lugar para todos tus recibos y gastos.',
+            descriptionHint: 'Comparte información sobre este espacio de trabajo con todos los miembros.',
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
             markAsExported: 'Marcar como introducido manualmente',
@@ -6499,6 +6515,8 @@ const translations = {
         },
     },
     productTrainingTooltip: {
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: {
             part1: '¡Comienza',
             part2: ' aquí!',
@@ -6506,19 +6524,6 @@ const translations = {
         saveSearchTooltip: {
             part1: 'Renombra tus búsquedas guardadas',
             part2: ' aquí',
-        },
-        quickActionButton: {
-            part1: '¡Acción rápida!',
-            part2: ' A solo un toque',
-        },
-        workspaceChatCreate: {
-            part1: 'Envía tus',
-            part2: ' gastos',
-            part3: ' aquí',
-        },
-        searchFilterButtonTooltip: {
-            part1: 'Personaliza tu búsqueda',
-            part2: ' aquí!',
         },
         bottomNavInboxTooltip: {
             part1: 'Tu lista de tareas',
