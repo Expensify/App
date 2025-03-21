@@ -53,6 +53,7 @@ import {
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getIOUReportIDFromReportActionPreview,
+    getJoinRequestMessage,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
@@ -932,6 +933,18 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDeleteMemberMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(action)} />;
+        } else if (isActionableJoinRequest(action)) {
+            children = (
+                <View>
+                    <ReportActionItemBasicMessage message={getJoinRequestMessage(action)} />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            layout={isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
+                        />
+                    )}
+                </View>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE)) {
             children = <ReportActionItemBasicMessage message={getDemotedFromWorkspaceMessage(action)} />;
         } else if (
