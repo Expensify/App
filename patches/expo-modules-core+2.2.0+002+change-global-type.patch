@@ -1,0 +1,13 @@
+diff --git a/node_modules/expo-modules-core/build/ts-declarations/global.d.ts b/node_modules/expo-modules-core/build/ts-declarations/global.d.ts
+index 6ec6769..5374ce4 100644
+--- a/node_modules/expo-modules-core/build/ts-declarations/global.d.ts
++++ b/node_modules/expo-modules-core/build/ts-declarations/global.d.ts
+@@ -58,7 +58,7 @@ export interface ExpoProcessEnv {
+     EXPO_BASE_URL?: string;
+     /** Build-time representation of the `Platform.OS` value that the current JavaScript was bundled for. Does not support platform shaking wrapped require statements. */
+     EXPO_OS?: string;
+-    [key: string]: any;
++    [key: string]: string;
+ }
+ export interface ExpoProcess {
+     env: ExpoProcessEnv;
