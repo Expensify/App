@@ -1,228 +1,175 @@
 ---
-title: Add an expense
-description: Create a new expense in Expensify
+title: add-an-expense.md
+description: Learn how to add, edit, and manage expenses in Expensify, including SmartScans, per diems, mileage, and group expenses.
+keywords: [Expensify Classic, add expense, add expense to a report, SmartScan, per diem, mileage, group expense, receipts, upload receipts, distance tracking, bulk expense upload]
+---
+<div id="expensify-classic" markdown="1">
+
+Add, track, and manage all types of expenses in Expensify—from SmartScanned receipts to mileage, per diems, and group costs. This guide walks through all your options.
+
 ---
 
-You can add an expense automatically with SmartScan or enter the expense details manually.
+# Add an Expense with SmartScan
 
-# SmartScan a receipt
+💡 **Things to know when SmartScanning expenses:** 💡
+- You can edit any scanned receipt by tapping **Fill out details myself** to update the merchant, date, total, currency, category, description, attendees, report, or reimbursement settings.
+- On iPhone, hard-press the Expensify app icon to open the camera shortcut.
+- You can also email receipts to **receipts@expensify.com** from any email associated with your account. SmartScan will auto-fill the details and upload the receipt to your **Expenses** tab.
+- **Note for copilots:** To send a receipt to the account you're copiloting, email **receipts@expensify.com** with the copilot's email as the subject line.
 
-{% include selector.html values="desktop, mobile" %}
+**On Desktop:**
+1. Go to the **Expenses** tab.
+2. Click the **+** icon and select **Scan receipt**.
+3. Upload a saved image of the receipt.
 
-{% include option.html value="desktop" %}
+**On Mobile:**
+1. Open the mobile app and tap the camera icon.
+2. Choose how to upload:
+   - **Upload photo**: Tap the photo icon (bottom left).
+   - **Take photo**: Tap the camera icon (bottom right). Choose:
+     - **Normal mode** – scan one receipt.
+     - **Rapid Fire mode** – scan multiple receipts in a row.
 
-You can upload pictures of your receipts to Expensify and SmartScan will automatically capture the receipt details including the merchant, date, total, and currency.
+---
 
-1. Click the **Expenses** tab. 
-2. Click the + icon in the top right and select **Scan receipt**. 
-3. Upload a saved image of a receipt. 
+# Add a Per Diem Expense
 
-{% include end-option.html %}
+**To add a per diem expense:**
+1. Go to the **Expenses** tab.
+2. Click **New Expense** > **Per Diem**.
+3. Choose your travel destination.
+   - For multi-stop trips, create a separate expense per destination.
+4. Enter the trip start/end dates and times.
+5. Select a sub-rate (options vary based on trip duration).
+6. Fill in other details (category, report, description) and click **Save**.
 
-{% include option.html value="mobile" %}
+A **per diem** is a fixed daily allowance for business travel expenses like meals and lodging.
 
-You can use the Expensify mobile app to take a picture of your receipts and SmartScan will automatically capture the receipt details including the merchant, date, total, and currency.
+**Note:** Per diem must be enabled by a Workspace Admin. If this option is unavailable, contact your Workspace Admin to update the per diem settings.
 
-1. Open the mobile app and tap the camera icon in the bottom right corner.
-2. Upload or take a photo of your receipt. 
-   - **To upload a photo** of a receipt you have saved on your phone, tap the photo icon in the left corner. 
-   - **To take a photo**, tap the camera icon in the right corner to select the mode, make sure all of the transaction details are clearly visible,and then take the photo. 
-      - Normal Mode: Upload one receipt. 
-      - Rapid Fire Mode: Upload multiple receipts at once. 
+---
 
-You can open any receipt and click **Fill out details myself** to add or edit the merchant, date, current, total, description, category, or add attendees for group expenses. You can also add the expense to a report, determine if it is a reimbursable expense, or split the expense if multiple expense categories are included on one receipt. 
+# Add a Mileage (Distance) Expense
 
-{% include info.html %}
-**For iPhones**: You can also hard press the Expensify app icon on your phone to open a shortcut that automatically opens the camera to SmartScan a receipt. 
-{% include end-info.html %}
+Track business travel with distance-based expenses using one of these methods. Mileage rates are set in your [workspace distance settings](https://help.expensify.com/articles/expensify-classic/workspaces/Set-time-and-distance-rates). Only a Workspace Admin can update them.
 
-{% include end-option.html %}
+**On Desktop:**
+1. Go to the **Expenses** tab.
+2. Click **New Expense**.
+3. Choose:
+   - **Manually create**
+     - Enter miles, select rate, optional category/description/report.
+     - Click **Save**.
+   - **Create from map**
+     - Add locations (Point A → Point B).
+     - Optional: Add extra destinations.
+     - Leave **Create Receipt** checked to include a map.
+     - Select your rate, category, description, and report.
+     - Click **Save**.
 
-{% include end-selector.html %}
+**On Mobile:**
+1. Tap the **+** icon.
+2. Under **Distance**, select:
+   - **Manually create** – enter miles and rate. Tap **More options** for category, description, report.
+   - **Odometer** – enter pre/post trip readings and rate. Tap **More options** to complete.
+3. Tap **Save**.
 
-You can also email receipts to SmartScan by sending them to receipts@expensify.com from an email address tied to your Expensify account (either a primary or secondary email). SmartScan will automatically pull all of the details from the receipt, fill them in for you, and add the receipt to the Expenses tab on your account. 
+## Available options for tracking distance
+- **Web app**
+  - **Manually create** – enter trip miles and rate.
+  - **Create from map** – auto-calculate distance using start/endpoints.
+- **Mobile app**
+  - **Manually create** – enter miles and rate.
+  - **Odometer** – log before/after readings.
+  - **Start GPS** – currently unavailable.
 
-{% include info.html %}
-**For copilots**: To ensure a receipt is routed to the Expensify account you are copiloting instead of your own account, email the receipt to receipts@expensify.com with the email address of the account you are copiloting as the subject line of the email. 
-{% include end-info.html %}
+---
 
-# Add a per diem expense
+# Add a Group Expense
 
-A per diem (also called “per diem allowance” or “daily allowance”) is a fixed daily payment provided by an employer to cover expenses during business or work-related travel. These allowances simplify travel expense tracking and reimbursement for meals, lodging, and incidental expenses. 
+Use **Attendee Tracking** to note who participated in a group event. The cost is split evenly. Split the expense first to assign different amounts.
 
-{% include info.html %}
-Before you can add a per diem expense, a Workspace Admin must [enable per diem expenses](https://help.expensify.com/articles/expensify-classic/workspaces/Enable-per-diem-expenses) for the workspace and add the per diem rates. If you do not see an option for per diem rates, it is currently unavailable for your workspace, and you’ll need to reach out to one of your Workspace Admins for guidance.
-{% include end-info.html %}
-
-To add a per diem expense,
-
-1. Click the **Expenses** tab.
-2. Click **New Expense** and choose **Per Diem**.
-3. Select your travel destination. 
-   - If your trip involves multiple stops, create a separate per diem expense for each destination. 
-4. Select the start date, end date, start time, and end time for the trip. 
-5. Select a sub-rate. The available sub-rates are dependent on the trip duration. 
-   - You can include meal deductions or overnight lodging costs if allowed by your workspace.
-6. Enter any other required coding information, such as the category, description, or report, and click **Save**.
-
-# Add a mileage expense
-
-You can track your mileage-related expenses by logging your trips in Expensify. You have a couple of different options for logging distance:
-
-- Web app: 
-   - **Manually create**: Manually enter the number of miles for the trip 
-   - **Create from map**: Automatically determine the trip distance based on the start and end location.
-- Mobile app: 
-   - **Manually create**: Manually enter the miles for the trip and your mileage rate
-   - **Odometer**: Enter your odometer reading before and after the trip
-   - **Start GPS**: Currently under development and unavailable for use. 
-
-{% include info.html %}
-When adding a distance expense, the rates available are determined by the rates set in your [workspace rate settings](https://help.expensify.com/articles/expensify-classic/workspaces/Set-time-and-distance-rates). To update these rates or add a new rate, you must be a Workspace Admin. 
-{% include end-info.html %}
-
-{% include selector.html values="desktop, mobile" %}
-
-{% include option.html value="desktop" %}
-
-1. Click the **Expenses** tab. 
-2. Click **New Expense**. 
-3. Select the expense type. 
-   - **Manually create**:
-      - Enter the number of miles for the trip.
-      - Select your rate. 
-      - If desired, select the category, add a description, or select a report to add the expense to.  
-      - Click **Save**.
-   - **Create from map**:
-      - Add your start location as point A. 
-      - Add your end location as point B. 
-      - If applicable, click **Add Destination** to add additional stops.
-      - To generate a map receipt, leave the Create Receipt checkbox selected.
-      - Click **Save**.
-      - Select your rate.
-      - If desired, select the category, add a description, or select a report to add the expense to. 
-      - Click **Save**.
-
-{% include end-option.html %}
-
-{% include option.html value="mobile" %}
-
-1. Click the + icon in the top right corner.
-2. Under the Distance section, select the expense type. 
-   - **Manually create**: 
-      - Enter your mileage.
-      - Select your rate.
-      - If desired, click **More Options** to select the category, add a description, or select a report to add the expense to. 
-      - Click **Save**.
-   - **Odometer**: 
-      - Enter your vehicle’s odometer reading before the trip.  
-      - Enter your vehicle’s odometer reading after the trip. 
-      - Select your rate.
-      - If desired, click **More Options** to select the category, add a description, or select a report to add the expense to. 
-      - Click **Save**.
-{% include end-option.html %}
-
-{% include end-selector.html %}
-
-# Add a group expense
-
-Capture group and event expenses with Attendee Tracking by documenting who attended and the cost per attendee. The amount is always divided evenly between all attendees—different amounts cannot be allocated to specific attendees. To divide the amounts differently, you’ll first have to split the expense. 
-
-{% include info.html %}
-Attendees added to an expense will not be notified that they were added to an expense, nor will they share in the expense or be requested to pay for any portion of the expense. 
-{% include end-info.html %}
-
-{% include selector.html values="desktop, mobile" %}
-
-{% include option.html value="desktop" %}
-1. Click the **Expenses** tab. 
-2. Click the expense you want to add attendees to.
-3. Click the attendees field and enter the name or email address of the attendee.
-   - If the attendee is a member of your workspace, you can select their name from the list. 
-   - If the attendee is not a member of your workspace, enter their full name or email address and press Enter on your keyboard to add them as a new attendee. 
+**On Desktop:**
+1. Go to the **Expenses** tab.
+2. Open an expense and click the **Attendees** field.
+3. Type a name or email:
+   - Select from the list if they’re in your workspace.
+   - Or, press Enter to add a new name/email.
 4. Click **Save**.
 
-Once added, you’ll also see the list of attendees in the expense overview on the Expenses tab. To see the cost per employee, hover over the receipt total. These details are also available on any report that you add the expense to.
-{% include end-option.html %}
+**On Mobile:**
+1. Tap the **Expenses** tab.
+2. Open an expense and scroll to **More Options**.
+3. Tap the **Attendees** field and add names/emails.
+4. Tap **Save**.
 
-{% include option.html value="mobile" %}
-1. Tap the **Expenses** tab. 
-2. Tap the expense you want to add attendees to.
-3. Scroll down to the bottom and tap **More Options**.
-4. Tap the attendees field and enter the name or email address of the attendee. 
-   - If the attendee is a member of your workspace, you can select their name from the list. 
-   - If the attendee is not a member of your workspace, enter their full name or email address and press Enter on your keyboard to add them as a new attendee. 
-5. Tap **Save**.
+Hover over the receipt total to see the cost per person. Attendee info also appears in reports.
 
-Attendees will also be listed on any report that you add the expense to. 
- 
-{% include end-option.html %}
+**Note:** Attendees won’t be notified or asked to share the expense.
 
-{% include end-selector.html %}
+---
 
-# Add expenses in bulk
+# Add Multiple Expenses at Once
 
-You can upload bulk receipt images or add receipt details in bulk.
+## SmartScan Multiple Receipt Images
+**On Desktop:**
+1. Go to the **Expenses** tab.
+2. Drag and drop up to 10 receipts or PDFs anywhere with a green plus icon.
 
-## SmartScan receipt images in bulk
+**On Mobile:**
+1. Open the app and tap the camera icon.
+2. Select **Rapid Fire mode**.
+3. Take clear photos of each receipt.
+4. Tap the **X** to exit once done.
 
-{% include selector.html values="desktop, mobile" %}
+## Manually Create Multiple Expenses (desktop only)
+1. Go to the **Expenses** tab.
+2. Click **New Expense** > **Create Multiple**.
+3. Enter up to 10 expense lines and click **Save**.
 
-{% include option.html value="desktop" %}
-1. Click the **Expenses** tab.
-2. Drag and drop up to 10 images or PDF receipts at once from your computer’s files. You can drop them anywhere on the Expense page where you see a green plus icon next to your mouse cursor. 
-{% include end-option.html %}
+## Upload Personal Card Expenses via file (desktop only)
+1. Go to **Settings > Account > Wallet**.
+2. Under **Personal Cards**, click **Import Transactions from File**.
+3. Upload a file in .csv, .xls, .ofx, or .qfx format.
 
-{% include option.html value="mobile" %}
-1. Open the mobile app and tap the camera icon in the bottom right corner.
-2. Tap the camera icon in the right corner to select the Rapid Fire mode. 
-3. Take a clear photo of each receipt. 
-4. When all receipts are captured, tap the X in the left corner to close the camera. 
-{% include end-option.html %}
+---
 
-{% include end-selector.html %}
+# Add Expenses to a Report
+Add your expenses to a report to submit them for approval and reimbursement.
 
-## Manually add receipt details in bulk
+**To include expenses on a report:**
+1. Go to the **Expenses** tab.
+2. Use filters or search to find the expenses you want to add.
+3. Check the box next to each expense to select them.
+4. Click **Add to Report** in the upper-right corner.
+5. Choose one of the following options:
+   - **Auto-Report** – Adds expenses to an open report or creates a new one if none exist.
+   - **New Report** – Creates a brand-new report with the selected expenses.
+   - **Existing Report** – Adds expenses to a report you choose.
+   - **None** – Removes selected expenses from any report, as long as the report hasn’t been submitted.
 
-*Note: This process is currently not available from the mobile app and must be completed from the Expensify website.*
+---
 
-1. Click the **Expenses** tab.
-2. Click **New Expense** and select **Create Multiple**.
-3. Enter the expense details for up to 10 expenses and click **Save**. 
+# FAQ
 
-## Upload personal expenses via CSV, XLS, etc.
+## What’s the difference between reimbursable, non-reimbursable, and billable expenses?
 
-*Note: This process is currently not available from the mobile app and must be completed from the Expensify website.*
+- **Reimbursable**: Paid by an employee and reimbursed by the company.
+  - Cash or personal card purchases
+  - Per diem (daily allowance)
+  - Time (hourly billing)
+  - Distance (mileage)
+- **Non-reimbursable**: Paid with company funds (e.g., company card).
+- **Billable**: Expenses billed to a client or customer. Can be reimbursable or not.
 
-1. Hover over Settings, then click **Account**. 
-2. Click the **Credit Card Import** tab. 
-3. Under Personal Cards, click **Import Transactions from File**. 
-4. Click **Upload** and select a .csv, .xls, .ofx, or a .qfx file.
+**Note:** Employees under a workspace may have expenses auto-labeled. Ask a Workspace Admin if anything looks incorrect.
 
-{% include faq-begin.md %}
+## Why don’t I see a certain expense type?
 
-**What’s the difference between a reimbursable and non-reimbursable expense?**
+Your company’s workspace settings may limit what expense types are visible to you.
 
-- **Reimbursable expenses**: Expenses that the company has agreed to pay you back for. This may include: 
-    - Cash & personal card: Expenses paid for by the employee on behalf of the business.
-    - Per diem: Expenses for a daily or partial daily rate [configured in your Workspace](https://help.expensify.com/articles/expensify-classic/workspaces/Enable-per-diem-expenses).
-    - Time: An hourly rate for your employees or jobs as [set for your workspace](https://help.expensify.com/articles/expensify-classic/workspaces/Set-time-and-distance-rates). This expense type is usually used by contractors or small businesses billing the customer via [Expensify Invoicing](https://help.expensify.com/articles/expensify-classic/workspaces/Set-Up-Invoicing).
-    - Distance: Expenses related to business travel.
-- **Non-reimbursable expenses**: Expenses are things you pay for with company money that need to be documented for accounting purposes (like a lunch paid for with a company card).
-- **Billable expenses**: Business or employee expenses that must be billed to a specific client or vendor. This option is for tracking expenses for invoicing to customers, clients, or other departments. Any kind of expense can be billable, in _addition_ to being either reimbursable or non-reimbursable.
+## Can I edit a per diem expense?
 
-You can also see a breakdown of these expense types on your report and can even organize the report by them.
+No. Per diem expenses can't be changed once created. You’ll need to delete and recreate the expense.
 
-{% include info.html %}
-If you are an employee under a company workspace, your expenses may automatically be configured as reimbursable or non-reimbursable depending on the details that are entered. If an expense is incorrectly labeled, you must reach out to an admin to have it corrected.
-{% include end-info.html %}
-
-**Why don't I see the option for one of these types of expenses?**
-
-If you are an employee under a company workspace, you may not see all of the different expense type options depending on your company’s workspace settings.
-
-**How do I edit my per diem expenses?**
-
-Per diem expenses cannot be amended. To make changes, you must delete the expense and recreate it.
-
-{% include faq-end.md %}
+</div>
