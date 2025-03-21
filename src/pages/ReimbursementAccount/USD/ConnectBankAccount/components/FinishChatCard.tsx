@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {requestResetBankAccount} from '@userActions/BankAccounts';
@@ -28,6 +29,8 @@ type FinishChatCardProps = {
 function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBankAccountStep}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     const policyID = reimbursementAccount?.achData?.policyID;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
@@ -55,7 +58,8 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                     icon={RotateLeft}
                     onPress={requestResetBankAccount}
                     shouldShowRightIcon
-                    wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                    wrapperStyle={styles.mv3}
+                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                 />
             </Section>
             {!requiresTwoFactorAuth && <Enable2FACard policyID={policyID} />}
