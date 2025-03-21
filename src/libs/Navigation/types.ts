@@ -102,6 +102,7 @@ type SettingsNavigatorParamList = {
         forwardTo?: Routes;
     };
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
@@ -966,6 +967,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_CUSTOM]: {

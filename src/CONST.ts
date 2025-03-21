@@ -390,6 +390,7 @@ const CONST = {
     ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
     ANIMATED_PROGRESS_BAR_DURATION: 750,
     ANIMATION_IN_TIMING: 100,
+    COMPOSER_FOCUS_DELAY: 150,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -430,6 +431,8 @@ const CONST = {
 
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
+
+    API_TRANSACTION_TAG_MAX_LENGTH: 255,
 
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
@@ -782,6 +785,7 @@ const CONST = {
         NSQS: 'nsqs',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
+        RECEIPT_LINE_ITEMS: 'receiptLineItems',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1320,6 +1324,11 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
+        },
+        TRANSACTION_LIST: {
+            COLUMNS: {
+                COMMENTS: 'comments',
+            },
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
@@ -5004,6 +5013,7 @@ const CONST = {
     EVENTS: {
         SCROLLING: 'scrolling',
     },
+    SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
@@ -5144,6 +5154,7 @@ const CONST = {
         MISSING_TAG: 'missingTag',
         MODIFIED_AMOUNT: 'modifiedAmount',
         MODIFIED_DATE: 'modifiedDate',
+        PROHIBITED_EXPENSE: 'prohibitedExpense',
         NON_EXPENSIWORKS_EXPENSE: 'nonExpensiworksExpense',
         OVER_AUTO_APPROVAL_LIMIT: 'overAutoApprovalLimit',
         OVER_CATEGORY_LIMIT: 'overCategoryLimit',
@@ -6509,7 +6520,7 @@ const CONST = {
         CASH_BACK: 'earnedCashback',
     },
 
-    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
+    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN, SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT] as string[],
 
     CANCELLATION_TYPE: {
         MANUAL: 'manual',
@@ -6705,6 +6716,7 @@ const CONST = {
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
+        HAS_QBO_EXPORT_ERROR: 'hasQBOExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
         HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
         HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
@@ -6815,11 +6827,10 @@ const CONST = {
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
-        QUICK_ACTION_BUTTON: 'quickActionButton',
-        WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
-        SEARCH_FILTER_BUTTON_TOOLTIP: 'filterButtonTooltip',
         BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
@@ -6860,6 +6871,8 @@ const CONST = {
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
     ILLUSTRATION_ASPECT_RATIO: 39 / 22,
+
+    OFFLINE_INDICATOR_HEIGHT: 25,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

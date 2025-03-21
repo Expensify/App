@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors, isValidTaxID} from '@libs/ValidationUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -57,6 +58,7 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
             disabled={shouldDisableCompanyTaxID}
             shouldShowHelpLinks={false}
             placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
+            inputMode={CONST.INPUT_MODE.NUMERIC}
         />
     );
 }

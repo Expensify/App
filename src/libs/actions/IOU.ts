@@ -5,6 +5,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
@@ -677,6 +678,19 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
 });
+
+/**
+ * @private
+ * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
+ * It is a helper function used only in this file.
+ */
+function dismissModalAndOpenReportInInboxTab(reportID?: string) {
+    if (isSearchTopmostFullScreenRoute() || !reportID) {
+        Navigation.dismissModal();
+        return;
+    }
+    Navigation.dismissModalWithReport({reportID});
+}
 
 /**
  * Find the report preview action from given chat report and iou report
@@ -4595,6 +4609,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
+        policyName: createdWorkspaceParams?.policyName,
         description: transactionParams.comment,
     };
 
@@ -4757,7 +4772,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     }
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    dismissModalAndOpenReportInInboxTab(activeReportID);
 
     const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
     if (trackReport?.key) {
@@ -4841,7 +4856,8 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    dismissModalAndOpenReportInInboxTab(activeReportID);
+
     if (activeReportID) {
         notifyNewAction(activeReportID, payeeAccountID);
     }
@@ -4908,7 +4924,7 @@ function sendInvoice(
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.dismissModal();
     } else {
-        Navigation.dismissModalWithReport(invoiceRoom);
+        Navigation.dismissModalWithReport({report: invoiceRoom});
     }
 
     notifyNewAction(invoiceRoom.reportID, receiver.accountID);
@@ -5134,7 +5150,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    dismissModalAndOpenReportInInboxTab(activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
         if (isSearchTopmostFullScreenRoute() && activeReportID) {
@@ -5471,7 +5487,7 @@ function createSplitsAndOnyxData({
         }
 
         // STEP 3: Build optimistic transaction
-        const oneOnOneTransaction = buildOptimisticTransaction({
+        let oneOnOneTransaction = buildOptimisticTransaction({
             originalTransactionID: splitTransaction.transactionID,
             transactionParams: {
                 amount: isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
@@ -5488,6 +5504,10 @@ function createSplitsAndOnyxData({
                 source: CONST.IOU.TYPE.SPLIT,
             },
         });
+
+        if (isDistanceRequest) {
+            oneOnOneTransaction = fastMerge(existingTransaction, oneOnOneTransaction, false);
+        }
 
         // STEP 4: Build optimistic reportActions. We need:
         // 1. CREATED action for the chatReport
@@ -5713,7 +5733,8 @@ function splitBill({
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : existingSplitChatReportID);
+    dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
+
     notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -5786,7 +5807,7 @@ function splitBillAndOpenReport({
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : splitData.chatReportID);
+    dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
     notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -6105,7 +6126,7 @@ function startSplitBill({
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
-    Navigation.dismissModalWithReport(splitChatReport);
+    Navigation.dismissModalWithReport({report: splitChatReport});
     notifyNewAction(splitChatReport.reportID, currentUserAccountID);
 }
 
@@ -6367,7 +6388,7 @@ function completeSplitBill(
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : chatReportID);
+    dismissModalAndOpenReportInInboxTab(chatReportID);
     notifyNewAction(chatReportID, sessionAccountID);
 }
 
@@ -6550,7 +6571,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    dismissModalAndOpenReportInInboxTab(activeReportID);
     notifyNewAction(activeReportID, userAccountID);
 }
 
@@ -8251,7 +8272,7 @@ function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number,
 
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : params.chatReportID);
+    dismissModalAndOpenReportInInboxTab(params.chatReportID);
     notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -8264,7 +8285,7 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
 
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : params.chatReportID);
+    dismissModalAndOpenReportInInboxTab(params.chatReportID);
     notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -8346,10 +8367,7 @@ function canIOUBePaid(
     }
 
     if (isInvoiceReportReportUtils(iouReport)) {
-        if (isOpenInvoiceReportReportUtils(iouReport)) {
-            return false;
-        }
-        if (iouSettled) {
+        if (isChatReportArchived || iouSettled || isOpenInvoiceReportReportUtils(iouReport)) {
             return false;
         }
         if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
@@ -9092,7 +9110,14 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     notifyNewAction(Navigation.getTopmostReportId() ?? iouReport?.reportID, userAccountID);
 }
 
-function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxEntry<OnyxTypes.Report>, payAsBusiness = false) {
+function payInvoice(
+    paymentMethodType: PaymentMethodType,
+    chatReport: OnyxTypes.Report,
+    invoiceReport: OnyxEntry<OnyxTypes.Report>,
+    payAsBusiness = false,
+    methodID?: number,
+    paymentMethod?: PaymentMethod,
+) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
         optimisticData,
@@ -9121,6 +9146,14 @@ function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.
         paymentMethodType,
         payAsBusiness,
     };
+
+    if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        params.bankAccountID = methodID;
+    }
+
+    if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        params.fundID = methodID;
+    }
 
     if (policyID) {
         params = {
