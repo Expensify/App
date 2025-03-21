@@ -136,10 +136,10 @@ function setClipboardMessage(content: string | undefined) {
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(Parser.htmlToMarkdown(content));
     } else {
-        const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
-        const isAnchorTag = anchorRegex.test(content);
-        const plainText = isAnchorTag ? Parser.htmlToMarkdown(content) : Parser.htmlToText(content);
-        Clipboard.setHtml(content, plainText);
+        // Use markdown format text for the plain text(clipboard type "text/plain") to ensure consistency across all platforms.
+        // More info: https://github.com/Expensify/App/issues/53718
+        const markdownText = Parser.htmlToMarkdown(content);
+        Clipboard.setHtml(content, markdownText);
     }
 }
 
@@ -150,7 +150,7 @@ type ShouldShow = (args: {
     betas: OnyxEntry<Beta[]>;
     menuTarget: MutableRefObject<ContextMenuAnchor> | undefined;
     isChronosReport: boolean;
-    reportID: string;
+    reportID?: string;
     isPinnedChat: boolean;
     isUnreadChat: boolean;
     isThreadReportParentAction: boolean;
@@ -269,7 +269,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         textTranslateKey: 'reportActionContextMenu.replyInThread',
         icon: Expensicons.ChatBubbleReply,
         shouldShow: ({type, reportAction, reportID, isThreadReportParentAction}) => {
-            if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION) {
+            if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !reportID) {
                 return false;
             }
             return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction);
@@ -685,7 +685,11 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             const activeRoute = Navigation.getActiveRoute();
             if (closePopover) {
-                hideContextMenu(false, () => Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute)));
+                hideContextMenu(false, () => {
+                    KeyboardUtils.dismiss().then(() => {
+                        Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
+                    });
+                });
                 return;
             }
 
@@ -755,12 +759,15 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Trashcan,
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID, moneyRequestAction}) =>
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
+            !!reportID &&
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            canDeleteReportAction(moneyRequestAction ?? reportAction, reportID) &&
+            canDeleteReportAction(moneyRequestAction ?? reportAction, isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : reportID) &&
             !isArchivedRoom &&
             !isChronosReport &&
             !isMessageDeleted(reportAction),
-        onPress: (closePopover, {reportID, reportAction, moneyRequestAction}) => {
+        onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID || reportIDParam : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));

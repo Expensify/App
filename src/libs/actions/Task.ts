@@ -115,7 +115,7 @@ function clearOutTaskInfo(skipConfirmation = false) {
  * 3b. The TaskReportAction on the assignee chat report
  */
 function createTaskAndNavigate(
-    parentReportID: string,
+    parentReportID: string | undefined,
     title: string,
     description: string,
     assigneeEmail: string,
@@ -124,6 +124,10 @@ function createTaskAndNavigate(
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     isCreatedUsingMarkdown = false,
 ) {
+    if (!parentReportID) {
+        return;
+    }
+
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, parentReportID, assigneeAccountID, title, description, policyID);
 
     const assigneeChatReportID = assigneeChatReport?.reportID;
@@ -321,7 +325,7 @@ function createTaskAndNavigate(
         parentReportID,
         taskReportID: optimisticTaskReport.reportID,
         createdTaskReportActionID: optimisticTaskCreatedAction.reportActionID,
-        title: optimisticTaskReport.reportName,
+        htmlTitle: optimisticTaskReport.reportName,
         description: optimisticTaskReport.description,
         assignee: assigneeEmail,
         assigneeAccountID,
@@ -336,7 +340,7 @@ function createTaskAndNavigate(
         InteractionManager.runAfterInteractions(() => {
             clearOutTaskInfo();
         });
-        Navigation.dismissModal(parentReportID);
+        Navigation.dismissModalWithReport({reportID: parentReportID});
     }
     notifyNewAction(parentReportID, currentUserAccountID);
 }
@@ -544,8 +548,10 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
 
-    // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
-    const reportName = (title ?? report?.reportName)?.trim();
+    // Ensure title is defined before parsing it with getParsedComment. If title is undefined, fall back to reportName from report.
+    // Trim the final parsed title for consistency.
+    const reportName = title ? ReportUtils.getParsedComment(title) : report?.reportName ?? '';
+    const parsedTitle = (reportName ?? '').trim();
 
     // Description can be unset, so we default to an empty string if so
     const newDescription = typeof description === 'string' ? ReportUtils.getParsedComment(description) : report.description;
@@ -561,7 +567,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
-                reportName,
+                reportName: parsedTitle,
                 description: reportDescription,
                 pendingFields: {
                     ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -582,6 +588,8 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
+                reportName: parsedTitle,
+                description: reportDescription,
                 pendingFields: {
                     ...(title && {reportName: null}),
                     ...(description && {description: null}),
@@ -608,7 +616,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 
     const parameters: EditTaskParams = {
         taskReportID: report.reportID,
-        title: reportName,
+        htmlTitle: parsedTitle,
         description: reportDescription,
         editedTaskReportActionID: editTaskReportAction.reportActionID,
     };
@@ -803,18 +811,13 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report, isOptimisticReport 
 }
 
 function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number) {
-    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport(
-        [assigneeAccountID, currentUserAccountID],
-        '',
-        undefined,
-        CONST.POLICY.OWNER_EMAIL_FAKE,
-        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-        false,
-        '',
-        undefined,
-        undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-    );
+    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport({
+        participantList: [assigneeAccountID, currentUserAccountID],
+        reportName: '',
+        policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
+        ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    });
 
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
@@ -924,7 +927,11 @@ function startOutCreateTaskQuickAction(reportID: string, targetAccountID: number
 /**
  * Get the assignee data
  */
-function getAssignee(assigneeAccountID: number, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee {
+function getAssignee(assigneeAccountID: number | undefined, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee | undefined {
+    if (!assigneeAccountID) {
+        return;
+    }
+
     const details = personalDetails?.[assigneeAccountID];
 
     if (!details) {

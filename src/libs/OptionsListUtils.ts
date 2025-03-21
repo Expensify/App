@@ -215,7 +215,7 @@ type GetOptionsConfig = {
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Attendee[];
-    excludeHiddenReports?: boolean;
+    excludeHiddenThreads?: boolean;
     canShowManagerMcTest?: boolean;
 } & GetValidReportsConfig;
 
@@ -533,11 +533,15 @@ function uniqFast(items: string[]): string[] {
 /**
  * Get the last actor display name from last actor details.
  */
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
-    return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null) {
+    if (!lastActorDetails) {
+        return '';
+    }
+
+    return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
-        : '';
+        : translateLocal('common.you');
 }
 
 /**
@@ -829,7 +833,7 @@ function createOption(
         subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
 
         const lastActorDetails = report.lastActorAccountID ? personalDetailMap[report.lastActorAccountID] : null;
-        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
 
@@ -1533,7 +1537,7 @@ function getValidOptions(
         selectedOptions = [],
         shouldSeparateSelfDMChat = false,
         shouldSeparateWorkspaceChat = false,
-        excludeHiddenReports = false,
+        excludeHiddenThreads = false,
         canShowManagerMcTest = false,
         ...config
     }: GetOptionsConfig = {},
@@ -1611,8 +1615,8 @@ function getValidOptions(
         });
     }
 
-    if (excludeHiddenReports) {
-        recentReportOptions = recentReportOptions.filter((option) => option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+    if (excludeHiddenThreads) {
+        recentReportOptions = recentReportOptions.filter((option) => !option.isThread || option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     }
 
     return {
@@ -1645,7 +1649,7 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
         includeTasks: true,
         includeSelfDM: true,
         shouldBoldTitleByDefault: !isUsedInChatFinder,
-        excludeHiddenReports: true,
+        excludeHiddenThreads: true,
     });
     const orderedOptions = orderOptions(optionList);
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2189,6 +2193,11 @@ function shouldUseBoldText(report: OptionData): boolean {
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
 }
 
+function getManagerMcTestParticipant(): Participant | undefined {
+    const managerMcTestPersonalDetails = Object.values(allPersonalDetails ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
+    return managerMcTestPersonalDetails ? getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails) : undefined;
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2244,7 +2253,7 @@ export {
     filterSelfDMChat,
     filterReports,
     getIsUserSubmittedExpenseOrScannedReceipt,
-    isSelectedManagerMcTest,
+    getManagerMcTestParticipant,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};
