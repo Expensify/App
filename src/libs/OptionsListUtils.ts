@@ -2254,6 +2254,7 @@ export {
     filterReports,
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
+    isSelectedManagerMcTest,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};
