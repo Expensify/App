@@ -76,7 +76,7 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
             isUnsupportedDeeplinkRoute ||
             hasShownPrompt ||
             isConnectionCompleteRoute ||
-            // CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV ||
+            CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV ||
             autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED ||
             isAnonymousUser()
         ) {
