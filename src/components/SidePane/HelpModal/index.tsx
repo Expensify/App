@@ -37,6 +37,7 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SEARCH, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.NEW_CHAT, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHORTCUTS, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.DEBUG, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
 
     // Web back button: push history state and close side pane on popstate
     useEffect(() => {
