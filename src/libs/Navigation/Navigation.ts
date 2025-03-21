@@ -556,20 +556,14 @@ const dismissModal = (ref = navigationRef) => {
  */
 const dismissModalWithReport = (navigateToReportPayload: NavigateToReportWithPolicyCheckPayload, ref = navigationRef) => {
     isNavigationReady().then(() => {
-        if (getIsNarrowLayout()) {
-            const topmostReportID = getTopmostReportId();
-            const areReportsIDsDefined = !!topmostReportID && !!navigateToReportPayload.reportID;
-            const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
-            if (topmostReportID === navigateToReportPayload.reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
-                dismissModal();
-                return;
-            }
-            const forceReplace = true;
-            navigateToReportWithPolicyCheck(navigateToReportPayload, forceReplace);
+        const topmostReportID = getTopmostReportId();
+        const areReportsIDsDefined = !!topmostReportID && !!navigateToReportPayload.reportID;
+        const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+        if (topmostReportID === navigateToReportPayload.reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
+            dismissModal();
             return;
         }
-        dismissModal();
-        navigateToReportWithPolicyCheck(navigateToReportPayload);
+        navigateToReportWithPolicyCheck(navigateToReportPayload, getIsNarrowLayout());
     });
 };
 
