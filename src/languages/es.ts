@@ -2002,8 +2002,8 @@ const translations = {
         goBackHome: 'Volver a la página principal',
     },
     errorPage: {
-        title: ({isBreakline}: {isBreakline: boolean}) => `Uy... ${isBreakline ? '\n' : ''}Algo salió mal`,
-        subtitle: 'No se ha podido completar su solicitud. Vuelva a intentarlo más tarde',
+        title: ({isBreakline}: {isBreakline: boolean}) => `Ups... ${isBreakline ? '\n' : ''}Algo no ha ido bien`,
+        subtitle: 'No se ha podido completar la acción. Por favor, inténtalo más tarde.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
