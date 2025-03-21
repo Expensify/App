@@ -807,11 +807,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
  * Check if there is rter violation in all transactionViolations with given transactionIDs.
  */
 function hasRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
-    return !!transactionViolations?.every(
-        (violation: TransactionViolation) =>
-            violation.name === CONST.VIOLATIONS.RTER &&
-            (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530),
-    );
+    return !!transactionViolations?.every((violation: TransactionViolation) => isBrokenConnectionViolation(violation));
 }
 
 /**
