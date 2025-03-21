@@ -69,6 +69,7 @@ import {
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
+import colors from '@styles/theme/colors';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -422,27 +423,25 @@ function MoneyRequestReportPreviewContent({
             accessibilityRole="button"
             accessible
             accessibilityLabel="button"
-            style={{borderRadius: 50, width: 28, height: 28, backgroundColor: '#E6E1DA', alignItems: 'center', justifyContent: 'center', marginLeft: 4}}
+            style={{borderRadius: 50, width: 28, height: 28, backgroundColor: colors.productLight400, alignItems: 'center', justifyContent: 'center', marginLeft: 4}}
             onPress={() => handleChange(index)}
         >
             <Icon
                 src={src}
                 small
-                fill="#A1A9A3"
+                fill={colors.productLight700}
                 isButtonIcon
             />
         </PressableWithFeedback>
     );
 
-    const invisibleTransactions = () => (
-        <View style={{flex: 1, padding: 20, justifyContent: 'center'}}>
-            <Text style={{color: '#0164BF'}}>+{transactions.length - 10} more</Text>
-        </View>
-    );
-
     const renderFlatlistItem = (itemInfo: ListRenderItemInfo<Transaction>) => {
-        if (itemInfo.index > 4) {
-            return invisibleTransactions();
+        if (itemInfo.index > 9) {
+            return (
+                <View style={[styles.flex1, styles.p5, styles.justifyContentCenter]}>
+                    <Text style={{color: colors.blue600}}>+{transactions.length - 10} more</Text>
+                </View>
+            );
         }
         if (renderItem) {
             return renderItem(itemInfo);
@@ -473,7 +472,7 @@ function MoneyRequestReportPreviewContent({
                 >
                     <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined, {maxWidth: 680}]}>
                         <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
-                            <View style={[shouldShowSettlementButton ? {} : styles.expenseAndReportPreviewTextButtonContainer]}>
+                            <View style={[shouldUseNarrowLayout ? styles.gap3 : styles.expenseAndReportPreviewTextButtonContainer]}>
                                 <View style={[styles.expenseAndReportPreviewTextContainer]}>
                                     <View style={[styles.flexRow]}>
                                         <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
@@ -500,7 +499,7 @@ function MoneyRequestReportPreviewContent({
                                                 />
                                             </Animated.View>
                                         )}
-                                        {shouldUseNarrowLayout && (
+                                        {!shouldUseNarrowLayout && (
                                             <View style={[styles.flexRow, {alignItems: 'center'}]}>
                                                 <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, {marginRight: 4}]}>{supportText}</Text>
                                                 {arrowComponent(Expensicons.BackArrow, currentIndex)}
@@ -520,38 +519,29 @@ function MoneyRequestReportPreviewContent({
                                         )}
                                     </View>
                                 </View>
-                                <View style={{flex: 1, flexDirection: 'column', overflow: 'visible', marginHorizontal: -16, paddingHorizontal: 16, overflowY: 'hidden'}}>
+                                <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible]}>
                                     <FlatList
                                         horizontal
-                                        data={transactions}
+                                        data={transactions.slice(0, 11)}
                                         ref={flatListRef}
                                         nestedScrollEnabled
                                         scrollEnabled
                                         keyExtractor={(item) => item.transactionID}
                                         contentContainerStyle={[styles.gap2]}
-                                        style={{marginHorizontal: -16, paddingHorizontal: 16}}
+                                        style={[styles.mhn4, styles.ph4]}
                                         showsHorizontalScrollIndicator={false}
-                                        // pagingEnabled
                                         renderItem={renderFlatlistItem}
                                         onViewableItemsChanged={onViewableItemsChanged}
-                                        // snapToOffsets={snapToOffsetsLikeGooglePlay}
                                     />
                                 </View>
                                 {shouldUseNarrowLayout && (
-                                    <View style={{flexDirection: 'row', alignSelf: 'center', alignContent: 'center', gap: 8, marginTop: -4, marginBottom: -4}}>
-                                        {transactions.slice(0, 5).map((item, index) => (
+                                    <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
+                                        {transactions.slice(0, 11).map((item, index) => (
                                             <PressableWithFeedback
                                                 accessibilityRole="button"
                                                 accessible
                                                 accessibilityLabel="button"
-                                                style={{
-                                                    borderRadius: 50,
-                                                    width: 8,
-                                                    height: 8,
-                                                    backgroundColor: index === currentIndex ? '#A1A9A3' : '#E6E1DA',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                }}
+                                                style={styles.carouselDots(index, currentIndex)}
                                                 onPress={() => setIndex(index)}
                                             />
                                         ))}

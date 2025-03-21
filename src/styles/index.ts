@@ -5503,6 +5503,14 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
+        carouselDots: (thisDotIndex: number, currentIndex: number) => ({
+            borderRadius: 50,
+            width: 8,
+            height: 8,
+            backgroundColor: thisDotIndex === currentIndex ? colors.productLight700 : colors.productLight400,
+            alignItems: 'center',
+            justifyContent: 'center',
+        }),
 
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
