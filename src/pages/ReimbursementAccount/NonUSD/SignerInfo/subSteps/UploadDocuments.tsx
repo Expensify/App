@@ -33,7 +33,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const currency = policy?.outputCurrency ?? '';
-    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
 
     const copyOfIDInputID = `${SIGNER_PREFIX}_${COPY_OF_ID}` as const;
