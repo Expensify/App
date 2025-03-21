@@ -2,67 +2,17 @@ import React from 'react';
 import {View} from 'react-native';
 import type {ListRenderItem, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
-
-type MoneyRequestReportPreviewProps = {
-    /** The report's policyID, used for Onyx subscription */
-    policyID: string | undefined;
-
-    /** All the data of the action */
-    action: ReportAction;
-
-    /** The associated chatReport */
-    chatReportID: string | undefined;
-
-    /** The active IOUReport, used for Onyx subscription */
-    iouReportID: string | undefined;
-
-    /** Extra styles to pass to View wrapper */
-    containerStyles?: StyleProp<ViewStyle>;
-
-    /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor?: ContextMenuAnchor;
-
-    /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive?: () => void;
-
-    /** Callback when the payment options popover is shown */
-    onPaymentOptionsShow?: () => void;
-
-    /** Callback when the payment options popover is closed */
-    onPaymentOptionsHide?: () => void;
-
-    /** Whether a message is a whisper */
-    isWhisper?: boolean;
-
-    /** Whether the corresponding report action item is hovered */
-    isHovered?: boolean;
-};
-
-type MoneyRequestReportPreviewContentOnyxProps = {
-    chatReport: OnyxEntry<Report>;
-    invoiceReceiverPolicy: OnyxEntry<Policy>;
-    iouReport: OnyxEntry<Report>;
-    transactions: Transaction[];
-    violations: OnyxCollection<TransactionViolation[]>;
-    policy: OnyxEntry<Policy>;
-    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
-    lastTransactionViolations: TransactionViolations;
-    isDelegateAccessRestricted: boolean;
-};
-
-type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps & MoneyRequestReportPreviewProps & {renderItem: ListRenderItem<Transaction> | null | undefined};
+import type {MoneyRequestReportPreviewProps} from './types';
 
 function MoneyRequestReportPreview({
     iouReportID,
@@ -90,10 +40,23 @@ function MoneyRequestReportPreview({
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
-    const styles = useThemeStyles();
 
+    const moneyRequestPreviewBox: StyleProp<ViewStyle> = {
+        backgroundColor: 'transparent',
+        borderRadius: variables.componentBorderRadiusLarge,
+        maxWidth: variables.reportPreviewMaxWidth,
+        height: 280,
+        width: 300,
+        borderWidth: 1,
+        borderBlockColor: 'black',
+        padding: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    };
+
+    // for now, it is yet to be conencted with 'TransactionPreview'
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
-        <View style={[{backgroundColor: 'red', height: 100, marginRight: 8, borderWidth: 1, borderBlockColor: 'black'}, styles.moneyRequestPreviewBox]}>
+        <View style={moneyRequestPreviewBox}>
             <Text>
                 This is a TransactionPreview for {item.amount} {item.currency}
             </Text>
@@ -130,4 +93,3 @@ function MoneyRequestReportPreview({
 MoneyRequestReportPreview.displayName = 'MoneyRequestReportPreview';
 
 export default MoneyRequestReportPreview;
-export type {MoneyRequestReportPreviewProps, MoneyRequestReportPreviewContentProps};

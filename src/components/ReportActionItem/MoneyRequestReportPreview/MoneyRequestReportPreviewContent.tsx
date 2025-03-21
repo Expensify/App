@@ -76,7 +76,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type {MoneyRequestReportPreviewContentProps} from '.';
+import type {MoneyRequestReportPreviewContentProps} from './types';
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
