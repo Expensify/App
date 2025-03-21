@@ -111,6 +111,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                         isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
                         accessibilityLabel={translate('workspace.tags.trackBillable')}
                         onToggle={() => toggleBillableExpenses(policy)}
+                        disabled={!policy?.areTagsEnabled}
                     />
                 </View>
             </OfflineWithFeedback>
