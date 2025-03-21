@@ -12,9 +12,17 @@ type NonUSDVerifiedBankAccountFlowProps = {
     nonUSDBankAccountStep: string;
     setNonUSDBankAccountStep: (step: string | null) => void;
     setShouldShowContinueSetupButton: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+    policyID: string | undefined;
+    shouldShowContinueSetupButtonValue: boolean;
 };
 
-function NonUSDVerifiedBankAccountFlow({nonUSDBankAccountStep, setNonUSDBankAccountStep, setShouldShowContinueSetupButton}: NonUSDVerifiedBankAccountFlowProps) {
+function NonUSDVerifiedBankAccountFlow({
+    nonUSDBankAccountStep,
+    setNonUSDBankAccountStep,
+    setShouldShowContinueSetupButton,
+    policyID,
+    shouldShowContinueSetupButtonValue,
+}: NonUSDVerifiedBankAccountFlowProps) {
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
             case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
@@ -43,8 +51,8 @@ function NonUSDVerifiedBankAccountFlow({nonUSDBankAccountStep, setNonUSDBankAcco
     const nonUSDBankAccountsGoBack = () => {
         switch (nonUSDBankAccountStep) {
             case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
-                setShouldShowContinueSetupButton(true);
                 setNonUSDBankAccountStep(null);
+                setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
                 break;
             case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
@@ -76,6 +84,7 @@ function NonUSDVerifiedBankAccountFlow({nonUSDBankAccountStep, setNonUSDBankAcco
                 <Country
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
+                    policyID={policyID}
                 />
             );
         case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
@@ -83,6 +92,7 @@ function NonUSDVerifiedBankAccountFlow({nonUSDBankAccountStep, setNonUSDBankAcco
                 <BankInfo
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
+                    policyID={policyID}
                 />
             );
         case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:

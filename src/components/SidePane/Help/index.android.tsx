@@ -1,18 +1,12 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Animated, BackHandler} from 'react-native';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useThemeStyles from '@hooks/useThemeStyles';
+import {BackHandler} from 'react-native';
+import Modal from '@components/Modal';
+import CONST from '@src/CONST';
 import HelpContent from './HelpContent';
 import type HelpProps from './types';
 
-function Help({sidePaneTranslateX, closeSidePane}: HelpProps) {
-    const styles = useThemeStyles();
-    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {paddingTop, paddingBottom} = useSafeAreaPaddings();
-
+function Help({isPaneHidden, closeSidePane}: HelpProps) {
     // SidePane isn't a native screen, this handles the back button press on Android
     useFocusEffect(
         useCallback(() => {
@@ -27,9 +21,14 @@ function Help({sidePaneTranslateX, closeSidePane}: HelpProps) {
     );
 
     return (
-        <Animated.View style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop, paddingBottom}]}>
-            <HelpContent />
-        </Animated.View>
+        <Modal
+            onClose={() => closeSidePane()}
+            isVisible={!isPaneHidden}
+            type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+            shouldHandleNavigationBack
+        >
+            <HelpContent closeSidePane={closeSidePane} />
+        </Modal>
     );
 }
 
