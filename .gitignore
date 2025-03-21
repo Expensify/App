@@ -147,3 +147,6 @@ docs/.bundle
 
 # Output of react compiler healthcheck dev script
 react-compiler-output.txt
+
+# React Native Enterprise Framework
+.rnef/
