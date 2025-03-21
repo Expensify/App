@@ -50,7 +50,7 @@ function Confirmation() {
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
 
-    const transactionsMergeParams = useMemo(() => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
+    const transactionsMergeParams = useMemo(() => TransactionUtils.buildTransactionsMergeParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const mergeDuplicates = useCallback(() => {
@@ -66,7 +66,11 @@ function Confirmation() {
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal(reportAction?.childReportID);
+        if (!reportAction?.childReportID) {
+            Navigation.dismissModal();
+            return;
+        }
+        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
     }, [transactionsMergeParams, reportAction?.childReportID]);
 
     const contextValue = useMemo(

@@ -541,6 +541,7 @@ function AttachmentModal({
                         threeDotsMenuItems={threeDotsMenuItems}
                         shouldOverlayDots
                         subTitleLink={currentAttachmentLink ?? ''}
+                        shouldDisplayHelpButton={false}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {isLoading && <FullScreenLoadingIndicator />}

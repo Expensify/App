@@ -398,7 +398,7 @@ function resetWalletTransferData() {
     });
 }
 
-function saveWalletTransferAccountTypeAndID(selectedAccountType: string, selectedAccountID: string) {
+function saveWalletTransferAccountTypeAndID(selectedAccountType: string | undefined, selectedAccountID: string | undefined) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {selectedAccountType, selectedAccountID});
 }
 
