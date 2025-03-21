@@ -577,7 +577,6 @@ function ReportActionsList({
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
-    console.log(lastAction?.created, report.lastVisibleActionCreated);
     useEffect(() => {
         if (report.reportID !== prevReportID) {
             return;
