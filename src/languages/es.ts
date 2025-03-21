@@ -1081,8 +1081,8 @@ const translations = {
         holdEducationalTitle: 'Esta solicitud está',
         holdEducationalText: 'retenida',
         whatIsHoldExplain: 'Retener es como "pausar" un gasto para solicitar más detalles antes de aprobarlo o pagarlo.',
-        holdIsLeftBehind: 'Si apruebas un informe, los gastos retenidos se quedan fuera de esa aprobación.',
-        unholdWhenReady: 'Desbloquea los gastos cuando estés listo para aprobarlos o pagarlos.',
+        holdIsLeftBehind: 'Los gastos retenidos se trasladan a otro informe tras su aprobación o pago.',
+        unholdWhenReady: 'Los aprobadores pueden desbloquear los gastos cuando estén listos para su aprobación o pago.',
         changePolicyEducational: {
             title: '¡Has movido este informe!',
             description: 'Revisa cuidadosamente estos elementos, que tienden a cambiar al trasladar informes a un nuevo espacio de trabajo.',
