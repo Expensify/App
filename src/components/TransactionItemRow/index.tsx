@@ -21,12 +21,14 @@ function TransactionItemRow({
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
+    dateColumnSize,
     shouldShowChatBubbleComponent = false,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
+    dateColumnSize: 'normal' | 'wide';
     shouldShowChatBubbleComponent?: boolean;
 }) {
     const styles = useThemeStyles();
@@ -34,6 +36,8 @@ function TransactionItemRow({
 
     const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
+
+    const isDateColumnWide = dateColumnSize === 'wide';
 
     return (
         <View style={styles.flex1}>
@@ -117,7 +121,7 @@ function TransactionItemRow({
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide)]}>
                                     <DateCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}

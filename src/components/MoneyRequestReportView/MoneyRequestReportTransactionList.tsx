@@ -1,10 +1,11 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import type {SortOrder} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import {compareValues} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -72,6 +73,11 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
         }));
     }, [sortBy, sortOrder, transactions]);
 
+    const dateColumnSize = useMemo(() => {
+        const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
+        return shouldShowYearForSomeTransaction ? 'wide' : 'normal';
+    }, [transactions]);
+
     return (
         <>
             {!displayNarrowVersion && (
@@ -79,6 +85,7 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
                     shouldShowSorting
                     sortBy={sortBy}
                     sortOrder={sortOrder}
+                    dateColumnSize={dateColumnSize}
                     onSortPress={(selectedSortBy, selectedSortOrder) => {
                         if (!isSortableColumnName(selectedSortBy)) {
                             return;
@@ -96,6 +103,7 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
                                 transactionItem={transaction}
                                 isSelected={false}
                                 shouldShowTooltip
+                                dateColumnSize={dateColumnSize}
                                 shouldUseNarrowLayout={displayNarrowVersion}
                                 shouldShowChatBubbleComponent
                             />

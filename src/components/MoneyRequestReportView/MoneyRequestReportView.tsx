@@ -36,8 +36,6 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-const noOp = () => {};
-
 function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
 
@@ -84,8 +82,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
             />
             {shouldDisplayReportFooter ? (
                 <ReportFooter
-                    onComposerFocus={noOp}
-                    onComposerBlur={noOp}
                     report={report}
                     reportMetadata={reportMetadata}
                     policy={policy}

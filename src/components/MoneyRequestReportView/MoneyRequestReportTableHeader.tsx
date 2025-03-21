@@ -57,13 +57,14 @@ type SearchTableHeaderProps = {
     sortBy?: SortableColumnName;
     sortOrder?: SortOrder;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
+    dateColumnSize: 'normal' | 'wide';
     shouldShowSorting: boolean;
 };
 
 // At this moment with new Report View we have no extra logic for displaying columns
 const shouldShowColumn = () => true;
 
-function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, shouldShowSorting}: SearchTableHeaderProps) {
+function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -72,7 +73,7 @@ function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, shouldSh
             <SortableTableHeader
                 columns={columnConfig}
                 shouldShowColumn={shouldShowColumn}
-                dateColumnSize="normal"
+                dateColumnSize={dateColumnSize}
                 shouldShowSorting={shouldShowSorting}
                 sortBy={sortBy}
                 sortOrder={sortOrder}

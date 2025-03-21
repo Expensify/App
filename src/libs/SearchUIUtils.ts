@@ -8,6 +8,7 @@ import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -236,9 +237,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
     for (const key in data) {
         if (isTransactionEntry(key)) {
             const item = data[key];
-            const date = getTransactionCreatedDate(item);
-
-            if (DateUtils.doesDateBelongToAPastYear(date)) {
+            if (shouldShowTransactionYear(item)) {
                 return true;
             }
         } else if (isReportActionEntry(key)) {
