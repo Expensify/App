@@ -210,6 +210,7 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
+    ViolationsProhibitedExpenseParams,
     ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
@@ -4764,6 +4765,15 @@ const translations = {
                 eReceipts: 'eReceipts',
                 eReceiptsHint: 'eReceipts are auto-created',
                 eReceiptsHintLink: 'for most USD credit transactions',
+                prohibitedDefaultDescription:
+                    'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
+                prohibitedExpenses: 'Prohibited expenses',
+                none: 'None',
+                alcohol: 'Alcohol',
+                hotelIncidentals: 'Hotel incidentals',
+                gambling: 'Gambling',
+                tobacco: 'Tobacco',
+                adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
                 examples: 'Examples:',
@@ -5521,6 +5531,23 @@ const translations = {
                 }
             }
             return message;
+        },
+        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+            const preMessage = 'Prohibited Expense: ';
+            switch (prohibitedExpenseType) {
+                case 'alcohol':
+                    return `${preMessage} Alcohol`;
+                case 'gambling':
+                    return `${preMessage} Gambling`;
+                case 'tobacco':
+                    return `${preMessage} Tobacco`;
+                case 'adultEntertainment':
+                    return `${preMessage} Adult Entertainment`;
+                case 'hotelIncidentals':
+                    return `${preMessage} Hotel Incidentals`;
+                default:
+                    return `${preMessage}${prohibitedExpenseType}`;
+            }
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',

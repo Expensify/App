@@ -232,6 +232,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_RULES_ENABLED: 'SetPolicyRulesEnabled',
     SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT: 'SetPolicyExpenseMaxAmountNoReceipt',
     SET_POLICY_EXPENSE_MAX_AMOUNT: 'SetPolicyExpenseMaxAmount',
+    SET_POLICY_PROHIBITED_EXPENSES: 'SetPolicyProhibitedExpenses',
     SET_POLICY_EXPENSE_MAX_AGE: ' SetPolicyExpenseMaxAge',
     UPDATE_CUSTOM_RULES: 'UpdateCustomRules',
     SET_POLICY_BILLABLE_MODE: ' SetPolicyBillableMode',
@@ -799,6 +800,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS]: Parameters.ResetSMSDeliveryFailureStatusParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
+    [WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES]: Parameters.SetPolicyProhibitedExpensesParams;
 
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.HoldMoneyRequestOnSearchParams;
