@@ -327,10 +327,13 @@ function isChangeWorkspaceAction(report: Report, reportTransactions: Transaction
     return false;
 }
 
-function isDeleteAction(report: Report): boolean {
+function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpenseReport) {
+    // This should be removed when is merged https://github.com/Expensify/App/pull/58020
+    const isSignleTransaction = reportTransactions.length === 1;
+
+    if (!isExpenseReport || !isSignleTransaction) {
         return false;
     }
 
@@ -391,7 +394,7 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report)) {
+    if (isDeleteAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -407,7 +410,7 @@ function getSecondaryTransactionThreadActions(parentReport: Report, reportTransa
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport)) {
+    if (isDeleteAction(parentReport, [reportTransaction])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 

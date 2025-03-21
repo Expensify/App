@@ -651,8 +651,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         // it's deleting transacation but not the report which leads to bug (that is actually also on staging)
                         deleteMoneyRequest(transaction?.transactionID, requestParentReportAction);
                         goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false);
-                    } else {
-                        // TODO waiting for https://github.com/Expensify/App/pull/58020/files
                     }
 
                     if (goBackRoute) {
