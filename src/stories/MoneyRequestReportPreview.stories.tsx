@@ -1,15 +1,15 @@
 import React from 'react';
-import type {ListRenderItem, StyleProp, ViewStyle} from 'react-native';
+import type {ListRenderItem} from 'react-native';
 import {View} from 'react-native';
 import type {MoneyRequestReportPreviewContentProps} from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MoneyRequestReportPreviewContent from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent';
-import Text from '@components/Text';
+import TransactionPreviewContent from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContent';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
-import {action, chatReport, iouReport, violations} from './mockData/transactions';
+import {action, chatReport, iouReport, personalDetails, transaction, violations} from './mockData/transactions';
 
 /* eslint-disable react/jsx-props-no-spreading */
 
@@ -21,29 +21,31 @@ import {action, chatReport, iouReport, violations} from './mockData/transactions
 
 const mockTransactions = (transactionsCount: number) =>
     Array.from({length: transactionsCount}).map((item, index) => {
-        return {amount: 12345, currency: 'PLN', transactionID: `${index}`};
+        return {...transaction, tag: 'New Jersey Office', category: 'Gas stations', filename: 'test.svg', transactionID: `${index}`};
     });
 
-const moneyRequestPreviewBox: StyleProp<ViewStyle> = {
-    backgroundColor: 'transparent',
-    borderRadius: variables.componentBorderRadiusLarge,
-    maxWidth: variables.reportPreviewMaxWidth,
-    height: 280,
-    width: 300,
-    borderWidth: 1,
-    borderBlockColor: 'black',
-    padding: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-};
-
 const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
-    <View style={moneyRequestPreviewBox}>
-        <Text>This is a TransactionPreview</Text>
-        <Text>
-            for {item.amount} {item.currency}
-        </Text>
-    </View>
+    <TransactionPreviewContent
+        action={action}
+        isWhisper={false}
+        isHovered={false}
+        chatReport={chatReport}
+        personalDetails={personalDetails}
+        iouReport={iouReport}
+        transaction={item}
+        violations={violations}
+        showContextMenu={() => undefined}
+        offlineWithFeedbackOnClose={() => undefined}
+        navigateToReviewFields={() => undefined}
+        onPreviewPressed={() => true}
+        isBillSplit={false}
+        areThereDuplicates={false}
+        sessionAccountID={11111111}
+        walletTermsErrors={undefined}
+        routeName={SCREENS.TRANSACTION_DUPLICATE.REVIEW}
+        shouldHideOnDelete={false}
+        containerStyles={{width: 303}}
+    />
 );
 
 export default {
