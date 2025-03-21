@@ -454,6 +454,12 @@ function ReportActionsList({
                     if (Navigation.getReportRHPActiveRoute()) {
                         return;
                     }
+
+                    // If the component is focused, and we try to navigate to the current report, we should not perform navigation.
+                    if (isFocused && report.reportID === Navigation.getTopmostReportId()) {
+                        return;
+                    }
+
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
                     return;
                 }
@@ -462,7 +468,7 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [report.reportID, reportScrollManager],
+        [report.reportID, reportScrollManager, isFocused],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
