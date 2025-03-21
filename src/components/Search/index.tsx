@@ -324,22 +324,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         [isFocused, clearSelectedTransactions],
     );
 
-    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        onSearchListScroll?.(event);
-        const offsetY = event.nativeEvent.contentOffset.y;
-
-        // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
-        if (shouldShowLoadingState || offsetY > 0) {
-            return;
-        }
-
-        /**
-         * This line ensures that the app refreshes the search results when the user scrolls to the top.
-         * More info: https://github.com/Expensify/App/issues/56969
-         */
-        setOffset(0);
-    };
-
     if (shouldShowLoadingState) {
         return (
             <SearchRowSkeleton
@@ -504,7 +488,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
                     : !!item.isSelected
             }
-            onScroll={handleScroll}
+            onScroll={onSearchListScroll}
             onContentSizeChange={onContentSizeChange}
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
             customListHeaderHeight={searchHeaderHeight}
@@ -543,6 +527,19 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
             isScreenFocused={isSearchScreenFocused}
             initialNumToRender={shouldUseNarrowLayout ? 5 : undefined}
+            onViewableItemsChanged={({viewableItems}) => {
+                const isFirstItemVisible = viewableItems.at(0)?.index === 1;
+                // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
+                if (shouldShowLoadingState || !isFirstItemVisible) {
+                    return;
+                }
+
+                /**
+                 * This line ensures that the app refreshes the search results when the user scrolls to the top.
+                 * More info: https://github.com/Expensify/App/issues/56969
+                 */
+                setOffset(0);
+            }}
         />
     );
 }
