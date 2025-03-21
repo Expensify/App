@@ -1,11 +1,12 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type * as PolicyUtils from '@libs/PolicyUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
-// eslint-disable-next-line no-restricted-syntax
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportViolations, TransactionViolation} from '@src/types/onyx';
+import type {Connections, NetSuiteConnection} from '@src/types/onyx/Policy';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
 
@@ -23,13 +24,19 @@ const PERSONAL_DETAILS = {
 };
 
 const REPORT_ID = 1;
-const TRANSACTION_ID = 'TRANSACTION_ID';
+const TRANSACTION_ID = 1;
 const VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
 jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     hasViolations: jest.fn().mockReturnValue(false),
 }));
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    isPrefferedExporter: jest.fn().mockReturnValue(true),
+    hasAccountingConnections: jest.fn().mockReturnValue(true),
+}));
+
 describe('getReportPreviewAction', () => {
     beforeAll(() => {
         Onyx.init({
@@ -44,15 +51,20 @@ describe('getReportPreviewAction', () => {
     });
 
     it('canSubmit should return true for expense preview report with manual submit', async () => {
-        const report : Report = {
+        const report: Report = {
             ...createRandomReport(REPORT_ID),
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        } as unknown as Report;
+        };
+
         const policy = createRandomPolicy(0);
         policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         expect(getReportPreviewAction(VIOLATIONS, report, policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
@@ -65,10 +77,13 @@ describe('getReportPreviewAction', () => {
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-        } as unknown as Report;
+        };
+
         const policy = createRandomPolicy(0);
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
         policy.approver = CURRENT_USER_EMAIL;
         policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         expect(getReportPreviewAction(VIOLATIONS, report, policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
@@ -80,9 +95,13 @@ describe('getReportPreviewAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-        } as unknown as Report;
+        };
+
         const policy = createRandomPolicy(0);
-        policy.role= CONST.POLICY.ROLE.ADMIN;
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         expect(getReportPreviewAction(VIOLATIONS, report, policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
@@ -95,9 +114,13 @@ describe('getReportPreviewAction', () => {
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-        } as unknown as Report;
+        };
+
         const policy = createRandomPolicy(0);
-        policy.role= CONST.POLICY.ROLE.ADMIN;
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         expect(getReportPreviewAction(VIOLATIONS, report, policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
@@ -109,11 +132,12 @@ describe('getReportPreviewAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-        } as unknown as Report;
+        };
 
         const policy = createRandomPolicy(0);
-        // policy.connections?.intacct.config.export.exporter = CURRENT_USER_EMAIL; //todo refactor
-      
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {} as NetSuiteConnection} as Connections;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         expect(getReportPreviewAction(VIOLATIONS, report, policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
@@ -124,9 +148,12 @@ describe('getReportPreviewAction', () => {
         const report = {
             ...createRandomReport(REPORT_ID),
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-        } as unknown as Report;
+        };
+
         const policy = createRandomPolicy(0);
         policy.areWorkflowsEnabled = true;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const REPORT_VIOLATION = {
             FIELD_REQUIRED: 'fieldRequired',

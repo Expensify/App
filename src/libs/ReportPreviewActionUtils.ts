@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApprovedMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
@@ -26,7 +26,6 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     const isOpen = isOpenReport(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasViolations = hasAnyViolations(report.reportID, violations);
-
     return isExpense && isSubmitter && isOpen && isManualSubmitEnabled && !hasViolations;
 }
 
@@ -36,7 +35,6 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const hasViolations = hasAnyViolations(report.reportID, violations);
-
     return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasViolations;
 }
 
@@ -81,11 +79,7 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
     return hasViolations && (isSubmitter || isApprover) && areWorkflowsEnabled;
 }
 
-function getReportPreviewAction(
-    violations: OnyxCollection<TransactionViolation[]>,
-    report?: Report,
-    policy?: Policy,
-): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
+function getReportPreviewAction(violations: OnyxCollection<TransactionViolation[]>, report?: Report, policy?: Policy): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
