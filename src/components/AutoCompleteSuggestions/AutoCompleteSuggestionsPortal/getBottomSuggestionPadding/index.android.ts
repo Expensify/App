@@ -8,6 +8,8 @@ function getBottomSuggestionPadding(): number {
     const referenceHeightMax = 1000;
     const referencePaddingMax = -44;
 
+    console.log('getBottomSuggestionPadding height', height);
+
     if (height >= referenceHeightMin && height < referenceHeightMax) {
         // Calculate the padding adjustment rate per pixel of height
         const paddingRate = (referencePaddingMax - referencePaddingMin) / (referenceHeightMax - referenceHeightMin);
