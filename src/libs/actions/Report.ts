@@ -865,6 +865,7 @@ function clearAvatarErrors(reportID: string) {
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
+ * @param useTableReportView Flag deciding how api returns reportActions - if set to true, api will return oldest first starting from the beginning of report.
  */
 function openReport(
     reportID: string | undefined,
@@ -874,6 +875,7 @@ function openReport(
     parentReportActionID?: string,
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
+    useTableReportView = false,
     avatar?: File | CustomRNImageManipulatorResult,
 ) {
     if (!reportID) {
@@ -942,6 +944,7 @@ function openReport(
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
+        useTableReportView,
     };
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
@@ -1199,7 +1202,7 @@ function navigateToAndOpenReport(
     const report = isEmptyObject(chat) ? newChat : chat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(report?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
+    openReport(report?.reportID, '', userLogins, newChat, undefined, undefined, undefined, false, avatarFile);
     if (shouldDismissModal) {
         if (getIsNarrowLayout()) {
             Navigation.dismissModalWithReport({report});
