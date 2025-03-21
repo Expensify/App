@@ -136,10 +136,10 @@ function setClipboardMessage(content: string | undefined) {
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(Parser.htmlToMarkdown(content));
     } else {
-        const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
-        const isAnchorTag = anchorRegex.test(content);
-        const plainText = isAnchorTag ? Parser.htmlToMarkdown(content) : Parser.htmlToText(content);
-        Clipboard.setHtml(content, plainText);
+        // Use markdown format text for the plain text(clipboard type "text/plain") to ensure consistency across all platforms.
+        // More info: https://github.com/Expensify/App/issues/53718
+        const markdownText = Parser.htmlToMarkdown(content);
+        Clipboard.setHtml(content, markdownText);
     }
 }
 
@@ -766,7 +766,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             !isChronosReport &&
             !isMessageDeleted(reportAction),
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
-            const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : reportIDParam;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID || reportIDParam : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));

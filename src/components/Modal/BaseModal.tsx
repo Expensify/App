@@ -10,6 +10,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSidePane from '@hooks/useSidePane';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -78,6 +79,7 @@ function BaseModal(
         swipeDirection,
         shouldPreventScrollOnFocus = false,
         enableEdgeToEdgeBottomSafeAreaPadding = false,
+        shouldApplySidePaneOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -88,6 +90,8 @@ function BaseModal(
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {sidePaneOffset} = useSidePane();
+    const sidePaneStyle = shouldApplySidePaneOffset && !isSmallScreenWidth ? {paddingRight: sidePaneOffset.current} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -154,10 +158,10 @@ function BaseModal(
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
-            setModalVisibility(true);
+            setModalVisibility(true, type);
         }
         onModalShow();
-    }, [onModalShow, shouldSetModalVisibility]);
+    }, [onModalShow, shouldSetModalVisibility, type]);
 
     const handleBackdropPress = (e?: KeyboardEvent) => {
         if (e?.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
@@ -269,7 +273,7 @@ function BaseModal(
                     backdropTransitionOutTiming={0}
                     hasBackdrop={fullscreen}
                     coverScreen={fullscreen}
-                    style={modalStyle}
+                    style={[modalStyle, sidePaneStyle]}
                     deviceHeight={windowHeight}
                     deviceWidth={windowWidth}
                     animationIn={animationIn ?? modalStyleAnimationIn}
@@ -305,7 +309,7 @@ function BaseModal(
                             </View>
                         </FocusTrapForModal>
                     </ModalContent>
-                    <NavigationBar />
+                    {!keyboardStateContextValue?.isKeyboardShown && <NavigationBar />}
                 </ModalComponent>
             </View>
         </ModalContext.Provider>
