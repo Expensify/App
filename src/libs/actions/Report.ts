@@ -1740,6 +1740,9 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     // we should navigate to its report in order to not show not found page
     if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID)) && !isDeletedParentAction) {
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    } else if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportAction.childReportID)) && !isDeletedParentAction) {
+        Navigation.setShouldPopAllStateOnUP(true);
+        Navigation.goBack(undefined, {shouldPopToTop: true});
     }
 }
 
