@@ -50,6 +50,7 @@ const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', sho
     const fetchOptions: RequestInit = {
         method: requestType,
         body: formData,
+        credentials: 'same-origin',
     };
 
     return fetch(url, fetchOptions)
