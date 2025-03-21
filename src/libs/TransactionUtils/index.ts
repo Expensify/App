@@ -804,13 +804,6 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 }
 
 /**
- * Check if there is rter violation in all transactionViolations with given transactionIDs.
- */
-function hasRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
-    return !!transactionViolations?.every((violation: TransactionViolation) => isBrokenConnectionViolation(violation));
-}
-
-/**
  * Check if there is broken connection violation.
  */
 function hasBrokenConnectionViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
@@ -891,8 +884,7 @@ function allHavePendingRTERViolation(transactionIds: string[], transactionViolat
  */
 function allHaveRTERViolation(transactionIds: string[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
-        const filteredTransactionViolations = getTransactionViolations(transactionId, transactionViolations);
-        return hasRTERViolation(filteredTransactionViolations);
+        return hasBrokenConnectionViolation(transactionId, transactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
 }
