@@ -26,7 +26,7 @@ function Occupation({onNext, onMove, isEditing, directorID, isDirectorFlow}: Occ
             const errors = getFieldRequiredErrors(values, [inputID]);
 
             if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
-                errors[inputID] = translate('bankAccount.error.fullName');
+                errors[inputID] = translate('bankAccount.error.occupation');
             }
 
             return errors;
