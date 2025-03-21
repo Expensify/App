@@ -684,6 +684,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         return null;
     }
 
+    if (!isFocused) {
+        return null;
+    }
+
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
