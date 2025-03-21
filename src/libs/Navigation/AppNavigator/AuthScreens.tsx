@@ -181,7 +181,7 @@ const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
 const modalScreenListeners = {
     focus: () => {
-        Modal.setModalVisibility(true);
+        Modal.setModalVisibility(true, CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
     },
     blur: () => {
         Modal.setModalVisibility(false);

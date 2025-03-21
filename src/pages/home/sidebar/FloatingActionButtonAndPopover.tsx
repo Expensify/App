@@ -14,7 +14,6 @@ import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -218,11 +217,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON,
-        isCreateMenuActive && (!shouldUseNarrowLayout || isFocused),
-    );
-
     const groupPoliciesWithChatEnabled = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
 
     /**
@@ -386,11 +380,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             },
-            tooltipShiftHorizontal: variables.quickActionTooltipShiftHorizontal,
-            tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
-            renderTooltipContent: renderProductTrainingTooltip,
-            tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
-            shouldRenderTooltip: shouldShowProductTrainingTooltip,
             shouldTeleportPortalToModalLayer: true,
         };
 
@@ -404,7 +393,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             }
             const onSelected = () => {
                 interceptAnonymousUser(() => {
-                    hideProductTrainingTooltip();
                     navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
                 });
             };
@@ -415,10 +403,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     text: quickActionTitle,
                     description: !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                     onSelected,
-                    onEducationTooltipPress: () => {
-                        hideCreateMenu();
-                        onSelected();
-                    },
                     shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
                 },
             ];
@@ -426,7 +410,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         if (!isEmptyObject(policyChatForActivePolicy)) {
             const onSelected = () => {
                 interceptAnonymousUser(() => {
-                    hideProductTrainingTooltip();
                     if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                         return;
@@ -444,10 +427,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     text: translate('quickAction.scanReceipt'),
                     description: getReportName(policyChatForActivePolicy),
                     onSelected,
-                    onEducationTooltipPress: () => {
-                        hideCreateMenu();
-                        onSelected();
-                    },
                     shouldShowSubscriptRightAvatar: true,
                 },
             ];
@@ -458,21 +437,15 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         translate,
         styles.pt3,
         styles.pb2,
-        styles.popoverMenuItem.paddingVertical,
-        styles.productTrainingTooltipWrapper,
         quickActionAvatars,
-        renderProductTrainingTooltip,
-        shouldShowProductTrainingTooltip,
         quickAction,
         policyChatForActivePolicy,
         quickActionReport,
         quickActionPolicy,
         quickActionTitle,
         hideQABSubtitle,
-        hideProductTrainingTooltip,
         isValidReport,
         selectOption,
-        hideCreateMenu,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;

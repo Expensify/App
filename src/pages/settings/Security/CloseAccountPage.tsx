@@ -112,6 +112,8 @@ function CloseAccountPage() {
                             aria-label={translate('closeAccountPage.enterMessageHere')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mt5]}
+                            fsClass={CONST.FULL_STORY.UNMASK}
+                            testID={CONST.FULL_STORY.UNMASK}
                         />
                         <Text style={[styles.mt5]}>
                             {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
@@ -126,6 +128,8 @@ function CloseAccountPage() {
                             containerStyles={[styles.mt5]}
                             autoCorrect={false}
                             inputMode={userEmailOrPhone && Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
+                            fsClass={CONST.FULL_STORY.UNMASK}
+                            testID={CONST.FULL_STORY.UNMASK}
                         />
                         <ConfirmModal
                             danger
