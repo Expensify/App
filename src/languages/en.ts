@@ -5598,9 +5598,10 @@ const translations = {
                 subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `Update your payment card by ${date} to continue using all of your favorite features.`,
             },
             policyOwnerAmountOwedOverdue: {
-                title: 'No se pudo procesar tu pago',
+                title: 'Your payment could not be processed',
+                generalSubtitle: 'Please add a payment card to clear the amount owed.',
                 subtitle: ({date, amountOwed}: BillingBannerOwnerAmountOwedOverdueParams) =>
-                    `No se ha podido procesar tu cargo de ${amountOwed} del día ${date}. Por favor, añade una tarjeta de pago para saldar la cantidad adeudada.`,
+                    `Your ${date} charge of ${amountOwed} could not be processed. Please add a payment card to clear the amount owed.`,
             },
             policyOwnerUnderInvoicing: {
                 title: 'Your payment info is outdated',
