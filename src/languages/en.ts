@@ -2745,6 +2745,7 @@ const translations = {
             requested: 'Requested',
             distanceRates: 'Distance rates',
             defaultDescription: 'One place for all your receipts and expenses.',
+            descriptionHint: 'Share information about this workspace with all members.',
             welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
@@ -3021,6 +3022,16 @@ const translations = {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Checks are unavailable when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
+            },
+            exportDestinationAccountsMisconfigurationError: {
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Choose a valid account for vendor bill export.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Choose a valid account for journal entry export.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Choose a valid account for check export.',
+            },
+            exportDestinationSetupAccountsInfo: {
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'To use vendor bill export, set up an accounts payable account in QuickBooks Online.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'To use journal entry export, set up a journal account in QuickBooks Online.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'To use check export, set up a bank account in QuickBooks Online.',
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in QuickBooks Online and sync the connection again.',
@@ -3803,7 +3814,7 @@ const translations = {
             },
             perDiem: {
                 title: 'Per diem',
-                subtitle: 'Set Per diem rates to control daily employee spend.',
+                subtitle: 'Set per diem rates to control daily employee spend.',
             },
             expensifyCard: {
                 title: 'Expensify Card',
@@ -5933,6 +5944,7 @@ const translations = {
             theresAReportWithErrors: "There's a report with errors",
             theresAWorkspaceWithCustomUnitsErrors: "There's a workspace with custom units errors",
             theresAProblemWithAWorkspaceMember: "There's a problem with a workspace member",
+            theresAProblemWithAWorkspaceQBOExport: 'There was a problem with a workspace connection export setting.',
             theresAProblemWithAContactMethod: "There's a problem with a contact method",
             aContactMethodRequiresVerification: 'A contact method requires verification',
             theresAProblemWithAPaymentMethod: "There's a problem with a payment method",
@@ -5963,25 +5975,14 @@ const translations = {
         },
     },
     productTrainingTooltip: {
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: {
             part1: 'Get started',
             part2: ' here!',
         },
         saveSearchTooltip: {
             part1: 'Rename your saved searches',
-            part2: ' here!',
-        },
-        quickActionButton: {
-            part1: 'Quick action!',
-            part2: ' Just a tap away',
-        },
-        workspaceChatCreate: {
-            part1: 'Submit your',
-            part2: ' expenses',
-            part3: ' here!',
-        },
-        searchFilterButtonTooltip: {
-            part1: 'Customize your search',
             part2: ' here!',
         },
         bottomNavInboxTooltip: {

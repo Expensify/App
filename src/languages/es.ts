@@ -2766,6 +2766,7 @@ const translations = {
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
             defaultDescription: 'Un solo lugar para todos tus recibos y gastos.',
+            descriptionHint: 'Comparte información sobre este espacio de trabajo con todos los miembros.',
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
             markAsExported: 'Marcar como introducido manualmente',
@@ -3050,6 +3051,16 @@ const translations = {
                     'La verificación no está disponible cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación diferente.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación diferente.',
+            },
+            exportDestinationAccountsMisconfigurationError: {
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Elige una cuenta válida para la exportación de facturas de proveedor.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Elige una cuenta válida para la exportación de asientos contables.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Elige una cuenta válida para la exportación de cheques.',
+            },
+            exportDestinationSetupAccountsInfo: {
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Para usar la exportación de facturas de proveedor, configura una cuenta receptora de pagos en QuickBooks Online.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Para usar la exportación de asientos contables, configura una cuenta contable en QuickBooks Online.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Para usar la exportación de cheques, configura una cuenta bancaria en QuickBooks Online.',
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión.',
@@ -6453,6 +6464,7 @@ const translations = {
             theresAReportWithErrors: 'Hay un informe con errores',
             theresAWorkspaceWithCustomUnitsErrors: 'Hay un espacio de trabajo con errores en las unidades personalizadas',
             theresAProblemWithAWorkspaceMember: 'Hay un problema con un miembro del espacio de trabajo',
+            theresAProblemWithAWorkspaceQBOExport: 'Hubo un problema con la configuración de exportación de la conexión del espacio de trabajo.',
             theresAProblemWithAContactMethod: 'Hay un problema con un método de contacto',
             aContactMethodRequiresVerification: 'Un método de contacto requiere verificación',
             theresAProblemWithAPaymentMethod: 'Hay un problema con un método de pago',
@@ -6483,6 +6495,8 @@ const translations = {
         },
     },
     productTrainingTooltip: {
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: {
             part1: '¡Comienza',
             part2: ' aquí!',
@@ -6490,19 +6504,6 @@ const translations = {
         saveSearchTooltip: {
             part1: 'Renombra tus búsquedas guardadas',
             part2: ' aquí',
-        },
-        quickActionButton: {
-            part1: '¡Acción rápida!',
-            part2: ' A solo un toque',
-        },
-        workspaceChatCreate: {
-            part1: 'Envía tus',
-            part2: ' gastos',
-            part3: ' aquí',
-        },
-        searchFilterButtonTooltip: {
-            part1: 'Personaliza tu búsqueda',
-            part2: ' aquí!',
         },
         bottomNavInboxTooltip: {
             part1: 'Tu lista de tareas',
