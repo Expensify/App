@@ -147,7 +147,7 @@ const setupCategoriesTask: OnboardingTask = {
     mediaAttributes: {
         [`${CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-categories.png" data-expensify-width="1920" data-expensify-height="1080"`,
     },
-    title: 'Set up categories',
+    title: ({workspaceCategoriesLink}) => `Set up [categories](${workspaceCategoriesLink})`,
     description: ({workspaceCategoriesLink}) =>
         '*Set up categories* so your team can code expenses for easy reporting.\n' +
         '\n' +
