@@ -1741,8 +1741,7 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID)) && !isDeletedParentAction) {
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     } else if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportAction.childReportID)) && !isDeletedParentAction) {
-        Navigation.setShouldPopAllStateOnUP(true);
-        Navigation.goBack(undefined, {shouldPopToTop: true});
+        Navigation.goBack(undefined);
     }
 }
 
