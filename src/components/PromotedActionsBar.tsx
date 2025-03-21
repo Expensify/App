@@ -90,7 +90,7 @@ const PromotedActions = {
                 Navigation.goBack();
             }
 
-            if (!isSearchTopmostFullScreenRoute() && isTextHold) {
+            if (!isSearchTopmostFullScreenRoute()) {
                 changeMoneyRequestHoldStatus(reportAction);
                 return;
             }
