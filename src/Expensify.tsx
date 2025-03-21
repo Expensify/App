@@ -96,6 +96,7 @@ function Expensify() {
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
     const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
     useDebugShortcut();
 
@@ -111,10 +112,12 @@ function Expensify() {
     const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
-    const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
-    const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
-    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
+    const shouldInit = CONFIG.IS_HYBRID_APP ? !hybridApp?.loggedOutFromOldDot && isNavigationReady && hasAttemptedToOpenPublicRoom : isNavigationReady && hasAttemptedToOpenPublicRoom;
+    const shouldHideSplash =
+        shouldInit &&
+        (CONFIG.IS_HYBRID_APP
+            ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && (isAuthenticated || !!hybridApp?.useNewDotSignInPage)
+            : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {

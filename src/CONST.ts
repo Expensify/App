@@ -5011,6 +5011,9 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
+        HYBRID_APP: {
+            ON_SIGN_IN_FINISHED: 'onSignInFinished',
+        },
     },
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
@@ -6673,6 +6676,12 @@ const CONST = {
         VISIBLE: 'visible',
         READY_TO_BE_HIDDEN: 'readyToBeHidden',
         HIDDEN: `hidden`,
+    },
+
+    HYBRID_APP_SIGN_IN_STATE: {
+        NOT_STARTED: 'notStarted',
+        STARTED: 'started',
+        FINISHED: 'finished',
     },
 
     CSV_IMPORT_COLUMNS: {

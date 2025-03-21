@@ -24,8 +24,10 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
+import * as HybridAppActions from '@userActions/HybridApp';
 import * as SessionActions from '@userActions/Session';
 import * as User from '@userActions/User';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,6 +52,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -153,6 +156,10 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppActions.resetSignInFlow();
+        }
+
         User.resendValidateCode(credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
@@ -232,8 +239,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (account?.isLoading) {
+        if (account?.isLoading || hybridApp?.readyToShowAuthScreens) {
             return;
+        }
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppActions.resetSignInFlow();
         }
         if (account?.errors) {
             SessionActions.clearAccountMessages();
@@ -282,13 +292,14 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const recoveryCodeOr2faCode = isUsingRecoveryCode ? recoveryCode : twoFactorAuthCode;
 
+        HybridAppActions.setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
         const accountID = credentials?.accountID;
         if (accountID) {
             SessionActions.signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
         } else {
             SessionActions.signIn(validateCode, recoveryCodeOr2faCode);
         }
-    }, [account, credentials, twoFactorAuthCode, validateCode, isUsingRecoveryCode, recoveryCode]);
+    }, [account?.isLoading, account?.errors, account?.requiresTwoFactorAuth, hybridApp?.readyToShowAuthScreens, isUsingRecoveryCode, recoveryCode, twoFactorAuthCode, credentials?.accountID, validateCode]);
 
     return (
         <SafariFormWrapper>

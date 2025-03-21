@@ -9,7 +9,7 @@ type TryNewDot = {
         /**
          * Indicates if transistion from OldDot to NewDot should happen in HybridApp.
          */
-        dismissed: boolean | string;
+        dismissed: boolean;
         /**
          * Indicates timestamp of an action.
          */

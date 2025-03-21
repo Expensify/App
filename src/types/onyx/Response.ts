@@ -95,6 +95,9 @@ type Response = {
 
     /** If there are httponly OldDot authentication cookies stored */
     hasOldDotAuthCookies?: boolean;
+
+    /** [HybridApp] Determines which app should be opened, NewDot or OldDot */
+    tryNewDot?: boolean;
 };
 
 export default Response;
