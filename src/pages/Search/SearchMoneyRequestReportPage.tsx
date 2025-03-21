@@ -10,23 +10,18 @@ import BottomTabBar from '@components/Navigation/BottomTabBar';
 import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {SearchQueryJSON} from '@components/Search/types';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
-
-// We will figure out later, when this view is actually being finalized, how to pass down an actual query
-const tempJSONQuery = buildSearchQueryJSON('') as unknown as SearchQueryJSON;
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
 
@@ -96,7 +91,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                                     breadcrumbLabel={translate('common.reports')}
                                     shouldDisplaySearch={false}
                                 />
-                                <SearchTypeMenu queryJSON={tempJSONQuery} />
+                                <SearchTypeMenu queryJSON={undefined} />
                             </View>
                             <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
                         </View>

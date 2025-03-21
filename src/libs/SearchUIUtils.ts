@@ -786,14 +786,14 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
     return typeMenuItems;
 }
 
-function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, hash: number): SavedSearchMenuItem {
+function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, isFocused: boolean): SavedSearchMenuItem {
     return {
         key,
         title,
         hash: key,
         query: item.query,
         shouldShowRightComponent: true,
-        focused: Number(key) === hash,
+        focused: isFocused,
         pendingAction: item.pendingAction,
         disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         shouldIconUseAutoWidthStyle: true,
