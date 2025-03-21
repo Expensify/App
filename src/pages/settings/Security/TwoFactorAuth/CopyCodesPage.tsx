@@ -45,7 +45,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
-    const isUserValidated = account?.validated;
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const contactMethod = account?.primaryLogin ?? '';
 
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
