@@ -36,6 +36,7 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
                                 isSelected={false}
                                 shouldShowTooltip
                                 shouldUseNarrowLayout={displayNarrowVersion}
+                                shouldShowChatBubbleComponent
                             />
                         </View>
                     );

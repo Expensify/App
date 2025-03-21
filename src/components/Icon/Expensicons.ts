@@ -43,6 +43,7 @@ import CaretUpDown from '@assets/images/caret-up-down.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
 import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
+import ChatBubbleCounter from '@assets/images/chatbubble-counter.svg';
 import ChatBubbleReply from '@assets/images/chatbubble-reply.svg';
 import ChatBubbleSlash from '@assets/images/chatbubble-slash.svg';
 import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
@@ -408,6 +409,7 @@ export {
     ChatBubbleSlash,
     ChatBubbleUnread,
     ChatBubbleReply,
+    ChatBubbleCounter,
     Lightbulb,
     Plane,
     Bed,
