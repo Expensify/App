@@ -1,8 +1,7 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import type {SortOrder} from '@components/Search/types';
-import type {SortableColumnName} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +15,7 @@ type MoneyRequestReportTransactionListProps = {
     transactions: OnyxTypes.Transaction[];
 };
 
-const moneyRequestReportSortableColumnNames = [
+const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.DATE,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
@@ -24,68 +23,73 @@ const moneyRequestReportSortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ];
 
-type MoneyRequestReportSortableColumnName = TupleToUnion<typeof moneyRequestReportSortableColumnNames>;
+type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
 
-const initialSortingProperties: {
-    sortBy: MoneyRequestReportSortableColumnName;
+type SortedTransactions = {
+    transactions: OnyxTypes.Transaction[];
+    sortBy: SortableColumnName;
     sortOrder: SortOrder;
-} = {
-    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
 };
 
-const isMoneyRequestReportSortableColumnName = (key: SortableColumnName): key is MoneyRequestReportSortableColumnName => !!moneyRequestReportSortableColumnNames.find((val) => val === key);
-const areTransactionValuesEqual = (transactions: OnyxTypes.Transaction[], key: keyof OnyxTypes.Transaction) => {
-    const firstValidTransaction = transactions.find((transaction) => transaction !== undefined);
-    return !firstValidTransaction || transactions.every((transaction: OnyxTypes.Transaction) => transaction[key] === firstValidTransaction[key]);
+const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
+
+const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
+    const dateKey = transaction.modifiedCreated ? 'modifiedCreated' : 'created';
+    return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
 };
-const getTransactionKey = (key: MoneyRequestReportSortableColumnName) => (key === CONST.SEARCH.TABLE_COLUMNS.DATE ? 'created' : key);
+
+const areTransactionValuesEqual = (transactions: OnyxTypes.Transaction[], key: SortableColumnName) => {
+    const firstValidTransaction = transactions.find((transaction) => transaction !== undefined);
+    if (!firstValidTransaction) {
+        return true;
+    }
+
+    const keyOfFirstValidTransaction = getTransactionKey(firstValidTransaction, key);
+    return transactions.every((transaction) => transaction[getTransactionKey(transaction, key)] === firstValidTransaction[keyOfFirstValidTransaction]);
+};
 
 function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-
-    // We don't want to sort the array again if all column values are the same,
-    // but we still want to show the user that the table is sorted by selected column
-    // so there are 2 state properties
-    const [sortingProperties, setSortingProperties] = useState({
-        visualIndicator: initialSortingProperties,
-        operationalProperties: initialSortingProperties,
-    });
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
 
-    const sortedTransactions = useMemo(() => {
-        const {sortBy, sortOrder} = sortingProperties.operationalProperties;
-        return transactions.toSorted((valueA: OnyxTypes.Transaction, valueB: OnyxTypes.Transaction) => {
-            const key = getTransactionKey(sortBy);
-            return compareValues(valueA[key], valueB[key], sortOrder, key);
-        });
-    }, [sortingProperties.operationalProperties, transactions]);
+    const [sortedData, setSortedData] = useState<SortedTransactions>({
+        transactions,
+        sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+    });
+
+    const {sortBy, sortOrder} = sortedData;
+
+    useEffect(() => {
+        if (areTransactionValuesEqual(transactions, sortBy)) {
+            return;
+        }
+
+        setSortedData((prevState) => ({
+            ...prevState,
+            transactions: [...transactions].sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy)),
+        }));
+    }, [sortBy, sortOrder, transactions]);
 
     return (
         <>
             {!displayNarrowVersion && (
                 <MoneyRequestReportTableHeader
                     shouldShowSorting
-                    sortBy={sortingProperties.visualIndicator.sortBy}
-                    sortOrder={sortingProperties.visualIndicator.sortOrder}
-                    onSortPress={(sortBy, sortOrder) => {
-                        if (!isMoneyRequestReportSortableColumnName(sortBy)) {
+                    sortBy={sortBy}
+                    sortOrder={sortOrder}
+                    onSortPress={(selectedSortBy, selectedSortOrder) => {
+                        if (!isSortableColumnName(selectedSortBy)) {
                             return;
                         }
 
-                        const newSortingProperties = {sortBy, sortOrder};
-                        const shouldUpdateOperationalProperties = !areTransactionValuesEqual(transactions, getTransactionKey(sortBy));
-
-                        setSortingProperties(({operationalProperties}) => ({
-                            visualIndicator: newSortingProperties,
-                            operationalProperties: shouldUpdateOperationalProperties ? newSortingProperties : operationalProperties,
-                        }));
+                        setSortedData((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                     }}
                 />
             )}
             <View style={[styles.pv2, styles.ph5]}>
-                {sortedTransactions.map((transaction) => {
+                {sortedData.transactions.map((transaction) => {
                     return (
                         <View style={[styles.mb2]}>
                             <TransactionItemRow
