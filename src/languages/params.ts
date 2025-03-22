@@ -273,6 +273,8 @@ type ViolationsRterParams = {
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
 
+type ViolationsProhibitedExpenseParams = {prohibitedExpenseType: string};
+
 type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
 type PaySomeoneParams = {name?: string} | undefined;
@@ -822,6 +824,7 @@ export type {
     ViolationsCustomRulesParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
+    ViolationsProhibitedExpenseParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,

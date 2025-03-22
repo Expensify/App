@@ -242,9 +242,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     );
 
     const continueUSDVBBASetup = () => {
-        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-        setShouldShowContinueSetupButton(false);
-        setUSDBankAccountStep(currentStep);
+        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+            setShouldShowContinueSetupButton(false);
+            setUSDBankAccountStep(currentStep);
+        });
     };
 
     const continueNonUSDVBBASetup = () => {

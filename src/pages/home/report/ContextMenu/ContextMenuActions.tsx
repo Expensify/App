@@ -435,6 +435,19 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: true,
+        textTranslateKey: 'reportActionContextMenu.copyToClipboard',
+        icon: Expensicons.Copy,
+        successTextTranslateKey: 'reportActionContextMenu.copied',
+        successIcon: Expensicons.Checkmark,
+        shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.TEXT,
+        onPress: (closePopover, {selection}) => {
+            Clipboard.setString(selection);
+            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+        },
+        getDescription: () => undefined,
+    },
+    {
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',

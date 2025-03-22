@@ -44,6 +44,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -108,7 +109,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             if (!isFeedExpired) {
                 customWindow?.close();
                 setAssignCardStepAndData({
-                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                     isEditing: false,
                 });
                 return;
@@ -130,7 +131,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (!shouldBlockWindowOpen) {
             customWindow = openBankConnection(url);
         }
-    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline]);
+    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline, assignCard]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>

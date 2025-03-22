@@ -44,6 +44,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const theme = useTheme();
     const webViewRef = useRef<WebView>(null);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
@@ -92,7 +93,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         // Handle assign card flow
         if (feed && !isFeedExpired) {
             setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                 isEditing: false,
             });
             return;
@@ -105,7 +106,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             }
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         }
-    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired]);
+    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired, assignCard]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {

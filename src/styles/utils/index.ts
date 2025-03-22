@@ -1620,6 +1620,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getReportTableColumnStyles: (columnName: string, isDateColumnWide = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
+            case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:
             case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;

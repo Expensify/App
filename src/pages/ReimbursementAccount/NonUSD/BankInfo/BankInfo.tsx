@@ -36,7 +36,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {initWithStoredValues: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
     const country = reimbursementAccount?.achData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
@@ -93,7 +93,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
         }
     };
 
-    if (corpayFields?.isLoading !== undefined && !corpayFields?.isLoading && corpayFields?.isSuccess !== undefined && !corpayFields?.isSuccess) {
+    if (corpayFields !== undefined && corpayFields?.isLoading === false && corpayFields?.isSuccess === false) {
         return <NotFoundPage />;
     }
 
