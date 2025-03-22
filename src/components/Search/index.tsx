@@ -479,7 +479,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
 
     return (
-        <SearchScopeProvider isOnSearch={true}>
+        <SearchScopeProvider isOnSearch>
             <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
                 ref={handleSelectionListScroll(sortedSelectedData)}
                 sections={[{data: sortedSelectedData, isDisabled: false}]}

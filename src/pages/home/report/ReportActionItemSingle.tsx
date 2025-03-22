@@ -7,7 +7,6 @@ import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {useSearchContext} from '@components/Search/SearchContext';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -121,7 +120,6 @@ function ReportActionItemSingle({
     const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report);
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
-    const {isOnSearch} = useSearchContext();
 
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
