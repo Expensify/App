@@ -28,6 +28,7 @@ jest.mock('@libs/Fullstory', () => ({
     },
     parseFSAttributes: jest.fn(),
 }));
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const INITIAL_STATE = {
     index: 0,
