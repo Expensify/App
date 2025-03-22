@@ -15,6 +15,8 @@ import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@components/ConfirmedRoute.tsx');
+
 describe('SidebarUtils', () => {
     beforeAll(() =>
         Onyx.init({
