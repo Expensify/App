@@ -119,6 +119,7 @@ import {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
     getReportAction,
     getReportActionHtml,
@@ -4540,6 +4541,10 @@ function getReportNameInternal({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
         return getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
+        return getPolicyChangeLogDefaultBillableMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
