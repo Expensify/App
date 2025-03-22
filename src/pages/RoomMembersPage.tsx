@@ -103,7 +103,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             return;
         }
         setSearchValue('');
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID, undefined, backTo));
+        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID, backTo));
     }, [report, setSearchValue, backTo]);
 
     /**
