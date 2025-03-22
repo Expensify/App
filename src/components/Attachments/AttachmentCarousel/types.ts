@@ -12,6 +12,9 @@ type AttachmentCarouselProps = {
     /** Source is used to determine the starting index in the array of attachments */
     source: AttachmentSource;
 
+    /** The id of the current active attachment */
+    attachmentID?: string;
+
     /** Callback to update the parent modal's state with a source and name from the attachments array */
     onNavigate?: (attachment: Attachment) => void;
 
