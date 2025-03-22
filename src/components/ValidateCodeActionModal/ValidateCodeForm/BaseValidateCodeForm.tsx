@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PendingContactAction, ValidateMagicCodeAction} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ValidateCodeFormHandle = {
@@ -48,6 +48,8 @@ type ValidateCodeFormProps = {
 
     /** The state of magic code that being sent */
     validateCodeAction?: ValidateMagicCodeAction | PendingContactAction;
+
+    validatePendingAction?: PendingAction | undefined;
 
     /** The field where any magic code erorr will be stored. e.g. if replacing a card and magic code fails, it'll be stored in:
      * {"errorFields": {"repplaceLostCard": {<timestamp>}}}
@@ -82,6 +84,7 @@ function BaseValidateCodeForm({
     innerRef = () => {},
     validateCodeAction,
     validateCodeActionErrorField = 'actionVerified',
+    validatePendingAction,
     validateError,
     handleSubmitForm,
     clearError,
@@ -228,6 +231,7 @@ function BaseValidateCodeForm({
     }, [canShowError, formError, account, translate]);
 
     const shouldShowTimer = timeRemaining > 0 && !isOffline;
+    console.log(validatePendingAction);
 
     // latestValidateCodeError only holds an error related to bad magic code
     // while validateError holds flow-specific errors
@@ -252,7 +256,7 @@ function BaseValidateCodeForm({
                 </Text>
             )}
             <OfflineWithFeedback
-                pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
+                pendingAction={validatePendingAction ?? validateCodeAction?.pendingFields?.validateCodeSent}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => clearValidateCodeActionError(validateCodeActionErrorField)}
             >
