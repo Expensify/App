@@ -357,7 +357,11 @@ function ScreenWrapper(
         [isSoftKeyNavigation, mobileOfflineIndicatorBackgroundStyle, offlineIndicatorStyle, styles.pl5],
     );
 
-    const addWidescreenOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true;
+    const displayMobileOfflineIndicator = isSmallScreenWidth && shouldShowOfflineIndicator;
+    const displayWidescreenOfflineIndicator = !shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen;
+
+    const shouldOffsetOfflineIndicator = displayMobileOfflineIndicator && isOffline;
+    const shouldOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPadding || shouldOffsetOfflineIndicator;
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
@@ -384,7 +388,7 @@ function ScreenWrapper(
                         style={[styles.w100, styles.h100, !isBlurred ? {maxHeight} : undefined, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
                         behavior={keyboardAvoidingViewBehavior}
                         enabled={shouldEnableKeyboardAvoidingView}
-                        shouldOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
+                        shouldOffsetBottomSafeAreaPadding={shouldOffsetBottomSafeAreaPadding}
                     >
                         <PickerAvoidingView
                             style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
@@ -403,7 +407,7 @@ function ScreenWrapper(
                                           })
                                         : children
                                 }
-                                {isSmallScreenWidth && shouldShowOfflineIndicator && (
+                                {displayMobileOfflineIndicator && (
                                     <>
                                         {isOffline && (
                                             <View style={[mobileOfflineIndicatorContainerStyle]}>
@@ -414,11 +418,11 @@ function ScreenWrapper(
                                         <ImportedStateIndicator />
                                     </>
                                 )}
-                                {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
+                                {displayWidescreenOfflineIndicator && (
                                     <>
                                         <OfflineIndicator
                                             style={[styles.pl5, offlineIndicatorStyle]}
-                                            addBottomSafeAreaPadding={addWidescreenOfflineIndicatorBottomSafeAreaPadding}
+                                            addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
