@@ -14,7 +14,7 @@ import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setErrors} from '@libs/actions/FormActions';
-import {requestValidateCodeAction} from '@libs/actions/User';
+import {clearValidateCodeActionError, requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -197,10 +197,12 @@ function ReportCardLostPage({
                         <ValidateCodeActionModal
                             handleSubmitForm={handleValidateCodeEntered}
                             sendValidateCode={sendValidateCode}
+                            validateCodeAction={validateCodeAction}
+                            validateActionErrorField="replaceLostCard"
                             validateError={validateError}
-                            validateCodeActionErrorField="replaceLostCard"
                             clearError={() => {
                                 clearCardListErrors(physicalCard.cardID);
+                                clearValidateCodeActionError('replaceLostCard');
                             }}
                             onClose={() => setIsValidateCodeActionModalVisible(false)}
                             isVisible={isValidateCodeActionModalVisible}

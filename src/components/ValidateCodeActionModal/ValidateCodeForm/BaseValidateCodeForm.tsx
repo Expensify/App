@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {validate} from 'schema-utils';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -23,8 +24,8 @@ import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ValidateMagicCodeAction} from '@src/types/onyx';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {PendingContactAction, ValidateMagicCodeAction} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ValidateCodeFormHandle = {
@@ -47,15 +48,12 @@ type ValidateCodeFormProps = {
     innerRef?: ForwardedRef<ValidateCodeFormHandle>;
 
     /** The state of magic code that being sent */
-    validateCodeAction?: ValidateMagicCodeAction;
+    validateCodeAction?: ValidateMagicCodeAction | PendingContactAction;
 
     /** The field where any magic code erorr will be stored. e.g. if replacing a card and magic code fails, it'll be stored in:
      * {"errorFields": {"repplaceLostCard": {<timestamp>}}}
      */
     validateCodeActionErrorField?: string;
-
-    /** The pending action for submitting form */
-    validatePendingAction?: PendingAction | null;
 
     /** The error of submitting  */
     validateError?: Errors;
@@ -85,7 +83,6 @@ function BaseValidateCodeForm({
     innerRef = () => {},
     validateCodeAction,
     validateCodeActionErrorField = 'actionVerified',
-    validatePendingAction,
     validateError,
     handleSubmitForm,
     clearError,
@@ -108,8 +105,7 @@ function BaseValidateCodeForm({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const latestActionVerifiedError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
-
+    const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const timerRef = useRef<NodeJS.Timeout>();
 
     useImperativeHandle(innerRef, () => ({
@@ -191,7 +187,7 @@ function BaseValidateCodeForm({
             setValidateCode(text);
             setFormError({});
 
-            if (!isEmptyObject(validateError) || !isEmptyObject(latestActionVerifiedError)) {
+            if (!isEmptyObject(validateError) || !isEmptyObject(latestValidateCodeError)) {
                 // Clear flow specific error
                 clearError();
 
@@ -199,7 +195,7 @@ function BaseValidateCodeForm({
                 clearValidateCodeActionError(validateCodeActionErrorField);
             }
         },
-        [validateError, clearError, latestActionVerifiedError, validateCodeActionErrorField],
+        [validateError, clearError, latestValidateCodeError, validateCodeActionErrorField],
     );
 
     /**
@@ -233,6 +229,10 @@ function BaseValidateCodeForm({
     }, [canShowError, formError, account, translate]);
 
     const shouldShowTimer = timeRemaining > 0 && !isOffline;
+
+    // latestValidateCodeError only holds an error related to bad magic code
+    // while validateError holds flow-specific errors
+    const validateErrorMessage = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
     return (
         <>
             <MagicCodeInput
@@ -284,16 +284,10 @@ function BaseValidateCodeForm({
             )}
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
-                pendingAction={validatePendingAction}
-                errors={canShowError ? latestActionVerifiedError || validateError : undefined}
+                pendingAction={validateCodeAction?.pendingAction}
+                errors={canShowError ? validateErrorMessage : undefined}
                 errorRowStyles={[styles.mt2]}
-                onClose={() => {
-                    // Clear flow specific error
-                    clearError();
-
-                    // Clear "incorrect magic" code error
-                    clearValidateCodeActionError(validateCodeActionErrorField);
-                }}
+                onClose={() => clearError()}
                 style={buttonStyles}
             >
                 {!hideSubmitButton && (
