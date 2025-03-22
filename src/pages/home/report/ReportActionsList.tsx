@@ -277,7 +277,7 @@ function ReportActionsList({
             };
 
             // If no unread marker exists, don't set an unread marker for newly added messages from the current user.
-            const isFromCurrentUser = accountID === (isReportPreviewAction(message) ? message.childLastActorAccountID : message.actorAccountID);
+            const isFromCurrentUser = accountID === (isReportPreviewAction(message) && !!message.childLastActorAccountID ? message.childLastActorAccountID : message.actorAccountID);
             const isNewMessage = !prevSortedVisibleReportActionsObjects[message.reportActionID];
 
             // The unread marker will show if the action's `created` time is later than `unreadMarkerTime`.
@@ -349,6 +349,7 @@ function ReportActionsList({
         }
 
         setUnreadMarkerTime(mostRecentReportActionCreated);
+        readNewestAction(report.reportID);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [lastAction?.created]);
