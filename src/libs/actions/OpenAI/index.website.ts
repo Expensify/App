@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-// import type {MediaStream} from 'react-native-webrtc-web-shim';
 import Onyx from 'react-native-onyx';
 import {mediaDevices} from 'react-native-webrtc-web-shim';
 import * as API from '@libs/API';
@@ -12,7 +11,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 type ConnectionResult = {
     peerConnection: RTCPeerConnection;
     dataChannel: RTCDataChannel;
-    mediaStream: MediaStream;
 };
 
 type WebRTCConnections = {
@@ -26,6 +24,7 @@ type OpenAIRealtimeMessage = {
 };
 
 let currentAdminsReportID: number | null = null;
+let mediaStream: MediaStream | null = null;
 
 const connections: WebRTCConnections = {
     openai: null,
@@ -69,7 +68,6 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
     let peerConnection: RTCPeerConnection;
     let rtcOffer: RTCSessionDescriptionInit;
     let dataChannel: RTCDataChannel;
-    let mediaStream: MediaStream;
 
     return new Promise((resolve, reject) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -143,7 +141,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
             })
             .then((answer: string) => {
                 peerConnection.setRemoteDescription(new RTCSessionDescription({type: 'answer', sdp: answer})).then(() => {
-                    resolve({peerConnection, dataChannel, mediaStream});
+                    resolve({peerConnection, dataChannel});
                 });
             })
             .catch((error: Error) => {
@@ -180,6 +178,7 @@ function initializeOpenAIRealtime(adminsReportID: number) {
             };
         })
         .catch((error) => {
+            stopConnection();
             console.error(error);
         });
 }
@@ -199,6 +198,13 @@ function handleFunctionCall(message: OpenAIRealtimeMessage) {
 function stopConnection() {
     Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {isTalkingToAISales: false});
 
+    if (mediaStream) {
+        mediaStream.getTracks().forEach((track) => {
+            track.stop();
+        });
+        mediaStream = null;
+    }
+
     const existingConnection = connections.openai;
     if (!existingConnection) {
         return;
@@ -207,10 +213,6 @@ function stopConnection() {
     if (existingConnection.dataChannel.readyState === 'open') {
         existingConnection.dataChannel.close();
     }
-
-    existingConnection.mediaStream.getTracks().forEach((track) => {
-        track.stop();
-    });
 
     existingConnection.peerConnection.close();
     connections.openai = null;
