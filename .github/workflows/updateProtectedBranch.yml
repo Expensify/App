@@ -24,4 +24,44 @@ jobs:
             exit 1
           fi
 
-      - name:  
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.getSourceBranch.outputs.SOURCE_BRANCH }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
+
+      - name: Setup git for OSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        id: setupGitForOSBotify
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SETUP_AS_APP: false
+
+      - name: Update target branch in Mobile-Expensify
+        working-directory: Mobile-Expensify
+        run: |
+          # Re-create the target branch from the source branch
+          git switch -c ${{ inputs.TARGET_BRANCH }}
+
+          # Force-update the remote target branch.
+          git push --force origin ${{ inputs.TARGET_BRANCH }}
+
+          echo "::notice::New HEAD of Mobile-Expensify ${{ inputs.TARGET_BRANCH}}: $(git log -1 --pretty=format:"%h \"%s\" by %an")"
+
+      - name: Update target branch in E/App
+        run: |
+          # Re-create the target branch from the source branch
+          git switch -c ${{ inputs.TARGET_BRANCH }}
+
+          cd Mobile-Expensify
+          MOBILE_EXPENSIFY_HEAD="$(git rev-parse --short HEAD)"
+          cd ..
+          git add Mobile-Expensify
+          git commit -m "Update Mobile-Expensify submodule to $MOBILE_EXPENSIFY_HEAD"
+
+          # Force-update the remote target branch.
+          git push --force origin ${{ inputs.TARGET_BRANCH }}
+
+          echo "::notice::New HEAD of E/App ${{ inputs.TARGET_BRANCH}}: $(git log -1 --pretty=format:"%h \"%s\" by %an")"
