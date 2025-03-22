@@ -109,6 +109,7 @@ function BaseValidateCodeForm({
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const latestActionVerifiedError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
+    console.log(latestActionVerifiedError);
 
     const timerRef = useRef<NodeJS.Timeout>();
 
@@ -287,7 +288,13 @@ function BaseValidateCodeForm({
                 pendingAction={validatePendingAction}
                 errors={canShowError ? latestActionVerifiedError || validateError : undefined}
                 errorRowStyles={[styles.mt2]}
-                onClose={() => clearError()}
+                onClose={() => {
+                    // Clear flow specific error
+                    clearError();
+
+                    // Clear "incorrect magic" code error
+                    clearValidateCodeActionError(validateCodeActionErrorField);
+                }}
                 style={buttonStyles}
             >
                 {!hideSubmitButton && (
