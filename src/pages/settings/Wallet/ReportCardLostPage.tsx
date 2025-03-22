@@ -14,7 +14,7 @@ import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setErrors} from '@libs/actions/FormActions';
-import {requestValidateCodeAction} from '@libs/actions/User';
+import {clearValidateCodeActionError, requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -75,6 +75,7 @@ function ReportCardLostPage({
 
     const physicalCard = cardList?.[cardID];
     const validateError = getLatestErrorMessageField(physicalCard);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const prevIsLoading = usePrevious(formData?.isLoading);
@@ -197,6 +198,7 @@ function ReportCardLostPage({
                             handleSubmitForm={handleValidateCodeEntered}
                             sendValidateCode={sendValidateCode}
                             validateError={validateError}
+                            validateCodeActionErrorField="replaceLostCard"
                             clearError={() => {
                                 clearCardListErrors(physicalCard.cardID);
                             }}

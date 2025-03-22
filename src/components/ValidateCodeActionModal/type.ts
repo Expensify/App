@@ -24,8 +24,11 @@ type ValidateCodeActionModalProps = {
     /** The pending action for submitting form */
     validatePendingAction?: PendingAction | null;
 
-    /** The error of submitting  */
+    /** The error of submitting, this hold any error sepcifc to the flow (e.g invalid reason when replacing a card) but NOT an incorrect magic code  */
     validateError?: Errors;
+
+    /** Where incorrect magic code error will be stored for each flow */
+    validateCodeActionErrorField: string;
 
     /** Function is called when submitting form  */
     handleSubmitForm: (validateCode: string) => void;
