@@ -2154,9 +2154,12 @@ function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): str
     return connectionName ? translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
 }
 
-function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
+function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, personalDetails: OnyxEntry<PersonalDetailsList> = {}) {
     const originalMessage = getOriginalMessage(reportAction);
+    const actorAccountID = reportAction?.actorAccountID;
+    const displayName = actorAccountID ? personalDetails?.[actorAccountID]?.displayName : '';
     return translateLocal('newRoomPage.renamedRoomAction', {
+        memberName: displayName ?? '',
         oldName: originalMessage?.oldName ?? '',
         newName: originalMessage?.newName ?? '',
     });
