@@ -2,6 +2,7 @@
 import Onyx from 'react-native-onyx';
 import {mediaDevices} from 'react-native-webrtc-web-shim';
 import * as API from '@libs/API';
+import type {SendRecapInAdminsRoomParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {playStreamSound} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -21,6 +22,10 @@ type OpenAIRealtimeMessage = {
     name: string;
     arguments: string;
     type: string;
+};
+
+type Recap = {
+    recap: string;
 };
 
 let currentAdminsReportID: number | null = null;
@@ -53,7 +58,7 @@ function getEmphemeralToken(): Promise<string> {
     };
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    const token = API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EMPHEMERAL_TOKEN, {}, onyxData)
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EMPHEMERAL_TOKEN, {}, onyxData)
         .then((response) => {
             return response?.client_secret?.value ?? '';
         })
@@ -61,7 +66,6 @@ function getEmphemeralToken(): Promise<string> {
             console.error(error);
             return '';
         });
-    return token;
 }
 
 function connectToOpenAIRealtime(): Promise<ConnectionResult> {
@@ -180,7 +184,7 @@ function initializeOpenAIRealtime(adminsReportID: number) {
                 const initialUserMessage = {
                     type: 'response.create',
                     response: {
-                        instructions: 'Please greet the user to start the conversation.',
+                        instructions: 'Greet the user.',
                     },
                 };
 
@@ -199,13 +203,24 @@ function initializeOpenAIRealtime(adminsReportID: number) {
 }
 
 function handleFunctionCall(message: OpenAIRealtimeMessage) {
-    if (message.name === 'SendRecapInAdminsRoom') {
-        API.write(WRITE_COMMANDS.SEND_RECAP_IN_ADMINS_ROOM, {
-            reportID: currentAdminsReportID ?? CONST.DEFAULT_NUMBER_ID,
-            recap: message.arguments,
-        });
-    }
     if (message.name === 'EndCall') {
+        stopConnection();
+        return;
+    }
+
+    if (message.name === 'SendRecapInAdminsRoom') {
+        const parsedArguments: Recap = JSON.parse(message.arguments) as Recap;
+        if (!parsedArguments.recap) {
+            stopConnection();
+            return;
+        }
+
+        const params: SendRecapInAdminsRoomParams = {
+            reportID: currentAdminsReportID ?? CONST.DEFAULT_NUMBER_ID,
+            recap: parsedArguments.recap,
+        };
+
+        API.write(WRITE_COMMANDS.SEND_RECAP_IN_ADMINS_ROOM, params);
         stopConnection();
     }
 }
