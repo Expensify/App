@@ -52,7 +52,7 @@ type ValidateCodeFormProps = {
     /** The field where any magic code erorr will be stored. e.g. if replacing a card and magic code fails, it'll be stored in:
      * {"errorFields": {"repplaceLostCard": {<timestamp>}}}
      */
-    validateCodeActionErrorField: string;
+    validateCodeActionErrorField?: string;
 
     /** The pending action for submitting form */
     validatePendingAction?: PendingAction | null;
@@ -84,7 +84,7 @@ function BaseValidateCodeForm({
     autoComplete = 'one-time-code',
     innerRef = () => {},
     validateCodeAction,
-    validateCodeActionErrorField,
+    validateCodeActionErrorField = 'actionVerified',
     validatePendingAction,
     validateError,
     handleSubmitForm,
@@ -109,7 +109,6 @@ function BaseValidateCodeForm({
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const latestActionVerifiedError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
-    console.log(latestActionVerifiedError);
 
     const timerRef = useRef<NodeJS.Timeout>();
 
