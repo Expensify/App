@@ -235,7 +235,6 @@ function BaseValidateCodeForm({
     }, [canShowError, formError, account, translate]);
 
     const shouldShowTimer = timeRemaining > 0 && !isOffline;
-    console.log(validatePendingAction);
 
     // latestValidateCodeError only holds an error related to bad magic code
     // while validateError holds flow-specific errors
@@ -249,7 +248,7 @@ function BaseValidateCodeForm({
                 value={validateCode}
                 onChangeText={onTextInput}
                 errorText={errorText}
-                hasError={canShowError ? !isEmptyObject(validateError) : false}
+                hasError={canShowError ? !!validateErrorMessage : false}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
             />

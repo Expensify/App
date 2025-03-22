@@ -58,7 +58,7 @@ function ReportVirtualCardFraudPage({
         if (!prevIsLoading || formData?.isLoading) {
             return;
         }
-        if (!isEmptyObject(virtualCard?.errors)) {
+        if (!isEmptyObject(virtualCard?.errors) || !isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
 
@@ -67,7 +67,7 @@ function ReportVirtualCardFraudPage({
             Navigation.goBack(ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.getRoute(latestIssuedVirtualCardID));
             setIsValidateCodeActionModalVisible(false);
         }
-    }, [formData?.isLoading, latestIssuedVirtualCardID, prevIsLoading, virtualCard?.errors]);
+    }, [formData?.isLoading, latestIssuedVirtualCardID, prevIsLoading, virtualCard?.errors, validateCodeAction?.errorFields]);
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {
