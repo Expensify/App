@@ -926,6 +926,7 @@ const translations = {
         }),
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
+        duplicateTransaction: 'Potential duplicate expenses identified. Review duplicates to enable submission.',
         receiptIssuesFound: () => ({
             one: 'Issue found',
             other: 'Issues found',
