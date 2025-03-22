@@ -418,11 +418,11 @@ function BaseTextInput(
                                     <TextInputClearButton onPressButton={() => setValue('')} />
                                 </View>
                             )}
-                            {!!inputProps.isLoading && (
+                            {inputProps.isLoading !== undefined && (
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
-                                    style={[styles.mt4, styles.ml1, loadingSpinnerStyle]}
+                                    style={[styles.mt4, styles.ml1, loadingSpinnerStyle, StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0)]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
