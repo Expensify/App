@@ -21,5 +21,4 @@ type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps e
     ) => OnyxDerivedValuesMapping[Key];
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export type {OnyxDerivedValueConfig};
+export default OnyxDerivedValueConfig;
