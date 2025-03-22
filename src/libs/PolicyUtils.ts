@@ -703,6 +703,13 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, curre
 }
 
 /**
+ * Checks whether the current user has a policy with admin access
+ */
+function hasActiveAdminWorkspaces(currentUserLogin: string | undefined) {
+    return getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
+}
+
+/**
  *
  * Checks whether the current user has a policy with Xero accounting software integration
  */
@@ -1454,6 +1461,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    hasActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,

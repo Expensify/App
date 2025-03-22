@@ -202,7 +202,7 @@ type GetValidReportsConfig = {
     loginsToExclude?: Record<string, boolean>;
     shouldSeparateWorkspaceChat?: boolean;
     shouldSeparateSelfDMChat?: boolean;
-    excludeNonAdministeredPolicies?: boolean;
+    excludeNonAdminWorkspaces?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type GetValidReportsReturnTypeCombined = {
@@ -1305,7 +1305,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         loginsToExclude = {},
         shouldSeparateSelfDMChat,
         shouldSeparateWorkspaceChat,
-        excludeNonAdministeredPolicies,
+        excludeNonAdminWorkspaces,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1345,7 +1345,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         const isChatRoom = option.isChatRoom;
         const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
-        if (excludeNonAdministeredPolicies && !isPolicyAdmin(option.policyID, policies)) {
+        if (excludeNonAdminWorkspaces && !isPolicyAdmin(option.policyID, policies)) {
             continue;
         }
 
