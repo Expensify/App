@@ -134,12 +134,15 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline, assignCard]);
 
     return (
-        <ScreenWrapper testID={BankConnection.displayName}>
+        <ScreenWrapper
+            testID={BankConnection.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
+        >
             <HeaderWithBackButton
                 title={headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <FullPageOfflineBlockingView>
+            <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 <BlockingView
                     icon={PendingBank}
                     iconWidth={styles.pendingBankCardIllustration.width}
@@ -149,6 +152,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                     CustomSubtitle={CustomSubtitle}
                     shouldShowLink
                     onLinkPress={onOpenBankConnectionFlow}
+                    addBottomSafeAreaPadding
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

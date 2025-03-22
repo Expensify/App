@@ -119,7 +119,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         <ScreenWrapper
             testID={BankConnection.displayName}
             shouldShowOfflineIndicator={false}
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -127,7 +127,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 title={headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <FullPageOfflineBlockingView>
+            <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 {!!url && !isConnectionCompleted && (
                     <WebView
                         ref={webViewRef}
