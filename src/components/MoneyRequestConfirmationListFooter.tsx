@@ -306,6 +306,7 @@ function MoneyRequestConfirmationListFooter({
             action: undefined,
             checkIfContextMenuActive: () => {},
             isDisabled: true,
+            shouldDisplayContextMenu: false,
         }),
         [],
     );

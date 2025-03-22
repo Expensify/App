@@ -17,6 +17,7 @@ const USER_A_EMAIL = 'user_a@test.com';
 jest.setTimeout(60000);
 
 jest.mock('@react-navigation/native');
+jest.mock('@components/ConfirmedRoute.tsx');
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();

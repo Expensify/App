@@ -22,6 +22,7 @@ jest.mock('@libs/Fullstory', () => ({
     },
     parseFSAttributes: jest.fn(),
 }));
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE = {
     shouldUseNarrowLayout: true,

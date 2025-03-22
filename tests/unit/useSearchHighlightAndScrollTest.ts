@@ -5,6 +5,7 @@ import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScro
 import * as Search from '@libs/actions/Search';
 
 jest.mock('@libs/actions/Search');
+jest.mock('@src/components/ConfirmedRoute.tsx');
 
 describe('useSearchHighlightAndScroll', () => {
     it('should trigger Search when transactionIDs list change', () => {
