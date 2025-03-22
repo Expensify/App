@@ -511,6 +511,12 @@ type OriginalMessageDeletedTransaction = {
     currency?: string;
 };
 
+/** Model of `concierge category options` report action */
+type OriginalMessageConciergeCategoryOptions = {
+    /** The options we present to the user when confidence in the predicted category is low */
+    options: string[];
+};
+
 /** Model of `reimbursement queued` report action */
 type OriginalMessageReimbursementQueued = {
     /** How is the payment getting reimbursed */
@@ -801,6 +807,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {
