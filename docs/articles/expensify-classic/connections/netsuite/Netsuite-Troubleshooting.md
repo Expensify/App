@@ -221,3 +221,16 @@ This can occur due to missing **Location**, **Class**, or **Department** setting
 2. Verify **Expensify's workspace connection settings** for proper configuration.
 
 ---
+
+## "Invite Employees & Set Approval Workflow" is enabled, why are NetSuite approvers not being set as Expensify approvers?
+
+The Invite Employees & Set Approval Workflow setting will not overwrite manual changes to the approval table so if an employee was added before this setting was enabled, the integration will not automatically update their approver to their NetSuite approver/supervisor.
+
+**Fix**:
+1. Remove the employee from the workspace **Settings > Workspaces > Group > [Workspace Name] > Members**.
+2. Sync the connection from **Settings > Workspaces > Group > [Workspace Name] > Connections > Sync Now** to import the employee and their designated NetSuite approver.
+
+**Alternative fix:**
+1. Manually update the employee's approver in **Settings > Workspaces > Group > [Workspace Name] > Members**.
+
+---
