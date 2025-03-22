@@ -1,5 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useIsFocused} from '@react-navigation/native';
+import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useState} from 'react';
@@ -23,7 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
+import {openExternalLink, openOldDotLink, openTravelDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -186,6 +187,10 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
+    const {isBlockedFromSpotnanaTravel} = usePermissions();
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
+    const primaryContactMethod = primaryLogin ?? session?.email ?? '';
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
     const {canUseSpotnanaTravel, canUseTableReportView} = usePermissions();
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
@@ -396,6 +401,28 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
     const canModifyTask = canModifyTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
+    const isTravelEnabled = useMemo(() => {
+        if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
+            return false;
+        }
+
+        const isPolicyProvisioned = activePolicy?.travelSettings?.spotnanaCompanyID ?? activePolicy?.travelSettings?.associatedTravelDomainAccountID;
+
+        return activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
+    }, [activePolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);
+
+    const openTravel = useCallback(() => {
+        if (isTravelEnabled) {
+            openTravelDotLink(activePolicy?.id)
+                ?.then(() => {})
+                ?.catch(() => {
+                    Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+                });
+        } else {
+            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+        }
+    }, [activePolicy, isTravelEnabled]);
+
     const menuItems = [
         ...expenseMenuItems,
         ...(canUseTableReportView
@@ -463,7 +490,8 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
                   {
                       icon: Expensicons.Suitcase,
                       text: translate('travel.bookTravel'),
-                      onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)),
+                      rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
+                      onSelected: () => interceptAnonymousUser(() => openTravel()),
                   },
               ]
             : []),

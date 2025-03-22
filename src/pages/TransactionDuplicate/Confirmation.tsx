@@ -60,7 +60,7 @@ function Confirmation() {
         if (!reportAction?.childReportID) {
             return;
         }
-        Navigation.dismissModal(reportAction?.childReportID);
+        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
     }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const resolveDuplicates = useCallback(() => {

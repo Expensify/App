@@ -5,18 +5,20 @@ keywords: [Expensify Classic, profile photo, account settings, update photo, rem
 ---
 <div id="expensify-classic" markdown="1">
 
-# Add a Profile Photo
-
 You can update your Expensify profile photo on both desktop and mobile.
 
-## Desktop
+---
+
+# Update Profile Photo
+
+**On Desktop:**
 1. Go to **Settings > Profile**.
 2. Click **Edit photo**.
 3. Choose an option:
    - Click **Remove photo** to replace your current image with a generic profile photo.
    - Click **Upload photo** to add a new image.
 
-## Mobile
+**On Mobile:**
 1. Tap the **☰** menu icon in the top left.
 2. Tap your profile picture.
 3. Tap the pencil icon next to your name.
@@ -26,7 +28,7 @@ You can update your Expensify profile photo on both desktop and mobile.
      - Tap the camera icon to take a new photo.
      - Tap the gallery icon to select a saved photo.
 
-![The Account Details page is displayed on the right side of the screen and the edit photo button is highlighted by an orange icon. Click the Edit Photo button to select a new image to add.]({{site.url}}/assets/images/Edit_Photo.png){:width="100%"}
+![The Profile page is displayed on the right side of the screen and the edit photo button is highlighted by an orange icon. Click the Edit Photo button to select a new image to add.]({{site.url}}/assets/images/Update Profile Photo - Classic.png){:width="100%"}
 
 ---
 
