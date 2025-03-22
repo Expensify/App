@@ -12,11 +12,6 @@ import * as Task from '@userActions/Task';
 // and prevents side-effects that you may not be aware of. It also allows each file to access Onyx data in the most performant way. More context can be found in
 // https://github.com/Expensify/App/issues/27262
 describe('ReportUtils', () => {
-    it('does not export getParentReport', () => {
-        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.getParentReport).toBeUndefined();
-    });
-
     it('does not export getReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getReport).toBeUndefined();
