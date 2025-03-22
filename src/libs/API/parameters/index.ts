@@ -384,4 +384,5 @@ export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsPa
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
 export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
+export type {default as SendRecapInAdminsRoomParams} from './SendRecapInAdminsRoomParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
