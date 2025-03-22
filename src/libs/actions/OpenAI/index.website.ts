@@ -160,6 +160,7 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
             console.error('[WebRTC] OpenAI error', {message});
             break;
         default:
+        // console.error('[WebRTC] Unhandled message', {type: message.type}, {message});
     }
 }
 
@@ -170,6 +171,28 @@ function initializeOpenAIRealtime(adminsReportID: number) {
         .then((connection: ConnectionResult) => {
             connections.openai = connection;
             Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {isTalkingToAISales: true});
+
+            connections.openai.dataChannel.onopen = () => {
+                if (!connections.openai) {
+                    return;
+                }
+
+                const initialUserMessage = {
+                    type: 'conversation.item.create',
+                    item: {
+                        type: 'message',
+                        role: 'user',
+                        content: [
+                            {
+                                type: 'input_text',
+                                text: 'Hello!',
+                            },
+                        ],
+                    },
+                };
+
+                connections.openai.dataChannel.send(JSON.stringify(initialUserMessage));
+            };
 
             connections.openai.dataChannel.onmessage = (event: MessageEvent) => {
                 const message: OpenAIRealtimeMessage = JSON.parse(event.data as string) as OpenAIRealtimeMessage;
