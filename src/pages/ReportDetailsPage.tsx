@@ -260,23 +260,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     }, [report, personalDetails, shouldOpenRoomMembersPage]);
     const connectedIntegration = getConnectedIntegration(policy);
 
-    const transactionIDList = useMemo(() => {
-        if (!isMoneyRequestReport || !transactions) {
-            return [];
-        }
-        return transactions.map((transaction) => transaction.transactionID);
-    }, [isMoneyRequestReport, transactions]);
-
-    // Get the active chat members by filtering out the pending members with delete action
-    const activeChatMembers = participants.flatMap((accountID) => {
-        const pendingMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-        const detail = personalDetails?.[accountID];
-        if (!detail) {
-            return [];
-        }
-        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
-    });
-
     const caseID = useMemo((): CaseID => {
         // 3. MoneyReportHeader
         if (isMoneyRequestReport || isInvoiceReport) {
@@ -289,6 +272,24 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         // 1. HeaderView
         return CASES.DEFAULT;
     }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
+
+    const transactionIDList = useMemo(() => {
+        if (caseID !== CASES.MONEY_REPORT || !transactions) {
+            return [];
+        }
+        return transactions.map((transaction) => transaction.transactionID);
+    }, [caseID, transactions]);
+
+    // Get the active chat members by filtering out the pending members with delete action
+    const activeChatMembers = participants.flatMap((accountID) => {
+        const pendingMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        const detail = personalDetails?.[accountID];
+        if (!detail) {
+            return [];
+        }
+        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
+    });
+
     const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
 
     const requestParentReportAction = useMemo(() => {
@@ -546,7 +547,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (isMoneyRequestReport) {
+        if (caseID === CASES.MONEY_REPORT) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_CSV,
                 translationKey: 'common.downloadAsCSV',
@@ -691,6 +692,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isOffline,
         transactionIDList,
         unapproveExpenseReportOrShowModal,
+        caseID,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
