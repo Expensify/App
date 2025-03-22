@@ -308,9 +308,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
 
-    /** Whether we highlight all the selected items */
-    shouldHighlightSelectedItem?: boolean;
-
     /** Styles applied for the title */
     titleStyles?: StyleProp<TextStyle>;
 
@@ -645,9 +642,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Additional styles to apply to scrollable content */
     contentContainerStyle?: StyleProp<ViewStyle>;
-
-    /** Whether we highlight all the selected items */
-    shouldHighlightSelectedItem?: boolean;
 
     /** Determines if the focused item should remain at the top of the viewable area when navigating with arrow keys */
     shouldKeepFocusedItemAtTopOfViewableArea?: boolean;

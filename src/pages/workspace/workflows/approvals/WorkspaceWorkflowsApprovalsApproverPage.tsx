@@ -275,7 +275,8 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         footerContent={button}
                         listEmptyContent={listEmptyContent}
                         shouldShowListEmptyContent={shouldShowListEmptyContent}
-                        shouldHighlightSelectedItem
+                        initiallyFocusedOptionKey={selectedApproverEmail}
+                        shouldUpdateFocusedIndex
                         shouldShowTextInput={shouldShowTextInput}
                     />
                 </FullPageNotFoundView>
