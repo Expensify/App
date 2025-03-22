@@ -34,7 +34,7 @@ index 8835a39..87e1964 100644
        mSimpleExoPlayer.setVideoSurface(surface);
      }
 diff --git a/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java b/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java
-index 41a5979..a3918a3 100644
+index 41a5979..b378bf4 100644
 --- a/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java
 +++ b/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java
 @@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
@@ -56,22 +56,22 @@ index 41a5979..a3918a3 100644
  
    public VideoTextureView(final Context themedReactContext, VideoView videoView) {
      super(themedReactContext, null, 0);
-@@ -54,6 +59,15 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
-       if (!matrix.equals(prevMatrix)) {
+@@ -55,6 +60,15 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
          setTransform(matrix);
          invalidate();
-+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-+          float[] values = new float[9];
-+          matrix.getValues(values);
-+          mBufferWidth = (int)(getWidth() * values[Matrix.MSCALE_X]);
-+          mBufferHeight = (int)(getHeight() * values[Matrix.MSCALE_Y]);
-+          mPositionX = (int)(values[Matrix.MTRANS_X]);
-+          mPositionY = (int)(values[Matrix.MTRANS_Y]);
-+          mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
-+        }
        }
++      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++        float[] values = new float[9];
++        matrix.getValues(values);
++        mBufferWidth = (int)(getWidth() * values[Matrix.MSCALE_X]);
++        mBufferHeight = (int)(getHeight() * values[Matrix.MSCALE_Y]);
++        mPositionX = (int)(values[Matrix.MTRANS_X]);
++        mPositionY = (int)(values[Matrix.MTRANS_Y]);
++        mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
++      }
      }
    }
+ 
 @@ -69,6 +83,9 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
        onVisibilityChanged(this, View.INVISIBLE);
        onVisibilityChanged(this, View.VISIBLE);
