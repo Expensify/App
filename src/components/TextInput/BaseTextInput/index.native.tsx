@@ -65,6 +65,7 @@ function BaseTextInput(
         type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
+        shouldAlwaysShowClearButton = false,
         prefixContainerStyle = [],
         prefixStyle = [],
         suffixContainerStyle = [],
@@ -73,6 +74,8 @@ function BaseTextInput(
         loadingSpinnerStyle,
         uncontrolled,
         placeholderTextColor,
+        onClearInput,
+        iconContainerStyle,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -399,7 +402,14 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || shouldAlwaysShowClearButton) && !!value && (
+                                <TextInputClearButton
+                                    onPressButton={() => {
+                                        setValue('');
+                                        onClearInput?.();
+                                    }}
+                                />
+                            )}
                             {!!inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
@@ -423,7 +433,7 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}

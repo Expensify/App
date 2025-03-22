@@ -1185,8 +1185,6 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingHorizontal: 15,
-            paddingRight: 5,
             ...userSelect.userSelectNone,
         },
 
@@ -1307,7 +1305,6 @@ const styles = (theme: ThemeColors) =>
         textInputIconContainer: {
             paddingHorizontal: 11,
             justifyContent: 'center',
-            margin: 1,
         },
 
         textInputLeftIconContainer: {

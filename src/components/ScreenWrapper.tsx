@@ -289,7 +289,9 @@ function ScreenWrapper(
 
         return () => {
             clearTimeout(timeout);
-            unsubscribeTransitionEnd();
+            if (unsubscribeTransitionEnd) {
+                unsubscribeTransitionEnd();
+            }
 
             if (beforeRemoveSubscription) {
                 beforeRemoveSubscription();
