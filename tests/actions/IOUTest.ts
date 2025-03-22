@@ -4923,6 +4923,35 @@ describe('actions/IOU', () => {
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
         });
+
+        it('should return false if the report is closed', async () => {
+            // Given a closed report, a policy, and a transaction
+            const policyID = '2';
+            const reportID = '1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID)),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+            };
+            Onyx.multiSet({
+                [ONYXKEYS.COLLECTION.REPORT]: fakeReport,
+                [ONYXKEYS.COLLECTION.TRANSACTION]: fakeTransaction,
+            });
+            await waitForBatchedUpdates();
+            // Then, canApproveIOU should return false since the report is closed
+            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
+        });
     });
 
     describe('canUnapproveIOU', () => {
