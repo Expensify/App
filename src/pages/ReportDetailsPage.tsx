@@ -877,6 +877,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
+                    furtherDetailsNumberOfLines={isPolicyExpenseChat ? 0 : undefined}
+                    furtherDetailsStyle={isPolicyExpenseChat ? styles.textAlignCenter : undefined}
                     onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
                     numberOfLinesTitle={isThread ? 2 : 0}
                     shouldBreakWord
