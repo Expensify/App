@@ -4,7 +4,6 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {validate} from 'schema-utils';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
