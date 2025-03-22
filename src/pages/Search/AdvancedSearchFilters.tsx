@@ -228,7 +228,6 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
 
     const cardFeedNamesWithType = getCardFeedNamesWithType({
         workspaceCardFeeds,
-        userCardList: cards,
         translate,
     });
 

@@ -13,7 +13,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
-import {buildCardFeedsData, buildCardsData, generateDomainFeedData, generateSelectedCards, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
+import {buildCardFeedsData, buildCardsData, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +51,7 @@ function SearchFiltersCardPage() {
         [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
     );
 
-    const domainFeedsData = useMemo(() => generateDomainFeedData(userCardList), [userCardList]);
+    const domainFeedsData = useMemo(() => getDomainFeedData(workspaceCardFeeds), [workspaceCardFeeds]);
 
     const cardFeedsSectionData = useMemo(
         () => buildCardFeedsData(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, domainFeedsData, selectedCards, translate, illustrations),

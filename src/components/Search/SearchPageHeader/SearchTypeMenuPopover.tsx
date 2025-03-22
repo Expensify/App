@@ -60,8 +60,8 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
     const {unmodifiedPaddings} = useSafeAreaPaddings();
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
-    }, [translate, workspaceCardFeeds, userCardList]);
+        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
+    }, [translate, workspaceCardFeeds]);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
