@@ -58,7 +58,6 @@ function ChatListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
-            errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
@@ -69,6 +68,7 @@ function ChatListItem<TItem extends ListItem>({
             <ReportActionItem
                 action={reportActionItem}
                 report={report}
+                reportActions={[]}
                 onPress={() => onSelectRow(item)}
                 parentReportAction={undefined}
                 displayAsGroup={false}
