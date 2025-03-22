@@ -6,6 +6,7 @@ describe('TaxOptionsListUtils', () => {
     it('getTaxRatesSection()', () => {
         const search = 'rate';
         const emptySearch = '';
+        const tokenizeSearch = 'Tax 2';
         const wrongSearch = 'bla bla';
 
         const taxRatesWithDefault: TaxRatesWithDefault = {
@@ -125,6 +126,13 @@ describe('TaxOptionsListUtils', () => {
             transaction,
         });
         expect(searchResult).toStrictEqual(searchResultList);
+
+        const tokenizeSearchResult = TaxOptionsListUtils.getTaxRatesSection({
+            policy,
+            searchValue: tokenizeSearch,
+            transaction,
+        });
+        expect(tokenizeSearchResult).toStrictEqual(searchResultList);
 
         const wrongSearchResult = TaxOptionsListUtils.getTaxRatesSection({
             policy,
