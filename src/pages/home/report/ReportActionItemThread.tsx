@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
@@ -5,11 +6,15 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenChildReport} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
@@ -41,6 +46,9 @@ type ReportActionItemThreadProps = {
 
 function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, reportID, reportAction, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
+    const backTo = route.params.backTo;
 
     const {translate, datetimeToCalendarTime} = useLocalize();
 
@@ -55,7 +63,7 @@ function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, report
                 onPress={() => {
                     Performance.markStart(CONST.TIMING.OPEN_REPORT_THREAD);
                     Timing.start(CONST.TIMING.OPEN_REPORT_THREAD);
-                    navigateToAndOpenChildReport(reportAction.childReportID, reportAction, reportID);
+                    navigateToAndOpenChildReport(reportAction.childReportID, reportAction, reportID, backTo, isInNarrowPaneModal);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}

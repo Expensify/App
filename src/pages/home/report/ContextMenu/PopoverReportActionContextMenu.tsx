@@ -14,6 +14,7 @@ import {deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -86,6 +87,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
     const onPopoverHideActionCallback = useRef(() => {});
     const callbackWhenDeleteModalHide = useRef(() => {});
+    const backToRef = useRef<Route>();
 
     /** Get the Context menu anchor position. We calculate the anchor coordinates from measureInWindow async method */
     const getContextMenuMeasuredLocation = useCallback(
@@ -168,6 +170,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             disabledOptions = [],
             shouldCloseOnTarget = false,
             isOverflowMenu = false,
+            backTo,
         } = showContextMenuParams;
         const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = report;
         const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
@@ -176,6 +179,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLDivElement;
+        backToRef.current = backTo;
         if (shouldCloseOnTarget) {
             anchorRef.current = event.target as HTMLDivElement;
         } else {
@@ -360,6 +364,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                     originalReportID={originalReportIDRef.current}
                     disabledActions={disabledActions}
                     setIsEmojiPickerActive={onEmojiPickerToggle.current}
+                    backTo={backToRef.current}
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal

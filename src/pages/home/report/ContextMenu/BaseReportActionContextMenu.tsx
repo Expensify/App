@@ -34,6 +34,7 @@ import shouldEnableContextMenuEnterShortcut from '@libs/shouldEnableContextMenuE
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
@@ -103,6 +104,9 @@ type BaseReportActionContextMenuProps = {
 
     /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
+
+    /** backTo route */
+    backTo?: Route;
 };
 
 type MenuItemRefs = Record<string, ContextMenuItemHandle | null>;
@@ -126,11 +130,12 @@ function BaseReportActionContextMenu({
     checkIfContextMenuActive,
     disabledActions = [],
     setIsEmojiPickerActive,
+    backTo,
 }: BaseReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isInNarrowPaneModal} = useResponsiveLayout();
     const menuItemRefs = useRef<MenuItemRefs>({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
@@ -337,6 +342,8 @@ function BaseReportActionContextMenu({
                             setIsEmojiPickerActive,
                             moneyRequestAction,
                             card,
+                            backTo,
+                            isInNarrowPaneModal,
                         };
 
                         if ('renderContent' in contextAction) {
