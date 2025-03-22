@@ -884,6 +884,18 @@ function allHavePendingRTERViolation(transactionIds: string[], transactionViolat
 }
 
 /**
+ * Check if there is rter violation in all transactionViolations with given transactionIDs.
+ */
+function allHaveRTERViolation(transactionIds: string[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+    return (
+        transactionIds.length > 0 &&
+        transactionIds.every((transactionId) => {
+            return hasBrokenConnectionViolation(transactionId, transactionViolations);
+        })
+    );
+}
+
+/**
  * Check if the transaction is pending or has a pending rter violation.
  */
 function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations?: TransactionViolations | null): boolean {
@@ -1494,6 +1506,7 @@ export {
     getOriginalAmount,
     getFormattedAttendees,
     getMerchant,
+    allHaveRTERViolation,
     getMerchantOrDescription,
     getMCCGroup,
     getCreated,
