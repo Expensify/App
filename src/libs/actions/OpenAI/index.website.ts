@@ -178,16 +178,9 @@ function initializeOpenAIRealtime(adminsReportID: number) {
                 }
 
                 const initialUserMessage = {
-                    type: 'conversation.item.create',
-                    item: {
-                        type: 'message',
-                        role: 'user',
-                        content: [
-                            {
-                                type: 'input_text',
-                                text: 'Hello!',
-                            },
-                        ],
+                    type: 'response.create',
+                    response: {
+                        instructions: 'Please greet the user to start the conversation.',
                     },
                 };
 
