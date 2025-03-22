@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
@@ -24,12 +23,14 @@ type YesNoStepProps = {
 
     /** The style of the submit button */
     submitButtonStyles?: StyleProp<ViewStyle>;
+
+    /** Indicates if button should be in isLoading state */
+    isLoading?: boolean;
 };
 
-function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles}: YesNoStepProps) {
+function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles, isLoading = false}: YesNoStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [value, setValue] = useState(defaultValue);
 
     const handleSubmit = () => {
@@ -57,7 +58,7 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={submitButtonStyles}
-            isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
+            isLoading={isLoading}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{title}</Text>
             <Text style={[styles.pv3, styles.textSupporting]}>{description}</Text>
