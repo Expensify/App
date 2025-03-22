@@ -37,7 +37,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Report from '@src/types/onyx/Report';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import KeyboardUtils from '@src/utils/keyboard';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
@@ -74,9 +73,10 @@ function getContextualSearchQuery(item: SearchQueryItem) {
 type SearchRouterProps = {
     onRouterClose: () => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
+    isSearchRouterDisplayed?: boolean;
 };
 
-function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, ref: React.Ref<View>) {
+function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
@@ -110,6 +110,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
 
             // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
+                return undefined;
+            }
+
+            if (!isSearchRouterDisplayed) {
                 return undefined;
             }
 
@@ -159,7 +163,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate],
+        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed],
     );
 
     const searchQueryItem = textInputValue
@@ -235,6 +239,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
 
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
+            if (!isSearchRouterDisplayed) {
+                return;
+            }
+
             if (isSearchQueryItem(item)) {
                 if (!item.searchQuery) {
                     return;
@@ -270,17 +278,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                 }
             } else {
                 onRouterClose();
-
-                KeyboardUtils.dismiss().then(() => {
-                    if (item?.reportID) {
-                        Navigation.navigateToReportWithPolicyCheck({reportID: item?.reportID});
-                    } else if ('login' in item) {
-                        navigateToAndOpenReport(item.login ? [item.login] : [], false);
-                    }
-                });
+                if (item?.reportID) {
+                    Navigation.navigateToReportWithPolicyCheck({reportID: item?.reportID});
+                } else if ('login' in item) {
+                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                }
             }
         },
-        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
+        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue, isSearchRouterDisplayed],
     );
 
     const updateAutocompleteSubstitutions = useCallback(
@@ -322,6 +327,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                         isFullWidth={shouldUseNarrowLayout}
                         onSearchQueryChange={onSearchQueryChange}
                         onSubmit={() => {
+                            if (!isSearchRouterDisplayed) {
+                                return;
+                            }
+
                             const focusedOption = listRef.current?.getFocusedOption();
 
                             if (!focusedOption) {
