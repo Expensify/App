@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,6 +48,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const isPrivateDomain = isUserOnPrivateDomain();
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {onboardingMessages} = getOnboardingMessages();
 
     useEffect(() => {
         setOnboardingErrorMessage('');
@@ -60,7 +62,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             completeOnboardingReport(
                 onboardingPurposeSelected,
-                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                onboardingMessages[onboardingPurposeSelected],
                 firstName,
                 lastName,
                 onboardingAdminsChatReportID ?? undefined,
@@ -72,7 +74,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth],
+        [onboardingPurposeSelected, onboardingMessages, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth],
     );
 
     useEffect(() => {

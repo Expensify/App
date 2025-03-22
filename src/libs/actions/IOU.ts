@@ -196,6 +196,7 @@ import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
 import {completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftTransaction} from './TransactionEdit';
+import getOnboardingMessages from './Welcome/OnboardingFlowTasks';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -9063,6 +9064,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
     }
 
     const session = getSession();
+    const {onboardingMessages} = getOnboardingMessages();
 
     const personalDetailsListValues = Object.values(getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList));
     const personalDetails = personalDetailsListValues.at(0);
@@ -9078,7 +9080,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
 
     completeOnboarding(
         onboardingPurpose,
-        CONST.ONBOARDING_MESSAGES[onboardingPurpose],
+        onboardingMessages[onboardingPurpose],
         personalDetails?.firstName ?? '',
         personalDetails?.lastName ?? '',
         adminsChatReportID,

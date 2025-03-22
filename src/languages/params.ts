@@ -655,6 +655,19 @@ type SettlementDateParams = {
     settlementDate: string;
 };
 
+type OnboardingTaskTitleParams = {integrationName?: string};
+
+type OnboardingTaskDescriptionParams = Partial<{
+    adminsRoomLink: string;
+    workspaceCategoriesLink: string;
+    workspaceMoreFeaturesLink: string;
+    workspaceMembersLink: string;
+    integrationName: string;
+    workspaceAccountingLink: string;
+    workspaceSettingsLink: string;
+    navatticURL: string;
+}>;
+
 type PolicyExpenseChatNameParams = {
     displayName: string;
 };
@@ -895,4 +908,6 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
+    OnboardingTaskTitleParams,
+    OnboardingTaskDescriptionParams,
 };

@@ -113,6 +113,8 @@ import type {
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
+    OnboardingTaskDescriptionParams,
+    OnboardingTaskTitleParams,
     OOOEventSummaryFullDayParams,
     OOOEventSummaryPartialDayParams,
     OptionalParam,
@@ -1897,6 +1899,247 @@ const translations = {
         },
         error: {
             requiredFirstName: 'Please input your first name to continue.',
+        },
+        tasks: {
+            createWorkspaceTask: {
+                title: 'Create a workspace',
+                description: ({workspaceSettingsLink}: OnboardingTaskDescriptionParams) =>
+                    '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
+                    '\n' +
+                    'Here’s how to create a workspace:\n' +
+                    '\n' +
+                    '1. Click *Settings*.\n' +
+                    '2. Click *Workspaces* > *New workspace*.\n' +
+                    '\n' +
+                    `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
+            },
+            meetGuideTask: {
+                title: 'Meet your setup specialist',
+                description: ({adminsRoomLink}: OnboardingTaskDescriptionParams) =>
+                    `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
+                    '\n' +
+                    `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
+            },
+            setupCategoriesTask: {
+                title: 'Set up categories',
+                description: ({workspaceCategoriesLink}: OnboardingTaskDescriptionParams) =>
+                    '*Set up categories* so your team can code expenses for easy reporting.\n' +
+                    '\n' +
+                    'Here’s how to set up categories:\n' +
+                    '\n' +
+                    '1. Click *Settings*.\n' +
+                    '2. Go to *Workspaces*.\n' +
+                    '3. Select your workspace.\n' +
+                    '4. Click *Categories*.\n' +
+                    "5. Disable any categories you don't need.\n" +
+                    '6. Add your own categories in the top right.\n' +
+                    '\n' +
+                    `[Take me to workspace category settings](${workspaceCategoriesLink}).\n` +
+                    '\n' +
+                    `![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+            },
+            submitExpenseEmployerTask: {
+                title: 'Submit an expense',
+                description:
+                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
+                    '\n' +
+                    'Here’s how to submit an expense:\n' +
+                    '\n' +
+                    '1. Click the green *+* button.\n' +
+                    '2. Choose *Create expense*.\n' +
+                    '3. Enter an amount or scan a receipt.\n' +
+                    `4. Add your boss's email or phone number.\n` +
+                    '5. Click *Create*.\n' +
+                    '\n' +
+                    `And you're done!`,
+            },
+            submitExpenseAdminTask: {
+                title: 'Submit an expense',
+                description:
+                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
+                    '\n' +
+                    'Here’s how to submit an expense:\n' +
+                    '\n' +
+                    '1. Click the green *+* button.\n' +
+                    '2. Choose *Create expense*.\n' +
+                    '3. Enter an amount or scan a receipt.\n' +
+                    '4. Confirm details.\n' +
+                    '5. Click *Create*.\n' +
+                    '\n' +
+                    `And you're done!`,
+            },
+            trackExpenseTask: {
+                title: 'Track an expense',
+                description:
+                    '*Track an expense* in any currency, whether you have a receipt or not.\n' +
+                    '\n' +
+                    'Here’s how to track an expense:\n' +
+                    '\n' +
+                    '1. Click the green *+* button.\n' +
+                    '2. Choose *Create expense*.\n' +
+                    '3. Enter an amount or scan a receipt.\n' +
+                    '4. Choose your *personal* space.\n' +
+                    '5. Click *Create*.\n' +
+                    '\n' +
+                    'And you’re done! Yep, it’s that easy.',
+            },
+            selfGuidedTourTask: {
+                title: 'Take a 2-minute tour',
+                description: ({navatticURL}: OnboardingTaskDescriptionParams) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
+            },
+            setupCategoriesAndTagsTask: {
+                title: 'Set up categories and tags',
+                description: ({workspaceCategoriesLink, workspaceAccountingLink}: OnboardingTaskDescriptionParams) =>
+                    '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
+                    '\n' +
+                    `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceCategoriesLink}).`,
+            },
+            setupTagsTask: {
+                title: 'Set up tags',
+                description: ({workspaceMoreFeaturesLink}: OnboardingTaskDescriptionParams) =>
+                    'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
+                    '\n' +
+                    '*Here’s how to set up tags:*\n' +
+                    '\n' +
+                    '1. Click *Settings*.\n' +
+                    '2. Go to *Workspaces*.\n' +
+                    '3. Select your workspace.\n' +
+                    '4. Click *More features*.\n' +
+                    '5. Enable *Tags*.\n' +
+                    '6. Navigate to *Tags* in the workspace editor.\n' +
+                    '7. Click *+ Add tag* to make your own.\n' +
+                    '\n' +
+                    `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
+                    '\n' +
+                    `![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+            },
+            addExpenseApprovalsTask: {
+                title: 'Add expense approvals',
+                description: ({workspaceMoreFeaturesLink}: OnboardingTaskDescriptionParams) =>
+                    '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
+                    '\n' +
+                    'Here’s how to add expense approvals:\n' +
+                    '\n' +
+                    '1. Click *Settings*.\n' +
+                    '2. Go to *Workspaces*.\n' +
+                    '3. Select your workspace.\n' +
+                    '4. Click *More features*.\n' +
+                    '5. Enable *Workflows*.\n' +
+                    '6. Navigate to *Workflows* in the workspace editor.\n' +
+                    '7. Enable *Add approvals*.\n' +
+                    '8. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
+                    '\n' +
+                    `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
+                    '\n' +
+                    `![Add expense approvals](${CONST.CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4)`,
+            },
+            inviteTeamTask: {
+                title: 'Invite your team',
+                description: ({workspaceMembersLink}: OnboardingTaskDescriptionParams) =>
+                    '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
+                    '\n' +
+                    'Here’s how to invite your team:\n' +
+                    '\n' +
+                    '1. Click *Settings*.\n' +
+                    '2. Go to *Workspaces*.\n' +
+                    '3. Select your workspace.\n' +
+                    '4. Click *Members* > *Invite member*.\n' +
+                    '5. Enter emails or phone numbers. \n' +
+                    '6. Add a custom invite message if you’d like!\n' +
+                    '\n' +
+                    `[Take me to workspace members](${workspaceMembersLink}).\n` +
+                    '\n' +
+                    `![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+            },
+            addAccountingIntegrationTask: {
+                title: ({integrationName}: OnboardingTaskTitleParams) => `Connect to ${integrationName}`,
+                description: ({integrationName, workspaceAccountingLink}: OnboardingTaskDescriptionParams) =>
+                    `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                    '\n' +
+                    `Here’s how to connect to ${integrationName}:\n` +
+                    '\n' +
+                    '1. Click *Settings*.\n' +
+                    '2. Go to *Workspaces*.\n' +
+                    '3. Select your workspace.\n' +
+                    '4. Click *Accounting*.\n' +
+                    `5. Find ${integrationName}.\n` +
+                    '6. Click *Connect*.\n' +
+                    '\n' +
+                    `${
+                        integrationName && CONST.CONNECTIONS_VIDEO_PATHS[integrationName]
+                            ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.CONNECTIONS_VIDEO_PATHS[integrationName]})`
+                            : `[Take me to accounting](${workspaceAccountingLink}).`
+                    }`,
+            },
+            inviteAccountantTask: {
+                title: 'Invite your accountant',
+                description: ({workspaceMembersLink}: OnboardingTaskDescriptionParams) =>
+                    '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
+                    '\n' +
+                    'Here’s how to invite your accountant:\n' +
+                    '\n' +
+                    '1. Click your profile picture.\n' +
+                    '2. Go to *Workspaces*.\n' +
+                    '3. Select your workspace.\n' +
+                    '4. Click *Members* > Invite member.\n' +
+                    '5. Enter their email or phone number.\n' +
+                    '6. Add an invite message if you’d like.\n' +
+                    '7. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
+                    '\n' +
+                    'That’s it, happy expensing! 😄\n' +
+                    '\n' +
+                    `[View your workspace members](${workspaceMembersLink}).`,
+            },
+            startChatTask: {
+                title: 'Start a chat',
+                description:
+                    '*Start a chat* with a friend or group using their email or phone number.\n' +
+                    '\n' +
+                    'Here’s how to start a chat:\n' +
+                    '\n' +
+                    '1. Click the green *+* button.\n' +
+                    '2. Choose *Start chat*.\n' +
+                    '3. Enter emails or phone numbers.\n' +
+                    '\n' +
+                    'If any of your friends aren’t using Expensify already, they’ll be invited automatically.\n' +
+                    '\n' +
+                    'Every chat will also turn into an email or text that they can respond to directly.',
+            },
+            splitExpenseTask: {
+                title: 'Split an expense',
+                description:
+                    '*Split an expense* right in your chat with one or more friends.\n' +
+                    '\n' +
+                    'Here’s how to request money:\n' +
+                    '\n' +
+                    '1. Click the green *+* button.\n' +
+                    '2. Choose *Start chat*.\n' +
+                    '3. Enter any email, SMS, or name of who you want to split with.\n' +
+                    '4. From within the chat, click the *+* button on the message bar, and click *Split expense*.\n' +
+                    '5. Create the expense by selecting *Manual*, *Scan* or *Distance*.\n' +
+                    '\n' +
+                    'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
+            },
+            reviewWorkspaceSettingsTask: {
+                title: 'Review your workspace settings',
+                description:
+                    "Here's how to review and update your workspace settings:" +
+                    '\n' +
+                    '1. Click *Settings*.' +
+                    '2. Go to *Workspaces* > [Your workspace].' +
+                    '\n' +
+                    "Make any changes there and we'll track them in the #admins room.",
+            },
+        },
+        messages: {
+            employerOrSubmitMessage: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
+            personalSpendMessage: 'Here’s how to track your spend in a few clicks.',
+            manageTeamMessage: 'Here are some important tasks to help get your team’s expenses under control.',
+            trackWorkspaceMessage: 'Here are some important tasks to help get your workspace set up.',
+            chatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
+            adminMessage: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
+            lookingAround:
+                "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
         },
     },
     featureTraining: {
