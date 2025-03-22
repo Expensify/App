@@ -4860,46 +4860,112 @@ function deleteAppReport(reportID: string | undefined) {
         Log.warn('[Report] deleteReport called with no reportID');
         return;
     }
+    const optimisticData: OnyxUpdate[] = [];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const onyxData: Record<string, null> = {
-        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
-    };
+    // const onyxData: Record<string, null> = {
+    //     [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
+    //     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
+    // };
 
     // Delete linked transactions
     const reportActionsForReport = allReportActions?.[reportID];
+    let selfDMReportID = findSelfDMReportID();
 
+    if (!selfDMReportID) {
+        const currentTime = DateUtils.getDBTime();
+        const selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        selfDMReportID = selfDMReport.reportID;
+    }
+    // 1. Get all report transactions
     const transactionIDs = Object.values(reportActionsForReport ?? {})
         .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
         .map((reportAction) => ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
 
+    // 2. Set transaction's reportID to 0
     [...new Set(transactionIDs)].forEach((transactionID) => {
-        onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {reportID: 0},
+        });
     });
 
-    Onyx.multiSet(onyxData);
-    const selfDMReportID = findSelfDMReportID();
+    Object.values(reportActionsForReport ?? {})
+        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
+        .forEach((reportAction) => {
+            console.log('reportAction', reportAction);
+            console.log('eachreport of report action:', allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`]);
+            // 3. Move the IOU reportActions to the selfDM
+            const updatedReportAction = {
+                ...reportAction,
+                originalMessage: {
+                    ...reportAction.originalMessage,
+                    IOUReportID: selfDMReportID,
+                },
+            };
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                value: {
+                    [reportAction.reportActionID]: updatedReportAction,
+                },
+            });
+            // 4. Get transaction thread
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`,
+                value: {
+                    parentReportID: selfDMReportID,
+                    policyID: '_FAKE_',
+                },
+            });
 
-    // Move the report to SelfDm
-    Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
-        if (!reportAction.childReportID) {
-            return;
-        }
-        const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`,
+                value: {
+                    [reportAction.reportActionID]: {
+                        originalMessage: {
+                            movedToReportID: selfDMReportID,
+                        },
+                    },
+                },
+            });
+        });
+
+    // 5. Delete report actions on the report
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: null,
     });
 
-    // Delete linked IOU report
-    if (report?.iouReportID) {
-        deleteReport(report.iouReportID);
-    }
+    // 6. Delete the report
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: null,
+    });
+
+    // 7. Delete chat report preview
+    const reportactionID = report?.parentReportActionID ?? '';
+    const parentReportID = report?.parentReportID;
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+        value: {
+            [reportactionID]: null,
+        },
+    });
 
     const parameters: DeleteAppReportParams = {
         reportID,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters);
+    API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData});
 }
-
 
 /**
  * Dismisses the change report policy educational modal so that it doesn't show up again.

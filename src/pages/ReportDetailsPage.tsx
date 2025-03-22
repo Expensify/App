@@ -1056,7 +1056,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         />
                     ))}
 
-                    {shouldShowDeleteButton && (
+                    {true && (
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={Expensicons.Trashcan}
