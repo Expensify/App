@@ -27,10 +27,12 @@ Note: These should be the same as the benchmarks collected before any changes.
 <!---
 Check off any platforms that are affected by this issue
 --->
-Which of our officially supported platforms is this issue occurring on?
-- [ ] Android: Native
+On which of our officially supported platforms was this issue tested and **confirmed**?
+- [ ] Android: Standalone
+- [ ] Android: HybridApp
 - [ ] Android: mWeb Chrome
-- [ ] iOS: Native
+- [ ] iOS: Standalone
+- [ ] iOS: HybridApp
 - [ ] iOS: mWeb Safari
 - [ ] MacOS: Chrome / Safari
 - [ ] MacOS: Desktop
