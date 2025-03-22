@@ -27,6 +27,7 @@ import type {
     LeaveRoomParams,
     MarkAsExportedParams,
     MarkAsUnreadParams,
+    MoveIOUReportToExistingPolicyParams,
     OpenReportParams,
     OpenRoomMembersPageParams,
     ReadNewestActionParams,
@@ -127,6 +128,7 @@ import {
     getReportLastVisibleActionCreated,
     getReportMetadata,
     getReportNotificationPreference,
+    getReportTransactions,
     getReportViolations,
     getRouteFromLink,
     isChatThread as isChatThreadReportUtils,
@@ -134,6 +136,7 @@ import {
     isExpenseReport,
     isGroupChat as isGroupChatReportUtils,
     isHiddenForCurrentUser,
+    isIOUReportUsingReport,
     isMoneyRequestReport,
     isSelfDM,
     isValidReportIDFromPath,
@@ -167,6 +170,7 @@ import type {
     ReportAction,
     ReportActionReactions,
     ReportUserIsTyping,
+    Transaction,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -4862,6 +4866,158 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 /**
+ * Moves an IOU report to a policy by converting it to an expense report
+ * @param reportID - The ID of the IOU report to move
+ * @param policyID - The ID of the policy to move the report to
+ */
+function moveIOUReportToPolicy(reportID: string, policyID: string) {
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const policy = getPolicy(policyID);
+
+    // This flow only works for IOU reports
+    if (!policy || !iouReport || !isIOUReportUsingReport(iouReport)) {
+        return;
+    }
+    // We do not want to create negative amount expenses
+    if (ReportActionsUtils.hasRequestFromCurrentAccount(iouReport.reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID)) {
+        return;
+    }
+
+    // Generate new variables for the policy
+    const policyName = policy.name ?? '';
+    const iouReportID = iouReport.reportID;
+    const employeeAccountID = iouReport.ownerAccountID;
+    const chatReportId = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
+
+    if (!chatReportId) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [];
+
+    const successData: OnyxUpdate[] = [];
+
+    const failureData: OnyxUpdate[] = [];
+
+    // Next we need to convert the IOU report to Expense report.
+    // We need to change:
+    // - report type
+    // - change the sign of the report total
+    // - update its policyID and policyName
+    // - update the chatReportID to point to the workspace chat if the policy has policy expense chat enabled
+    const expenseReport = {
+        ...iouReport,
+        chatReportID: policy.isPolicyExpenseChatEnabled ? chatReportId : undefined,
+        policyID,
+        policyName,
+        parentReportID: iouReport.parentReportID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        total: -(iouReport?.total ?? 0),
+    };
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+        value: expenseReport,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+        value: iouReport,
+    });
+
+    // The expense report transactions need to have the amount reversed to negative values
+    const reportTransactions = getReportTransactions(iouReportID);
+
+    // For performance reasons, we are going to compose a merge collection data for transactions
+    const transactionsOptimisticData: Record<string, Transaction> = {};
+    const transactionFailureData: Record<string, Transaction> = {};
+    reportTransactions.forEach((transaction) => {
+        transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+            ...transaction,
+            amount: -transaction.amount,
+            modifiedAmount: transaction.modifiedAmount ? -transaction.modifiedAmount : 0,
+        };
+
+        transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+    });
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+        value: transactionsOptimisticData,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+        value: transactionFailureData,
+    });
+
+    // We need to move the report preview action from the DM to the workspace chat.
+    const parentReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`];
+    const parentReportActionID = iouReport.parentReportActionID;
+    const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReport?.[parentReportActionID] : undefined;
+    const oldChatReportID = iouReport.chatReportID;
+
+    if (reportPreview?.reportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+            value: {[reportPreview.reportActionID]: null},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+            value: {[reportPreview.reportActionID]: reportPreview},
+        });
+
+        // Add the reportPreview action to workspace chat
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportId}`,
+            value: {[reportPreview.reportActionID]: reportPreview},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportId}`,
+            value: {[reportPreview.reportActionID]: null},
+        });
+    }
+
+    // Create the CHANGE_POLICY report action and add it to the DM chat which indicates to the user where the report has been moved
+    const changePolicyReportAction = buildOptimisticChangePolicyReportAction(iouReport.policyID, policyID, true);
+    const reportActions = allReportActions?.[iouReportID];
+    const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(iouReportID, reportActions ?? []);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {[changePolicyReportAction.reportActionID]: changePolicyReportAction},
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [changePolicyReportAction.reportActionID]: {
+                ...changePolicyReportAction,
+                pendingAction: null,
+            },
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {[changePolicyReportAction.reportActionID]: null},
+    });
+
+    const parameters: MoveIOUReportToExistingPolicyParams = {
+        iouReportID,
+        policyID,
+        changePolicyReportActionID: changePolicyReportAction.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, parameters, {optimisticData, successData, failureData});
+}
+
+/**
  * Dismisses the change report policy educational modal so that it doesn't show up again.
  */
 function dismissChangePolicyModal() {
@@ -5209,6 +5365,7 @@ export {
     updateRoomVisibility,
     updateWriteCapability,
     prepareOnboardingOnyxData,
+    moveIOUReportToPolicy,
     dismissChangePolicyModal,
     changeReportPolicy,
 };
