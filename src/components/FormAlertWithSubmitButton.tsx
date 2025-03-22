@@ -65,6 +65,13 @@ type FormAlertWithSubmitButtonProps = {
 
     /** should render the extra button above submit button */
     shouldRenderFooterAboveSubmit?: boolean;
+
+    /**
+     * Whether the button should have a background layer in the color of theme.appBG.
+     * This is needed for buttons that allow content to display under them.
+     */
+    shouldBlendOpacity?: boolean;
+
 };
 
 function FormAlertWithSubmitButton({
@@ -87,6 +94,7 @@ function FormAlertWithSubmitButton({
     errorMessageStyle,
     enterKeyEventListenerPriority = 0,
     shouldRenderFooterAboveSubmit = false,
+    shouldBlendOpacity = false,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
@@ -112,6 +120,7 @@ function FormAlertWithSubmitButton({
                     {isOffline && !enabledWhenOffline ? (
                         <Button
                             success
+                            shouldBlendOpacity={shouldBlendOpacity}
                             isDisabled
                             text={buttonText}
                             style={style}
@@ -123,6 +132,7 @@ function FormAlertWithSubmitButton({
                         <Button
                             ref={buttonRef}
                             success
+                            shouldBlendOpacity={shouldBlendOpacity}
                             pressOnEnter={pressOnEnter}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             text={buttonText}
