@@ -429,7 +429,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 )}
                 <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
             </View>
-            {true && (
+            {shouldShowEarlyDiscountBanner && (
                 <EarlyDiscountBanner
                     TalkToSalesButton={shouldShowTalkToSales ? talkToSalesButton : undefined}
                     GuideBookingButton={shouldShowGuideBookingButtonInEarlyDiscountBanner ? guideBookingButton : undefined}
