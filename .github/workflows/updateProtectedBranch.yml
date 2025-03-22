@@ -58,6 +58,7 @@ jobs:
           # Re-create the target branch from the source branch
           git switch -c ${{ inputs.TARGET_BRANCH }}
 
+          # Commit the change to the Mobile-Expensify submodule
           cd Mobile-Expensify
           MOBILE_EXPENSIFY_HEAD="$(git rev-parse --short HEAD)"
           cd ..
