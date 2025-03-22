@@ -8,6 +8,9 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.TARGET_BRANCH }}
+
 jobs:
   updateProtectedBranch:
     runs-on: ubuntu-latest
