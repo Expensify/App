@@ -17,14 +17,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as MemberAction from '@userActions/Policy/Member';
-import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {isCurrentUserValidated} from '@libs/UserUtils';
+import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
+import {completeOnboarding} from '@userActions/Report';
+import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 import type {BaseOnboardingWorkspacesProps} from './types';
 
 function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboardingWorkspacesProps) {
@@ -41,27 +42,32 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
 
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
-    const isValidated = UserUtils.isCurrentUserValidated(loginList);
+    const isValidated = isCurrentUserValidated(loginList);
 
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
     const handleJoinWorkspace = useCallback(
-        (policyID: string) => {
-            MemberAction.joinAccessiblePolicy(policyID);
-            Report.completeOnboarding(
+        (policy: JoinablePolicy) => {
+            if (policy.automaticJoiningEnabled) {
+                joinAccessiblePolicy(policy.policyID);
+            } else {
+                askToJoinPolicy(policy.policyID);
+            }
+            completeOnboarding(
                 CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
                 onboardingPersonalDetails?.firstName ?? '',
                 onboardingPersonalDetails?.lastName ?? '',
             );
-            Welcome.setOnboardingAdminsChatReportID();
-            Welcome.setOnboardingPolicyID(policyID);
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID(policy.policyID);
 
-            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policyID, activeWorkspaceID);
+            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policy.automaticJoiningEnabled ? policy.policyID : undefined, activeWorkspaceID);
         },
         [onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, canUseDefaultRooms, activeWorkspaceID],
     );
+
     const policyIDItems = useMemo(() => {
         return Object.values(joinablePolicies ?? {}).map((policyInfo) => {
             return {
@@ -76,14 +82,14 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                         medium
                         text={policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}
                         onPress={() => {
-                            handleJoinWorkspace(policyInfo.policyID);
+                            handleJoinWorkspace(policyInfo);
                         }}
                     />
                 ),
                 icons: [
                     {
                         id: policyInfo.policyID,
-                        source: ReportUtils.getDefaultWorkspaceAvatar(policyInfo.policyName),
+                        source: getDefaultWorkspaceAvatar(policyInfo.policyName),
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policyInfo.policyName,
                         type: CONST.ICON_TYPE_WORKSPACE,

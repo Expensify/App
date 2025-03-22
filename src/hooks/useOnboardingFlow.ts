@@ -1,7 +1,6 @@
 import {useEffect} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {isUserOnPrivateDomain} from '@libs/actions/Session';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
@@ -29,7 +28,9 @@ function useOnboardingFlowRouter() {
 
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
-    const isPrivateDomain = isUserOnPrivateDomain();
+    const [user] = useOnyx(ONYXKEYS.USER);
+
+    const isPrivateDomainAndHasAccesiblePolicies = !user?.isFromPublicDomain && !!user?.hasAccessibleDomainPolicies;
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
     useEffect(() => {
@@ -72,13 +73,13 @@ function useOnboardingFlowRouter() {
                 // But if the hybrid app onboarding is completed, but NewDot onboarding is not completed, we start NewDot onboarding flow
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
                 if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false) {
-                    startOnboardingFlow(isPrivateDomain);
+                    startOnboardingFlow(isPrivateDomainAndHasAccesiblePolicies);
                 }
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
             if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false) {
-                startOnboardingFlow(isPrivateDomain);
+                startOnboardingFlow(isPrivateDomainAndHasAccesiblePolicies);
             }
         });
     }, [
@@ -93,7 +94,7 @@ function useOnboardingFlowRouter() {
         dismissedProductTrainingMetadata,
         dismissedProductTraining?.migratedUserWelcomeModal,
         dismissedProductTraining,
-        isPrivateDomain,
+        isPrivateDomainAndHasAccesiblePolicies,
     ]);
 
     return {isOnboardingCompleted, isHybridAppOnboardingCompleted};

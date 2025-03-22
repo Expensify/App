@@ -1268,12 +1268,6 @@ function validateUserAndGetAccessiblePolicies(validateCode: string) {
     API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode}, {optimisticData, successData, failureData});
 }
 
-function isUserOnPrivateDomain() {
-    // TODO: Implement this function later, and skip the check for now
-    // return !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
-    return false;
-}
-
 /**
  * To reset SMS delivery failure
  */
@@ -1360,7 +1354,6 @@ export {
     signUpUser,
     signInAfterTransitionFromOldDot,
     validateUserAndGetAccessiblePolicies,
-    isUserOnPrivateDomain,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
 };
