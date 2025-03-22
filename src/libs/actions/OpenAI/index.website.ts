@@ -68,6 +68,18 @@ function getEmphemeralToken(): Promise<string> {
         });
 }
 
+function connectUsingSDP(ephemeralToken: string, rtcOffer: RTCSessionDescriptionInit): Promise<Response> {
+    return fetch(CONST.OPEN_AI_REALTIME_API, {
+        method: CONST.NETWORK.METHOD.POST,
+        headers: {
+            Authorization: `Bearer ${ephemeralToken}`,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'Content-Type': 'application/sdp',
+        },
+        body: rtcOffer.sdp,
+    });
+}
+
 function connectToOpenAIRealtime(): Promise<ConnectionResult> {
     let peerConnection: RTCPeerConnection;
     let rtcOffer: RTCSessionDescriptionInit;
@@ -101,6 +113,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 pc.oniceconnectionstatechange = () => {
                     if (pc.iceConnectionState === 'failed') {
                         reject(new Error('ICE connection failed'));
+                        stopConnection();
                     }
                 };
 
@@ -110,6 +123,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                         const audioStream = event.streams.at(0);
                         if (!audioStream) {
                             reject(new Error('Failed to get stream'));
+                            stopConnection();
                             return;
                         }
                         playStreamSound(audioStream);
@@ -127,15 +141,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 return getEmphemeralToken();
             })
             .then((ephemeralToken: string) => {
-                return fetch('https://api.openai.com/v1/realtime', {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${ephemeralToken}`,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        'Content-Type': 'application/sdp',
-                    },
-                    body: rtcOffer.sdp,
-                });
+                return connectUsingSDP(ephemeralToken, rtcOffer);
             })
             .then((response: Response) => {
                 if (!response.ok) {
@@ -150,6 +156,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
             })
             .catch((error: Error) => {
                 console.error(error);
+                stopConnection();
                 reject(error);
             });
     });
@@ -247,4 +254,4 @@ function stopConnection() {
     connections.openai = null;
 }
 
-export {getEmphemeralToken, initializeOpenAIRealtime, stopConnection};
+export {initializeOpenAIRealtime, stopConnection};
