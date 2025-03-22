@@ -164,7 +164,6 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
             console.error('[WebRTC] OpenAI error', {message});
             break;
         default:
-        // console.error('[WebRTC] Unhandled message', {type: message.type}, {message});
     }
 }
 
