@@ -3,7 +3,7 @@ import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
@@ -27,6 +27,7 @@ import type {
     LeaveRoomParams,
     MarkAsExportedParams,
     MarkAsUnreadParams,
+    MoveIOUReportToPolicyAndInviteSubmitterParams,
     OpenReportParams,
     OpenRoomMembersPageParams,
     ReadNewestActionParams,
@@ -83,7 +84,7 @@ import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
+import {extractPolicyIDFromPath, getDefaultApprover, getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
@@ -97,6 +98,7 @@ import {
     buildOptimisticCreatedReportAction,
     buildOptimisticExportIntegrationAction,
     buildOptimisticGroupChatReport,
+    buildOptimisticMovePolicyAndInviteSubmitterReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
     buildOptimisticRoomDescriptionUpdatedReportAction,
@@ -110,6 +112,7 @@ import {
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
+    getAllPolicyReports,
     getChatByParticipants,
     getChildReportNotificationPreference,
     getDefaultNotificationPreferenceForReport,
@@ -134,6 +137,7 @@ import {
     isExpenseReport,
     isGroupChat as isGroupChatReportUtils,
     isHiddenForCurrentUser,
+    isIOUReportUsingReport,
     isMoneyRequestReport,
     isSelfDM,
     isValidReportIDFromPath,
@@ -160,6 +164,7 @@ import type {
     PersonalDetails,
     PersonalDetailsList,
     Policy,
+    PolicyEmployee,
     PolicyReportField,
     QuickAction,
     RecentlyUsedReportFields,
@@ -176,6 +181,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey} from './CachedPDFPaths';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
+import {buildRoomMembersOnyxData} from './Policy/Member';
+import {createPolicyExpenseChats} from './Policy/Policy';
 import {
     createUpdateCommentMatcher,
     resolveCommentDeletionConflicts,
@@ -375,6 +382,37 @@ let nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
 Onyx.connect({
     key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
     callback: (value) => (nvpDismissedProductTraining = value),
+});
+
+const allPolicies: OnyxCollection<Policy> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (val, key) => {
+        if (!key) {
+            return;
+        }
+        if (val === null || val === undefined) {
+            // If we are deleting a policy, we have to check every report linked to that policy
+            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
+            // More info: https://github.com/Expensify/App/issues/14260
+            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
+            const policyReports = getAllPolicyReports(policyID);
+            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
+            policyReports.forEach((policyReport) => {
+                if (!policyReport) {
+                    return;
+                }
+                const {reportID} = policyReport;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
+            });
+            Onyx.multiSet(cleanUpSetQueries);
+            delete allPolicies[key];
+            return;
+        }
+
+        allPolicies[key] = val;
+    },
 });
 
 let environmentURL: string;
@@ -4862,6 +4900,249 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 /**
+ * Moves an IOU report to a policy by converting it to an expense report
+ * @param reportID - The ID of the IOU report to move
+ * @param policyID - The ID of the policy to move the report to
+ */
+function moveIOUReportToPolicyAndInviteSubmitter(
+    iouReportID: string,
+    policyID: string,
+    policyExpenseChatReportID: string,
+    policyExpenseCreatedReportActionID: string,
+    changePolicyReportActionID: string,
+) {
+    if (!iouReportID || !policyID) {
+        return;
+    }
+
+    const reportToMove = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    const policy = getPolicy(policyID);
+    const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
+
+    // This flow only works for IOU reports
+    if (!policy || !reportToMove || reportToMove?.policyID === policyID || !isPolicyAdmin || !isExpenseReport(reportToMove) || !isIOUReportUsingReport(reportToMove)) {
+        return;
+    }
+
+    // We do not want to create negative amount expenses
+    if (ReportActionsUtils.hasRequestFromCurrentAccount(iouReportID, reportToMove.managerID ?? CONST.DEFAULT_NUMBER_ID)) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    // 1. Optimistically set the policyID on the report (and all its threads)
+    // Preprocess reports to create a map of parentReportID to child reports list of reportIDs
+    const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
+
+    // Recursively update the policyID of the report and all its child reports
+    updatePolicyIdForReportAndThreads(iouReportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
+
+    // 2. If the old workspace had a workspace chat, mark the report preview action as deleted
+    if (reportToMove?.parentReportID && reportToMove?.parentReportActionID) {
+        const oldReportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove?.parentReportID}`]?.[reportToMove?.parentReportActionID];
+        const deletedTime = DateUtils.getDBTime();
+        const firstMessage = Array.isArray(oldReportPreviewAction?.message) ? oldReportPreviewAction.message.at(0) : null;
+        const updatedReportPreviewAction = {
+            ...oldReportPreviewAction,
+            originalMessage: {
+                deleted: deletedTime,
+            },
+            ...(firstMessage && {
+                message: [
+                    {
+                        ...firstMessage,
+                        deleted: deletedTime,
+                    },
+                    ...(Array.isArray(oldReportPreviewAction?.message) ? oldReportPreviewAction.message.slice(1) : []),
+                ],
+            }),
+            ...(!Array.isArray(oldReportPreviewAction?.message) && {
+                message: {
+                    deleted: deletedTime,
+                },
+            }),
+        };
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove?.parentReportID}`,
+            value: {[reportToMove?.parentReportActionID]: updatedReportPreviewAction},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove?.parentReportID}`,
+            value: {[reportToMove?.parentReportActionID]: oldReportPreviewAction},
+        });
+    }
+
+    // 3. Optimistically create a new REPORTPREVIEW reportAction with the newReportPreviewActionID
+    // and set it as a parent of the moved report
+    const policyExpenseChat = getPolicyExpenseChat(currentUserAccountID, policyID);
+    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, reportToMove);
+
+    if (policyExpenseChat) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`,
+            value: {[optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction},
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`,
+            value: {
+                [optimisticReportPreviewAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`,
+            value: {[optimisticReportPreviewAction.reportActionID]: null},
+        });
+
+        // Set the new report preview action as a parent of the moved report,
+        // and set the parentReportID on the moved report as the workspace chat reportID
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            value: {parentReportActionID: optimisticReportPreviewAction.reportActionID, parentReportID: policyExpenseChat.reportID},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            value: {parentReportActionID: reportToMove.parentReportActionID, parentReportID: reportToMove.parentReportID},
+        });
+
+        // Set lastVisibleActionCreated
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+            value: {lastVisibleActionCreated: optimisticReportPreviewAction?.created},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+            value: {lastVisibleActionCreated: policyExpenseChat.lastVisibleActionCreated},
+        });
+    }
+
+    // 4. Optimistically create a CHANGEPOLICY reportAction on the report using the reportActionID
+    const optimisticMovedReportAction = buildOptimisticMovePolicyAndInviteSubmitterReportAction(reportToMove.policyID, policyID);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove.reportID}`,
+        value: {[optimisticMovedReportAction.reportActionID]: optimisticMovedReportAction},
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove.reportID}`,
+        value: {
+            [optimisticMovedReportAction.reportActionID]: {
+                ...optimisticMovedReportAction,
+                pendingAction: null,
+            },
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove.reportID}`,
+        value: {[optimisticMovedReportAction.reportActionID]: null},
+    });
+
+    // 5. Optimistically add the submitter to the workspace and create a workspace chat for them
+    const submitterAccountID = reportToMove.ownerAccountID;
+    const submitterEmail = PersonalDetailsUtils.getLoginByAccountID(submitterAccountID ?? CONST.DEFAULT_NUMBER_ID);
+
+    if (!!submitterAccountID && !!submitterEmail) {
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+        const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {
+            [submitterEmail]: submitterAccountID,
+        };
+
+        // Set up new member optimistic data
+        const role = CONST.POLICY.ROLE.USER;
+        const submitterLogin = PhoneNumber.addSMSDomainIfPhoneNumber(submitterEmail);
+
+        // Get personal details onyx data (similar to addMembersToWorkspace)
+        const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins([submitterLogin], [submitterAccountID]);
+        const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
+
+        // Build announce room members data for the new member
+        const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, [submitterAccountID]);
+
+        // Create policy expense chat for the submitter
+        const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
+
+        // Set up optimistic member state
+        const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
+            [submitterLogin]: {
+                role,
+                email: submitterLogin,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                submitsTo: getDefaultApprover(allPolicies?.[policyKey]),
+            },
+        };
+
+        const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
+            [submitterLogin]: {pendingAction: null},
+        };
+
+        const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
+            [submitterLogin]: {
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
+            },
+        };
+
+        // Add employee list update to optimistic data
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                employeeList: optimisticMembersState,
+            },
+        });
+
+        // Add success and failure data
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                employeeList: successMembersState,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                employeeList: failureMembersState,
+            },
+        });
+
+        // Add personal details and chat data
+        optimisticData.push(...newPersonalDetailsOnyxData.optimisticData, ...membersChats.onyxOptimisticData, ...announceRoomMembers.optimisticData);
+
+        successData.push(...newPersonalDetailsOnyxData.finallyData, ...membersChats.onyxSuccessData, ...announceRoomMembers.successData);
+
+        failureData.push(...membersChats.onyxFailureData, ...announceRoomMembers.failureData);
+    }
+
+    const parameters: MoveIOUReportToPolicyAndInviteSubmitterParams = {
+        iouReportID,
+        policyID,
+        policyExpenseChatReportID,
+        policyExpenseCreatedReportActionID,
+        changePolicyReportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER, parameters, {optimisticData, successData, failureData});
+}
+
+/**
  * Dismisses the change report policy educational modal so that it doesn't show up again.
  */
 function dismissChangePolicyModal() {
@@ -5209,6 +5490,7 @@ export {
     updateRoomVisibility,
     updateWriteCapability,
     prepareOnboardingOnyxData,
+    moveIOUReportToPolicyAndInviteSubmitter,
     dismissChangePolicyModal,
     changeReportPolicy,
 };
