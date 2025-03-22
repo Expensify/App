@@ -1154,6 +1154,10 @@ const translations = {
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
     },
+    share: {
+        shareToExpensify: 'Share to Expensify',
+        messageInputLabel: 'Message',
+    },
     notificationPreferencesPage: {
         header: 'Notification preferences',
         label: 'Notify me about new messages',
