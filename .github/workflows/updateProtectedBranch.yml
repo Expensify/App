@@ -68,3 +68,9 @@ jobs:
           git push --force origin ${{ inputs.TARGET_BRANCH }}
 
           echo "::notice::New HEAD of E/App ${{ inputs.TARGET_BRANCH}}: $(git log -1 --pretty=format:"%h \"%s\" by %an")"
+
+      - name: Announce failed workflow in Slack
+        if: ${{ failure() }}
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
