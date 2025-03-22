@@ -1,0 +1,27 @@
+name: Update Protected Branch
+
+on:
+  workflow_call:
+    inputs:
+      TARGET_BRANCH:
+        description: 'Which branch to update. Should be one of: [staging, production]'
+        required: true
+        type: string
+
+jobs:
+  updateProtectedBranch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine SOURCE_BRANCH
+        id: getSourceBranch
+        run: |
+          if [[ '${{ inputs.TARGET_BRANCH }}' == 'staging' ]]; then
+            echo "SOURCE_BRANCH=main" >> "$GITHUB_OUTPUT"
+          elif [[ '${{ inputs.TARGET_BRANCH }}' == 'production' ]]; then
+            echo "SOURCE_BRANCH=staging" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::💥 Invalid TARGET_BRANCH ${{ inputs.TARGET_BRANCH }}"
+            exit 1
+          fi
+
+      - name:  
