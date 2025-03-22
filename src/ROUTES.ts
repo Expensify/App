@@ -70,11 +70,12 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
+        getRoute: ({reportID, reportActionID, backTo, q}: {reportID: string | undefined; reportActionID?: string; backTo?: string, q?: string}) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
             }
-            const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
+            let baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
+            baseRoute = q ? `${baseRoute}?q=${encodeURIComponent(q)}` : baseRoute;
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
