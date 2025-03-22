@@ -111,7 +111,6 @@ import {
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
-    clearReportFieldKeyErrors,
     downloadReportPDF,
     exportReportToCSV,
     exportReportToPDF,
@@ -905,16 +904,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const nameSectionTitleField = !!titleField && (
         <OfflineWithFeedback
-            pendingAction={report.pendingFields?.[fieldKey as keyof typeof report.pendingFields] ?? report.pendingFields?.reportName}
-            errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}
+            pendingAction={report.pendingFields?.reportName}
+            errors={report.errorFields?.reportName}
             errorRowStyles={styles.ph5}
             key={`menuItem-${fieldKey}`}
-            onClose={() => {
-                if (report.errorFields?.reportName) {
-                    clearPolicyRoomNameErrors(report.reportID);
-                }
-                clearReportFieldKeyErrors(report.reportID, fieldKey);
-            }}
+            onClose={() => clearPolicyRoomNameErrors(report.reportID)}
         >
             <View style={[styles.flex1]}>
                 <MenuItemWithTopDescription
