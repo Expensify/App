@@ -57,11 +57,6 @@ operator "operator"
   / "<=" { return "lte"; }
   / "<" { return "lt"; }
 
-quotedString "quote"
-  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:[^"”“\r\n]* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
-      return [...start, '"', ...inner, '"', ...end].join("");
-    }
-
 alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
 
 logicalAnd = _ { return "and"; }
