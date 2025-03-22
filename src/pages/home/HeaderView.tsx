@@ -376,6 +376,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && talkToSalesButton}
                                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
