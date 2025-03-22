@@ -125,6 +125,7 @@ import {
     getReportActionMessageText,
     getReportActionText,
     getWorkspaceCurrencyUpdateMessage,
+    getWorkspaceFrequencyUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
@@ -4519,6 +4520,9 @@ function getReportNameInternal({
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
         return Str.htmlDecode(getWorkspaceNameUpdatedMessage(parentReportAction));
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
+        return getWorkspaceFrequencyUpdateMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
