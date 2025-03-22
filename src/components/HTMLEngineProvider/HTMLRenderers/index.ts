@@ -12,6 +12,7 @@ import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
+import ShortMentionRenderer from './ShortMentionRenderer';
 import StrongRenderer from './StrongRenderer';
 import TaskTitleRenderer from './TaskTitleRenderer';
 import VideoRenderer from './VideoRenderer';
@@ -37,6 +38,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'mention-user': MentionUserRenderer,
     'mention-report': MentionReportRenderer,
     'mention-here': MentionHereRenderer,
+    'mention-short': ShortMentionRenderer,
     emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
     'deleted-action': DeletedActionRenderer,
