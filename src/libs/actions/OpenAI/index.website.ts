@@ -160,7 +160,6 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
             console.error('[WebRTC] OpenAI error', {message});
             break;
         default:
-            console.error('[WebRTC] Unknown message type:', {type: message.type});
     }
 }
 
