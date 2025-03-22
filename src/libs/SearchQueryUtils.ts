@@ -66,6 +66,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     paid: 'paid',
     exported: 'exported',
     posted: 'posted',
+    groupBy: 'group-by',
 };
 
 /**
@@ -601,10 +602,14 @@ function buildUserReadableQueryString(
     cardList: OnyxTypes.CardList,
     cardFeedNamesWithType: CardFeedNamesWithType,
 ) {
-    const {type, status} = queryJSON;
+    const {type, status, groupBy} = queryJSON;
     const filters = queryJSON.flatFilters;
 
     let title = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
+
+    if (groupBy) {
+        title += ` group-by:${groupBy}`;
+    }
 
     for (const filterObject of filters) {
         const key = filterObject.key;
@@ -648,20 +653,26 @@ function buildCannedSearchQuery({
     status = CONST.SEARCH.STATUS.EXPENSE.ALL,
     policyID,
     cardID,
+    groupBy,
 }: {
     type?: SearchDataTypes;
     status?: SearchStatus;
     policyID?: string;
     cardID?: string;
+    groupBy?: string;
 } = {}): SearchQueryString {
     let queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
 
+    if (groupBy) {
+        queryString += ` group-by:${groupBy}`;
+    }
+
     if (policyID) {
-        queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}`;
+        queryString += ` policyID:${policyID}`;
     }
 
     if (cardID) {
-        queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status} expense-type:card card:${cardID}`;
+        queryString += ` expense-type:card card:${cardID}`;
     }
 
     // Parse the query to fill all default query fields with values
@@ -681,7 +692,7 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters;
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters && !queryJSON.groupBy;
 }
 
 /**

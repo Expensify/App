@@ -1,6 +1,7 @@
 ---
 title: Create Tags
 description: Code expenses by creating tags
+keywords: [Expensify Classic, tags, tag expenses]
 ---
 <div id="expensify-classic" markdown="1">
 
@@ -10,9 +11,20 @@ You can tag expenses for a specific department, project, location, cost center, 
 - **Single Tags**: Employees click one dropdown to select one tag. Single tags are helpful if employees need to select only one tag from a list, for example, their department.
 - **Multi-level Tags**: Employees click multiple dropdowns to select more than one tag. You can also create dependent tags that only appear if another tag has already been selected. Multi-tags are helpful if you have multiple tags, for example, projects, locations, cost centers, etc., for employees to select or if you have dependent tags. For example, if an employee selects a specific department, another tag can appear where they have to select their project. 
 
+---
+
 # Individual Tags
 
-## Import via spreadsheet
+## Manually Add Individual Tags
+
+You can also add single tags by adding them manually:
+1. Hover over Settings, then click **Workspaces**. 
+2. Click the **Group** tab on the left. 
+3. Click the desired workspace name. 
+4. Click the **Tags** tab on the left. 
+5. Enter a tag name into the field and click **Add**. 
+
+## Import via Spreadsheet
 
 You can add a list of single tags by importing them via .csv, .txt, .xls, or .xlsx spreadsheet:
 1. Hover over Settings, then click **Workspaces**. 
@@ -22,21 +34,11 @@ You can add a list of single tags by importing them via .csv, .txt, .xls, or .xl
 5. Click **Import from Spreadsheet**.
 6. Review the guidelines, select the checkbox if your file has headers as the first row, and click **Upload File**. 
 
-{% include info.html %}
-Each time you upload a list of tags, it will override your previous list. To avoid losing tags, update your current spreadsheet and re-import it into Expensify.
-{% include end-info.html %}
+⚠️ **Important:** Each time you upload a list of tags, it will override your previous list. To avoid losing tags, update the current spreadsheet and re-import it into Expensify.
 
-## Manually add individual tags
-You can also add single tags by adding them manually:
-1. Hover over Settings, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
-3. Click the desired workspace name. 
-4. Click the **Tags** tab on the left. 
-5. Enter a tag name into the field and click **Add**. 
+---
 
-# Multi-level Tags
-
-## Automatic import via accounting integration
+# Automatic Import via Accounting Integration
 
 When you first connect your accounting integration (for example, QuickBooks Online, QuickBooks Desktop, Sage Intacct, Xero, or NetSuite), you’ll configure classes, customers, projects, department locations, etc., that automatically import into Expensify as tags.
 
@@ -47,9 +49,11 @@ To update your tags in Expensify, you must first update the tag in your accounti
 4. Click the **Connections** tab on the left.
 5. Click **Sync Now**.
 
-Once the tags are updated in your accounting integration, the changes will automatically reflect in Expensify after the connection sync is run. 
+Once the tags are updated in your accounting integration, the changes will automatically reflect in Expensify after the connection sync is run. Syncing typically takes a few minutes but can take longer depending on the number of updates.
 
-## Import via spreadsheet
+---
+
+# Multi-Level Tags
 
 You can add mutli-level tags by importing them in a .csv, .txt, .xls, or .xlsx spreadsheet.
 
@@ -61,22 +65,17 @@ Then use one of the following templates to build your tags list:
    - [Independent tags with GL codes]({{site.url}}/assets/Files/Independent+with+GL+codes+format.csv)
    - [Independent tags without GL codes]({{site.url}}/assets/Files/Independent+without+GL+codes+format.csv)
 
-{% include info.html %}
-If you have more than 50,000 tags, divide them into two separate files.
-{% include end-info.html %}
+**Note** If you have more than 50,000 tags, divide them into two separate files.
 
-To import multi-level tags:
-1. Hover over Settings, then click **Workspaces**.
-2. Click the **Group** tab on the left.
-3. Click the desired workspace name.
-4. Click the **Tags** tab on the left.
-5. Enable the “Use multiple levels of tags” option.
-6. Click **Import from Spreadsheet**.
-7. Select the applicable checkboxes and click **Upload Tags**.  
+**When you're ready to import the multi-level tags list:**
+1. Head to **Settings > Group > Workspaces > [Workspace Name] > Tags**.
+2. Enable the “Use multiple levels of tags” option.
+3. Click **Import from Spreadsheet**.
+4. Select the applicable checkboxes and click **Upload Tags**.  
 
-{% include info.html %}
-Each time you upload a list of tags, it will override your previous list. To avoid losing tags, update your current spreadsheet and re-import it into Expensify.
-{% include end-info.html %} 
+⚠️ **Important:** Each time you upload a list of tags, it will override your previous list. To avoid losing tags, update the original spreadsheet and re-import it into Expensify.
+
+---
 
 # FAQ
 

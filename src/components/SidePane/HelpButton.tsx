@@ -10,6 +10,7 @@ import useSidePane from '@hooks/useSidePane';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {triggerSidePane} from '@libs/actions/SidePane';
+import KeyboardUtils from '@src/utils/keyboard';
 
 type HelpButtonProps = {
     style?: StyleProp<ViewStyle>;
@@ -30,8 +31,14 @@ function HelpButton({style}: HelpButtonProps) {
         <Tooltip text={translate('common.help')}>
             <PressableWithoutFeedback
                 accessibilityLabel={translate('common.help')}
-                style={[styles.flexRow, styles.touchableButtonImage, styles.mr2, style]}
-                onPress={() => triggerSidePane(isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen, {shouldUpdateNarrowLayout: !isExtraLargeScreenWidth})}
+                style={[styles.flexRow, styles.touchableButtonImage, style]}
+                onPress={() => {
+                    KeyboardUtils.dismiss();
+                    triggerSidePane({
+                        isOpen: isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen,
+                        isOpenNarrowScreen: isExtraLargeScreenWidth ? undefined : !sidePane?.openNarrowScreen,
+                    });
+                }}
             >
                 <Icon
                     src={Expensicons.QuestionMark}

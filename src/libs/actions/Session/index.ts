@@ -1,7 +1,8 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-import {InteractionManager, Linking, NativeModules} from 'react-native';
+import {InteractionManager, Linking} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -222,7 +223,7 @@ function isExpiredSession(sessionCreationDate: number): boolean {
     return new Date().getTime() - sessionCreationDate >= CONST.SESSION_EXPIRATION_TIME_MS;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true) {
+function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true, shouldForceUseStashedSession?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
@@ -243,8 +244,8 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     }
 
     // In the HybridApp, we want the Old Dot to handle the sign out process
-    if (NativeModules.HybridAppModule && killHybridApp) {
-        NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: true, shouldSetNVP: false});
+    if (CONFIG.IS_HYBRID_APP && killHybridApp) {
+        HybridAppModule.closeReactNativeApp({shouldSignOut: true, shouldSetNVP: false});
         return;
     }
     // We'll only call signOut if we're not stashing the session and this is not a supportal session,
@@ -275,9 +276,10 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             [ONYXKEYS.STASHED_SESSION]: stashedSession,
         };
     }
-    // Now if this is a supportal access, we do not want to stash the current session and we have a
+
+    // Now if this is a supportal access or force use stashed session, we do not want to stash the current session and we have a
     // stashed session, then we need to restore the stashed session instead of completely logging out
-    if (isSupportal && !shouldStashSession && hasStashedSession()) {
+    if ((isSupportal || shouldForceUseStashedSession) && !shouldStashSession && hasStashedSession()) {
         onyxSetParams = {
             [ONYXKEYS.CREDENTIALS]: stashedCredentials,
             [ONYXKEYS.SESSION]: stashedSession,
@@ -290,13 +292,20 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     // Wait for signOut (if called), then redirect and update Onyx.
     signOutPromise
         .then((response) => {
-            Onyx.multiSet(onyxSetParams);
-
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
-                asyncOpenURL(redirectToSignIn(), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
+                asyncOpenURL(
+                    redirectToSignIn().then(() => {
+                        Onyx.multiSet(onyxSetParams);
+                    }),
+                    `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`,
+                    true,
+                    true,
+                );
             } else {
-                redirectToSignIn();
+                redirectToSignIn().then(() => {
+                    Onyx.multiSet(onyxSetParams);
+                });
             }
         })
         .catch((error: string) => Log.warn('Error during sign out process:', error));
@@ -1090,6 +1099,10 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
     API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData, failureData});
 }
 
+function clearDisableTwoFactorAuthErrors() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {requiresTwoFactorAuth: null}});
+}
+
 function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
     // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
     updateSessionAuthTokens(authToken, encryptedAuthToken);
@@ -1179,7 +1192,7 @@ function handleExitToNavigation(exitTo: Route | HybridAppRoute) {
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
-                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
+                const url = CONFIG.IS_HYBRID_APP ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
                 Navigation.goBack();
                 Navigation.navigate(url);
             });
@@ -1349,4 +1362,5 @@ export {
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
     resetSMSDeliveryFailureStatus,
+    clearDisableTwoFactorAuthErrors,
 };

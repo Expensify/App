@@ -1,76 +1,61 @@
 ---
 title: Configure QuickBooks Online
-description: Configure your QuickBooks Online connection with Expensify
+description: Configure your QuickBooks Online connection with Expensify.
+keywords: [QuickBooks Online, Expensify integration, accounting settings, import settings, export settings]
 ---
 
-Once you've set up your QuickBooks Online connection, you'll be able to configure your import and export settings.
+Connecting QuickBooks Online to Expensify optimizes expense tracking and reporting for employees and admins alike. This guide walks you through configuring your import, export, and advanced settings for optimal performance.
 
-# Step 1: Configure import settings
+---
 
-The following steps help you determine how data will be imported from QuickBooks Online to Expensify. 
+# Step 1: Configure Import Settings
 
-<ol type="a">
-   <li>Under the Accounting settings for your workspace, click Import under the QuickBooks Online connection.</li>
-   <li>Review each of the following import settings:</li>
-       <ul>
-           <li><b>Chart of accounts</b>: The chart of accounts are automatically imported from QuickBooks Online as categories. This cannot be amended.</li>
-           <li><b>Classes</b>: Choose whether to import classes, which will be shown in Expensify as tags for expense-level coding.</li>
-           <li><b>Customers/projects</b>: Choose whether to import customers/projects, which will be shown in Expensify as tags for expense-level coding.</li>
-           <li><b>Locations</b>: Choose whether to import locations, which will be shown in Expensify as tags for expense-level coding.</li>
-{% include info.html %}
-As Locations are only configurable as tags, you cannot export expense reports as vendor bills or checks to QuickBooks Online. To unlock these export options, either disable locations import or upgrade to the Control Plan to export locations encoded as a report field.
-{% include end-info.html %}
-           <li><b>Taxes</b>: Choose whether to import tax rates and defaults.</li>
-       </ul>
-</ol>
+The following steps help you determine how data will be imported from QuickBooks Online to Expensify.
 
-# Step 2: Configure export settings
+1. Under the **Accounting settings** for your workspace, click **Import** under the QuickBooks Online connection.
+2. Review each of the following import settings:
+   - **Chart of Accounts**: Imported automatically as categories. This cannot be amended.
+   - **Classes**: Import classes as tags for expense-level coding.
+   - **Customers/Projects**: Import customers/projects as tags for expense-level coding.
+   - **Locations**: Import locations as tags for expense-level coding
+       - **Note:** Locations are only configurable as tags, so you cannot export expense reports as vendor bills or checks. To unlock these options, disable locations import or upgrade to the Control Plan.
+   - **Taxes**: Import tax rates and defaults.
+3. **Disable Imported Accounts and Tags** (if needed):
+   - Toggle individual items on/off using the switch on the right side of each row.
+   - To disable multiple items at once, select multiple checkboxes and click **Disable** at the top of the page.
+
+# Step 2: Configure Export Settings
 
 The following steps help you determine how data will be exported from Expensify to QuickBooks Online.
 
-<ol type="a">
-   <li>Under the Accounting settings for your workspace, click Export under the QuickBooks Online connection.</li>
-   <li>Review each of the following export settings:</li>
-       <ul>
-           <li><b>Preferred Exporter</b>: Choose whether to assign a Workspace Admin as the Preferred Exporter. Once selected, the Preferred Exporter automatically receives reports for export in their account to help automate the exporting process.</li>  
+1. Under the **Accounting settings** for your workspace, click **Export** under the QuickBooks Online connection.
+2. Review each of the following export settings:
+   - **Preferred Exporter**: Assign a **Workspace Admin** to automate report exports.
+     - **Note:** Other Workspace Admins can still export to QuickBooks Online. If you set different export accounts for company cards under domain settings, the Preferred Exporter must be a **Domain Admin**.
+   - **Date**: Please use the date of the last expense, export date, or submitted date.
+   - **Export Out-of-Pocket Expenses as**: Select check, journal entry, or vendor bill.
+      - If tax is **not** enabled, select an **Accounts Payable/AP**.
+      - If tax **is** enabled, exporting as journal entries is not available. If enabled later, an error message will appear until the export setting is changed to **vendor bill** or **check**.
+   - **Invoices**: Select the QuickBooks Online invoice account where invoices will be exported.
+   - **Export Company Cards**: Export as **credit card** (default), **debit card**, or **vendor bill**. If selecting **vendor bill**:
+     - Choose the **accounts payable account** that vendor bills will be created from.
+     - Optionally, set a **default vendor** for credit card transactions.
 
-{% include info.html %}
-* Other Workspace Admins will still be able to export to QuickBooks Online. 
-* If you set different export accounts for individual company cards under your domain settings, then your Preferred Exporter must be a Domain Admin.
-{% include end-info.html %}
+# Step 3: Configure Advanced Settings
 
-           <li><b>Date</b>: Choose whether to use the date of last expense, export date, or submitted date.</li>  
-           <li><b>Export Out-of-Pocket Expenses as</b>: Select whether out-of-pocket expenses will be exported as a check, journal entry, or vendor bill.</li>  
+These steps help you determine additional connection settings like auto-sync and employee invitation settings.
 
-{% include info.html %}
-These settings may vary based on whether tax is enabled for your workspace. 
-* If tax is not enabled on the workspace, you’ll also select the Accounts Payable/AP. 
-* If tax is enabled on the workspace, journal entry will not be available as an option. If you select the journal entries option first and later enable tax on the workspace, you will see a red dot and an error message under the “Export Out-of-Pocket Expenses as” options. To resolve this error, you must change your export option to vendor bill or check to successfully code and export expense reports.
-{% include end-info.html %}
- 
-           <li><b>Invoices</b>: Select the QuickBooks Online invoice account that invoices will be exported to.</li>  
-           <li><b>Export as</b>: Select whether company cards export to QuickBooks Online as a credit card (the default), debit card, or vendor bill. Then select the account they will export to.</li>  
-               <li>If you select vendor bill, you’ll also select the accounts payable account that vendor bills will be created from, as well as whether to set a default vendor for credit card transactions upon export. If this option is enabled, you will select the vendor that all credit card transactions will be applied to.</li>
-      </ul>
-</ol>   
+1. Under the **Accounting settings** for your workspace, click **Advanced** under the QuickBooks Online connection.
+2. Select an option for each of the following settings:
+   - **Auto-Sync**: Enable automatic updates between QuickBooks Online and Expensify.
+   - **Invite Employees**: Allow Expensify to import and invite employees from QuickBooks Online.
+   - **Automatically Create Entities**: Enable Expensify to create vendors/customers in QuickBooks Online if a match does not exist.
+   - **Sync Reimbursed Reports**: If enabled, reports marked as **Paid** in QuickBooks Online will also be marked as **Paid** in Expensify.
+   - **Invoice Collection Account**: Select the invoice collection account where invoices will be stored once marked as paid.
 
-# Step 3: Configure advanced settings
+---
 
-The following steps help you determine the advanced settings for your connection, like auto-sync and employee invitation settings.
-
-<ol type="a">
-   <li>Under the Accounting settings for your workspace, click Advanced under the QuickBooks Online connection.</li>
-   <li>Select an option for each of the following settings:</li>
-       <ul>
-           <li><b>Auto-sync</b>: Choose whether to enable QuickBooks Online to automatically communicate changes with Expensify to ensure that the data shared between the two systems is up-to-date. New report approvals/reimbursements will be synced during the next auto-sync period.</li>    
-           <li><b>Invite Employees</b>: Choose whether to enable Expensify to import employee records from QuickBooks Online and invite them to this workspace.</li>    
-           <li><b>Automatically Create Entities</b>: Choose whether to enable Expensify to automatically create vendors and customers in QuickBooks Online if a matching vendor or customer does not exist.</li>    
-           <li><b>Sync Reimbursed Reports</b>: Choose whether to enable report syncing for reimbursed expenses. If enabled, all reports that are marked as Paid in QuickBooks Online will also show in Expensify as Paid. If enabled, you must also select the QuickBooks Online account that reimbursements are coming out of, and Expensify will automatically create the payment in QuickBooks Online.</li>    
-           <li><b>Invoice Collection Account</b>: Select the invoice collection account that you want invoices to appear under once the invoice is marked as paid.</li>    
-      </ul>
-</ol>
-
-{% include faq-begin.md %}
+# FAQ
 
 ## How do I know if a report is successfully exported to QuickBooks Online?
 
@@ -80,14 +65,11 @@ When a report exports successfully, a message is posted in the expense’s relat
 
 ## What happens if I manually export a report that has already been exported?
 
-When an admin manually exports a report, Expensify will notify them if the report has already been exported. Exporting the data again will create a duplicate report in QuickBooks Online.
+Expensify will notify you if the report has already been exported. Re-exporting will create a duplicate report in QuickBooks Online.
 
 ## What happens to existing approved and reimbursed reports if I enable Auto Sync?
 
-- If Auto Sync was disabled when your Workspace was linked to QuickBooks Online, enabling it won’t impact existing reports that haven’t been exported.
-- If a report has been exported and reimbursed via ACH, it will be automatically marked as paid in QuickBooks Online during the next sync.
-- If a report has been exported and marked as paid in QuickBooks Online, it will be automatically marked as reimbursed in Expensify during the next sync.
-
-Reports that have yet to be exported to QuickBooks Online won’t be automatically exported.
-
-{% include faq-end.md %}
+- If **Auto Sync was disabled** when linking QuickBooks Online, enabling it won’t impact existing reports that haven’t been exported.
+- If a report has been exported and **reimbursed via ACH**, it will be marked as **Paid** in QuickBooks Online during the next sync.
+- If a report has been exported and **marked as Paid** in QuickBooks Online, it will be marked as **Reimbursed** in Expensify during the next sync.
+- Reports that have not yet been exported **will not** be automatically exported when enabling Auto Sync.

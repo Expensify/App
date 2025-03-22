@@ -113,6 +113,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_DESKTOP_BUILD: 'true'
 
       - name: Make zip directory for everything to send to AWS Device Farm
         run: mkdir zip

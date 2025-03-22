@@ -59,6 +59,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
                 <HeaderWithBackButton
                     title={translate('workspace.accounting.title')}
                     onBackButtonPress={() => setWebViewOpen(false)}
+                    shouldDisplayHelpButton={false}
                 />
                 <FullPageOfflineBlockingView>
                     <WebView

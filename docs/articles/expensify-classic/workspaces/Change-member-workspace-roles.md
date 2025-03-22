@@ -1,17 +1,15 @@
 ---
-title: Change member workspace roles
-description: Update a member's role for a workspace
+title: Update workspace member roles
+description: Learn how to update a member's role and permissions in a workspace.
+keywords: workspace roles, permissions, workspace admin, approval settings
 ---
 <div id="expensify-classic" markdown="1">
 
-To change the roles and permissions for members of your workspace,
+Workspace admins may need to update a member's role to adjust their permissions, grant approval authority, or restrict access based on changing responsibilities. This guide walks you through updating a member's role in your workspace.
 
-1. Hover over Settings, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
-3. Click the desired workspace name. 
-4. Click the **Members** tab on the left. 
-5. Click the Settings icon next to the desired member. 
-6. Select a new role for the member.
+---
+
+# Overview of Member Roles and Permissions
 
 | Employee                                  | Auditor                                    | Workspace Admin                           |
 | ----------------------------------------- | ------------------------------------------ | ----------------------------------------- |
@@ -21,8 +19,29 @@ To change the roles and permissions for members of your workspace,
 |                                           |                                            | &#10004; Approve all workspace reports    |
 |                                           |                                            | &#10004; Edit workspace settings          |
 
-{:start="7"}
-7. If your workspace uses Advanced Approvals, select an “Approves to.” This determines who the member’s reports must be approved by, if applicable. If “no one” is selected, then any one with the Auditor or Workspace Admin role can approve the member’s reports. 
-8. Click **Save**.
+**Note:** A Workspace Admin is the member with the highest level of permissions on a workspace.
+
+---
+
+# Change a Member's Role or Permissions
+
+To change the roles and permissions for members of your workspace:
+1. Go to **Settings > Workspaces > [Workspace Name] > Members**.
+2. Click the **Settings** icon next to the desired member.
+3. Select a new role for the member.
+4. Click **Save**.
+
+---
+
+# Advanced Approval
+
+If your workspace uses **Advanced Approvals**, you can select an **Approves to** option. This determines who must approve the member's reports:
+1. Go to **Settings > Workspaces > [Workspace Name] > Members**.
+2. Click the **Settings** icon next to the desired member.
+3. Select a new role for the member.
+4. Add an approver in the **Approves to** field.
+5. Click **Save**.
+
+**Note:** If no one is selected in the **Approves To** field, then any **Auditor** or **Workspace Admin** can approve that member’s reports. Ensure approval chains are properly configured to avoid delays in report processing.
 
 </div>

@@ -10,14 +10,14 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {updateCompanyCardName} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,8 +27,9 @@ import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 type WorkspaceCompanyCardEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_NAME>;
 
 function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditCardNamePageProps) {
-    const {policyID, cardID, bank} = route.params;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const {policyID, cardID} = route.params;
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const bank = decodeURIComponent(route.params.bank);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const defaultValue = customCardNames?.[cardID];
 
@@ -37,15 +38,22 @@ function WorkspaceCompanyCardEditCardNamePage({route}: WorkspaceCompanyCardEditC
     const styles = useThemeStyles();
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
-        CompanyCards.updateCompanyCardName(workspaceAccountID, cardID, values[INPUT_IDS.NAME], bank, defaultValue);
+        updateCompanyCardName(workspaceAccountID, cardID, values[INPUT_IDS.NAME], bank, defaultValue);
         Navigation.goBack();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
         const length = values.name.length;
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+            addErrorMessage(
+                errors,
+                INPUT_IDS.NAME,
+                translate('common.error.characterLimitExceedCounter', {
+                    length,
+                    limit: CONST.STANDARD_LENGTH_LIMIT,
+                }),
+            );
         }
         return errors;
     };

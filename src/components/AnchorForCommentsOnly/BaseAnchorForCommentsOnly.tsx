@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {hideContextMenu, showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
 
@@ -37,7 +37,7 @@ function BaseAnchorForCommentsOnly({
 
     useEffect(
         () => () => {
-            ReportActionContextMenu.hideContextMenu();
+            hideContextMenu();
         },
         [],
     );
@@ -60,7 +60,12 @@ function BaseAnchorForCommentsOnly({
             suppressHighlighting
             style={[styles.cursorDefault, !!flattenStyle.fontSize && StyleUtils.getFontSizeStyle(flattenStyle.fontSize)]}
             onSecondaryInteraction={(event) => {
-                ReportActionContextMenu.showContextMenu(isEmail ? CONST.CONTEXT_MENU_TYPES.EMAIL : CONST.CONTEXT_MENU_TYPES.LINK, event, href, linkRef.current);
+                showContextMenu({
+                    type: isEmail ? CONST.CONTEXT_MENU_TYPES.EMAIL : CONST.CONTEXT_MENU_TYPES.LINK,
+                    event,
+                    selection: href,
+                    contextMenuAnchor: linkRef.current,
+                });
             }}
             onPress={(event) => {
                 if (!linkProps.onPress) {

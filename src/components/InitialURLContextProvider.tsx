@@ -2,6 +2,7 @@ import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
 import {signInAfterTransitionFromOldDot} from '@libs/actions/Session';
+import Navigation from '@navigation/Navigation';
 import type {AppProps} from '@src/App';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
@@ -31,6 +32,10 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
         if (url && hybridAppSettings) {
             signInAfterTransitionFromOldDot(hybridAppSettings).then(() => {
                 setInitialURL(url);
+                Navigation.isNavigationReady().then(() => {
+                    Navigation.navigate(Navigation.parseHybridAppUrl(url));
+                });
+
                 if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
                     return;
                 }

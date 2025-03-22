@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {PendingBank} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -11,10 +11,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import {updateSelectedFeed} from '@userActions/Card';
@@ -44,9 +44,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
@@ -108,7 +109,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             if (!isFeedExpired) {
                 customWindow?.close();
                 setAssignCardStepAndData({
-                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                     isEditing: false,
                 });
                 return;
@@ -130,7 +131,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (!shouldBlockWindowOpen) {
             customWindow = openBankConnection(url);
         }
-    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline]);
+    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline, assignCard]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
@@ -140,7 +141,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             />
             <FullPageOfflineBlockingView>
                 <BlockingView
-                    icon={Illustrations.PendingBank}
+                    icon={PendingBank}
                     iconWidth={styles.pendingBankCardIllustration.width}
                     iconHeight={styles.pendingBankCardIllustration.height}
                     title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}

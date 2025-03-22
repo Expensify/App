@@ -1,17 +1,21 @@
 ---
-title: Cancel an ACH reimbursement
-description: Cancel an ACH payment after it has been sent
+title: Cancel ACH Reimbursement
+description: Learn how to cancel an ACH reimbursement in Expensify before funds are withdrawn.
+keywords: [Expensify Classic, ACH, reimbursement, cancel payment]
 ---
 <div id="expensify-classic" markdown="1">
 
-If a report was reimbursed with an ACH payment by mistake or otherwise needs to be canceled, a Workspace Admin with access to the verified bank account can cancel the reimbursement up until it is withdrawn from the payment account.
+If an ACH reimbursement was processed by mistake or needs to be canceled, a **Workspace Admin** with access to the verified bank account can cancel it—**but only before the funds are withdrawn** from the payment account.
 
-To cancel an ACH reimbursement,
+## Cancel an ACH Reimbursement
 
-1. Click the **Reports** tab.
-2. Open the report.
-3. Click **Cancel Reimbursement**. 
-   - If you don’t see the Cancel Reimbursement button, this means your bank has already begun transferring the funds and it cannot be canceled. In this case, you’ll need to contact your bank for cancellation. 
-4. Click **Cancel Reimbursement** to confirm cancellation.
+To cancel an ACH reimbursement:
+1. Go to **Reports**.
+2. Open the report with the pending ACH reimbursement.
+3. Click **Cancel Reimbursement**.
+   - If you do not see this option, it means the bank has already started transferring the funds, and cancellation is no longer possible.
+4. Click **Cancel Reimbursement** again to confirm.
+
+**Note:** If the reimbursement cannot be canceled within Expensify, you will need to contact your bank directly for assistance.
 
 </div>

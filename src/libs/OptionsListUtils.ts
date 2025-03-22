@@ -533,8 +533,8 @@ function uniqFast(items: string[]): string[] {
 /**
  * Get the last actor display name from last actor details.
  */
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
-    if (!hasMultipleParticipants || !lastActorDetails) {
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null) {
+    if (!lastActorDetails) {
         return '';
     }
 
@@ -833,7 +833,7 @@ function createOption(
         subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
 
         const lastActorDetails = report.lastActorAccountID ? personalDetailMap[report.lastActorAccountID] : null;
-        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
 
@@ -1466,13 +1466,6 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
  */
 function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
     return !!nvpDismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP];
-}
-
-/**
- * Helper method to check if participant email is Manager McTest
- */
-function isSelectedManagerMcTest(email: string | null | undefined): boolean {
-    return email === CONST.EMAIL.MANAGER_MCTEST;
 }
 
 /**
@@ -2161,6 +2154,11 @@ function shouldUseBoldText(report: OptionData): boolean {
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
 }
 
+function getManagerMcTestParticipant(): Participant | undefined {
+    const managerMcTestPersonalDetails = Object.values(allPersonalDetails ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
+    return managerMcTestPersonalDetails ? getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails) : undefined;
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2215,7 +2213,7 @@ export {
     filterSelfDMChat,
     filterReports,
     getIsUserSubmittedExpenseOrScannedReceipt,
-    isSelectedManagerMcTest,
+    getManagerMcTestParticipant,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};

@@ -1,3 +1,4 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Platform} from 'react-native';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
@@ -105,4 +106,6 @@ export default {
     USE_REACT_STRICT_MODE_IN_DEV: false,
     ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     IS_TEST_ENV: process.env.NODE_ENV === 'test',
+    // eslint-disable-next-line no-restricted-properties
+    IS_HYBRID_APP: HybridAppModule.isHybridApp(),
 } as const;

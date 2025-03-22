@@ -273,7 +273,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
 
                 KeyboardUtils.dismiss().then(() => {
                     if (item?.reportID) {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
+                        Navigation.navigateToReportWithPolicyCheck({reportID: item?.reportID});
                     } else if ('login' in item) {
                         navigateToAndOpenReport(item.login ? [item.login] : [], false);
                     }
@@ -312,6 +312,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                 <HeaderWithBackButton
                     title={translate('common.search')}
                     onBackButtonPress={() => onRouterClose()}
+                    shouldDisplayHelpButton={false}
                 />
             )}
             {isRecentSearchesDataLoaded && (

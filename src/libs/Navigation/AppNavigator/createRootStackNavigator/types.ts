@@ -29,6 +29,8 @@ type SwitchPolicyIdActionType = RootStackNavigatorActionType & {
 
 type PushActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH};
 
+type ReplaceActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE};
+
 type DismissModalActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 };
@@ -49,6 +51,7 @@ export type {
     OpenWorkspaceSplitActionType,
     SwitchPolicyIdActionType,
     PushActionType,
+    ReplaceActionType,
     DismissModalActionType,
     RootStackNavigatorAction,
     RootStackNavigatorActionType,

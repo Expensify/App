@@ -14,6 +14,7 @@ import type {
 } from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
+import type {SearchColumnType} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -394,7 +395,7 @@ type SkeletonViewProps = {
     shouldAnimate: boolean;
 };
 
-type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
+type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
@@ -668,6 +669,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether the screen is focused or not. (useIsFocused state does not work in tab screens, e.g. SearchPageBottomTab) */
     isScreenFocused?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -702,9 +709,11 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
+type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
+
 export type {
     BaseListItemProps,
-    BaseSelectionListProps,
+    SelectionListProps,
     ButtonOrCheckBoxRoles,
     CommonListItemProps,
     ExtendedTargetedEvent,
@@ -729,4 +738,5 @@ export type {
     ValidListItem,
     ReportActionListItemType,
     ChatListItemProps,
+    SortableColumnName,
 };

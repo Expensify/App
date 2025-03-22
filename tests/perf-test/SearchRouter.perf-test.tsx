@@ -69,11 +69,6 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@libs/runOnLiveMarkdownRuntime', () => {
-    const runOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue) => worklet;
-    return runOnLiveMarkdownRuntime;
-});
-
 const getMockedReports = (length = 100) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,

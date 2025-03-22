@@ -1,78 +1,180 @@
 ---
-title: Certinia Troubleshooting
-description: Troubleshoot common Certinia sync and export errors. 
+title: Certinia-Troubleshooting.md
+description: Troubleshoot common Certinia sync and export errors, including Salesforce expense export limitations.
+keywords: [Certinia, Salesforce, expense export, sync errors, troubleshooting]
 ---
-# Overview of Certinia Troubleshooting
-Occasionally, users may encounter errors that prevent reports from exporting or the connection from syncing successfully. These errors often arise from discrepancies in settings, missing data, or configuration issues within Certinia or Expensify. 
 
-This troubleshooting guide aims to help you identify and resolve common sync and export errors, ensuring a seamless connection between your financial management systems. 
+# Certinia Troubleshooting Guide  
 
-By following the step-by-step solutions provided for each specific error, you can quickly address issues and maintain accurate and efficient expense reporting and data management.
+If your reports fail to export or your connection does not sync, it may be due to discrepancies in settings, missing data, or configuration issues within Certinia, Expensify, or Salesforce.  
 
-# ExpensiError FF0047: You must have an Ops Edit permission to edit approved records.
-This error indicates that the permission control setup between the connected user and the report submitter or region is missing Ops Edit permission.
+This guide helps you identify and resolve common sync and export errors for a seamless financial integration.
 
-In Certinia go to Permission Controls and click the one you need to edit. Make sure that Expense Ops Edit is selected under Permissions.
+---
 
-# ExpensiError FF0061: Object validation has failed. The credit terms…
-To resolve the error "Object validation has failed. The credit terms for the selected account on this document are not correctly defined," follow these steps:
+## Salesforce Expense Export Limitations  
 
-1. Identify the account used for the report being exported. This could be the account on the project for PSA/SRP or the account linked to the resource for FFA.
-2. In Certinia, under this account:
-   - Ensure that Base Date 1 is configured to invoice.
-   - Set Days Offset to 1 or more.
-   - Verify that a currency is selected for the account.
+If an expense report does not export to Certinia, check the **Salesforce project settings** to confirm that expenses can be entered and exported.  
 
-By following these guidelines, you can correct the issue and ensure proper validation of the credit terms for the selected account.
+### **Expenses can be exported when:**
+- **Project Status** = Active/In Progress  
+- **Assignment** = Closed, Active, or Completed *(Assignment status does not block expense entry.)*  
+- **Closed for Expense Entry** = Unchecked  
 
-# ExpensiError FF0074: You do not have permissions for this resource
-This error message indicates a requirement to establish permission controls for the report creator/submitter within Certinia.
+### **Expenses cannot be exported when:**  
+- **Project Status** = Closed, **or**  
+- **Closed for Expense Entry** = Checked  
 
-To set this up:
-1. Navigate to Permission Controls in Certinia.
-2. Select "New" to create a new permission control.
-3. Enter the User and Resource Fields.
-4. Ensure all necessary permission fields are checked or configured appropriately.
+### **Troubleshooting Steps:**  
+1. **Check the project status in Salesforce**  
+   - If **Project Status** is **Closed**, expenses **cannot** be entered or exported.  
+   - If **Active** or **In Progress**, proceed to step 2.  
 
-By completing these steps, you can effectively manage and grant the required permissions to the report creator/submitter in Certinia.
+2. **Verify the "Closed for Expense Entry" setting**  
+   - If **checked**, uncheck it to allow expense exports.  
 
-# ExpensiError FF0076: Could not find employee in Certinia
-Go to Contacts in Certinia and add the report creator/submitter's Expensify email address to their employee record, or create a record with that email listed.
+3. **Manually test expense entry**  
+   - Try entering an expense manually in Salesforce. If successful, the Expensify-Certinia integration should also allow it.  
 
-If a record already exists then search for their email address to confirm it is not associated with multiple records.
+---
 
-# ExpensiError FF0089: Expense Reports for this Project require an Assignment
-This error indicates that the project needs to have the permissions adjusted in Certinia
+## ExpensiError FF0047: Ops Edit Permission Required  
 
-Go to Projects > [project name] > Project Attributes and check Allow Expense Without Assignment. 
+### **Cause:**  
+The connected user lacks the **Ops Edit** permission needed to edit approved records.  
 
-# ExpensiError FF0091: Bad Field Name — [field] is invalid for [object]
-This means the field in question is not accessible to the user profile in Certinia for the user whose credentials were used to make the connection within Expensify. 
+### **Resolution:**  
+1. In Certinia, go to **Permission Controls**.  
+2. Select the relevant permission set.  
+3. Ensure **Expense Ops Edit** is enabled.  
 
-To correct this:
-* Go to Setup > Build > expand Create > Object within Certinia
-* Then go to Payable Invoice > Custom Fields and Relationships
-* Click View Field Accessibility 
-* Find the employee profile in the list and select Hidden
-* Make sure both checkboxes for Visible are selected
+> **What is Ops Edit?**  
+> This permission allows users to modify approved records, a requirement for exporting expenses in Certinia.  
 
-Once this step has been completed, sync the connection within Expensify by going to **Settings** > **Workspaces** > **Groups** > _[Workspace Name]_ > **Connections** > **Sync Now** and then attempt to export the report again. 
+---
 
-# ExpensiError FF0132: Insufficient access. Make sure you are connecting to Certinia with a user that has the 'Modify All Data' permission
+## ExpensiError FF0061: Object Validation Failed (Credit Terms)  
 
-Log into Certinia, go to Setup > Manage Users > Users and find the user whose credentials made the connection. 
+### **Cause:**  
+The credit terms for the selected account are incorrectly configured.  
 
-* Click on their profile on the far right side of the page
-* Go to System > System Permissions
-* Enable Modify All Data and save
+### **Resolution:**  
+1. Identify the account used for the report export:  
+   - **PSA/SRP** users: Project account  
+   - **FFA** users: Resource-linked account  
+2. In Certinia, update the account settings:  
+   - **Base Date 1** → Set to **Invoice**  
+   - **Days Offset** → Enter **1 or more**  
+   - Ensure a **currency** is selected  
 
-Sync the connection within Expensify by going to **Settings** > **Workspaces** > **Groups** > _[Workspace Name]_ > **Connections** > **Sync Now** and then attempt to export the report again
+> **What is Base Date 1?**  
+> This field determines when payment terms begin (e.g., from the invoice date).  
 
-# Error: Certinia PSA: Duplicate Value on Record
-When exporting multiple projects from Expensify to Certinia, each project generates its own Expense Report in Certinia. If any project fails during the initial export, all subsequent projects will also fail. In such cases, if you attempt to export again, an error may indicate that some projects were already successfully exported, potentially causing duplicates.
+---
 
-To resolve this issue, delete any existing expense reports associated with the Expensify report ID in Certinia.
+## ExpensiError FF0074: Insufficient Permissions for Resource  
 
-Then, sync the connection within Expensify by going to **Settings** > **Workspaces** > **Groups** > _[Workspace Name]_ > **Connections** > **Sync Now** and then attempt to export the report again
+### **Cause:**  
+The report creator/submitter lacks the necessary permission controls.  
 
-Following these steps ensures that any duplicate entries are cleared and that the export process can proceed without errors.
+### **Resolution:**  
+1. Go to **Permission Controls** in Certinia.  
+2. Click **New** to create a permission control.  
+3. Enter the **User** and **Resource Fields**.  
+4. Check all required permission fields.  
+
+---
+
+## ExpensiError FF0076: Employee Not Found in Certinia  
+
+### **Resolution:**  
+1. In Certinia, go to **Contacts** and add the report creator/submitter’s **Expensify email address** to their employee record.  
+2. If a record already exists, search for the email to confirm it is not linked to multiple records.  
+
+---
+
+## ExpensiError FF0089: Assignment Required for Project  
+
+### **Cause:**  
+The project settings require an assignment for expenses.  
+
+### **Resolution:**  
+1. In Certinia, go to **Projects > [Project Name] > Project Attributes**.  
+2. Enable **Allow Expense Without Assignment**.  
+
+---
+
+## ExpensiError FF0091: Invalid Field Name  
+
+### **Cause:**  
+The specified field is not accessible for the user profile in Certinia.  
+
+### **Resolution:**  
+1. In Certinia, go to **Setup > Build** and expand **Create > Object**.  
+2. Navigate to **Payable Invoice > Custom Fields and Relationships**.  
+3. Click **View Field Accessibility**.  
+4. Locate the employee profile and select **Hidden**.  
+5. Ensure both checkboxes for **Visible** are selected.  
+
+### **Sync the Connection:**  
+1. In Expensify, go to **Settings > Workspaces > Groups > [Workspace Name] > Connections**.  
+2. Click **Sync Now**.  
+3. Attempt to export the report again.  
+
+---
+
+## ExpensiError FF0132: Insufficient Access  
+
+### **Cause:**  
+The connected Certinia user lacks **Modify All Data** permission.  
+
+### **Resolution:**  
+1. Log into **Certinia**.  
+2. Navigate to **Setup > Manage Users > Users**.  
+3. Locate the user who established the connection.  
+4. Click their **profile**.  
+5. Go to **System > System Permissions**.  
+6. Enable **Modify All Data** and save.  
+
+> **What is Modify All Data?**  
+> This permission allows full data access, ensuring reports sync properly.  
+
+### **Sync the Connection:**  
+1. In Expensify, go to **Settings > Workspaces > Groups > [Workspace Name] > Connections**.  
+2. Click **Sync Now**.  
+3. Attempt to export the report again.  
+
+---
+
+## Certinia PSA Error: Duplicate Value on Record  
+
+### **Cause:**  
+Multiple projects failed during an initial export, causing subsequent failures.  
+
+### **Resolution:**  
+1. Delete any existing expense reports associated with the **Expensify Report ID** in Certinia.  
+2. **Sync the connection:**  
+   - In Expensify, go to **Settings > Workspaces > Groups > [Workspace Name] > Connections**.  
+   - Click **Sync Now**.  
+3. Attempt to export the report again.  
+
+---
+
+# FAQ  
+
+## Why do expenses fail to export when the project is closed?  
+Salesforce enforces a rule where a **Closed** project status **always** prevents expense entry, regardless of other settings.  
+
+## What should I do if an expense still doesn’t export?  
+1. Check the project settings in Salesforce:  
+   - Ensure **Project Status** is **Active** or **In Progress**.  
+   - Verify **"Closed for Expense Entry"** is **unchecked**.  
+2. Try manually entering an expense to confirm restrictions.  
+
+## Does assignment status affect expense exports?  
+No, **Assignment Status** (Closed, Active, or Completed) does not impact expense entry or export.  
+
+---
+
+By following these steps, you can resolve common Certinia sync and export issues, ensuring a smooth integration between Expensify, Certinia, and Salesforce.
+

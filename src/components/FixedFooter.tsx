@@ -1,7 +1,8 @@
 import type {ReactNode} from 'react';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type FixedFooterProps = {
@@ -10,16 +11,43 @@ type FixedFooterProps = {
 
     /** Styles to be assigned to Container */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Whether to stick the footer to the bottom of the screen. */
+    shouldStickToBottom?: boolean;
 };
 
-function FixedFooter({style, children}: FixedFooterProps) {
+function FixedFooter({
+    style,
+    children,
+    addBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+    shouldStickToBottom = false,
+}: FixedFooterProps) {
     const styles = useThemeStyles();
+
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding,
+        additionalPaddingBottom: styles.pb5.paddingBottom,
+        styleProperty: shouldStickToBottom ? 'bottom' : 'paddingBottom',
+    });
+
+    const footerStyle = useMemo<StyleProp<ViewStyle>>(
+        () => [shouldStickToBottom && styles.stickToBottom, bottomSafeAreaPaddingStyle],
+        [bottomSafeAreaPaddingStyle, shouldStickToBottom, styles.stickToBottom],
+    );
 
     if (!children) {
         return null;
     }
 
-    return <View style={[styles.ph5, styles.pb5, styles.flexShrink0, style]}>{children}</View>;
+    return <View style={[styles.ph5, styles.flexShrink0, footerStyle, style]}>{children}</View>;
 }
 
 FixedFooter.displayName = 'FixedFooter';

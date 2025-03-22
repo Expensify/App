@@ -6,16 +6,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type SidePaneOverlayProps = {
-    /** Whether the side pane is displayed inside of RHP */
-    isInNarrowPaneModal: boolean;
+    /** Whether the side pane is displayed over RHP */
+    isRHPVisible: boolean;
 
     /** Callback fired when pressing the backdrop */
     onBackdropPress: () => void;
 };
 
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
-function SidePaneOverlay({isInNarrowPaneModal, onBackdropPress}: SidePaneOverlayProps) {
+function SidePaneOverlay({isRHPVisible, onBackdropPress}: SidePaneOverlayProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -23,7 +23,6 @@ function SidePaneOverlay({isInNarrowPaneModal, onBackdropPress}: SidePaneOverlay
         from: {opacity: 0},
         to: {
             opacity: 0.72,
-            // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
             easing,
         },
     }).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
@@ -32,16 +31,15 @@ function SidePaneOverlay({isInNarrowPaneModal, onBackdropPress}: SidePaneOverlay
         from: {opacity: 0.72},
         to: {
             opacity: 0,
-            // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
             easing,
         },
     }).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT);
 
     return (
         <Animated.View
-            style={styles.sidePaneOverlay(isInNarrowPaneModal)}
-            entering={isInNarrowPaneModal ? undefined : CustomFadeIn}
-            exiting={isInNarrowPaneModal ? undefined : CustomFadeOut}
+            style={styles.sidePaneOverlay(isRHPVisible)}
+            entering={isRHPVisible ? undefined : CustomFadeIn}
+            exiting={isRHPVisible ? undefined : CustomFadeOut}
         >
             <PressableWithoutFeedback
                 accessible

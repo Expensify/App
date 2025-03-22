@@ -1,31 +1,57 @@
 ---
 title: Global VaTax Integration
-description: The Expensify-Global VaTax integration turns your company’s international expenses into an easy VAT refund.
+description: Learn how to connect Expensify with Global VaTax to simplify international VAT refunds for your business expenses.
+keywords: [Expensify, Global VaTax, VAT refund, international expenses, tax compliance]
 ---
-# About
-The Expensify-Global VaTax integration turns your company’s international expenses into an easy VAT refund.
-If your company is based in the U.S. but doing business abroad, track your [expenses](https://use.expensify.com/expense-management) in Expensify and then sync to [Global VaTax](https://globalvatax.com/) to receive a VAT refund.
-## VAT
-[Value Added Tax (VAT)](https://www.investopedia.com/terms/v/valueaddedtax.asp#:~:text=Value%2Dadded%20tax%20(VAT)%20is%20a%20flat%20tax%20levied,different%20parties%20to%20a%20transaction.) is a consumption tax applied to goods and services in many countries. It is typically applied automatically upon purchase, however, international business travelers can reclaim some VAT. 
 
-VAT-recoverable expenses include hotels, entertainment, conferences, legal and marketing fees, DDP shipping and storage fees, aviation recovery, and other international expenses. 
-## VAT Refund
-The VAT refund process is complex and requires a detailed understanding of the regulations and requirements in each country. The VAT rules and rates vary from country to country and by expense type.
+# Global VaTax Integration
 
-You can seamlessly sync your Expensify expenses to Global VaTax for easy VAT analysis, calculation, and reporting. 
+The Expensify-Global VaTax integration helps businesses reclaim Value Added Tax (VAT) on international expenses. If your company is based in the U.S. but conducts business abroad, you can track expenses in [Expensify](https://use.expensify.com/expense-management) and sync them with [Global VaTax](https://globalvatax.com/) to simplify VAT recovery.
 
+## What is VAT?
 
-# How to Connect to Global VaTax
-1. Fill out [this form](https://www.vataxcloud.com/expensify/signup) to receive a confirmation email from Global VaTax.
-2. Click the link in the confirmation email to sign into your Global VaTax account.
-3. Go to the **Method of Extraction** section.
-4. Click **Expensify**
-5. Follow the steps to obtain your partner credentials and activate the integration.
-6. Enter your credentials and extraction dates
-7. Click **Submit**
-8. VaTax Cloud will begin automatically calculating your VAT rates for each eligible expense line item, per expense type, in each country. 
-9. Within a few hours, you'll receive an email that your VAT potential analysis report is ready for review.
+[Value Added Tax (VAT)](https://www.investopedia.com/terms/v/valueaddedtax.asp#:~:text=Value%2Dadded%20tax%20(VAT)%20is%20a%20flat%20tax%20levied,different%20parties%20to%20a%20transaction.) is a consumption tax applied to goods and services in many countries. It is automatically included in purchases, but businesses traveling internationally may be eligible for VAT refunds.
 
-Your VAT reclaim will be prepared by Global VaTax in the necessary languages and submitted to the appropriate tax agents in each country. 
+### VAT-Recoverable Expenses
 
-After submitting your VAT reclaim, you can track it via the submission analysis report in Global VaTax.
+Businesses can reclaim VAT on various expenses, including:
+
+- Hotels and lodging  
+- Business entertainment  
+- Conferences and trade shows  
+- Legal and marketing fees  
+- DDP shipping and storage fees  
+- Aviation-related expenses  
+- Other qualifying international business expenses  
+
+## How VAT Refunds Work
+
+VAT refund regulations vary by country and expense type, making the process complex. Global VaTax simplifies this by handling:
+
+- VAT analysis and calculation  
+- Expense classification based on VAT eligibility  
+- Report preparation and submission to tax authorities  
+
+By syncing Expensify with Global VaTax, businesses can automate VAT reporting and reclaim eligible expenses efficiently.
+
+# How to Connect Expensify with Global VaTax
+
+Follow these steps to activate the integration:
+
+1. Complete [this form](https://www.vataxcloud.com/expensify/signup) to request a confirmation email from Global VaTax.
+2. Click the link in the email and sign in to your Global VaTax account.
+3. Navigate to **Method of Extraction**.
+4. Select **Expensify** as your data source.
+5. Follow the prompts to generate your partner credentials and activate the integration.
+6. Enter your credentials and select the date range for expense extraction.
+7. Click **Submit**.
+8. VaTax Cloud will analyze each expense line item, calculating applicable VAT rates based on expense type and country.
+9. Within a few hours, you'll receive an email confirming that your VAT potential analysis report is ready for review.
+
+Once Global VaTax prepares your VAT reclaim documents in the required languages, they will submit them to the appropriate tax authorities.
+
+## Tracking Your VAT Reclaim
+
+After submission, you can monitor the progress of your VAT reclaim via the **Submission Analysis Report** in Global VaTax.
+
+By integrating Expensify with Global VaTax, businesses can maximize VAT recovery while reducing administrative burden.

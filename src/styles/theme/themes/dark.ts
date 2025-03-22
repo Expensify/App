@@ -85,8 +85,8 @@ const darkTheme = {
     tooltipSupportingText: colors.productLight800,
     tooltipPrimaryText: colors.productLight900,
     trialBannerBackgroundColor: colors.green700,
-    skeletonLHNIn: colors.productDark200,
-    skeletonLHNOut: colors.productDark300,
+    skeletonLHNIn: colors.productDark400,
+    skeletonLHNOut: colors.productDark600,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     mapAttributionText: colors.black,
@@ -154,6 +154,7 @@ const darkTheme = {
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
     navigationBarButtonsStyle: CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT,
+    navigationBarBackgroundColor: `${colors.productDark100}CD`, // CD is 80% opacity (80% of 0xFF)
     colorScheme: CONST.COLOR_SCHEME.DARK,
 } satisfies ThemeColors;
 

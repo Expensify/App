@@ -1,7 +1,7 @@
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking, NativeModules, Platform} from 'react-native';
+import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
@@ -9,12 +9,14 @@ import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
-import RequireTwoFactorAuthenticationModal from './components/RequireTwoFactorAuthenticationModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
+import TestToolsModal from './components/TestToolsModal';
 import UpdateAppModal from './components/UpdateAppModal';
-import * as CONFIG from './CONFIG';
+import CONFIG from './CONFIG';
 import CONST from './CONST';
+import useDebugShortcut from './hooks/useDebugShortcut';
+import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
@@ -40,7 +42,6 @@ import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
-import ROUTES from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 
@@ -88,7 +89,6 @@ function Expensify() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
-    const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
     const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
     const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
     const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
@@ -97,12 +97,7 @@ function Expensify() {
     const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
-    useEffect(() => {
-        if (!account?.needsTwoFactorAuthSetup || account.requiresTwoFactorAuth) {
-            return;
-        }
-        setShouldShowRequire2FAModal(true);
-    }, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth]);
+    useDebugShortcut();
 
     const [initialUrl, setInitialUrl] = useState<string | null>(null);
 
@@ -113,13 +108,13 @@ function Expensify() {
         setAttemptedToOpenPublicRoom(true);
     }, [isCheckingPublicRoom]);
 
-    const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
+    const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
-    const shouldHideSplash =
-        shouldInit &&
-        (NativeModules.HybridAppModule ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
+    const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
+    const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
+    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -282,16 +277,6 @@ function Expensify() {
                         />
                     ) : null}
                     {focusModeNotification ? <FocusModeNotification /> : null}
-                    {shouldShowRequire2FAModal ? (
-                        <RequireTwoFactorAuthenticationModal
-                            onSubmit={() => {
-                                setShouldShowRequire2FAModal(false);
-                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.HOME));
-                            }}
-                            isVisible
-                            description={translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}
-                        />
-                    ) : null}
                 </>
             )}
 
@@ -302,10 +287,10 @@ function Expensify() {
                     authenticated={isAuthenticated}
                     lastVisitedPath={lastVisitedPath as Route}
                     initialUrl={initialUrl}
-                    shouldShowRequire2FAModal={shouldShowRequire2FAModal}
                 />
             )}
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            <TestToolsModal />
         </DeeplinkWrapper>
     );
 }

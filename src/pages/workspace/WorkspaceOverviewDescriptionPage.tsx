@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
@@ -27,13 +28,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isInputInitializedRef = useRef(false);
-    const [description, setDescription] = useState(() =>
-        Parser.htmlToMarkdown(
-            // policy?.description can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            policy?.description || Parser.replace(translate('workspace.common.defaultDescription')),
-        ),
-    );
+    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(policy?.description ?? translate('workspace.common.defaultDescription')));
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -58,7 +53,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                 return;
             }
 
-            updateWorkspaceDescription(policy.id, values.description.trim(), policy.description ?? '');
+            updateWorkspaceDescription(policy.id, values.description.trim(), policy.description);
             Keyboard.dismiss();
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
         },
@@ -79,7 +74,9 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                     title={translate('workspace.editor.descriptionInputLabel')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-
+                <View style={[styles.ph5, styles.pb5]}>
+                    <Text>{translate('workspace.common.descriptionHint')}</Text>
+                </View>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM}
                     submitButtonText={translate('workspace.editor.save')}

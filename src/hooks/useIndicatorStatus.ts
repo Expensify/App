@@ -2,10 +2,11 @@ import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
+import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
+import {shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError} from '@libs/PolicyUtils';
+import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
+import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useTheme from './useTheme';
@@ -35,15 +36,13 @@ function useIndicatorStatus(): IndicatorStatusResult {
     const cleanPolicies = useMemo(() => Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id)), [policies]);
 
     const policyErrors = {
-        [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS]: Object.values(cleanPolicies).find(PolicyUtils.shouldShowPolicyError),
-        [CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR]: Object.values(cleanPolicies).find(PolicyUtils.shouldShowCustomUnitsError),
-        [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR]: Object.values(cleanPolicies).find(PolicyUtils.shouldShowEmployeeListError),
+        [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS]: Object.values(cleanPolicies).find(shouldShowPolicyError),
+        [CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR]: Object.values(cleanPolicies).find(shouldShowCustomUnitsError),
+        [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR]: Object.values(cleanPolicies).find(shouldShowEmployeeListError),
         [CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS]: Object.values(cleanPolicies).find((cleanPolicy) =>
-            PolicyUtils.shouldShowSyncError(
-                cleanPolicy,
-                isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy),
-            ),
+            shouldShowSyncError(cleanPolicy, isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
         ),
+        [CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR]: Object.values(cleanPolicies).find(shouldShowQBOReimbursableExportDestinationAccountError),
     };
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
@@ -51,19 +50,19 @@ function useIndicatorStatus(): IndicatorStatusResult {
     // we only care if a single error / info condition exists anywhere.
     const errorChecking: Partial<Record<IndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS]: Object.keys(userWallet?.errors ?? {}).length > 0,
-        [CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR]: PaymentMethods.hasPaymentMethodError(bankAccountList, fundList),
+        [CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR]: hasPaymentMethodError(bankAccountList, fundList),
         ...(Object.fromEntries(Object.entries(policyErrors).map(([error, policy]) => [error, !!policy])) as Record<keyof typeof policyErrors, boolean>),
-        [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS]: SubscriptionUtils.hasSubscriptionRedDotError(),
+        [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS]: hasSubscriptionRedDotError(),
         [CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS]: Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
-        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR]: !!loginList && UserUtils.hasLoginListError(loginList),
+        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR]: !!loginList && hasLoginListError(loginList),
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
         [CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS]: Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
         [CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR]: !!privatePersonalDetails?.errorFields?.phoneNumber ?? undefined,
     };
 
     const infoChecking: Partial<Record<IndicatorStatus, boolean>> = {
-        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && UserUtils.hasLoginListInfo(loginList),
-        [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: SubscriptionUtils.hasSubscriptionGreenDotInfo(),
+        [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList),
+        [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: hasSubscriptionGreenDotInfo(),
     };
 
     const [error] = Object.entries(errorChecking).find(([, value]) => value) ?? [];

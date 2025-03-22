@@ -29,6 +29,8 @@ function EmptyStateComponent({
     lottieWebViewStyles,
     showsVerticalScrollIndicator,
     minModalHeight = 400,
+    addBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
@@ -88,6 +90,8 @@ function EmptyStateComponent({
             showsVerticalScrollIndicator={showsVerticalScrollIndicator}
             contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}
             style={styles.flex1}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
         >
             <View style={[styles.skeletonBackground, styles.overflowHidden]}>
                 <SkeletonComponent

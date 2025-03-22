@@ -116,20 +116,22 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [stopVideo, unloadVideo]);
 
     useEffect(() => {
-        // This logic ensures that resetVideoPlayerData is only called when currentReportID
-        // changes from one valid value (i.e., not an empty string or '-1') to another valid value.
-        // This prevents the video that plays when the app opens from being interrupted when currentReportID
-        // is initially empty or '-1', or when it changes from empty/'-1' to another value
-        // after the report screen in the central pane is mounted on the large screen.
-        if ((!currentReportID && isReportTopmostSplitNavigator()) || (!prevCurrentReportID && !isReportTopmostSplitNavigator()) || currentReportID === prevCurrentReportID) {
-            return;
-        }
+        Navigation.isNavigationReady().then(() => {
+            // This logic ensures that resetVideoPlayerData is only called when currentReportID
+            // changes from one valid value (i.e., not an empty string or '-1') to another valid value.
+            // This prevents the video that plays when the app opens from being interrupted when currentReportID
+            // is initially empty or '-1', or when it changes from empty/'-1' to another value
+            // after the report screen in the central pane is mounted on the large screen.
+            if ((!currentReportID && isReportTopmostSplitNavigator()) || (!prevCurrentReportID && !isReportTopmostSplitNavigator()) || currentReportID === prevCurrentReportID) {
+                return;
+            }
 
-        // We call another setStatusAsync inside useLayoutEffect on the video component,
-        // so we add a delay here to prevent the error from appearing.
-        setTimeout(() => {
-            resetVideoPlayerData();
-        }, 0);
+            // We call another setStatusAsync inside useLayoutEffect on the video component,
+            // so we add a delay here to prevent the error from appearing.
+            setTimeout(() => {
+                resetVideoPlayerData();
+            }, 0);
+        });
     }, [currentReportID, prevCurrentReportID, resetVideoPlayerData]);
 
     useEffect(() => {
