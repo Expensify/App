@@ -8,9 +8,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 function StrongRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
+    const isChildOfNextSteps = HTMLEngineUtils.isChildOfNextSteps(tnode);
 
     return 'data' in tnode ? (
-        <Text style={[styles.webViewStyles.baseFontStyle, styles.strong, isChildOfTaskTitle && styles.taskTitleMenuItem]}>{tnode.data}</Text>
+        <Text
+            style={[
+                isChildOfNextSteps ? styles.fontSizeLabel : styles.webViewStyles.baseFontStyle,
+                styles.strong,
+                isChildOfNextSteps && styles.textSupporting,
+                isChildOfTaskTitle && styles.taskTitleMenuItem,
+            ]}
+        >
+            {tnode.data}
+        </Text>
     ) : (
         <TNodeChildrenRenderer
             tnode={tnode}
