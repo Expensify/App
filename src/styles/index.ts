@@ -3043,6 +3043,12 @@ const styles = (theme: ThemeColors) =>
             width: 'auto',
         },
 
+        sectionMenuItemIcon: {
+            ...spacing.ph8,
+            ...spacing.mhn5,
+            width: 'auto',
+        },
+
         subscriptionCardIcon: {
             padding: 10,
             backgroundColor: theme.border,
@@ -4287,6 +4293,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         contextMenuItemPopoverMaxWidth: {
+            minWidth: 320,
             maxWidth: 375,
         },
 
