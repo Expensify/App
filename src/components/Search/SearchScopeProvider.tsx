@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {useSearchContext, Context} from './SearchContext';
+import {Context, useSearchContext} from './SearchContext';
 
 type SearchScopeProviderProps = ChildrenProps & {
     isOnSearch: boolean;
@@ -9,10 +9,13 @@ type SearchScopeProviderProps = ChildrenProps & {
 function SearchScopeProvider({children, isOnSearch}: SearchScopeProviderProps) {
     const parentContext = useSearchContext();
 
-    const searchContext = useMemo(() => ({
-        ...parentContext,
-        isOnSearch,
-    }), [parentContext, isOnSearch]);
+    const searchContext = useMemo(
+        () => ({
+            ...parentContext,
+            isOnSearch,
+        }),
+        [parentContext, isOnSearch],
+    );
 
     return <Context.Provider value={searchContext}>{children}</Context.Provider>;
 }
