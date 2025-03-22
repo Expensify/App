@@ -10,7 +10,7 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {requestValidateCodeAction} from '@libs/actions/User';
+import {clearValidateCodeActionError, requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -40,8 +40,9 @@ function ReportVirtualCardFraudPage({
 
     const virtualCard = cardList?.[cardID];
     const latestIssuedVirtualCardID = Object.keys(cardList ?? {})?.pop();
-    const virtualCardError = getLatestErrorMessage(virtualCard);
     const validateError = getLatestErrorMessageField(virtualCard);
+    const virtualCardError = getLatestErrorMessage(virtualCard);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
@@ -113,12 +114,15 @@ function ReportVirtualCardFraudPage({
                 <ValidateCodeActionModal
                     handleSubmitForm={handleValidateCodeEntered}
                     sendValidateCode={sendValidateCode}
+                    validateCodeAction={validateCodeAction}
+                    validateActionErrorField="reportVirtualCard"
                     validateError={validateError}
                     clearError={() => {
                         if (!virtualCard?.cardID) {
                             return;
                         }
                         clearCardListErrors(virtualCard.cardID);
+                        clearValidateCodeActionError('reportVirtualCard');
                     }}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
