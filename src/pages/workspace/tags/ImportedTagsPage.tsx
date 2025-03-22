@@ -13,8 +13,7 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {getTagLists, isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,7 +31,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const isQuickSettingsFlow = !!backTo;
@@ -118,7 +117,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const closeImportPageAndModal = () => {
         setIsImportingTags(false);
         closeImportPage();
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
     };
 
     return (
