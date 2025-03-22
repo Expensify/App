@@ -247,7 +247,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                     return;
                 }
 
-                initializeOpenAIRealtime(Number(report?.reportID) ?? -1);
+                initializeOpenAIRealtime(Number(report?.reportID) ?? CONST.DEFAULT_NUMBER_ID);
             }}
             style={shouldUseNarrowLayout && [styles.flex1]}
             icon={talkToSalesIcon()}
