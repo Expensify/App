@@ -46,10 +46,6 @@ function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
 }
 
-function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NSQS) || canUseAllBetas(betas);
-}
-
 function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
 }
@@ -72,7 +68,6 @@ export default {
     canUseMergeAccounts,
     canUseManagerMcTest,
     canUseInternationalBankAccount,
-    canUseNSQS,
     canUseCustomRules,
     canUseTableReportView,
     canUseProhibitedExpenses,

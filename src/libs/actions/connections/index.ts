@@ -5,7 +5,6 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     RemovePolicyConnectionParams,
-    SyncPolicyToNSQSParams,
     SyncPolicyToQuickbooksDesktopParams,
     UpdateManyPolicyConnectionConfigurationsParams,
     UpdatePolicyConnectionConfigParams,
@@ -13,7 +12,6 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getNSQSCompanyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -207,9 +205,6 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_NETSUITE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NETSUITE_SYNC_CONNECTION};
         }
-        case CONST.POLICY.CONNECTIONS.NAME.NSQS: {
-            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_NSQS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NSQS_SYNC_CONNECTION};
-        }
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION};
         }
@@ -258,16 +253,13 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
         },
     ];
 
-    const parameters: SyncPolicyToQuickbooksDesktopParams | SyncPolicyToNSQSParams = {
+    const parameters: SyncPolicyToQuickbooksDesktopParams = {
         policyID,
         idempotencyKey: policyID,
     };
 
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
         parameters.forceDataRefresh = forceDataRefresh;
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NSQS) {
-        (parameters as SyncPolicyToNSQSParams).netSuiteAccountID = getNSQSCompanyID(policy) ?? '';
     }
 
     API.read(syncConnectionData.readCommand, parameters, {

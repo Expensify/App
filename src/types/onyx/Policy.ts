@@ -1072,96 +1072,6 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
-/**
- *  NSQS Payment account
- */
-type NSQSPaymentAccount = {
-    /** ID assigned to the account in NSQS */
-    id: string;
-
-    /** Name of the account */
-    name: string;
-
-    /** Display name of the account */
-    displayName: string;
-
-    /** Number of the account */
-    number: string;
-
-    /** Type of the account */
-    type: string;
-};
-
-/**
- * Connection data for NSQS
- */
-type NSQSConnectionData = {
-    /** Collection of the payments accounts */
-    paymentAccounts: NSQSPaymentAccount[];
-};
-
-/**
- * Connection config for NSQS
- */
-type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Configuration of automatic synchronization from NSQS to the app */
-    autoSync?: {
-        /** Job ID of the synchronization */
-        jobID: string;
-
-        /** Whether changes made in NSQS should be reflected into the app automatically */
-        enabled: boolean;
-    };
-
-    /** Configuration options pertaining to sync */
-    syncOptions?: {
-        /** Configuration of import settings from NSQS to Expensify */
-        mapping?: {
-            /** How NSQS customers are displayed as */
-            customers: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
-
-            /** How NSQS projects are displayed as */
-            projects: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
-        };
-    };
-
-    /** The company currency */
-    currency: string;
-
-    /** The e-mail of the exporter */
-    exporter: string;
-
-    /** Export date type */
-    exportDate: ValueOf<typeof CONST.NSQS_EXPORT_DATE>;
-
-    /** NSQS credentials */
-    credentials: {
-        /** Encrypted token for NSQS authentication */
-        accessToken: string;
-
-        /** The company ID */
-        companyID: string;
-
-        /** Token expiration date */
-        expires: string;
-
-        /** The current scope of the NSQS connection */
-        scope: string;
-
-        /** The access token type */
-        tokenType: string;
-    };
-
-    /** Whether the connection is configured */
-    isConfigured: boolean;
-
-    /** The account used for payments in NSQS */
-    paymentAccount: string;
-
-    /** Collections of form field errors */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
-
 /** One of the SageIntacctConnectionData object elements */
 type SageIntacctDataElement = {
     /** Element ID */
@@ -1465,9 +1375,6 @@ type Connections = {
 
     /** NetSuite integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: NetSuiteConnection;
-
-    /** NSQS integration connection */
-    [CONST.POLICY.CONNECTIONS.NAME.NSQS]: Connection<NSQSConnectionData, NSQSConnectionConfig>;
 
     /** Sage Intacct integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
@@ -2056,7 +1963,6 @@ export type {
     NetSuiteTaxAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
-    NSQSPaymentAccount,
     SageIntacctMappingValue,
     SageIntacctMappingType,
     SageIntacctMappingName,
