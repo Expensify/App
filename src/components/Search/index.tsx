@@ -228,8 +228,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         transactions,
         previousTransactions,
         queryJSON,
-        // Set offset to 0 to retrieve the most recent chat messages.
-        offset: 0,
+        offset,
         reportActions,
         previousReportActions,
     });
@@ -535,6 +534,19 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
             isScreenFocused={isSearchScreenFocused}
             initialNumToRender={shouldUseNarrowLayout ? 5 : undefined}
+            onViewableItemsChanged={({viewableItems}) => {
+                const isFirstItemVisible = viewableItems.at(0)?.index === 1;
+                // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
+                if (shouldShowLoadingState || !isFirstItemVisible) {
+                    return;
+                }
+
+                /**
+                 * This line ensures that the app refreshes the search results when the user scrolls to the top.
+                 * More info: https://github.com/Expensify/App/issues/56969
+                 */
+                setOffset(0);
+            }}
         />
     );
 }
