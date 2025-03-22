@@ -49,12 +49,14 @@ type ValidateCodeFormProps = {
     /** The state of magic code that being sent */
     validateCodeAction?: ValidateMagicCodeAction | PendingContactAction;
 
-    /** The pending action of the flow requiring a magic code, e.g. "add/delete/update" */
+    /** The pending action of magic code being sent
+     * if not supplied, we will retrieve it from the validateCodeAction above: `validateCodeAction.pendingFields.validateCodeSent`
+     */
     validatePendingAction?: PendingAction | undefined;
 
     /** The field where any magic code erorr will be stored. e.g. if replacing a card and magic code fails, it'll be stored in:
      * {"errorFields": {"repplaceLostCard": {<timestamp>}}}
-     *  If replacing a virtual card, the errorField wil be 'reportVirtualCard', etc.
+     * If replacing a virtual card, the errorField wil be 'reportVirtualCard', etc.
      */
     validateCodeActionErrorField?: string;
 
