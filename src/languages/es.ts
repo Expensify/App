@@ -4931,8 +4931,8 @@ const translations = {
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones.',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala.',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo.',
-        renamedRoomAction: ({memberName, oldName, newName}: RenamedRoomActionParams) =>
-            memberName ? `${memberName} cambió el nombre de la sala a "${newName}" (previamente "${oldName}")` : `cambió el nombre de la sala a "${newName}" (previamente "${oldName}")`,
+        renamedRoomAction: ({oldName, newName, memberName}: RenamedRoomActionParams) =>
+            `${memberName ? `${memberName} ` : ''}cambió el nombre de la sala a "${newName}" (previamente "${oldName}")`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Sala renombrada a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
