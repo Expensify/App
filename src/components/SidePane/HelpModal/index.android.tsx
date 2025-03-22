@@ -2,8 +2,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {BackHandler} from 'react-native';
 import Modal from '@components/Modal';
+import HelpContent from '@components/SidePane/HelpComponents/HelpContent';
 import CONST from '@src/CONST';
-import HelpContent from './HelpContent';
 import type HelpProps from './types';
 
 function Help({isPaneHidden, closeSidePane}: HelpProps) {
