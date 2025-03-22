@@ -23,7 +23,7 @@ import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ValidateMagicCodeAction} from '@src/types/onyx';
+import type {PendingContactAction, ValidateMagicCodeAction} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -47,10 +47,14 @@ type ValidateCodeFormProps = {
     innerRef?: ForwardedRef<ValidateCodeFormHandle>;
 
     /** The state of magic code that being sent */
-    validateCodeAction?: ValidateMagicCodeAction;
+    validateCodeAction?: ValidateMagicCodeAction | PendingContactAction;
 
-    /** The pending action for submitting form */
-    validatePendingAction?: PendingAction | null;
+    validatePendingAction?: PendingAction | undefined;
+
+    /** The field where any magic code erorr will be stored. e.g. if replacing a card and magic code fails, it'll be stored in:
+     * {"errorFields": {"repplaceLostCard": {<timestamp>}}}
+     */
+    validateCodeActionErrorField?: string;
 
     /** The error of submitting  */
     validateError?: Errors;
@@ -79,6 +83,7 @@ function BaseValidateCodeForm({
     autoComplete = 'one-time-code',
     innerRef = () => {},
     validateCodeAction,
+    validateCodeActionErrorField = 'actionVerified',
     validatePendingAction,
     validateError,
     handleSubmitForm,
@@ -102,8 +107,7 @@ function BaseValidateCodeForm({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const latestActionVerifiedError = getLatestErrorField(validateCodeAction, 'actionVerified');
-
+    const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const timerRef = useRef<NodeJS.Timeout>();
 
     useImperativeHandle(innerRef, () => ({
@@ -185,18 +189,22 @@ function BaseValidateCodeForm({
             setValidateCode(text);
             setFormError({});
 
-            if (!isEmptyObject(validateError) || !isEmptyObject(latestActionVerifiedError)) {
+            if (!isEmptyObject(validateError) || !isEmptyObject(latestValidateCodeError)) {
+                // Clear flow specific error
                 clearError();
-                clearValidateCodeActionError('actionVerified');
+
+                // Clear "incorrect magic" code error
+                clearValidateCodeActionError(validateCodeActionErrorField);
             }
         },
-        [validateError, clearError, latestActionVerifiedError],
+        [validateError, clearError, latestValidateCodeError, validateCodeActionErrorField],
     );
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
+        clearValidateCodeActionError(validateCodeActionErrorField);
         setCanShowError(true);
         if (!validateCode.trim()) {
             setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
@@ -210,7 +218,7 @@ function BaseValidateCodeForm({
 
         setFormError({});
         handleSubmitForm(validateCode);
-    }, [validateCode, handleSubmitForm]);
+    }, [validateCode, handleSubmitForm, validateCodeActionErrorField]);
 
     const errorText = useMemo(() => {
         if (!canShowError) {
@@ -223,6 +231,11 @@ function BaseValidateCodeForm({
     }, [canShowError, formError, account, translate]);
 
     const shouldShowTimer = timeRemaining > 0 && !isOffline;
+    console.log(validatePendingAction);
+
+    // latestValidateCodeError only holds an error related to bad magic code
+    // while validateError holds flow-specific errors
+    const validateErrorMessage = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
     return (
         <>
             <MagicCodeInput
@@ -243,10 +256,9 @@ function BaseValidateCodeForm({
                 </Text>
             )}
             <OfflineWithFeedback
-                pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
-                errors={latestActionVerifiedError}
+                pendingAction={validatePendingAction ?? validateCodeAction?.pendingFields?.validateCodeSent}
                 errorRowStyles={[styles.mt2]}
-                onClose={() => clearValidateCodeActionError('actionVerified')}
+                onClose={() => clearValidateCodeActionError(validateCodeActionErrorField)}
             >
                 {!shouldShowTimer && (
                     <View style={[styles.mt5, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
@@ -275,8 +287,8 @@ function BaseValidateCodeForm({
             )}
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
-                pendingAction={validatePendingAction}
-                errors={canShowError ? validateError : undefined}
+                pendingAction={validateCodeAction?.pendingAction}
+                errors={canShowError ? validateErrorMessage : undefined}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => clearError()}
                 style={buttonStyles}
