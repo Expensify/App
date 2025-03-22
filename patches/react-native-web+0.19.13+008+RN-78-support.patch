@@ -1,0 +1,280 @@
+diff --git a/node_modules/react-native-web/dist/exports/AppRegistry/renderApplication.js b/node_modules/react-native-web/dist/exports/AppRegistry/renderApplication.js
+index b53dff6..1f855c1 100644
+--- a/node_modules/react-native-web/dist/exports/AppRegistry/renderApplication.js
++++ b/node_modules/react-native-web/dist/exports/AppRegistry/renderApplication.js
+@@ -11,15 +11,12 @@ import _extends from "@babel/runtime/helpers/extends";
+ 
+ import AppContainer from './AppContainer';
+ import invariant from 'fbjs/lib/invariant';
+-import renderLegacy, { hydrateLegacy, render, hydrate } from '../render';
++import render, { hydrate } from '../render';
+ import StyleSheet from '../StyleSheet';
+ import React from 'react';
+ export default function renderApplication(RootComponent, WrapperComponent, callback, options) {
+-  var shouldHydrate = options.hydrate,
+-    initialProps = options.initialProps,
+-    mode = options.mode,
+-    rootTag = options.rootTag;
+-  var renderFn = shouldHydrate ? mode === 'concurrent' ? hydrate : hydrateLegacy : mode === 'concurrent' ? render : renderLegacy;
++  const { hydrate: shouldHydrate, initialProps, rootTag } = options;
++  const renderFn = shouldHydrate ? hydrate : render;
+   invariant(rootTag, 'Expect to have a valid rootTag, instead got ', rootTag);
+   return renderFn(/*#__PURE__*/React.createElement(AppContainer, {
+     WrapperComponent: WrapperComponent,
+diff --git a/node_modules/react-native-web/dist/exports/findNodeHandle/index.js b/node_modules/react-native-web/dist/exports/findNodeHandle/index.js
+index e997fcf..e4b6c76 100644
+--- a/node_modules/react-native-web/dist/exports/findNodeHandle/index.js
++++ b/node_modules/react-native-web/dist/exports/findNodeHandle/index.js
+@@ -8,17 +8,10 @@
+  *
+  */
+ 
+-import { findDOMNode } from 'react-dom';
+-
+-/**
+- * @deprecated imperatively finding the DOM element of a react component has been deprecated in React 18.
+- * You should use ref properties on the component instead.
+- */
+-var findNodeHandle = component => {
+-  var node;
+-  try {
+-    node = findDOMNode(component);
+-  } catch (e) {}
+-  return node;
++const findNodeHandle = (component) => {
++  console.warn(
++      'findNodeHandle has been removed in React 19. ' +
++      'Use the ref property on the component instead.'
++  );
+ };
+ export default findNodeHandle;
+diff --git a/node_modules/react-native-web/dist/exports/findNodeHandle/index.js.flow b/node_modules/react-native-web/dist/exports/findNodeHandle/index.js.flow
+index 412af49..2e0621d 100644
+--- a/node_modules/react-native-web/dist/exports/findNodeHandle/index.js.flow
++++ b/node_modules/react-native-web/dist/exports/findNodeHandle/index.js.flow
+@@ -8,11 +8,5 @@
+  * @noflow
+  */
+ 
+-import { findDOMNode } from 'react-dom';
+-
+-/**
+- * @deprecated imperatively finding the DOM element of a react component has been deprecated in React 18.
+- * You should use ref properties on the component instead.
+- */
+ declare var findNodeHandle: (component: any) => any;
+ export default findNodeHandle;
+diff --git a/node_modules/react-native-web/dist/exports/render/index.js b/node_modules/react-native-web/dist/exports/render/index.js
+index aa91a2a..056714f 100644
+--- a/node_modules/react-native-web/dist/exports/render/index.js
++++ b/node_modules/react-native-web/dist/exports/render/index.js
+@@ -9,35 +9,15 @@
+ 
+ 'use client';
+ 
+-import { hydrate as domLegacyHydrate, render as domLegacyRender } from 'react-dom';
+ import { createRoot as domCreateRoot, hydrateRoot as domHydrateRoot } from 'react-dom/client';
+-import unmountComponentAtNode from '../unmountComponentAtNode';
+ import { createSheet } from '../StyleSheet/dom';
+ export function hydrate(element, root) {
+   createSheet(root);
+   return domHydrateRoot(root, element);
+ }
+-export function render(element, root) {
++export default function render(element, root) {
+   createSheet(root);
+   var reactRoot = domCreateRoot(root);
+   reactRoot.render(element);
+   return reactRoot;
+ }
+-export function hydrateLegacy(element, root, callback) {
+-  createSheet(root);
+-  domLegacyHydrate(element, root, callback);
+-  return {
+-    unmount: function unmount() {
+-      return unmountComponentAtNode(root);
+-    }
+-  };
+-}
+-export default function renderLegacy(element, root, callback) {
+-  createSheet(root);
+-  domLegacyRender(element, root, callback);
+-  return {
+-    unmount: function unmount() {
+-      return unmountComponentAtNode(root);
+-    }
+-  };
+-}
+\ No newline at end of file
+diff --git a/node_modules/react-native-web/dist/exports/render/index.js.flow b/node_modules/react-native-web/dist/exports/render/index.js.flow
+index 1bd771e..4ab6c32 100644
+--- a/node_modules/react-native-web/dist/exports/render/index.js.flow
++++ b/node_modules/react-native-web/dist/exports/render/index.js.flow
+@@ -14,6 +14,4 @@ import { createRoot as domCreateRoot, hydrateRoot as domHydrateRoot } from 'reac
+ import unmountComponentAtNode from '../unmountComponentAtNode';
+ import { createSheet } from '../StyleSheet/dom';
+ declare export function hydrate(element: any, root: any): any;
+-declare export function render(element: any, root: any): any;
+-declare export function hydrateLegacy(element: any, root: any, callback: any): any;
+-declare export default function renderLegacy(element: any, root: any, callback: any): any;
+\ No newline at end of file
++declare export default function render(element: any, root: any): any;
+diff --git a/node_modules/react-native-web/dist/exports/unmountComponentAtNode/index.js b/node_modules/react-native-web/dist/exports/unmountComponentAtNode/index.js
+index 925051c..908969c 100644
+--- a/node_modules/react-native-web/dist/exports/unmountComponentAtNode/index.js
++++ b/node_modules/react-native-web/dist/exports/unmountComponentAtNode/index.js
+@@ -7,5 +7,7 @@
+  *
+  */
+ 
+-import { unmountComponentAtNode } from 'react-dom';
+-export default unmountComponentAtNode;
+\ No newline at end of file
++export default function unmountComponentAtNode(rootTag) {
++    rootTag.unmount();
++    return true;
++}
+diff --git a/node_modules/react-native-web/dist/exports/unmountComponentAtNode/index.js.flow b/node_modules/react-native-web/dist/exports/unmountComponentAtNode/index.js.flow
+index b950090..1e4386f 100644
+--- a/node_modules/react-native-web/dist/exports/unmountComponentAtNode/index.js.flow
++++ b/node_modules/react-native-web/dist/exports/unmountComponentAtNode/index.js.flow
+@@ -7,5 +7,7 @@
+  * @noflow
+  */
+ 
+-import { unmountComponentAtNode } from 'react-dom';
+-export default unmountComponentAtNode;
+\ No newline at end of file
++export default function unmountComponentAtNode(rootTag) {
++    rootTag.unmount();
++    return true;
++}
+diff --git a/node_modules/react-native-web/src/exports/AppRegistry/renderApplication.js b/node_modules/react-native-web/src/exports/AppRegistry/renderApplication.js
+index 95df521..5878515 100644
+--- a/node_modules/react-native-web/src/exports/AppRegistry/renderApplication.js
++++ b/node_modules/react-native-web/src/exports/AppRegistry/renderApplication.js
+@@ -12,7 +12,7 @@ import type { ComponentType, Node } from 'react';
+ 
+ import AppContainer from './AppContainer';
+ import invariant from 'fbjs/lib/invariant';
+-import renderLegacy, { hydrateLegacy, render, hydrate } from '../render';
++import render, { hydrate } from '../render';
+ import StyleSheet from '../StyleSheet';
+ import React from 'react';
+ 
+@@ -27,18 +27,11 @@ export default function renderApplication<Props: Object>(
+   options: {
+     hydrate: boolean,
+     initialProps: Props,
+-    mode: 'concurrent' | 'legacy',
+     rootTag: any
+   }
+ ): Application {
+-  const { hydrate: shouldHydrate, initialProps, mode, rootTag } = options;
+-  const renderFn = shouldHydrate
+-    ? mode === 'concurrent'
+-      ? hydrate
+-      : hydrateLegacy
+-    : mode === 'concurrent'
+-    ? render
+-    : renderLegacy;
++  const { hydrate: shouldHydrate, initialProps, rootTag } = options;
++  const renderFn = shouldHydrate ? hydrate : render;
+ 
+   invariant(rootTag, 'Expect to have a valid rootTag, instead got ', rootTag);
+ 
+diff --git a/node_modules/react-native-web/src/exports/findNodeHandle/index.js b/node_modules/react-native-web/src/exports/findNodeHandle/index.js
+index f0b6ddf..39cf2d9 100644
+--- a/node_modules/react-native-web/src/exports/findNodeHandle/index.js
++++ b/node_modules/react-native-web/src/exports/findNodeHandle/index.js
+@@ -8,20 +8,11 @@
+  * @noflow
+  */
+ 
+-import { findDOMNode } from 'react-dom';
+-
+-/**
+- * @deprecated imperatively finding the DOM element of a react component has been deprecated in React 18.
+- * You should use ref properties on the component instead.
+- */
+ const findNodeHandle = (component) => {
+-  let node;
+-
+-  try {
+-    node = findDOMNode(component);
+-  } catch (e) {}
+-
+-  return node;
++  console.warn(
++      'findNodeHandle has been removed in React 19. ' +
++      'Use the ref property on the component instead.'
++  );
+ };
+ 
+ export default findNodeHandle;
+diff --git a/node_modules/react-native-web/src/exports/render/index.js b/node_modules/react-native-web/src/exports/render/index.js
+index c578e3e..572af7c 100644
+--- a/node_modules/react-native-web/src/exports/render/index.js
++++ b/node_modules/react-native-web/src/exports/render/index.js
+@@ -9,16 +9,11 @@
+ 
+ 'use client';
+ 
+-import {
+-  hydrate as domLegacyHydrate,
+-  render as domLegacyRender
+-} from 'react-dom';
+ import {
+   createRoot as domCreateRoot,
+   hydrateRoot as domHydrateRoot
+ } from 'react-dom/client';
+ 
+-import unmountComponentAtNode from '../unmountComponentAtNode';
+ import { createSheet } from '../StyleSheet/dom';
+ 
+ export function hydrate(element, root) {
+@@ -26,29 +21,9 @@ export function hydrate(element, root) {
+   return domHydrateRoot(root, element);
+ }
+ 
+-export function render(element, root) {
++export default function render(element, root) {
+   createSheet(root);
+   const reactRoot = domCreateRoot(root);
+   reactRoot.render(element);
+   return reactRoot;
+ }
+-
+-export function hydrateLegacy(element, root, callback) {
+-  createSheet(root);
+-  domLegacyHydrate(element, root, callback);
+-  return {
+-    unmount: function () {
+-      return unmountComponentAtNode(root);
+-    }
+-  };
+-}
+-
+-export default function renderLegacy(element, root, callback) {
+-  createSheet(root);
+-  domLegacyRender(element, root, callback);
+-  return {
+-    unmount: function () {
+-      return unmountComponentAtNode(root);
+-    }
+-  };
+-}
+diff --git a/node_modules/react-native-web/src/exports/unmountComponentAtNode/index.js b/node_modules/react-native-web/src/exports/unmountComponentAtNode/index.js
+index c3da00e..1e4386f 100644
+--- a/node_modules/react-native-web/src/exports/unmountComponentAtNode/index.js
++++ b/node_modules/react-native-web/src/exports/unmountComponentAtNode/index.js
+@@ -7,5 +7,7 @@
+  * @noflow
+  */
+ 
+-import { unmountComponentAtNode } from 'react-dom';
+-export default unmountComponentAtNode;
++export default function unmountComponentAtNode(rootTag) {
++    rootTag.unmount();
++    return true;
++}
