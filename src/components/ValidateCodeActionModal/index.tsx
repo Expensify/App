@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,7 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
@@ -22,9 +20,9 @@ function ValidateCodeActionModal({
     descriptionSecondary,
     onClose,
     onModalHide,
-    validatePendingAction,
     validateError,
-    validateCodeActionErrorField,
+    validateCodeAction,
+    validateActionErrorField: validateCodeActionErrorField,
     handleSubmitForm,
     clearError,
     footer,
@@ -41,8 +39,6 @@ function ValidateCodeActionModal({
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
     const hide = useCallback(() => {
         clearError();
@@ -104,7 +100,6 @@ function ValidateCodeActionModal({
                             isLoading={isLoading}
                             validateCodeAction={validateCodeAction}
                             validateCodeActionErrorField={validateCodeActionErrorField}
-                            validatePendingAction={validatePendingAction}
                             validateError={validateError}
                             handleSubmitForm={handleSubmitForm}
                             sendValidateCode={sendValidateCode}

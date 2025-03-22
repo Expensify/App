@@ -1,6 +1,7 @@
 import type React from 'react';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {PendingContactAction, ValidateMagicCodeAction} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type ValidateCodeActionModalProps = {
     /** Whether the modal is visible */
@@ -22,13 +23,13 @@ type ValidateCodeActionModalProps = {
     onModalHide?: () => void;
 
     /** The pending action for submitting form */
-    validatePendingAction?: PendingAction | null;
+    validateCodeAction: ValidateMagicCodeAction | PendingContactAction | undefined;
 
     /** The error of submitting, this hold any error sepcifc to the flow (e.g invalid reason when replacing a card) but NOT an incorrect magic code  */
     validateError?: Errors;
 
     /** Where incorrect magic code error will be stored for each flow */
-    validateCodeActionErrorField: string;
+    validateActionErrorField: string;
 
     /** Function is called when submitting form  */
     handleSubmitForm: (validateCode: string) => void;
