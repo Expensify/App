@@ -21,7 +21,6 @@ const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
 const DEFAULT_NUMBER_ID = 0;
-
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
@@ -1072,6 +1071,7 @@ const CONST = {
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
+    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -4935,6 +4935,17 @@ const CONST = {
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
+    },
+    MERGE_ACCOUNT_RESULTS: {
+        SUCCESS: 'success',
+        ERR_2FA: 'err_2fa',
+        ERR_NO_EXIST: 'err_no_exist',
+        ERR_SMART_SCANNER: 'err_smart_scanner',
+        ERR_INVOICING: 'err_invoicing',
+        ERR_SAML_PRIMARY_LOGIN: 'err_saml_primary_login',
+        ERR_SAML_DOMAIN_CONTROL: 'err_saml_domain_control',
+        ERR_SAML_NOT_SUPPORTED: 'err_saml_not_supported',
+        ERR_ACCOUNT_LOCKED: 'err_account_locked',
     },
     DELEGATE_ROLE: {
         ALL: 'all',
