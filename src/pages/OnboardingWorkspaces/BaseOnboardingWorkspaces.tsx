@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackWorkspaceAvatar} from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -15,13 +15,14 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as MemberAction from '@userActions/Policy/Member';
-import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {isCurrentUserValidated} from '@libs/UserUtils';
+import {joinAccessiblePolicy} from '@userActions/Policy/Member';
+import {completeOnboarding} from '@userActions/Report';
+import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,26 +42,27 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
 
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
-    const isValidated = UserUtils.isCurrentUserValidated(loginList);
+    const isValidated = isCurrentUserValidated(loginList);
 
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {onboardingMessages} = getOnboardingMessages();
 
     const handleJoinWorkspace = useCallback(
         (policyID: string) => {
-            MemberAction.joinAccessiblePolicy(policyID);
-            Report.completeOnboarding(
+            joinAccessiblePolicy(policyID);
+            completeOnboarding(
                 CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-                CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+                onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
                 onboardingPersonalDetails?.firstName ?? '',
                 onboardingPersonalDetails?.lastName ?? '',
             );
-            Welcome.setOnboardingAdminsChatReportID();
-            Welcome.setOnboardingPolicyID(policyID);
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID(policyID);
 
             navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policyID, activeWorkspaceID);
         },
-        [onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, canUseDefaultRooms, activeWorkspaceID],
+        [onboardingPersonalDetails?.firstName, onboardingMessages, onboardingPersonalDetails?.lastName, isSmallScreenWidth, canUseDefaultRooms, activeWorkspaceID],
     );
     const policyIDItems = useMemo(() => {
         return Object.values(joinablePolicies ?? {}).map((policyInfo) => {
@@ -83,8 +85,8 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                 icons: [
                     {
                         id: policyInfo.policyID,
-                        source: ReportUtils.getDefaultWorkspaceAvatar(policyInfo.policyName),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        source: getDefaultWorkspaceAvatar(policyInfo.policyName),
+                        fallbackIcon: FallbackWorkspaceAvatar,
                         name: policyInfo.policyName,
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },

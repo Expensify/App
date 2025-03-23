@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -99,9 +100,10 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     // For other company sizes we want to complete onboarding here.
                     // At this point `onboardingPurposeSelected` should always exist as we set it in `BaseOnboardingPurpose`.
                     if (onboardingPurposeSelected) {
+                        const {onboardingMessages} = getOnboardingMessages();
                         completeOnboarding(
                             onboardingPurposeSelected,
-                            CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                            onboardingMessages[onboardingPurposeSelected],
                             undefined,
                             undefined,
                             adminsChatReportID,
