@@ -4,11 +4,12 @@ import type {ValueOf} from 'type-fest';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import {clearDelegateErrorsByField, updateDelegateRole} from '@libs/actions/Delegate';
-import {requestValidateCodeAction} from '@libs/actions/User';
+import {clearValidateCodeActionError, requestValidateCodeAction} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type UpdateDelegateMagicCodeModalProps = {
     login: string;
@@ -37,9 +38,10 @@ function UpdateDelegateMagicCodeModal({login, role, isValidateCodeActionModalVis
     };
 
     const clearError = () => {
-        if (!updateDelegateErrors) {
+        if (isEmptyObject(updateDelegateErrors) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
+        clearValidateCodeActionError('UpdateDelegateRole');
         clearDelegateErrorsByField(currentDelegate?.email ?? '', 'updateDelegateRole');
     };
 
@@ -47,6 +49,8 @@ function UpdateDelegateMagicCodeModal({login, role, isValidateCodeActionModalVis
         <ValidateCodeActionModal
             clearError={clearError}
             onClose={onBackButtonPress}
+            validateCodeAction={validateCodeAction}
+            validateActionErrorField="UpdateDelegateRole"
             isLoading={currentDelegate?.isLoading}
             validateError={updateDelegateErrors}
             isVisible={isValidateCodeActionModalVisible}
