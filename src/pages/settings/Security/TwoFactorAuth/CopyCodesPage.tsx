@@ -23,7 +23,7 @@ import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
-import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
+import {clearContactMethodErrors, clearValidateCodeActionError, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -175,11 +175,16 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                 descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
                 isVisible={isValidateModalVisible}
                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                validateCodeAction={validateCodeAction}
+                validateActionErrorField="validateLogin"
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                 sendValidateCode={() => requestValidateCodeAction()}
                 handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
                 validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
-                clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                clearError={() => {
+                    clearValidateCodeActionError('validateLogin');
+                    clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
+                }}
                 onModalHide={() => {}}
                 onClose={() => {
                     setIsValidateModalVisible(false);

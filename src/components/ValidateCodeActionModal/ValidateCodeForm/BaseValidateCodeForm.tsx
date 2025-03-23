@@ -238,7 +238,7 @@ function BaseValidateCodeForm({
 
     // latestValidateCodeError only holds an error related to bad magic code
     // while validateError holds flow-specific errors
-    const validateErrorMessage = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
+    const finalValidateError = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
     return (
         <>
             <MagicCodeInput
@@ -248,7 +248,7 @@ function BaseValidateCodeForm({
                 value={validateCode}
                 onChangeText={onTextInput}
                 errorText={errorText}
-                hasError={canShowError ? !!validateErrorMessage : false}
+                hasError={canShowError && !isEmptyObject(finalValidateError)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
             />
@@ -291,7 +291,7 @@ function BaseValidateCodeForm({
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
                 pendingAction={validateCodeAction?.pendingAction}
-                errors={canShowError ? validateErrorMessage : undefined}
+                errors={canShowError ? finalValidateError : undefined}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => clearError()}
                 style={buttonStyles}
