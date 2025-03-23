@@ -10,7 +10,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,8 +36,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicy = getActivePolicy();
     const isActivePolicyGroup = activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL;
 
