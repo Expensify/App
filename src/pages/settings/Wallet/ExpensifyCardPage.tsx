@@ -285,14 +285,16 @@ function ExpensifyCardPage({
                     text={translate('activateCardPage.activatePhysicalCard')}
                 />
             )}
-            <Button
-                success
-                large
-                text={translate('cardPage.getPhysicalCard')}
-                pressOnEnter
-                onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
-                style={[styles.mh5, styles.mb5]}
-            />
+            {physicalCards?.some((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED) && (
+                <Button
+                    success
+                    large
+                    text={translate('cardPage.getPhysicalCard')}
+                    pressOnEnter
+                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
+                    style={[styles.mh5, styles.mb5]}
+                />
+            )}
             <ValidateCodeActionModal
                 handleSubmitForm={handleRevealDetails}
                 clearError={() => {}}
