@@ -23,7 +23,7 @@ type ValidateCodeActionModalProps = {
     onModalHide?: () => void;
 
     /** The state of the magic code being sent */
-    validateCodeAction: ValidateMagicCodeAction | PendingContactAction | undefined;
+    validateCodeAction?: ValidateMagicCodeAction | PendingContactAction | undefined;
 
     validatePendingAction?: PendingAction | undefined;
 
@@ -31,7 +31,7 @@ type ValidateCodeActionModalProps = {
     validateError?: Errors;
 
     /** Where incorrect magic code error will be stored for each flow */
-    validateActionErrorField: string;
+    validateActionErrorField?: string | undefined;
 
     /** Function is called when submitting form  */
     handleSubmitForm: (validateCode: string) => void;
