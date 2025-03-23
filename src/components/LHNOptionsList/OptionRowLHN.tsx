@@ -40,7 +40,7 @@ import {
     isThread,
     requiresAttentionFromCurrentUser,
 } from '@libs/ReportUtils';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
@@ -158,22 +158,24 @@ function OptionRowLHN({
             return;
         }
         setIsContextMenuActive(true);
-        ReportActionContextMenu.showContextMenu(
-            CONST.CONTEXT_MENU_TYPES.REPORT,
+        showContextMenu({
+            type: CONST.CONTEXT_MENU_TYPES.REPORT,
             event,
-            '',
-            popoverAnchor.current,
-            reportID,
-            '-1',
-            reportID,
-            undefined,
-            () => {},
-            () => setIsContextMenuActive(false),
-            false,
-            false,
-            optionItem.isPinned,
-            !!optionItem.isUnread,
-        );
+            selection: '',
+            contextMenuAnchor: popoverAnchor.current,
+            report: {
+                reportID,
+                originalReportID: reportID,
+                isPinnedChat: optionItem.isPinned,
+                isUnreadChat: !!optionItem.isUnread,
+            },
+            reportAction: {
+                reportActionID: '-1',
+            },
+            callbacks: {
+                onHide: () => setIsContextMenuActive(false),
+            },
+        });
     };
 
     const emojiCode = optionItem.status?.emojiCode ?? '';
@@ -212,8 +214,8 @@ function OptionRowLHN({
                     horizontal: shouldShowWokspaceChatTooltip ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
-                shiftHorizontal={shouldShowWokspaceChatTooltip ? variables.workspaceLHNtooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
-                shiftVertical={shouldShowWokspaceChatTooltip ? 0 : variables.composerTooltipShiftVertical}
+                shiftHorizontal={shouldShowWokspaceChatTooltip ? variables.workspaceLHNTooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
+                shiftVertical={shouldShowWokspaceChatTooltip ? 0 : variables.gbrTooltipShiftVertical}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 onTooltipPress={onOptionPress}
                 shouldHideOnScroll
@@ -255,7 +257,9 @@ function OptionRowLHN({
                                     (hovered || isContextMenuActive) && !isFocused ? styles.sidebarLinkHover : null,
                                 ]}
                                 role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
+                                accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${
+                                    optionItem.alternateText
+                                }`}
                                 onLayout={onLayout}
                                 needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                             >

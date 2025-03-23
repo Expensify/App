@@ -1,90 +1,80 @@
 ---
 title: Create categories
 description: Use categories to classify and organize expenses
+keywords: [Expensify Classic, categories, categorize expenses]
 ---
-
 <div id="expensify-classic" markdown="1">
 
-Categories can help you classify expenses by expense type. For example, Expensify automatically provides default categories like fees, office supplies, travel, and more. 
+Categories help you classify expenses by type. Expensify automatically provides default categories like fees, office supplies, travel, and more.
 
-You can choose to enable, disable, or edit the default Expensify categories, or you can add or import your own custom categories. You can also add subcategories underneath existing categories.
+You can enable, turn off, edit, or delete the default categories. You can also add or import your own custom categories and create subcategories under existing ones.
 
-# Enable, disable, or edit default categories 
+---
 
-Once you have manually added your categories or automatically imported them from a connected accounting system, you can enable or disable the categories to determine whether they can be added to expenses.
+# Manually Add Categories
 
-{% include info.html %}
-Importing GL & payroll codes from your accounting system is only available on the Control plan.
-{% include end-info.html %}
+1. Head to **Settings > Workspace > Group > [Workspace Name] > Categories**
+2. Scroll to the bottom of the Categories section.
+3. Enter the category name in the **Add a Category** field and click **Add**.
 
-1. Hover over Settings, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
-3. Click the desired workspace name. 
-4. Click the **Categories** tab on the left. 
-5. Enable, disable, edit, or delete any category as desired.
-   - **To enable/disable**: Click the toggle to the left of the category. Or to enable or disable all of the categories, use the toggle at the top of the toggle column.
-   - **To edit**: Click the category name and type in the new name. 
-   - **To delete**: Click the X to the right of the category.
+---
 
-# Add custom categories
+# Automatically Import Categories via Accounting Integration
 
-## Automatic import with accounting integration
+When integrating with an accounting system, Expensify automatically imports general ledger accounts as categories (e.g., QuickBooks Online, QuickBooks Desktop, Sage Intacct, Xero, or NetSuite).
 
-Expensify automatically imports your expense-related general ledger accounts as categories when you use an accounting integration (for example, QuickBooks Online, QuickBooks Desktop, Sage Intacct, Xero, or NetSuite).
+To update categories that are imported from an accounting integration:
+1. In your accounting system, update the category details.
+2. In Expensify, head to **Settings > Workspace > Group > [Workspace Name] > Connections**.
+3. Click **Sync Now**.
 
-To update your categories in Expensify, you must first update the category in your accounting system. Then in Expensify, 
+You can learn about accounting integration category settings by selecting your accounting integration [here](https://help.expensify.com/expensify-classic/hubs/connections/) and reviewing the corresponding configuration resource. 
 
-1. Hover over Settings, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
-3. Click the desired workspace name. 
-4. Click the **Connections** tab on the left. 
-5. Click **Sync Now**.
+---
 
-## Manually add individual categories
+# Import Custom Categories
 
-1. Hover over Settings, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
-3. Click the desired workspace name. 
-4. Click the **Categories** tab on the left. 
-5. Scroll down to the bottom of the Categories section to the Add a Category field.
-6. Type the name for your new category into the field and click **Add**.  
+You can import a list of categories using a **.csv, .txt, .xls, or .xlsx** file.
 
-## Import custom categories
-
-You can add a list of categories by importing them in a .csv, .txt, .xls, or .xlsx spreadsheet.
-
-1. Create your categories spreadsheet with at least a column containing the category name. However, you can also add any of the following fields:
+1. Create a spreadsheet with at least one column for the **Category Name**. You can also include:
    - GL Code
-   - Payroll code
-   - Enabled (TRUE/ FALSE)
-   - Max Expense amount
+   - Payroll Code
+   - Enabled (TRUE/FALSE)
+   - Max Expense Amount
    - Receipt Required
-   - Comments (Required/ Not Required)
+   - Comments (Required/Not Required)
    - Comment Hint
    - Expense Limit Type
-2. In Expensify, hover over Settings, then click **Workspaces**. 
-3. Click the **Group** tab on the left. 
-4. Click the desired workspace name. 
-5. Click the **Categories** tab on the left.  
-6. Click **Import from Spreadsheet**.
-7. Review the guidelines, select the checkbox if your file has headers as the first row, and click **Upload File**. 
+2. In Expensify, head to **Settings > Workspace > Group > [Workspace Name] > Categories**
+3. Click **Import from Spreadsheet**.
+4. Review the guidelines, select the checkbox if your file has headers in the first row, and click **Upload File**.
 
-{% include info.html %}
-Each time you upload a list of categories, it will override your previous list. To avoid losing categories, update your current spreadsheet and re-import it into Expensify.
-{% include end-info.html %}
+⚠️ **Important:** Each new import **overwrites** the existing category list. To avoid losing data, update your current spreadsheet before re-importing.
 
-# Add subcategories
+---
 
-You can create subcategories under a main category. For example, if you have a category for travel that you want flight and lodging to fall under, you can create them as subcategories.
+# Add Subcategories
 
-1. Hover over Settings, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
-3. Click the desired workspace name. 
-4. Click the **Categories** tab on the left. 
-5. Scroll down to the bottom of the Categories section to the Add a Category field.
-6. Type the name for your main category into the field, followed by a colon, then add the name of the subcategory and click **Add**. For example, to make a Flight subcategory under Travel, you'll enter “Travel: Flight”. Repeat this step for each subcategory.
+You can create subcategories under a main category. For example, "Flight" and "Lodging" can be subcategories under "Travel."
 
-The new subcategories will show up as a dropdown list under the category when an expense is created. The text before the colon will show as the category header (which will not be selectable). The member will have to select an item from the subcategories to add it to the expense.
+1. Head to **Settings > Workspace > Group > [Workspace Name] > Categories**
+2. Scroll to the **Add a Category** field.
+3. Enter the main category name, followed by a colon, then the subcategory name (e.g., `Travel: Flight`).
+4. Click **Add**. Repeat for additional subcategories.
+
+When an expense is created, the new subcategories will appear as a dropdown list under the category. The text before the colon will show as the category header (which will not be selectable). The member will have to select an item from the subcategories to add it to the expense.
+
+---
+
+# Manage Default Categories
+
+Once you manually add categories or import them from a connected accounting system, you can control their visibility and settings:
+1. Head to **Settings > Workspace > Group > [Workspace Name] > Categories**
+2. Manage categories as needed:
+   - **Enable/disable**: Click the toggle next to a category. Use the toggle at the top to turn all categories on/off at once.
+   - **Edit**: Click the category name and enter a new name.
+   - **Delete**: Click the **X** next to a category.
+
+⚠️ **Note:** Importing GL and payroll codes from your accounting system is only available on the Control plan.
 
 </div>
-
