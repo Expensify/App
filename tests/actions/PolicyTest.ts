@@ -223,7 +223,6 @@ describe('actions/Policy', () => {
             });
         });
 
-
         it('create a new workspace with delayed submission set to manually if the onboarding choice is newDotManageTeam', async () => {
             Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await waitForBatchedUpdates();
