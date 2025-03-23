@@ -105,7 +105,7 @@ const ONYXKEYS = {
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
     /** Store the information of magic code */
-    VALIDATE_ACTION_CODE: 'validate_action_code',
+    VALIDATE_ACTION_CODE: 'validateActionCode',
 
     /** A list of policies that a user can join */
     JOINABLE_POLICIES: 'joinablePolicies',
