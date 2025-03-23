@@ -16,7 +16,7 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {requestValidateCodeAction} from '@libs/actions/User';
+import {clearValidateCodeActionError, requestValidateCodeAction} from '@libs/actions/User';
 import {formatCardExpiration, getDomainCards, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -94,6 +94,7 @@ function ExpensifyCardPage({
     const [cardsDetails, setCardsDetails] = useState<Record<number, ExpensifyCardDetails | null>>({});
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
     const openValidateCodeModal = (revealedCardID: number) => {
         setCurrentCardID(revealedCardID);
@@ -116,16 +117,21 @@ function ExpensifyCardPage({
                     ...prevState,
                     [currentCardID]: '',
                 }));
+                setIsValidateCodeActionModalVisible(false);
             })
             .catch((error: string) => {
+                // Displaying magic code errors is handled in the modal, no need to set it on the card
+                if (error === 'validateCodeForm.error.incorrectMagicCode') {
+                    return;
+                }
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
                     [currentCardID]: error,
                 }));
+                setIsValidateCodeActionModalVisible(false);
             })
             .finally(() => {
                 setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [currentCardID]: false}));
-                setIsValidateCodeActionModalVisible(false);
             });
     };
 
@@ -297,7 +303,9 @@ function ExpensifyCardPage({
             )}
             <ValidateCodeActionModal
                 handleSubmitForm={handleRevealDetails}
-                clearError={() => {}}
+                clearError={() => clearValidateCodeActionError('revealExpensifyCardDetails')}
+                validateCodeAction={validateCodeAction}
+                validateActionErrorField="revealExpensifyCardDetails"
                 sendValidateCode={() => requestValidateCodeAction()}
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isVisible={isValidateCodeActionModalVisible}
