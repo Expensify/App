@@ -92,7 +92,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             validateError={validateLoginError}
             hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             validateCodeAction={validateCodeAction}
-            validateActionErrorField="validateLogin"
+            validateCodeActionErrorField="validateLogin"
             isVisible={isValidateCodeActionModalVisible}
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}

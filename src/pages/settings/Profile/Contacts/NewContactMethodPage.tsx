@@ -169,7 +169,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                 </FormProvider>
                 <ValidateCodeActionModal
                     validateCodeAction={pendingContactAction}
-                    validateActionErrorField="addedLogin"
+                    validateCodeActionErrorField="addedLogin"
                     validateError={validateLoginError}
                     handleSubmitForm={addNewContactMethod}
                     clearError={() => {

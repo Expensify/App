@@ -198,7 +198,7 @@ function ReportCardLostPage({
                             handleSubmitForm={handleValidateCodeEntered}
                             sendValidateCode={sendValidateCode}
                             validateCodeAction={validateCodeAction}
-                            validateActionErrorField="replaceLostCard"
+                            validateCodeActionErrorField="replaceLostCard"
                             validateError={validateError}
                             clearError={() => {
                                 clearCardListErrors(physicalCard.cardID);

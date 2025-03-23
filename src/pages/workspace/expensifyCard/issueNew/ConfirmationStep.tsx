@@ -142,7 +142,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     isLoading={issueNewCard?.isLoading}
                     sendValidateCode={() => requestValidateCodeAction()}
                     validateCodeAction={validateCodeAction}
-                    validateActionErrorField="createAdminIssuedVirtualCard"
+                    validateCodeActionErrorField="createAdminIssuedVirtualCard"
                     validateError={validateError}
                     hasMagicCodeBeenSent={validateCodeSent}
                     clearError={() => {

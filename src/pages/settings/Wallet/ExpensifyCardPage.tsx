@@ -305,7 +305,7 @@ function ExpensifyCardPage({
                 handleSubmitForm={handleRevealDetails}
                 clearError={() => clearValidateCodeActionError('revealExpensifyCardDetails')}
                 validateCodeAction={validateCodeAction}
-                validateActionErrorField="revealExpensifyCardDetails"
+                validateCodeActionErrorField="revealExpensifyCardDetails"
                 sendValidateCode={() => requestValidateCodeAction()}
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isVisible={isValidateCodeActionModalVisible}

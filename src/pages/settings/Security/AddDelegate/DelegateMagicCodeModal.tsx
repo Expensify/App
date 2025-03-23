@@ -57,7 +57,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
             clearError={clearError}
             onClose={onBackButtonPress}
             validateCodeAction={validateCodeAction}
-            validateActionErrorField="addDelegate"
+            validateCodeActionErrorField="addDelegate"
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}

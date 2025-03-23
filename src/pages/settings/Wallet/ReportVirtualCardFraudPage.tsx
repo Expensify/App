@@ -115,7 +115,7 @@ function ReportVirtualCardFraudPage({
                     handleSubmitForm={handleValidateCodeEntered}
                     sendValidateCode={sendValidateCode}
                     validateCodeAction={validateCodeAction}
-                    validateActionErrorField="reportVirtualCard"
+                    validateCodeActionErrorField="reportVirtualCard"
                     validateError={validateError}
                     clearError={() => {
                         if (!virtualCard?.cardID) {

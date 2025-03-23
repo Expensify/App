@@ -176,7 +176,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                 isVisible={isValidateModalVisible}
                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                 validateCodeAction={validateCodeAction}
-                validateActionErrorField="validateLogin"
+                validateCodeActionErrorField="validateLogin"
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                 sendValidateCode={() => requestValidateCodeAction()}
                 handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, true)}

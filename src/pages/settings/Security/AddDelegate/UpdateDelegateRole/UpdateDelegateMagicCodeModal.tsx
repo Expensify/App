@@ -50,7 +50,7 @@ function UpdateDelegateMagicCodeModal({login, role, isValidateCodeActionModalVis
             clearError={clearError}
             onClose={onBackButtonPress}
             validateCodeAction={validateCodeAction}
-            validateActionErrorField="UpdateDelegateRole"
+            validateCodeActionErrorField="UpdateDelegateRole"
             isLoading={currentDelegate?.isLoading}
             validateError={updateDelegateErrors}
             isVisible={isValidateCodeActionModalVisible}

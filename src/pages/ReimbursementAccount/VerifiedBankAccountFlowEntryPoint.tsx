@@ -295,7 +295,7 @@ function VerifiedBankAccountFlowEntryPoint({
                 isVisible={!!isValidateCodeActionModalVisible}
                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                 validateCodeAction={validateCodeAction}
-                validateActionErrorField="validateLogin"
+                validateCodeActionErrorField="validateLogin"
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                 sendValidateCode={() => requestValidateCodeAction()}
                 handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}

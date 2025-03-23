@@ -31,7 +31,7 @@ type ValidateCodeActionModalProps = {
     validateError?: Errors;
 
     /** Where incorrect magic code error will be stored for each flow */
-    validateActionErrorField?: string | undefined;
+    validateCodeActionErrorField?: string | undefined;
 
     /** Function is called when submitting form  */
     handleSubmitForm: (validateCode: string) => void;

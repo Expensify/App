@@ -23,7 +23,7 @@ function ValidateCodeActionModal({
     validateError,
     validateCodeAction,
     validatePendingAction,
-    validateActionErrorField: validateCodeActionErrorField,
+    validateCodeActionErrorField,
     handleSubmitForm,
     clearError,
     footer,

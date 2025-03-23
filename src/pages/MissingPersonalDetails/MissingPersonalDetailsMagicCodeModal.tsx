@@ -62,7 +62,7 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
             clearError={clearError}
             onClose={onBackButtonPress}
             validateCodeAction={validateCodeAction}
-            validateActionErrorField="personalDetails"
+            validateCodeActionErrorField="personalDetails"
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('cardPage.validateCardTitle')}
