@@ -55,7 +55,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
-    const groupPolicies = activePolicies.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL);
+    const groupPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL);
     const isUserMemberOfSingleGroupPolicy = groupPolicies.length === 1;
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
@@ -133,7 +133,18 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled, isBlockedFromSpotnanaTravel, StyleUtils, styles]);
+    }, [
+        policy,
+        wasNewDotLaunchedJustForTravel,
+        travelSettings,
+        translate,
+        primaryContactMethod,
+        setRootStatusBarEnabled,
+        isBlockedFromSpotnanaTravel,
+        StyleUtils,
+        styles,
+        isUserMemberOfSingleGroupPolicy,
+    ]);
 
     return (
         <>

@@ -19,7 +19,7 @@ import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actio
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
-import {getActivePolicies, getActivePolicy} from '@libs/PolicyUtils';
+import {getActivePolicy} from '@libs/PolicyUtils';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,9 +39,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const activePolicies = getActivePolicies(policies, currentUserLogin);
-    const groupPolicies = activePolicies.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL);
-    const isUserMemberOfSingleGroupPolicy = groupPolicies.length === 1;
     const activePolicy = getActivePolicy();
     const isActivePolicyGroup = activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL;
 
@@ -124,15 +121,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
                             if (isActivePolicyGroup) {
                                 acceptSpotnanaTerms(domain);
-                                return;
-                            }
-
-                            if (!isActivePolicyGroup && isUserMemberOfSingleGroupPolicy) {
-                                acceptSpotnanaTerms(domain, groupPolicies.at(0)?.id);
-                                return;
-                            }
-
-                            if (!isActivePolicyGroup && !isUserMemberOfSingleGroupPolicy) {
+                            } else {
                                 setErrorMessage(translate('travel.termsAndConditions.defaultWorkspaceError'));
                             }
                         }}
