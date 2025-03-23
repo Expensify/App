@@ -22,6 +22,7 @@ function ValidateCodeActionModal({
     onModalHide,
     validateError,
     validateCodeAction,
+    validatePendingAction,
     validateActionErrorField: validateCodeActionErrorField,
     handleSubmitForm,
     clearError,
@@ -99,6 +100,7 @@ function ValidateCodeActionModal({
                         <ValidateCodeForm
                             isLoading={isLoading}
                             validateCodeAction={validateCodeAction}
+                            validatePendingAction={validatePendingAction}
                             validateCodeActionErrorField={validateCodeActionErrorField}
                             validateError={validateError}
                             handleSubmitForm={handleSubmitForm}
