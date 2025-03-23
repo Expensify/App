@@ -131,10 +131,11 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
 describe('Tests for group chat name', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        Onyx.clear();
 
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
+
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     const participantAccountIDs4 = [USER_A_ACCOUNT_ID, USER_B_ACCOUNT_ID, USER_C_ACCOUNT_ID, USER_D_ACCOUNT_ID];
@@ -148,8 +149,7 @@ describe('Tests for group chat name', () => {
             expect(sidebarLinks).toHaveLength(1);
 
             // Verify there is only one option in the sidebar
-            const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-            const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+            const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
             expect(optionRows).toHaveLength(1);
 
             const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -166,8 +166,7 @@ describe('Tests for group chat name', () => {
             expect(sidebarLinks).toHaveLength(1);
 
             // Verify there is only one option in the sidebar
-            const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-            const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+            const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
             expect(optionRows).toHaveLength(1);
 
             const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -184,8 +183,7 @@ describe('Tests for group chat name', () => {
             expect(sidebarLinks).toHaveLength(1);
 
             // Verify there is only one option in the sidebar
-            const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-            const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+            const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
             expect(optionRows).toHaveLength(1);
 
             const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -203,8 +201,7 @@ describe('Tests for group chat name', () => {
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-                const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(1);
 
                 const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -231,8 +228,7 @@ describe('Tests for group chat name', () => {
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-                const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(1);
 
                 const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -259,8 +255,7 @@ describe('Tests for group chat name', () => {
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-                const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(1);
 
                 const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -287,8 +282,7 @@ describe('Tests for group chat name', () => {
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-                const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(1);
 
                 const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -314,8 +308,7 @@ describe('Tests for group chat name', () => {
             expect(sidebarLinks).toHaveLength(1);
 
             // Verify there is only one option in the sidebar
-            const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-            const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+            const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
             expect(optionRows).toHaveLength(1);
 
             const lastChatHintText = translateLocal('accessibilityHints.lastChatMessagePreview');
@@ -332,8 +325,7 @@ describe('Tests for group chat name', () => {
             expect(sidebarLinks).toHaveLength(1);
 
             // Verify there is only one option in the sidebar
-            const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-            const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+            const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
             expect(optionRows).toHaveLength(1);
 
             const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');

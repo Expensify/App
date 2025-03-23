@@ -1,18 +1,14 @@
 import type {RouteProp} from '@react-navigation/native';
 import {findFocusedRoute, useNavigation} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo, useRef} from 'react';
-import {NativeModules} from 'react-native';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
-import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
+import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
-import {SidePaneWithOverlay} from '@components/SidePane';
-import TestToolsModal from '@components/TestToolsModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import {ReportIDsContextProvider} from '@hooks/useReportIDs';
@@ -37,6 +33,7 @@ import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -45,7 +42,6 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
-import toggleTestToolsModal from '@userActions/TestTool';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -184,7 +180,7 @@ const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
 const modalScreenListeners = {
     focus: () => {
-        Modal.setModalVisibility(true);
+        Modal.setModalVisibility(true, CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
     },
     blur: () => {
         Modal.setModalVisibility(false);
@@ -220,8 +216,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {toggleSearch} = useSearchRouterContext();
 
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -233,7 +231,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
-        return NativeModules.HybridAppModule && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_EMPLOYEES.route) && isOnboardingCompleted === true;
+        return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_EMPLOYEES.route) && isOnboardingCompleted === true;
     }, [isOnboardingCompleted]);
 
     useEffect(() => {
@@ -245,10 +243,23 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }, [theme]);
 
     useEffect(() => {
+        if (!account?.needsTwoFactorAuthSetup || !!account.requiresTwoFactorAuth || shouldShowRequire2FAPage) {
+            return;
+        }
+        setShouldShowRequire2FAPage(true);
+    }, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, shouldShowRequire2FAPage]);
+
+    useEffect(() => {
+        if (!shouldShowRequire2FAPage) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
+    }, [shouldShowRequire2FAPage]);
+
+    useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
-        const debugShortcutConfig = CONST.KEYBOARD_SHORTCUTS.DEBUG;
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
@@ -265,7 +276,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         initializePusher();
 
         // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
-        if (!NativeModules.HybridAppModule) {
+        if (!CONFIG.IS_HYBRID_APP) {
             // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
             // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
             if (SessionUtils.didUserLogInDuringSession()) {
@@ -364,21 +375,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             true,
         );
 
-        const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
-            debugShortcutConfig.shortcutKey,
-            () => toggleTestToolsModal(),
-            debugShortcutConfig.descriptionKey,
-            debugShortcutConfig.modifiers,
-            true,
-        );
-
         return () => {
             unsubscribeEscapeKey();
             unsubscribeOnyxModal();
             unsubscribeShortcutsOverviewShortcut();
             unsubscribeSearchShortcut();
             unsubscribeChatShortcut();
-            unsubscribeDebugShortcut();
             Session.cleanupSession();
         };
 
@@ -453,11 +455,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, ReportIDsContextProvider, SearchContextProvider]}>
-            <RootStack.Navigator
-                persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]}
-                // @ts-expect-error SidePane is a custom screen option that was added in a patch (when we migrate to react-navigation v7 we can use screenLayout instead)
-                screenOptions={{sidePane: SidePaneWithOverlay}}
-            >
+            <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
@@ -555,7 +553,20 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.rightModalNavigator}
                     component={RightModalNavigator}
-                    listeners={modalScreenListenersWithCancelSearch}
+                    listeners={{
+                        ...modalScreenListenersWithCancelSearch,
+                        beforeRemove: () => {
+                            modalScreenListenersWithCancelSearch.beforeRemove();
+
+                            // When a 2FA RHP page is closed, if the 2FA require page is visible and the user has now enabled the 2FA, then remove the 2FA require page from the navigator.
+                            const routeParams = navigation.getState()?.routes?.at(-1)?.params;
+                            const screen = routeParams && 'screen' in routeParams ? routeParams.screen : '';
+                            if (!shouldShowRequire2FAPage || !account?.requiresTwoFactorAuth || screen !== SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH) {
+                                return;
+                            }
+                            setShouldShowRequire2FAPage(false);
+                        },
+                    }}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
@@ -602,6 +613,13 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         }}
                     />
                 )}
+                {shouldShowRequire2FAPage && (
+                    <RootStack.Screen
+                        name={SCREENS.REQUIRE_TWO_FACTOR_AUTH}
+                        options={{...rootNavigatorScreenOptions.fullScreen, gestureEnabled: false}}
+                        component={RequireTwoFactorAuthenticationPage}
+                    />
+                )}
                 <RootStack.Screen
                     name={SCREENS.WORKSPACE_JOIN_USER}
                     options={{
@@ -630,9 +648,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     component={ConnectionCompletePage}
                 />
             </RootStack.Navigator>
-            <TestToolsModal />
             <SearchRouterModal />
-            <ActiveGuidesEventListener />
         </ComposeProviders>
     );
 }

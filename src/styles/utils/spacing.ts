@@ -355,6 +355,10 @@ export default {
         marginBottom: 40,
     },
 
+    mb11: {
+        marginBottom: 44,
+    },
+
     mb12: {
         marginBottom: 48,
     },
@@ -503,6 +507,10 @@ export default {
 
     ph10: {
         paddingHorizontal: 40,
+    },
+
+    ph11: {
+        paddingHorizontal: 44,
     },
 
     ph15: {
@@ -727,5 +735,9 @@ export default {
 
     minHeight65: {
         minHeight: 260,
+    },
+
+    maxHeight5: {
+        maxHeight: 20,
     },
 } satisfies Record<string, ViewStyle>;

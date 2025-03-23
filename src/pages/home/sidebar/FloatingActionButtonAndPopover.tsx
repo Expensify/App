@@ -1,8 +1,10 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useIsFocused} from '@react-navigation/native';
+import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -12,7 +14,6 @@ import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -24,9 +25,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
+import {openExternalLink, openOldDotLink, openTravelDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
-import {startNewChat} from '@libs/actions/Report';
+import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
 import {canActionTask as canActionTaskUtils, canModifyTask as canModifyTaskUtils, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
@@ -35,11 +36,18 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled, canSendInvoice as canSendInvoicePolicyUtils, shouldShowPolicy} from '@libs/PolicyUtils';
+import {
+    areAllGroupPoliciesExpenseChatDisabled,
+    canSendInvoice as canSendInvoicePolicyUtils,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
+    isPaidGroupPolicy,
+    shouldShowPolicy,
+} from '@libs/PolicyUtils';
 import {canCreateRequest, generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import variables from '@styles/variables';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -192,8 +200,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
+    const {isBlockedFromSpotnanaTravel} = usePermissions();
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
+    const primaryContactMethod = primaryLogin ?? session?.email ?? '';
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
-    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel, canUseTableReportView} = usePermissions();
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
     const {environment} = useEnvironment();
@@ -205,10 +217,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON,
-        isCreateMenuActive && (!shouldUseNarrowLayout || isFocused),
-    );
+    const groupPoliciesWithChatEnabled = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
 
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
@@ -371,11 +380,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             },
-            tooltipShiftHorizontal: variables.quickActionTooltipShiftHorizontal,
-            tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
-            renderTooltipContent: renderProductTrainingTooltip,
-            tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
-            shouldRenderTooltip: shouldShowProductTrainingTooltip,
             shouldTeleportPortalToModalLayer: true,
         };
 
@@ -389,7 +393,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             }
             const onSelected = () => {
                 interceptAnonymousUser(() => {
-                    hideProductTrainingTooltip();
                     navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
                 });
             };
@@ -400,10 +403,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     text: quickActionTitle,
                     description: !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                     onSelected,
-                    onEducationTooltipPress: () => {
-                        hideCreateMenu();
-                        onSelected();
-                    },
                     shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
                 },
             ];
@@ -411,7 +410,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         if (!isEmptyObject(policyChatForActivePolicy)) {
             const onSelected = () => {
                 interceptAnonymousUser(() => {
-                    hideProductTrainingTooltip();
                     if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                         return;
@@ -429,10 +427,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     text: translate('quickAction.scanReceipt'),
                     description: getReportName(policyChatForActivePolicy),
                     onSelected,
-                    onEducationTooltipPress: () => {
-                        hideCreateMenu();
-                        onSelected();
-                    },
                     shouldShowSubscriptRightAvatar: true,
                 },
             ];
@@ -443,21 +437,15 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         translate,
         styles.pt3,
         styles.pb2,
-        styles.popoverMenuItem.paddingVertical,
-        styles.productTrainingTooltipWrapper,
         quickActionAvatars,
-        renderProductTrainingTooltip,
-        shouldShowProductTrainingTooltip,
         quickAction,
         policyChatForActivePolicy,
         quickActionReport,
         quickActionPolicy,
         quickActionTitle,
         hideQABSubtitle,
-        hideProductTrainingTooltip,
         isValidReport,
         selectOption,
-        hideCreateMenu,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;
@@ -466,8 +454,62 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const canModifyTask = canModifyTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
+    const isTravelEnabled = useMemo(() => {
+        if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
+            return false;
+        }
+
+        const isPolicyProvisioned = activePolicy?.travelSettings?.spotnanaCompanyID ?? activePolicy?.travelSettings?.associatedTravelDomainAccountID;
+
+        return activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
+    }, [activePolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);
+
+    const openTravel = useCallback(() => {
+        if (isTravelEnabled) {
+            openTravelDotLink(activePolicy?.id)
+                ?.then(() => {})
+                ?.catch(() => {
+                    Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+                });
+        } else {
+            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+        }
+    }, [activePolicy, isTravelEnabled]);
+
     const menuItems = [
         ...expenseMenuItems,
+        ...(canUseTableReportView
+            ? [
+                  {
+                      icon: Expensicons.Document,
+                      text: translate('report.newReport.createReport'),
+                      onSelected: () => {
+                          interceptAnonymousUser(() => {
+                              if (groupPoliciesWithChatEnabled.length === 0) {
+                                  setModalVisible(true);
+                                  return;
+                              }
+
+                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                  const createdReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
+                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                  return;
+                              }
+
+                              if (groupPoliciesWithChatEnabled.length === 1) {
+                                  const createdReportID = createNewReport(currentUserPersonalDetails, groupPoliciesWithChatEnabled.at(0)?.id);
+                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                  return;
+                              }
+
+                              // If the user's default workspace is personal and the user has more than one group workspace which is paid and has chat enabled, we need to redirect them to the workspace selection screen
+                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                          });
+                      },
+                  },
+              ]
+            : []),
         {
             icon: Expensicons.ChatBubble,
             text: translate('sidebarScreen.fabNewChat'),
@@ -496,12 +538,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                   },
               ]
             : []),
-        ...(canUseSpotnanaTravel && !isBlockedFromSpotnanaTravel
+        ...(canUseSpotnanaTravel
             ? [
                   {
                       icon: Expensicons.Suitcase,
                       text: translate('travel.bookTravel'),
-                      onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)),
+                      rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
+                      onSelected: () => interceptAnonymousUser(() => openTravel()),
                   },
               ]
             : []),
@@ -544,6 +587,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         <View style={styles.flexGrow1}>
             <PopoverMenu
                 onClose={hideCreateMenu}
+                shouldEnableMaxHeight={false}
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
@@ -570,8 +614,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 isVisible={modalVisible}
                 onConfirm={() => {
                     setModalVisible(false);
-                    if (NativeModules.HybridAppModule) {
-                        NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                    if (CONFIG.IS_HYBRID_APP) {
+                        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                         setRootStatusBarEnabled(false);
                         return;
                     }
