@@ -7,7 +7,6 @@ import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import {SearchColumns} from '@components/SelectionList/SearchTableHeader';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -32,8 +31,10 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
+import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {canSendInvoice} from './PolicyUtils';
 import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
 import {
@@ -126,8 +127,8 @@ function getTransactionItemCommonFormattedProperties(
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
-    const formattedFrom = from?.displayName ?? from?.login ?? '';
-    const formattedTo = to?.displayName ?? to?.login ?? '';
+    const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(from));
+    const formattedTo = formatPhoneNumber(getDisplayNameOrDefault(to));
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
@@ -578,6 +579,30 @@ function getSortedSections(
 }
 
 /**
+ * Compares two values based on a specified sorting order and column.
+ * Handles both string and numeric comparisons, with special handling for absolute values when sorting by total amount.
+ */
+function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string): number {
+    const isAsc = sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
+
+    if (a === undefined || b === undefined) {
+        return 0;
+    }
+
+    if (typeof a === 'string' && typeof b === 'string') {
+        return isAsc ? a.localeCompare(b) : b.localeCompare(a);
+    }
+
+    if (typeof a === 'number' && typeof b === 'number') {
+        const aValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT ? Math.abs(a) : a;
+        const bValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT ? Math.abs(b) : b;
+        return isAsc ? aValue - bValue : bValue - aValue;
+    }
+
+    return 0;
+}
+
+/**
  * @private
  * Sorts transaction sections based on a specified column and sort order.
  */
@@ -596,19 +621,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
         const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty];
         const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty];
 
-        if (aValue === undefined || bValue === undefined) {
-            return 0;
-        }
-
-        // We are guaranteed that both a and b will be string or number at the same time
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-            return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-        }
-
-        const aNum = aValue as number;
-        const bNum = bValue as number;
-
-        return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? aNum - bNum : bNum - aNum;
+        return compareValues(aValue, bValue, sortOrder, sortingProperty);
     });
 }
 
@@ -792,7 +805,7 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
  * Whether to show the empty state or not
  */
 function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes) {
-    return !isDataLoaded || dataLength === 0 || !Object.hasOwn(SearchColumns, type);
+    return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
 export {
@@ -813,5 +826,6 @@ export {
     createTypeMenuItems,
     createBaseSavedSearchMenuItem,
     shouldShowEmptyState,
+    compareValues,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};
