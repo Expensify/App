@@ -91,6 +91,8 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             handleSubmitForm={handleSubmitForm}
             validateError={validateLoginError}
             hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
+            validateCodeAction={validateCodeAction}
+            validateActionErrorField="validateLogin"
             isVisible={isValidateCodeActionModalVisible}
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}

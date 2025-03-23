@@ -4,7 +4,7 @@ import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {clearPersonalDetailsErrors} from '@libs/actions/PersonalDetails';
-import {requestValidateCodeAction} from '@libs/actions/User';
+import {clearValidateCodeActionError, requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -50,10 +50,11 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
     };
 
     const clearError = () => {
-        if (!validateLoginError) {
+        if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
         clearPersonalDetailsErrors();
+        clearValidateCodeActionError('personalDetails');
     };
 
     return (
@@ -61,6 +62,7 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
             clearError={clearError}
             onClose={onBackButtonPress}
             validateCodeAction={validateCodeAction}
+            validateActionErrorField="personalDetails"
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('cardPage.validateCardTitle')}
