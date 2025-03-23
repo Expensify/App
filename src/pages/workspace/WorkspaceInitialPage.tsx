@@ -272,30 +272,29 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
+        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]) {
+            protectedMenuItems.push({
+                translationKey: 'workspace.common.workflows',
+                icon: Workflows,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.WORKFLOWS,
+                brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
+            });
+        }
+
+        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]) {
+            protectedMenuItems.push({
+                translationKey: 'workspace.common.rules',
+                icon: Feed,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.RULES,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+            });
+        }
+
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
             const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-
-            if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]) {
-                protectedMenuItems.push({
-                    translationKey: 'workspace.common.workflows',
-                    icon: Workflows,
-                    action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
-                    screenName: SCREENS.WORKSPACE.WORKFLOWS,
-                    brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                    highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
-                });
-            }
-
-            if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]) {
-                protectedMenuItems.push({
-                    translationKey: 'workspace.common.rules',
-                    icon: Feed,
-                    action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
-                    screenName: SCREENS.WORKSPACE.RULES,
-                    highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
-                });
-            }
-
             protectedMenuItems.push({
                 translationKey: 'workspace.common.invoices',
                 icon: InvoiceGeneric,
