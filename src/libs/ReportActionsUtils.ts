@@ -1922,6 +1922,14 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
             });
         }
 
+        if (updatedField === 'Payroll Code' && typeof oldValue === 'string' && typeof newValue === 'string') {
+            return translateLocal('workspaceActions.updateCategoryPayrollCode', {
+                oldValue,
+                categoryName,
+                newValue,
+            });
+        }
+
         if (updatedField === 'GL Code' && typeof oldValue === 'string' && typeof newValue === 'string') {
             return translateLocal('workspaceActions.updateCategoryGLCode', {
                 oldValue,

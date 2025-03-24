@@ -4945,6 +4945,15 @@ const translations = {
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `added the category "${categoryName}"`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
+        updateCategoryPayrollCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+            if (!oldValue) {
+                return `updated the category "${categoryName}" by adding a Payroll Code of ${newValue}`;
+            }
+            if (!newValue && oldValue) {
+                return `updated the category "${categoryName}" by removing the Payroll Code which was previously ${oldValue}`;
+            }
+            return `updated the category "${categoryName}" by changing the Payroll Code from ${oldValue} to ${newValue}`;
+        },
         updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
             if (!oldValue) {
                 return `updated the category "${categoryName}" by adding a GL Code of "${newValue}"`;

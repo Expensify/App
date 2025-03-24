@@ -4997,6 +4997,15 @@ const translations = {
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `añadió la categoría "${categoryName}""`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
+        updateCategoryPayrollCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+            if (!oldValue) {
+                return `actualizó la categoría "${categoryName}" añadiendo un Código de Nómina de ${newValue}`;
+            }
+            if (!newValue && oldValue) {
+                return `actualizó la categoría "${categoryName}" eliminando el Código de Nómina que anteriormente era ${oldValue}`;
+            }
+            return `actualizó la categoría "${categoryName}" cambiando el Código de Nómina de ${oldValue} a ${newValue}`;
+        },
         updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
             if (!oldValue) {
                 return `actualizó la categoría "${categoryName}" agregando un código GL de "${newValue}"`;
