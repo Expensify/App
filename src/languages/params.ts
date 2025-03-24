@@ -273,6 +273,8 @@ type ViolationsRterParams = {
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
 
+type ViolationsProhibitedExpenseParams = {prohibitedExpenseType: string};
+
 type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
 type PaySomeoneParams = {name?: string} | undefined;
@@ -580,7 +582,8 @@ type ImportedTagsMessageParams = {
 };
 
 type ImportMembersSuccessfullDescriptionParams = {
-    members: number;
+    added: number;
+    updated: number;
 };
 
 type ImportPerDiemRatesSuccessfullDescriptionParams = {
@@ -824,6 +827,7 @@ export type {
     ViolationsCustomRulesParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
+    ViolationsProhibitedExpenseParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,
