@@ -529,7 +529,7 @@ function MoneyRequestReportPreviewContent({
                                         onViewableItemsChanged={onViewableItemsChanged}
                                     />
                                 </View>
-                                {shouldUseNarrowLayout && transactions.length>2 && (
+                                {shouldUseNarrowLayout && transactions.length > 2 && (
                                     <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
                                         {transactions.slice(0, 11).map((item, index) => (
                                             <PressableWithFeedback
