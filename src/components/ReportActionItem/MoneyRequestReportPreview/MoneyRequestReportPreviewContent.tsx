@@ -418,10 +418,6 @@ function MoneyRequestReportPreviewContent({
         return null;
     };
 
-    useEffect(() => {
-        console.log(JSON.stringify(iouReport));
-    }, []);
-
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
