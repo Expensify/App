@@ -324,7 +324,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return getReportPrimaryAction(moneyRequestReport, transactions, violations, policy);
     }, [moneyRequestReport, policy, transactions, violations]);
 
-    const primaryActions = {
+    const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
             <Button
                 success
@@ -406,7 +406,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy);
     }, [moneyRequestReport, policy, transactions, violations]);
 
-    const secondaryActionsImpl: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
+    const secondaryActionsImplemenation: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
             text: translate('iou.viewDetails'),
@@ -509,7 +509,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
-            text: 'Change workspace',
+            text: translate('iou.changeWorkspace'),
             icon: Expensicons.Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             onSelected: () => {
@@ -529,7 +529,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         },
     };
 
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImpl[action]);
+    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplemenation[action]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
@@ -547,8 +547,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             >
                 {!shouldUseNarrowLayout && (
                     <View style={[styles.flexRow, styles.gap2]}>
-                        {!!primaryAction && primaryActions[primaryAction]}
-                        {!!secondaryActions.length && (
+                        {!!primaryAction && primaryActionsImplementation[primaryAction]}
+                        {!!applicableSecondaryActions.length && (
                             <ButtonWithDropdownMenu
                                 success={false}
                                 onPress={() => {}}
@@ -563,8 +563,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActions[primaryAction]}</View>}
-                    {!!secondaryActions.length && (
+                    {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActionsImplementation[primaryAction]}</View>}
+                    {!!applicableSecondaryActions.length && (
                         <ButtonWithDropdownMenu
                             success={false}
                             onPress={() => {}}

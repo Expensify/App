@@ -154,7 +154,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         return getTransactionThreadPrimaryAction(report, parentReport, transaction, transactionViolations, policy);
     }, [parentReport, policy, report, transaction, transactionViolations]);
 
-    const primaryActionOptions = {
+    const primaryActionImplementation = {
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD]: (
             <Button
                 success
@@ -192,7 +192,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         return getSecondaryTransactionThreadActions(parentReport, transaction);
     }, [parentReport, transaction]);
 
-    const secondaryActionsImpl: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
+    const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
             text: translate('iou.hold'),
             icon: Expensicons.Stopwatch,
@@ -223,7 +223,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         },
     };
 
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImpl[action]);
+    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
 
     return (
         <View style={[styles.pl0, styles.borderBottom]}>
@@ -247,8 +247,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             >
                 {!shouldUseNarrowLayout && (
                     <View style={[styles.flexRow, styles.gap2]}>
-                        {!!primaryAction && primaryActionOptions[primaryAction]}
-                        {!!secondaryActions.length && (
+                        {!!primaryAction && primaryActionImplementation[primaryAction]}
+                        {!!applicableSecondaryActions.length && (
                             <ButtonWithDropdownMenu
                                 success={false}
                                 onPress={() => {}}
@@ -263,8 +263,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActionOptions[primaryAction]}</View>}
-                    {!!secondaryActions.length && (
+                    {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActionImplementation[primaryAction]}</View>}
+                    {!!applicableSecondaryActions.length && (
                         <ButtonWithDropdownMenu
                             success={false}
                             onPress={() => {}}

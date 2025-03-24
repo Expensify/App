@@ -331,9 +331,9 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[]): bool
     const isExpenseReport = isExpenseReportUtils(report);
 
     // This should be removed when is merged https://github.com/Expensify/App/pull/58020
-    const isSignleTransaction = reportTransactions.length === 1;
+    const isSingleTransaction = reportTransactions.length === 1;
 
-    if (!isExpenseReport || !isSignleTransaction) {
+    if (!isExpenseReport || !isSingleTransaction) {
         return false;
     }
 
