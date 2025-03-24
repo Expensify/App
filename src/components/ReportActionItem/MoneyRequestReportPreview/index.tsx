@@ -9,7 +9,7 @@ import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportAct
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
-import TransactionPreview from '../TransactionPreview';
+import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
 
