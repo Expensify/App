@@ -761,16 +761,16 @@ function PureReportActionItem({
                 <MoneyRequestReportPreview
                     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                     iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
-                    chatReportID={reportID}
                     policyID={report?.policyID}
-                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
+                    chatReportID={reportID}
                     action={action}
-                    isHovered={hovered}
+                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     contextMenuAnchor={popoverAnchorRef.current}
+                    isHovered={hovered}
+                    isWhisper={isWhisper}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
-                    isWhisper={isWhisper}
                 />
             ) : (
                 <ReportPreview

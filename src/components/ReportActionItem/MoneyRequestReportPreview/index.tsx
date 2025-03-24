@@ -1,16 +1,15 @@
 import React from 'react';
-import {View} from 'react-native';
-import type {ListRenderItem, StyleProp, ViewStyle} from 'react-native';
+import type {ListRenderItem} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import variables from '@styles/variables';
+import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+import TransactionPreview from '../TransactionPreview';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
 
@@ -40,27 +39,24 @@ function MoneyRequestReportPreview({
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
+    const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
+    const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
 
-    const moneyRequestPreviewBox: StyleProp<ViewStyle> = {
-        backgroundColor: 'transparent',
-        borderRadius: variables.componentBorderRadiusLarge,
-        maxWidth: variables.reportPreviewMaxWidth,
-        height: 280,
-        width: 300,
-        borderWidth: 1,
-        borderBlockColor: 'black',
-        padding: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    };
-
-    // for now, it is yet to be conencted with 'TransactionPreview'
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
-        <View style={moneyRequestPreviewBox}>
-            <Text>
-                This is a TransactionPreview for {item.amount} {item.currency}
-            </Text>
-        </View>
+        <TransactionPreview
+            chatReportID={chatReportID}
+            action={getIOUActionForReportID(item.reportID, item.transactionID)}
+            reportID={item.reportID}
+            isBillSplit={isSplitBillAction}
+            isTrackExpense={isTrackExpenseAction}
+            contextMenuAnchor={contextMenuAnchor}
+            isWhisper={isWhisper}
+            isHovered={isHovered}
+            iouReportID={iouReportID}
+            onPreviewPressed={() => {}}
+            wrapperStyles={{width: 300}}
+            containerStyles={{height: '100%'}}
+        />
     );
 
     return (
