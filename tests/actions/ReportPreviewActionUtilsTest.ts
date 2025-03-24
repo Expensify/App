@@ -1,7 +1,9 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-syntax 
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
+// eslint-disable-next-line no-restricted-syntax
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
