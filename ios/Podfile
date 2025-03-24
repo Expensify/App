@@ -49,6 +49,18 @@ def __apply_Xcode_14_3_RC_post_install_workaround(installer)
   end
 end
 
+def __modify_react_native_settings_for_debug_build(installer)
+  installer.pods_project.targets.each do |target|
+    if target.name.include?('React')
+      target.build_configurations.each do |config|
+        if config.name.downcase.include?("debug")
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= '$(inherited) DEBUG=1'
+        end
+      end
+    end
+  end
+end
+
 # Configure Mapbox before installing dependencies
 pre_install do |installer|
   $RNMapboxMaps.pre_install(installer)
@@ -101,6 +113,7 @@ target 'NewExpensify' do
       # :ccache_enabled => true
     )
     __apply_Xcode_14_3_RC_post_install_workaround(installer)
+    __modify_react_native_settings_for_debug_build(installer)
 
     installer.pods_project.targets.each do |target|
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
