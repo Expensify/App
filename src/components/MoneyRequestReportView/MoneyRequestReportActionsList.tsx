@@ -367,6 +367,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={
                         <MoneyRequestReportTransactionList
+                            report={report}
                             transactions={transactions}
                             reportActions={reportActions}
                         />

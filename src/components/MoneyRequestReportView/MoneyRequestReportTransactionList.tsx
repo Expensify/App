@@ -4,13 +4,16 @@ import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {SortOrder} from '@components/Search/types';
+import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getIOUActionForReportIDPure} from '@libs/ReportActionsUtils';
+import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
@@ -20,6 +23,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 
 type MoneyRequestReportTransactionListProps = {
+    report: OnyxTypes.Report;
+
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
 
@@ -60,11 +65,16 @@ const areTransactionValuesEqual = (transactions: OnyxTypes.Transaction[], key: S
     return transactions.every((transaction) => transaction[getTransactionKey(transaction, key)] === firstValidTransaction[keyOfFirstValidTransaction]);
 };
 
-function MoneyRequestReportTransactionList({transactions, reportActions}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({report, transactions, reportActions}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
+
+    const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
+    const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
+    const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
 
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
@@ -177,6 +187,38 @@ function MoneyRequestReportTransactionList({transactions, reportActions}: MoneyR
                         </PressableWithFeedback>
                     );
                 })}
+            </View>
+            {shouldShowBreakdown && (
+                <View style={[styles.dFlex, styles.flexColumn, styles.alignItemsEnd, styles.ph5]}>
+                    {[
+                        {text: translate('cardTransactions.outOfPocket'), value: formattedOutOfPocketAmount},
+                        {text: translate('cardTransactions.companySpend'), value: formattedCompanySpendAmount},
+                    ].map(({text, value}) => (
+                        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
+                            <Text
+                                style={[styles.textLabelSupporting, styles.mr3]}
+                                numberOfLines={1}
+                            >
+                                {text}
+                            </Text>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
+                            >
+                                {value}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
+            )}
+            <View style={[styles.dFlex, styles.flexRow, styles.ph5, styles.justifyContentBetween, styles.mb2]}>
+                <Text style={[styles.textLabelSupporting]}>{translate('common.comments')}</Text>
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
+                    <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
+                    <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold]}>
+                        {convertToDisplayString(totalDisplaySpend, report?.currency)}
+                    </Text>
+                </View>
             </View>
         </>
     );
