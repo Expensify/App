@@ -1,4 +1,3 @@
-import truncate from 'lodash/truncate';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, ViewToken} from 'react-native';
@@ -58,9 +57,7 @@ import {
     isSettled,
     isTripRoom as isTripRoomReportUtils,
 } from '@libs/ReportUtils';
-import StringUtils from '@libs/StringUtils';
 import {
-    getDescription,
     getMerchant,
     hasPendingUI,
     isCardTransaction,
@@ -163,7 +160,6 @@ function MoneyRequestReportPreviewContent({
         transform: [{scale: thumbsUpScale.get()}],
     }));
 
-    const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const isInvoiceRoom = isInvoiceRoomReportUtils(chatReport);
     const isTripRoom = isTripRoomReportUtils(chatReport);
@@ -187,7 +183,6 @@ function MoneyRequestReportPreviewContent({
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDList, iouReport, policy, violations);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
-    const formattedDescription = numberOfRequests === 1 ? getDescription(lastTransaction) : null;
 
     if (isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
@@ -324,6 +319,7 @@ function MoneyRequestReportPreviewContent({
     const bankAccountRoute = getBankAccountRoute(chatReport);
 
     const shouldShowSettlementButton = !shouldShowSubmitButton && (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
+
     const shouldShowRBR = hasErrors && !iouSettled;
 
     /*
@@ -336,13 +332,6 @@ function MoneyRequestReportPreviewContent({
      */
 
     const {supportText} = useMemo(() => {
-        if (formattedMerchant && formattedMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT && formattedMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
-            return {supportText: truncate(formattedMerchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
-        }
-        if (formattedDescription ?? moneyRequestComment) {
-            return {supportText: truncate(StringUtils.lineBreaksToSpaces(formattedDescription ?? moneyRequestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
-        }
-
         if (numberOfRequests === 1) {
             return {
                 supportText: '',
@@ -355,7 +344,7 @@ function MoneyRequestReportPreviewContent({
                 count: numberOfRequests,
             }),
         };
-    }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
+    }, [translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
     /*
      * Manual export
@@ -453,7 +442,7 @@ function MoneyRequestReportPreviewContent({
                                                 style={[styles.lh20, styles.headerText]}
                                                 testID="MoneyRequestReportPreview-reportName"
                                             >
-                                                {iouReport?.reportName}
+                                                {action.childReportName}
                                             </Text>
                                         </Animated.View>
                                         {iouSettled && (
@@ -506,17 +495,15 @@ function MoneyRequestReportPreviewContent({
                                             </View>
                                         )}
                                     </View>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        {shouldShowRBR && (
-                                            <>
-                                                <Icon
-                                                    src={Expensicons.DotIndicator}
-                                                    fill={theme.danger}
-                                                />
-                                                <Text style={[styles.textDanger, styles.fontSizeLabel, styles.textLineHeightNormal, styles.ml2]}>Here are RBR messages</Text>
-                                            </>
-                                        )}
-                                    </View>
+                                    {shouldShowRBR && (
+                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                            <Icon
+                                                src={Expensicons.DotIndicator}
+                                                fill={theme.danger}
+                                            />
+                                            <Text style={[styles.textDanger, styles.fontSizeLabel, styles.textLineHeightNormal, styles.ml2]}>Here are RBR messages</Text>
+                                        </View>
+                                    )}
                                 </View>
                                 <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible]}>
                                     <FlatList
@@ -533,7 +520,7 @@ function MoneyRequestReportPreviewContent({
                                         onViewableItemsChanged={onViewableItemsChanged}
                                     />
                                 </View>
-                                {shouldUseNarrowLayout && (
+                                {shouldUseNarrowLayout && transactions.length > 2 && (
                                     <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
                                         {transactions.slice(0, 11).map((item, index) => (
                                             <PressableWithFeedback
@@ -546,7 +533,7 @@ function MoneyRequestReportPreviewContent({
                                         ))}
                                     </View>
                                 )}
-                                {(shouldShowSettlementButton || true) && (
+                                {shouldShowSettlementButton && (
                                     <AnimatedSettlementButton
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}

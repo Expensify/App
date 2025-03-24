@@ -1,8 +1,9 @@
+import type {StoryFn} from '@storybook/react/*';
 import React from 'react';
 import type {ListRenderItem} from 'react-native';
 import {View} from 'react-native';
-import type {MoneyRequestReportPreviewContentProps} from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MoneyRequestReportPreviewContent from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent';
+import type {MoneyRequestReportPreviewContentProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import TransactionPreviewContent from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContent';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
@@ -19,10 +20,13 @@ import {action, chatReport, iouReport, personalDetails, transaction, violations}
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 
-const mockTransactions = (transactionsCount: number) =>
-    Array.from({length: transactionsCount}).map((item, index) => {
-        return {...transaction, tag: 'New Jersey Office', category: 'Gas stations', filename: 'test.svg', transactionID: `${index}`};
-    });
+const mockTransactionsMedium = Array.from({length: 6}).map((item, index) => {
+  return {...transaction, transactionID: `${index}`};
+});
+
+const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
+  return {...transaction, transactionID: `${index}`};
+});
 
 const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
     <TransactionPreviewContent
@@ -47,6 +51,8 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         containerStyles={{width: 303}}
     />
 );
+
+type MoneyRequestReportPreviewStory = StoryFn<typeof MoneyRequestReportPreviewContent>;
 
 export default {
     title: 'Components/MoneyRequestReportPreviewContent',
@@ -108,7 +114,7 @@ export default {
         chatReport,
         policy: undefined,
         iouReport,
-        transactions: mockTransactions(6),
+        transactions: mockTransactionsMedium,
         violations,
         invoiceReceiverPersonalDetail: undefined,
         invoiceReceiverPolicy: undefined,
@@ -119,9 +125,9 @@ export default {
     },
 };
 
-function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {parameters: {useLightTheme?: boolean; transactionsCount?: number}}) {
+function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {parameters: {useLightTheme?: boolean; transactionsBig?: boolean}}) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
-    const transactions = parameters.transactionsCount ? mockTransactions(parameters.transactionsCount) : props.transactions;
+    const transactions = parameters.transactionsBig ? mockTransactionsBig : props.transactions;
 
     return (
         <ThemeProvider theme={theme}>
@@ -139,18 +145,18 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
-const DarkTheme = Template.bind({});
-const ManyTransactions = Template.bind({});
-const HasErrors = Template.bind({});
-const ButtonVisible = Template.bind({});
+const Default: MoneyRequestReportPreviewStory = Template.bind({});
+const DarkTheme: MoneyRequestReportPreviewStory = Template.bind({});
+const ManyTransactions: MoneyRequestReportPreviewStory = Template.bind({});
+const HasErrors: MoneyRequestReportPreviewStory = Template.bind({});
+const ButtonVisible: MoneyRequestReportPreviewStory = Template.bind({});
 
 DarkTheme.parameters = {
     useLightTheme: false,
 };
 
 ManyTransactions.parameters = {
-    transactionsCount: 12,
+    transactionsBig: true,
 };
 
 HasErrors.parameters = {};
