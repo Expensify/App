@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line no-restricted-syntax 
-import type * as PolicyUtils from '@libs/PolicyUtils';
+// eslint-disable-next-line no-restricted-syntax
+import * as PolicyUtils from '@libs/PolicyUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 // eslint-disable-next-line no-restricted-syntax
 import * as ReportUtils from '@libs/ReportUtils';
@@ -32,6 +32,7 @@ const VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     hasViolations: jest.fn().mockReturnValue(false),
+    getReportTransactions: jest.fn().mockReturnValue(['mockValue']),
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -92,6 +93,7 @@ describe('getReportPreviewAction', () => {
     });
 
     it('canPay should return true for expense report with payments enabled', async () => {
+        (PolicyUtils.hasAccountingConnections as jest.Mock).mockReturnValueOnce(false);
         const report = {
             ...createRandomReport(REPORT_ID),
             type: CONST.REPORT.TYPE.EXPENSE,
