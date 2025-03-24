@@ -4954,6 +4954,9 @@ const translations = {
             }
             return `updated the category "${categoryName}" by changing the GL Code from "${oldValue}" to "${newValue}"`;
         },
+        updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
+            return `updated the category "${categoryName}" by changing the Description from ${!oldValue ? 'Not Required' : 'Required'} to ${!oldValue ? 'Required' : 'Not Required'}`;
+        },
         updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
             if (newAmount && !oldAmount) {
                 return `updated the category "${categoryName}" by adding a Max Amount of ${newAmount}`;

@@ -5006,6 +5006,9 @@ const translations = {
             }
             return `actualizó la categoría "${categoryName}" cambiando el código GL de "${oldValue}" a "${newValue}"`;
         },
+        updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
+            return `actualizó la categoría "${categoryName}" cambiando la descripción de "${!oldValue ? 'No requerida' : 'Requerida'}" a "${!oldValue ? 'Requerida' : 'No requerida'}"`;
+        },
         updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
             if (newAmount && !oldAmount) {
                 return `actualizó la categoría "${categoryName}" añadiendo un Monto Máximo de ${newAmount}`;

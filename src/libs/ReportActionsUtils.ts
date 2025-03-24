@@ -1915,6 +1915,13 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
             });
         }
 
+        if (updatedField === 'areCommentsRequired' && typeof oldValue === 'boolean') {
+            return translateLocal('workspaceActions.updateAreCommentsRequired', {
+                oldValue,
+                categoryName,
+            });
+        }
+
         if (updatedField === 'GL Code' && typeof oldValue === 'string' && typeof newValue === 'string') {
             return translateLocal('workspaceActions.updateCategoryGLCode', {
                 oldValue,
