@@ -131,7 +131,6 @@ function WorkspacePageWithSections({
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
     const achState = reimbursementAccount?.achData?.state;
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
-    // TODO include non USD accounts here as well - condition has to change, based on BE response?
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();

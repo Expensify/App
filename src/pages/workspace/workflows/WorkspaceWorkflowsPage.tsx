@@ -334,11 +334,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         </Section>
     );
 
-    // TODO add proper link - https://github.com/Expensify/App/issues/50912
     const updateWorkspaceCurrencyPrompt = (
         <Text>
             {translate('workspace.bankAccount.yourWorkspace')}{' '}
-            <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{translate('workspace.bankAccount.listOfSupportedCurrencies')}</TextLink>.
+            <TextLink href={CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}>{translate('workspace.bankAccount.listOfSupportedCurrencies')}</TextLink>.
         </Text>
     );
 
