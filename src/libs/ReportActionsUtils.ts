@@ -1711,7 +1711,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
 
     const isPending = reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     const originalMessage = (getOriginalMessage(reportAction) ?? {}) as OriginalMessageExportIntegration;
-    const {label, markedManually} = originalMessage;
+    const {label, markedManually, automaticAction} = originalMessage;
     const reimbursableUrls = originalMessage.reimbursableUrls ?? [];
     const nonReimbursableUrls = originalMessage.nonReimbursableUrls ?? [];
     const reportID = reportAction?.reportID;
@@ -1729,15 +1729,20 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             text: translateLocal('report.actions.type.exportedToIntegration.manual', {label}),
             url: '',
         });
-    } else {
+    } else if (automaticAction) {
         result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.automaticOne', {label}),
+            text: translateLocal('report.actions.type.exportedToIntegration.automaticActionOne', {label}),
             url: '',
         });
         const url = CONST.HELP_DOC_LINKS[label as keyof typeof CONST.HELP_DOC_LINKS];
         result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.automaticTwo'),
+            text: translateLocal('report.actions.type.exportedToIntegration.automaticActionTwo'),
             url: url || '',
+        });
+    } else {
+        result.push({
+            text: translateLocal('report.actions.type.exportedToIntegration.automatic', {label}),
+            url: '',
         });
     }
 
