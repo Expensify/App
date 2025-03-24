@@ -470,13 +470,13 @@ function MoneyRequestReportPreviewContent({
                                                     accessibilityRole="button"
                                                     accessible
                                                     accessibilityLabel="button"
-                                                    style={styles.carouselArrowButton}
-                                                    onPress={() => handleChange(currentIndex-1)}
+                                                    style={[styles.carouselArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                    onPress={() => handleChange(currentIndex - 1)}
                                                 >
                                                     <Icon
                                                         src={Expensicons.BackArrow}
                                                         small
-                                                        fill={colors.productLight700}
+                                                        fill={theme.icon}
                                                         isButtonIcon
                                                     />
                                                 </PressableWithFeedback>
@@ -484,13 +484,13 @@ function MoneyRequestReportPreviewContent({
                                                     accessibilityRole="button"
                                                     accessible
                                                     accessibilityLabel="button"
-                                                    style={styles.carouselArrowButton}
+                                                    style={[styles.carouselArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                     onPress={() => handleChange(currentIndex + 1)}
                                                 >
                                                     <Icon
                                                         src={Expensicons.ArrowRight}
                                                         small
-                                                        fill={colors.productLight700}
+                                                        fill={theme.icon}
                                                         isButtonIcon
                                                     />
                                                 </PressableWithFeedback>
@@ -530,7 +530,7 @@ function MoneyRequestReportPreviewContent({
                                                 accessibilityRole="button"
                                                 accessible
                                                 accessibilityLabel="button"
-                                                style={styles.carouselDots(index, currentIndex)}
+                                                style={[styles.carouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
                                                 onPress={() => carouselRef.current?.scrollToIndex({index, animated: true})}
                                             />
                                         ))}
