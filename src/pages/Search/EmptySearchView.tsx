@@ -233,10 +233,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
 
     return (
         <>
-            <ScrollView>
+            <ScrollView showsVerticalScrollIndicator={false}>
                 <EmptyStateComponent
                     SkeletonComponent={SearchRowSkeleton}
-                    showsVerticalScrollIndicator={false}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                     headerMedia={content.headerMedia}
                     headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
