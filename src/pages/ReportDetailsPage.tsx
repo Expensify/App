@@ -112,6 +112,7 @@ import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
     clearReportFieldKeyErrors,
+    deleteAppReport,
     downloadReportPDF,
     exportReportToCSV,
     exportReportToPDF,
@@ -1055,12 +1056,15 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         />
                     ))}
 
-                    {shouldShowDeleteButton && (
+                    {true && (
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={Expensicons.Trashcan}
                             title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
-                            onPress={() => setIsDeleteModalVisible(true)}
+                            onPress={() => {
+                                console.log('report?.reportID::: ', report?.reportID);
+                                deleteAppReport(report?.reportID);
+                            }}
                         />
                     )}
                 </ScrollView>
