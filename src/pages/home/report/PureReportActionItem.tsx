@@ -381,7 +381,7 @@ function PureReportActionItem({
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
-    const {canUseMoneyRequestReportPreview} = usePermissions();
+    const {canUseTableReportView} = usePermissions();
 
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -757,7 +757,7 @@ function PureReportActionItem({
             // eslint-disable-next-line no-nested-ternary
             children = isClosedExpenseReportWithNoExpenses ? (
                 <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />
-            ) : canUseMoneyRequestReportPreview ? (
+            ) : canUseTableReportView ? (
                 <MoneyRequestReportPreview
                     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                     iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
