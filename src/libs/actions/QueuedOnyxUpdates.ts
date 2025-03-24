@@ -58,12 +58,9 @@ function flushQueue(): Promise<void> {
     }
 
     return Onyx.update(queuedOnyxUpdates)
-        .then(() => {
-            queuedOnyxUpdates = [];
-            return Promise.resolve();
-        })
         .then(() => Onyx.update(queuedOnyxOptimisticUpdates))
         .then(() => {
+            queuedOnyxUpdates = [];
             queuedOnyxOptimisticUpdates = [];
             return Promise.resolve();
         });
