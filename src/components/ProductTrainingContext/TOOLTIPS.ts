@@ -84,7 +84,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP, isDismissedUsingCloseButton),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
-        priority: 1800,
+        priority: 800,
         shouldShow: () => true,
     },
     [GBR_RBR_CHAT]: {
