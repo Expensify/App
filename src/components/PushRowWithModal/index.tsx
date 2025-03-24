@@ -2,6 +2,7 @@ import React, {useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
 import PushRowModal from './PushRowModal';
 
 type PushRowWithModalProps = {
@@ -58,7 +59,9 @@ function PushRowWithModal({
         if (shouldBlurOnCloseRef.current) {
             onBlur?.();
         }
-        setIsModalVisible(false);
+        KeyboardUtils.dismiss().then(() => {
+            setIsModalVisible(false);
+        });
     };
 
     const handleModalOpen = () => {
