@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
 import * as API from '@libs/API';
@@ -17,6 +18,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,9 +28,10 @@ import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/t
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+import type ReimbursementAccount from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setBankAccountSubStep} from './ReimbursementAccount';
-import { getCurrentUserEmail } from './Report';
+import {getCurrentUserEmail} from './Report';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -261,19 +264,6 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
                     currentStep: CONST.WALLET.STEP.ADDITIONAL_DETAILS,
                 },
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    achAccount: {
-                        addressName: account.addressName,
-                        accountNumber: account.accountNumber,
-                        routingNumber: account.routingNumber,
-                        bank: account.bankName,
-                        reimburser: getCurrentUserEmail(),
-                    }
-                }
-            }
         ],
         failureData: [
             {
@@ -378,6 +368,26 @@ function validateBankAccount(bankAccountID: number, validateCode: string, policy
     };
 
     API.write(WRITE_COMMANDS.VALIDATE_BANK_ACCOUNT_WITH_TRANSACTIONS, parameters, onyxData);
+}
+
+function convertReimbursementAccountDataToAchAccountData(reimbursementAccount: OnyxEntry<ReimbursementAccount>) {
+    const achData = reimbursementAccount?.achData;
+    const policy = getPolicy(achData?.policyID);
+    if (!achData || policy?.achAccount?.bankAccountID) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${achData?.policyID}`, {
+        achAccount: {
+            bankAccountID: achData?.bankAccountID,
+            bankName: achData?.bankName,
+            reimburser: policy?.achAccount?.reimburser ?? getCurrentUserEmail(),
+            accountNumber: achData.accountNumber,
+            routingNumber: achData.routingNumber,
+            addressName: achData.addressName,
+        },
+        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+    });
 }
 
 function getCorpayBankAccountFields(country: string, currency: string) {
@@ -863,6 +873,7 @@ export {
     saveCorpayOnboardingBeneficialOwners,
     clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
     clearCorpayBankAccountFields,
+    convertReimbursementAccountDataToAchAccountData,
 };
 
 export type {BusinessAddress, PersonalAddress};
