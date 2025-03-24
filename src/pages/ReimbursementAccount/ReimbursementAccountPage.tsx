@@ -90,7 +90,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
 
     const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-    // TODO: set default step - we gotta display finish step instantly if account is being verified, will come from BE?
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(null);
 
@@ -174,7 +173,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        // TODO waiting on source of info if account is connected for NON USD workspaces, BE?
         setShouldShowConnectedVerifiedBankAccount(isNonUSDWorkspace ? !!achData?.corpay?.consentToPrivacyNotice : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
     }, [achData?.corpay?.consentToPrivacyNotice, achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy]);
