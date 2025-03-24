@@ -58,7 +58,6 @@ import {
     isTripRoom as isTripRoomReportUtils,
 } from '@libs/ReportUtils';
 import {
-    getDescription,
     getMerchant,
     hasPendingUI,
     isCardTransaction,
@@ -161,7 +160,6 @@ function MoneyRequestReportPreviewContent({
         transform: [{scale: thumbsUpScale.get()}],
     }));
 
-    const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const isInvoiceRoom = isInvoiceRoomReportUtils(chatReport);
     const isTripRoom = isTripRoomReportUtils(chatReport);
@@ -185,7 +183,6 @@ function MoneyRequestReportPreviewContent({
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDList, iouReport, policy, violations);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
-    const formattedDescription = numberOfRequests === 1 ? getDescription(lastTransaction) : null;
 
     if (isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
