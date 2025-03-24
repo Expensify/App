@@ -34,6 +34,7 @@ import {
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -244,10 +245,9 @@ function SearchAutocompleteList(
         switch (autocompleteKey) {
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG: {
                 const autocompleteList = autocompleteValue ? tagAutocompleteList : recentTagsAutocompleteList ?? [];
-                const filteredTags = autocompleteList
-                    .filter(
-                        (tag) => getCleanedTagName(tag).toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(getCleanedTagName(tag).toLowerCase()),
-                    )
+
+                const filteredTags = tokenizedSearch(autocompleteList, autocompleteValue, (tag) => [getCleanedTagName(tag)])
+                    .filter((tag) => !alreadyAutocompletedKeys.includes(getCleanedTagName(tag).toLowerCase()))
                     .sort()
                     .slice(0, 10);
 
@@ -260,8 +260,8 @@ function SearchAutocompleteList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
                 const autocompleteList = autocompleteValue ? categoryAutocompleteList : recentCategoriesAutocompleteList;
-                const filteredCategories = autocompleteList
-                    .filter((category) => category.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(category.toLowerCase()))
+                const filteredCategories = tokenizedSearch(autocompleteList, autocompleteValue, (category) => [category])
+                    .filter((category) => !alreadyAutocompletedKeys.includes(category.toLowerCase()))
                     .sort()
                     .slice(0, 10);
 
@@ -272,8 +272,8 @@ function SearchAutocompleteList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY: {
                 const autocompleteList = autocompleteValue ? currencyAutocompleteList : recentCurrencyAutocompleteList ?? [];
-                const filteredCurrencies = autocompleteList
-                    .filter((currency) => currency.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(currency.toLowerCase()))
+                const filteredCurrencies = tokenizedSearch(autocompleteList, autocompleteValue, (currency) => [currency])
+                    .filter((currency) => !alreadyAutocompletedKeys.includes(currency.toLowerCase()))
                     .sort()
                     .slice(0, 10);
 
@@ -283,8 +283,8 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE: {
-                const filteredTaxRates = taxAutocompleteList
-                    .filter((tax) => tax.taxRateName.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(tax.taxRateName.toLowerCase()))
+                const filteredTaxRates = tokenizedSearch(taxAutocompleteList, autocompleteValue, (tax) => [tax.taxRateName])
+                    .filter((tax) => !alreadyAutocompletedKeys.includes(tax.taxRateName.toLowerCase()))
                     .sort()
                     .slice(0, 10);
 
@@ -296,8 +296,8 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
-                const filteredParticipants = participantsAutocompleteList
-                    .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
+                const filteredParticipants = tokenizedSearch(participantsAutocompleteList, autocompleteValue, (participant) => [participant.name])
+                    .filter((participant) => !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
@@ -308,8 +308,8 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
-                const filteredParticipants = participantsAutocompleteList
-                    .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
+                const filteredParticipants = tokenizedSearch(participantsAutocompleteList, autocompleteValue, (participant) => [participant.name])
+                    .filter((participant) => !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
@@ -332,16 +332,17 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE: {
-                const filteredTypes = typeAutocompleteList
-                    .filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(type.toLowerCase()))
+                const filteredTypes = tokenizedSearch(typeAutocompleteList, autocompleteValue, (type) => [type])
+                    .filter((type) => !alreadyAutocompletedKeys.includes(type.toLowerCase()))
                     .sort();
 
                 return filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE, text: type}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY: {
-                const filteredGroupBy = groupByAutocompleteList.filter(
-                    (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(groupByValue.toLowerCase()),
+                const filteredGroupBy = tokenizedSearch(groupByAutocompleteList, autocompleteValue, (groupByValue) => [groupByValue]).filter(
+                    (groupByValue) => !alreadyAutocompletedKeys.includes(groupByValue.toLowerCase()),
                 );
+
                 return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
@@ -363,12 +364,11 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {
-                const filteredFeeds = feedAutoCompleteList
-                    .filter(
-                        (feed) => feed.cardFeedName.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(feed.cardFeedName.name.toLowerCase()),
-                    )
+                const filteredFeeds = tokenizedSearch(feedAutoCompleteList, autocompleteValue, (feed) => [feed.cardFeedName.name])
+                    .filter((feed) => !alreadyAutocompletedKeys.includes(feed.cardFeedName.name.toLowerCase()))
                     .sort()
                     .slice(0, 10);
+
                 return filteredFeeds.map((feed) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FEED,
                     text: feed.cardFeedName.name,
@@ -377,9 +377,12 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
-                const filteredCards = cardAutocompleteList
-                    .filter((card) => isCard(card) && !isCardHiddenFromSearch(card))
-                    .filter((card) => card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()))
+                const filteredCards = tokenizedSearch(
+                    cardAutocompleteList.filter((card) => isCard(card) && !isCardHiddenFromSearch(card)),
+                    autocompleteValue,
+                    (card) => [card.bank],
+                )
+                    .filter((card) => !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()))
                     .sort()
                     .slice(0, 10);
 

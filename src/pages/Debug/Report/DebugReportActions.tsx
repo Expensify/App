@@ -13,6 +13,7 @@ import Parser from '@libs/Parser';
 import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, formatReportLastMessageText} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
@@ -60,16 +61,13 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     );
 
     const searchedReportActions = useMemo(() => {
-        return (sortedAllReportActions ?? [])
-            .filter(
-                (reportAction) =>
-                    reportAction.reportActionID.includes(debouncedSearchValue) || getReportActionMessageText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
-            )
-            .map((reportAction) => ({
+        return tokenizedSearch(sortedAllReportActions ?? [], debouncedSearchValue, (reportAction) => [reportAction.reportActionID, getReportActionMessageText(reportAction)]).map(
+            (reportAction) => ({
                 reportActionID: reportAction.reportActionID,
                 text: getReportActionDebugText(reportAction),
                 alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
-            }));
+            }),
+        );
     }, [sortedAllReportActions, debouncedSearchValue, getReportActionDebugText, datetimeToCalendarTime]);
 
     return (

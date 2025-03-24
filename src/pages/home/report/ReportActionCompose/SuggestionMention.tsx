@@ -282,6 +282,7 @@ function SuggestionMention(
 
             // Create a set to track logins that have already been seen
             const seenLogins = new Set<string>();
+            // eslint-disable-next-line rulesdir/prefer-tokenized-search
             const filteredPersonalDetails = Object.values(personalDetailsParam ?? {}).filter((detail) => {
                 // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
                 if (!detail?.login || detail.isOptimisticPersonalDetail) {

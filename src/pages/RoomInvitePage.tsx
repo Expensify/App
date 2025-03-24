@@ -30,6 +30,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -129,7 +130,7 @@ function RoomInvitePage({
                 const isOptionInPersonalDetails = personalDetails ? personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID) : false;
                 const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(debouncedSearchTerm)));
                 const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : debouncedSearchTerm.toLowerCase();
-                const isPartOfSearchTerm = (option.text?.toLowerCase() ?? '').includes(searchValue) || (option.login?.toLowerCase() ?? '').includes(searchValue);
+                const isPartOfSearchTerm = tokenizedSearch([option.text, option.login], searchValue, (value) => (value ? [value] : [])).length > 0;
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
