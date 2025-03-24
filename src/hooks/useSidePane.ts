@@ -1,14 +1,16 @@
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import {triggerSidePane} from '@libs/actions/SidePane';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import useEnvironment from './useEnvironment';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
@@ -26,24 +28,27 @@ function isSidePaneHidden(sidePane: OnyxEntry<OnyxTypes.SidePane>, isExtraLargeS
 function useSidePane() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
-    const {isProduction} = useEnvironment();
 
     const [sidePaneNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [isAttachmentModalVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED});
     const isLanguageUnsupported = language !== CONST.LOCALES.EN;
-    const isPaneHidden = isSidePaneHidden(sidePaneNVP, isExtraLargeScreenWidth) || isLanguageUnsupported;
+    const isPaneHidden = isSidePaneHidden(sidePaneNVP, isExtraLargeScreenWidth) || isLanguageUnsupported || isAttachmentModalVisible;
 
     const sidePaneWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;
 
     const [shouldHideSidePane, setShouldHideSidePane] = useState(true);
+    const [isAnimatingExtraLargeScree, setIsAnimatingExtraLargeScreen] = useState(false);
+
     const shouldHideSidePaneBackdrop = isPaneHidden || isExtraLargeScreenWidth || shouldUseNarrowLayout;
+    const shouldHideToolTip = isExtraLargeScreenWidth ? isAnimatingExtraLargeScree : !shouldHideSidePane;
 
-    // The help button is hidden in production if the side pane nvp is not present or the language is unsupported.
-    const shouldHideOnProduction = isProduction && (!sidePaneNVP || isLanguageUnsupported);
-
-    // The help button is also hidden if the side pane is displayed currently.
-    const shouldHideHelpButton = shouldHideOnProduction || !isPaneHidden;
+    // The help button is hidden when:
+    // - side pane nvp is not set
+    // - side pane is displayed currently
+    // - language is unsupported
+    const shouldHideHelpButton = !sidePaneNVP || !isPaneHidden || isLanguageUnsupported;
 
     const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
     const sidePaneTranslateX = useRef(new Animated.Value(isPaneHidden ? sidePaneWidth : 0));
@@ -52,30 +57,55 @@ function useSidePane() {
         if (!isPaneHidden) {
             setShouldHideSidePane(false);
         }
+        if (isExtraLargeScreenWidth) {
+            setIsAnimatingExtraLargeScreen(true);
+        }
 
         Animated.parallel([
             Animated.timing(sidePaneOffset.current, {
                 toValue: shouldApplySidePaneOffset ? variables.sideBarWidth : 0,
                 duration: CONST.ANIMATED_TRANSITION,
-                useNativeDriver: false,
+                useNativeDriver: true,
             }),
             Animated.timing(sidePaneTranslateX.current, {
                 toValue: isPaneHidden ? sidePaneWidth : 0,
                 duration: CONST.ANIMATED_TRANSITION,
-                useNativeDriver: false,
+                useNativeDriver: true,
             }),
         ]).start(() => {
             setShouldHideSidePane(isPaneHidden);
+            setIsAnimatingExtraLargeScreen(false);
         });
-    }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth]);
+    }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth, isExtraLargeScreenWidth]);
+
+    const closeSidePane = useCallback(
+        (shouldUpdateNarrow = false) => {
+            if (!sidePaneNVP) {
+                return;
+            }
+
+            const shouldOnlyUpdateNarrowLayout = !isExtraLargeScreenWidth || shouldUpdateNarrow;
+            triggerSidePane({
+                isOpen: shouldOnlyUpdateNarrowLayout ? undefined : false,
+                isOpenNarrowScreen: shouldOnlyUpdateNarrowLayout ? false : undefined,
+            });
+
+            // Focus the composer after closing the side pane
+            focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
+        },
+        [isExtraLargeScreenWidth, sidePaneNVP],
+    );
 
     return {
         sidePane: sidePaneNVP,
+        isPaneHidden,
         shouldHideSidePane,
         shouldHideSidePaneBackdrop,
         shouldHideHelpButton,
         sidePaneOffset,
         sidePaneTranslateX,
+        shouldHideToolTip,
+        closeSidePane,
     };
 }
 

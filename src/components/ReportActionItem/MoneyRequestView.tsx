@@ -98,6 +98,7 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
     CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
     CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
     CONST.VIOLATIONS.SMARTSCAN_FAILED,
+    CONST.VIOLATIONS.PROHIBITED_EXPENSE,
 ];
 
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
@@ -328,7 +329,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             }
 
             // Return violations if there are any
-            if (hasViolations(field, data, policyHasDependentTags, tagValue)) {
+            if (field !== 'merchant' && hasViolations(field, data, policyHasDependentTags, tagValue)) {
                 const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
                 const firstViolation = violations.at(0);
 
