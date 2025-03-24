@@ -298,6 +298,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     title={translate('common.emptyLHN.title')}
                     shouldShowLink={false}
                     CustomSubtitle={emptyLHNSubtitle}
+                    accessibilityLabel={translate('common.emptyLHN.title')}
                 />
             ) : (
                 <FlashList
