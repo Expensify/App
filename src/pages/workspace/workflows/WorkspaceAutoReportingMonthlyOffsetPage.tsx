@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
@@ -63,7 +64,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
         },
     ]);
 
-    const filteredDaysOfMonth = daysOfMonth.filter((dayItem) => dayItem.text.toLowerCase().includes(trimmedText));
+    const filteredDaysOfMonth = tokenizedSearch(daysOfMonth, trimmedText, (dayItem) => [dayItem.text]);
 
     const headerMessage = searchText.trim() && !filteredDaysOfMonth.length ? translate('common.noResultsFound') : '';
 
