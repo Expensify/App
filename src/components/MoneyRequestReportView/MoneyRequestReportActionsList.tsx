@@ -1,10 +1,10 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FlatList from '@components/FlatList';
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
+import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
@@ -184,7 +185,9 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
 
     return (
         <View style={styles.flex1}>
-            {report ? (
+            {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
+                <SearchMoneyRequestReportEmptyState />
+            ) : (
                 <FlatList
                     accessibilityLabel="Test"
                     testID="report-actions-list"
@@ -200,8 +203,6 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                     ListHeaderComponent={<MoneyRequestReportTransactionList transactions={transactions} />}
                     keyboardShouldPersistTaps="handled"
                 />
-            ) : (
-                <ReportActionsSkeletonView />
             )}
         </View>
     );

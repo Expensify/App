@@ -2,17 +2,15 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
-import EmptyStateComponent from '@components/EmptyStateComponent';
-import LottieAnimations from '@components/LottieAnimations';
 import type {SortOrder} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
-import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {compareValues} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
+import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 type MoneyRequestReportTransactionListProps = {
     /** List of transactions belonging to one report */
@@ -51,27 +49,6 @@ const areTransactionValuesEqual = (transactions: OnyxTypes.Transaction[], key: S
     const keyOfFirstValidTransaction = getTransactionKey(firstValidTransaction, key);
     return transactions.every((transaction) => transaction[getTransactionKey(transaction, key)] === firstValidTransaction[keyOfFirstValidTransaction]);
 };
-
-function SearchMoneyRequestReportEmptyState() {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-
-    return (
-        <View style={styles.flex1}>
-            <EmptyStateComponent
-                cardStyles={[styles.appBG]}
-                cardContentStyles={[styles.pt5, styles.pb0]}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={LottieAnimations.GenericEmptyState}
-                title={translate('search.moneyRequestReport.emptyStateTitle')}
-                subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
-                headerStyles={[styles.emptyStateMoneyRequestReport]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                headerContentStyles={styles.emptyStateFolderWebStyles}
-            />
-        </View>
-    );
-}
 
 function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
