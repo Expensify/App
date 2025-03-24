@@ -454,7 +454,9 @@ function ReportActionsList({
                     if (Navigation.getReportRHPActiveRoute()) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                    });
                     return;
                 }
 

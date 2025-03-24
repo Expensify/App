@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {Onboarding, Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
@@ -221,6 +221,31 @@ describe('actions/Policy', () => {
             workspaceReportActions.forEach((reportAction) => {
                 expect(reportAction.pendingAction).toBeFalsy();
             });
+        });
+
+        it('create a new workspace fails will reset hasCompletedGuidedSetupFlow to the correct value', async () => {
+            (fetch as MockFetch)?.pause?.();
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true, chatReportID: '12345'});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
+            await waitForBatchedUpdates();
+
+            (fetch as MockFetch)?.fail?.();
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME);
+            await waitForBatchedUpdates();
+
+            (fetch as MockFetch)?.resume?.();
+            await waitForBatchedUpdates();
+
+            let onboarding: OnyxEntry<Onboarding>;
+            await TestHelper.getOnyxData({
+                key: ONYXKEYS.NVP_ONBOARDING,
+                waitForCollectionCallback: false,
+                callback: (val) => {
+                    onboarding = val;
+                },
+            });
+            expect(onboarding?.hasCompletedGuidedSetupFlow).toBeTruthy();
         });
 
         it('create a new workspace with enabled workflows if the onboarding choice is newDotManageTeam or newDotLookingAround', async () => {
