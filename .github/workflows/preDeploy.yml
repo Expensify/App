@@ -86,42 +86,10 @@ jobs:
 
   updateStaging:
     needs: [chooseDeployActions, createNewVersion]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run turnstyle
-        uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Checkout main
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Setup Git for OSBotify
-        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
-        with:
-          OP_VAULT: ${{ vars.OP_VAULT }}
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
-          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
-
-      - name: Update staging branch from main
-        run: |
-          # Re-create the staging branch from main
-          git switch -c staging
-
-          # Force-update the remote staging branch
-          git push --force origin staging
-
-      - name: Announce failed workflow in Slack
-        if: ${{ failure() }}
-        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
-        with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+    uses: ./.github/workflows/updateProtectedBranch.yml
+    secrets: inherit
+    with:
+      TARGET_BRANCH: staging
 
   e2ePerformanceTests:
     needs: [chooseDeployActions]
