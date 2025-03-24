@@ -83,7 +83,6 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.mh5, styles.flex1]}
-            shouldHideFixErrorsAlert
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('signerInfoStep.uploadID')}</Text>
