@@ -38,7 +38,7 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -82,14 +82,14 @@ function WorkspaceReportFieldsPage({
     }, [policy]);
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
-    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    const hasReportAccountingConnections = hasAccountingConnections(policy);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = getCurrentConnectionName(policy);
 
-    const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
+    const canSelectMultiple = !hasReportAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);
@@ -259,9 +259,9 @@ function WorkspaceReportFieldsPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldUseNarrowLayout && !hasAccountingConnections && getHeaderButtons()}
+                    {!shouldUseNarrowLayout && !hasReportAccountingConnections && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{!hasReportAccountingConnections && getHeaderButtons()}</View>}
                 <ConfirmModal
                     isVisible={deleteReportFieldsConfirmModalVisible}
                     onConfirm={handleDeleteReportFields}
@@ -297,7 +297,7 @@ function WorkspaceReportFieldsPage({
                 {!shouldShowEmptyState && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={!hasAccountingConnections}
+                        turnOnSelectionModeOnLongPress={!hasReportAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && updateSelectedReportFields(item)}
                         sections={reportFieldsSections}
                         onCheckboxPress={updateSelectedReportFields}

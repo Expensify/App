@@ -3,16 +3,27 @@ name: Build and deploy hybrid apps for testing
 on:
   workflow_dispatch:
     inputs:
+      # Pull Request number from App repo for correct placement of ND app. If not specified defaults to main branch.
       APP_PULL_REQUEST_NUMBER:
-        description: Pull Request number from App repo for correct placement of ND app. If not specified defaults to main branch.
+        description: App PR number. Defaults to main.
         required: false
         default: ''
+      # Pull Request number from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified defaults to Mobile-Expensify's main
       HYBRIDAPP_PULL_REQUEST_NUMBER:
-        description: Pull Request number from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both specified. If nothing is specified defaults to Mobile-Expensify's main
+        description: Mobile-Expensify PR number. Defaults to main. Overrides MOBILE-EXPENSIFY set in App's PR description.
         required: false
         default: ''
+      # Do not modify! GH preserves `workflow_dispatch` as the event that triggered this workflow even if it was called from `testBuild.yml`. This is a workaround for that issue.
+      DISPATCHED_MANUALLY:
+        description: Leave checked! This is a workaround for a GH workflow bug.
+        type: boolean
+        default: true
   workflow_call:
     inputs:
+      APP_PR_NUMBER:
+        description: Pull Request number from App repo needed for download link construction
+        type: string
+        required: true
       APP_REF:
         description: Git ref to checkout in App
         type: string
@@ -34,8 +45,8 @@ on:
   
  
 env:
-  # This variable is needed for fastlane to construct correct path
-  PULL_REQUEST_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER || github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER }}
+  # This variable is needed for fastlane to construct correct path, -hybrid suffix is needed to distinguish hybrid apps from standalone New Dot 
+  PULL_REQUEST_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER || github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || inputs.APP_PR_NUMBER}}-hybrid
 
 jobs:
   prep:
@@ -45,18 +56,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate that user is an Expensify employee
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: github.event.inputs.DISPATCHED_MANUALLY
         uses: ./.github/actions/composite/validateActor
         with:
           REQUIRE_APP_DEPLOYER: false
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Validate input
+        if: github.event.inputs.DISPATCHED_MANUALLY
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_call" ]]; then
-            exit 0
-          fi
-
           if [[ -z "${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" && -z "${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER }}" ]]; then
             echo "Invalid input. You have to pass at least one PR number"
             exit 1
@@ -76,7 +84,7 @@ jobs:
         run: |
           set -e
 
-          if [[ "${{ github.event_name }}" == "workflow_call " ]]; then
+          if [[ -n "${{ inputs.APP_REF }}" ]]; then
             echo "REF=${{ inputs.APP_REF }}" >> "$GITHUB_OUTPUT"
             exit 0
           fi 
@@ -152,7 +160,7 @@ jobs:
 
   androidHybrid:
     name: Build Android HybridApp
-    if: ${{ github.event_name == 'workflow_dispatch' || inputs.ANDROID_HYBRID }}
+    if: ${{ github.event.inputs.DISPATCHED_MANUALLY || inputs.ANDROID_HYBRID }}
     needs: [getNewDotRef, getOldDotPR, getOldDotRef]
     runs-on: ubuntu-latest-xl
     outputs:
@@ -268,7 +276,7 @@ jobs:
 
   iosHybrid:
     name: Build and deploy iOS for testing
-    if: ${{ github.event_name == 'workflow_dispatch' || inputs.IOS_HYBRID }}
+    if: ${{ github.event.inputs.DISPATCHED_MANUALLY || inputs.IOS_HYBRID }}
     needs: [getNewDotRef, getOldDotPR, getOldDotRef]
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
@@ -385,7 +393,7 @@ jobs:
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event.inputs.DISPATCHED_MANUALLY
     needs: [getNewDotRef, getOldDotPR, androidHybrid, iosHybrid]
     steps:
       - name: Checkout
