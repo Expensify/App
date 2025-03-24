@@ -39,7 +39,7 @@ namespace margelo::nitro::contacts {
   }
 
   size_t JHybridContactsModuleSpec::getExternalMemorySize() noexcept {
-    static const auto method = _javaPart->getClass()->getMethod<jlong()>("getMemorySize");
+    static const auto method = javaClassStatic()->getMethod<jlong()>("getMemorySize");
     return method(_javaPart);
   }
 
@@ -48,7 +48,7 @@ namespace margelo::nitro::contacts {
 
   // Methods
   std::shared_ptr<Promise<std::vector<Contact>>> JHybridContactsModuleSpec::getAll(const std::vector<ContactFields>& keys) {
-    static const auto method = _javaPart->getClass()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JArrayClass<JContactFields>> /* keys */)>("getAll");
+    static const auto method = javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JArrayClass<JContactFields>> /* keys */)>("getAll");
     auto __result = method(_javaPart, [&]() {
       size_t __size = keys.size();
       jni::local_ref<jni::JArrayClass<JContactFields>> __array = jni::JArrayClass<JContactFields>::newArray(__size);

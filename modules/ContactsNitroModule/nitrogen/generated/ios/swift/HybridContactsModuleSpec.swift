@@ -9,7 +9,7 @@ import Foundation
 import NitroModules
 
 /// See ``HybridContactsModuleSpec``
-public protocol HybridContactsModuleSpec_protocol: AnyObject {
+public protocol HybridContactsModuleSpec_protocol: HybridObject {
   // Properties
   
 
@@ -18,7 +18,7 @@ public protocol HybridContactsModuleSpec_protocol: AnyObject {
 }
 
 /// See ``HybridContactsModuleSpec``
-public class HybridContactsModuleSpec_base: HybridObjectSpec {
+public class HybridContactsModuleSpec_base {
   private weak var cxxWrapper: HybridContactsModuleSpec_cxx? = nil
   public func getCxxWrapper() -> HybridContactsModuleSpec_cxx {
   #if DEBUG
@@ -34,7 +34,6 @@ public class HybridContactsModuleSpec_base: HybridObjectSpec {
       return cxxWrapper
     }
   }
-  public var memorySize: Int { return 0 }
 }
 
 /**

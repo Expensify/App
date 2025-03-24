@@ -42,6 +42,7 @@ namespace margelo::nitro::contacts {
     std::optional<std::string> thumbnailImageData     SWIFT_PRIVATE;
 
   public:
+    Contact() = default;
     explicit Contact(std::optional<std::string> firstName, std::optional<std::string> lastName, std::optional<std::string> middleName, std::optional<std::vector<StringHolder>> phoneNumbers, std::optional<std::vector<StringHolder>> emailAddresses, std::optional<std::string> imageData, std::optional<std::string> thumbnailImageData): firstName(firstName), lastName(lastName), middleName(middleName), phoneNumbers(phoneNumbers), emailAddresses(emailAddresses), imageData(imageData), thumbnailImageData(thumbnailImageData) {}
   };
 
@@ -53,7 +54,7 @@ namespace margelo::nitro {
 
   // C++ Contact <> JS Contact (object)
   template <>
-  struct JSIConverter<Contact> {
+  struct JSIConverter<Contact> final {
     static inline Contact fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
       return Contact(

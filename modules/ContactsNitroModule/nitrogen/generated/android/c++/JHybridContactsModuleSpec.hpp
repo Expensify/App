@@ -32,7 +32,7 @@ namespace margelo::nitro::contacts {
       _javaPart(jni::make_global(jThis)) {}
 
   public:
-    virtual ~JHybridContactsModuleSpec() {
+    ~JHybridContactsModuleSpec() override {
       // Hermes GC can destroy JS objects on a non-JNI Thread.
       jni::ThreadScope::WithClassLoader([&] { _javaPart.reset(); });
     }

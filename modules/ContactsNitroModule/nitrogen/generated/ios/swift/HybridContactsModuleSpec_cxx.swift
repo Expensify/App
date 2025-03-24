@@ -101,7 +101,7 @@ public class HybridContactsModuleSpec_cxx {
 
   // Methods
   @inline(__always)
-  public func getAll(keys: bridge.std__vector_ContactFields_) -> bridge.Result_std__shared_ptr_Promise_std__vector_Contact____ {
+  public final func getAll(keys: bridge.std__vector_ContactFields_) -> bridge.Result_std__shared_ptr_Promise_std__vector_Contact____ {
     do {
       let __result = try self.__implementation.getAll(keys: keys.map({ __item in __item }))
       let __resultCpp = { () -> bridge.std__shared_ptr_Promise_std__vector_Contact___ in

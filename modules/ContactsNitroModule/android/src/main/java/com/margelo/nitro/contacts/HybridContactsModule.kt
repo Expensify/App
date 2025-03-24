@@ -6,20 +6,21 @@ import android.provider.ContactsContract
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.uimanager.ThemedReactContext
 import com.margelo.nitro.NitroModules
 import com.margelo.nitro.core.Promise
 
-class HybridContactsModule : HybridContactsModuleSpec() {
+class HybridContactsModule(val context: ThemedReactContext) : HybridContactsModuleSpec() {
     @Volatile
     private var estimatedMemorySize: Long = 0
 
     override val memorySize: Long
         get() = estimatedMemorySize
 
-    private val context: ReactApplicationContext? = NitroModules.applicationContext
+    private val reactContext: ReactApplicationContext? = NitroModules.applicationContext
 
     private fun requestContactPermission(): Boolean {
-        val currentActivity = context?.currentActivity
+        val currentActivity = context.getCurrentActivity()
         return if (currentActivity != null) {
             ActivityCompat.requestPermissions(
                 currentActivity, arrayOf(REQUIRED_PERMISSION), PERMISSION_REQUEST_CODE
@@ -31,9 +32,7 @@ class HybridContactsModule : HybridContactsModuleSpec() {
     }
 
     private fun hasPhoneContactsPermission(): Boolean {
-        return context?.let {
-            ContextCompat.checkSelfPermission(it, Manifest.permission.READ_CONTACTS)
-        } == PackageManager.PERMISSION_GRANTED
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun getAll(keys: Array<ContactFields>): Promise<Array<Contact>> {
@@ -44,7 +43,7 @@ class HybridContactsModule : HybridContactsModuleSpec() {
                 return@parallel emptyArray()
             }
 
-            context?.contentResolver?.let { resolver ->
+            context.getApplicationContext().contentResolver?.let { resolver ->
                 val projection = arrayOf(
                     ContactsContract.Data.MIMETYPE,
                     ContactsContract.Data.CONTACT_ID,

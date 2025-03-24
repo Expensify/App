@@ -32,6 +32,7 @@ namespace margelo::nitro::contacts {
     std::string value     SWIFT_PRIVATE;
 
   public:
+    StringHolder() = default;
     explicit StringHolder(std::string value): value(value) {}
   };
 
@@ -43,7 +44,7 @@ namespace margelo::nitro {
 
   // C++ StringHolder <> JS StringHolder (object)
   template <>
-  struct JSIConverter<StringHolder> {
+  struct JSIConverter<StringHolder> final {
     static inline StringHolder fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       jsi::Object obj = arg.asObject(runtime);
       return StringHolder(
