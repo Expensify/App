@@ -1251,6 +1251,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 tooltip: 'string',
                 message: 'string',
                 field: 'string',
+                prohibitedExpenseRule: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);
