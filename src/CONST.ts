@@ -772,6 +772,7 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEWDOT_PDF_EXPORT: 'newDotPDFExport',
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
+        NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         NSQS: 'nsqs',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
@@ -1658,6 +1659,7 @@ const CONST = {
             UNKNOWN: 'unknown',
         },
     },
+    OPEN_AI_REALTIME_API: 'https://api.openai.com/v1/realtime',
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
     WEEK_STARTS_ON: 1, // Monday
