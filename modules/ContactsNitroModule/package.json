@@ -22,16 +22,16 @@
     "*.podspec",
     "README.md"
   ],
-  "scripts": {
-    "postinstall": "tsc || exit 0;",
-    "typecheck": "tsc --noEmit",
-    "clean": "del-cli android/build node_modules/**/android/build lib",
-    "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
-    "lint-ci": "eslint \"**/*.{js,ts,tsx}\" -f @jamesacarr/github-actions",
-    "typescript": "tsc --noEmit false",
-    "specs-debug": "bun run --filter=\"**\" typescript && bun nitro-codegen --logLevel=\"debug\"",
-    "specs": "bun nitro-codegen"
-  },
+"scripts": {
+  "postinstall": "tsc || exit 0;",
+  "typecheck": "tsc --noEmit",
+  "clean": "del-cli android/build node_modules/**/android/build lib",
+  "lint": "eslint \"**/*.{js,ts,tsx}\" --fix",
+  "lint-ci": "eslint \"**/*.{js,ts,tsx}\" -f @jamesacarr/github-actions",
+  "typescript": "tsc --noEmit false",
+  "specs-debug": "npm run --filter=\"**\" typescript && npx nitro-codegen --logLevel=\"debug\"",
+  "specs": "npx nitro-codegen"
+},
   "author": "Marc Rousavy <me@mrousavy.com> (https://github.com/mrousavy)",
   "license": "MIT",
   "homepage": "https://github.com/mrousavy/nitro#readme",
@@ -43,35 +43,5 @@
     "react": "*",
     "react-native": "*"
   },
-  "eslintConfig": {
-    "root": true,
-    "extends": [
-      "@react-native",
-      "prettier"
-    ],
-    "plugins": [
-      "prettier"
-    ],
-    "rules": {
-      "prettier/prettier": [
-        "warn",
-        {
-          "quoteProps": "consistent",
-          "singleQuote": true,
-          "tabWidth": 2,
-          "trailingComma": "es5",
-          "useTabs": false
-        }
-      ]
-    }
-  },
-  "eslintIgnore": [ "lib/" ],
-  "prettier": {
-    "quoteProps": "consistent",
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "useTabs": false,
-    "semi": false
-  }
+  "eslintIgnore": [ "lib/" ]
 }
