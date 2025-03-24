@@ -9,6 +9,12 @@ type Data = {
     authWriteCommands: string[];
 };
 
+/** Model of OpenAI Emphemeral client secret */
+type ClientSecret = {
+    /** The short lived secret value */
+    value: string;
+};
+
 /** Model of server response */
 type Response = {
     /** ID of the next update that needs to be fetched from the server */
@@ -95,6 +101,10 @@ type Response = {
 
     /** If there are httponly OldDot authentication cookies stored */
     hasOldDotAuthCookies?: boolean;
+
+    /** Short-lived client secret for openai session */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    client_secret?: ClientSecret;
 };
 
 export default Response;

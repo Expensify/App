@@ -533,8 +533,8 @@ function uniqFast(items: string[]): string[] {
 /**
  * Get the last actor display name from last actor details.
  */
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
-    if (!hasMultipleParticipants || !lastActorDetails) {
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null) {
+    if (!lastActorDetails) {
         return '';
     }
 
@@ -833,7 +833,7 @@ function createOption(
         subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
 
         const lastActorDetails = report.lastActorAccountID ? personalDetailMap[report.lastActorAccountID] : null;
-        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
 
@@ -1475,6 +1475,55 @@ function isSelectedManagerMcTest(email: string | null | undefined): boolean {
     return email === CONST.EMAIL.MANAGER_MCTEST;
 }
 
+function getValidPersonalDetailOptions(
+    options: OptionList['personalDetails'],
+    {
+        loginsToExclude = {},
+        includeDomainEmail = false,
+        shouldBoldTitleByDefault = false,
+        currentUserRef,
+    }: {
+        loginsToExclude?: Record<string, boolean>;
+        includeDomainEmail?: boolean;
+        shouldBoldTitleByDefault: boolean;
+        // If the current user is found in the options and you pass an object ref, it will be assigned
+        currentUserRef?: {
+            current?: OptionData;
+        };
+    },
+) {
+    const personalDetailsOptions: OptionData[] = [];
+    for (let i = 0; i < options.length; i++) {
+        // eslint-disable-next-line rulesdir/prefer-at
+        const detail = options[i];
+        if (
+            !detail?.login ||
+            !detail.accountID ||
+            !!detail?.isOptimisticPersonalDetail ||
+            (!includeDomainEmail && Str.isDomainEmail(detail.login)) ||
+            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
+            detail?.login === CONST.SETUP_SPECIALIST_LOGIN
+        ) {
+            continue;
+        }
+
+        if (currentUserRef && !!currentUserLogin && detail.login === currentUserLogin) {
+            // eslint-disable-next-line no-param-reassign
+            currentUserRef.current = detail;
+        }
+
+        if (loginsToExclude[detail.login]) {
+            continue;
+        }
+
+        detail.isBold = shouldBoldTitleByDefault;
+
+        personalDetailsOptions.push(detail);
+    }
+
+    return personalDetailsOptions;
+}
+
 /**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
@@ -1545,8 +1594,10 @@ function getValidOptions(
     }
 
     // Get valid personal details and check if we can find the current user:
-    const personalDetailsOptions: OptionData[] = [];
-    let currentUserOption: OptionData | undefined;
+    let personalDetailsOptions: OptionData[] = [];
+    const currentUserRef = {
+        current: undefined as OptionData | undefined,
+    };
     if (includeP2P) {
         let personalDetailLoginsToExclude = loginsToExclude;
         if (currentUserLogin) {
@@ -1555,32 +1606,13 @@ function getValidOptions(
                 [currentUserLogin]: true,
             };
         }
-        for (let i = 0; i < options.personalDetails.length; i++) {
-            // eslint-disable-next-line rulesdir/prefer-at
-            const detail = options.personalDetails[i];
-            if (
-                !detail?.login ||
-                !detail.accountID ||
-                !!detail?.isOptimisticPersonalDetail ||
-                (!includeDomainEmail && Str.isDomainEmail(detail.login)) ||
-                // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-                detail?.login === CONST.SETUP_SPECIALIST_LOGIN
-            ) {
-                continue;
-            }
 
-            if (!!currentUserLogin && detail.login === currentUserLogin) {
-                currentUserOption = detail;
-            }
-
-            if (personalDetailLoginsToExclude[detail.login]) {
-                continue;
-            }
-
-            detail.isBold = shouldBoldTitleByDefault;
-
-            personalDetailsOptions.push(detail);
-        }
+        personalDetailsOptions = getValidPersonalDetailOptions(options.personalDetails, {
+            loginsToExclude: personalDetailLoginsToExclude,
+            shouldBoldTitleByDefault,
+            includeDomainEmail,
+            currentUserRef,
+        });
     }
 
     if (excludeHiddenThreads) {
@@ -1590,7 +1622,7 @@ function getValidOptions(
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
-        currentUserOption,
+        currentUserOption: currentUserRef.current,
         // User to invite is generated by the search input of a user.
         // As this function isn't concerned with any search input yet, this is null (will be set when using filterOptions).
         userToInvite: null,
@@ -2161,11 +2193,17 @@ function shouldUseBoldText(report: OptionData): boolean {
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
 }
 
+function getManagerMcTestParticipant(): Participant | undefined {
+    const managerMcTestPersonalDetails = Object.values(allPersonalDetails ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
+    return managerMcTestPersonalDetails ? getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails) : undefined;
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
     isPersonalDetailsReady,
     getValidOptions,
+    getValidPersonalDetailOptions,
     getSearchOptions,
     getShareDestinationOptions,
     getMemberInviteOptions,
@@ -2215,6 +2253,7 @@ export {
     filterSelfDMChat,
     filterReports,
     getIsUserSubmittedExpenseOrScannedReceipt,
+    getManagerMcTestParticipant,
     isSelectedManagerMcTest,
 };
 

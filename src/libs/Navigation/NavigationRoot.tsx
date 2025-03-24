@@ -43,9 +43,6 @@ type NavigationRootProps = {
 
     /** Fired when react-navigation is ready */
     onReady: () => void;
-
-    /** Flag to indicate if the require 2FA modal should be shown to the user */
-    shouldShowRequire2FAModal: boolean;
 };
 
 /**
@@ -83,7 +80,7 @@ function parseAndLogRoute(state: NavigationState) {
     }
 }
 
-function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, shouldShowRequire2FAModal}: NavigationRootProps) {
+function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
     const firstRenderRef = useRef(true);
     const themePreference = useThemePreference();
     const theme = useTheme();
@@ -95,6 +92,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const [user] = useOnyx(ONYXKEYS.USER);
     const isPrivateDomain = Session.isUserOnPrivateDomain();
 
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
@@ -106,16 +104,25 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const previousAuthenticated = usePrevious(authenticated);
 
     const initialState = useMemo(() => {
+        const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL) && lastVisitedPath && isOnboardingCompleted && authenticated) {
+            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+        }
+
         if (!user || user.isFromPublicDomain) {
             return;
         }
 
-        const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
+        if (shouldShowRequire2FAPage) {
+            return getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config);
+        }
+
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
-        if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning && !shouldShowRequire2FAModal) {
+        if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
             return getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
         }
 
