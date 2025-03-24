@@ -1,7 +1,7 @@
 import React from 'react';
 import Modal from '@components/Modal';
+import HelpContent from '@components/SidePane/HelpComponents/HelpContent';
 import CONST from '@src/CONST';
-import HelpContent from './HelpContent';
 import type HelpProps from './types';
 
 function Help({isPaneHidden, closeSidePane}: HelpProps) {

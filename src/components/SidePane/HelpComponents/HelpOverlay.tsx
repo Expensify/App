@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type SidePaneOverlayProps = {
+type HelpOverlayProps = {
     /** Whether the side pane is displayed over RHP */
     isRHPVisible: boolean;
 
@@ -15,7 +15,7 @@ type SidePaneOverlayProps = {
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
-function SidePaneOverlay({isRHPVisible, onBackdropPress}: SidePaneOverlayProps) {
+function HelpOverlay({isRHPVisible, onBackdropPress}: HelpOverlayProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -51,6 +51,6 @@ function SidePaneOverlay({isRHPVisible, onBackdropPress}: SidePaneOverlayProps) 
     );
 }
 
-SidePaneOverlay.displayName = 'SidePaneOverlay';
+HelpOverlay.displayName = 'HelpOverlay';
 
-export default SidePaneOverlay;
+export default HelpOverlay;

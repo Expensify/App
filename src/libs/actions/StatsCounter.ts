@@ -22,7 +22,7 @@ const StatsCounter = (eventName: string, value = 1) => {
 
         const parameters: GraphiteParams = {
             type: 'counter',
-            name: grafanaEventName,
+            statName: grafanaEventName,
             value,
         };
 
