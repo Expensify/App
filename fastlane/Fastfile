@@ -397,38 +397,38 @@ platform :ios do
     setupIOSSigningCertificate()
 
     install_provisioning_profile(
-      path: "./" + ENV["APPLE_HYBRID_APP_STORE_PROVISIONING_PROFILE_FILE"]
+      path: "./" + ENV["APPLE_STORE_PROVISIONING_PROFILE_FILE"]
     )
 
     install_provisioning_profile(
-      path: "./" + ENV["APPLE_HYBRID_APP_SHARE_PROVISIONING_PROFILE_FILE"]
+      path: "./" + ENV["APPLE_SHARE_PROVISIONING_PROFILE_FILE"]
     )
 
     install_provisioning_profile(
-      path: "./" + ENV["APPLE_HYBRID_APP_NOTIFICATION_PROVISIONING_PROFILE_FILE"]
+      path: "./" + ENV["APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE"]
     )
 
     update_code_signing_settings(
        path: "Mobile-Expensify/iOS/Expensify.xcodeproj",
-       profile_name: ENV["APPLE_HYBRID_APP_STORE_PROVISIONING_PROFILE_NAME"],
+       profile_name: ENV["APPLE_STORE_PROVISIONING_PROFILE_NAME"],
        targets: "Expensify",
-       bundle_identifier: ENV["APPLE_HYBRID_APP_ID"],
+       bundle_identifier: ENV["APPLE_ID"],
        build_configurations: "Release"
     )
 
     update_code_signing_settings(
        path: "Mobile-Expensify/iOS/Expensify.xcodeproj",
-       profile_name: ENV["APPLE_HYBRID_APP_SHARE_PROVISIONING_PROFILE_NAME"],
+       profile_name: ENV["APPLE_SHARE_PROVISIONING_PROFILE_NAME"],
        targets: "SmartScanExtension",
-       bundle_identifier: ENV["APPLE_HYBRID_APP_ID"] + ".SmartScanExtension",
+       bundle_identifier: ENV["APPLE_ID"] + ".SmartScanExtension",
        build_configurations: "Release"
     )
 
     update_code_signing_settings(
        path: "Mobile-Expensify/iOS/Expensify.xcodeproj",
-       profile_name: ENV["APPLE_HYBRID_APP_NOTIFICATION_PROVISIONING_PROFILE_NAME"],
+       profile_name: ENV["APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME"],
        targets: "NotificationServiceExtension",
-       bundle_identifier: ENV["APPLE_HYBRID_APP_ID"] + ".NotificationServiceExtension",
+       bundle_identifier: ENV["APPLE_ID"] + ".NotificationServiceExtension",
        build_configurations: "Release"
     )
 
@@ -440,9 +440,9 @@ platform :ios do
       export_options: {
         manageAppVersionAndBuildNumber: false,
         provisioningProfiles: {
-          ENV["APPLE_HYBRID_APP_ID"] => ENV["APPLE_HYBRID_APP_STORE_PROVISIONING_PROFILE_NAME"],
-          ENV["APPLE_HYBRID_APP_ID"] + ".SmartScanExtension" => ENV["APPLE_HYBRID_APP_SHARE_PROVISIONING_PROFILE_NAME"],
-          ENV["APPLE_HYBRID_APP_ID"] + ".NotificationServiceExtension" => ENV["APPLE_HYBRID_APP_NOTIFICATION_PROVISIONING_PROFILE_NAME"],
+          ENV["APPLE_ID"] => ENV["APPLE_STORE_PROVISIONING_PROFILE_NAME"],
+          ENV["APPLE_ID"] + ".SmartScanExtension" => ENV["APPLE_SHARE_PROVISIONING_PROFILE_NAME"],
+          ENV["APPLE_ID"] + ".NotificationServiceExtension" => ENV["APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME"],
         }
       }
     )
@@ -602,7 +602,7 @@ platform :ios do
   desc "Upload HybridApp to TestFlight"
   lane :upload_testflight_hybrid do
     upload_to_testflight(
-      app_identifier: ENV["APPLE_HYBRID_APP_ID"],
+      app_identifier: ENV["APPLE_ID"],
       api_key_path: "./ios-fastlane-json-key.json",
       distribute_external: true,
       notify_external_testers: true,
@@ -706,7 +706,7 @@ platform :ios do
     api_token = Spaceship::ConnectAPI::Token.from_json_file("../ios/ios-fastlane-json-key.json")
     Spaceship::ConnectAPI.token = api_token
 
-    app = Spaceship::ConnectAPI::App.find(ENV["APPLE_HYBRID_APP_ID"])
+    app = Spaceship::ConnectAPI::App.find(ENV["APPLE_ID"])
     version = app.get_live_app_store_version(platform: Spaceship::ConnectAPI::Platform::IOS)
 
     # Skip if the version is already at 100% rollout
@@ -721,7 +721,7 @@ platform :ios do
   desc "Submit HybridApp for production App Store slow rollout"
   lane :submit_hybrid_for_rollout do
     deliver(
-      app_identifier: ENV["APPLE_HYBRID_APP_ID"],
+      app_identifier: ENV["APPLE_ID"],
       api_key_path: "./ios-fastlane-json-key.json",
 
       # Skip HTML report verification

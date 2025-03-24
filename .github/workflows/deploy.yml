@@ -510,9 +510,9 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
           op read "op://${{ vars.OP_VAULT }}/firebase.json/firebase.json" --force --out-file ./firebase.json
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore/${{ vars.APPLE_HYBRID_APP_STORE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_HYBRID_APP_STORE_PROVISIONING_PROFILE_FILE }}
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Share_Extension/${{ vars.APPLE_HYBRID_APP_SHARE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_HYBRID_APP_SHARE_PROVISIONING_PROFILE_FILE }}
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Notification_Service/${{ vars.APPLE_HYBRID_APP_NOTIFICATION_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_HYBRID_APP_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore/${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Share_Extension/${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Notification_Service/${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
           op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
@@ -527,13 +527,13 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane ios build_hybrid
         env:
-          APPLE_HYBRID_APP_ID: ${{ vars.APPLE_HYBRID_APP_ID }}
-          APPLE_HYBRID_APP_STORE_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_HYBRID_APP_STORE_PROVISIONING_PROFILE_FILE }}
-          APPLE_HYBRID_APP_STORE_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_HYBRID_APP_STORE_PROVISIONING_PROFILE_NAME }}
-          APPLE_HYBRID_APP_SHARE_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_HYBRID_APP_SHARE_PROVISIONING_PROFILE_FILE }}
-          APPLE_HYBRID_APP_SHARE_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_HYBRID_APP_SHARE_PROVISIONING_PROFILE_NAME }}
-          APPLE_HYBRID_APP_NOTIFICATION_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_HYBRID_APP_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
-          APPLE_HYBRID_APP_NOTIFICATION_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_HYBRID_APP_NOTIFICATION_PROVISIONING_PROFILE_NAME }}
+          APPLE_ID: ${{ vars.APPLE_ID }}
+          APPLE_STORE_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}
+          APPLE_STORE_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_STORE_PROVISIONING_PROFILE_NAME }}
+          APPLE_SHARE_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}
+          APPLE_SHARE_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_NAME }}
+          APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
+          APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME }}
 
       - name: Upload release build to TestFlight
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -543,7 +543,7 @@ jobs:
           APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
-          APPLE_HYBRID_APP_ID: ${{ vars.APPLE_HYBRID_APP_ID }}
+          APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Upload DSYMs to Firebase for HybridApp
         if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -559,7 +559,7 @@ jobs:
           bundle exec fastlane ios submit_hybrid_for_rollout
         env:
           VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
-          APPLE_HYBRID_APP_ID: ${{ vars.APPLE_HYBRID_APP_ID }}
+          APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Upload iOS build to Browser Stack
         if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
