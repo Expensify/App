@@ -8,7 +8,7 @@ import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {BackArrow, CalendarSolid, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
+import {BackArrow, CalendarSolid, Close, DotIndicator, FallbackAvatar, Phone} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -16,17 +16,19 @@ import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePane/HelpButton';
+import HelpButton from '@components/SidePane/HelpComponents/HelpButton';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
+import {initializeOpenAIRealtime, stopConnection} from '@libs/actions/OpenAI';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,6 +46,7 @@ import {
     getReportDescription,
     getReportName,
     hasReportNameError,
+    isAdminRoom,
     isArchivedReport,
     isChatRoom as isChatRoomReportUtils,
     isChatThread as isChatThreadReportUtils,
@@ -113,12 +116,15 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [isDismissedDiscountBanner, setIsDismissedDiscountBanner] = useState(false);
+    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
 
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
+    const {canUseTalkToAISales} = usePermissions();
+    const shouldShowTalkToSales = canUseTalkToAISales && isAdminRoom(report);
 
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
@@ -222,6 +228,33 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         />
     );
 
+    const talkToSalesIcon = () => {
+        if (talkToAISales?.isLoading) {
+            return undefined;
+        }
+        if (talkToAISales?.isTalkingToAISales) {
+            return Close;
+        }
+        return Phone;
+    };
+
+    const talkToSalesButton = (
+        <Button
+            text={talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : translate('aiSales.talkWithSales')}
+            onPress={() => {
+                if (talkToAISales?.isTalkingToAISales) {
+                    stopConnection();
+                    return;
+                }
+
+                initializeOpenAIRealtime(Number(report?.reportID) ?? CONST.DEFAULT_NUMBER_ID);
+            }}
+            style={shouldUseNarrowLayout && [styles.flex1]}
+            icon={talkToSalesIcon()}
+            isLoading={talkToAISales?.isLoading}
+        />
+    );
+
     const getGuideBookButtonStyles = () => {
         if (isChatUsedForOnboarding && !shouldShowDiscount) {
             return [styles.pb3, styles.pl5, styles.w50, styles.pr1];
@@ -235,7 +268,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 style={[styles.borderBottom]}
                 dataSet={{dragArea: true}}
             >
-                <View style={[styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
+                <View style={[styles.appContentHeader, styles.pr3, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
@@ -343,6 +376,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && talkToSalesButton}
                                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -354,7 +388,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
                                 <HelpButton style={styles.ml2} />
-                                {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
+                                {shouldDisplaySearchRouter && <SearchButton />}
                             </View>
                             <ConfirmModal
                                 isVisible={isDeleteTaskConfirmModalVisible}
@@ -398,6 +432,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             </View>
             {shouldShowEarlyDiscountBanner && (
                 <EarlyDiscountBanner
+                    TalkToSalesButton={shouldShowTalkToSales ? talkToSalesButton : undefined}
                     GuideBookingButton={shouldShowGuideBookingButtonInEarlyDiscountBanner ? guideBookingButton : undefined}
                     isSubscriptionPage={false}
                     onDismissedDiscountBanner={() => setIsDismissedDiscountBanner(true)}

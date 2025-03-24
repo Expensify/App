@@ -589,10 +589,10 @@ type OriginalMessageReimbursementDequeued = {
 /** Model of `CHANGEPOLICY` report action */
 type OriginalMessageChangePolicy = {
     /** ID of the old policy */
-    fromPolicyID: string | undefined;
+    fromPolicy: string | undefined;
 
     /** ID of the new policy */
-    toPolicyID: string;
+    toPolicy: string;
 };
 
 /** Model of `moved` report action */
