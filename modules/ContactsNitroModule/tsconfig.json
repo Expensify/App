@@ -1,29 +1,7 @@
 {
-  "include": ["src"],
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
-    "outDir": "lib",
-    "rootDir": "src",
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
-    "lib": ["esnext"],
-    "module": "esnext",
-    "moduleResolution": "node",
-    "noEmit": false,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noImplicitUseStrict": false,
-    "noStrictGenericChecks": false,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "target": "esnext",
-    "verbatimModuleSyntax": true
-  }
+    "outDir": "./lib"
+  },
+  "include": ["src/**/*"]
 }
