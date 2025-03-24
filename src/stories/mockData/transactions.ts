@@ -250,6 +250,7 @@ const action: ReportAction = {
     actionName: 'IOU',
     originalMessage,
     childReportID: '1111111111111111',
+    childReportName: "Expense #123456789",
     created: '2025-02-14 08:12:05.165',
     actorAccountID: 11111111,
     childType: 'chat',
