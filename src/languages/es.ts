@@ -186,6 +186,7 @@ import type {
     UntilTimeParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyCategoryGLCodeParams,
+    UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
@@ -5003,7 +5004,16 @@ const translations = {
             if (!newValue && oldValue) {
                 return `actualizó la categoría "${categoryName}" eliminando el código GL que anteriormente era "${oldValue}"`;
             }
-            return `updated the category "${categoryName}" by changing the GL Code from "${oldValue}" to "${newValue}"`;
+            return `actualizó la categoría "${categoryName}" cambiando el código GL de "${oldValue}" a "${newValue}"`;
+        },
+        updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
+            if (newAmount && !oldAmount) {
+                return `actualizó la categoría "${categoryName}" añadiendo un Monto Máximo de ${newAmount}`;
+            }
+            if (oldAmount && !newAmount) {
+                return `actualizó la categoría "${categoryName}" eliminando el Monto Máximo que anteriormente era de ${oldAmount}`;
+            }
+            return `actualizó la categoría "${categoryName}" cambiando el Monto Máximo de ${oldAmount} a ${newAmount}`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renombró la categoría "${oldName}" a "${newName}`,
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `actualizó el nombre de la lista de etiquetas de "${oldName}" a "${newName}"`,

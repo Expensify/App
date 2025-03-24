@@ -305,6 +305,8 @@ type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
 
 type UpdatedPolicyCategoryGLCodeParams = {categoryName: string; oldValue?: string; newValue?: string};
 
+type UpdatedPolicyCategoryMaxExpenseAmountParams = {categoryName: string; oldAmount?: string; newAmount?: string};
+
 type UpdatedPolicyTagParams = {tagListName: string; tagName: string; enabled?: boolean};
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
@@ -925,4 +927,5 @@ export type {
     AddOrDeletePolicyCustomUnitRateParams,
     AddedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryGLCodeParams,
+    UpdatedPolicyCategoryMaxExpenseAmountParams,
 };

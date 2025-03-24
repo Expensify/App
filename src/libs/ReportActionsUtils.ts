@@ -18,7 +18,7 @@ import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {convertToDisplayString} from './CurrencyUtils';
+import {convertAmountToDisplayString, convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -1892,7 +1892,7 @@ function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
 }
 
 function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
-    const {categoryName, oldValue, newName, oldName, updatedField, newValue} =
+    const {categoryName, oldValue, newName, oldName, updatedField, newValue, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
@@ -1920,6 +1920,14 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
                 oldValue,
                 categoryName,
                 newValue,
+            });
+        }
+
+        if (updatedField === 'maxExpenseAmount' && (typeof oldValue === 'string' || typeof oldValue === 'number') && typeof newValue === 'number') {
+            return translateLocal('workspaceActions.updateCategoryMaxExpenseAmount', {
+                oldAmount: Number(oldValue) ? convertAmountToDisplayString(Number(oldValue), currency) : undefined,
+                newAmount: Number(newValue) ? convertAmountToDisplayString(Number(newValue), currency) : undefined,
+                categoryName,
             });
         }
     }
