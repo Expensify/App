@@ -40,9 +40,8 @@
 		D27CE6B77196EF3EF450EEAC /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0D3F9E814828D91464DF9D35 /* PrivacyInfo.xcprivacy */; };
 		DD79042B2792E76D004484B4 /* RCTBootSplash.mm in Sources */ = {isa = PBXBuildFile; fileRef = DD79042A2792E76D004484B4 /* RCTBootSplash.mm */; };
 		DDCB2E57F334C143AC462B43 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D20D83B0E39BA6D21761E72 /* ExpoModulesProvider.swift */; };
-		E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		E5A27B912C7F2FA8002C36BF /* RCTShareActionHandlerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = E5A27B902C7F2FA8002C36BF /* RCTShareActionHandlerModule.m */; };
-		E5A27B922C7F2FA8002C36BF /* RCTShareActionHandlerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = E5A27B902C7F2FA8002C36BF /* RCTShareActionHandlerModule.m */; };
 		E5A27B9A2C7F427F002C36BF /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A27B992C7F427F002C36BF /* ShareViewController.swift */; };
 		E5A27B9D2C7F427F002C36BF /* Base in Resources */ = {isa = PBXBuildFile; fileRef = E5A27B9C2C7F427F002C36BF /* Base */; };
 		E5A27BA12C7F427F002C36BF /* ShareViewController.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E5A27B972C7F427F002C36BF /* ShareViewController.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -53,19 +52,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		00E356F41AD99517003FC87E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = NewExpensify;
-		};
 		7FD73CA02B23CE9500420AF3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = E5A27B962C7F427F002C36BF;
-			remoteInfo = ShareViewController;
+			remoteGlobalIDString = 7FD73C9A2B23CE9500420AF3;
+			remoteInfo = NotificationServiceExtension;
 		};
 		E5A27B9F2C7F427F002C36BF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -154,7 +146,6 @@
 		DCF33E34FFEC48128CDD41D4 /* ExpensifyMono-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyMono-Bold.otf"; path = "../assets/fonts/native/ExpensifyMono-Bold.otf"; sourceTree = "<group>"; };
 		DD7904292792E76D004484B4 /* RCTBootSplash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RCTBootSplash.h; path = NewExpensify/RCTBootSplash.h; sourceTree = "<group>"; };
 		DD79042A2792E76D004484B4 /* RCTBootSplash.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTBootSplash.mm; path = NewExpensify/RCTBootSplash.mm; sourceTree = "<group>"; };
-		E5428460BDBED9E1BA8B3599 /* Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig"; sourceTree = "<group>"; };
 		E5A27B8F2C7F2F51002C36BF /* RCTShareActionHandlerModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTShareActionHandlerModule.h; sourceTree = "<group>"; };
 		E5A27B902C7F2FA8002C36BF /* RCTShareActionHandlerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTShareActionHandlerModule.m; sourceTree = "<group>"; };
 		E5A27B972C7F427F002C36BF /* ShareViewController.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareViewController.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -177,8 +168,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				383643682B6D4AE2005BB9AE /* DeviceCheck.framework in Frameworks */,
-				E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */,
-				E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */,
+				E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */,
+				E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */,
 				AC131FBB2CF634F20010CE80 /* BackgroundTasks.framework in Frameworks */,
 				8744C5400E24E379441C04A4 /* libPods-NewExpensify.a in Frameworks */,
 			);
@@ -753,19 +744,6 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		00E356EA1AD99517003FC87E /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				0F5E5351263B73FD004CA14F /* EnvironmentChecker.m in Sources */,
-				0DFC45952C884E0A00B56C91 /* RCTShortcutManagerModule.m in Sources */,
-				0CDA8E35287DD650004ECBEC /* AppDelegate.mm in Sources */,
-				7041848626A8E47D00E09F4D /* RCTStartupTimer.m in Sources */,
-				7F5E81F06BCCF61AD02CEA06 /* ExpoModulesProvider.swift in Sources */,
-				E5A27B922C7F2FA8002C36BF /* RCTShareActionHandlerModule.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		13B07F871A680F5B00A75B9A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -827,63 +805,6 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		00E356F61AD99517003FC87E /* DebugDevelopment */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = E5428460BDBED9E1BA8B3599 /* Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig */;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-lc++",
-					"$(inherited)",
-				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
-			};
-			name = DebugDevelopment;
-		};
-		00E356F71AD99517003FC87E /* ReleaseDevelopment */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 687A6DD50C2B5D0DC530C207 /* Pods-NewExpensify-NewExpensifyTests.releasedevelopment.xcconfig */;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = 368M544MTT;
-				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-lc++",
-					"$(inherited)",
-				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
-			};
-			name = ReleaseDevelopment;
-		};
 		0CBE08762C5D0872008661F8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2281,34 +2202,6 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
-			};
-			name = ReleaseAdHoc;
-		};
-		CF9AF94F29EE9293001FA527 /* ReleaseAdHoc */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = D846D749FDDC2C914007C87D /* Pods-NewExpensify-NewExpensifyTests.releaseadhoc.xcconfig */;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = 368M544MTT;
-				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-lc++",
-					"$(inherited)",
-				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
 			};
 			name = ReleaseAdHoc;
 		};
