@@ -1,35 +1,40 @@
 ---
-title: Add profile photo
-description: Add a photo to your Expensify account
+title: Add-Profile-Photo.md
+description: Learn how to add, change, or remove your profile photo in Expensify.
+keywords: [Expensify Classic, profile photo, account settings, update photo, remove photo]
 ---
 <div id="expensify-classic" markdown="1">
 
-{% include selector.html values="desktop, mobile" %}
+You can update your Expensify profile photo on both desktop and mobile.
 
-{% include option.html value="desktop" %}
-1. Click on **Settings** > **Account** > **Account Details**.
-2. Click **Edit Photo**.
-3. Click **Remove Photo** to remove the current image and replace it with a generic profile photo, or,
-4. Click on **Upload New Photo** to change the current image to a new one.
-{% include end-option.html %}
+---
 
-{% include option.html value="mobile" %}
+# Update Profile Photo
+
+**On Desktop:**
+1. Go to **Settings > Profile**.
+2. Click **Edit photo**.
+3. Choose an option:
+   - Click **Remove photo** to replace your current image with a generic profile photo.
+   - Click **Upload photo** to add a new image.
+
+**On Mobile:**
 1. Tap the **☰** menu icon in the top left.
-2. Tap the profile picture icon.
+2. Tap your profile picture.
 3. Tap the pencil icon next to your name.
-4. Tap **Remove photo** to remove the current image and replace it with a generic profile photo, or,
-5. Tap **Edit** and either:
-    - Tap the capture button to take a new photo.
-    - Tap the photo icon on the left to select a saved photo.
-{% include end-option.html %}
+4. Choose an option:
+   - Tap **Remove photo** to replace your current image with a generic profile photo.
+   - Choose **Edit photo**, then either:
+     - Tap the camera icon to take a new photo.
+     - Tap the gallery icon to select a saved photo.
 
-{% include end-selector.html %}
+![The Profile page is displayed on the right side of the screen and the edit photo button is highlighted by an orange icon. Click the Edit Photo button to select a new image to add.]({{site.url}}/assets/images/Update Profile Photo - Classic.png){:width="100%"}
 
-![The Account Details page is displayed on the right side of the screen and the edit photo button is highlighted by an orange icon. Click the Edit Photo button to select a new image to add.]({{site.url}}/assets/images/Edit_Photo.png){:width="100%"}
+---
 
+# FAQ
 
-# FAQs
+## Why do I already have a profile picture I didn’t add?
+Expensify may automatically add an image if one is associated with your email address. If no image is found, a randomly selected cartoon-style avatar is assigned to new accounts.
 
-**Why do I already have a profile picture that I didn’t add?** 
-
-Expensify automatically adds an image to your account if it finds one that is associated with your email address. Expensify also has several cartoon-style characters that will be randomly used when an account is created.
+</div>

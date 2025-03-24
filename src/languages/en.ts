@@ -210,6 +210,7 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
+    ViolationsProhibitedExpenseParams,
     ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
@@ -269,6 +270,7 @@ const translations = {
         resend: 'Resend',
         save: 'Save',
         select: 'Select',
+        deselect: 'Deselect',
         selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
@@ -818,7 +820,21 @@ const translations = {
         emptyMappedField: ({fieldName}: SpreadFieldNameParams) => `Oops! The field ("${fieldName}") contains one or more empty values. Please review and try again.`,
         importSuccessfullTitle: 'Import successful',
         importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
-        importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `${members} members have been added.` : '1 member has been added.'),
+        importMembersSuccessfullDescription: ({added, updated}: ImportMembersSuccessfullDescriptionParams) => {
+            if (!added && !updated) {
+                return 'No members have been added or updated.';
+            }
+
+            if (added && updated) {
+                return `${added} member${added > 1 ? 's' : ''} added, ${updated} member${updated > 1 ? 's' : ''} updated.`;
+            }
+
+            if (updated) {
+                return updated > 1 ? `${updated} members have been updated.` : '1 member has been updated.';
+            }
+
+            return added > 1 ? `${added} members have been added.` : '1 member has been added.';
+        },
         importTagsSuccessfullDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importPerDiemRatesSuccessfullDescription: ({rates}: ImportPerDiemRatesSuccessfullDescriptionParams) =>
             rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.',
@@ -1019,6 +1035,7 @@ const translations = {
         categorySelection: 'Select a category to better organize your spend.',
         error: {
             invalidCategoryLength: 'The category name exceeds 255 characters. Please shorten it or choose a different category.',
+            invalidTagLength: 'The tag name exceeds 255 characters. Please shorten it or choose a different tag.',
             invalidAmount: 'Please enter a valid amount before continuing.',
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
@@ -1084,8 +1101,8 @@ const translations = {
         holdEducationalTitle: 'This request is on',
         holdEducationalText: 'hold',
         whatIsHoldExplain: 'Hold is like hitting “pause” on an expense to ask for more details before approval or payment.',
-        holdIsLeftBehind: 'Held expenses are left behind even if you approve an entire report.',
-        unholdWhenReady: "Unhold expenses when you're ready to approve or pay.",
+        holdIsLeftBehind: 'Held expenses move to another report upon approval or payment.',
+        unholdWhenReady: 'Approvers can unhold expenses when they’re ready for approval or payment.',
         changePolicyEducational: {
             title: 'You moved this report!',
             description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
@@ -1395,8 +1412,8 @@ const translations = {
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
         twoFactorAuthIsRequiredDescription: 'For security purposes, Xero requires two-factor authentication to connect the integration.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Two-factor authentication required',
-        twoFactorAuthIsRequiredForAdminsTitle: 'You need to enable two-factor authentication',
-        twoFactorAuthIsRequiredForAdminsDescription: 'The Xero accounting connection requires the use of two-factor authentication. To continue using Expensify, please enable it.',
+        twoFactorAuthIsRequiredForAdminsTitle: 'Please enable two-factor authentication',
+        twoFactorAuthIsRequiredForAdminsDescription: 'Your Xero accounting connection requires two-factor authentication. Please enable it to continue.',
         twoFactorAuthCannotDisable: 'Cannot disable 2FA',
         twoFactorAuthRequired: 'Two-factor authentication (2FA) is required for your Xero connection and cannot be disabled.',
     },
@@ -1437,6 +1454,7 @@ const translations = {
         changeBillingCurrency: 'Change billing currency',
         changePaymentCurrency: 'Change payment currency',
         paymentCurrency: 'Payment currency',
+        paymentCurrencyDescription: 'Select a standardized currency that all personal expenses should be converted to.',
         note: 'Note: Changing your payment currency can impact how much you’ll pay for Expensify. Refer to our',
         noteLink: 'pricing page',
         noteDetails: 'for full details.',
@@ -1936,8 +1954,8 @@ const translations = {
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
-            `We've been unable to deliver SMS messages to ${login}, so we've suspended it for 24 hours. Please try validating your number:`,
-        validationFailed: 'Validation failed because it hasn’t been 24 hours since your last attempt.',
+            `We've been unable to deliver SMS messages to ${login}, so we've suspended it temporarily. Please try validating your number:`,
+        validationFailed: 'Validation failed because enough time hasn’t passed since your last attempt.',
         validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
         pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
             if (!timeData) {
@@ -2064,7 +2082,11 @@ const translations = {
             phrase3: 'or ',
             phrase4: 'verify your account here',
         },
-        hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
+        hasPhoneLoginError: {
+            phrase1: 'To connect a bank account, please',
+            link: 'add an email as your primary login',
+            phrase2: ' and try again. You can add your phone number as a secondary login.',
+        },
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again.',
         error: {
@@ -2654,7 +2676,11 @@ const translations = {
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
-        phoneError: 'To book travel, your default contact method must be a valid email',
+        phoneError: {
+            phrase1: 'Please',
+            link: 'add a work email as your primary login',
+            phrase2: ' to book travel.',
+        },
         domainSelector: {
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
@@ -2735,6 +2761,7 @@ const translations = {
             requested: 'Requested',
             distanceRates: 'Distance rates',
             defaultDescription: 'One place for all your receipts and expenses.',
+            descriptionHint: 'Share information about this workspace with all members.',
             welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
@@ -3011,6 +3038,16 @@ const translations = {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Checks are unavailable when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
+            },
+            exportDestinationAccountsMisconfigurationError: {
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Choose a valid account for vendor bill export.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Choose a valid account for journal entry export.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Choose a valid account for check export.',
+            },
+            exportDestinationSetupAccountsInfo: {
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'To use vendor bill export, set up an accounts payable account in QuickBooks Online.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'To use journal entry export, set up a journal account in QuickBooks Online.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'To use check export, set up a bank account in QuickBooks Online.',
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in QuickBooks Online and sync the connection again.',
@@ -3793,7 +3830,7 @@ const translations = {
             },
             perDiem: {
                 title: 'Per diem',
-                subtitle: 'Set Per diem rates to control daily employee spend.',
+                subtitle: 'Set per diem rates to control daily employee spend.',
             },
             expensifyCard: {
                 title: 'Expensify Card',
@@ -3913,6 +3950,12 @@ const translations = {
                 featureEnabledText: "To enable or disable this feature, you'll need to change your accounting import settings.",
                 disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
+            },
+            workflowWarningModal: {
+                featureEnabledTitle: 'Not so fast...',
+                featureEnabledText:
+                    'Expensify Cards in this workspace rely on approval workflows to define their Smart Limits.\n\nPlease change the limit types of any cards with Smart Limits before disabling workflows.',
+                confirmText: 'Go to Expensify Cards',
             },
             rules: {
                 title: 'Rules',
@@ -4412,6 +4455,8 @@ const translations = {
                 business: 'Business',
                 chooseInvoiceMethod: 'Choose a payment method below:',
                 addBankAccount: 'Add bank account',
+                addDebitOrCreditCard: 'Add debit or credit card',
+                addCorporateCard: 'Add corporate card',
                 payingAsIndividual: 'Paying as an individual',
                 payingAsBusiness: 'Paying as a business',
             },
@@ -4721,6 +4766,15 @@ const translations = {
                 eReceipts: 'eReceipts',
                 eReceiptsHint: 'eReceipts are auto-created',
                 eReceiptsHintLink: 'for most USD credit transactions',
+                prohibitedDefaultDescription:
+                    'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
+                prohibitedExpenses: 'Prohibited expenses',
+                none: 'None',
+                alcohol: 'Alcohol',
+                hotelIncidentals: 'Hotel incidentals',
+                gambling: 'Gambling',
+                tobacco: 'Tobacco',
+                adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
                 examples: 'Examples:',
@@ -5479,6 +5533,23 @@ const translations = {
             }
             return message;
         },
+        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+            const preMessage = 'Prohibited Expense: ';
+            switch (prohibitedExpenseType) {
+                case 'alcohol':
+                    return `${preMessage} Alcohol`;
+                case 'gambling':
+                    return `${preMessage} Gambling`;
+                case 'tobacco':
+                    return `${preMessage} Tobacco`;
+                case 'adultEntertainment':
+                    return `${preMessage} Adult Entertainment`;
+                case 'hotelIncidentals':
+                    return `${preMessage} Hotel Incidentals`;
+                default:
+                    return `${preMessage}${prohibitedExpenseType}`;
+            }
+        },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
@@ -5915,6 +5986,7 @@ const translations = {
             theresAReportWithErrors: "There's a report with errors",
             theresAWorkspaceWithCustomUnitsErrors: "There's a workspace with custom units errors",
             theresAProblemWithAWorkspaceMember: "There's a problem with a workspace member",
+            theresAProblemWithAWorkspaceQBOExport: 'There was a problem with a workspace connection export setting.',
             theresAProblemWithAContactMethod: "There's a problem with a contact method",
             aContactMethodRequiresVerification: 'A contact method requires verification',
             theresAProblemWithAPaymentMethod: "There's a problem with a payment method",
@@ -5945,25 +6017,14 @@ const translations = {
         },
     },
     productTrainingTooltip: {
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: {
             part1: 'Get started',
             part2: ' here!',
         },
         saveSearchTooltip: {
             part1: 'Rename your saved searches',
-            part2: ' here!',
-        },
-        quickActionButton: {
-            part1: 'Quick action!',
-            part2: ' Just a tap away',
-        },
-        workspaceChatCreate: {
-            part1: 'Submit your',
-            part2: ' expenses',
-            part3: ' here!',
-        },
-        searchFilterButtonTooltip: {
-            part1: 'Customize your search',
             part2: ' here!',
         },
         bottomNavInboxTooltip: {

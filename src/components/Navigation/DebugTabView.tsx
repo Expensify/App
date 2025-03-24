@@ -38,6 +38,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.theresAWorkspaceWithCustomUnitsErrors';
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAWorkspaceMember';
+        case CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR:
+            return 'debug.indicatorStatus.theresAProblemWithAWorkspaceQBOExport';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAContactMethod';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
@@ -105,6 +107,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
     const {orderedReportIDs} = useReportIDs();
+    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])});
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === BOTTOM_TABS.HOME) {
@@ -138,7 +141,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
 
     const navigateTo = useCallback(() => {
         if (selectedTab === BOTTOM_TABS.HOME && !!chatTabBrickRoad) {
-            const report = getChatTabBrickRoadReport(activeWorkspaceID, orderedReportIDs);
+            const report = getChatTabBrickRoadReport(activeWorkspaceID, reports);
 
             if (report) {
                 Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID));
@@ -151,7 +154,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, orderedReportIDs, status, reimbursementAccount, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, reports, status, reimbursementAccount, policyIDWithErrors]);
 
     if (!([BOTTOM_TABS.HOME, BOTTOM_TABS.SETTINGS] as string[]).includes(selectedTab ?? '') || !indicator) {
         return null;
