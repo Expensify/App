@@ -520,6 +520,9 @@ function navigateToReportWithPolicyCheck(
         return;
     }
 
+    if (backTo) {
+        params.backTo = backTo;
+    }
     ref.dispatch(
         StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
             policyID: undefined,
