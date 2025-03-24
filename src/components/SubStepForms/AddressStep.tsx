@@ -73,6 +73,12 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
     /** Translation key of street field */
     streetTranslationKey?: TranslationPaths;
+
+    /** Indicates if country can be changed by user */
+    shouldAllowCountryChange?: boolean;
+
+    /** Indicates if zip code format should be validated */
+    shouldValidateZipCodeFormat?: boolean;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -95,6 +101,8 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
     streetTranslationKey = 'common.streetAddress',
+    shouldAllowCountryChange = true,
+    shouldValidateZipCodeFormat = true,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();

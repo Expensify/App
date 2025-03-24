@@ -187,6 +187,7 @@ function WorkspacePageWithSections({
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
+                    shouldUseHeadlineHeader
                 >
                     {headerContent}
                 </HeaderWithBackButton>
