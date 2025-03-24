@@ -1,15 +1,16 @@
+import type {StoryFn} from '@storybook/react/*';
 import React from 'react';
 import type {ListRenderItem, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {MoneyRequestReportPreviewContentProps} from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MoneyRequestReportPreviewContent from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContent';
+import type {MoneyRequestReportPreviewContentProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import {action, chatReport, iouReport, violations} from './mockData/transactions';
+import {action, chatReport, iouReport, transaction, violations} from './mockData/transactions';
 
 /* eslint-disable react/jsx-props-no-spreading */
 
@@ -19,10 +20,13 @@ import {action, chatReport, iouReport, violations} from './mockData/transactions
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 
-const mockTransactions = (transactionsCount: number) =>
-    Array.from({length: transactionsCount}).map((item, index) => {
-        return {amount: 12345, currency: 'PLN', transactionID: `${index}`};
-    });
+const mockTransactionsMedium = Array.from({length: 6}).map((item, index) => {
+    return {...transaction, transactionID: `${index}`};
+});
+
+const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
+    return {...transaction, transactionID: `${index}`};
+});
 
 const moneyRequestPreviewBox: StyleProp<ViewStyle> = {
     backgroundColor: 'transparent',
@@ -45,6 +49,8 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         </Text>
     </View>
 );
+
+type MoneyRequestReportPreviewStory = StoryFn<typeof MoneyRequestReportPreviewContent>;
 
 export default {
     title: 'Components/MoneyRequestReportPreviewContent',
@@ -106,7 +112,7 @@ export default {
         chatReport,
         policy: undefined,
         iouReport,
-        transactions: mockTransactions(6),
+        transactions: mockTransactionsMedium,
         violations,
         invoiceReceiverPersonalDetail: undefined,
         invoiceReceiverPolicy: undefined,
@@ -117,9 +123,9 @@ export default {
     },
 };
 
-function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {parameters: {useLightTheme?: boolean; transactionsCount?: number}}) {
+function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {parameters: {useLightTheme?: boolean; transactionsBig?: boolean}}) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
-    const transactions = parameters.transactionsCount ? mockTransactions(parameters.transactionsCount) : props.transactions;
+    const transactions = parameters.transactionsBig ? mockTransactionsBig : props.transactions;
 
     return (
         <ThemeProvider theme={theme}>
@@ -137,18 +143,18 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
-const DarkTheme = Template.bind({});
-const ManyTransactions = Template.bind({});
-const HasErrors = Template.bind({});
-const ButtonVisible = Template.bind({});
+const Default: MoneyRequestReportPreviewStory = Template.bind({});
+const DarkTheme: MoneyRequestReportPreviewStory = Template.bind({});
+const ManyTransactions: MoneyRequestReportPreviewStory = Template.bind({});
+const HasErrors: MoneyRequestReportPreviewStory = Template.bind({});
+const ButtonVisible: MoneyRequestReportPreviewStory = Template.bind({});
 
 DarkTheme.parameters = {
     useLightTheme: false,
 };
 
 ManyTransactions.parameters = {
-    transactionsCount: 12,
+    transactionsBig: true,
 };
 
 HasErrors.parameters = {};
