@@ -58,7 +58,6 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                     icon={RotateLeft}
                     onPress={requestResetBankAccount}
                     shouldShowRightIcon
-                    wrapperStyle={styles.mv3}
                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                 />
             </Section>

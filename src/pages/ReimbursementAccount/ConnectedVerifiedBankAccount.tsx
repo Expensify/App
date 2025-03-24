@@ -99,7 +99,6 @@ function ConnectedVerifiedBankAccount({
                             title={translate('workspace.bankAccount.disconnectBankAccount')}
                             icon={Close}
                             onPress={requestResetBankAccount}
-                            wrapperStyle={styles.mv3}
                             outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                             disabled={!!pendingAction || !isEmptyObject(errors)}
                         />
