@@ -3037,6 +3037,12 @@ const styles = (theme: ThemeColors) =>
             width: 'auto',
         },
 
+        sectionMenuItemIcon: {
+            ...spacing.ph8,
+            ...spacing.mhn5,
+            width: 'auto',
+        },
+
         subscriptionCardIcon: {
             padding: 10,
             backgroundColor: theme.border,
@@ -3477,7 +3483,8 @@ const styles = (theme: ThemeColors) =>
 
         noSelect: {
             boxShadow: 'none',
-            outlineStyle: 'none',
+            // After https://github.com/facebook/react-native/pull/46284 RN accepts only 3 options and undefined
+            outlineStyle: undefined,
         },
 
         boxShadowNone: {
@@ -4280,6 +4287,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         contextMenuItemPopoverMaxWidth: {
+            minWidth: 320,
             maxWidth: 375,
         },
 
