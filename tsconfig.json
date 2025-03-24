@@ -23,7 +23,8 @@
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"],
             "contacts-nitro-module": ["./modules/ContactsNitroModule"],
-            "contacts-nitro-module/*": ["./modules/ContactsNitroModule/*"]
+            "contacts-nitro-module/*": ["./modules/ContactsNitroModule/*"],
+            "*": ["node_modules/*"]
         }
     },
     "include": [
@@ -47,5 +48,5 @@
         "modules/ContactsNitroModule/lib/**/*",
         "modules/ContactsNitroModule/lib/*.d.ts"
     ],
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
+    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*", "node_modules", "lib"]
 }
