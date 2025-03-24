@@ -413,7 +413,7 @@ function MoneyRequestReportPreviewContent({
     };
 
     // eslint-disable-next-line react-compiler/react-compiler
-    const viewabilityConfig = useRef({itemVisiblePercentThreshold: 99}).current;
+    const viewabilityConfig = useRef({itemVisiblePercentThreshold: 50}).current;
 
     return (
         <OfflineWithFeedback
