@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {clearValidateCodeActionError, requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';

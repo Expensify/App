@@ -10,7 +10,7 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearValidateCodeActionError, requestValidateCodeAction} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestErrorMessage, getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';

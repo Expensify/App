@@ -16,7 +16,7 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearValidateCodeActionError, requestValidateCodeAction} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {formatCardExpiration, getDomainCards, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -291,16 +291,14 @@ function ExpensifyCardPage({
                     text={translate('activateCardPage.activatePhysicalCard')}
                 />
             )}
-            {physicalCards?.some((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED) && (
-                <Button
-                    success
-                    large
-                    text={translate('cardPage.getPhysicalCard')}
-                    pressOnEnter
-                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
-                    style={[styles.mh5, styles.mb5]}
-                />
-            )}
+            <Button
+                success
+                large
+                text={translate('cardPage.getPhysicalCard')}
+                pressOnEnter
+                onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
+                style={[styles.mh5, styles.mb5]}
+            />
             <ValidateCodeActionModal
                 handleSubmitForm={handleRevealDetails}
                 clearError={() => {}}

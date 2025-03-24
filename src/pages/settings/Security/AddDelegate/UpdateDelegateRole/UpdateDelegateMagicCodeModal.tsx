@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import {clearDelegateErrorsByField, updateDelegateRole} from '@libs/actions/Delegate';
-import {clearValidateCodeActionError, requestValidateCodeAction} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

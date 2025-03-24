@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
-import {clearValidateCodeActionError, requestValidateCodeAction} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {addDelegate, clearDelegateErrorsByField} from '@userActions/Delegate';
