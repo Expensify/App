@@ -122,7 +122,6 @@ function ReportVirtualCardFraudPage({
                             return;
                         }
                         clearCardListErrors(virtualCard.cardID);
-                        clearValidateCodeActionError('reportVirtualCard');
                     }}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}

@@ -181,10 +181,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                 sendValidateCode={() => requestValidateCodeAction()}
                 handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, true)}
                 validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
-                clearError={() => {
-                    clearValidateCodeActionError('validateLogin');
-                    clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
-                }}
+                clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
                 onModalHide={() => {}}
                 onClose={() => {
                     setIsValidateModalVisible(false);

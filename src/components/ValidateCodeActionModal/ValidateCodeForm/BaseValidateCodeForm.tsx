@@ -293,7 +293,12 @@ function BaseValidateCodeForm({
                 pendingAction={validateCodeAction?.pendingAction}
                 errors={canShowError ? finalValidateError : undefined}
                 errorRowStyles={[styles.mt2]}
-                onClose={() => clearError()}
+                onClose={() => {
+                    clearError();
+                    if (!isEmptyObject(validateCodeAction?.errorFields) && validateCodeActionErrorField) {
+                        clearValidateCodeActionError(validateCodeActionErrorField);
+                    }
+                }}
                 style={buttonStyles}
             >
                 {!hideSubmitButton && (

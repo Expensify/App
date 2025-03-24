@@ -46,7 +46,6 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
         if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
-        clearValidateCodeActionError('addDelegate');
         clearDelegateErrorsByField(currentDelegate?.email ?? '', 'addDelegate');
     };
 

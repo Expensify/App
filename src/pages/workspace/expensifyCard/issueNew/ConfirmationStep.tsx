@@ -145,10 +145,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     validateCodeActionErrorField="createAdminIssuedVirtualCard"
                     validateError={validateError}
                     hasMagicCodeBeenSent={validateCodeSent}
-                    clearError={() => {
-                        clearIssueNewCardError(policyID);
-                        clearValidateCodeActionError('createAdminIssuedVirtualCard');
-                    }}
+                    clearError={() => clearIssueNewCardError(policyID)}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
                     title={translate('cardPage.validateCardTitle')}

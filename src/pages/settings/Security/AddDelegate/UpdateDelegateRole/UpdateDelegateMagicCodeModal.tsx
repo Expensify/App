@@ -41,7 +41,6 @@ function UpdateDelegateMagicCodeModal({login, role, isValidateCodeActionModalVis
         if (isEmptyObject(updateDelegateErrors) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
-        clearValidateCodeActionError('UpdateDelegateRole');
         clearDelegateErrorsByField(currentDelegate?.email ?? '', 'updateDelegateRole');
     };
 
@@ -50,7 +49,7 @@ function UpdateDelegateMagicCodeModal({login, role, isValidateCodeActionModalVis
             clearError={clearError}
             onClose={onBackButtonPress}
             validateCodeAction={validateCodeAction}
-            validateCodeActionErrorField="UpdateDelegateRole"
+            validateCodeActionErrorField="updateDelegateRole"
             isLoading={currentDelegate?.isLoading}
             validateError={updateDelegateErrors}
             isVisible={isValidateCodeActionModalVisible}

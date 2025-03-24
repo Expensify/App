@@ -54,7 +54,6 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
             return;
         }
         clearPersonalDetailsErrors();
-        clearValidateCodeActionError('personalDetails');
     };
 
     return (
