@@ -6,6 +6,7 @@ import {isApprover as isApprovedMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
 import {
+    getReportTransactions,
     hasViolations as hasAnyViolations,
     isClosedReport,
     isCurrentUserSubmitter,
@@ -35,14 +36,16 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const hasViolations = hasAnyViolations(report.reportID, violations);
-    return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasViolations;
+    const reportTransactions = getReportTransactions(report?.reportID);
+    return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasViolations && reportTransactions.length > 0;
 }
 
 function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
-    const isApproved = isReportApproved({report});
+    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+    const isApproved = isReportApproved({report}) || !isApprovalEnabled;
     const isClosed = isClosedReport(report);
     const hasViolations = hasAnyViolations(report.reportID, violations);
     const isInvoice = isInvoiceReport(report);
@@ -64,7 +67,6 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     const hasAccountingConnection = hasAccountingConnections(policy);
     const syncEnabled = policy ? isAutoSyncEnabled(policy) : false;
     const hasViolations = hasAnyViolations(report.reportID, violations);
-
     if (isExpense && isExporter && hasAccountingConnection && !syncEnabled && !hasViolations) {
         return isApproved || isReimbursed || isClosed;
     }
@@ -83,17 +85,17 @@ function getReportPreviewAction(violations: OnyxCollection<TransactionViolation[
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
-    if (canSubmit(report, violations, policy)) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
-    }
-    if (canApprove(report, violations, policy)) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
+    if (canExport(report, violations, policy)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
     if (canPay(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, violations, policy)) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
+    if (canApprove(report, violations, policy)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
+    }
+    if (canSubmit(report, violations, policy)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canReview(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
