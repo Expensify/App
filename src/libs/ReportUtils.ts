@@ -3404,8 +3404,8 @@ function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<type
 /**
  * Given a report field, check if the field is for the report title.
  */
-function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>, shouldCheckType = true): boolean {
-    return (reportField?.type === 'formula' || !shouldCheckType) && reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
+function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): boolean {
+    return reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
 }
 
 /**
@@ -3429,7 +3429,7 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     }
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
-    const isTitleField = isReportFieldOfTypeTitle(reportField, false);
+    const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(report?.policyID, {[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`]: policy});
     return isTitleField ? !reportField?.deletable : !isAdmin && (isReportSettled || isReportClosed);
 }
