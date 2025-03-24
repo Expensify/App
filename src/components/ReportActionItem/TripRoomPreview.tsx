@@ -122,7 +122,10 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
     const tripTransactions = useTripTransactions(chatReportID);
 
     const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);
-    const dateInfo = chatReport?.tripData ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate)) : '';
+    const dateInfo =
+        chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
+            ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
+            : '';
     const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(chatReport);
 
     const currency = iouReport?.currency ?? chatReport?.currency;
@@ -192,7 +195,6 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
                             renderItem={renderItem}
                         />
                         <Button
-                            success
                             text={translate('travel.viewTrip')}
                             onPress={navigateToTrip}
                         />

@@ -97,6 +97,9 @@ type TransactionViolationData = {
 
     /** Message to display to the user */
     tooltip?: string;
+
+    /** What prohibitive expense rule did they break? */
+    prohibitedExpenseRule?: string;
 };
 
 /** Model of a transaction violation */

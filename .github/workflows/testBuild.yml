@@ -301,6 +301,7 @@ jobs:
     needs: [prep]
     secrets: inherit
     with:
+      APP_PR_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
       APP_REF: ${{ needs.prep.outputs.REF }}
       IOS_HYBRID: ${{ inputs.IOS_HYBRID }}
       ANDROID_HYBRID: ${{ inputs.ANDROID_HYBRID }}

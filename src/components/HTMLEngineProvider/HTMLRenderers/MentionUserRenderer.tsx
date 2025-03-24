@@ -15,9 +15,8 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAccountIDsByLogins, getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getAccountIDsByLogins, getDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,33 +40,20 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
 
     const tnodeClone = cloneDeep(tnode);
 
-    const getShortMentionIfFound = (displayText: string, userAccountID: string, userLogin = '') => {
-        // If the userAccountID does not exist, this is an email-based mention so the displayText must be an email.
-        // If the userAccountID exists but userLogin is different from displayText, this means the displayText is either user display name, Hidden, or phone number, in which case we should return it as is.
-        if (userAccountID && userLogin !== displayText) {
-            return displayText;
-        }
-
-        // If the emails are not in the same private domain, we also return the displayText
-        if (!areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login ?? '')) {
-            return displayText;
-        }
-
-        // Otherwise, the emails must be of the same private domain, so we should remove the domain part
-        return displayText.split('@').at(0);
-    };
-
     if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
         mentionDisplayText = formatPhoneNumber(user?.login ?? '') || getDisplayNameOrDefault(user);
-        mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, user?.login ?? '') ?? '';
+        mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails, user?.login ?? '') ?? '';
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute());
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
         mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
-        asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID) ?? ''));
+        asMutable(tnodeClone).data = tnodeClone.data.replace(
+            mentionDisplayText,
+            Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, currentUserPersonalDetails) ?? ''),
+        );
 
         accountID = getAccountIDsByLogins([mentionDisplayText])?.at(0) ?? -1;
         navigationRoute = ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText);

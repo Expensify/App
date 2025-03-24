@@ -62,13 +62,13 @@ const PromotedActions = {
         text: translateLocal('common.message'),
         onSelected: () => {
             if (reportID) {
-                Navigation.dismissModal(reportID);
+                Navigation.navigateToReportWithPolicyCheck({reportID});
                 return;
             }
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login]);
+                navigateToAndOpenReport([login], false);
                 return;
             }
             if (accountID) {
@@ -90,7 +90,7 @@ const PromotedActions = {
                 Navigation.goBack();
             }
 
-            if (!isSearchTopmostFullScreenRoute() && isTextHold) {
+            if (!isSearchTopmostFullScreenRoute()) {
                 changeMoneyRequestHoldStatus(reportAction);
                 return;
             }
