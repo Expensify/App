@@ -28,9 +28,12 @@ type MessagesRowProps = {
 
     /** Whether we can dismiss the messages */
     canDismiss?: boolean;
+
+    /** A function to dismiss error */
+    dismissError?: () => void;
 };
 
-function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, canDismiss = true}: MessagesRowProps) {
+function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, canDismiss = true, dismissError = () => {}}: MessagesRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -42,6 +45,7 @@ function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <DotIndicatorMessage
+                dismissError={dismissError}
                 style={styles.flex1}
                 messages={messages}
                 type={type}
