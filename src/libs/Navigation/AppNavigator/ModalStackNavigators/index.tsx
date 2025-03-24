@@ -3,6 +3,7 @@ import React from 'react';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {
     AddPersonalBankAccountNavigatorParamList,
+    AddUnreportedExpensesParamList,
     ConsoleNavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
@@ -735,8 +736,8 @@ const MissingPersonalDetailsModalStackNavigator = createModalStackNavigator<Miss
     [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails').default,
 });
 
-const AddingUnreportedExpenseModalStackNavigator = createModalStackNavigator<MissingPersonalDetailsParamList>({
-    [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: () => require<ReactComponentModule>('../../../../pages/AddUnreportedExpense').default,
+const AddingUnreportedExpenseModalStackNavigator = createModalStackNavigator<AddUnreportedExpensesParamList>({
+    [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: () => require<ReactComponentModule>('../../../../pages/AddUnreportedExpense').default,
 });
 
 const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
@@ -792,5 +793,5 @@ export {
     DebugModalStackNavigator,
     WorkspaceConfirmationModalStackNavigator,
     ConsoleModalStackNavigator,
-    AddingUnreportedExpenseModalStackNavigator
+    AddingUnreportedExpenseModalStackNavigator,
 };

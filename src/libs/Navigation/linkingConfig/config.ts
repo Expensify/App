@@ -1465,7 +1465,13 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: {path: ROUTES.ADD_UNREPORTED_EXPENSE.route},
+                [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: {
+                    // path: ROUTES.ADD_UNREPORTED_EXPENSE.route,
+                    // exact: true,
+                    screens: {
+                        [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: ROUTES.ADD_UNREPORTED_EXPENSE.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.DEBUG]: {
                     screens: {
                         [SCREENS.DEBUG.REPORT]: {

@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -11,6 +12,7 @@ import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReportFooter from '@pages/home/report/ReportFooter';
+import {openUnreportedExpense} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
@@ -81,6 +83,16 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 reportActions={reportActions}
                 hasOlderActions={hasOlderActions}
                 hasNewerActions={hasNewerActions}
+            />
+            <Button
+                success
+                large
+                text="Add unreported expense"
+                onPress={() => {
+                    console.log(report?.reportID);
+                    openUnreportedExpense(report?.reportID);
+                }}
+                isDisabled={false}
             />
             {shouldDisplayReportFooter ? (
                 <ReportFooter

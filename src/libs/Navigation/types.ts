@@ -1912,6 +1912,12 @@ type MissingPersonalDetailsParamList = {
     [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: undefined;
 };
 
+type AddUnreportedExpensesParamList = {
+    [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: {
+        reportID: string;
+    };
+};
+
 type DebugParamList = {
     [SCREENS.DEBUG.REPORT]: {
         reportID: string;
@@ -1967,6 +1973,7 @@ declare global {
 
 export type {
     AddPersonalBankAccountNavigatorParamList,
+    AddUnreportedExpensesParamList,
     AuthScreensParamList,
     BackToParams,
     DebugParamList,

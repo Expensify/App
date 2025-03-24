@@ -465,6 +465,7 @@ const WRITE_COMMANDS = {
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
     CHANGE_REPORT_POLICY: 'ChangeReportPolicy',
+    CHANGE_TRANSACTIONS_REPORT: 'changeTransactionsReport',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;

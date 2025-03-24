@@ -28,6 +28,7 @@ import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
+import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import {getEffectiveDisplayName, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
@@ -2284,7 +2285,28 @@ function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, 
     return false;
 }
 
+function buildOptimisticUnreportedTransactionAction(oldReportID: string, fromReportID: string, transactionID: string) {
+    return {
+        reportActionID: rand64(),
+        reportID: oldReportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        originalMessage: {fromReportID, transactionID},
+    };
+}
+
+function buildOptimisticMovedTransactionAction(oldReportID: string, fromReportID: string, transactionID: string) {
+    return {
+        reportActionID: rand64(),
+        reportID: oldReportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        originalMessage: {fromReportID, transactionID},
+    };
+}
+
 export {
+    buildOptimisticUnreportedTransactionAction,
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
     formatLastMessageText,

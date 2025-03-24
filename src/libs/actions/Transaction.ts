@@ -572,9 +572,14 @@ function getAllTransactions() {
     return allTransactions;
 }
 
+function changeTransactionsReport(transactionIDList: string, reportID: string) {
+    return allTransactions;
+}
+
 export {
     addStop,
     createInitialWaypoints,
+    changeTransactionsReport,
     saveWaypoint,
     removeWaypoint,
     getRoute,

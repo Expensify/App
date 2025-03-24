@@ -14,15 +14,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {Section} from '@libs/OptionsListUtils';
 import navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@navigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {getAllTransactions} from '@userActions/Transaction';
+import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import NewChatSelectorPage from './NewChatSelectorPage';
 
 const emptyStylesArray: ViewStyle[] = [];
 
-function unreportedExpenseListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, canSelectMultiple, onFocus, shouldSyncFocus}: UserListItemProps<TItem>) {
+function unreportedExpenseListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, canSelectMultiple, onFocus, shouldSyncFocus, onSelectRow}: UserListItemProps<TItem>) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const styles = useThemeStyles();
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -52,6 +53,7 @@ function unreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[animatedHighlightStyle, backgroundColor]}
             onSelectRow={() => {
+                onSelectRow(item);
                 setIsSelected((val) => !val);
             }}
             containerStyle={[styles.p3, styles.mbn4, styles.expenseWidgetRadius]}
@@ -73,7 +75,15 @@ function unreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
 
 unreportedExpenseListItem.displayName = 'unreportedExpenseListItem';
 
-function AddUnreportedExpense({route}: {route: {reportID: number}}) {
+type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpensesParamList, typeof SCREENS.ADD_UNREPORTED_EXPENSES_ROOT>;
+
+type AddUnreportedExpensesParamList = {
+    [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: {
+        reportID: string;
+    };
+};
+
+function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const styles = useThemeStyles();
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const containerElements = useMemo(() => {
@@ -87,7 +97,8 @@ function AddUnreportedExpense({route}: {route: {reportID: number}}) {
             data: unreportedExpensesList,
         },
     ];
-    const reportId = route.reportID;
+    const reportId = route.params.reportID;
+    const seectedIds = new Set();
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -104,7 +115,16 @@ function AddUnreportedExpense({route}: {route: {reportID: number}}) {
             />
             <SelectionList<Transaction & ListItem>
                 ref={selectionListRef}
-                onSelectRow={() => {}}
+                onSelectRow={(item) => {
+                    if (seectedIds.has(item.transactionID)) {
+                        seectedIds.delete(item.transactionID);
+                        console.log('usuwanie');
+                    } else {
+                        seectedIds.add(item.transactionID);
+                        console.log('dodawanie');
+                    }
+                    console.log(item.transactionID);
+                }}
                 shouldShowTextInput={false}
                 canSelectMultiple
                 sections={sections}
@@ -113,7 +133,10 @@ function AddUnreportedExpense({route}: {route: {reportID: number}}) {
                 showConfirmButton
                 confirmButtonText="Add to report"
                 onConfirm={() => {
+                    console.log('__________________');
+                    console.log(seectedIds);
                     console.log(reportId);
+                    console.log('__________________');
                 }}
             />
         </ScreenWrapper>
