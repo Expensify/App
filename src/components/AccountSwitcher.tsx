@@ -52,7 +52,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
     const processedTextArray = splitTextWithEmojis(currentUserPersonalDetails?.displayName);
 
