@@ -26,8 +26,11 @@ type TransactionPreviewProps = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
-    /** Extra styles to pass to View wrapper */
+    /** Optional custom styles to be applied to container component. */
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Optional custom styles to be applied to wrapper component. */
+    wrapperStyles?: StyleProp<ViewStyle>;
 
     /** True if this IOU has a type of split */
     isBillSplit: boolean;
@@ -69,8 +72,11 @@ type TransactionPreviewContentProps = {
     /** Determines if the element is currently hovered over. */
     isHovered?: boolean;
 
-    /** Optional custom styles to be applied to container components. */
+    /** Optional custom styles to be applied to container component. */
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Optional custom styles to be applied to wrapper component. */
+    wrapperStyles?: StyleProp<ViewStyle>;
 
     /** Records any errors related to wallet terms. */
     walletTermsErrors: Errors | undefined;

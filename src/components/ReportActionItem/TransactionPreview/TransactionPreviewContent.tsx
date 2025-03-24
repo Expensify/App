@@ -49,6 +49,7 @@ function TransactionPreviewContent({
     navigateToReviewFields,
     onPreviewPressed,
     containerStyles,
+    wrapperStyles,
     isBillSplit,
     areThereDuplicates,
     sessionAccountID,
@@ -174,7 +175,7 @@ function TransactionPreviewContent({
     );
 
     const transactionContent = (
-        <View style={[styles.border, styles.reportContainerBorderRadius]}>
+        <View style={[styles.border, styles.reportContainerBorderRadius, containerStyles]}>
             <OfflineWithFeedback
                 errors={walletTermsErrors}
                 onClose={() => offlineWithFeedbackOnClose}
@@ -364,7 +365,7 @@ function TransactionPreviewContent({
             accessibilityHint={convertToDisplayString(requestAmount, requestCurrency)}
             style={[
                 styles.moneyRequestPreviewBox,
-                containerStyles,
+                wrapperStyles,
                 themeStyles,
                 shouldDisableOnPress && styles.cursorDefault,
                 (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,

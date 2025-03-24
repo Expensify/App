@@ -21,11 +21,11 @@ import {action, chatReport, iouReport, personalDetails, transaction, violations}
  */
 
 const mockTransactionsMedium = Array.from({length: 6}).map((item, index) => {
-  return {...transaction, transactionID: `${index}`};
+    return {...transaction, transactionID: `${index}`};
 });
 
 const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
-  return {...transaction, transactionID: `${index}`};
+    return {...transaction, transactionID: `${index}`};
 });
 
 const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (

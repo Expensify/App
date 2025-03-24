@@ -54,7 +54,8 @@ function MoneyRequestReportPreview({
             isHovered={isHovered}
             iouReportID={iouReportID}
             onPreviewPressed={() => {}}
-            containerStyles={{width: 300}}
+            wrapperStyles={{width: 300}}
+            containerStyles={{height: '100%'}}
         />
     );
 
