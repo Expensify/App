@@ -1,15 +1,14 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import LottieAnimations from '@components/LottieAnimations';
-import type {TupleToUnion} from 'type-fest';
 import type {SortOrder} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import {compareValues} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
