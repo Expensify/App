@@ -1,4 +1,3 @@
-import truncate from 'lodash/truncate';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, ViewToken} from 'react-native';
@@ -58,7 +57,6 @@ import {
     isSettled,
     isTripRoom as isTripRoomReportUtils,
 } from '@libs/ReportUtils';
-import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
