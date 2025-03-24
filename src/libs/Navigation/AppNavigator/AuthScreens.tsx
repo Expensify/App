@@ -3,7 +3,6 @@ import {findFocusedRoute, useNavigation} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
-import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
@@ -58,7 +57,6 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import createRootStackNavigator from './createRootStackNavigator';
 import {reportsSplitsWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
-import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
@@ -182,7 +180,7 @@ const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
 const modalScreenListeners = {
     focus: () => {
-        Modal.setModalVisibility(true);
+        Modal.setModalVisibility(true, CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
     },
     blur: () => {
         Modal.setModalVisibility(false);
@@ -582,12 +580,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     component={DesktopSignInRedirectPage}
                 />
                 <RootStack.Screen
-                    name={NAVIGATORS.SHARE_MODAL_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.fullScreen}
-                    component={ShareModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
                     name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={ExplanationModalNavigator}
@@ -657,7 +649,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
             </RootStack.Navigator>
             <SearchRouterModal />
-            <ActiveGuidesEventListener />
         </ComposeProviders>
     );
 }

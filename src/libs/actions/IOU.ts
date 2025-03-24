@@ -680,6 +680,19 @@ Onyx.connect({
 });
 
 /**
+ * @private
+ * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
+ * It is a helper function used only in this file.
+ */
+function dismissModalAndOpenReportInInboxTab(reportID?: string) {
+    if (isSearchTopmostFullScreenRoute() || !reportID) {
+        Navigation.dismissModal();
+        return;
+    }
+    Navigation.dismissModalWithReport({reportID});
+}
+
+/**
  * Find the report preview action from given chat report and iou report
  */
 function getReportPreviewAction(chatReportID: string | undefined, iouReportID: string | undefined): OnyxInputValue<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
@@ -4600,6 +4613,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
+        policyName: createdWorkspaceParams?.policyName,
         description: transactionParams.comment,
     };
 
@@ -4750,7 +4764,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     }
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    dismissModalAndOpenReportInInboxTab(activeReportID);
 
     const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
     if (trackReport?.key) {
@@ -4834,7 +4848,8 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    dismissModalAndOpenReportInInboxTab(activeReportID);
+
     if (activeReportID) {
         notifyNewAction(activeReportID, payeeAccountID);
     }
@@ -4901,7 +4916,7 @@ function sendInvoice(
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.dismissModal();
     } else {
-        Navigation.dismissModalWithReport(invoiceRoom);
+        Navigation.dismissModalWithReport({report: invoiceRoom});
     }
 
     notifyNewAction(invoiceRoom.reportID, receiver.accountID);
@@ -5127,7 +5142,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    dismissModalAndOpenReportInInboxTab(activeReportID);
 
     if (action === CONST.IOU.ACTION.SHARE) {
         if (isSearchTopmostFullScreenRoute() && activeReportID) {
@@ -5710,7 +5725,8 @@ function splitBill({
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : existingSplitChatReportID);
+    dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
+
     notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -5783,7 +5799,7 @@ function splitBillAndOpenReport({
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : splitData.chatReportID);
+    dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
     notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -6102,7 +6118,7 @@ function startSplitBill({
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
-    Navigation.dismissModalWithReport(splitChatReport);
+    Navigation.dismissModalWithReport({report: splitChatReport});
     notifyNewAction(splitChatReport.reportID, currentUserAccountID);
 }
 
@@ -6364,7 +6380,7 @@ function completeSplitBill(
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : chatReportID);
+    dismissModalAndOpenReportInInboxTab(chatReportID);
     notifyNewAction(chatReportID, sessionAccountID);
 }
 
@@ -6547,7 +6563,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    dismissModalAndOpenReportInInboxTab(activeReportID);
     notifyNewAction(activeReportID, userAccountID);
 }
 
@@ -8248,7 +8264,7 @@ function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number,
 
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : params.chatReportID);
+    dismissModalAndOpenReportInInboxTab(params.chatReportID);
     notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -8261,7 +8277,7 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
 
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : params.chatReportID);
+    dismissModalAndOpenReportInInboxTab(params.chatReportID);
     notifyNewAction(params.chatReportID, managerID);
 }
 
