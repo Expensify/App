@@ -2,7 +2,7 @@ name: Deploy code to staging or production
 
 on:
   push:
-    branches: [staging, production, andrew-android-variables]
+    branches: [staging, production]
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
@@ -405,7 +405,7 @@ jobs:
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
       - name: Upload DSYMs to Firebase
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane ios upload_dsyms
 
       - name: Upload iOS build to Browser Stack
