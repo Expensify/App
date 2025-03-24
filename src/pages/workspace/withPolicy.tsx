@@ -4,10 +4,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
-import * as Policy from '@userActions/Policy/Policy';
+import {updateLastAccessedWorkspace} from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type NavigatorsParamList = AuthScreensParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & WorkspaceSplitNavigatorParamList;
@@ -51,13 +51,13 @@ type PolicyRouteName =
 
 type PolicyRoute = PlatformStackRouteProp<NavigatorsParamList, PolicyRouteName>;
 
-function getPolicyIDFromRoute(route: PolicyRoute): string {
-    return route?.params?.policyID ?? '-1';
+function getPolicyIDFromRoute(route: PolicyRoute): string | undefined {
+    return route?.params?.policyID;
 }
 
 type WithPolicyOnyxProps = {
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyDraft: OnyxEntry<OnyxTypes.Policy>;
+    policy: OnyxEntry<Policy>;
+    policyDraft: OnyxEntry<Policy>;
     isLoadingPolicy: boolean;
 };
 
@@ -66,8 +66,8 @@ type WithPolicyProps = WithPolicyOnyxProps & {
 };
 
 const policyDefaultProps: WithPolicyOnyxProps = {
-    policy: {} as OnyxTypes.Policy,
-    policyDraft: {} as OnyxTypes.Policy,
+    policy: {} as Policy,
+    policyDraft: {} as Policy,
     isLoadingPolicy: false,
 };
 
@@ -84,8 +84,8 @@ export default function <TProps extends WithPolicyProps, TRef>(
         const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
         const isLoadingPolicy = isLoadingOnyxValue(policyResults, policyDraftResults);
 
-        if (policyID.length > 0) {
-            Policy.updateLastAccessedWorkspace(policyID);
+        if (policyID && policyID.length > 0) {
+            updateLastAccessedWorkspace(policyID);
         }
 
         return (
