@@ -9,6 +9,7 @@ order: 1
 To connect Xero with Expensify, you must:
 - Be a **Workspace Admin** in Expensify.
 - Use a **Collect** or **Control** Workspace.
+- Enable **[Two-Factor Authentication](https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication)** in Expensify: Xero requires this additional layer of security to be enabled when a Workspace is connected.
 
 ## Step 1: Connect Expensify to Xero
 

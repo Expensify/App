@@ -5,6 +5,7 @@ import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
+import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -56,6 +57,8 @@ type PopoverMenuItem = MenuItemProps & {
     shouldCloseAllModals?: boolean;
 
     pendingAction?: PendingAction;
+
+    rightIcon?: React.FC<SvgProps>;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> &
@@ -289,6 +292,8 @@ function PopoverMenu({
                     focused={focusedIndex === menuIndex}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     shouldCheckActionAllowedOnPress={false}
+                    iconRight={item.rightIcon}
+                    shouldShowRightIcon={!!item.rightIcon}
                     onFocus={() => {
                         if (!shouldUpdateFocusedIndex) {
                             return;
