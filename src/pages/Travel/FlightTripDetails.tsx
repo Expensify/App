@@ -57,7 +57,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
             <MenuItemWithTopDescription
                 description={`${translate('travel.flight')} ${CONST.DOT_SEPARATOR} ${flightDuration}`}
                 title={`${reservation.company?.longName} ${CONST.DOT_SEPARATOR} ${reservation.route?.airlineCode}`}
-                interactive={false}
+                copyValue={`${reservation.company?.longName} ${CONST.DOT_SEPARATOR} ${reservation.route?.airlineCode}`}
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
@@ -106,7 +106,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                         <MenuItemWithTopDescription
                             description={translate('travel.flightDetails.recordLocator')}
                             title={reservation.confirmations?.at(0)?.value}
-                            interactive={false}
+                            copyValue={reservation.confirmations?.at(0)?.value}
                         />
                     </View>
                 )}

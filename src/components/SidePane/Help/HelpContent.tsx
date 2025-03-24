@@ -8,17 +8,19 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useSidePane from '@hooks/useSidePane';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {substituteRouteParameters} from '@libs/SidePaneUtils';
 
-function HelpContent() {
+type HelpContentProps = {
+    closeSidePane: (shouldUpdateNarrow?: boolean) => void;
+};
+
+function HelpContent({closeSidePane}: HelpContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
-    const {closeSidePane} = useSidePane();
     const route = useRootNavigationState((state) => {
         const params = (findFocusedRoute(state)?.params as Record<string, string>) ?? {};
         const activeRoute = Navigation.getActiveRouteWithoutParams();
