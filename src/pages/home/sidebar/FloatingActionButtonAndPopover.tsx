@@ -349,7 +349,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             {
                 icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                 text: translate('iou.createExpense'),
-                shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
+                shouldCallAfterModalHide: true,
                 onSelected: () =>
                     interceptAnonymousUser(() => {
                         if (shouldRedirectToExpensifyClassic) {
@@ -403,6 +403,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     text: quickActionTitle,
                     description: !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                     onSelected,
+                    shouldCallAfterModalHide: true,
                     shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
                 },
             ];
@@ -426,6 +427,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     icon: Expensicons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
                     description: getReportName(policyChatForActivePolicy),
+                    shouldCallAfterModalHide: true,
                     onSelected,
                     shouldShowSubscriptRightAvatar: true,
                 },
@@ -483,6 +485,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                   {
                       icon: Expensicons.Document,
                       text: translate('report.newReport.createReport'),
+                      shouldCallAfterModalHide: true,
                       onSelected: () => {
                           interceptAnonymousUser(() => {
                               if (groupPoliciesWithChatEnabled.length === 0) {
@@ -513,6 +516,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         {
             icon: Expensicons.ChatBubble,
             text: translate('sidebarScreen.fabNewChat'),
+            shouldCallAfterModalHide: true,
             onSelected: () => interceptAnonymousUser(startNewChat),
         },
         ...(canSendInvoice
@@ -520,7 +524,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                   {
                       icon: Expensicons.InvoiceGeneric,
                       text: translate('workspace.invoices.sendInvoice'),
-                      shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
+                      shouldCallAfterModalHide: true,
                       onSelected: () =>
                           interceptAnonymousUser(() => {
                               if (shouldRedirectToExpensifyClassic) {
@@ -576,6 +580,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       iconHeight: variables.h40,
                       text: translate('workspace.new.newWorkspace'),
                       description: translate('workspace.new.getTheExpensifyCardAndMore'),
+                      shouldCallAfterModalHide: true,
                       onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
                   },
               ]
