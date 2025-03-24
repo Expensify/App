@@ -1,6 +1,7 @@
 import React from 'react';
 import type {ListRenderItem} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
@@ -9,7 +10,6 @@ import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportAct
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
-import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
 
