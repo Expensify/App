@@ -27,7 +27,6 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -61,12 +60,16 @@ function Confirmation() {
         if (!reportAction?.childReportID) {
             return;
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID));
+        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
     }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal(reportAction?.childReportID);
+        if (!reportAction?.childReportID) {
+            Navigation.dismissModal();
+            return;
+        }
+        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
     }, [transactionsMergeParams, reportAction?.childReportID]);
 
     const contextValue = useMemo(

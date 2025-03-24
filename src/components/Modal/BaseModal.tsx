@@ -5,16 +5,19 @@ import ReactNativeModal from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import NavigationBar from '@components/NavigationBar';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSidePane from '@hooks/useSidePane';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -75,6 +78,8 @@ function BaseModal(
         swipeThreshold = 150,
         swipeDirection,
         shouldPreventScrollOnFocus = false,
+        enableEdgeToEdgeBottomSafeAreaPadding = false,
+        shouldApplySidePaneOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -85,6 +90,8 @@ function BaseModal(
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {sidePaneOffset} = useSidePane();
+    const sidePaneStyle = shouldApplySidePaneOffset && !isSmallScreenWidth ? {paddingRight: sidePaneOffset.current} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -107,7 +114,7 @@ function BaseModal(
         (callHideCallback = true) => {
             if (areAllModalsHidden()) {
                 willAlertModalBecomeVisible(false);
-                if (shouldSetModalVisibility) {
+                if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
                     setModalVisibility(false);
                 }
             }
@@ -151,10 +158,10 @@ function BaseModal(
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
-            setModalVisibility(true);
+            setModalVisibility(true, type);
         }
         onModalShow();
-    }, [onModalShow, shouldSetModalVisibility]);
+    }, [onModalShow, shouldSetModalVisibility, type]);
 
     const handleBackdropPress = (e?: KeyboardEvent) => {
         if (e?.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
@@ -203,7 +210,7 @@ function BaseModal(
         paddingBottom: safeAreaPaddingBottom,
         paddingLeft: safeAreaPaddingLeft,
         paddingRight: safeAreaPaddingRight,
-    } = StyleUtils.getSafeAreaPadding(safeAreaInsets);
+    } = StyleUtils.getPlatformSafeAreaPadding(safeAreaInsets);
 
     const modalPaddingStyles = shouldUseModalPaddingStyle
         ? StyleUtils.getModalPaddingStyles({
@@ -213,7 +220,8 @@ function BaseModal(
               safeAreaPaddingRight,
               shouldAddBottomSafeAreaMargin,
               shouldAddTopSafeAreaMargin,
-              shouldAddBottomSafeAreaPadding: (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
+              // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
+              shouldAddBottomSafeAreaPadding: !enableEdgeToEdgeBottomSafeAreaPadding && (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
               shouldAddTopSafeAreaPadding,
               modalContainerStyleMarginTop: modalContainerStyle.marginTop,
               modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
@@ -265,7 +273,7 @@ function BaseModal(
                     backdropTransitionOutTiming={0}
                     hasBackdrop={fullscreen}
                     coverScreen={fullscreen}
-                    style={modalStyle}
+                    style={[modalStyle, sidePaneStyle]}
                     deviceHeight={windowHeight}
                     deviceWidth={windowWidth}
                     animationIn={animationIn ?? modalStyleAnimationIn}
@@ -301,6 +309,7 @@ function BaseModal(
                             </View>
                         </FocusTrapForModal>
                     </ModalContent>
+                    {!keyboardStateContextValue?.isKeyboardShown && <NavigationBar />}
                 </ModalComponent>
             </View>
         </ModalContext.Provider>
