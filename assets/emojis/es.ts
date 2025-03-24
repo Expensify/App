@@ -1,7488 +1,6524 @@
-import type {EmojisList} from './types';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import CONST from '@src/CONST';
+import type en from './en';
+import type {
+    AccountOwnerParams,
+    ActionsAreCurrentlyRestricted,
+    AddedOrDeletedPolicyReportFieldParams,
+    AddedPolicyCustomUnitRateParams,
+    AddEmployeeParams,
+    AddressLineParams,
+    AdminCanceledRequestParams,
+    AlreadySignedInParams,
+    ApprovalWorkflowErrorParams,
+    ApprovedAmountParams,
+    AssignCardParams,
+    AssignedCardParams,
+    AssigneeParams,
+    AuthenticationErrorParams,
+    AutoPayApprovedReportsLimitErrorParams,
+    BadgeFreeTrialParams,
+    BeginningOfChatHistoryAdminRoomPartOneParams,
+    BeginningOfChatHistoryAnnounceRoomPartOneParams,
+    BeginningOfChatHistoryDomainRoomPartOneParams,
+    BillingBannerCardAuthenticationRequiredParams,
+    BillingBannerCardExpiredParams,
+    BillingBannerCardOnDisputeParams,
+    BillingBannerDisputePendingParams,
+    BillingBannerInsufficientFundsParams,
+    BillingBannerSubtitleWithDateParams,
+    CanceledRequestParams,
+    CardEndingParams,
+    CardInfoParams,
+    CardNextPaymentParams,
+    CategoryNameParams,
+    ChangeFieldParams,
+    ChangeOwnerDuplicateSubscriptionParams,
+    ChangeOwnerHasFailedSettlementsParams,
+    ChangeOwnerSubscriptionParams,
+    ChangeReportPolicyParams,
+    ChangeTypeParams,
+    CharacterLengthLimitParams,
+    CharacterLimitParams,
+    ChatWithAccountManagerParams,
+    CompanyCardBankName,
+    CompanyCardFeedNameParams,
+    CompanyNameParams,
+    ConfirmThatParams,
+    ConnectionNameParams,
+    ConnectionParams,
+    CurrencyCodeParams,
+    CustomersOrJobsLabelParams,
+    CustomUnitRateParams,
+    DateParams,
+    DateShouldBeAfterParams,
+    DateShouldBeBeforeParams,
+    DefaultAmountParams,
+    DefaultVendorDescriptionParams,
+    DelegateRoleParams,
+    DelegateSubmitParams,
+    DelegatorParams,
+    DeleteActionParams,
+    DeleteConfirmationParams,
+    DeleteTransactionParams,
+    DemotedFromWorkspaceParams,
+    DidSplitAmountMessageParams,
+    EarlyDiscountSubtitleParams,
+    EarlyDiscountTitleParams,
+    EditActionParams,
+    EditDestinationSubtitleParams,
+    ElectronicFundsParams,
+    EnterMagicCodeParams,
+    ExportAgainModalDescriptionParams,
+    ExportedToIntegrationParams,
+    ExportIntegrationSelectedParams,
+    FeatureNameParams,
+    FileLimitParams,
+    FiltersAmountBetweenParams,
+    FlightLayoverParams,
+    FormattedMaxLengthParams,
+    ForwardedAmountParams,
+    GoBackMessageParams,
+    GoToRoomParams,
+    ImportedTagsMessageParams,
+    ImportedTypesParams,
+    ImportFieldParams,
+    ImportMembersSuccessfullDescriptionParams,
+    ImportPerDiemRatesSuccessfullDescriptionParams,
+    ImportTagsSuccessfullDescriptionParams,
+    IncorrectZipFormatParams,
+    InstantSummaryParams,
+    IntacctMappingTitleParams,
+    IntegrationExportParams,
+    IntegrationSyncFailedParams,
+    InvalidPropertyParams,
+    InvalidValueParams,
+    IssueVirtualCardParams,
+    LastFourDigitsParams,
+    LastSyncAccountingParams,
+    LastSyncDateParams,
+    LeftWorkspaceParams,
+    LocalTimeParams,
+    LoggedInAsParams,
+    LogSizeParams,
+    ManagerApprovedAmountParams,
+    ManagerApprovedParams,
+    MarkedReimbursedParams,
+    MarkReimbursedFromIntegrationParams,
+    MissingPropertyParams,
+    MovedFromPersonalSpaceParams,
+    NeedCategoryForExportToIntegrationParams,
+    NewWorkspaceNameParams,
+    NoLongerHaveAccessParams,
+    NotAllowedExtensionParams,
+    NotYouParams,
+    OOOEventSummaryFullDayParams,
+    OOOEventSummaryPartialDayParams,
+    OptionalParam,
+    OurEmailProviderParams,
+    OwnerOwesAmountParams,
+    PaidElsewhereWithAmountParams,
+    PaidWithExpensifyWithAmountParams,
+    ParentNavigationSummaryParams,
+    PayerOwesAmountParams,
+    PayerOwesParams,
+    PayerPaidAmountParams,
+    PayerPaidParams,
+    PayerSettledParams,
+    PaySomeoneParams,
+    PolicyExpenseChatNameParams,
+    ReconciliationWorksParams,
+    RemovedFromApprovalWorkflowParams,
+    RemovedTheRequestParams,
+    RemoveMemberPromptParams,
+    RemoveMembersWarningPrompt,
+    RenamedRoomActionParams,
+    ReportArchiveReasonsClosedParams,
+    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
+    ReportArchiveReasonsMergedParams,
+    ReportArchiveReasonsRemovedFromPolicyParams,
+    ReportPolicyNameParams,
+    RequestAmountParams,
+    RequestCountParams,
+    RequestedAmountMessageParams,
+    RequiredFieldParams,
+    ResolutionConstraintsParams,
+    RoleNamesParams,
+    RoomNameReservedErrorParams,
+    RoomRenamedToParams,
+    SecondaryLoginParams,
+    SetTheDistanceMerchantParams,
+    SetTheRequestParams,
+    SettledAfterAddedBankAccountParams,
+    SettleExpensifyCardParams,
+    SettlementDateParams,
+    ShareParams,
+    SignUpNewFaceCodeParams,
+    SizeExceededParams,
+    SplitAmountParams,
+    SpreadCategoriesParams,
+    SpreadFieldNameParams,
+    SpreadSheetColumnParams,
+    StatementTitleParams,
+    StepCounterParams,
+    StripePaidParams,
+    SubmitsToParams,
+    SubscriptionCommitmentParams,
+    SubscriptionSettingsRenewsOnParams,
+    SubscriptionSettingsSaveUpToParams,
+    SubscriptionSizeParams,
+    SyncStageNameConnectionsParams,
+    TaskCreatedActionParams,
+    TaxAmountParams,
+    TermsParams,
+    ThreadRequestReportNameParams,
+    ThreadSentMoneyReportNameParams,
+    ToValidateLoginParams,
+    TransferParams,
+    TrialStartedTitleParams,
+    UnapprovedParams,
+    UnapproveWithIntegrationWarningParams,
+    UnshareParams,
+    UntilTimeParams,
+    UpdatedPolicyCategoryNameParams,
+    UpdatedPolicyCategoryParams,
+    UpdatedPolicyCurrencyParams,
+    UpdatedPolicyDescriptionParams,
+    UpdatedPolicyFieldWithNewAndOldValueParams,
+    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFrequencyParams,
+    UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReportFieldDefaultValueParams,
+    UpdatedPolicyTagFieldParams,
+    UpdatedPolicyTagNameParams,
+    UpdatedPolicyTagParams,
+    UpdatedTheDistanceMerchantParams,
+    UpdatedTheRequestParams,
+    UpdateRoleParams,
+    UsePlusButtonParams,
+    UserIsAlreadyMemberParams,
+    UserSplitParams,
+    ViolationsAutoReportedRejectedExpenseParams,
+    ViolationsCashExpenseWithNoReceiptParams,
+    ViolationsConversionSurchargeParams,
+    ViolationsCustomRulesParams,
+    ViolationsInvoiceMarkupParams,
+    ViolationsMaxAgeParams,
+    ViolationsMissingTagParams,
+    ViolationsModifiedAmountParams,
+    ViolationsOverAutoApprovalLimitParams,
+    ViolationsOverCategoryLimitParams,
+    ViolationsOverLimitParams,
+    ViolationsPerDayLimitParams,
+    ViolationsReceiptRequiredParams,
+    ViolationsRterParams,
+    ViolationsTagOutOfPolicyParams,
+    ViolationsTaxOutOfPolicyParams,
+    WaitingOnBankAccountParams,
+    WalletProgramParams,
+    WelcomeEnterMagicCodeParams,
+    WelcomeToRoomParams,
+    WeSentYouMagicSignInLinkParams,
+    WorkspaceLockedPlanTypeParams,
+    WorkspaceMemberList,
+    WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceYouMayJoin,
+    YourPlanPriceParams,
+    ZipCodeExampleFormatParams,
+} from './params';
+import type {TranslationDeepObject} from './types';
 
-/* eslint-disable @typescript-eslint/naming-convention */
-const esEmojis: EmojisList = {
-    '😀': {
-        name: 'sonriendo',
-        keywords: ['cara', 'divertido', 'feliz', 'sonrisa', 'cara sonriendo'],
-    },
-    '😃': {
-        name: 'sonriente',
-        keywords: ['cara', 'divertido', 'risa', 'sonriendo', 'cara sonriendo con ojos grandes'],
-    },
-    '😄': {
-        name: 'sonrisa',
-        keywords: ['abierta', 'cara', 'ojo', 'sonrisa', 'cara sonriendo con ojos sonrientes'],
-    },
-    '😁': {
-        name: 'sonrisa_burlona',
-        keywords: ['cara', 'ojo', 'risa', 'sonrisa', 'cara radiante con ojos sonrientes'],
-    },
-    '😆': {
-        name: 'risa',
-        keywords: ['abierta', 'boca', 'cara', 'risa', 'cara sonriendo con los ojos cerrados'],
-    },
-    '😅': {
-        name: 'sonrisa_con_sudor',
-        keywords: ['cara', 'frío', 'risa', 'sudor', 'cara sonriendo con sudor frío'],
-    },
-    '🤣': {
-        name: 'muriéndose_de_risa',
-        keywords: ['cara', 'carcajada', 'ojos cerrados', 'risa', 'cara revolviéndose de la risa'],
-    },
-    '😂': {
-        name: 'alegría',
-        keywords: ['cara', 'felicidad', 'lágrima', 'risa', 'cara llorando de risa'],
-    },
-    '🙂': {
-        name: 'cara_ligeramente_sonriente',
-        keywords: ['cara', 'sonrisa', 'cara sonriendo ligeramente'],
-    },
-    '🙃': {
-        name: 'cara_boca_arriba',
-        keywords: ['cara', 'revés', 'cara al revés'],
-    },
-    '😉': {
-        name: 'guiño',
-        keywords: ['cara', 'guiño', 'cara guiñando el ojo'],
-    },
-    '😊': {
-        name: 'sonrojo',
-        keywords: ['cara', 'ojo', 'rubor', 'sonrisa', 'cara feliz con ojos sonrientes'],
-    },
-    '😇': {
-        name: 'inocente',
-        keywords: ['ángel', 'cara', 'halo', 'sonrisa', 'cara sonriendo con aureola'],
-    },
-    '🥰': {
-        name: 'cara_sonriendo_con_corazones',
-        keywords: ['adorar', 'amor', 'corazones', 'enamorada', 'enamorado', 'cara sonriendo con corazones'],
-    },
-    '😍': {
-        name: 'ojos_de_corazón',
-        keywords: ['amor', 'cara', 'corazón', 'sonrisa', 'cara sonriendo con ojos de corazón'],
-    },
-    '🤩': {
-        name: 'ojos_estrella',
-        keywords: ['cara', 'estrellas', 'sonrisa', 'cara sonriendo con estrellas'],
-    },
-    '😘': {
-        name: 'beso_de_corazón',
-        keywords: ['beso', 'cara', 'cara lanzando un beso'],
-    },
-    '😗': {
-        name: 'besos',
-        keywords: ['beso', 'cara', 'cara besando'],
-    },
-    '☺️': {
-        name: 'relajado',
-        keywords: ['cara', 'contorno', 'relajado', 'sonrisa', 'cara sonriente'],
-    },
-    '😚': {
-        name: 'beso_con_ojos_cerrados',
-        keywords: ['beso', 'cara', 'cerrado', 'ojo', 'cara besando con los ojos cerrados'],
-    },
-    '😙': {
-        name: 'besando_con_ojos_sonrientes',
-        keywords: ['beso', 'cara', 'ojo', 'sonrisa', 'cara besando con ojos sonrientes'],
-    },
-    '🥲': {
-        name: 'cara_sonriente_con_lágrima',
-        keywords: ['agradecido', 'aliviado', 'emocionado', 'lágrima', 'orgulloso', 'sonrisa', 'cara sonriente con lágrima'],
-    },
-    '😋': {
-        name: 'sabroso',
-        keywords: ['cara', 'delicioso', 'hambre', 'rico', 'cara saboreando comida'],
-    },
-    '😛': {
-        name: 'lengua_fuera',
-        keywords: ['cara', 'lengua', 'cara sacando la lengua'],
-    },
-    '😜': {
-        name: 'lengua_fuera_con_guiño_de_ojos',
-        keywords: ['cara', 'guiño', 'lengua', 'ojo', 'cara sacando la lengua y guiñando un ojo'],
-    },
-    '🤪': {
-        name: 'cara_loco',
-        keywords: ['grande', 'ojo', 'pequeño', 'cara de loco'],
-    },
-    '😝': {
-        name: 'lengua_fuera_con_ojos_cerrados',
-        keywords: ['cara', 'lengua', 'ojo', 'sabor', 'cara con ojos cerrados y lengua fuera'],
-    },
-    '🤑': {
-        name: 'cara_con_dinero_en_la_boca',
-        keywords: ['boca', 'cara', 'dinero', 'cara con lengua de dinero'],
-    },
-    '🤗': {
-        name: 'cara_abrazando',
-        keywords: ['abrazo', 'cara', 'sonrisa', 'cara con manos abrazando'],
-    },
-    '🤭': {
-        name: 'cara_con_mano_sobre_boca',
-        keywords: ['ostras', 'uy', 'vaya', 'cara con mano sobre la boca'],
-    },
-    '🫣': {
-        name: 'cara_espiando',
-        keywords: ['cara', 'espiar', 'ojo', 'curioso', 'tímido'],
-    },
-    '🫢': {
-        name: 'cara_con_ojos_abiertos_y_mano_sobre_boca',
-        keywords: ['cara', 'ojos abiertos', 'mano sobre boca', 'sorprendido', 'choque'],
-    },
-    '🫡': {
-        name: 'cara_saludando',
-        keywords: ['cara', 'saludo', 'respeto', 'militar', 'honor'],
-    },
-    '🤫': {
-        name: 'calla',
-        keywords: ['callado', 'silencio', 'cara pidiendo silencio'],
-    },
-    '🫠': {
-        name: 'cara_derritiéndose',
-        keywords: ['calor', 'cara', 'derritiéndose', 'derretido', 'derretirse', 'desaparecer', 'fundirse', 'líquido'],
-    },
-    '🤔': {
-        name: 'cara_pensativa',
-        keywords: ['cara', 'duda', 'pensando', 'cara pensativa'],
-    },
-    '🤐': {
-        name: 'cara_con_boca_de_cremallera',
-        keywords: ['boca', 'cara', 'cremallera', 'cara con la boca cerrada con cremallera'],
-    },
-    '🤨': {
-        name: 'cara_con_ceja_levantada',
-        keywords: ['desconfiado', 'escéptico', 'cara con ceja alzada'],
-    },
-    '🫥': {
-        name: 'cara_invisible',
-        keywords: ['cara', 'invisible', 'oculto', 'línea discontinua', 'desaparecer'],
-    },
-    '😐': {
-        name: 'cara_neutra',
-        keywords: ['cara', 'inexpresivo', 'neutral'],
-    },
-    '🫤': {
-        name: 'cara_con_boca_diagonal',
-        keywords: ['cara', 'boca diagonal', 'meh', 'neutral', 'incierto'],
-    },
-    '😑': {
-        name: 'inexpresivo',
-        keywords: ['cara', 'inexpresión', 'inexpresiva', 'inexpresivo', 'cara sin expresión'],
-    },
-    '🫨': {
-        name: 'cara_temblorosa',
-        keywords: ['cara', 'temblorosa', 'sacudida', 'temblor'],
-    },
-    '😶': {
-        name: 'prohibido_hablar',
-        keywords: ['boca', 'callado', 'cara', 'silencio', 'cara sin boca'],
-    },
-    '😶‍🌫️': {
-        name: 'prohibido_hablar',
-        keywords: ['atontado', 'cara', 'despistado', 'distraído', 'nubes', 'parra', 'cara en las nubes'],
-    },
-    '😏': {
-        name: 'sonrisita',
-        keywords: ['cara', 'listillo', 'superioridad', 'cara sonriendo con superioridad'],
-    },
-    '😒': {
-        name: 'no_interesado',
-        keywords: ['cara', 'insatisfacción', 'rechazo', 'cara de desaprobación'],
-    },
-    '🙄': {
-        name: 'cara_con_ojos_en_blanco',
-        keywords: ['cara', 'frustración', 'ojos', 'vueltos', 'cara con ojos en blanco'],
-    },
-    '😬': {
-        name: 'muecas',
-        keywords: ['cara', 'mueca', 'cara haciendo una mueca'],
-    },
-    '😮‍💨': {
-        name: 'boca_abierta',
-        keywords: ['cara', 'exhalar', 'resoplido', 'respirar', 'silbato', 'silbido', 'cara exhalando'],
-    },
-    '🤥': {
-        name: 'cara_de_mentiroso',
-        keywords: ['cara', 'mentiroso', 'nariz', 'pinocho', 'cara de mentiroso'],
-    },
-    '😌': {
-        name: 'aliviado',
-        keywords: ['aliviado', 'cara', 'cara de alivio'],
-    },
-    '😔': {
-        name: 'pensativo',
-        keywords: ['alicaído', 'cara', 'desanimado', 'pensativo', 'cara desanimada'],
-    },
-    '😪': {
-        name: 'soñoliento',
-        keywords: ['cara', 'dormir', 'sueño', 'cara de sueño'],
-    },
-    '🤤': {
-        name: 'cara-babeando',
-        keywords: ['baba', 'babeando', 'cara'],
-    },
-    '😴': {
-        name: 'durmiendo',
-        keywords: ['cara', 'dormido', 'sueño', 'zzz', 'cara durmiendo'],
-    },
-    '😷': {
-        name: 'máscara',
-        keywords: ['cara', 'enfermo', 'malo', 'máscara', 'cara con mascarilla médica'],
-    },
-    '🤒': {
-        name: 'cara_con_termómetro',
-        keywords: ['cara', 'enfermo', 'malo', 'termómetro', 'cara con termómetro'],
-    },
-    '🤕': {
-        name: 'cara_con_la_cabeza_vendada',
-        keywords: ['cara', 'dolor', 'herida', 'venda', 'cara con la cabeza vendada'],
-    },
-    '🤢': {
-        name: 'cara_de_asco',
-        keywords: ['cara', 'náuseas', 'vomitar', 'cara de náuseas'],
-    },
-    '🤮': {
-        name: 'cara_vomitando',
-        keywords: ['enfermo', 'malo', 'vomitar', 'cara vomitando'],
-    },
-    '🤧': {
-        name: 'cara_estornudando',
-        keywords: ['cara', 'estornudar', 'estornudo', 'pañuelo', 'cara estornudando'],
-    },
-    '🥵': {
-        name: 'cara_con_calor',
-        keywords: ['calor', 'cara roja', 'fiebre', 'golpe de calor', 'sudor', 'cara con calor'],
-    },
-    '🥶': {
-        name: 'cara_con_frío',
-        keywords: ['cara congelada', 'congelado', 'frío', 'helado', 'cara con frío'],
-    },
-    '🥴': {
-        name: 'cara_de_grogui',
-        keywords: ['atontado', 'entonado', 'grogui', 'intoxicado', 'mareado', 'cara de grogui'],
-    },
-    '😵': {
-        name: 'cara_de_mareo',
-        keywords: ['cara', 'mareo', 'cara mareada'],
-    },
-    '😵‍💫': {
-        name: 'cara_de_mareo',
-        keywords: ['alucinado', 'desmayado', 'hipnotizado', 'locura', 'mareado', 'problema', 'cara con ojos de espiral'],
-    },
-    '🤯': {
-        name: 'cabeza_explotando',
-        keywords: ['cabeza', 'explosión', 'cabeza explotando'],
-    },
-    '🤠': {
-        name: 'cara_con_sombrero_vaquero',
-        keywords: ['cara', 'sombrero', 'vaquera', 'vaquero', 'cara con sombrero de vaquero'],
-    },
-    '🥳': {
-        name: 'cara_de_fiesta',
-        keywords: ['capirote', 'celebración', 'fiesta', 'gorro', 'matasuegras', 'cara de fiesta'],
-    },
-    '🥸': {
-        name: 'cara_disfrazada',
-        keywords: ['careta', 'disfraz', 'disimulo', 'gafas', 'incógnito', 'nariz', 'cara disfrazada'],
-    },
-    '😎': {
-        name: 'gafas_de_sol',
-        keywords: ['cara', 'gafas', 'guay', 'sol', 'cara sonriendo con gafas de sol'],
-    },
-    '🤓': {
-        name: 'cara_de_nerd',
-        keywords: ['cara', 'empollón', 'friki', 'friqui', 'cara de empollón'],
-    },
-    '🧐': {
-        name: 'cara_con_monóculo',
-        keywords: ['aristocrático', 'estirado', 'cara con monóculo'],
-    },
-    '😕': {
-        name: 'desconcertado',
-        keywords: ['cara', 'confuso', 'cara de confusión'],
-    },
-    '😟': {
-        name: 'preocupado',
-        keywords: ['cara', 'preocupación', 'preocupado', 'cara preocupada'],
-    },
-    '🙁': {
-        name: 'cara_con_el_ceño_ligeramente_fruncido',
-        keywords: ['cara', 'ceño', 'fruncido', 'cara con el ceño ligeramente fruncido'],
-    },
-    '☹️': {
-        name: 'cara_blanca_ceñuda',
-        keywords: ['cara', 'ceño', 'fruncido', 'cara con el ceño fruncido'],
-    },
-    '😮': {
-        name: 'boca_abierta',
-        keywords: ['boca', 'cara', 'cara con la boca abierta'],
-    },
-    '😯': {
-        name: 'silencioso',
-        keywords: ['alucinado', 'cara', 'estupefacto', 'sorprendido', 'cara estupefacta'],
-    },
-    '😲': {
-        name: 'asombrado',
-        keywords: ['alucinado', 'asombrado', 'cara', 'pasmado', 'cara asombrada'],
-    },
-    '😳': {
-        name: 'sonrojado',
-        keywords: ['cara', 'colorado', 'sonrojado', 'cara sonrojada'],
-    },
-    '🥺': {
-        name: 'cara_de_por_favor',
-        keywords: ['implorar', 'ojos adorables', 'piedad', 'por favor', 'cara suplicante'],
-    },
-    '😦': {
-        name: 'ceñudo',
-        keywords: ['boca abierta', 'cara', 'ceño fruncido con boca abierta', 'cara con el ceño fruncido y la boca abierta'],
-    },
-    '😧': {
-        name: 'angustiado',
-        keywords: ['angustia', 'angustiado', 'cara', 'cara angustiada'],
-    },
-    '😨': {
-        name: 'temeroso',
-        keywords: ['asustado', 'cara', 'miedo', 'miedoso', 'cara asustada'],
-    },
-    '😰': {
-        name: 'sudor_frío',
-        keywords: ['ansiedad', 'cara', 'frío', 'sudor', 'cara con ansiedad y sudor'],
-    },
-    '🥹': {
-        name: 'cara_con_lágrimas',
-        keywords: ['cara', 'lágrimas', 'emocional', 'contener', 'llorando'],
-    },
-    '😥': {
-        name: 'decepcionado_aliviado',
-        keywords: ['aliviado', 'cara', 'decepcionado', 'menos mal', 'cara triste pero aliviada'],
-    },
-    '😢': {
-        name: 'lloros',
-        keywords: ['cara', 'lágrima', 'llorar', 'triste', 'cara llorando'],
-    },
-    '😭': {
-        name: 'sollozo',
-        keywords: ['cara', 'lágrima', 'llorar', 'triste', 'cara llorando fuerte'],
-    },
-    '😱': {
-        name: 'grito',
-        keywords: ['asustado', 'cara', 'miedo', 'pánico', 'cara gritando de miedo'],
-    },
-    '😖': {
-        name: 'aturdido',
-        keywords: ['cara', 'frustrado', 'cara de frustración'],
-    },
-    '😣': {
-        name: 'tenacidad',
-        keywords: ['cara', 'desesperación', 'frustración', 'cara desesperada'],
-    },
-    '😞': {
-        name: 'decepcionado',
-        keywords: ['cara', 'decepción', 'decepcionado', 'cara decepcionada'],
-    },
-    '😓': {
-        name: 'sudor',
-        keywords: ['cara', 'frío', 'sudor', 'cara con sudor frío'],
-    },
-    '😩': {
-        name: 'cansado',
-        keywords: ['agotado', 'cansado', 'cara', 'cara agotada'],
-    },
-    '😫': {
-        name: 'cara_cansada',
-        keywords: ['cansado', 'cara', 'cara cansada'],
-    },
-    '🥱': {
-        name: 'cara_de_bostezo',
-        keywords: ['aburrido', 'bostezo', 'cansado', 'dormido', 'sueño', 'cara de bostezo'],
-    },
-    '😤': {
-        name: 'triunfo',
-        keywords: ['cabreo', 'cara', 'enfado', 'cara resoplando'],
-    },
-    '😡': {
-        name: 'rabia',
-        keywords: ['cabreo', 'cara', 'enfadado', 'furia', 'cara cabreada'],
-    },
-    '😠': {
-        name: 'enfado',
-        keywords: ['cara', 'enfadado', 'histérico', 'cara enfadada'],
-    },
-    '🤬': {
-        name: 'cara_con_símbolos_en_boca',
-        keywords: ['maldecir', 'palabrota', 'símbolo', 'cara con símbolos en la boca'],
-    },
-    '😈': {
-        name: 'diablillo_sonriente',
-        keywords: ['cara', 'cuernos', 'demonio', 'sonrisa', 'cara sonriendo con cuernos'],
-    },
-    '👿': {
-        name: 'diablillo',
-        keywords: ['cara', 'cuernos', 'demonio', 'diablo', 'cara enfadada con cuernos'],
-    },
-    '💀': {
-        name: 'calavera',
-        keywords: ['cara', 'cuento', 'monstruo', 'muerte', 'calavera'],
-    },
-    '☠️': {
-        name: 'calavera_y_tibias_cruzadas',
-        keywords: ['calavera', 'cara', 'huesos', 'muerte', 'calavera y huesos cruzados'],
-    },
-    '💩': {
-        name: 'zurullo',
-        keywords: ['caca', 'cómic', 'mierda', 'mojón', 'caca con ojos'],
-    },
-    '🤡': {
-        name: 'cara_payaso',
-        keywords: ['cara', 'payaso', 'cara de payaso'],
-    },
-    '👹': {
-        name: 'ogro_japonés',
-        keywords: ['cara', 'cuento', 'cuernos', 'sonrisa', 'demonio japonés oni'],
-    },
-    '👺': {
-        name: 'duende_japonés',
-        keywords: ['cara', 'cuento', 'fantasía', 'monstruo', 'tengu', 'demonio japonés tengu'],
-    },
-    '👻': {
-        name: 'fantasma',
-        keywords: ['cara', 'criatura', 'cuento', 'monstruo', 'fantasma'],
-    },
-    '👽': {
-        name: 'extraterrestre',
-        keywords: ['alien', 'cara', 'criatura', 'extraterrestre', 'ovni', 'alienígena'],
-    },
-    '👾': {
-        name: 'invasor_del_espacio',
-        keywords: ['alien', 'cara', 'criatura', 'extraterrestre', 'ovni', 'monstruo alienígena'],
-    },
-    '🤖': {
-        name: 'cara_de_robot',
-        keywords: ['cara', 'monstruo', 'robot'],
-    },
-    '😺': {
-        name: 'gato_sonriente',
-        keywords: ['cara', 'feliz', 'gato alegre', 'gato feliz', 'sonrisa', 'gato sonriendo'],
-    },
-    '😸': {
-        name: 'gato_sonrisa',
-        keywords: ['cara', 'gato', 'ojos', 'sonriente', 'sonrisa', 'gato sonriendo con ojos sonrientes'],
-    },
-    '😹': {
-        name: 'gato_alegre',
-        keywords: ['cara', 'gato', 'lágrima', 'risa', 'gato llorando de risa'],
-    },
-    '😻': {
-        name: 'gato_con_ojos_de_corazón',
-        keywords: ['cara', 'corazón', 'enamorado', 'gato', 'gato sonriendo con ojos de corazón'],
-    },
-    '😼': {
-        name: 'gato_con_sonrisa_de_satisfacción',
-        keywords: ['cara', 'gato', 'irónico', 'sonrisa', 'gato haciendo una mueca'],
-    },
-    '😽': {
-        name: 'gato_besando',
-        keywords: ['beso', 'cara', 'cariñoso', 'gato', 'gato besando'],
-    },
-    '🙀': {
-        name: 'gato_gritando',
-        keywords: ['cara', 'gato', 'pánico', 'preocupación', 'sorpresa', 'gato asustado'],
-    },
-    '😿': {
-        name: 'cara_de_gato_lloroso',
-        keywords: ['cara', 'gato', 'lágrima', 'pena', 'triste', 'gato llorando'],
-    },
-    '😾': {
-        name: 'gato_enfadado',
-        keywords: ['cara', 'enfadado', 'gato'],
-    },
-    '🙈': {
-        name: 'mono_ojos_tapados',
-        keywords: ['cara', 'mal', 'mono', 'prohibido', 'mono con los ojos tapados'],
-    },
-    '🙉': {
-        name: 'mono_sordo',
-        keywords: ['cara', 'mal', 'mono', 'prohibido', 'mono con los oídos tapados'],
-    },
-    '🙊': {
-        name: 'no_decir_nada',
-        keywords: ['cara', 'mal', 'mono', 'prohibido', 'mono con la boca tapada'],
-    },
-    '💋': {
-        name: 'beso',
-        keywords: ['beso', 'labios', 'romance', 'marca de beso'],
-    },
-    '💌': {
-        name: 'carta_de_amor',
-        keywords: ['amor', 'carta', 'corazón', 'correo', 'carta de amor'],
-    },
-    '💘': {
-        name: 'cupido',
-        keywords: ['amor', 'corazón', 'emoción', 'flecha', 'corazón con flecha'],
-    },
-    '💝': {
-        name: 'corazón_de_regalo',
-        keywords: ['corazón', 'emoción', 'lazo', 'san valentín', 'corazón con lazo'],
-    },
-    '💖': {
-        name: 'corazón_refulgente',
-        keywords: ['amor', 'brillante', 'emoción', 'corazón brillante'],
-    },
-    '💗': {
-        name: 'ritmo_cardíaco',
-        keywords: ['corazón', 'creciente', 'emocionado', 'latido', 'nervioso'],
-    },
-    '💓': {
-        name: 'latido',
-        keywords: ['amor', 'corazón', 'emoción', 'latido', 'corazón latiendo'],
-    },
-    '💞': {
-        name: 'corazones_girando',
-        keywords: ['corazón', 'giratorio', 'corazones giratorios'],
-    },
-    '💕': {
-        name: 'dos_corazones',
-        keywords: ['amantes', 'amor', 'corazón', 'dos corazones'],
-    },
-    '💟': {
-        name: 'corazón_decorativo',
-        keywords: ['corazón', 'adorno de corazón'],
-    },
-    '❣️': {
-        name: 'signo_de_exclamación_en_forma_de_corazón_grueso',
-        keywords: ['corazón', 'exclamación', 'puntuación', 'exclamación de corazón'],
-    },
-    '💔': {
-        name: 'corazón_partido',
-        keywords: ['corazón', 'emoción', 'partido', 'roto'],
-    },
-    '❤️‍🔥': {
-        name: 'corazón',
-        keywords: ['amor', 'corazón', 'fuego', 'llamas', 'lujuria', 'pasión', 'corazón en llamas'],
-    },
-    '❤️‍🩹': {
-        name: 'corazón',
-        keywords: ['bien', 'cura', 'mejor', 'mejora', 'recuperación', 'salud', 'corazón curándose'],
-    },
-    '❤️': {
-        name: 'corazón',
-        keywords: ['corazón', 'emoción', 'rojo'],
-    },
-    '🩷': {
-        name: 'corazón_rosa',
-        keywords: ['corazón', 'rosa', 'amor', 'afecto'],
-    },
-    '🩵': {
-        name: 'corazón_azul_claro',
-        keywords: ['corazón', 'azul', 'claro', 'amor', 'afecto'],
-    },
-    '🩶': {
-        name: 'corazón_gris',
-        keywords: ['corazón', 'gris', 'amor', 'afecto'],
-    },
-    '🧡': {
-        name: 'corazón_naranja',
-        keywords: ['corazón', 'emoción', 'naranja'],
-    },
-    '💛': {
-        name: 'corazón_amarillo',
-        keywords: ['amarillo', 'corazón', 'emoción'],
-    },
-    '💚': {
-        name: 'corazón_verde',
-        keywords: ['corazón', 'emoción', 'verde'],
-    },
-    '💙': {
-        name: 'corazón_azul',
-        keywords: ['azul', 'corazón', 'emoción'],
-    },
-    '💜': {
-        name: 'corazón_púrpura',
-        keywords: ['corazón', 'emoción', 'morado'],
-    },
-    '🤎': {
-        name: 'corazón_marrón',
-        keywords: ['corazón', 'emoción', 'marrón'],
-    },
-    '🖤': {
-        name: 'corazón_negro',
-        keywords: ['corazón', 'negro'],
-    },
-    '🤍': {
-        name: 'corazón_blanco',
-        keywords: ['blanco', 'corazón', 'emoción'],
-    },
-    '💯': {
-        name: '100',
-        keywords: ['100', 'pleno', 'puntos', 'cien puntos'],
-    },
-    '💢': {
-        name: 'ira',
-        keywords: ['cómic', 'enfadado', 'enfado', 'símbolo de enfado'],
-    },
-    '💥': {
-        name: 'bum',
-        keywords: ['cómic', 'colisión'],
-    },
-    '💫': {
-        name: 'mareado',
-        keywords: ['cómic', 'emoción', 'estrella', 'mareo', 'símbolo de mareo'],
-    },
-    '💦': {
-        name: 'gotas_de_sudor',
-        keywords: ['cómic', 'emoción', 'sudor', 'gotas de sudor'],
-    },
-    '🫧': {
-        name: 'burbujas',
-        keywords: ['burbujas', 'jabón', 'agua', 'flotar'],
-    },
-    '💨': {
-        name: 'guión',
-        keywords: ['carrera', 'cómic', 'correr', 'humo', 'salir corriendo'],
-    },
-    '🕳️': {
-        name: 'agujero',
-        keywords: ['orificio', 'agujero'],
-    },
-    '💣': {
-        name: 'bomba',
-        keywords: ['cómic', 'emoción', 'bomba'],
-    },
-    '💬': {
-        name: 'bocadillo_de_diálogo',
-        keywords: ['bocadillo', 'cómic', 'conversación', 'diálogo', 'bocadillo de diálogo'],
-    },
-    '👁️‍🗨️': {
-        name: 'ojo-en-globo-de-texto',
-        keywords: ['bocadillo de texto', 'ojo', 'testigo', 'ojo en bocadillo de texto'],
-    },
-    '🗨️': {
-        name: 'bocadillo_a_la_izquierda',
-        keywords: ['bocadillo', 'burbuja', 'conversación', 'diálogo', 'bocadillo de diálogo por la izquierda'],
-    },
-    '🗯️': {
-        name: 'bocadillo_para_palabras_de_enfado',
-        keywords: ['bocadillo', 'cabreo', 'enfado', 'rabia', 'bocadillo de enfado por la derecha'],
-    },
-    '💭': {
-        name: 'bocadillo_para_pensamientos',
-        keywords: ['bocadillo', 'burbuja', 'cómic', 'pensamiento', 'bocadillo de pensamiento'],
-    },
-    '💤': {
-        name: 'zzz',
-        keywords: ['cómic', 'dormir', 'sueño', 'zzz', 'símbolo de sueño'],
-    },
-    '👋': {
-        name: 'hola',
-        keywords: ['agitar', 'mano', 'saludar', 'saludo', 'mano saludando'],
-    },
-    '🤚': {
-        name: 'palma_de_mano_levantada',
-        keywords: ['dorso', 'levantado', 'mano', 'dorso de la mano'],
-    },
-    '🖐️': {
-        name: 'mano_levantada_con_los_dedos_extendidos',
-        keywords: ['abierta', 'dedo', 'mano'],
-    },
-    '✋': {
-        name: 'mano',
-        keywords: ['choca esos cinco', 'levantada', 'mano'],
-    },
-    '🖖': {
-        name: 'saludo_de_spock',
-        keywords: ['mano', 'saludo', 'spock', 'vulcano'],
-    },
-    '👌': {
-        name: 'mano_con_signo_de_aprobación',
-        keywords: ['aprobación', 'mano', 'ok', 'señal de aprobación con la mano'],
-    },
-    '🤌': {
-        name: 'dedos_juntos_apuntando_hacia_arriba',
-        keywords: ['dedos', 'gesto', 'italia', 'italiano', 'mano', 'sarcasmo', 'dedos juntos apuntando hacia arriba'],
-    },
-    '🤏': {
-        name: 'mano_pellizcando',
-        keywords: ['pellizco', 'poco', 'poquito', 'mano pellizcando'],
-    },
-    '🫳': {
-        name: 'mano_con_palma_hacia_abajo',
-        keywords: ['mano', 'palma abajo', 'gesto'],
-    },
-    '🫴': {
-        name: 'mano_con_palma_hacia_arriba',
-        keywords: ['mano', 'palma arriba', 'gesto'],
-    },
-    '✌️': {
-        name: 'v',
-        keywords: ['mano', 'señal de victoria', 'victoria', 'mano con señal de victoria'],
-    },
-    '🤞': {
-        name: 'dedos_cruzados',
-        keywords: ['cruzar', 'dedos', 'mano', 'suerte', 'dedos cruzados'],
-    },
-    '🫰': {
-        name: 'mano_con_dedos_cruzados',
-        keywords: ['mano', 'dedo', 'pulgar', 'cruzado', 'gesto'],
-    },
-    '🤟': {
-        name: 'te_amo_en_lenguaje_de_señas',
-        keywords: ['mano', 'quiero', 'gesto de te quiero'],
-    },
-    '🤘': {
-        name: 'los_cuernos',
-        keywords: ['cuernos', 'dedo', 'mano', 'rock', 'mano haciendo el signo de cuernos'],
-    },
-    '🤙': {
-        name: 'mano_llámame',
-        keywords: ['llamar', 'mano', 'meñique', 'pulgar', 'mano haciendo el gesto de llamar'],
-    },
-    '🫱': {
-        name: 'mano_derecha',
-        keywords: ['mano', 'derecha', 'apuntar', 'gesto'],
-    },
-    '🫲': {
-        name: 'mano_izquierda',
-        keywords: ['mano', 'izquierda', 'apuntar', 'gesto'],
-    },
-    '👈': {
-        name: 'apuntando_hacia_la_izquierda',
-        keywords: ['dedo', 'índice', 'izquierda', 'mano', 'dorso de mano con índice a la izquierda'],
-    },
-    '👉': {
-        name: 'apuntando_hacia_la_derecha',
-        keywords: ['dedo', 'derecha', 'índice', 'mano', 'dorso de mano con índice a la derecha'],
-    },
-    '👆': {
-        name: 'apuntando_hacia_arriba_2',
-        keywords: ['apuntar', 'arriba', 'dedo', 'mano', 'dorso de mano con índice hacia arriba'],
-    },
-    '🖕': {
-        name: 'dedo_corazón',
-        keywords: ['corazón', 'dedo', 'mano', 'peineta', 'dedo corazón hacia arriba'],
-    },
-    '👇': {
-        name: 'apuntando_hacia_abajo',
-        keywords: ['abajo', 'apuntar', 'dedo', 'mano', 'dorso de mano con índice hacia abajo'],
-    },
-    '☝️': {
-        name: 'apuntando_hacia_arriba',
-        keywords: ['apuntar', 'arriba', 'dedo', 'mano', 'dedo índice hacia arriba'],
-    },
-    '👍': {
-        name: '+1',
-        keywords: ['arriba', 'mano', 'pulgar', 'señal', 'pulgar hacia arriba'],
-    },
-    '👎': {
-        name: '-1',
-        keywords: ['abajo', 'mano', 'pulgar', 'señal', 'pulgar hacia abajo'],
-    },
-    '✊': {
-        name: 'puño',
-        keywords: ['cerrado', 'mano', 'puñetazo', 'puño', 'puño en alto'],
-    },
-    '👊': {
-        name: 'puñetazo',
-        keywords: ['puñetazo', 'puño', 'puño cerrado'],
-    },
-    '🤛': {
-        name: 'puño-hacia-izquierda',
-        keywords: ['izquierda', 'puño', 'puño hacia la izquierda'],
-    },
-    '🤜': {
-        name: 'puño_hacia_la_derecha',
-        keywords: ['derecha', 'puño', 'puño hacia la derecha'],
-    },
-    '🫷': {
-        name: 'mano_empujando_hacia_la_izquierda',
-        keywords: ['mano', 'empujando', 'izquierda', 'gesto'],
-    },
-    '🫸': {
-        name: 'mano_empujando_hacia_la_derecha',
-        keywords: ['mano', 'empujando', 'derecha', 'gesto'],
-    },
-    '👏': {
-        name: 'aplauso',
-        keywords: ['aplaudir', 'manos', 'palmas', 'señal', 'manos aplaudiendo'],
-    },
-    '🙌': {
-        name: 'manos_levantadas',
-        keywords: ['celebración', 'gesto', 'hurra', 'mano', 'manos levantadas celebrando'],
-    },
-    '🫶': {
-        name: 'manos_haciendo_corazón',
-        keywords: ['mano', 'corazón', 'gesto', 'amor'],
-    },
-    '👐': {
-        name: 'manos_abiertas',
-        keywords: ['abiertas', 'manos'],
-    },
-    '🤲': {
-        name: 'palmas_hacia_arriba_juntas',
-        keywords: ['oración', 'palmas hacia arriba juntas'],
-    },
-    '🤝': {
-        name: 'apretón-manos',
-        keywords: ['acuerdo', 'apretón', 'manos', 'apretón de manos'],
-    },
-    '🙏': {
-        name: 'rezo',
-        keywords: ['gracias', 'mano', 'oración', 'orar', 'por favor', 'rezar', 'manos en oración'],
-    },
-    '🫵': {
-        name: 'mano_apuntando',
-        keywords: ['mano', 'apuntar', 'espectador', 'gesto'],
-    },
-    '✍️': {
-        name: 'mano_escribiendo',
-        keywords: ['escribir', 'lápiz', 'mano', 'mano escribiendo'],
-    },
-    '💅': {
-        name: 'cuidado_de_las_uñas',
-        keywords: ['cosmética', 'esmalte', 'manicura', 'uñas', 'pintarse las uñas'],
-    },
-    '🤳': {
-        name: 'selfi',
-        keywords: ['autofoto', 'cámara', 'selfie', 'teléfono', 'selfi'],
-    },
-    '💪': {
-        name: 'músculo',
-        keywords: ['bíceps', 'cómic', 'flexionado', 'fuerte', 'músculo'],
-    },
-    '🦾': {
-        name: 'brazo_mecánico',
-        keywords: ['accesibilidad', 'ortopedia', 'prótesis', 'brazo mecánico'],
-    },
-    '🦿': {
-        name: 'pierna_mecánica',
-        keywords: ['accesibilidad', 'ortopedia', 'prótesis', 'pierna mecánica'],
-    },
-    '🦵': {
-        name: 'pierna',
-        keywords: ['extremidad', 'patada', 'pierna'],
-    },
-    '🦶': {
-        name: 'pie_humano',
-        keywords: ['patada', 'pisotón', 'pie'],
-    },
-    '👂': {
-        name: 'oreja',
-        keywords: ['cuerpo', 'oreja'],
-    },
-    '🦻': {
-        name: 'oreja_con_audifono',
-        keywords: ['accesibilidad', 'audífono', 'prótesis auditiva', 'sordo', 'oreja con audífono'],
-    },
-    '👃': {
-        name: 'nariz',
-        keywords: ['cuerpo', 'nariz'],
-    },
-    '🧠': {
-        name: 'cerebro',
-        keywords: ['inteligente', 'cerebro'],
-    },
-    '🫀': {
-        name: 'corazón_humano',
-        keywords: ['cardiología', 'corazón', 'latido', 'órgano', 'pulso', 'anatomía', 'corazón humano'],
-    },
-    '🫁': {
-        name: 'pulmones',
-        keywords: ['exhalar', 'inhalar', 'órgano', 'respiración', 'respirar', 'pulmones'],
-    },
-    '🦷': {
-        name: 'diente',
-        keywords: ['dentista', 'molar', 'muela', 'diente'],
-    },
-    '🦴': {
-        name: 'hueso',
-        keywords: ['esqueleto', 'hueso'],
-    },
-    '👀': {
-        name: 'ojos',
-        keywords: ['cara', 'ojos'],
-    },
-    '👁️': {
-        name: 'ojo',
-        keywords: ['cuerpo', 'ojo'],
-    },
-    '👅': {
-        name: 'lengua',
-        keywords: ['cuerpo', 'lengua'],
-    },
-    '👄': {
-        name: 'labios',
-        keywords: ['labios', 'boca'],
-    },
-    '🫦': {
-        name: 'labios_mordiendo',
-        keywords: ['mordiendo', 'labio', 'nervioso', 'coqueteo'],
-    },
-    '👶': {
-        name: 'bebé',
-        keywords: ['joven', 'niño', 'bebé'],
-    },
-    '🧒': {
-        name: 'niño',
-        keywords: ['crío', 'género', 'joven', 'neutro', 'infante'],
-    },
-    '👦': {
-        name: 'chico',
-        keywords: ['joven', 'niño'],
-    },
-    '👧': {
-        name: 'niña',
-        keywords: ['chica', 'joven', 'niña'],
-    },
-    '🧑': {
-        name: 'adulto',
-        keywords: ['género', 'neutro', 'persona adulta'],
-    },
-    '👱': {
-        name: 'persona_rubia',
-        keywords: ['rubia', 'rubias', 'rubio', 'rubios', 'persona adulta rubia'],
-    },
-    '👨': {
-        name: 'hombre',
-        keywords: ['adulto', 'hombre'],
-    },
-    '🧔': {
-        name: 'persona_barba',
-        keywords: ['barbas', 'barbudo', 'persona', 'persona con barba'],
-    },
-    '🧔‍♂️': {
-        name: 'persona_barba',
-        keywords: ['barba', 'hombre', 'hombre: barba'],
-    },
-    '🧔‍♀️': {
-        name: 'persona_barba',
-        keywords: ['barba', 'mujer', 'mujer: barba'],
-    },
-    '👨‍🦰': {
-        name: 'hombre_pelirrojo',
-        keywords: ['adulto', 'hombre', 'pelo pelirrojo'],
-    },
-    '👨‍🦱': {
-        name: 'hombre_con_pelo_rizado',
-        keywords: ['adulto', 'hombre', 'pelo rizado'],
-    },
-    '👨‍🦳': {
-        name: 'hombre_con_pelo_blanco',
-        keywords: ['adulto', 'hombre', 'pelo blanco'],
-    },
-    '👨‍🦲': {
-        name: 'hombre_calvo',
-        keywords: ['adulto', 'hombre', 'sin pelo'],
-    },
-    '👩': {
-        name: 'mujer',
-        keywords: ['adulta', 'mujer'],
-    },
-    '👩‍🦰': {
-        name: 'mujer_pelirroja',
-        keywords: ['adulta', 'mujer', 'pelo pelirrojo'],
-    },
-    '🧑‍🦰': {
-        name: 'persona_pelirroja',
-        keywords: ['género', 'neutro', 'pelo pelirrojo', 'persona adulta'],
-    },
-    '👩‍🦱': {
-        name: 'mujer_de_pelo_rizado',
-        keywords: ['adulta', 'mujer', 'pelo rizado'],
-    },
-    '🧑‍🦱': {
-        name: 'persona_con_pelo_rizado',
-        keywords: ['género', 'neutro', 'pelo rizado', 'persona adulta'],
-    },
-    '👩‍🦳': {
-        name: 'mujer_con_pelo_blanco',
-        keywords: ['adulta', 'mujer', 'pelo blanco'],
-    },
-    '🧑‍🦳': {
-        name: 'persona_con_pelo_blanco',
-        keywords: ['género', 'neutro', 'pelo blanco', 'persona adulta'],
-    },
-    '👩‍🦲': {
-        name: 'mujer_calva',
-        keywords: ['adulta', 'mujer', 'sin pelo'],
-    },
-    '🧑‍🦲': {
-        name: 'persona_calva',
-        keywords: ['género', 'neutro', 'persona adulta', 'sin pelo'],
-    },
-    '👱‍♀️': {
-        name: 'mujer-pelo-rubio',
-        keywords: ['mujer', 'rubia', 'rubiales'],
-    },
-    '👱‍♂️': {
-        name: 'hombre-pelo-rubio',
-        keywords: ['hombre', 'rubiales', 'rubio'],
-    },
-    '🧓': {
-        name: 'adulto_mayor',
-        keywords: ['adulto', 'género neutro', 'género no especificado', 'maduro', 'mayor', 'persona mayor'],
-    },
-    '👴': {
-        name: 'hombre_mayor',
-        keywords: ['hombre', 'mayor', 'anciano'],
-    },
-    '👵': {
-        name: 'mujer_mayor',
-        keywords: ['mayor', 'mujer', 'anciana'],
-    },
-    '🙍': {
-        name: 'persona_con_el_ceño_fruncido',
-        keywords: ['ceño', 'fruncido', 'gesto', 'persona', 'persona frunciendo el ceño'],
-    },
-    '🙍‍♂️': {
-        name: 'hombre_con_ceño_fruncido',
-        keywords: ['ceño', 'fruncido', 'gesto', 'hombre', 'hombre frunciendo el ceño'],
-    },
-    '🙍‍♀️': {
-        name: 'mujer_con_ceño_fruncido',
-        keywords: ['ceño', 'fruncido', 'gesto', 'mujer', 'mujer frunciendo el ceño'],
-    },
-    '🙎': {
-        name: 'persona_haciendo_pucheros',
-        keywords: ['gesto', 'persona', 'pucheros', 'persona haciendo pucheros'],
-    },
-    '🙎‍♂️': {
-        name: 'hombre_enfadado',
-        keywords: ['gesto', 'hombre', 'pucheros', 'hombre haciendo pucheros'],
-    },
-    '🙎‍♀️': {
-        name: 'mujer_enfadada',
-        keywords: ['gesto', 'mujer', 'pucheros', 'mujer haciendo pucheros'],
-    },
-    '🙅': {
-        name: 'prohibido',
-        keywords: ['gesto', 'mano', 'no', 'prohibido', 'persona haciendo el gesto de "no"'],
-    },
-    '🙅‍♂️': {
-        name: 'hombre_gesticulando_no',
-        keywords: ['gesto', 'hombre', 'mano', 'prohibido', 'hombre haciendo el gesto de "no"'],
-    },
-    '🙅‍♀️': {
-        name: 'mujer_gesticulando_no',
-        keywords: ['gesto', 'mano', 'mujer', 'prohibido', 'mujer haciendo el gesto de "no"'],
-    },
-    '🙆': {
-        name: 'mujer_con_signo_de_aprobación',
-        keywords: ['gesto', 'mano', 'OK', 'vale', 'persona haciendo el gesto de "de acuerdo"'],
-    },
-    '🙆‍♂️': {
-        name: 'hombre_gesticulando_sí',
-        keywords: ['gesto', 'mano', 'OK', 'vale', 'hombre haciendo el gesto de "de acuerdo"'],
-    },
-    '🙆‍♀️': {
-        name: 'mujer_gesticulando_sí',
-        keywords: ['gesto', 'mano', 'OK', 'vale', 'mujer haciendo el gesto de "de acuerdo"'],
-    },
-    '💁': {
-        name: 'recepcionista_de_información',
-        keywords: ['información', 'mano', 'mostrador', 'persona', 'persona de mostrador de información'],
-    },
-    '💁‍♂️': {
-        name: 'hombre_con_palma_hacia_arriba',
-        keywords: ['hombre', 'información', 'mano', 'mostrador', 'empleado de mostrador de información'],
-    },
-    '💁‍♀️': {
-        name: 'mujer_con_palma_hacia_arriba',
-        keywords: ['información', 'mano', 'mostrador', 'mujer', 'empleada de mostrador de información'],
-    },
-    '🙋': {
-        name: 'levantando_la_mano',
-        keywords: ['feliz', 'gesto', 'levantar', 'mano', 'persona con la mano levantada'],
-    },
-    '🙋‍♂️': {
-        name: 'hombre_levantando_mano',
-        keywords: ['gesto', 'hombre', 'levantar', 'mano', 'hombre con la mano levantada'],
-    },
-    '🙋‍♀️': {
-        name: 'mujer_levantando_mano',
-        keywords: ['gesto', 'levantar', 'mano', 'mujer', 'mujer con la mano levantada'],
-    },
-    '🧏': {
-        name: 'persona_sorda',
-        keywords: ['accesibilidad', 'escuchar', 'oído', 'oír', 'sordera', 'persona sorda'],
-    },
-    '🧏‍♂️': {
-        name: 'hombre_sordo',
-        keywords: ['hombre', 'sordera', 'sordo'],
-    },
-    '🧏‍♀️': {
-        name: 'mujer_sorda',
-        keywords: ['mujer', 'sorda', 'sordera'],
-    },
-    '🙇': {
-        name: 'reverencia',
-        keywords: ['disculpa', 'gesto', 'perdón', 'reverencia', 'persona haciendo una reverencia'],
-    },
-    '🙇‍♂️': {
-        name: 'hombre_reverencia',
-        keywords: ['disculpa', 'gesto', 'perdón', 'reverencia', 'hombre haciendo una reverencia'],
-    },
-    '🙇‍♀️': {
-        name: 'mujer_reverencia',
-        keywords: ['disculpa', 'gesto', 'perdón', 'reverencia', 'mujer haciendo una reverencia'],
-    },
-    '🤦': {
-        name: 'mano_en_la_cara',
-        keywords: ['facepalm', 'frente', 'incredulidad', 'mano', 'persona con la mano en la frente'],
-    },
-    '🤦‍♂️': {
-        name: 'hombre_mano_en_la_cara',
-        keywords: ['facepalm', 'frente', 'incredulidad', 'mano', 'hombre con la mano en la frente'],
-    },
-    '🤦‍♀️': {
-        name: 'mujer_mano_en_la_cara',
-        keywords: ['facepalm', 'frente', 'incredulidad', 'mano', 'mujer con la mano en la frente'],
-    },
-    '🤷': {
-        name: 'encoger_los_hombros',
-        keywords: ['duda', 'encogerse', 'hombros', 'indiferencia', 'persona encogida de hombros'],
-    },
-    '🤷‍♂️': {
-        name: 'hombre_encogiéndose_de_hombros',
-        keywords: ['duda', 'encogerse', 'hombros', 'indiferencia', 'hombre encogido de hombros'],
-    },
-    '🤷‍♀️': {
-        name: 'mujer_encogiéndose_de_hombros',
-        keywords: ['duda', 'encogerse', 'hombros', 'indiferencia', 'mujer encogida de hombros'],
-    },
-    '🧑‍⚕️': {
-        name: 'profesional_sanitario',
-        keywords: ['doctor', 'enfermero', 'médico', 'salud', 'terapeuta', 'profesional sanitario'],
-    },
-    '👨‍⚕️': {
-        name: 'doctor',
-        keywords: ['doctor', 'enfermero', 'médico', 'sanitario', 'terapeuta hombre', 'profesional sanitario hombre'],
-    },
-    '👩‍⚕️': {
-        name: 'doctora',
-        keywords: ['doctora', 'enfermera', 'médica', 'sanitaria', 'terapeuta mujer', 'profesional sanitario mujer'],
-    },
-    '🧑‍🎓': {
-        name: 'estudiante',
-        keywords: ['graduado', 'licenciado', 'universitario', 'estudiante'],
-    },
-    '👨‍🎓': {
-        name: 'alumno',
-        keywords: ['estudiante', 'graduado', 'hombre', 'licenciado', 'universitario'],
-    },
-    '👩‍🎓': {
-        name: 'alumna',
-        keywords: ['estudiante', 'graduada', 'licenciada', 'mujer', 'universitaria'],
-    },
-    '🧑‍🏫': {
-        name: 'docente',
-        keywords: ['educador', 'enseñanza', 'instructor', 'maestro', 'profesor', 'docente'],
-    },
-    '👨‍🏫': {
-        name: 'profesor',
-        keywords: ['educador', 'hombre', 'instructor', 'maestro', 'profesor', 'docente hombre'],
-    },
-    '👩‍🏫': {
-        name: 'profesora',
-        keywords: ['educadora', 'instructora', 'maestra', 'mujer', 'profesora', 'docente mujer'],
-    },
-    '🧑‍⚖️': {
-        name: 'persona_juez',
-        keywords: ['juez', 'juicio', 'magistrado', 'fiscal'],
-    },
-    '👨‍⚖️': {
-        name: 'juez',
-        keywords: ['hombre', 'juez', 'justicia', 'magistrado', 'fiscal hombre'],
-    },
-    '👩‍⚖️': {
-        name: 'jueza',
-        keywords: ['jueza', 'justicia', 'magistrada', 'mujer', 'fiscal mujer'],
-    },
-    '🧑‍🌾': {
-        name: 'persona_agricultora',
-        keywords: ['agricultor', 'cultivador', 'granjero', 'jardinero', 'labrador', 'profesional de la agricultura'],
-    },
-    '👨‍🌾': {
-        name: 'agricultor',
-        keywords: ['agricultor', 'campo', 'granjero', 'hombre', 'labrador', 'profesional de la agricultura hombre'],
-    },
-    '👩‍🌾': {
-        name: 'agricultora',
-        keywords: ['agricultora', 'campo', 'granjera', 'labradora', 'mujer', 'profesional de la agricultura mujer'],
-    },
-    '🧑‍🍳': {
-        name: 'persona_cocinera',
-        keywords: ['cocinero', 'cocinillas', 'guisandero', 'pinche', 'chef'],
-    },
-    '👨‍🍳': {
-        name: 'cocinero',
-        keywords: ['chef', 'cocinero', 'hombre', 'pinche'],
-    },
-    '👩‍🍳': {
-        name: 'cocinera',
-        keywords: ['chef', 'cocinera', 'mujer', 'pinche'],
-    },
-    '🧑‍🔧': {
-        name: 'persona_mecánica',
-        keywords: ['electricista', 'fontanero', 'mecánico', 'operario', 'técnico', 'profesional de la mecánica'],
-    },
-    '👨‍🔧': {
-        name: 'mecánico',
-        keywords: ['electricista', 'fontanero', 'hombre', 'mecánico', 'operario', 'profesional de la mecánica hombre'],
-    },
-    '👩‍🔧': {
-        name: 'mecánica',
-        keywords: ['electricista', 'fontanera', 'mecánica', 'mujer', 'operaria', 'profesional de la mecánica mujer'],
-    },
-    '🧑‍🏭': {
-        name: 'profesional_industrial',
-        keywords: ['fábrica', 'montaje', 'obrero', 'operario', 'trabajador', 'profesional industrial'],
-    },
-    '👨‍🏭': {
-        name: 'trabajador',
-        keywords: ['fábrica', 'montaje', 'obrero', 'operario', 'trabajador', 'profesional industrial hombre'],
-    },
-    '👩‍🏭': {
-        name: 'trabajadora',
-        keywords: ['fábrica', 'montaje', 'obrera', 'operaria', 'trabajadora', 'profesional industrial mujer'],
-    },
-    '🧑‍💼': {
-        name: 'oficinista',
-        keywords: ['arquitecto', 'director', 'ejecutivo', 'empresa', 'oficinista'],
-    },
-    '👨‍💼': {
-        name: 'oficinista_hombre',
-        keywords: ['director', 'ejecutivo', 'empresa', 'hombre', 'oficina', 'oficinista'],
-    },
-    '👩‍💼': {
-        name: 'oficinista_mujer',
-        keywords: ['directora', 'ejecutiva', 'empresa', 'mujer', 'oficina', 'oficinista'],
-    },
-    '🧑‍🔬': {
-        name: 'persona_científica',
-        keywords: ['biólogo', 'científico', 'físico', 'investigador', 'químico', 'profesional de la ciencia'],
-    },
-    '👨‍🔬': {
-        name: 'científico',
-        keywords: ['biólogo', 'científico', 'físico', 'hombre', 'químico', 'profesional de la ciencia hombre'],
-    },
-    '👩‍🔬': {
-        name: 'científica',
-        keywords: ['bióloga', 'científica', 'física', 'mujer', 'química', 'profesional de la ciencia mujer'],
-    },
-    '🧑‍💻': {
-        name: 'persona_tecnóloga',
-        keywords: ['desarrollador', 'informático', 'programador', 'software', 'tecnólogo', 'profesional de la tecnología'],
-    },
-    '👨‍💻': {
-        name: 'tecnólogo',
-        keywords: ['desarrollador', 'hombre', 'informático', 'programador', 'tecnólogo', 'profesional de la tecnología hombre'],
-    },
-    '👩‍💻': {
-        name: 'tecnóloga',
-        keywords: ['desarrolladora', 'informática', 'mujer', 'programadora', 'tecnóloga', 'profesional de la tecnología mujer'],
-    },
-    '🧑‍🎤': {
-        name: 'cantante',
-        keywords: ['artista', 'estrella', 'rock', 'cantante'],
-    },
-    '👨‍🎤': {
-        name: 'cantante_hombre',
-        keywords: ['artista', 'estrella', 'hombre', 'rock', 'cantante hombre'],
-    },
-    '👩‍🎤': {
-        name: 'cantante_mujer',
-        keywords: ['artista', 'estrella', 'mujer', 'rock', 'cantante mujer'],
-    },
-    '🧑‍🎨': {
-        name: 'artista',
-        keywords: ['paleta', 'pintor', 'pinturas', 'artista'],
-    },
-    '👨‍🎨': {
-        name: 'artista_hombre',
-        keywords: ['hombre', 'paleta', 'pintor', 'pinturas', 'artista hombre'],
-    },
-    '👩‍🎨': {
-        name: 'artista_mujer',
-        keywords: ['mujer', 'paleta', 'pintora', 'pinturas', 'artista mujer'],
-    },
-    '🧑‍✈️': {
-        name: 'piloto',
-        keywords: ['avión', 'capitán', 'vuelo', 'piloto'],
-    },
-    '👨‍✈️': {
-        name: 'piloto_hombre',
-        keywords: ['avión', 'capitán', 'hombre', 'piloto', 'vuelo'],
-    },
-    '👩‍✈️': {
-        name: 'piloto_mujer',
-        keywords: ['avión', 'capitana', 'mujer', 'piloto', 'vuelo'],
-    },
-    '🧑‍🚀': {
-        name: 'astronauta',
-        keywords: ['cohete', 'espacio', 'astronauta'],
-    },
-    '👨‍🚀': {
-        name: 'astronauta_hombre',
-        keywords: ['astronauta', 'cohete', 'espacio', 'hombre'],
-    },
-    '👩‍🚀': {
-        name: 'astronauta_mujer',
-        keywords: ['astronauta', 'cohete', 'espacio', 'mujer'],
-    },
-    '🧑‍🚒': {
-        name: 'persona_bombero',
-        keywords: ['camión', 'manguera', 'bombero'],
-    },
-    '👨‍🚒': {
-        name: 'bombero',
-        keywords: ['apagafuegos', 'bombero', 'camión', 'manguera', 'bombero hombre'],
-    },
-    '👩‍🚒': {
-        name: 'bombera',
-        keywords: ['apagafuegos', 'bombera mujera', 'camión', 'manguera', 'bombera'],
-    },
-    '👮': {
-        name: 'policía',
-        keywords: ['agente', 'personas', 'policía', 'agente de policía'],
-    },
-    '👮‍♂️': {
-        name: 'policía_hombre',
-        keywords: ['agente', 'hombre', 'poli', 'policía', 'agente de policía hombre'],
-    },
-    '👮‍♀️': {
-        name: 'policía_mujer',
-        keywords: ['agente', 'mujer', 'poli', 'policía', 'agente de policía mujer'],
-    },
-    '🕵️': {
-        name: 'sabueso_o_espía',
-        keywords: ['cara', 'espía', 'detective'],
-    },
-    '🕵️‍♂️': {
-        name: 'detective_hombre',
-        keywords: ['agente', 'detective', 'espía', 'hombre', 'investigador'],
-    },
-    '🕵️‍♀️': {
-        name: 'detective_mujer',
-        keywords: ['agente', 'detective', 'espía', 'investigadora', 'mujer'],
-    },
-    '💂': {
-        name: 'guardia',
-        keywords: ['guardia real británica', 'guardia'],
-    },
-    '💂‍♂️': {
-        name: 'guardia_hombre',
-        keywords: ['guardia', 'hombre', 'vigilante'],
-    },
-    '💂‍♀️': {
-        name: 'guardia_mujer',
-        keywords: ['guardia', 'mujer', 'vigilante'],
-    },
+/* eslint-disable max-len */
+const translations = {
+    common: {
+        cancel: 'Cancelar',
+        dismiss: 'Descartar',
+        yes: 'Sí',
+        no: 'No',
+        ok: 'OK',
+        notNow: 'Ahora no',
+        learnMore: 'Más información.',
+        buttonConfirm: 'Ok, entendido',
+        name: 'Nombre',
+        attachment: 'Archivo adjunto',
+        attachments: 'Archivos adjuntos',
+        from: 'De',
+        to: 'A',
+        in: 'En',
+        optional: 'Opcional',
+        new: 'Nuevo',
+        center: 'Centrar',
+        search: 'Buscar',
+        reports: 'Informes',
+        find: 'Encontrar',
+        searchWithThreeDots: 'Buscar...',
+        select: 'Seleccionar',
+        selectMultiple: 'Seleccionar varios',
+        next: 'Siguiente',
+        create: 'Crear',
+        previous: 'Anterior',
+        goBack: 'Volver',
+        add: 'Añadir',
+        resend: 'Reenviar',
+        save: 'Guardar',
+        saveChanges: 'Guardar cambios',
+        submit: 'Enviar',
+        rotate: 'Rotar',
+        zoom: 'Zoom',
+        password: 'Contraseña',
+        magicCode: 'Código mágico',
+        twoFactorCode: 'Autenticación de dos factores',
+        workspaces: 'Espacios de trabajo',
+        inbox: 'Recibidos',
+        group: 'Grupo',
+        profile: 'Perfil',
+        referral: 'Remisión',
+        payments: 'Pagos',
+        approvals: 'Aprobaciones',
+        wallet: 'Billetera',
+        preferences: 'Preferencias',
+        view: 'Ver',
+        review: 'Revisar',
+        not: 'No',
+        privacyPolicy: 'la Política de Privacidad de Expensify',
+        addCardTermsOfService: 'Términos de Servicio',
+        perPerson: 'por persona',
+        signIn: 'Conectarse',
+        signInWithGoogle: 'Iniciar sesión con Google',
+        signInWithApple: 'Iniciar sesión con Apple',
+        signInWith: 'Iniciar sesión con',
+        continue: 'Continuar',
+        firstName: 'Nombre',
+        lastName: 'Apellidos',
+        scanning: 'Escaneando',
+        phone: 'Teléfono',
+        phoneNumber: 'Número de teléfono',
+        phoneNumberPlaceholder: '(xxx) xxx-xxxx',
+        email: 'Correo electrónico',
+        and: 'y',
+        or: 'o',
+        details: 'Detalles',
+        privacy: 'Privacidad',
+        hidden: 'Oculto',
+        visible: 'Visible',
+        delete: 'Eliminar',
+        archived: 'archivado',
+        contacts: 'Contactos',
+        recents: 'Recientes',
+        close: 'Cerrar',
+        download: 'Descargar',
+        downloading: 'Descargando',
+        uploading: 'Subiendo',
+        pin: 'Fijar',
+        unPin: 'Desfijar',
+        back: 'Volver',
+        saveAndContinue: 'Guardar y continuar',
+        settings: 'Configuración',
+        termsOfService: 'Términos de Servicio',
+        members: 'Miembros',
+        invite: 'Invitar',
+        here: 'aquí',
+        date: 'Fecha',
+        dob: 'Fecha de nacimiento',
+        currentYear: 'Año actual',
+        currentMonth: 'Mes actual',
+        ssnLast4: 'Últimos 4 dígitos de tu SSN',
+        ssnFull9: 'Los 9 dígitos del SSN',
+        addressLine: ({lineNumber}: AddressLineParams) => `Dirección línea ${lineNumber}`,
+        personalAddress: 'Dirección física personal',
+        companyAddress: 'Dirección física de la empresa',
+        noPO: 'Nada de apartados de correos ni direcciones de envío, por favor.',
+        city: 'Ciudad',
+        state: 'Estado',
+        streetAddress: 'Dirección',
+        stateOrProvince: 'Estado / Provincia',
+        country: 'País',
+        zip: 'Código postal',
+        zipPostCode: 'Código postal',
+        whatThis: '¿Qué es esto?',
+        iAcceptThe: 'Acepto los ',
+        remove: 'Eliminar',
+        admin: 'Administrador',
+        owner: 'Dueño',
+        dateFormat: 'AAAA-MM-DD',
+        send: 'Enviar',
+        na: 'N/A',
+        noResultsFound: 'No se han encontrado resultados',
+        recentDestinations: 'Destinos recientes',
+        timePrefix: 'Son las',
+        conjunctionFor: 'para',
+        todayAt: 'Hoy a las',
+        tomorrowAt: 'Mañana a las',
+        yesterdayAt: 'Ayer a las',
+        conjunctionAt: 'a',
+        conjunctionTo: 'a',
+        genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
+        percentage: 'Porcentaje',
+        error: {
+            invalidAmount: 'Importe no válido.',
+            acceptTerms: 'Debes aceptar los Términos de Servicio para continuar.',
+            phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            fieldRequired: 'Este campo es obligatorio.',
+            requestModified: 'Esta solicitud está siendo modificada por otro miembro.',
+            characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Se superó el límite de caracteres (${length}/${limit})`,
+            dateInvalid: 'Por favor, selecciona una fecha válida.',
+            invalidDateShouldBeFuture: 'Por favor, elige una fecha igual o posterior a hoy.',
+            invalidTimeShouldBeFuture: 'Por favor, elige una hora al menos un minuto en el futuro.',
+            invalidCharacter: 'Carácter invalido.',
+            enterMerchant: 'Introduce un comerciante.',
+            enterAmount: 'Introduce un importe.',
+            enterDate: 'Introduce una fecha.',
+            missingMerchantName: 'Falta el nombre del comerciante',
+            missingAmount: 'Falta el importe',
+            missingDate: 'Falta la fecha',
+            invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
+            pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar.',
+            pleaseSelectOne: 'Seleccione una de las opciones.',
+            invalidRateError: 'Por favor, introduce una tarifa válida.',
+            lowRateError: 'La tarifa debe ser mayor que 0.',
+            email: 'Por favor, introduzca una dirección de correo electrónico válida.',
+        },
+        comma: 'la coma',
+        semicolon: 'el punto y coma',
+        please: 'Por favor',
+        rename: 'Renombrar',
+        skip: 'Saltarse',
+        contactUs: 'contáctenos',
+        pleaseEnterEmailOrPhoneNumber: 'Por favor, escribe un correo electrónico o número de teléfono',
+        fixTheErrors: 'corrige los errores',
+        inTheFormBeforeContinuing: 'en el formulario antes de continuar',
+        confirm: 'Confirmar',
+        reset: 'Restablecer',
+        done: 'Listo',
+        more: 'Más',
+        debitCard: 'Tarjeta de débito',
+        bankAccount: 'Cuenta bancaria',
+        personalBankAccount: 'Cuenta bancaria personal',
+        businessBankAccount: 'Cuenta bancaria comercial',
+        join: 'Unirse',
+        leave: 'Salir',
+        decline: 'Rechazar',
+        transferBalance: 'Transferencia de saldo',
+        cantFindAddress: '¿No encuentras tu dirección? ',
+        enterManually: 'Introducir manualmente',
+        message: 'Chatear con ',
+        leaveThread: 'Salir del hilo',
+        you: 'Tú',
+        youAfterPreposition: 'ti',
+        your: 'tu',
+        conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
+        youAppearToBeOffline: 'Parece que estás desconectado.',
+        thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa.',
+        attachementWillBeAvailableOnceBackOnline: 'El archivo adjunto estará disponible cuando vuelvas a estar en línea.',
+        errorOccuredWhileTryingToPlayVideo: 'Se produjo un error al intentar reproducir este video.',
+        areYouSure: '¿Estás seguro?',
+        verify: 'Verifique',
+        yesContinue: 'Sí, continuar',
+        websiteExample: 'p. ej. https://www.expensify.com',
+        zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
+        description: 'Descripción',
+        with: 'con',
+        shareCode: 'Compartir código',
+        share: 'Compartir',
+        per: 'por',
+        mi: 'milla',
+        km: 'kilómetro',
+        copied: '¡Copiado!',
+        someone: 'Alguien',
+        total: 'Total',
+        edit: 'Editar',
+        letsDoThis: '¡Hagámoslo!',
+        letsStart: 'Empecemos',
+        showMore: 'Mostrar más',
+        merchant: 'Comerciante',
+        category: 'Categoría',
+        billable: 'Facturable',
+        nonBillable: 'No facturable',
+        tag: 'Etiqueta',
+        receipt: 'Recibo',
+        verified: 'Verificado',
+        replace: 'Sustituir',
+        distance: 'Distancia',
+        mile: 'milla',
+        miles: 'millas',
+        kilometer: 'kilómetro',
+        kilometers: 'kilómetros',
+        recent: 'Reciente',
+        all: 'Todo',
+        am: 'AM',
+        pm: 'PM',
+        tbd: 'Por determinar',
+        selectCurrency: 'Selecciona una moneda',
+        card: 'Tarjeta',
+        whyDoWeAskForThis: '¿Por qué pedimos esto?',
+        required: 'Obligatorio',
+        showing: 'Mostrando',
+        of: 'de',
+        default: 'Predeterminado',
+        update: 'Actualizar',
+        member: 'Miembro',
+        auditor: 'Auditor',
+        role: 'Role',
+        currency: 'Divisa',
+        rate: 'Tarifa',
+        emptyLHN: {
+            title: 'Woohoo! Todo al día.',
+            subtitleText1: 'Encuentra un chat usando el botón',
+            subtitleText2: 'o crea algo usando el botón',
+            subtitleText3: '.',
+        },
+        businessName: 'Nombre de la empresa',
+        clear: 'Borrar',
+        type: 'Tipo',
+        action: 'Acción',
+        expenses: 'Gastos',
+        tax: 'Impuesto',
+        shared: 'Compartidos',
+        drafts: 'Borradores',
+        finished: 'Finalizados',
+        upgrade: 'Mejora',
+        downgradeWorkspace: 'Desmejora tu espacio de trabajo',
+        companyID: 'Empresa ID',
+        userID: 'Usuario ID',
+        disable: 'Deshabilitar',
+        export: 'Exportar',
+        initialValue: 'Valor inicial',
+        currentDate: 'Fecha actual',
+        value: 'Valor',
+        downloadFailedTitle: 'Error en la descarga',
+        downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
+        filterLogs: 'Registros de filtrado',
+        network: 'La red',
+        reportID: 'ID del informe',
+        bankAccounts: 'Cuentas bancarias',
+        chooseFile: 'Elegir archivo',
+        dropTitle: 'Suéltalo',
+        dropMessage: 'Suelta tu archivo aquí',
+        enabled: 'Habilitado',
+        disabled: 'Desactivada',
+        ignore: 'Ignorar',
+        import: 'Importar',
+        offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
+        outstanding: 'Pendiente',
+        chats: 'Chats',
+        unread: 'No leído',
+        sent: 'Enviado',
+        links: 'Enlaces',
+        days: 'días',
+        address: 'Dirección',
+        hourAbbreviation: 'h',
+        minuteAbbreviation: 'm',
+        chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
+        chatNow: 'Chatear ahora',
+        destination: 'Destino',
+        subrate: 'Subtasa',
+        perDiem: 'Per diem',
+        validate: 'Validar',
+        downloadAsPDF: 'Descargar como PDF',
+        downloadAsCSV: 'Descargar como CSV',
+        help: 'Ayuda',
+        expenseReports: 'Informes de Gastos',
+        rateOutOfPolicy: 'Tasa fuera de póliza',
+    },
+    supportalNoAccess: {
+        title: 'No tan rápido',
+        description: 'No estás autorizado para realizar esta acción mientras estás conectado como soporte.',
+    },
+    connectionComplete: {
+        title: 'Conexión completa',
+        supportingText: 'Ya puedes cerrar esta página y volver a la App de Expensify.',
+    },
+    location: {
+        useCurrent: 'Usar ubicación actual',
+        notFound: 'No pudimos encontrar tu ubicación. Inténtalo de nuevo o introduce una dirección manualmente.',
+        permissionDenied: 'Parece que has denegado el permiso a tu ubicación.',
+        please: 'Por favor,',
+        allowPermission: 'habilita el permiso de ubicación en la configuración',
+        tryAgain: 'e inténtalo de nuevo.',
+    },
+    anonymousReportFooter: {
+        logoTagline: 'Únete a la discusión.',
+    },
+    attachmentPicker: {
+        cameraPermissionRequired: 'Permiso para acceder a la cámara',
+        expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a la cámara. Haz click en configuración para actualizar los permisos.',
+        attachmentError: 'Error al adjuntar archivo',
+        errorWhileSelectingAttachment: 'Se ha producido un error al seleccionar un archivo adjunto. Por favor, inténtalo de nuevo.',
+        errorWhileSelectingCorruptedAttachment: 'Se ha producido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
+        takePhoto: 'Hacer una foto',
+        chooseFromGallery: 'Elegir de la galería',
+        chooseDocument: 'Elegir un archivo',
+        attachmentTooLarge: 'Archivo adjunto demasiado grande',
+        sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
+        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo adjunto supera el límite de ${maxUploadSizeInMB} MB.`,
+        attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
+        sizeNotMet: 'El archivo adjunto debe ser más grande que 240 bytes.',
+        wrongFileType: 'Tipo de archivo inválido',
+        notAllowedExtension: 'Este tipo de archivo no es compatible',
+        folderNotAllowedMessage: 'Subir una carpeta no está permitido. Prueba con otro archivo.',
+        protectedPDFNotSupported: 'Los PDFs con contraseña no son compatibles',
+        attachmentImageResized: 'Se ha cambiado el tamaño de esta imagen para obtener una vista previa. Descargar para resolución completa.',
+        attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
+        tooManyFiles: ({fileLimit}: FileLimitParams) => `Solamente puedes suber ${fileLimit} archivos a la vez.`,
+        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo supera los ${maxUploadSizeInMB} MB. Por favor, vuelve a intentarlo.`,
+    },
+    filePicker: {
+        fileError: 'Error de archivo',
+        errorWhileSelectingFile: 'An error occurred while selecting an file. Please try again.',
+    },
+    avatarCropModal: {
+        title: 'Editar foto',
+        description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
+    },
+    composer: {
+        noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
+        problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
+        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `El comentario debe tener máximo ${formattedMaxLength} caracteres.`,
+        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `La longitud máxima del título de una tarea es de ${formattedMaxLength} caracteres.`,
+    },
+    baseUpdateAppModal: {
+        updateApp: 'Actualizar app',
+        updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
+    },
+    deeplinkWrapper: {
+        launching: 'Cargando Expensify',
+        expired: 'Tu sesión ha expirado.',
+        signIn: 'Por favor, inicia sesión de nuevo.',
+        redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
+        youCanAlso: 'También puedes',
+        openLinkInBrowser: 'abrir este enlace en tu navegador',
+        loggedInAs: ({email}: LoggedInAsParams) =>
+            `Has iniciado sesión como ${email}. Haz clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
+        doNotSeePrompt: '¿No ves el aviso?',
+        tryAgain: 'Inténtalo de nuevo',
+        or: ', o',
+        continueInWeb: 'continuar en la web',
+    },
+    validateCodeModal: {
+        successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
+        successfulSignInDescription: 'Vuelve a la pestaña original para continuar.',
+        title: 'Aquí está tu código mágico',
+        or: ', ¡o',
+        doNotShare: '¡No compartas tu código con nadie.\nExpensify nunca te lo pedirá.',
+        description: 'Por favor, introduce el código utilizando el dispositivo\nen el que se solicitó originalmente',
+        signInHere: 'simplemente inicia sesión aquí',
+        expiredCodeTitle: 'Código mágico caducado',
+        expiredCodeDescription: 'Vuelve al dispositivo original y solicita un código nuevo',
+        successfulNewCodeRequest: 'Código solicitado. Por favor, comprueba tu dispositivo.',
+        tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
+        tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
+        requestOneHere: 'solicite uno aquí.',
+    },
+    moneyRequestConfirmationList: {
+        paidBy: 'Pagado por',
+        whatsItFor: '¿Para qué es?',
+    },
+    selectionList: {
+        nameEmailOrPhoneNumber: 'Nombre, correo electrónico o número de teléfono',
+        findMember: 'Encuentra un miembro',
+    },
+    emptyList: {
+        [CONST.IOU.TYPE.CREATE]: {
+            title: 'Presenta un gasto, recomienda a tu jefe',
+            subtitleText: '¿Quieres que tu jefe también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
+        },
+    },
+    videoChatButtonAndMenu: {
+        tooltip: 'Programar una llamada',
+    },
+    hello: 'Hola',
+    phoneCountryCode: '34',
+    welcomeText: {
+        getStarted: 'Comience a continuación.',
+        anotherLoginPageIsOpen: 'Otra página de inicio de sesión está abierta.',
+        anotherLoginPageIsOpenExplanation: 'Ha abierto la página de inicio de sesión en una pestaña separada. Inicie sesión desde esa pestaña específica.',
+        welcome: '¡Bienvenido!',
+        welcomeWithoutExclamation: 'Bienvenido',
+        phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
+        phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
+        enterPassword: 'Por favor, introduce tu contraseña',
+        welcomeNewFace: ({login}: SignUpNewFaceCodeParams) => `${login}, siempre es genial ver una cara nueva por aquí!`,
+        welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
+    },
+    login: {
+        hero: {
+            header: 'Viajes y gastos, a la velocidad del chat',
+            body: 'Bienvenido a la próxima generación de Expensify, donde tus viajes y gastos avanzan más rápido con la ayuda de un chat contextual en tiempo real.',
+        },
+    },
+    thirdPartySignIn: {
+        alreadySignedIn: ({email}: AlreadySignedInParams) => `Ya has iniciado sesión con ${email}.`,
+        goBackMessage: ({provider}: GoBackMessageParams) => `No quieres iniciar sesión con ${provider}?`,
+        continueWithMyCurrentSession: 'Continuar con mi sesión actual',
+        redirectToDesktopMessage: 'Lo redirigiremos a la aplicación de escritorio una vez que termine de iniciar sesión.',
+        signInAgreementMessage: 'Al iniciar sesión, aceptas las',
+        termsOfService: 'Términos de servicio',
+        privacy: 'Privacidad',
+    },
+    samlSignIn: {
+        welcomeSAMLEnabled: 'Continua iniciando sesión con el inicio de sesión único:',
+        orContinueWithMagicCode: 'También puedes iniciar sesión con un código mágico',
+        useSingleSignOn: 'Usar el inicio de sesión único',
+        useMagicCode: 'Usar código mágico',
+        launching: 'Cargando...',
+        oneMoment: 'Un momento mientras te redirigimos al portal de inicio de sesión único de tu empresa.',
+    },
+    reportActionCompose: {
+        dropToUpload: 'Suelta el archivo aquí para compartirlo',
+        sendAttachment: 'Enviar adjunto',
+        addAttachment: 'Añadir archivo adjunto',
+        writeSomething: 'Escribe algo...',
+        blockedFromConcierge: 'Comunicación no permitida',
+        fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
+        localTime: ({user, time}: LocalTimeParams) => `Son las ${time} para ${user}`,
+        edited: '(editado)',
+        emoji: 'Emoji',
+        collapse: 'Colapsar',
+        expand: 'Expandir',
+    },
+    reportActionContextMenu: {
+        copyToClipboard: 'Copiar al portapapeles',
+        copied: '¡Copiado!',
+        copyLink: 'Copiar enlace',
+        copyURLToClipboard: 'Copiar URL al portapapeles',
+        copyEmailToClipboard: 'Copiar correo electrónico al portapapeles',
+        markAsUnread: 'Marcar como no leído',
+        markAsRead: 'Marcar como leído',
+        editAction: ({action}: EditActionParams) => `Editar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}`,
+        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}`,
+        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
+            `¿Estás seguro de que quieres eliminar este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}?`,
+        onlyVisible: 'Visible sólo para',
+        replyInThread: 'Responder en el hilo',
+        joinThread: 'Unirse al hilo',
+        leaveThread: 'Dejar hilo',
+        copyOnyxData: 'Copiar datos de Onyx',
+        flagAsOffensive: 'Marcar como ofensivo',
+        menu: 'Menú',
+    },
+    emojiReactions: {
+        addReactionTooltip: 'Añadir una reacción',
+        reactedWith: 'reaccionó con',
+    },
+    reportActionsView: {
+        beginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
+        beginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
+        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) =>
+            `Este chat es con todos los miembros de Expensify en el dominio ${domainRoom}.`,
+        beginningOfChatHistoryDomainRoomPartTwo: ' Úsalo para chatear con colegas, compartir consejos y hacer preguntas.',
+        beginningOfChatHistoryAdminRoomPartOneFirst: 'Este chat es con los administradores del espacio de trabajo',
+        beginningOfChatHistoryAdminRoomWorkspaceName: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => ` ${workspaceName}`,
+        beginningOfChatHistoryAdminRoomPartOneLast: '.',
+        beginningOfChatHistoryAdminRoomPartTwo: ' Úsalo para hablar sobre la configuración del espacio de trabajo y más.',
+        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `Este chat es con todos en ${workspaceName}.`,
+        beginningOfChatHistoryAnnounceRoomPartTwo: ` Úsalo para hablar sobre la configuración del espacio de trabajo y más.`,
+        beginningOfChatHistoryUserRoomPartOne: 'ste chat es para todo lo relacionado con ',
+        beginningOfChatHistoryUserRoomPartTwo: ' Fue creado por.',
+        beginningOfChatHistoryInvoiceRoomPartOne: `Este chat es para facturas entre `,
+        beginningOfChatHistoryInvoiceRoomPartTwo: `. Usa el botón + para enviar una factura.`,
+        beginningOfChatHistory: 'Este chat es con ',
+        beginningOfChatHistoryPolicyExpenseChatPartOne: 'Aquí es donde ',
+        beginningOfChatHistoryPolicyExpenseChatPartTwo: ' enviará los gastos al espacio de trabajo ',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: '. Solo usa el botón +.',
+        beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
+        beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
+        chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
+        sayHello: '¡Saluda!',
+        yourSpace: 'Tu espacio',
+        welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUsa el botón + para ${additionalText} un gasto`,
+        askConcierge: 'Haz preguntas y obtén soporte en tiempo real las 24/7.',
+        conciergeSupport: 'Soporte 24/7',
+        create: 'crear',
+        iouTypes: {
+            pay: 'pagar',
+            split: 'dividir',
+            submit: 'presentar',
+            track: 'rastrear',
+            invoice: 'facturar',
+        },
+    },
+    adminOnlyCanPost: 'Solo los administradores pueden enviar mensajes en esta sala.',
+    reportAction: {
+        asCopilot: 'como copiloto de',
+    },
+    mentionSuggestions: {
+        hereAlternateText: 'Notificar a todos en esta conversación',
+    },
+    newMessages: 'Mensajes nuevos',
+    youHaveBeenBanned: 'Nota: Se te ha prohibido comunicarte en este canal',
+    reportTypingIndicator: {
+        isTyping: 'está escribiendo...',
+        areTyping: 'están escribiendo...',
+        multipleMembers: 'Varios miembros',
+    },
+    reportArchiveReasons: {
+        [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `Este chat está desactivado porque ${displayName} ha cerrado tu cuenta.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
+            `Este chat está desactivado porque ${oldDisplayName} ha combinado tu cuenta con ${displayName}`,
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
+            shouldUseYou
+                ? `Este chat ya no está activo porque <strong>tu</strong> ya no eres miembro del espacio de trabajo ${policyName}.`
+                : `Este chat está desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams) =>
+            `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams) =>
+            `Este chat está desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+        [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Esta reserva está archivada.',
+    },
+    writeCapabilityPage: {
+        label: 'Quién puede postear',
+        writeCapability: {
+            all: 'Todos los miembros',
+            admins: 'Solo administradores',
+        },
+    },
+    sidebarScreen: {
+        buttonFind: 'Encuentre algo...',
+        buttonMySettings: 'Mi configuración',
+        fabNewChat: 'Iniciar chat',
+        fabNewChatExplained: 'Iniciar chat (Acción flotante)',
+        chatPinned: 'Chat fijado',
+        draftedMessage: 'Mensaje borrador',
+        listOfChatMessages: 'Lista de mensajes del chat',
+        listOfChats: 'lista de chats',
+        saveTheWorld: 'Salvar el mundo',
+        tooltip: '¡Comienza aquí!',
+        redirectToExpensifyClassicModal: {
+            title: 'Próximamente',
+            description: 'Estamos ajustando algunos detalles de New Expensify para adaptarla a tu configuración específica. Mientras tanto, dirígete a Expensify Classic.',
+        },
+    },
+    allSettingsScreen: {
+        subscription: 'Suscripcion',
+        domains: 'Dominios',
+    },
+    tabSelector: {
+        chat: 'Chat',
+        room: 'Sala',
+        distance: 'Distancia',
+        manual: 'Manual',
+        scan: 'Escanear',
+    },
+    spreadsheet: {
+        upload: 'Importar',
+        dragAndDrop: 'Arrastra y suelta un archivo de hoja de cálculo aquí',
+        chooseSpreadsheet: 'Subir',
+        fileContainsHeader: 'El archivo contiene encabezados',
+        column: ({name}: SpreadSheetColumnParams) => `Columna ${name}`,
+        fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `¡Vaya! Un campo obligatorio ("${fieldName}") no ha sido mapeado. Por favor, revisa e inténtalo de nuevo.`,
+        singleFieldMultipleColumns: ({fieldName}: SpreadFieldNameParams) => `¡Vaya! Has mapeado un solo campo ("${fieldName}") a varias columnas. Por favor, revisa e inténtalo de nuevo.`,
+        emptyMappedField: ({fieldName}: SpreadFieldNameParams) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores vacíos. Por favor, revísalo e inténtalo de nuevo.`,
+        importFailedTitle: 'Fallo en la importación',
+        importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
+        importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+        importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `Se han agregado ${members} miembros.` : 'Se ha agregado 1 miembro.'),
+        importTagsSuccessfullDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
+        importPerDiemRatesSuccessfullDescription: ({rates}: ImportPerDiemRatesSuccessfullDescriptionParams) =>
+            rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.',
+        importSuccessfullTitle: 'Importar categorías',
+        importDescription: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
+        sizeNotMet: 'El archivo adjunto debe ser más grande que 0 bytes.',
+        invalidFileMessage:
+            'El archivo que subiste está vacío o contiene datos no válidos. Asegúrate de que el archivo esté correctamente formateado y contenga la información necesaria antes de volver a subirlo.',
+        importSpreadsheet: 'Importar hoja de cálculo',
+        downloadCSV: 'Descargar CSV',
+    },
+    receipt: {
+        upload: 'Subir recibo',
+        dragReceiptBeforeEmail: 'Arrastra un recibo a esta página, reenvíalo a ',
+        dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
+        chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
+        takePhoto: 'Haz una foto',
+        cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
+        deniedCameraAccess: 'No se ha concedido el acceso a la cámara, siga ',
+        deniedCameraAccessInstructions: 'estas instrucciones',
+        cameraErrorTitle: 'Error en la cámara',
+        locationAccessTitle: 'Permitir acceso a la ubicación',
+        locationAccessMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
+        locationErrorTitle: 'Permitir acceso a la ubicación',
+        locationErrorMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
+        allowLocationFromSetting: `El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que estés. Por favor, permite el acceso a la ubicación en la configuración de permisos de tu dispositivo.`,
+        cameraErrorMessage: 'Se ha producido un error al hacer una foto. Por favor, inténtalo de nuevo.',
+        dropTitle: 'Suéltalo',
+        dropMessage: 'Suelta tu archivo aquí',
+        flash: 'flash',
+        shutter: 'obturador',
+        gallery: 'galería',
+        deleteReceipt: 'Eliminar recibo',
+        deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
+        addReceipt: 'Añadir recibo',
+    },
+    quickAction: {
+        scanReceipt: 'Escanear recibo',
+        recordDistance: 'Gasto de distancia',
+        requestMoney: 'Crear gasto',
+        perDiem: 'Crear dietas',
+        splitBill: 'Dividir gasto',
+        splitScan: 'Dividir recibo',
+        splitDistance: 'Dividir distancia',
+        paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
+        assignTask: 'Assignar tarea',
+        header: 'Acción rápida',
+        noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
+        updateDestination: 'Actualiza el destino',
+    },
+    iou: {
+        amount: 'Importe',
+        taxAmount: 'Importe del impuesto',
+        taxRate: 'Tasa de impuesto',
+        approve: 'Aprobar',
+        approved: 'Aprobado',
+        cash: 'Efectivo',
+        card: 'Tarjeta',
+        original: 'Original',
+        split: 'Dividir',
+        splitExpense: 'Dividir gasto',
+        expense: 'Gasto',
+        categorize: 'Categorizar',
+        share: 'Compartir',
+        participants: 'Participantes',
+        createExpense: 'Crear gasto',
+        paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
+        chooseRecipient: 'Elige destinatario',
+        createExpenseWithAmount: ({amount}: {amount: string}) => `Crear un gasto de ${amount}`,
+        confirmDetails: 'Confirma los detalles',
+        pay: 'Pagar',
+        cancelPayment: 'Cancelar el pago',
+        cancelPaymentConfirmation: '¿Estás seguro de que quieres cancelar este pago?',
+        viewDetails: 'Ver detalles',
+        pending: 'Pendiente',
+        canceled: 'Canceló',
+        posted: 'Contabilizado',
+        deleteReceipt: 'Eliminar recibo',
+        pendingMatch: 'Pendiente de coincidencia',
+        pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la transacción de la tarjeta',
+        pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
+        markAsCash: 'Marcar como efectivo',
+        routePending: 'Ruta pendiente...',
+        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
+        receiptIssuesFound: () => ({
+            one: 'Problema encontrado',
+            other: 'Problemas encontrados',
+        }),
+        fieldPending: 'Pendiente...',
+        receiptScanning: () => ({
+            one: 'Escaneando recibo...',
+            other: 'Escaneando recibos...',
+        }),
+        receiptScanInProgress: 'Escaneado de recibo en proceso',
+        receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
+        defaultRate: 'Tasa predeterminada',
+        receiptMissingDetails: 'Recibo con campos vacíos',
+        missingAmount: 'Falta importe',
+        missingMerchant: 'Falta comerciante',
+        receiptStatusTitle: 'Escaneando…',
+        receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
+        receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
+        transactionPendingDescription: 'Transacción pendiente. Puede tardar unos días en contabilizarse.',
+        companyInfo: 'Información de la empresa',
+        companyInfoDescription: 'Necesitamos algunos detalles más antes de que pueda enviar su primera factura.',
+        yourCompanyName: 'Nombre de su empresa',
+        yourCompanyWebsite: 'Sitio web de su empresa',
+        yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
+        invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
+        publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
+        expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+            const statusText: string[] = [];
+            if (scanningReceipts > 0) {
+                statusText.push(`${scanningReceipts} escaneando`);
+            }
+            if (pendingReceipts > 0) {
+                statusText.push(`${pendingReceipts} pendiente`);
+            }
+            return {
+                one: statusText.length > 0 ? `1 gasto (${statusText.join(', ')})` : `1 gasto`,
+                other: (count: number) => (statusText.length > 0 ? `${count} gastos (${statusText.join(', ')})` : `${count} gastos`),
+            };
+        },
+        deleteExpense: () => ({
+            one: 'Eliminar gasto',
+            other: 'Eliminar gastos',
+        }),
+        deleteConfirmation: () => ({
+            one: '¿Estás seguro de que quieres eliminar esta solicitud?',
+            other: '¿Estás seguro de que quieres eliminar estas solicitudes?',
+        }),
+        settledExpensify: 'Pagado',
+        done: 'Listo',
+        settledElsewhere: 'Pagado de otra forma',
+        individual: 'Individual',
+        business: 'Empresa',
+        settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pago ${formattedAmount} como individuo` : `Pago individual`),
+        settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pagar como empresa`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
+        nextStep: 'Pasos siguientes',
+        finished: 'Finalizado',
+        sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
+        submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
+        submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        automaticallySubmittedAmount: ({formattedAmount}: RequestedAmountMessageParams) =>
+            `se enviaron automáticamente ${formattedAmount} mediante <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">envío diferido</a>`,
+        trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
+        didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        yourSplit: ({amount}: UserSplitParams) => `Tu parte ${amount}`,
+        payerOwesAmount: ({payer, amount, comment}: PayerOwesAmountParams) => `${payer} debe ${amount}${comment ? ` para ${comment}` : ''}`,
+        payerOwes: ({payer}: PayerOwesParams) => `${payer} debe: `,
+        payerPaidAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount}`,
+        payerPaid: ({payer}: PayerPaidParams) => `${payer} pagó: `,
+        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer} gastó ${amount}`,
+        payerSpent: ({payer}: PayerPaidParams) => `${payer} gastó: `,
+        managerApproved: ({manager}: ManagerApprovedParams) => `${manager} aprobó:`,
+        managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
+        payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
+        payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
+        automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
+            `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
+        approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
+        unapprovedAmount: ({amount}: UnapprovedParams) => `desaprobó ${amount}`,
+        automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
+            `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
+        forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
+        rejectedThisReport: 'rechazó este informe',
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
+        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago de ${amount}`,
+        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
+            `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
+        settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
+            `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
+        paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount} de otra forma`,
+        paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount} con Expensify`,
+        automaticallyPaidWithExpensify: ({payer, amount}: PaidWithExpensifyWithAmountParams) =>
+            `${payer ? `${payer} ` : ''}auto-pagó ${amount} con Expensify via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
+        noReimbursableExpenses: 'El importe de este informe no es válido',
+        pendingConversionMessage: 'El total se actualizará cuando estés online',
+        changedTheExpense: 'cambió el gasto',
+        setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) =>
+            `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
+        setTheDistanceMerchant: ({translatedChangedField, newMerchant, newAmountToDisplay}: SetTheDistanceMerchantParams) =>
+            `estableció la ${translatedChangedField} a ${newMerchant}, lo que estableció el importe a ${newAmountToDisplay}`,
+        removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) =>
+            `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
+        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
+            `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
+        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+            `cambió la ${translatedChangedField} a ${newMerchant} (previamente ${oldMerchant}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
+        threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
+        threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
+        threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
+        movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `movió el gasto desde su espacio personal a ${workspaceName ?? `un chat con ${reportName}`}`,
+        movedToPersonalSpace: 'movió el gasto a su espacio personal',
+        tagSelection: 'Selecciona una etiqueta para organizar mejor tus gastos.',
+        categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
+        error: {
+            invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
+            invalidAmount: 'Por favor, ingresa un importe válido antes de continuar.',
+            invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar.',
+            invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
+            invalidSplit: 'La suma de las partes debe ser igual al importe total.',
+            invalidSplitParticipants: 'Introduce un importe superior a cero para al menos dos participantes.',
+            invalidSplitYourself: 'Por favor, introduce una cantidad diferente de cero para tu parte.',
+            noParticipantSelected: 'Por favor, selecciona un participante.',
+            other: 'Error inesperado. Por favor, inténtalo más tarde.',
+            genericHoldExpenseFailureMessage: 'Error inesperado al retener el gasto. Por favor, inténtalo de nuevo más tarde.',
+            genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto. Por favor, inténtalo de nuevo más tarde.',
+            genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
+            genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
+            receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
+            receiptFailureMessage: 'El recibo no se subió. ',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
+            saveFileMessage: 'Guarda el archivo ',
+            loseFileMessage: 'o descarta este error y piérdelo.',
+            genericDeleteFailureMessage: 'Error inesperado al eliminar este gasto. Por favor, inténtalo más tarde.',
+            genericEditFailureMessage: 'Error inesperado al editar este gasto. Por favor, inténtalo más tarde.',
+            genericSmartscanFailureMessage: 'La transacción tiene campos vacíos.',
+            duplicateWaypointsErrorMessage: 'Por favor, elimina los puntos de ruta duplicados.',
+            atLeastTwoDifferentWaypoints: 'Por favor, introduce al menos dos direcciones diferentes.',
+            splitExpenseMultipleParticipantsErrorMessage: 'Solo puedes dividir un gasto entre un único espacio de trabajo o con miembros individuales. Por favor, actualiza tu selección.',
+            invalidMerchant: 'Por favor, introduce un comerciante correcto.',
+            atLeastOneAttendee: 'Debe seleccionarse al menos un asistente',
+            invalidQuantity: 'Por favor, introduce una cantidad válida.',
+            quantityGreaterThanZero: 'La cantidad debe ser mayor que cero.',
+            invalidSubrateLength: 'Debe haber al menos una subtasa.',
+            invalidRate: 'Tasa no válida para este espacio de trabajo. Por favor, selecciona una tasa disponible en el espacio de trabajo.',
+        },
+        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
+        enableWallet: 'Habilitar billetera',
+        holdExpense: 'Retener gasto',
+        unholdExpense: 'Desbloquear gasto',
+        heldExpense: 'retuvo este gasto',
+        unheldExpense: 'desbloqueó este gasto',
+        explainHold: 'Explica la razón para retener esta solicitud.',
+        reason: 'Razón',
+        holdReasonRequired: 'Se requiere una razón para retener.',
+        expenseOnHold: 'Este gasto está retenido. Revisa los comentarios para saber como proceder.',
+        expensesOnHold: 'Todos los gastos están retenidos. Revisa los comentarios para saber como proceder.',
+        expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revisa los duplicados para eliminar la retención.',
+        someDuplicatesArePaid: 'Algunos de estos duplicados ya han sido aprobados o pagados.',
+        reviewDuplicates: 'Revisar duplicados',
+        keepAll: 'Mantener todos',
+        confirmApprove: 'Confirmar importe a aprobar',
+        confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'Este gasto está retenido. ¿Quieres aprobarlo de todos modos?',
+            other: 'Estos gastos están retenidos. ¿Quieres aprobarlos de todos modos?',
+        }),
+        confirmPay: 'Confirmar importe de pago',
+        confirmPayAmount: 'Paga lo que no está retenido, o paga el informe completo.',
+        confirmPayAllHoldAmount: () => ({
+            one: 'Este gasto está retenido. ¿Quieres pagarlo de todos modos?',
+            other: 'Estos gastos están retenidos. ¿Quieres pagarlos de todos modos?',
+        }),
+        payOnly: 'Solo pagar',
+        approveOnly: 'Solo aprobar',
+        hold: 'Retener',
+        unhold: 'Desbloquear',
+        holdEducationalTitle: 'Esta solicitud está',
+        holdEducationalText: 'retenida',
+        whatIsHoldExplain: 'Retener es como "pausar" un gasto para solicitar más detalles antes de aprobarlo o pagarlo.',
+        holdIsLeftBehind: 'Si apruebas un informe, los gastos retenidos se quedan fuera de esa aprobación.',
+        unholdWhenReady: 'Desbloquea los gastos cuando estés listo para aprobarlos o pagarlos.',
+        changePolicyEducational: {
+            title: '¡Has movido este informe!',
+            description: 'Revisa cuidadosamente estos elementos, que tienden a cambiar al trasladar informes a un nuevo espacio de trabajo.',
+            reCategorize: '<strong>Vuelve a categorizar los gastos</strong> para cumplir con las reglas del espacio de trabajo.',
+            workflows: 'Este informe ahora puede estar sujeto a un <strong>flujo de aprobación</strong> diferente.',
+        },
+        changeWorkspace: 'Cambiar espacio de trabajo',
+        set: 'estableció',
+        changed: 'cambió',
+        removed: 'eliminó',
+        transactionPending: 'Transacción pendiente.',
+        chooseARate: 'Selecciona una tasa de reembolso por milla o kilómetro para el espacio de trabajo',
+        unapprove: 'Desaprobar',
+        unapproveReport: 'Anular la aprobación del informe',
+        headsUp: 'Atención!',
+        unapproveWithIntegrationWarning: ({accountingIntegration}: UnapproveWithIntegrationWarningParams) =>
+            `Este informe ya se ha exportado a ${accountingIntegration}. Los cambios realizados en este informe en Expensify pueden provocar discrepancias en los datos y problemas de conciliación de la tarjeta Expensify. ¿Está seguro de que desea anular la aprobación de este informe?`,
+        reimbursable: 'reembolsable',
+        nonReimbursable: 'no reembolsable',
+        bookingPending: 'Esta reserva está pendiente',
+        bookingPendingDescription: 'Esta reserva está pendiente porque aún no se ha pagado.',
+        bookingArchived: 'Esta reserva está archivada',
+        bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
+        attendees: 'Asistentes',
+        paymentComplete: 'Pago completo',
+        time: 'Tiempo',
+        startDate: 'Fecha de inicio',
+        endDate: 'Fecha de finalización',
+        startTime: 'Hora de inicio',
+        endTime: 'Hora de finalización',
+        deleteSubrate: 'Eliminar subtasa',
+        deleteSubrateConfirmation: '¿Estás seguro de que deseas eliminar esta subtasa?',
+        quantity: 'Cantidad',
+        subrateSelection: 'Selecciona una subtasa e introduce una cantidad.',
+        qty: 'Cant',
+        firstDayText: () => ({
+            one: `Primer día: 1 hora`,
+            other: (count: number) => `Primer día: ${count} horas`,
+        }),
+        lastDayText: () => ({
+            one: `Último día: 1 hora`,
+            other: (count: number) => `Último día: ${count} horas`,
+        }),
+        tripLengthText: () => ({
+            one: `Viaje: 1 día completo`,
+            other: (count: number) => `Viaje: ${count} días completos`,
+        }),
+        dates: 'Fechas',
+        rates: 'Tasas',
+        submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+    },
+    notificationPreferencesPage: {
+        header: 'Preferencias de avisos',
+        label: 'Avisar sobre nuevos mensajes',
+        notificationPreferences: {
+            always: 'Inmediatamente',
+            daily: 'Cada día',
+            mute: 'Nunca',
+            hidden: 'Oculto',
+        },
+    },
+    loginField: {
+        numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
+        emailHasNotBeenValidated: 'El correo electrónico no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via correo electrónico.',
+    },
+    avatarWithImagePicker: {
+        uploadPhoto: 'Subir foto',
+        removePhoto: 'Eliminar foto',
+        editImage: 'Editar foto',
+        viewPhoto: 'Ver foto',
+        imageUploadFailed: 'Error al cargar la imagen',
+        deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de tu espacio de trabajo',
+        sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB} MB.`,
+        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
+            `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles.`,
+        notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
+    },
+    modal: {
+        backdropLabel: 'Fondo del Modal',
+    },
+    profilePage: {
+        profile: 'Perfil',
+        preferredPronouns: 'Pronombres preferidos',
+        selectYourPronouns: 'Selecciona tus pronombres',
+        selfSelectYourPronoun: 'Auto-selecciona tu pronombre',
+        emailAddress: 'Dirección de correo electrónico',
+        setMyTimezoneAutomatically: 'Configura mi zona horaria automáticamente',
+        timezone: 'Zona horaria',
+        invalidFileMessage: 'Archivo inválido. Pruebe con una imagen diferente.',
+        avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+        online: 'En línea',
+        offline: 'Desconectado',
+        syncing: 'Sincronizando',
+        profileAvatar: 'Perfil avatar',
+        publicSection: {
+            title: 'Público',
+            subtitle: 'Estos detalles se muestran en tu perfil público, a disposición de los demás.',
+        },
+        privateSection: {
+            title: 'Privado',
+            subtitle: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
+        },
+    },
+    securityPage: {
+        title: 'Opciones de seguridad',
+        subtitle: 'Activa la autenticación de dos factores para mantener tu cuenta segura.',
+        goToSecurity: 'Volver a la página de seguridad',
+    },
+    shareCodePage: {
+        title: 'Tu código',
+        subtitle: 'Invita a miembros a Expensify compartiendo tu código QR personal o enlace de invitación.',
+    },
+    pronounsPage: {
+        pronouns: 'Pronombres',
+        isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
+        placeholderText: 'Buscar para ver opciones',
+    },
+    contacts: {
+        contactMethod: 'Método de contacto',
+        contactMethods: 'Métodos de contacto',
+        featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
+        validateAccount: 'Valida tu cuenta',
+        helpTextBeforeEmail: 'Añade más formas de que la gente te encuentre y reenvía los recibos a ',
+        helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
+        pleaseVerify: 'Por favor, verifica este método de contacto',
+        getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
+        setAsDefault: 'Establecer como predeterminado',
+        yourDefaultContactMethod:
+            'Este es tu método de contacto predeterminado. Antes de poder eliminarlo, tendrás que elegir otro método de contacto y haz clic en "Establecer como predeterminado".',
+        removeContactMethod: 'Eliminar método de contacto',
+        removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
+        failedNewContact: 'Se ha producido un error al añadir este método de contacto.',
+        genericFailureMessages: {
+            requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
+            validateSecondaryLogin: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
+            deleteContactMethod: 'No se ha podido eliminar este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
+            setDefaultContactMethod: 'No se pudo establecer un nuevo método de contacto predeterminado. Por favor contacta con Concierge para obtener ayuda.',
+            addContactMethod: 'Se ha producido un error al añadir este método de contacto. Por favor, contacta con Concierge para obtener ayuda.',
+            enteredMethodIsAlreadySubmited: 'El método de contacto ingresado ya existe.',
+            passwordRequired: 'Se requiere contraseña',
+            contactMethodRequired: 'Se requiere método de contacto.',
+            invalidContactMethod: 'Método de contacto no válido',
+        },
+        newContactMethod: 'Nuevo método de contacto',
+        goBackContactMethods: 'Volver a métodos de contacto',
+    },
+    pronouns: {
+        coCos: 'Co / Cos',
+        eEyEmEir: 'E / Ey / Em / Eir',
+        faeFaer: 'Fae / Faer',
+        heHimHis: 'Él',
+        heHimHisTheyThemTheirs: 'Él / Ellos',
+        sheHerHers: 'Ella',
+        sheHerHersTheyThemTheirs: 'Ella / Ellos',
+        merMers: 'Mer / Mers',
+        neNirNirs: 'Ne / Nir / Nirs',
+        neeNerNers: 'Nee / Ner / Ners',
+        perPers: 'Per / Pers',
+        theyThemTheirs: 'Ellos',
+        thonThons: 'Thon / Thons',
+        veVerVis: 'Ve / Ver / Vis',
+        viVir: 'Vi / Vir',
+        xeXemXyr: 'Xe / Xem / Xyr',
+        zeZieZirHir: 'Ze / Zie / Zir / Hir',
+        zeHirHirs: 'Ze / Hir',
+        callMeByMyName: 'Llámame por mi nombre',
+    },
+    displayNamePage: {
+        headerTitle: 'Nombre',
+        isShownOnProfile: 'Este nombre es visible en tu perfil.',
+    },
+    timezonePage: {
+        timezone: 'Zona horaria',
+        isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
+        getLocationAutomatically: 'Detecta tu ubicación automáticamente',
+    },
+    updateRequiredView: {
+        updateRequired: 'Actualización requerida',
+        pleaseInstall: 'Por favor, actualiza a la última versión de New Expensify',
+        pleaseInstallExpensifyClassic: 'Por favor, instala la última versión de Expensify',
+        toGetLatestChanges: 'Para móvil o escritorio, descarga e instala la última versión. Para la web, actualiza tu navegador.',
+        newAppNotAvailable: 'La App New Expensify ya no está disponible.',
+    },
+    initialSettingsPage: {
+        about: 'Acerca de',
+        aboutPage: {
+            description: 'New Expensify está creada por una comunidad de desarrolladores de código abierto de todo el mundo. Ayúdanos a construir el futuro de Expensify.',
+            appDownloadLinks: 'Enlaces para descargar la App',
+            viewKeyboardShortcuts: 'Ver atajos de teclado',
+            viewTheCode: 'Ver código',
+            viewOpenJobs: 'Ver trabajos disponibles',
+            reportABug: 'Reportar un error',
+            troubleshoot: 'Solución de problemas',
+        },
+        appDownloadLinks: {
+            android: {
+                label: 'Android',
+            },
+            ios: {
+                label: 'iOS',
+            },
+            desktop: {
+                label: 'macOS',
+            },
+        },
+        troubleshoot: {
+            clearCacheAndRestart: 'Borrar caché y reiniciar',
+            viewConsole: 'Ver la consola de depuración',
+            debugConsole: 'Consola de depuración',
+            description: 'Utilice las herramientas que aparecen a continuación para solucionar los problemas de Expensify. Si tiene algún problema, por favor',
+            submitBug: 'envíe un informe de error',
+            confirmResetDescription: 'Todos los borradores no enviados se perderán, pero el resto de tus datos estarán a salvo.',
+            resetAndRefresh: 'Restablecer y actualizar',
+            clientSideLogging: 'Registro a nivel cliente',
+            noLogsToShare: 'No hay logs que compartir',
+            useProfiling: 'Usar el trazado',
+            profileTrace: 'Traza de ejecución',
+            releaseOptions: 'Opciones de publicación',
+            testingPreferences: 'Preferencias para Tests',
+            useStagingServer: 'Usar servidor “staging”',
+            forceOffline: 'Forzar desconexión',
+            simulatePoorConnection: 'Simular una conexión a internet deficiente',
+            simulatFailingNetworkRequests: 'Simular fallos en solicitudes de red',
+            authenticationStatus: 'Estado de autenticación',
+            deviceCredentials: 'Credenciales del dispositivo',
+            invalidate: 'Invalidar',
+            destroy: 'Destruir',
+            maskExportOnyxStateData: 'Enmascare los datos frágiles del miembro mientras exporta el estado Onyx',
+            exportOnyxState: 'Exportar estado Onyx',
+            importOnyxState: 'Importar estado Onyx',
+            testCrash: 'Prueba de fallo',
+            resetToOriginalState: 'Restablecer al estado original',
+            usingImportedState: 'Estás utilizando el estado importado. Pulsa aquí para borrarlo.',
+            debugMode: 'Modo depuración',
+            invalidFile: 'Archivo inválido',
+            invalidFileDescription: 'El archivo que ests intentando importar no es válido. Por favor, inténtalo de nuevo.',
+            invalidateWithDelay: 'Invalidar con retraso',
+        },
+        debugConsole: {
+            saveLog: 'Guardar registro',
+            shareLog: 'Compartir registro',
+            enterCommand: 'Introducir comando',
+            execute: 'Ejecutar',
+            noLogsAvailable: 'No hay registros disponibles',
+            logSizeTooLarge: ({size}: LogSizeParams) => `El tamaño del registro excede el límite de ${size} MB. Utilice "Guardar registro" para descargar el archivo de registro.`,
+            logs: 'Logs',
+            viewConsole: 'Ver consola',
+        },
+        security: 'Seguridad',
+        restoreStashed: 'Restablecer login guardado',
+        signOut: 'Desconectar',
+        signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
+        versionLetter: 'v',
+        readTheTermsAndPrivacy: {
+            phrase1: 'Leer los',
+            phrase2: 'Términos de Servicio',
+            phrase3: 'y',
+            phrase4: 'Privacidad',
+        },
+        help: 'Ayuda',
+        accountSettings: 'Configuración de la cuenta',
+        account: 'Cuenta',
+        general: 'General',
+    },
+    closeAccountPage: {
+        closeAccount: 'Cerrar cuenta',
+        reasonForLeavingPrompt: '¡Lamentamos verte partir! ¿Serías tan amable de decirnos por qué, para que podamos mejorar?',
+        enterMessageHere: 'Escribe aquí tu mensaje',
+        closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
+        closeAccountPermanentlyDeleteData: '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción eliminará permanentemente toda la información de cualquier gasto pendiente.',
+        enterDefaultContactToConfirm: 'Por favor, escribe tu método de contacto predeterminado para confirmar que deseas eliminar tu cuenta. Tu método de contacto predeterminado es:',
+        enterDefaultContact: 'Tu método de contacto predeterminado',
+        defaultContact: 'Método de contacto predeterminado:',
+        enterYourDefaultContactMethod: 'Por favor, introduce tu método de contacto predeterminado para cerrar tu cuenta.',
+    },
+    passwordPage: {
+        changePassword: 'Cambiar contraseña',
+        changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com como la de New Expensify.',
+        currentPassword: 'Contraseña actual',
+        newPassword: 'Nueva contraseña',
+        newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua y contener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
+    },
+    twoFactorAuth: {
+        headerTitle: 'Autenticación de dos factores',
+        twoFactorAuthEnabled: 'Autenticación de dos factores habilitada',
+        whatIsTwoFactorAuth:
+            'La autenticación de dos factores (2FA) ayuda a mantener tu cuenta segura. Al iniciar sesión, deberás ingresar un código generado por tu aplicación de autenticación preferida.',
+        disableTwoFactorAuth: 'Deshabilitar la autenticación de dos factores',
+        explainProcessToRemove: 'Para deshabilitar la autenticación de dos factores (2FA), por favor introduce un código válido de tu aplicación de autenticación.',
+        disabled: 'La autenticación de dos factores está ahora deshabilitada',
+        noAuthenticatorApp: 'Ya no necesitarás una aplicación de autenticación para iniciar sesión en Expensify.',
+        stepCodes: 'Códigos de recuperación',
+        keepCodesSafe: '¡Guarda los códigos de recuperación en un lugar seguro!',
+        codesLoseAccess:
+            'Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
+        errorStepCodes: 'Copia o descarga los códigos antes de continuar.',
+        stepVerify: 'Verificar',
+        scanCode: 'Escanea el código QR usando tu',
+        authenticatorApp: 'aplicación de autenticación',
+        addKey: 'O añade esta clave secreta a tu aplicación de autenticación:',
+        enterCode: 'Luego introduce el código de seis dígitos generado por tu aplicación de autenticación.',
+        stepSuccess: 'Finalizado',
+        enabled: 'La autenticación de dos factores habilitada',
+        congrats: '¡Felicidades! Ahora tienes esa seguridad adicional.',
+        copy: 'Copiar',
+        disable: 'Deshabilitar',
+        enableTwoFactorAuth: 'Activar la autenticación de dos factores',
+        pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
+        twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
+        twoFactorAuthIsRequiredForAdminsDescription:
+            'La autenticación de dos factores es necesaria para los administradores del área de trabajo de Xero. Activa la autenticación de dos factores para continuar.',
+        twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
+        twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
+    },
+    recoveryCodeForm: {
+        error: {
+            pleaseFillRecoveryCode: 'Por favor, introduce tu código de recuperación.',
+            incorrectRecoveryCode: 'Código de recuperación incorrecto. Por favor, inténtalo de nuevo.',
+        },
+        useRecoveryCode: 'Usar código de recuperación',
+        recoveryCode: 'Código de recuperación',
+        use2fa: 'Usar autenticación de dos factores',
+    },
+    twoFactorAuthForm: {
+        error: {
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores.',
+            incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo.',
+        },
+    },
+    passwordConfirmationScreen: {
+        passwordUpdated: '¡Contraseña actualizada!',
+        allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
+    },
+    privateNotes: {
+        title: 'Notas privadas',
+        personalNoteMessage: 'Guarda notas sobre este chat aquí. Usted es la única persona que puede añadir, editar o ver estas notas.',
+        sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros miembros del dominio team.expensify.com pueden ver estas notas.',
+        composerLabel: 'Notas',
+        myNote: 'Mi nota',
+        error: {
+            genericFailureMessage: 'Las notas privadas no han podido ser guardadas.',
+        },
+    },
+    billingCurrency: {
+        error: {
+            securityCode: 'Por favor, introduce un código de seguridad válido.',
+        },
+        securityCode: 'Código de seguridad',
+        changePaymentCurrency: 'Cambiar moneda de facturación',
+        changeBillingCurrency: 'Cambiar la moneda de pago',
+        paymentCurrency: 'Moneda de pago',
+        note: 'Nota: Cambiar tu moneda de pago puede afectar cuánto pagarás por Expensify. Consulta nuestra',
+        noteLink: 'página de precios',
+        noteDetails: 'para conocer todos los detalles.',
+    },
+    addDebitCardPage: {
+        addADebitCard: 'Añadir una tarjeta de débito',
+        nameOnCard: 'Nombre en la tarjeta',
+        debitCardNumber: 'Número de la tarjeta de débito',
+        expiration: 'Fecha de vencimiento',
+        expirationDate: 'MMAA',
+        cvv: 'CVV',
+        billingAddress: 'Dirección de envio',
+        growlMessageOnSave: 'Tu tarteja de débito se añadió correctamente',
+        expensifyPassword: 'Contraseña de Expensify',
+        error: {
+            invalidName: 'El nombre sólo puede incluir letras.',
+            addressZipCode: 'Por favor, introduce un código postal válido.',
+            debitCardNumber: 'Por favor, introduce un número de tarjeta de débito válido.',
+            expirationDate: 'Por favor, selecciona una fecha de vencimiento válida.',
+            securityCode: 'Por favor, introduce un código de seguridad válido.',
+            addressStreet: 'Por favor, introduce una dirección de facturación válida que no sea un apartado postal.',
+            addressState: 'Por favor, selecciona un estado.',
+            addressCity: 'Por favor, introduce una ciudad.',
+            genericFailureMessage: 'Se ha producido un error al añadir tu tarjeta. Por favor, vuelva a intentarlo.',
+            password: 'Por favor, introduce tu contraseña de Expensify.',
+        },
+    },
+    addPaymentCardPage: {
+        addAPaymentCard: 'Añade tarjeta de pago',
+        nameOnCard: 'Nombre en la tarjeta',
+        paymentCardNumber: 'Número de la tarjeta',
+        expiration: 'Fecha de vencimiento',
+        expirationDate: 'MMAA',
+        cvv: 'CVV',
+        billingAddress: 'Dirección de envio',
+        growlMessageOnSave: 'Tu tarjeta de pago se añadió correctamente',
+        expensifyPassword: 'Contraseña de Expensify',
+        error: {
+            invalidName: 'El nombre sólo puede incluir letras.',
+            addressZipCode: 'Por favor, introduce un código postal válido.',
+            paymentCardNumber: 'Por favor, introduce un número de tarjeta de pago válido.',
+            expirationDate: 'Por favor, selecciona una fecha de vencimiento válida.',
+            securityCode: 'Por favor, introduce un código de seguridad válido.',
+            addressStreet: 'Por favor, introduce una dirección de facturación válida que no sea un apartado postal.',
+            addressState: 'Por favor, selecciona un estado.',
+            addressCity: 'Por favor, introduce una ciudad.',
+            genericFailureMessage: 'Se ha producido un error al añadir tu tarjeta. Por favor, vuelva a intentarlo.',
+            password: 'Por favor, introduce tu contraseña de Expensify.',
+        },
+    },
+    walletPage: {
+        balance: 'Saldo',
+        paymentMethodsTitle: 'Métodos de pago',
+        setDefaultConfirmation: 'Marcar como método de pago predeterminado',
+        setDefaultSuccess: 'Método de pago configurado',
+        deleteAccount: 'Eliminar cuenta',
+        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta cuenta?',
+        error: {
+            notOwnerOfBankAccount: 'Se ha producido un error al establecer esta cuenta bancaria como método de pago predeterminado.',
+            invalidBankAccount: 'Esta cuenta bancaria está temporalmente suspendida.',
+            notOwnerOfFund: 'Se ha producido un error al establecer esta tarjeta de crédito como método de pago predeterminado.',
+            setDefaultFailure: 'No se ha podido configurar el método de pago.',
+        },
+        addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
+        getPaidFaster: 'Cobra más rápido',
+        addPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente en la aplicación.',
+        getPaidBackFaster: 'Recibe tus pagos más rápido',
+        secureAccessToYourMoney: 'Acceso seguro a tu dinero',
+        receiveMoney: 'Recibe dinero en tu moneda local',
+        expensifyWallet: 'Billetera Expensify (Beta)',
+        sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify. Solo cuentas bancarias de EE. UU.',
+        enableWallet: 'Habilitar billetera',
+        addBankAccountToSendAndReceive: 'Recibe el reembolso de los gastos que envíes a un espacio de trabajo.',
+        addBankAccount: 'Añadir cuenta bancaria',
+        assignedCards: 'Tarjetas asignadas',
+        assignedCardsDescription: 'Son tarjetas asignadas por un administrador del espacio de trabajo para gestionar los gastos de la empresa.',
+        expensifyCard: 'Tarjeta Expensify',
+        walletActivationPending: 'Estamos revisando tu información. Por favor, vuelve en unos minutos.',
+        walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',
+        addYourBankAccount: 'Añadir tu cuenta bancaria',
+        addBankAccountBody: 'Conectemos tu cuenta bancaria a Expensify para que sea más fácil que nunca enviar y recibir pagos directamente en la aplicación.',
+        chooseYourBankAccount: 'Elige tu cuenta bancaria',
+        chooseAccountBody: 'Asegúrese de elegir el adecuado.',
+        confirmYourBankAccount: 'Confirma tu cuenta bancaria',
+    },
+    cardPage: {
+        expensifyCard: 'Tarjeta Expensify',
+        availableSpend: 'Límite restante',
+        smartLimit: {
+            name: 'Límite inteligente',
+            title: ({formattedLimit}: ViolationsOverLimitParams) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta al mes. El límite se restablecerá el primer día del mes.`,
+        },
+        fixedLimit: {
+            name: 'Límite fijo',
+            title: ({formattedLimit}: ViolationsOverLimitParams) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta, luego se desactivará.`,
+        },
+        monthlyLimit: {
+            name: 'Límite mensual',
+            title: ({formattedLimit}: ViolationsOverLimitParams) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta y el límite se restablecerá a medida que se aprueben tus gastos.`,
+        },
+        virtualCardNumber: 'Número de la tarjeta virtual',
+        physicalCardNumber: 'Número de la tarjeta física',
+        getPhysicalCard: 'Obtener tarjeta física',
+        reportFraud: 'Reportar fraude con la tarjeta virtual',
+        reviewTransaction: 'Revisar transacción',
+        suspiciousBannerTitle: 'Transacción sospechosa',
+        suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haz click abajo para revisarla.',
+        cardLocked: 'La tarjeta está temporalmente bloqueada mientras nuestro equipo revisa la cuenta de tu empresa.',
+        cardDetails: {
+            cardNumber: 'Número de tarjeta virtual',
+            expiration: 'Expiración',
+            cvv: 'CVV',
+            address: 'Dirección',
+            revealDetails: 'Revelar detalles',
+            copyCardNumber: 'Copiar número de la tarjeta',
+            updateAddress: 'Actualizar dirección',
+        },
+        cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
+        validateCardTitle: 'Asegurémonos de que eres tú',
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
+            `Introduzca el código mágico enviado a ${contactMethod} para ver los datos de su tarjeta. Debería llegar en un par de minutos.`,
+    },
+    workflowsPage: {
+        workflowTitle: 'Gasto',
+        workflowDescription: 'Configure un flujo de trabajo desde el momento en que se produce el gasto, incluida la aprobación y el pago',
+        delaySubmissionTitle: 'Retrasar envíos',
+        delaySubmissionDescription: 'Elige una frecuencia para enviar los gastos, o dejalo desactivado para recibir actualizaciones en tiempo real sobre los gastos.',
+        submissionFrequency: 'Frecuencia de envíos',
+        submissionFrequencyDateOfMonth: 'Fecha del mes',
+        addApprovalsTitle: 'Aprobaciones',
+        addApprovalButton: 'Añadir flujo de aprobación',
+        addApprovalTip: 'Este flujo de trabajo por defecto se aplica a todos los miembros, a menos que exista un flujo de trabajo más específico.',
+        approver: 'Aprobador',
+        connectBankAccount: 'Conectar cuenta bancaria',
+        addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
+        makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
+        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
+        editor: {
+            submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
+        },
+        frequencyDescription: 'Elige la frecuencia de presentación automática de gastos, o preséntalos manualmente',
+        frequencies: {
+            instant: 'Instante',
+            weekly: 'Semanal',
+            monthly: 'Mensual',
+            twiceAMonth: 'Dos veces al mes',
+            byTrip: 'Por viaje',
+            manually: 'Manualmente',
+            daily: 'Diaria',
+            lastDayOfMonth: 'Último día del mes',
+            lastBusinessDayOfMonth: 'Último día hábil del mes',
+            ordinals: {
+                one: 'º',
+                two: 'º',
+                few: 'º',
+                other: 'º',
+                /* eslint-disable @typescript-eslint/naming-convention */
+                '1': 'Primero',
+                '2': 'Segundo',
+                '3': 'Tercero',
+                '4': 'Cuarto',
+                '5': 'Quinto',
+                '6': 'Sexto',
+                '7': 'Séptimo',
+                '8': 'Octavo',
+                '9': 'Noveno',
+                '10': 'Décimo',
+                /* eslint-enable @typescript-eslint/naming-convention */
+            },
+        },
+        approverInMultipleWorkflows: 'Este miembro ya pertenece a otro flujo de aprobación. Cualquier actualización aquí se reflejará allí también.',
+        approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+            `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
+        emptyContent: {
+            title: 'No hay miembros para mostrar',
+            expensesFromSubtitle: 'Todos los miembros del espacio de trabajo ya pertenecen a un flujo de aprobación existente.',
+            approverSubtitle: 'Todos los aprobadores pertenecen a un flujo de trabajo existente.',
+        },
+    },
+    workflowsDelayedSubmissionPage: {
+        autoReportingErrorMessage: 'El parámetro de envío retrasado no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
+        autoReportingFrequencyErrorMessage: 'La frecuencia de envío no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
+        monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
+    },
+    workflowsCreateApprovalsPage: {
+        title: 'Confirmar',
+        header: 'Agrega más aprobadores y confirma.',
+        additionalApprover: 'Añadir aprobador',
+        submitButton: 'Añadir flujo de trabajo',
+    },
+    workflowsEditApprovalsPage: {
+        title: 'Edicion flujo de aprobación',
+        deleteTitle: 'Eliminar flujo de trabajo de aprobación',
+        deletePrompt: '¿Estás seguro de que quieres eliminar este flujo de trabajo de aprobación? Todos los miembros pasarán a usar el flujo de trabajo predeterminado.',
+    },
+    workflowsExpensesFromPage: {
+        title: 'Gastos de',
+        header: 'Cuando los siguientes miembros presenten gastos:',
+    },
+    workflowsApproverPage: {
+        genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
+        header: 'Enviar a este miembro para su aprobación:',
+    },
+    workflowsPayerPage: {
+        title: 'Pagador autorizado',
+        genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',
+        admins: 'Administradores',
+        payer: 'Pagador',
+        paymentAccount: 'Cuenta de pago',
+    },
+    reportFraudPage: {
+        title: 'Reportar fraude con la tarjeta virtual',
+        description:
+            'Si los datos de tu tarjeta virtual han sido robados o se han visto comprometidos, desactivaremos permanentemente la tarjeta actual y le proporcionaremos una tarjeta virtual y un número nuevo.',
+        deactivateCard: 'Desactivar tarjeta',
+        reportVirtualCardFraud: 'Reportar fraude con la tarjeta virtual',
+    },
+    reportFraudConfirmationPage: {
+        title: 'Fraude con tarjeta reportado',
+        description: 'Hemos desactivado permanentemente tu tarjeta existente. Cuando vuelvas a ver los detalles de tu tarjeta, tendrás una nueva tarjeta virtual disponible.',
+        buttonText: 'Entendido, ¡gracias!',
+    },
+    activateCardPage: {
+        activateCard: 'Activar tarjeta',
+        pleaseEnterLastFour: 'Introduce los cuatro últimos dígitos de la tarjeta.',
+        activatePhysicalCard: 'Activar tarjeta física',
+        error: {
+            thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
+            throttled:
+                'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Conserjería para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
+        },
+    },
+    getPhysicalCard: {
+        header: 'Obtener tarjeta física',
+        nameMessage: 'Introduce tu nombre y apellido como aparecerá en tu tarjeta.',
+        legalName: 'Nombre completo',
+        legalFirstName: 'Nombre legal',
+        legalLastName: 'Apellidos legales',
+        phoneMessage: 'Introduce tu número de teléfono.',
+        phoneNumber: 'Número de teléfono',
+        address: 'Dirección',
+        addressMessage: 'Introduce tu dirección de envío.',
+        streetAddress: 'Calle de dirección',
+        city: 'Ciudad',
+        state: 'Estado',
+        zipPostcode: 'Código postal',
+        country: 'País',
+        confirmMessage: 'Por favor confirma tus datos.',
+        estimatedDeliveryMessage: 'Tu tarjeta física llegará en 2-3 días laborales.',
+        next: 'Siguiente',
+        getPhysicalCard: 'Obtener tarjeta física',
+        shipCard: 'Enviar tarjeta',
+    },
+    transferAmountPage: {
+        transfer: ({amount}: TransferParams) => `Transferir${amount ? ` ${amount}` : ''}`,
+        instant: 'Instante',
+        instantSummary: ({rate, minAmount}: InstantSummaryParams) => `Tarifa del ${rate}% (${minAmount} mínimo)`,
+        ach: '1-3 días laborales',
+        achSummary: 'Sin cargo',
+        whichAccount: '¿Qué cuenta?',
+        fee: 'Tarifa',
+        transferSuccess: '¡Transferencia exitosa!',
+        transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
+        transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
+        failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor, transfiere los fondos a una cuenta bancaria.',
+        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de billetera',
+        goToWallet: 'Ir a billetera',
+    },
+    chooseTransferAccountPage: {
+        chooseAccount: 'Elegir cuenta',
+    },
+    paymentMethodList: {
+        addPaymentMethod: 'Añadir método de pago',
+        addNewDebitCard: 'Añadir nueva tarjeta de débito',
+        addNewBankAccount: 'Añadir nueva cuenta de banco',
+        accountLastFour: 'Terminada en',
+        cardLastFour: 'Tarjeta terminada en',
+        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
+        defaultPaymentMethod: 'Predeterminado',
+    },
+    preferencesPage: {
+        appSection: {
+            title: 'Preferencias de la aplicación',
+        },
+        testSection: {
+            title: 'Preferencias para tests',
+            subtitle: 'Ajustes para ayudar a depurar y probar la aplicación en “staging”.',
+        },
+        receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
+        muteAllSounds: 'Silenciar todos los sonidos de Expensify',
+    },
+    priorityModePage: {
+        priorityMode: 'Modo prioridad',
+        explainerText:
+            'Elige #concentración si deseas enfocarte sólo en los chats no leídos y en los anclados, o mostrarlo todo con los chats más recientes y los anclados en la parte superior.',
+        priorityModes: {
+            default: {
+                label: 'Más recientes',
+                description: 'Mostrar todos los chats ordenados desde el más reciente',
+            },
+            gsd: {
+                label: '#concentración',
+                description: 'Mostrar sólo los no leídos ordenados alfabéticamente',
+            },
+        },
+    },
+    reportDetailsPage: {
+        inWorkspace: ({policyName}: ReportPolicyNameParams) => `en ${policyName}`,
+        generatingPDF: 'Creando PDF',
+        waitForPDF: 'Por favor, espera mientras creamos el PDF',
+        errorPDF: 'Ocurrió un error al crear el PDF.',
+        generatedPDF: 'Tu informe PDF ha sido creado!',
+    },
+    reportDescriptionPage: {
+        roomDescription: 'Descripción de la sala de chat',
+        roomDescriptionOptional: 'Descripción de la sala de chat (opcional)',
+        explainerText: 'Establece una descripción personalizada para la sala de chat.',
+    },
+    groupChat: {
+        lastMemberTitle: '¡Atención!',
+        lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los miembros. ¿Estás seguro de que quieres salir del chat?',
+        defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Chat de grupo de ${displayName}`,
+    },
+    languagePage: {
+        language: 'Idioma',
+        languages: {
+            en: {
+                label: 'Inglés',
+            },
+            es: {
+                label: 'Español',
+            },
+        },
+    },
+    themePage: {
+        theme: 'Tema',
+        themes: {
+            dark: {
+                label: 'Oscuro',
+            },
+            light: {
+                label: 'Claro',
+            },
+            system: {
+                label: 'Utiliza los ajustes del dispositivo',
+            },
+        },
+        chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
+    },
+    termsOfUse: {
+        phrase1: 'Al iniciar sesión, estás accediendo a los',
+        phrase2: 'Términos de Servicio',
+        phrase3: 'y',
+        phrase4: 'Privacidad',
+        phrase5: `El envío de dinero es brindado por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de conformidad con sus`,
+        phrase6: 'licencias',
+    },
+    validateCodeForm: {
+        magicCodeNotReceived: '¿No recibiste un código mágico?',
+        enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
+        enterRecoveryCode: 'Por favor, introduce tu código de recuperación',
+        requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
+        requestNewCode: 'Pedir un código nuevo en ',
+        requestNewCodeAfterErrorOccurred: 'Solicitar un nuevo código',
+        error: {
+            pleaseFillMagicCode: 'Por favor, introduce el código mágico.',
+            incorrectMagicCode: 'Código mágico incorrecto.',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores.',
+        },
+    },
+    passwordForm: {
+        pleaseFillOutAllFields: 'Por favor, completa todos los campos',
+        pleaseFillPassword: 'Por favor, introduce tu contraseña',
+        pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+        enterYourTwoFactorAuthenticationCodeToContinue: 'Introduce el código de autenticación de dos factores para continuar',
+        forgot: '¿Has olvidado la contraseña?',
+        requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
+        error: {
+            incorrectPassword: 'Contraseña incorrecta. Por favor, inténtalo de nuevo.',
+            incorrectLoginOrPassword: 'Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.',
+            incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo.',
+            twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor, conéctate usando tu correo electrónico o número de teléfono.',
+            invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor, inténtalo de nuevo o restablece la contraseña.',
+            unableToResetPassword:
+                'No se pudo cambiar tu clave. Probablemente porque el enlace para restablecer la contrasenña ha expirado. Te hemos enviado un nuevo enlace. Comprueba tu bandeja de entrada y carpeta de Spam.',
+            noAccess: 'No tienes acceso a esta aplicación. Por favor, añade tu usuario de GitHub para acceder.',
+            accountLocked: 'Tu cuenta ha sido bloqueada tras varios intentos fallidos. Por favor, inténtalo de nuevo dentro de una hora.',
+            fallback: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
+        },
+    },
+    loginForm: {
+        phoneOrEmail: 'Número de teléfono o correo electrónico',
+        error: {
+            invalidFormatEmailLogin: 'El correo electrónico introducido no es válido. Corrígelo e inténtalo de nuevo.',
+        },
+        cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta. Por favor, intenta iniciar sesión de nuevo.',
+        loginForm: 'Formulario de inicio de sesión',
+        notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
+    },
+    onboarding: {
+        welcome: '¡Bienvenido!',
+        welcomeSignOffTitle: '¡Es un placer conocerte!',
+        explanationModal: {
+            title: 'Bienvenido a Expensify',
+            description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
+            secondaryDescription: 'Para volver a Expensify Classic, simplemente haz click en tu foto de perfil > Ir a Expensify Classic.',
+        },
+        welcomeVideo: {
+            title: 'Bienvenido a Expensify',
+            description: 'Una aplicación para gestionar todos tus gastos de empresa y personales en un chat. Pensada para tu empresa, tu equipo y tus amigos.',
+        },
+        getStarted: 'Comenzar',
+        whatsYourName: '¿Cómo te llamas?',
+        peopleYouMayKnow: 'Las personas que tal vez conozcas ya están aquí. Verifica tu correo electrónico para unirte a ellos.',
+        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} miembro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
+        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `Alguien de ${domain} ya ha creado un espacio de trabajo. Por favor, introduce el código mágico enviado a ${email}.`,
+        joinAWorkspace: 'Unirse a un espacio de trabajo',
+        listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
+        whereYouWork: '¿Dónde trabajas?',
+        errorSelection: 'Selecciona una opción para continuar.',
+        purpose: {
+            title: '¿Qué quieres hacer hoy?',
+            errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
+            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación.',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
+        },
+        employees: {
+            title: '¿Cuántos empleados tienes?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 empleados',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 empleados',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 empleados',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1,000 empleados',
+            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Más de 1,000 empleados',
+        },
+        accounting: {
+            title: '¿Utilizas algún software de contabilidad?',
+            noneOfAbove: 'Ninguno de los anteriores',
+        },
+        error: {
+            requiredFirstName: 'Introduce tu nombre para continuar.',
+        },
+    },
+    featureTraining: {
+        doNotShowAgain: 'No muestres esto otra vez',
+    },
+    personalDetails: {
+        error: {
+            containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge.',
+            hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma.',
+            requiredFirstName: 'El nombre no puede estar vacío.',
+        },
+    },
+    privatePersonalDetails: {
+        enterLegalName: '¿Cuál es tu nombre legal?',
+        enterDateOfBirth: '¿Cuál es tu fecha de nacimiento?',
+        enterAddress: '¿Cuál es tu dirección?',
+        enterPhoneNumber: '¿Cuál es tu número de teléfono?',
+        personalDetails: 'Datos personales',
+        privateDataMessage: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
+        legalName: 'Nombre completo',
+        legalFirstName: 'Nombre legal',
+        legalLastName: 'Apellidos legales',
+        address: 'Dirección',
+        error: {
+            dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
+            dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
+            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
+            hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos.',
+            invalidPhoneNumber: `Asegúrese de que el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        },
+    },
+    resendValidationForm: {
+        linkHasBeenResent: 'El enlace se ha reenviado',
+        weSentYouMagicSignInLink: ({login, loginType}: WeSentYouMagicSignInLinkParams) =>
+            `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor, revisa tu ${loginType}`,
+        resendLink: 'Reenviar enlace',
+    },
+    unlinkLoginForm: {
+        toValidateLogin: ({primaryLogin, secondaryLogin}: ToValidateLoginParams) =>
+            `Para validar ${secondaryLogin}, reenvía el código mágico desde la Configuración de la cuenta de ${primaryLogin}.`,
+        noLongerHaveAccess: ({primaryLogin}: NoLongerHaveAccessParams) => `Si ya no tienes acceso a ${primaryLogin} por favor, desvincula las cuentas.`,
+        unlink: 'Desvincular',
+        linkSent: '¡Enlace enviado!',
+        succesfullyUnlinkedLogin: '¡Nombre de usuario secundario desvinculado correctamente!',
+    },
+    emailDeliveryFailurePage: {
+        ourEmailProvider: ({login}: OurEmailProviderParams) =>
+            `Nuestro proveedor de correo electrónico ha suspendido temporalmente los correos electrónicos a ${login} debido a problemas de entrega. Para desbloquear el inicio de sesión, sigue estos pasos:`,
+        confirmThat: ({login}: ConfirmThatParams) => `Confirma que ${login} está escrito correctamente y que es una dirección de correo electrónico real que puede recibir correos. `,
+        emailAliases:
+            'Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a tu propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.',
+        ensureYourEmailClient: 'Asegúrese de que tu cliente de correo electrónico permita correos electrónicos de expensify.com. ',
+        youCanFindDirections: 'Puedes encontrar instrucciones sobre cómo completar este paso ',
+        helpConfigure: ', pero es posible que necesites que el departamento de informática te ayude a configurar los ajustes de correo electrónico.',
+        onceTheAbove: 'Una vez completados los pasos anteriores, ponte en contacto con ',
+        toUnblock: ' para desbloquear el inicio de sesión.',
+    },
+    smsDeliveryFailurePage: {
+        smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
+            `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido durante 24 horas. Por favor, intenta validar tu número:`,
+        validationFailed: 'La validación falló porque no han pasado 24 horas desde tu último intento.',
+        validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
+        pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
+            if (!timeData) {
+                return 'Por favor, espera un momento antes de intentarlo de nuevo.';
+            }
 
-    '🥷': {
-        name: 'ninja',
-        keywords: ['furtivo', 'guerrero', 'luchador', 'oculto', 'sigilo', 'ninja'],
-    },
-    '👷': {
-        name: 'obrero_de_la_construcción',
-        keywords: ['casco', 'construcción', 'obrero', 'trabajador', 'profesional de la construcción'],
-    },
-    '👷‍♂️': {
-        name: 'obrero',
-        keywords: ['albañil', 'construcción', 'hombre', 'obrero', 'trabajador', 'profesional de la construcción hombre'],
-    },
-    '👷‍♀️': {
-        name: 'obrera',
-        keywords: ['albañila', 'construcción', 'mujer', 'obrera', 'trabajadora', 'profesional de la construcción mujer'],
-    },
-    '🤴': {
-        name: 'príncipe',
-        keywords: ['corona', 'príncipe'],
-    },
-    '🫅': {
-        name: 'persona_con_corona',
-        keywords: ['persona', 'corona', 'realeza', 'rey', 'reina'],
-    },
-    '👸': {
-        name: 'princesa',
-        keywords: ['cuento', 'fantasía', 'hadas', 'princesa'],
-    },
-    '👳': {
-        name: 'hombre_con_turbante',
-        keywords: ['turbante', 'persona con turbante'],
-    },
-    '👳‍♂️': {
-        name: 'hombre_que_lleva_turbante',
-        keywords: ['hombre', 'turbante', 'hombre con turbante'],
-    },
-    '👳‍♀️': {
-        name: 'mujer_que_lleva_turbante',
-        keywords: ['mujer', 'turbante', 'mujer con turbante'],
-    },
-    '👲': {
-        name: 'hombre_con_gorro_chino',
-        keywords: ['gorro', 'gua', 'mao', 'persona', 'gua pi mao', 'persona con gorro chino'],
-    },
-    '🧕': {
-        name: 'persona_con_velo',
-        keywords: ['hiyab', 'pañuelo', 'mujer con hiyab'],
-    },
-    '🤵': {
-        name: 'persona_en_esmoquin',
-        keywords: ['esmoquin', 'novio', 'persona', 'persona con esmoquin'],
-    },
-    '🤵‍♂️': {
-        name: 'hombre_con_esmoquin',
-        keywords: ['esmoquin', 'hombre', 'hombre con esmoquin'],
-    },
-    '🤵‍♀️': {
-        name: 'mujer_con_esmoquin',
-        keywords: ['esmoquin', 'mujer', 'mujer con esmoquin'],
-    },
-    '👰': {
-        name: 'novia_con_velo',
-        keywords: ['boda', 'novia', 'persona', 'velo', 'persona con velo'],
-    },
-    '👰‍♂️': {
-        name: 'hombre_con_velo',
-        keywords: ['boda', 'hombre', 'novio', 'velo', 'hombre con velo'],
-    },
-    '👰‍♀️': {
-        name: 'mujer_con_velo',
-        keywords: ['boda', 'mujer', 'novia', 'velo', 'mujer con velo'],
-    },
-    '🤰': {
-        name: 'embarazada',
-        keywords: ['embarazada', 'mujer'],
-    },
-    '🫄': {
-        name: 'persona_embarazada',
-        keywords: ['embarazado', 'persona', 'esperando', 'padre'],
-    },
-    '🫃': {
-        name: 'hombre_embarazado',
-        keywords: ['embarazado', 'hombre', 'esperando', 'padre'],
-    },
-    '🤱': {
-        name: 'amamantar',
-        keywords: ['amamantar', 'bebé', 'dar pecho', 'pecho', 'lactancia materna'],
-    },
-    '👩‍🍼': {
-        name: 'mujer_alimentando_a_bebé',
-        keywords: ['alimentar', 'amamantar', 'bebé', 'lactancia', 'mujer', 'mujer alimentando a bebé'],
-    },
-    '👨‍🍼': {
-        name: 'hombre_alimentando_a_bebé',
-        keywords: ['alimentar', 'amamantar', 'bebé', 'hombre', 'lactancia', 'hombre alimentando a bebé'],
-    },
-    '🧑‍🍼': {
-        name: 'persona_alimentando_a_bebé',
-        keywords: ['alimentar', 'amamantar', 'bebé', 'lactancia', 'persona', 'persona alimentando a bebé'],
-    },
-    '👼': {
-        name: 'ángel',
-        keywords: ['ángel', 'bebé', 'cara', 'cuento'],
-    },
-    '🎅': {
-        name: 'santa_claus',
-        keywords: ['celebración', 'claus', 'Navidad', 'papá noel', 'Papá Noel', 'santa'],
-    },
-    '🤶': {
-        name: 'sra_claus',
-        keywords: ['abuela', 'mamá', 'Navidad', 'noel', 'Mamá Noel'],
-    },
-    '🧑‍🎄': {
-        name: 'mx_claus',
-        keywords: ['claus', 'christmas', 'mx claus'],
-    },
-    '🦸': {
-        name: 'personaje_de_superhéroe',
-        keywords: ['bien', 'héroe', 'heroína', 'superhéroe', 'superheroína', 'superpoder', 'personaje de superhéroe'],
-    },
-    '🦸‍♂️': {
-        name: 'superhéroe',
-        keywords: ['bueno', 'héroe', 'hombre', 'superhombre', 'superpoder', 'superhéroe'],
-    },
-    '🦸‍♀️': {
-        name: 'superheroína',
-        keywords: ['héroe', 'heroína', 'mujer', 'superhéroe', 'superpoder', 'superheroína'],
-    },
-    '🦹': {
-        name: 'personaje_de_supervillano',
-        keywords: ['mal', 'superpoder', 'supervillana', 'supervillano', 'villana', 'villano', 'personaje de supervillano'],
-    },
-    '🦹‍♂️': {
-        name: 'supervillano',
-        keywords: ['hombre', 'mal', 'malvado', 'villano', 'supervillano'],
-    },
-    '🦹‍♀️': {
-        name: 'supervillana',
-        keywords: ['mal', 'malvada', 'mujer', 'villana', 'supervillana'],
-    },
-    '🧙': {
-        name: 'brujo',
-        keywords: ['bruja', 'brujo', 'hechicera', 'hechicero', 'persona maga'],
-    },
-    '🧙‍♂️': {
-        name: 'mago',
-        keywords: ['brujo', 'hechicero', 'mago'],
-    },
-    '🧙‍♀️': {
-        name: 'maga',
-        keywords: ['bruja', 'hechicera', 'maga'],
-    },
-    '🧚': {
-        name: 'hada',
-        keywords: ['campanilla', 'oberón', 'puck', 'titania', 'hada'],
-    },
-    '🧚‍♂️': {
-        name: 'hada_macho',
-        keywords: ['hada', 'oberón', 'puck', 'hada hombre'],
-    },
-    '🧚‍♀️': {
-        name: 'hada_hembra',
-        keywords: ['campanilla', 'hada', 'titania', 'hada mujer'],
-    },
-    '🧛': {
-        name: 'vampiro',
-        keywords: ['drácula', 'muerto viviente', 'no muerto', 'vampiro'],
-    },
-    '🧛‍♂️': {
-        name: 'vampiro_macho',
-        keywords: ['drácula', 'muerto viviente', 'no muerto', 'vampiro hombre'],
-    },
-    '🧛‍♀️': {
-        name: 'vampira',
-        keywords: ['muerta viviente', 'no muerta', 'vampiresa'],
-    },
-    '🧜': {
-        name: 'sirena-tritón',
-        keywords: ['sirena', 'tritón', 'persona sirena'],
-    },
-    '🧜‍♂️': {
-        name: 'tritón',
-        keywords: ['sirena', 'tritón', 'sirena hombre'],
-    },
-    '🧜‍♀️': {
-        name: 'sirena',
-        keywords: ['sirena'],
-    },
-    '🧝': {
-        name: 'elfo',
-        keywords: ['mágico', 'elfo'],
-    },
-    '🧝‍♂️': {
-        name: 'elfo_macho',
-        keywords: ['elfo', 'mágico', 'elfo hombre'],
-    },
-    '🧝‍♀️': {
-        name: 'elfa',
-        keywords: ['mágico', 'mujer', 'elfa'],
-    },
-    '🧌': {
-        name: 'trol',
-        keywords: ['trol', 'mítico', 'criatura', 'fantasía'],
-    },
-    '🧞': {
-        name: 'genio',
-        keywords: ['lámpara', 'genio'],
-    },
-    '🧞‍♂️': {
-        name: 'genio_de_la_lámpara',
-        keywords: ['djinn', 'genio', 'lámpara', 'genio hombre'],
-    },
-    '🧞‍♀️': {
-        name: 'genia_de_la_lámpara',
-        keywords: ['genio', 'lámpara', 'genio mujer'],
-    },
-    '🧟': {
-        name: 'zombi',
-        keywords: ['muerto viviente', 'no muerto', 'zombi'],
-    },
-    '🧟‍♂️': {
-        name: 'zombi_macho',
-        keywords: ['caminante', 'muerto viviente', 'no muerto', 'zombi hombre'],
-    },
-    '🧟‍♀️': {
-        name: 'zombi_hembra',
-        keywords: ['caminante', 'muerta viviente', 'no muerta', 'zombi mujer'],
-    },
-    '💆': {
-        name: 'masaje',
-        keywords: ['cara', 'facial', 'masaje', 'salón', 'persona recibiendo masaje'],
-    },
-    '💆‍♂️': {
-        name: 'hombre_dándose_un_masaje',
-        keywords: ['cara', 'facial', 'masaje', 'salón', 'hombre recibiendo masaje'],
-    },
-    '💆‍♀️': {
-        name: 'mujer_dándose_un_masaje',
-        keywords: ['cara', 'facial', 'masaje', 'salón', 'mujer recibiendo masaje'],
-    },
-    '💇': {
-        name: 'corte_de_pelo',
-        keywords: ['belleza', 'corte', 'pelo', 'peluquero', 'persona cortándose el pelo'],
-    },
-    '💇‍♂️': {
-        name: 'hombre_cortándose_el_pelo',
-        keywords: ['belleza', 'corte', 'pelo', 'peluquero', 'hombre cortándose el pelo'],
-    },
-    '💇‍♀️': {
-        name: 'mujer_cortándose_el_pelo',
-        keywords: ['belleza', 'corte', 'pelo', 'peluquero', 'mujer cortándose el pelo'],
-    },
-    '🚶': {
-        name: 'caminando',
-        keywords: ['andar', 'caminando', 'caminar', 'persona caminando'],
-    },
-    '🚶‍♂️': {
-        name: 'hombre_caminando',
-        keywords: ['andar', 'caminata', 'hombre', 'marcha', 'hombre caminando'],
-    },
-    '🚶‍♀️': {
-        name: 'mujer_caminando',
-        keywords: ['andar', 'caminata', 'marcha', 'mujer', 'mujer caminando'],
-    },
-    '🧍': {
-        name: 'persona_de_pie',
-        keywords: ['de pie', 'levantada', 'levantado', 'levantarse', 'persona de pie'],
-    },
-    '🧍‍♂️': {
-        name: 'hombre_de_pie',
-        keywords: ['de pie', 'hombre', 'levantado', 'levantarse', 'hombre de pie'],
-    },
-    '🧍‍♀️': {
-        name: 'mujer_de_pie',
-        keywords: ['de pie', 'levantada', 'levantarse', 'mujer', 'mujer de pie'],
-    },
-    '🧎': {
-        name: 'persona_de_rodillas',
-        keywords: ['arrodillada', 'arrodillado', 'arrodillarse', 'de rodillas', 'persona de rodillas'],
-    },
-    '🧎‍♂️': {
-        name: 'hombre_de_rodillas',
-        keywords: ['arrodillado', 'arrodillarse', 'de rodillas', 'hombre', 'hombre de rodillas'],
-    },
-    '🧎‍♀️': {
-        name: 'mujer_de_rodillas',
-        keywords: ['arrodillada', 'arrodillarse', 'de rodillas', 'mujer', 'mujer de rodillas'],
-    },
-    '🧑‍🦯': {
-        name: 'persona_con_bastón',
-        keywords: ['accesibilidad', 'ciego', 'invidente', 'persona con bastón'],
-    },
-    '👨‍🦯': {
-        name: 'hombre_con_bastón',
-        keywords: ['accesibilidad', 'bastón', 'ciego', 'hombre', 'invidente', 'hombre con bastón'],
-    },
-    '👩‍🦯': {
-        name: 'mujer_con_bastón',
-        keywords: ['accesibilidad', 'bastón', 'ciega', 'invidente', 'mujer', 'mujer con bastón'],
-    },
-    '🧑‍🦼': {
-        name: 'persona_en_silla_de_ruedas_eléctrica',
-        keywords: ['accesibilidad', 'silla de ruedas', 'persona en silla de ruedas eléctrica'],
-    },
-    '👨‍🦼': {
-        name: 'hombre_en_silla_de_ruedas_eléctrica',
-        keywords: ['accesibilidad', 'hombre', 'silla de ruedas', 'hombre en silla de ruedas eléctrica'],
-    },
-    '👩‍🦼': {
-        name: 'mujer_en_silla_de_ruedas_eléctrica',
-        keywords: ['accesibilidad', 'mujer', 'silla de ruedas', 'mujer en silla de ruedas eléctrica'],
-    },
-    '🧑‍🦽': {
-        name: 'persona_en_silla_de_ruedas_manual',
-        keywords: ['accesibilidad', 'silla de ruedas', 'persona en silla de ruedas manual'],
-    },
-    '👨‍🦽': {
-        name: 'hombre_en_silla_de_ruedas_manual',
-        keywords: ['accesibilidad', 'hombre', 'silla de ruedas', 'hombre en silla de ruedas manual'],
-    },
-    '👩‍🦽': {
-        name: 'mujer_en_silla_de_ruedas_manual',
-        keywords: ['accesibilidad', 'mujer', 'silla de ruedas', 'mujer en silla de ruedas manual'],
-    },
-    '🏃': {
-        name: 'corredor',
-        keywords: ['carrera', 'deporte', 'maratón  persona corriendo'],
-    },
-    '🏃‍♂️': {
-        name: 'hombre_corriendo',
-        keywords: ['carrera', 'correr', 'hombre', 'hombre corriendo  maratón'],
-    },
-    '🏃‍♀️': {
-        name: 'mujer_corriendo',
-        keywords: ['carrera', 'correr', 'mujer', 'maratón', 'mujer corriendo'],
-    },
-    '💃': {
-        name: 'bailarín',
-        keywords: ['bailar', 'mujer', 'mujer bailando'],
-    },
-    '🕺': {
-        name: 'hombre_bailando',
-        keywords: ['bailar', 'hombre', 'hombre bailando'],
-    },
-    '🕴️': {
-        name: 'hombre_de_negocios_levitando',
-        keywords: ['levitar', 'negocios', 'persona', 'traje', 'persona trajeada levitando'],
-    },
-    '👯': {
-        name: 'bailarines',
-        keywords: ['bailar', 'fiesta', 'orejas de conejo', 'personas', 'personas con orejas de conejo'],
-    },
-    '👯‍♂️': {
-        name: 'hombre_con_orejas_de_conejo',
-        keywords: ['bailar', 'fiesta', 'hombre', 'orejas de conejo', 'hombres con orejas de conejo'],
-    },
-    '👯‍♀️': {
-        name: 'mujer_con_orejas_de_conejo',
-        keywords: ['bailar', 'fiesta', 'mujer', 'orejas de conejo', 'mujeres con orejas de conejo'],
-    },
-    '🧖': {
-        name: 'persona_en_sauna',
-        keywords: ['sauna', 'vapor', 'persona en una sauna'],
-    },
-    '🧖‍♂️': {
-        name: 'hombre_en_sauna',
-        keywords: ['sauna', 'vapor', 'hombre en una sauna'],
-    },
-    '🧖‍♀️': {
-        name: 'mujer_en_sauna',
-        keywords: ['sauna', 'vapor', 'mujer en una sauna'],
-    },
-    '🧗': {
-        name: 'persona_escalando',
-        keywords: ['alpinista', 'escalador', 'persona escalando'],
-    },
-    '🧗‍♂️': {
-        name: 'hombre_escalando',
-        keywords: ['alpinista', 'escalador', 'hombre escalando'],
-    },
-    '🧗‍♀️': {
-        name: 'mujer_escalando',
-        keywords: ['alpinista', 'escaladora', 'mujer escalando'],
-    },
-    '🤺': {
-        name: 'esgrimista',
-        keywords: ['esgrima', 'esgrimista', 'espada', 'persona haciendo esgrima'],
-    },
-    '🏇': {
-        name: 'carrera_de_caballos',
-        keywords: ['caballo', 'caballo de carreras', 'carreras', 'jinete', 'carrera de caballos'],
-    },
-    '⛷️': {
-        name: 'esquiador',
-        keywords: ['esquí', 'esquiador', 'nieve', 'persona esquiando'],
-    },
-    '🏂': {
-        name: 'practicante_de_snowboard',
-        keywords: ['nieve', 'snowboard', 'practicante de snowboard'],
-    },
-    '🏌️': {
-        name: 'golfista',
-        keywords: ['golf', 'golfista', 'pelota', 'persona jugando al golf'],
-    },
-    '🏌️‍♂️': {
-        name: 'hombre_jugando_golf',
-        keywords: ['golf', 'hombre', 'jugador', 'hombre jugando al golf'],
-    },
-    '🏌️‍♀️': {
-        name: 'mujer_jugando_golf',
-        keywords: ['golf', 'jugadora', 'mujer', 'mujer jugando al golf'],
-    },
-    '🏄': {
-        name: 'surfista',
-        keywords: ['surf', 'persona haciendo surf', 'surfear'],
-    },
-    '🏄‍♂️': {
-        name: 'hombre_surfeando',
-        keywords: ['hombre', 'surf', 'surfero', 'surfista', 'hombre haciendo surf'],
-    },
-    '🏄‍♀️': {
-        name: 'mujer_haciendo_surf',
-        keywords: ['mujer', 'surf', 'surfera', 'surfista', 'mujer haciendo surf'],
-    },
-    '🚣': {
-        name: 'bote_de_remos',
-        keywords: ['barca', 'bote', 'remo', 'persona remando en un bote'],
-    },
-    '🚣‍♂️': {
-        name: 'hombre_remando_barca',
-        keywords: ['barca', 'bote', 'hombre', 'remo', 'hombre remando en un bote'],
-    },
-    '🚣‍♀️': {
-        name: 'mujer_remando_barca',
-        keywords: ['barca', 'bote', 'mujer', 'remo', 'mujer remando en un bote'],
-    },
-    '🏊': {
-        name: 'nadador',
-        keywords: ['nadar', 'natación', 'persona nadando'],
-    },
-    '🏊‍♂️': {
-        name: 'hombre_nadando',
-        keywords: ['hombre', 'nadar', 'hombre nadando'],
-    },
-    '🏊‍♀️': {
-        name: 'mujer_nadando',
-        keywords: ['mujer', 'nadar', 'mujer nadando'],
-    },
-    '⛹️': {
-        name: 'persona_con_una_pelota',
-        keywords: ['balón', 'botar', 'pelota', 'persona botando un balón'],
-    },
-    '⛹️‍♂️': {
-        name: 'hombre_botando_balón',
-        keywords: ['balón', 'botar', 'hombre', 'pelota', 'hombre botando un balón'],
-    },
-    '⛹️‍♀️': {
-        name: 'mujer_botando_balón',
-        keywords: ['balón', 'botar', 'mujer', 'pelota', 'mujer botando un balón'],
-    },
-    '🏋️': {
-        name: 'levantador_de_peso',
-        keywords: ['halterofilia', 'levantador', 'pesas', 'peso', 'persona levantando pesas'],
-    },
-    '🏋️‍♂️': {
-        name: 'hombre_levantando_pesas',
-        keywords: ['halterofilia', 'hombre', 'levantador de pesas', 'pesas', 'hombre levantando pesas'],
-    },
-    '🏋️‍♀️': {
-        name: 'mujer_levantando_pesas',
-        keywords: ['halterofilia', 'levantadora de pesas', 'mujer', 'pesas', 'mujer levantando pesas'],
-    },
-    '🚴': {
-        name: 'ciclista',
-        keywords: ['bicicleta', 'ciclismo', 'ciclista', 'persona en bicicleta'],
-    },
-    '🚴‍♂️': {
-        name: 'hombre_en_bici',
-        keywords: ['bicicleta', 'ciclismo', 'ciclista', 'hombre', 'hombre en bicicleta'],
-    },
-    '🚴‍♀️': {
-        name: 'mujer_en_bici',
-        keywords: ['bicicleta', 'ciclismo', 'ciclista', 'mujer', 'mujer en bicicleta'],
-    },
-    '🚵': {
-        name: 'ciclista_de_montaña',
-        keywords: ['bicicleta', 'ciclista', 'montaña', 'mountain bike', 'persona en bicicleta de montaña'],
-    },
-    '🚵‍♂️': {
-        name: 'hombre_bici_montaña',
-        keywords: ['bicicleta', 'ciclista', 'montaña', 'mountain bike', 'hombre en bicicleta de montaña'],
-    },
-    '🚵‍♀️': {
-        name: 'mujer_bici_montaña',
-        keywords: ['bicicleta', 'ciclista', 'montaña', 'mountain bike', 'mujer en bicicleta de montaña'],
-    },
-    '🤸': {
-        name: 'persona_dando_volteretas',
-        keywords: ['acrobacia', 'gimnasia', 'pirueta', 'rueda', 'voltereta', 'persona haciendo voltereta lateral'],
-    },
-    '🤸‍♂️': {
-        name: 'hombre_dando_volteretas',
-        keywords: ['deporte', 'gimnasia', 'hombre', 'rueda', 'voltereta', 'hombre dando una voltereta lateral'],
-    },
-    '🤸‍♀️': {
-        name: 'mujer_dando_volteretas',
-        keywords: ['deporte', 'gimnasia', 'mujer', 'rueda', 'voltereta', 'mujer dando una voltereta lateral'],
-    },
-    '🤼': {
-        name: 'luchadores',
-        keywords: ['lucha', 'luchador', 'personas luchando'],
-    },
-    '🤼‍♂️': {
-        name: 'hombre_lucha_libre',
-        keywords: ['deporte', 'hombre', 'lucha', 'luchador', 'hombres luchando'],
-    },
-    '🤼‍♀️': {
-        name: 'mujer_lucha_libre',
-        keywords: ['deporte', 'lucha', 'luchadora', 'mujer', 'mujeres luchando'],
-    },
-    '🤽': {
-        name: 'waterpolo',
-        keywords: ['waterpolista', 'waterpolo', 'persona jugando al waterpolo'],
-    },
-    '🤽‍♂️': {
-        name: 'hombre_jugando_waterpolo',
-        keywords: ['agua', 'deporte', 'waterpolista', 'waterpolo', 'hombre jugando al waterpolo'],
-    },
-    '🤽‍♀️': {
-        name: 'mujer_jugando_waterpolo',
-        keywords: ['agua', 'deporte', 'waterpolista', 'waterpolo', 'mujer jugando al waterpolo'],
-    },
-    '🤾': {
-        name: 'balonmano',
-        keywords: ['balonmanista', 'balonmano', 'persona jugando al balonmano'],
-    },
-    '🤾‍♂️': {
-        name: 'hombre_jugando_balonmano',
-        keywords: ['balonmanista', 'balonmano', 'deporte', 'hombre', 'hombre jugando al balonmano'],
-    },
-    '🤾‍♀️': {
-        name: 'mujer_jugando_balonmano',
-        keywords: ['balonmanista', 'balonmano', 'deporte', 'mujer', 'mujer jugando al balonmano'],
-    },
-    '🤹': {
-        name: 'malabarismo',
-        keywords: ['equilibrio', 'malabares', 'malabarismo', 'malabarista', 'persona haciendo malabares'],
-    },
-    '🤹‍♂️': {
-        name: 'malabarista_hombre',
-        keywords: ['hombre', 'malabares', 'malabarismo', 'malabarista', 'hombre haciendo malabares'],
-    },
-    '🤹‍♀️': {
-        name: 'malabarista_mujer',
-        keywords: ['malabares', 'malabarismo', 'malabarista', 'mujer', 'mujer haciendo malabares'],
-    },
-    '🧘': {
-        name: 'persona_en_postura_loto',
-        keywords: ['meditación', 'yoga', 'persona en posición de loto'],
-    },
-    '🧘‍♂️': {
-        name: 'hombre_en_postura_loto',
-        keywords: ['meditación', 'yoga', 'hombre en posición de loto'],
-    },
-    '🧘‍♀️': {
-        name: 'mujer_en_postura_loto',
-        keywords: ['meditación', 'yoga', 'mujer en posición de loto'],
-    },
-    '🛀': {
-        name: 'bañera',
-        keywords: ['bañera', 'baño', 'persona', 'persona en la bañera'],
-    },
-    '🛌': {
-        name: 'lugar_para_dormir',
-        keywords: ['dormir', 'hotel', 'persona en la cama'],
-    },
-    '🧑‍🤝‍🧑': {
-        name: 'dos_personas_dándose_la_mano',
-        keywords: ['mano', 'pareja', 'persona', 'dos personas de la mano'],
-    },
-    '👭': {
-        name: 'dos_mujeres_de_la_mano',
-        keywords: ['lesbianas', 'mujeres', 'novias', 'pareja', 'mujeres de la mano'],
-    },
-    '👫': {
-        name: 'hombre_y_mujer_de_la_mano',
-        keywords: ['hombre', 'hombre y mujer de la mano', 'mujer', 'novios', 'pareja', 'mujer y hombre de la mano'],
-    },
-    '👬': {
-        name: 'dos_hombres_de_la_mano',
-        keywords: ['gays', 'hombres', 'novios', 'pareja', 'hombres de la mano'],
-    },
-    '💏': {
-        name: 'pareja_besándose',
-        keywords: ['personas', 'romance', 'beso'],
-    },
-    '👩‍❤️‍💋‍👨': {
-        name: 'mujer_beso_hombre',
-        keywords: ['beso', 'hombre', 'mujer', 'personas', 'romance'],
-    },
-    '👨‍❤️‍💋‍👨': {
-        name: 'hombre_beso_hombre',
-        keywords: ['beso', 'hombre', 'personas', 'romance'],
-    },
-    '👩‍❤️‍💋‍👩': {
-        name: 'mujer_beso_mujer',
-        keywords: ['beso', 'mujer', 'personas', 'romance'],
-    },
-    '💑': {
-        name: 'pareja_con_corazón',
-        keywords: ['amor', 'pareja', 'pareja enamorada  personas enamoradas'],
-    },
-    '👩‍❤️‍👨': {
-        name: 'mujer_corazón_hombre',
-        keywords: ['amor', 'hombre', 'mujer', 'pareja', 'pareja enamorada', 'personas enamoradas'],
-    },
-    '👨‍❤️‍👨': {
-        name: 'hombre_corazón_hombre',
-        keywords: ['amor', 'hombre', 'pareja', 'pareja enamorada', 'personas enamoradas'],
-    },
-    '👩‍❤️‍👩': {
-        name: 'mujer_corazón_mujer',
-        keywords: ['amor', 'mujer', 'pareja', 'pareja enamorada', 'personas enamoradas'],
-    },
-    '👪': {
-        name: 'familia',
-        keywords: ['familia'],
-    },
-    '👨‍👩‍👦': {
-        name: 'hombre_mujer_niño',
-        keywords: ['familia', 'hombre', 'mujer', 'niño'],
-    },
-    '👨‍👩‍👧': {
-        name: 'hombre_mujer_niña',
-        keywords: ['familia', 'hombre', 'mujer', 'niña'],
-    },
-    '👨‍👩‍👧‍👦': {
-        name: 'hombre_mujer_niña_niño',
-        keywords: ['familia', 'hombre', 'mujer', 'niña', 'niño'],
-    },
-    '👨‍👩‍👦‍👦': {
-        name: 'hombre_mujer_niño_niño',
-        keywords: ['familia', 'hombre', 'mujer', 'niño'],
-    },
-    '👨‍👩‍👧‍👧': {
-        name: 'hombre_mujer_niña_niña',
-        keywords: ['familia', 'hombre', 'mujer', 'niña'],
-    },
-    '👨‍👨‍👦': {
-        name: 'hombre_hombre_niño',
-        keywords: ['familia', 'hombre', 'niño'],
-    },
-    '👨‍👨‍👧': {
-        name: 'hombre_hombre_niña',
-        keywords: ['familia', 'hombre', 'niña'],
-    },
-    '👨‍👨‍👧‍👦': {
-        name: 'hombre_hombre_niña_niño',
-        keywords: ['familia', 'hombre', 'niña', 'niño'],
-    },
-    '👨‍👨‍👦‍👦': {
-        name: 'hombre_hombre_niño_niño',
-        keywords: ['familia', 'hombre', 'niño'],
-    },
-    '👨‍👨‍👧‍👧': {
-        name: 'hombre_hombre_niña_niña',
-        keywords: ['familia', 'hombre', 'niña'],
-    },
-    '👩‍👩‍👦': {
-        name: 'mujer_mujer_niño',
-        keywords: ['familia', 'mujer', 'niño'],
-    },
-    '👩‍👩‍👧': {
-        name: 'mujer_mujer_niña',
-        keywords: ['familia', 'mujer', 'niña'],
-    },
-    '👩‍👩‍👧‍👦': {
-        name: 'mujer_mujer_niña_niño',
-        keywords: ['familia', 'mujer', 'niña', 'niño'],
-    },
-    '👩‍👩‍👦‍👦': {
-        name: 'mujer_mujer_niño_niño',
-        keywords: ['familia', 'mujer', 'niño'],
-    },
-    '👩‍👩‍👧‍👧': {
-        name: 'mujer_mujer_niña_niña',
-        keywords: ['familia', 'mujer', 'niña'],
-    },
-    '👨‍👦': {
-        name: 'hombre_niño',
-        keywords: ['familia', 'hombre', 'niño'],
-    },
-    '👨‍👦‍👦': {
-        name: 'hombre_niño_niño',
-        keywords: ['familia', 'hombre', 'niño'],
-    },
-    '👨‍👧': {
-        name: 'hombre_niña',
-        keywords: ['familia', 'hombre', 'niña'],
-    },
-    '👨‍👧‍👦': {
-        name: 'hombre_niño_niña',
-        keywords: ['familia', 'hombre', 'niña', 'niño'],
-    },
-    '👨‍👧‍👧': {
-        name: 'hombre_niña_niña',
-        keywords: ['familia', 'hombre', 'niña'],
-    },
-    '👩‍👦': {
-        name: 'mujer_niño',
-        keywords: ['familia', 'mujer', 'niño'],
-    },
-    '👩‍👦‍👦': {
-        name: 'mujer_niño_niño',
-        keywords: ['familia', 'mujer', 'niño'],
-    },
-    '👩‍👧': {
-        name: 'mujer_niña',
-        keywords: ['familia', 'mujer', 'niña'],
-    },
-    '👩‍👧‍👦': {
-        name: 'mujer_niña_niño',
-        keywords: ['familia', 'mujer', 'niña', 'niño'],
-    },
-    '👩‍👧‍👧': {
-        name: 'mujer_niña_niña',
-        keywords: ['familia', 'mujer', 'niña'],
-    },
-    '🗣️': {
-        name: 'silueta_de_cabeza_parlante',
-        keywords: ['cabeza', 'cara', 'hablar', 'silueta', 'cabeza parlante'],
-    },
-    '👤': {
-        name: 'silueta_de_busto',
-        keywords: ['busto', 'silueta', 'silueta de busto'],
-    },
-    '👥': {
-        name: 'siluetas_de_bustos',
-        keywords: ['bustos', 'siluetas', 'dos siluetas de bustos'],
-    },
-    '🫂': {
-        name: 'personas_abrazándose',
-        keywords: ['abrazo', 'adiós', 'despedida', 'gracias', 'saludo', 'personas abrazándose'],
-    },
-    '👣': {
-        name: 'huellas',
-        keywords: ['huellas', 'pies', 'huellas de pies'],
-    },
-    '🐵': {
-        name: 'cara_de_mono',
-        keywords: ['cara', 'mono', 'cara de mono'],
-    },
-    '🐒': {
-        name: 'mono',
-        keywords: ['macaco', 'simio', 'mono'],
-    },
-    '🦍': {
-        name: 'gorila',
-        keywords: ['primate', 'simio', 'gorila'],
-    },
-    '🦧': {
-        name: 'orangután',
-        keywords: ['mono', 'primate', 'simio', 'orangután'],
-    },
-    '🐶': {
-        name: 'perro',
-        keywords: ['cara', 'mascota', 'perro', 'cara de perro'],
-    },
-    '🐕': {
-        name: 'perro2',
-        keywords: ['cachorro', 'perrete', 'perrito', 'perro'],
-    },
-    '🦮': {
-        name: 'perro_guía',
-        keywords: ['accesibilidad', 'ciego', 'guía', 'invidente', 'lazarillo', 'perro guía'],
-    },
-    '🐕‍🦺': {
-        name: 'perro_de_servicio',
-        keywords: ['accesibilidad', 'apoyo', 'asistencia', 'perro', 'servicio', 'perro de servicio'],
-    },
-    '🐩': {
-        name: 'caniche',
-        keywords: ['perrito', 'perro', 'caniche'],
-    },
-    '🐺': {
-        name: 'lobo',
-        keywords: ['cara', 'lobo'],
-    },
-    '🦊': {
-        name: 'cara_zorro',
-        keywords: ['cara', 'zorro'],
-    },
-    '🦝': {
-        name: 'mapache',
-        keywords: ['astuto', 'curioso', 'ladino', 'maquillaje', 'ojeras', 'mapache'],
-    },
-    '🐱': {
-        name: 'gato',
-        keywords: ['cara', 'gato', 'mascota', 'cara de gato'],
-    },
-    '🐈': {
-        name: 'gato2',
-        keywords: ['gatete', 'minino', 'gato'],
-    },
-    '🐈‍⬛': {
-        name: 'gato_negro',
-        keywords: ['gato', 'mala suerte', 'negro'],
-    },
-    '🦁': {
-        name: 'cara_de_león',
-        keywords: ['cara', 'leo', 'zodiaco', 'león'],
-    },
-    '🐯': {
-        name: 'tigre',
-        keywords: ['cara', 'tigre', 'cara de tigre'],
-    },
-    '🐅': {
-        name: 'tigre2',
-        keywords: ['felino', 'tigre'],
-    },
-    '🐆': {
-        name: 'leopardo',
-        keywords: ['felino', 'leopardo'],
-    },
-    '🐴': {
-        name: 'caballo',
-        keywords: ['caballo', 'cara', 'cara de caballo'],
-    },
-    '🐎': {
-        name: 'caballo_de_carreras',
-        keywords: ['caballo de carreras', 'ecuestre', 'caballo', 'carreras de caballos'],
-    },
-    '🦄': {
-        name: 'cara_de_unicornio',
-        keywords: ['cara', 'unicornio'],
-    },
-    '🫎': {
-        name: 'alce',
-        keywords: ['alce', 'animal', 'cuernos', 'naturaleza'],
-    },
-    '🫏': {
-        name: 'burro',
-        keywords: ['burro', 'animal', 'granja', 'naturaleza'],
-    },
-    '🪽': {
-        name: 'ala',
-        keywords: ['ala', 'volar', 'pájaro', 'ángel'],
-    },
-    '🐦‍⬛': {
-        name: 'pájaro_negro',
-        keywords: ['pájaro', 'negro', 'animal', 'naturaleza'],
-    },
-    '🪿': {
-        name: 'ganso',
-        keywords: ['ganso', 'animal', 'ave', 'naturaleza'],
-    },
-    '🪼': {
-        name: 'medusa',
-        keywords: ['medusa', 'animal', 'mar', 'naturaleza'],
-    },
-    '🦓': {
-        name: 'cara_zebra',
-        keywords: ['raya', 'cebra'],
-    },
-    '🦌': {
-        name: 'ciervo',
-        keywords: ['bambi  cervatillo  ciervo'],
-    },
-    '🦬': {
-        name: 'bisonte',
-        keywords: ['búfalo', 'cíbolo', 'bisonte'],
-    },
-    '🐮': {
-        name: 'vaca',
-        keywords: ['cara', 'vaca', 'cara de vaca'],
-    },
-    '🐂': {
-        name: 'buey',
-        keywords: ['cabestro', 'tauro', 'zodiaco', 'buey'],
-    },
-    '🐃': {
-        name: 'búfalo_de_agua',
-        keywords: ['agua', 'búfalo', 'búfalo de agua'],
-    },
-    '🐄': {
-        name: 'vaca2',
-        keywords: ['bovino', 'res', 'vaca'],
-    },
-    '🐷': {
-        name: 'cerdo',
-        keywords: ['cara', 'cerdo', 'gorrino', 'cara de cerdo'],
-    },
-    '🐖': {
-        name: 'cerdo2',
-        keywords: ['cochino', 'gorrino', 'puerco', 'cerdo'],
-    },
-    '🐗': {
-        name: 'jabalí',
-        keywords: ['cerdo salvaje', 'jabalí'],
-    },
-    '🐽': {
-        name: 'hocico_de_cerdo',
-        keywords: ['cara', 'cerdo', 'morro', 'nariz', 'nariz de cerdo'],
-    },
-    '🐏': {
-        name: 'carnero',
-        keywords: ['aries', 'morueco', 'zodiaco', 'carnero'],
-    },
-    '🐑': {
-        name: 'oveja',
-        keywords: ['borrego', 'cordero', 'ovino', 'oveja'],
-    },
-    '🐐': {
-        name: 'cabra',
-        keywords: ['capricornio', 'caprino', 'chivo', 'zodiaco', 'cabra'],
-    },
-    '🐪': {
-        name: 'dromedario_camello',
-        keywords: ['camello', 'desierto', 'joroba', 'dromedario'],
-    },
-    '🐫': {
-        name: 'camello',
-        keywords: ['bactriano', 'desierto', 'dromedario', 'jorobas', 'camello'],
-    },
-    '🦙': {
-        name: 'llama',
-        keywords: ['alpaca', 'guanaco', 'lana', 'vicuña', 'llama'],
-    },
-    '🦒': {
-        name: 'cara_jirafa',
-        keywords: ['manchas', 'jirafa'],
-    },
-    '🐘': {
-        name: 'elefante',
-        keywords: ['paquidermo', 'elefante'],
-    },
-    '🦣': {
-        name: 'mamut',
-        keywords: ['colmillo', 'extinguido', 'lanudo', 'mamut'],
-    },
-    '🦏': {
-        name: 'rinoceronte',
-        keywords: ['paquidermo', 'rinoceronte'],
-    },
-    '🦛': {
-        name: 'hipopótamo',
-        keywords: ['paquidermo', 'hipopótamo'],
-    },
-    '🐭': {
-        name: 'ratón',
-        keywords: ['cara', 'ratón', 'cara de ratón'],
-    },
-    '🐁': {
-        name: 'mouse2',
-        keywords: ['roedor', 'ratón'],
-    },
-    '🐀': {
-        name: 'rata',
-        keywords: ['roedor', 'rata'],
-    },
-    '🐹': {
-        name: 'hámster',
-        keywords: ['cara', 'mascota', 'hámster'],
-    },
-    '🐰': {
-        name: 'conejo',
-        keywords: ['cara', 'conejo', 'mascota', 'cara de conejo'],
-    },
-    '🐇': {
-        name: 'conejo2',
-        keywords: ['conejito', 'gazapo', 'conejo'],
-    },
-    '🐿️': {
-        name: 'ardilla',
-        keywords: ['ardilla'],
-    },
-    '🦫': {
-        name: 'castor',
-        keywords: ['roedor', 'castor'],
-    },
-    '🦔': {
-        name: 'erizo',
-        keywords: ['espinas', 'púas', 'erizo'],
-    },
-    '🦇': {
-        name: 'murciélago',
-        keywords: ['vampiro', 'murciélago'],
-    },
-    '🐻': {
-        name: 'oso',
-        keywords: ['cara', 'oso'],
-    },
-    '🐻‍❄️': {
-        name: 'oso_polar',
-        keywords: ['ártico', 'blanco', 'oso', 'polar'],
-    },
-    '🐨': {
-        name: 'coala',
-        keywords: ['cara', 'marsupial', 'koala'],
-    },
-    '🐼': {
-        name: 'cara_de_panda',
-        keywords: ['cara', 'oso panda', 'panda'],
-    },
-    '🦥': {
-        name: 'perezoso',
-        keywords: ['gandul', 'lento', 'vago', 'perezoso'],
-    },
-    '🦦': {
-        name: 'nutria',
-        keywords: ['bromista', 'juguetón', 'pesca', 'nutria'],
-    },
-    '🦨': {
-        name: 'mofeta',
-        keywords: ['apestar', 'hedor', 'mal olor', 'peste', 'tufo', 'mofeta'],
-    },
-    '🦘': {
-        name: 'canguro',
-        keywords: ['marsupial', 'salto', 'canguro'],
-    },
-    '🦡': {
-        name: 'tejón',
-        keywords: ['ratel', 'tejón de la miel', 'tejón melero', 'tejón'],
-    },
-    '🐾': {
-        name: 'pies',
-        keywords: ['huellas', 'pezuñas', 'huellas de pezuñas'],
-    },
-    '🦃': {
-        name: 'pavo',
-        keywords: ['ave', 'pavo'],
-    },
-    '🐔': {
-        name: 'pollo',
-        keywords: ['ave', 'gallinácea', 'pollo', 'gallina'],
-    },
-    '🐓': {
-        name: 'gallo',
-        keywords: ['ave', 'gallina', 'gallinácea', 'pollo', 'gallo'],
-    },
-    '🐣': {
-        name: 'pollito_saliendo_del_cascarón',
-        keywords: ['ave', 'huevo', 'pollito', 'pollo', 'pollito rompiendo el cascarón'],
-    },
-    '🐤': {
-        name: 'pollito',
-        keywords: ['ave', 'pollo', 'polluelo', 'pollito'],
-    },
-    '🐥': {
-        name: 'pollito_recién_nacido',
-        keywords: ['ave', 'pollito', 'pollo', 'pollito de frente'],
-    },
-    '🐦': {
-        name: 'pájaro',
-        keywords: ['ave', 'pajarillo', 'pájaro'],
-    },
-    '🐧': {
-        name: 'pingüino',
-        keywords: ['ave', 'pingüino'],
-    },
-    '🕊️': {
-        name: 'paloma_de_la_paz',
-        keywords: ['ave', 'pájaro', 'paz', 'paloma'],
-    },
-    '🦅': {
-        name: 'águila',
-        keywords: ['ave', 'águila'],
-    },
-    '🦆': {
-        name: 'pato',
-        keywords: ['ave', 'pato'],
-    },
-    '🦢': {
-        name: 'cisne',
-        keywords: ['ave', 'patito feo', 'cisne'],
-    },
-    '🦉': {
-        name: 'búho',
-        keywords: ['ave', 'lechuza', 'pájaro', 'búho'],
-    },
-    '🦤': {
-        name: 'dodo',
-        keywords: ['ave', 'dronte', 'extinguido', 'Mauricio', 'pájaro', 'dodo'],
-    },
-    '🪶': {
-        name: 'pluma',
-        keywords: ['ave', 'ligero', 'pájaro', 'plumaje', 'pluma'],
-    },
-    '🦩': {
-        name: 'flamenco',
-        keywords: ['extravangante', 'ostentoso', 'tropical', 'flamenco'],
-    },
-    '🦚': {
-        name: 'pavo_real',
-        keywords: ['ave', 'orgulloso', 'pavo', 'plumas', 'pavo real'],
-    },
-    '🦜': {
-        name: 'loro',
-        keywords: ['ave', 'hablar', 'papagayo', 'pirata', 'loro'],
-    },
-    '🐸': {
-        name: 'rana',
-        keywords: ['cara', 'rana'],
-    },
-    '🐊': {
-        name: 'cocodrilo',
-        keywords: ['caimán', 'cocodrilo'],
-    },
-    '🐢': {
-        name: 'tortuga',
-        keywords: ['galápago', 'tortuga'],
-    },
-    '🦎': {
-        name: 'lagarto',
-        keywords: ['lagartija', 'reptil', 'lagarto'],
-    },
-    '🐍': {
-        name: 'serpiente',
-        keywords: ['culebra', 'reptil', 'víbora', 'serpiente'],
-    },
-    '🐲': {
-        name: 'cara_de_dragón',
-        keywords: ['cara', 'cuento', 'dragón', 'fantasía', 'cara de dragón'],
-    },
-    '🐉': {
-        name: 'dragón',
-        keywords: ['cuento', 'fantasía', 'dragón'],
-    },
-    '🦕': {
-        name: 'saurópodo',
-        keywords: ['braquiosaurio', 'brontosaurio', 'diplodocus', 'saurópodo'],
-    },
-    '🦖': {
-        name: 't-rex',
-        keywords: ['tiranosaurio', 'tiranosaurio rex', 't-rex'],
-    },
-    '🐳': {
-        name: 'ballena',
-        keywords: ['ballena', 'chorro de agua', 'ballena soltando un chorro'],
-    },
-    '🐋': {
-        name: 'ballena2',
-        keywords: ['cachalote', 'cetáceo', 'ballena'],
-    },
-    '🐬': {
-        name: 'delfín',
-        keywords: ['cetáceo', 'delfín'],
-    },
-    '🦭': {
-        name: 'foca',
-        keywords: ['león marino', 'foca'],
-    },
-    '🐟': {
-        name: 'pez',
-        keywords: ['pececillo', 'pescado', 'piscis', 'zodiaco', 'pez'],
-    },
-    '🐠': {
-        name: 'pez_tropical',
-        keywords: ['pez', 'tropical'],
-    },
-    '🐡': {
-        name: 'pez_globo',
-        keywords: ['globo', 'pez'],
-    },
-    '🦈': {
-        name: 'tiburón',
-        keywords: ['pez', 'tiburón'],
-    },
-    '🐙': {
-        name: 'pulpo',
-        keywords: ['cefalópodo', 'octópodo', 'pulpo'],
-    },
-    '🐚': {
-        name: 'caracola',
-        keywords: ['concha', 'mar', 'concha de mar'],
-    },
-    '🪸': {
-        name: 'coral',
-        keywords: ['coral', 'arrecife', 'mar', 'océano', 'marino'],
-    },
-    '🐌': {
-        name: 'caracol',
-        keywords: ['caracola', 'molusco', 'caracol'],
-    },
-    '🦋': {
-        name: 'mariposa',
-        keywords: ['bonito', 'insecto', 'mariposa'],
-    },
-    '🐛': {
-        name: 'bicho',
-        keywords: ['gusano', 'insecto', 'bicho'],
-    },
-    '🐜': {
-        name: 'hormiga',
-        keywords: ['antenas', 'insecto', 'hormiga'],
-    },
-    '🐝': {
-        name: 'abeja',
-        keywords: ['insecto', 'miel', 'abeja'],
-    },
-    '🪲': {
-        name: 'escarabajo',
-        keywords: ['bicho', 'insecto', 'escarabajo'],
-    },
-    '🐞': {
-        name: 'mariquita',
-        keywords: ['cochinilla', 'insecto', 'mariquita'],
-    },
-    '🦗': {
-        name: 'grillo',
-        keywords: ['saltamontes', 'grillo'],
-    },
-    '🪳': {
-        name: 'cucaracha',
-        keywords: ['alimaña', 'bicho', 'insecto', 'plaga', 'cucaracha'],
-    },
-    '🕷️': {
-        name: 'araña',
-        keywords: ['insecto', 'araña'],
-    },
-    '🕸️': {
-        name: 'telaraña',
-        keywords: ['araña', 'tela', 'telaraña', 'tela de araña'],
-    },
-    '🦂': {
-        name: 'escorpión',
-        keywords: ['escorpio', 'zodiaco', 'escorpión'],
-    },
-    '🦟': {
-        name: 'mosquito',
-        keywords: ['fiebre', 'insecto', 'malaria', 'virus', 'mosquito'],
-    },
-    '🪰': {
-        name: 'mosca',
-        keywords: ['basura', 'bicho', 'mal olor', 'podrido', 'mosca'],
-    },
-    '🪱': {
-        name: 'gusano',
-        keywords: ['lombriz', 'oruga', 'parásito', 'gusano'],
-    },
-    '🦠': {
-        name: 'microbio',
-        keywords: ['ameba', 'bacteria', 'germen', 'virus', 'microbio'],
-    },
-    '💐': {
-        name: 'ramo',
-        keywords: ['bouquet', 'flores', 'ramo', 'ramo de flores'],
-    },
-    '🌸': {
-        name: 'flor_de_cerezo',
-        keywords: ['cerezo', 'flor', 'flor de cerezo'],
-    },
-    '💮': {
-        name: 'flor_blanca',
-        keywords: ['blanca', 'flor'],
-    },
-    '🏵️': {
-        name: 'roseta',
-        keywords: ['flor', 'planta', 'roseta'],
-    },
-    '🌹': {
-        name: 'rosa',
-        keywords: ['flor', 'rosa'],
-    },
-    '🥀': {
-        name: 'flor_marchita',
-        keywords: ['flor', 'marchita', 'marchitada', 'marchitarse'],
-    },
-    '🪻': {
-        name: 'jacinto',
-        keywords: ['jacinto', 'flor', 'planta', 'naturaleza'],
-    },
-    '🪷': {
-        name: 'flor_de_loto',
-        keywords: ['loto', 'flor', 'florecer', 'planta'],
-    },
-    '🌺': {
-        name: 'hibisco',
-        keywords: ['flor', 'hibisco', 'flor de hibisco'],
-    },
-    '🌻': {
-        name: 'girasol',
-        keywords: ['flor', 'sol', 'girasol'],
-    },
-    '🌼': {
-        name: 'flor',
-        keywords: ['flor'],
-    },
-    '🌷': {
-        name: 'tulipán',
-        keywords: ['flor', 'tulipán'],
-    },
-    '🌱': {
-        name: 'plántula',
-        keywords: ['plantón', 'planta joven'],
-    },
-    '🪴': {
-        name: 'planta_de_maceta',
-        keywords: ['crecer', 'maceta', 'planta', 'tiesto', 'planta de maceta'],
-    },
-    '🌲': {
-        name: 'árbol_de_hoja_perenne',
-        keywords: ['árbol', 'hoja perenne', 'perenne', 'árbol de hoja perenne'],
-    },
-    '🌳': {
-        name: 'árbol_caduco',
-        keywords: ['árbol', 'caducifolio', 'hoja caduca', 'árbol de hoja caduca'],
-    },
-    '🌴': {
-        name: 'palmera',
-        keywords: ['árbol', 'árbol de palma', 'palmera'],
-    },
-    '🌵': {
-        name: 'cactus',
-        keywords: ['planta', 'cactus'],
-    },
-    '🌾': {
-        name: 'planta_de_arroz',
-        keywords: ['arroz', 'espiga', 'planta', 'espiga de arroz'],
-    },
-    '🌿': {
-        name: 'hierba',
-        keywords: ['hoja', 'verde', 'hierba'],
-    },
-    '☘️': {
-        name: 'trébol',
-        keywords: ['planta', 'trébol'],
-    },
-    '🍀': {
-        name: 'trébol_de_cuatro_hojas',
-        keywords: ['suerte', 'trébol', 'trébol de cuatro hojas'],
-    },
-    '🍁': {
-        name: 'hoja_de_arce',
-        keywords: ['arce', 'hoja', 'hoja de arce'],
-    },
-    '🍂': {
-        name: 'hoja_caída',
-        keywords: ['caída', 'hojas', 'hojas caídas'],
-    },
-    '🍃': {
-        name: 'hojas',
-        keywords: ['hoja', 'revolotear', 'soplar', 'viento', 'hojas revoloteando al viento'],
-    },
-    '🪺': {
-        name: 'nido_con_huevos',
-        keywords: ['nido', 'huevos', 'pájaro', 'hogar'],
-    },
-    '🪹': {
-        name: 'nido_vacío',
-        keywords: ['nido', 'vacío', 'pájaro', 'hogar'],
-    },
-    '🍇': {
-        name: 'uvas',
-        keywords: ['agracejo', 'fruta', 'racimo', 'uva', 'uvas'],
-    },
-    '🍈': {
-        name: 'melón',
-        keywords: ['fruta', 'melón'],
-    },
-    '🍉': {
-        name: 'sandía',
-        keywords: ['fruta', 'sandía'],
-    },
-    '🍊': {
-        name: 'mandarina',
-        keywords: ['fruta', 'naranja', 'mandarina'],
-    },
-    '🍋': {
-        name: 'limón',
-        keywords: ['cítrico', 'citrón', 'fruta', 'limón'],
-    },
-    '🍌': {
-        name: 'plátano',
-        keywords: ['banana', 'fruta', 'plátano'],
-    },
-    '🍍': {
-        name: 'piña',
-        keywords: ['ananás', 'fruta', 'piña'],
-    },
-    '🥭': {
-        name: 'mango',
-        keywords: ['fruta', 'tropical', 'mango'],
-    },
-    '🍎': {
-        name: 'manzana',
-        keywords: ['fruta', 'manzana', 'poma', 'roja'],
-    },
-    '🍏': {
-        name: 'manzana_verde',
-        keywords: ['fruta', 'manzana', 'poma', 'verde'],
-    },
-    '🍐': {
-        name: 'pera',
-        keywords: ['fruta', 'perilla', 'pera'],
-    },
-    '🍑': {
-        name: 'melocotón',
-        keywords: ['durazno', 'fruta', 'melocotón'],
-    },
-    '🍒': {
-        name: 'cerezas',
-        keywords: ['cereza', 'fruta', 'guindas', 'cerezas'],
-    },
-    '🍓': {
-        name: 'fresa',
-        keywords: ['fresón', 'fruta', 'fresa'],
-    },
-    '🫐': {
-        name: 'arándanos',
-        keywords: ['arándano', 'azul', 'baya', 'frutos del bosque', 'mirtilo', 'arándanos'],
-    },
-    '🥝': {
-        name: 'kiwi',
-        keywords: ['comida', 'fruta', 'kiwi'],
-    },
-    '🍅': {
-        name: 'tomate',
-        keywords: ['ensalada', 'fruta', 'verdura', 'tomate'],
-    },
-    '🫒': {
-        name: 'aceituna',
-        keywords: ['aperitivo', 'comida', 'oliva', 'aceituna'],
-    },
-    '🥥': {
-        name: 'coco',
-        keywords: ['palmera', 'piña colada', 'coco'],
-    },
-    '🥑': {
-        name: 'aguacate',
-        keywords: ['comida', 'fruta', 'aguacate'],
-    },
-    '🍆': {
-        name: 'berenjena',
-        keywords: ['fruto', 'verdura', 'berenjena'],
-    },
-    '🥔': {
-        name: 'patata',
-        keywords: ['comida', 'papa', 'verdura', 'patata'],
-    },
-    '🥕': {
-        name: 'zanahoria',
-        keywords: ['comida', 'verdura', 'zanahoria'],
-    },
-    '🌽': {
-        name: 'maíz',
-        keywords: ['espiga', 'maíz', 'mazorca', 'mijo', 'espiga de maíz'],
-    },
-    '🌶️': {
-        name: 'guindilla',
-        keywords: ['chile', 'picante', 'planta'],
-    },
-    '🫑': {
-        name: 'pimiento',
-        keywords: ['ají', 'chile', 'morrón', 'rojo', 'verdura', 'pimiento'],
-    },
-    '🥒': {
-        name: 'pepino',
-        keywords: ['comida', 'pepinillo', 'verdura', 'pepino'],
-    },
-    '🥬': {
-        name: 'verdura_de_hoja_verde',
-        keywords: ['bok choy', 'col', 'kale', 'lechuga', 'pak choi', 'verdura de hoja verde'],
-    },
-    '🥦': {
-        name: 'brócoli',
-        keywords: ['col', 'repollo', 'brócoli'],
-    },
-    '🧄': {
-        name: 'ajo',
-        keywords: ['condimento', 'vampiro', 'ajo'],
-    },
-    '🧅': {
-        name: 'cebolla',
-        keywords: ['condimento', 'llorar', 'cebolla'],
-    },
-    '🍄': {
-        name: 'seta',
-        keywords: ['hongo', 'seta', 'champiñón'],
-    },
-    '🥜': {
-        name: 'cacahuetes',
-        keywords: ['cacahuete', 'comida', 'fruto seco', 'verdura', 'cacahuetes'],
-    },
-    '🫘': {
-        name: 'frijoles',
-        keywords: ['frijoles', 'comida', 'legumbre'],
-    },
-    '🌰': {
-        name: 'castaña',
-        keywords: ['castaño', 'fruto seco', 'castaña'],
-    },
-    '🍞': {
-        name: 'pan',
-        keywords: ['pan', 'rebanada', 'tostada', 'pan de molde'],
-    },
-    '🥐': {
-        name: 'cruasán',
-        keywords: ['bollo', 'comida', 'croissant', 'francés', 'cruasán'],
-    },
-    '🥖': {
-        name: 'baguete',
-        keywords: ['baguette', 'barra', 'comida', 'francés', 'pan', 'baguete'],
-    },
-    '🫓': {
-        name: 'pan_sin_levadura',
-        keywords: ['arepa', 'naan', 'pita', 'tortilla', 'pan sin levadura'],
-    },
-    '🥨': {
-        name: 'galleta_salada',
-        keywords: ['galleta salada', 'pretzel', 'bretzel'],
-    },
-    '🥯': {
-        name: 'bagel',
-        keywords: ['bocadillo', 'pan', 'panadería', 'bagel'],
-    },
-    '🥞': {
-        name: 'crepes',
-        keywords: ['comida', 'dulce', 'pancakes', 'postre', 'tortita', 'tortitas'],
-    },
-    '🧇': {
-        name: 'gofre',
-        keywords: ['waffle', 'gofre'],
-    },
-    '🧀': {
-        name: 'cuña_de_queso',
-        keywords: ['cuña', 'queso', 'trozo', 'cuña de queso'],
-    },
-    '🍖': {
-        name: 'hueso_con_carne',
-        keywords: ['carne', 'hueso', 'restaurante', 'carne con hueso'],
-    },
-    '🍗': {
-        name: 'muslo_de_pollo',
-        keywords: ['muslo', 'pollo', 'restaurante', 'muslo de pollo'],
-    },
-    '🥩': {
-        name: 'chuleta',
-        keywords: ['carne', 'chuleta', 'filete', 'corte de carne'],
-    },
-    '🥓': {
-        name: 'beicon',
-        keywords: ['bacon', 'carne', 'comida', 'panceta', 'beicon'],
-    },
-    '🍔': {
-        name: 'hamburguesa',
-        keywords: ['burger', 'hamburguesa'],
-    },
-    '🍟': {
-        name: 'patatas_fritas',
-        keywords: ['papas fritas', 'patatas', 'restaurante', 'patatas fritas'],
-    },
-    '🍕': {
-        name: 'pizza',
-        keywords: ['porción', 'restaurante', 'pizza'],
-    },
-    '🌭': {
-        name: 'perrito_caliente',
-        keywords: ['perrito', 'salchicha', 'perrito caliente'],
-    },
-    '🥪': {
-        name: 'sándwich',
-        keywords: ['bocadillo', 'bocata', 'emparedado', 'sándwich'],
-    },
-    '🌮': {
-        name: 'taco',
-        keywords: ['comida', 'mexicano', 'taco'],
-    },
-    '🌯': {
-        name: 'burrito',
-        keywords: ['comida', 'mexicano', 'tex mex', 'wrap', 'burrito'],
-    },
-    '🫔': {
-        name: 'tamal',
-        keywords: ['mejicano', 'mexicano', 'wrap', 'tamal'],
-    },
-    '🥙': {
-        name: 'kebab',
-        keywords: ['comida', 'durum', 'falafel', 'kebab', 'pan de pita', 'pan relleno'],
-    },
-    '🧆': {
-        name: 'falafel',
-        keywords: ['albóndiga', 'garbanzo', 'falafel'],
-    },
-    '🥚': {
-        name: 'huevo',
-        keywords: ['comida', 'huevo'],
-    },
-    '🍳': {
-        name: 'huevo_frito',
-        keywords: ['freír', 'huevo', 'sartén', 'cocinar'],
-    },
-    '🥘': {
-        name: 'paella',
-        keywords: ['arroz', 'comida', 'paella'],
-    },
-    '🍲': {
-        name: 'estofado',
-        keywords: ['comida de olla', 'puchero', 'restaurante', 'olla de comida'],
-    },
-    '🫕': {
-        name: 'fondue',
-        keywords: ['chocolate', 'olla', 'queso', 'suizo', 'fondue'],
-    },
-    '🥣': {
-        name: 'cuenco_con_cuchara',
-        keywords: ['cereal', 'desayuno', 'cuenco con cuchara'],
-    },
-    '🥗': {
-        name: 'ensalada_verde',
-        keywords: ['bol', 'comida', 'verde', 'ensalada'],
-    },
-    '🍿': {
-        name: 'palomitas_de_maíz',
-        keywords: ['maíz', 'palomitas'],
-    },
-    '🧈': {
-        name: 'mantequilla',
-        keywords: ['lácteo', 'mantequilla'],
-    },
-    '🧂': {
-        name: 'sal',
-        keywords: ['condimento', 'salero', 'sal'],
-    },
-    '🥫': {
-        name: 'comida_enlatada',
-        keywords: ['conserva', 'lata', 'comida enlatada'],
-    },
-    '🫙': {
-        name: 'jarra',
-        keywords: ['jarra', 'contenedor', 'almacenamiento'],
-    },
-    '🍱': {
-        name: 'bento',
-        keywords: ['bento', 'caja', 'comida', 'restaurante', 'caja de bento'],
-    },
-    '🍘': {
-        name: 'galleta_de_arroz',
-        keywords: ['arroz', 'galleta', 'galleta de arroz'],
-    },
-    '🍙': {
-        name: 'bola_de_arroz',
-        keywords: ['arroz', 'japonés', 'onigiri', 'restaurante', 'bola de arroz'],
-    },
-    '🍚': {
-        name: 'arroz',
-        keywords: ['arroz', 'restaurante', 'arroz cocido'],
-    },
-    '🍛': {
-        name: 'curry',
-        keywords: ['arroz', 'curry', 'restaurante', 'arroz con curry'],
-    },
-    '🍜': {
-        name: 'ramen',
-        keywords: ['fideos calientes', 'fideos chinos', 'fideos ramen', 'ramen', 'tazón de fideos'],
-    },
-    '🍝': {
-        name: 'espaguetis',
-        keywords: ['pasta', 'restaurante', 'espagueti'],
-    },
-    '🍠': {
-        name: 'batata',
-        keywords: ['asada', 'papa asada', 'patata', 'restaurante'],
-    },
-    '🫚': {
-        name: 'jengibre',
-        keywords: ['jengibre', 'especia', 'planta', 'cocina'],
-    },
-    '🫛': {
-        name: 'vaina_de_guisante',
-        keywords: ['vaina', 'guisante', 'vegetal', 'planta'],
-    },
-    '🍢': {
-        name: 'oden',
-        keywords: ['japonés', 'marisco', 'oden', 'pincho', 'brocheta'],
-    },
-    '🍣': {
-        name: 'sushi',
-        keywords: ['restaurante', 'sushi'],
-    },
-    '🍤': {
-        name: 'camarón_frito',
-        keywords: ['frito', 'gamba', 'restaurante', 'gamba frita'],
-    },
-    '🍥': {
-        name: 'pastel_de_pescado',
-        keywords: ['comida japonesa', 'pastel', 'pescado', 'pastel de pescado japonés'],
-    },
-    '🥮': {
-        name: 'pastel_de_luna',
-        keywords: ['festival', 'luna', 'otoño', 'yuebing', 'pastel de luna'],
-    },
-    '🍡': {
-        name: 'dango',
-        keywords: ['japonés', 'pincho', 'postre', 'restaurante', 'dango'],
-    },
-    '🥟': {
-        name: 'empanadilla',
-        keywords: ['comida', 'gyōza', 'jiaozi', 'masa', 'dumpling'],
-    },
-    '🥠': {
-        name: 'galletita_fortuna',
-        keywords: ['adivinación', 'profecía', 'superstición', 'galleta de la fortuna'],
-    },
-    '🥡': {
-        name: 'caja_comida_rápida',
-        keywords: ['recipiente para llevar', 'restaurante', 'caja para llevar'],
-    },
-    '🦀': {
-        name: 'cangrejo',
-        keywords: ['animal', 'cáncer', 'zodiaco', 'cangrejo'],
-    },
-    '🦞': {
-        name: 'langosta',
-        keywords: ['langosta', 'marisco', 'pinzas', 'bogavante'],
-    },
-    '🦐': {
-        name: 'camarón',
-        keywords: ['camarón', 'comida', 'langostino', 'marisco', 'gamba'],
-    },
-    '🦑': {
-        name: 'calamar',
-        keywords: ['comida', 'molusco', 'calamar'],
-    },
-    '🦪': {
-        name: 'ostra',
-        keywords: ['buceo', 'perla', 'ostra'],
-    },
-    '🍦': {
-        name: 'helado',
-        keywords: ['cucurucho', 'dulce', 'helado', 'helado de cucurucho', 'restaurante', 'cucurucho de helado'],
-    },
-    '🍧': {
-        name: 'hielo_picado',
-        keywords: ['helado', 'hielo', 'postre', 'raspado', 'granizado hawaiano'],
-    },
-    '🍨': {
-        name: 'postre_helado',
-        keywords: ['postre', 'sorbete', 'helado'],
-    },
-    '🍩': {
-        name: 'rosquilla',
-        keywords: ['berlina', 'pastel', 'rosquilla', 'dónut'],
-    },
-    '🍪': {
-        name: 'galleta',
-        keywords: ['dulce', 'pasta', 'postre', 'galleta'],
-    },
-    '🎂': {
-        name: 'cumpleaños',
-        keywords: ['celebración', 'cumpleaños', 'tarta', 'tarta de cumpleaños'],
-    },
-    '🍰': {
-        name: 'pastel',
-        keywords: ['pedazo de tarta', 'restaurante', 'tarta', 'trozo de tarta'],
-    },
-    '🧁': {
-        name: 'magdalena',
-        keywords: ['cupcake', 'dulce', 'repostería', 'magdalena'],
-    },
-    '🥧': {
-        name: 'tarta',
-        keywords: ['masa', 'relleno', 'pastel'],
-    },
-    '🍫': {
-        name: 'chocolatina',
-        keywords: ['barra', 'chocolate', 'restaurante', 'tableta', 'tableta de chocolate'],
-    },
-    '🍬': {
-        name: 'caramelo',
-        keywords: ['chuche', 'chuchería', 'dulce', 'golosina', 'caramelo'],
-    },
-    '🍭': {
-        name: 'piruleta',
-        keywords: ['chuche', 'chuchería', 'dulce', 'golosina', 'piruleta'],
-    },
-    '🍮': {
-        name: 'natillas',
-        keywords: ['dulce', 'postre', 'pudding', 'flan'],
-    },
-    '🍯': {
-        name: 'tarro_de_miel',
-        keywords: ['dulce', 'miel', 'tarro', 'tarro de miel'],
-    },
-    '🍼': {
-        name: 'biberón',
-        keywords: ['bebé', 'bibe', 'bibi', 'botella', 'leche', 'biberón'],
-    },
-    '🥛': {
-        name: 'vaso_de_leche',
-        keywords: ['bebida', 'leche', 'vaso', 'vaso de leche'],
-    },
-    '🫗': {
-        name: 'vertiendo_líquido',
-        keywords: ['vertiendo', 'líquido', 'bebida', 'agua'],
-    },
-    '☕': {
-        name: 'café',
-        keywords: ['bebida', 'café', 'caliente', 'té'],
-    },
-    '🫖': {
-        name: 'tetera',
-        keywords: ['bebida', 'infusión', 'té', 'tetera'],
-    },
-    '🍵': {
-        name: 'té',
-        keywords: ['bebida', 'taza', 'té', 'tazón de té'],
-    },
-    '🍶': {
-        name: 'sake',
-        keywords: ['bar', 'bebida', 'botella', 'restaurante', 'tazón', 'sake'],
-    },
-    '🍾': {
-        name: 'champán',
-        keywords: ['bar', 'beber', 'botella', 'cava', 'corcho', 'botella descorchada'],
-    },
-    '🍷': {
-        name: 'copa_de_vino',
-        keywords: ['bar', 'bebida', 'copa', 'vaso', 'vino', 'copa de vino'],
-    },
-    '🍸': {
-        name: 'cóctel',
-        keywords: ['bar', 'cóctel', 'copa', 'restaurante', 'copa de cóctel'],
-    },
-    '🍹': {
-        name: 'bebida_tropical',
-        keywords: ['bar', 'bebida', 'restaurante', 'tropical'],
-    },
-    '🍺': {
-        name: 'cerveza',
-        keywords: ['bar', 'cerveza', 'jarra', 'restaurante', 'jarra de cerveza'],
-    },
-    '🍻': {
-        name: 'cervezas',
-        keywords: ['bar', 'cerveza', 'jarra', 'jarras', 'restaurante', 'jarras de cerveza brindando'],
-    },
-    '🥂': {
-        name: 'copas_brindis',
-        keywords: ['bebida', 'brindar', 'brindis', 'celebración', 'copa', 'copas brindando'],
-    },
-    '🥃': {
-        name: 'vaso_corto',
-        keywords: ['chupito', 'copa', 'licor', 'vaso', 'whisky', 'vaso de whisky'],
-    },
-    '🥤': {
-        name: 'vaso_con_pajita',
-        keywords: ['refresco', 'zumo', 'vaso con pajita'],
-    },
-    '🧋': {
-        name: 'té_de_burbujas',
-        keywords: ['boba', 'bubble tea', 'burbuja', 'leche', 'perla', 'té', 'té de burbujas'],
-    },
-    '🧃': {
-        name: 'tetrabrik',
-        keywords: ['brick', 'cartón', 'envase', 'zumo', 'tetrabrik'],
-    },
-    '🧉': {
-        name: 'bebida_de_mate',
-        keywords: ['bebida', 'infusión', 'mate'],
-    },
-    '🧊': {
-        name: 'cubito_de_hielo',
-        keywords: ['frío', 'iceberg', 'cubito de hielo'],
-    },
-    '🥢': {
-        name: 'palillos',
-        keywords: ['cubiertos', 'hashi', 'palillos'],
-    },
-    '🍽️': {
-        name: 'cuchillo_tenedor_plato',
-        keywords: ['cuchillo', 'plato', 'restaurante', 'tenedor', 'cuchillo y tenedor con un plato'],
-    },
-    '🍴': {
-        name: 'cuchilo_y_tenedor',
-        keywords: ['cuchillo', 'restaurante', 'tenedor', 'tenedor y cuchillo'],
-    },
-    '🥄': {
-        name: 'cuchara',
-        keywords: ['cubiertos', 'cucharilla', 'cuchara'],
-    },
-    '🔪': {
-        name: 'cuchillo_japonés',
-        keywords: ['arma', 'cocinar', 'cuchillo', 'cuchillo de cocina'],
-    },
-    '🏺': {
-        name: 'ánfora',
-        keywords: ['acuario', 'beber', 'jarra', 'zodiaco', 'ánfora'],
-    },
-    '🌍': {
-        name: 'tierra_áfrica',
-        keywords: ['África', 'Europa', 'mundo', 'planeta', 'Tierra', 'globo terráqueo mostrando Europa y África'],
-    },
-    '🌎': {
-        name: 'tierra_américa',
-        keywords: ['América', 'globo', 'mundo', 'planeta', 'Tierra', 'globo terráqueo mostrando América'],
-    },
-    '🌏': {
-        name: 'tierra_asia',
-        keywords: ['Asia', 'Australia', 'mundo', 'planeta', 'Tierra', 'globo terráqueo mostrando Asia y Australia'],
-    },
-    '🌐': {
-        name: 'globo_terráqueo_con_meridianos',
-        keywords: ['globo', 'meridianos', 'mundo', 'Tierra', 'globo terráqueo con meridianos'],
-    },
-    '🗺️': {
-        name: 'mapamundi',
-        keywords: ['mapa', 'mapamundi', 'mundo', 'mapa mundial'],
-    },
-    '🗾': {
-        name: 'japón',
-        keywords: ['Japón', 'mapa', 'mapa de japón', 'mapa de Japón'],
-    },
-    '🧭': {
-        name: 'brújula',
-        keywords: ['compás', 'magnético', 'navegación', 'orientación', 'brújula'],
-    },
-    '🏔️': {
-        name: 'montaña_con_cima_nevada',
-        keywords: ['frío', 'montaña', 'nieve', 'montaña con nieve'],
-    },
-    '⛰️': {
-        name: 'montaña',
-        keywords: ['monte', 'montaña'],
-    },
-    '🌋': {
-        name: 'volcán',
-        keywords: ['erupción', 'erupción volcánica', 'volcán'],
-    },
-    '🗻': {
-        name: 'monte_fuji',
-        keywords: ['montaña', 'monte fuji', 'monte Fuji'],
-    },
-    '🏕️': {
-        name: 'campin',
-        keywords: ['acampada', 'campamento', 'vacaciones', 'camping'],
-    },
-    '🏖️': {
-        name: 'playa_con_sombrilla',
-        keywords: ['playa', 'sombrilla', 'playa y sombrilla'],
-    },
-    '🏜️': {
-        name: 'desierto',
-        keywords: ['arena', 'desierto'],
-    },
-    '🏝️': {
-        name: 'isla_desierta',
-        keywords: ['desierta', 'isla'],
-    },
-    '🏞️': {
-        name: 'parque_nacional',
-        keywords: ['nacional', 'parque'],
-    },
-    '🏟️': {
-        name: 'estadio',
-        keywords: ['estadio'],
-    },
-    '🏛️': {
-        name: 'edificio_clásico',
-        keywords: ['clásico', 'edificio'],
-    },
-    '🏗️': {
-        name: 'edificio_en_construcción',
-        keywords: ['edificio', 'obra', 'construcción'],
-    },
-    '🧱': {
-        name: 'ladrillos',
-        keywords: ['arcilla', 'cemento', 'muro', 'pared', 'ladrillo'],
-    },
-    '🪨': {
-        name: 'roca',
-        keywords: ['pedrusco', 'peña', 'peñasco', 'roca', 'piedra'],
-    },
-    '🪵': {
-        name: 'madera',
-        keywords: ['hoguera', 'leña', 'madero', 'palos', 'tronco', 'madera'],
-    },
-    '🛖': {
-        name: 'cabaña',
-        keywords: ['casa', 'yurta', 'cabaña'],
-    },
-    '🏘️': {
-        name: 'edificios_de_viviendas',
-        keywords: ['edificio', 'urbanización', 'casas'],
-    },
-    '🏚️': {
-        name: 'edificio_de_viviendas_en_ruinas',
-        keywords: ['abandonada', 'casa', 'deshabitada', 'inhabitada', 'vacía'],
-    },
-    '🏠': {
-        name: 'casa',
-        keywords: ['vivienda', 'casa'],
-    },
-    '🏡': {
-        name: 'casa_con_jardín',
-        keywords: ['casa', 'construcción', 'jardín', 'vivienda', 'casa con jardín'],
-    },
-    '🏢': {
-        name: 'oficina',
-        keywords: ['construcción', 'edificio', 'oficinas', 'edificio de oficinas'],
-    },
-    '🏣': {
-        name: 'oficina_postal',
-        keywords: ['correos', 'edificio', 'japón', 'oficina de correos', 'oficina de correos japonesa'],
-    },
-    '🏤': {
-        name: 'oficina_de_correos_europea',
-        keywords: ['correos', 'edificio', 'europa', 'oficina de correos', 'oficina de correos europea'],
-    },
-    '🏥': {
-        name: 'hospital',
-        keywords: ['doctor', 'edificio', 'medicina', 'médico', 'hospital'],
-    },
-    '🏦': {
-        name: 'banco',
-        keywords: ['banca', 'edificio', 'banco'],
-    },
-    '🏨': {
-        name: 'hotel',
-        keywords: ['alojamiento', 'edificio', 'turismo', 'hotel'],
-    },
-    '🏩': {
-        name: 'motel_para_parejas',
-        keywords: ['amor', 'edificio', 'hotel', 'hotel del amor'],
-    },
-    '🏪': {
-        name: 'tienda_de_barrio',
-        keywords: ['edificio', 'establecimiento', 'tienda de comestibles', 'tienda 24 horas'],
-    },
-    '🏫': {
-        name: 'colegio',
-        keywords: ['edificio', 'escuela', 'colegio'],
-    },
-    '🏬': {
-        name: 'grandes_almacenes',
-        keywords: ['comercio', 'grandes almacenes'],
-    },
-    '🏭': {
-        name: 'fábrica',
-        keywords: ['edificio', 'industria', 'fábrica'],
-    },
-    '🏯': {
-        name: 'castillo_japonés',
-        keywords: ['castillo', 'construcción', 'castillo japonés'],
-    },
-    '🏰': {
-        name: 'castillo_europeo',
-        keywords: ['castillo', 'construcción', 'castillo europeo'],
-    },
-    '💒': {
-        name: 'boda',
-        keywords: ['boda', 'iglesia', 'romance', 'iglesia celebrando boda'],
-    },
-    '🗼': {
-        name: 'torre_de_tokio',
-        keywords: ['Tokio', 'torre', 'Torre de Tokio'],
-    },
-    '🗽': {
-        name: 'estatua_de_la_libertad',
-        keywords: ['estatua', 'estatua de la libertad', 'Estatua de la Libertad', 'libertad'],
-    },
-    '⛪': {
-        name: 'iglesia',
-        keywords: ['cristianismo', 'cruz', 'edificio', 'religión', 'iglesia'],
-    },
-    '🕌': {
-        name: 'mezquita',
-        keywords: ['islam', 'religión', 'mezquita'],
-    },
-    '🛕': {
-        name: 'templo_hindú',
-        keywords: ['hindú', 'templo'],
-    },
-    '🕍': {
-        name: 'sinagoga',
-        keywords: ['judaísmo', 'religión', 'sinagoga'],
-    },
-    '⛩️': {
-        name: 'santuario_sintoísta',
-        keywords: ['japón', 'religión', 'santuario', 'sintoísmo', 'santuario sintoísta'],
-    },
-    '🕋': {
-        name: 'kaaba',
-        keywords: ['islam', 'kaaba', 'Kaaba', 'religión'],
-    },
-    '⛲': {
-        name: 'fuente',
-        keywords: ['fuente'],
-    },
-    '⛺': {
-        name: 'tienda_de_campaña',
-        keywords: ['campaña', 'camping', 'tienda', 'vacaciones', 'tienda de campaña'],
-    },
-    '🌁': {
-        name: 'brumoso',
-        keywords: ['niebla', 'bruma'],
-    },
-    '🌃': {
-        name: 'noche_estrellada',
-        keywords: ['estrellas', 'noche', 'noche estrellada'],
-    },
-    '🏙️': {
-        name: 'paisaje_urbano',
-        keywords: ['ciudad', 'edificio', 'paisaje', 'paisaje urbano'],
-    },
-    '🌄': {
-        name: 'amanecer_sobre_las_montañas',
-        keywords: ['amanecer', 'montaña', 'salida', 'sol', 'amanecer sobre montañas'],
-    },
-    '🌅': {
-        name: 'amanecer',
-        keywords: ['salida del sol', 'amanecer'],
-    },
-    '🌆': {
-        name: 'puesta_de_sol_urbana',
-        keywords: ['atardecer', 'ciudad', 'edificios', 'paisaje', 'ciudad al atardecer'],
-    },
-    '🌇': {
-        name: 'amanecer_urbano',
-        keywords: ['edificios', 'puesta del sol'],
-    },
-    '🌉': {
-        name: 'puente_de_noche',
-        keywords: ['noche', 'puente', 'puente de noche'],
-    },
-    '♨️': {
-        name: 'aguas_termales',
-        keywords: ['termas', 'vapor', 'aguas termales'],
-    },
-    '🎠': {
-        name: 'caballito_de_carrusel',
-        keywords: ['caballo', 'entretenimiento', 'tiovivo', 'caballo de tiovivo'],
-    },
-    '🎡': {
-        name: 'noria',
-        keywords: ['atracciones', 'entretenimiento', 'feria', 'noria', 'noria de feria'],
-    },
-    '🎢': {
-        name: 'montaña_rusa',
-        keywords: ['atracciones', 'entretenimiento', 'feria', 'parque', 'montaña rusa'],
-    },
-    '💈': {
-        name: 'barbero',
-        keywords: ['barbería', 'barbero', 'peluquero', 'poste', 'poste de barbero'],
-    },
-    '🎪': {
-        name: 'carpa_de_circo',
-        keywords: ['carpa', 'circo', 'entretenimiento', 'carpa de circo'],
-    },
-    '🚂': {
-        name: 'locomotora_de_vapor',
-        keywords: ['locomotora', 'tren', 'vehículo', 'locomotora de vapor'],
-    },
-    '🚃': {
-        name: 'vagón',
-        keywords: ['ferrocarril', 'tranvía', 'tren eléctrico', 'vehículo', 'vagón'],
-    },
-    '🚄': {
-        name: 'tren_bala_de_lado',
-        keywords: ['AVE', 'ferrocarril', 'rápido', 'tren', 'velocidad', 'tren de alta velocidad'],
-    },
-    '🚅': {
-        name: 'tren_bala_de_frente',
-        keywords: ['bala', 'shinkansen', 'tren', 'vehículo', 'velocidad'],
-    },
-    '🚆': {
-        name: 'tren2',
-        keywords: ['ferrocarril', 'vehículo', 'tren'],
-    },
-    '🚇': {
-        name: 'metro',
-        keywords: ['subterráneo', 'suburbano', 'transporte', 'metro'],
-    },
-    '🚈': {
-        name: 'tren_ligero',
-        keywords: ['ferrocarril', 'transporte', 'tren', 'tren ligero'],
-    },
-    '🚉': {
-        name: 'estación',
-        keywords: ['estación', 'tren', 'estación de tren'],
-    },
-    '🚊': {
-        name: 'tranvía',
-        keywords: ['transporte', 'trolebús', 'tranvía'],
-    },
-    '🚝': {
-        name: 'monorraíl',
-        keywords: ['ferrocarril', 'monocarril', 'transporte', 'tren', 'monorraíl'],
-    },
-    '🚞': {
-        name: 'tren_de_montaña',
-        keywords: ['ferrocarril', 'montaña', 'vehículo', 'ferrocarril de montaña'],
-    },
-    '🚋': {
-        name: 'tren',
-        keywords: ['tranvía', 'vagón', 'vehículo', 'vagón de tranvía'],
-    },
-    '🚌': {
-        name: 'autobús',
-        keywords: ['bus', 'transporte', 'autobús'],
-    },
-    '🚍': {
-        name: 'bus_en_sentido_contrario',
-        keywords: ['autobús', 'próximo', 'vehículo'],
-    },
-    '🚎': {
-        name: 'trolebús',
-        keywords: ['transporte', 'tranvía', 'trolebús'],
-    },
-    '🚐': {
-        name: 'microbús',
-        keywords: ['autobús', 'bus', 'transporte', 'minibús'],
-    },
-    '🚑': {
-        name: 'ambulancia',
-        keywords: ['asistencia médica', 'transporte', 'vehículo', 'ambulancia'],
-    },
-    '🚒': {
-        name: 'camión_de_bomberos',
-        keywords: ['camión', 'camión de bomberos', 'fuego', 'vehículo', 'coche de bomberos'],
-    },
-    '🚓': {
-        name: 'coche_patrulla',
-        keywords: ['coche patrulla', 'policía', 'vehículo', 'coche de policía'],
-    },
-    '🚔': {
-        name: 'coche_de_policía_en_sentido_contrario',
-        keywords: ['coche patrulla', 'policía', 'próximo', 'vehículo', 'coche de policía próximo'],
-    },
-    '🚕': {
-        name: 'taxi',
-        keywords: ['coche', 'vehículo', 'taxi'],
-    },
-    '🚖': {
-        name: 'taxi_en_sentido_contrario',
-        keywords: ['taxi', 'vehículo', 'taxi próximo'],
-    },
-    '🚗': {
-        name: 'coche',
-        keywords: ['automóvil', 'vehículo', 'coche'],
-    },
-    '🚘': {
-        name: 'automóvil_en_sentido_contrario',
-        keywords: ['automóvil', 'coche', 'próximo', 'vehículo'],
-    },
-    '🚙': {
-        name: 'coche_azul',
-        keywords: ['camping', 'caravana', 'furgoneta', 'vacaciones', 'vehículo', 'vehículo deportivo utilitario'],
-    },
-    '🛻': {
-        name: 'camioneta',
-        keywords: ['pickup', 'ranchera', 'camioneta'],
-    },
-    '🚚': {
-        name: 'camión',
-        keywords: ['mercancías', 'reparto', 'transporte', 'vehículo', 'camión de reparto'],
-    },
-    '🚛': {
-        name: 'camión_articulado',
-        keywords: ['camión', 'tráiler', 'vehículo', 'camión articulado'],
-    },
-    '🚜': {
-        name: 'tractor',
-        keywords: ['agricultura', 'vehículo', 'tractor'],
-    },
-    '🏎️': {
-        name: 'coche_de_carreras',
-        keywords: ['carreras', 'coche', 'coche de carreras'],
-    },
-    '🏍️': {
-        name: 'moto_de_carreras',
-        keywords: ['carreras', 'motocicleta', 'vehículo', 'moto'],
-    },
-    '🛵': {
-        name: 'vespa',
-        keywords: ['escúter', 'moto', 'scooter'],
-    },
-    '🦽': {
-        name: 'silla_de_ruedas_manual',
-        keywords: ['accesibilidad', 'silla de ruedas manual'],
-    },
-    '🦼': {
-        name: 'silla_de_ruedas_eléctrica',
-        keywords: ['accesibilidad', 'silla de ruedas eléctrica'],
-    },
-    '🩼': {
-        name: 'muleta',
-        keywords: ['muleta', 'soporte', 'lesión', 'ayuda'],
-    },
-    '🛺': {
-        name: 'mototaxi',
-        keywords: ['rickshaw', 'tuk tuk', 'mototaxi'],
-    },
-    '🚲': {
-        name: 'bicicleta',
-        keywords: ['bici', 'vehículo', 'bicicleta'],
-    },
-    '🛴': {
-        name: 'patinete',
-        keywords: ['patinete'],
-    },
-    '🛹': {
-        name: 'monopatín',
-        keywords: ['skateboard', 'tabla', 'monopatín'],
-    },
-    '🛼': {
-        name: 'patines',
-        keywords: ['patín', 'patín de 4 ruedas', 'patín de cuatro ruedas', 'patines'],
-    },
-    '🛞': {
-        name: 'rueda',
-        keywords: ['rueda', 'vehículo', 'transporte'],
-    },
-    '🚏': {
-        name: 'parada_de_autobús',
-        keywords: ['autobús', 'parada', 'parada de autobús'],
-    },
-    '🛣️': {
-        name: 'autopista',
-        keywords: ['carretera', 'autopista'],
-    },
-    '🛤️': {
-        name: 'vía_de_tren',
-        keywords: ['tren', 'vía', 'vía de tren'],
-    },
-    '🛢️': {
-        name: 'barril_de_petróleo',
-        keywords: ['barril', 'bidón', 'petróleo', 'barril de petróleo'],
-    },
-    '⛽': {
-        name: 'surtidor_de_gasolina',
-        keywords: ['bomba de gasolina', 'combustible', 'gasolina', 'surtidor', 'surtidor de gasolina'],
-    },
-    '🚨': {
-        name: 'luz_giratoria',
-        keywords: ['coche de policía', 'luces', 'policía', 'luces de policía'],
-    },
-    '🚥': {
-        name: 'semáforo',
-        keywords: ['luz', 'señales de tráfico', 'tráfico', 'semáforo horizontal'],
-    },
-    '🚦': {
-        name: 'semáforo_vertical',
-        keywords: ['luz', 'semáforo vertical', 'señales de tráfico', 'tráfico', 'semáforo'],
-    },
-    '🛑': {
-        name: 'señal_octogonal',
-        keywords: ['octágono', 'parada', 'señal', 'stop', 'señal de stop'],
-    },
-    '🚧': {
-        name: 'construcción',
-        keywords: ['construcción', 'señal', 'señal de obras', 'obras'],
-    },
-    '⚓': {
-        name: 'ancla',
-        keywords: ['barco', 'gancho', 'ancla'],
-    },
-    '⛵': {
-        name: 'barco_de_vela',
-        keywords: ['barco', 'barco de vela', 'yate', 'velero'],
-    },
-    '🛶': {
-        name: 'canoa',
-        keywords: ['barca', 'barco', 'piragua', 'canoa'],
-    },
-    '🚤': {
-        name: 'lancha_rápida',
-        keywords: ['barco', 'vehículo', 'lancha motora'],
-    },
-    '🛳️': {
-        name: 'barco_de_pasajeros',
-        keywords: ['barco', 'pasajeros', 'vehículo', 'barco de pasajeros'],
-    },
-    '⛴️': {
-        name: 'ferri',
-        keywords: ['barco', 'ferry', 'ferri'],
-    },
-    '🛥️': {
-        name: 'motora',
-        keywords: ['barco', 'motor', 'vehículo', 'barco a motor'],
-    },
-    '🚢': {
-        name: 'barco',
-        keywords: ['vehículo', 'barco'],
-    },
-    '🛟': {
-        name: 'aro_salvavidas',
-        keywords: ['aro', 'salvavidas', 'seguridad'],
-    },
-    '✈️': {
-        name: 'avión',
-        keywords: ['aeroplano', 'avión'],
-    },
-    '🛩️': {
-        name: 'avioneta',
-        keywords: ['avión', 'avioneta'],
-    },
-    '🛫': {
-        name: 'avión_despegando',
-        keywords: ['aeroplano', 'avión', 'salida', 'avión despegando'],
-    },
-    '🛬': {
-        name: 'avión_aterrizando',
-        keywords: ['aeroplano', 'avión', 'llegada', 'avión aterrizando'],
-    },
-    '🪂': {
-        name: 'paracaídas',
-        keywords: ['ala delta', 'paracaidismo', 'paravela', 'volar', 'paracaídas'],
-    },
-    '💺': {
-        name: 'asiento',
-        keywords: ['asiento', 'plaza', 'silla', 'asiento de transporte'],
-    },
-    '🚁': {
-        name: 'helicóptero',
-        keywords: ['aspas', 'rotores', 'vehículo', 'volar', 'helicóptero'],
-    },
-    '🚟': {
-        name: 'tren_colgante',
-        keywords: ['ferrocarril', 'suspensión', 'vehículo', 'ferrocarril de suspensión'],
-    },
-    '🚠': {
-        name: 'funicular_de_montaña',
-        keywords: ['cable', 'funicular', 'montaña', 'teleférico', 'vehículo', 'teleférico de montaña'],
-    },
-    '🚡': {
-        name: 'teleférico',
-        keywords: ['aéreo', 'tranvía', 'vehículo', 'teleférico'],
-    },
-    '🛰️': {
-        name: 'satélite',
-        keywords: ['espacio', 'vehículo', 'satélite'],
-    },
-    '🚀': {
-        name: 'cohete',
-        keywords: ['espacio', 'vehículo', 'cohete'],
-    },
-    '🛸': {
-        name: 'platillo_volante',
-        keywords: ['ovni', 'platillo volante'],
-    },
-    '🛎️': {
-        name: 'timbre_de_hotel',
-        keywords: ['botones', 'campanilla', 'hotel', 'timbre', 'timbre de hotel'],
-    },
-    '🧳': {
-        name: 'equipaje',
-        keywords: ['maleta', 'viajar', 'equipaje'],
-    },
-    '⌛': {
-        name: 'reloj_de_arena',
-        keywords: ['arena', 'reloj', 'temporizador', 'reloj de arena sin tiempo'],
-    },
-    '⏳': {
-        name: 'reloj_de_arena_en_marcha',
-        keywords: ['reloj con arena cayendo', 'temporizador', 'reloj de arena con tiempo'],
-    },
-    '⌚': {
-        name: 'reloj',
-        keywords: ['reloj'],
-    },
-    '⏰': {
-        name: 'reloj_de_alarma',
-        keywords: ['alarma', 'despertador', 'reloj'],
-    },
-    '⏱️': {
-        name: 'cronómetro',
-        keywords: ['reloj', 'cronómetro'],
-    },
-    '⏲️': {
-        name: 'temporizador',
-        keywords: ['reloj', 'temporizador'],
-    },
-    '🕰️': {
-        name: 'reloj_de_repisa',
-        keywords: ['reloj', 'sobremesa', 'reloj de sobremesa'],
-    },
-    '🕛': {
-        name: 'reloj12',
-        keywords: ['12:00', 'doce', 'reloj', '12 en punto'],
-    },
-    '🕧': {
-        name: 'reloj1230',
-        keywords: ['12:30', 'reloj', 'doce y media'],
-    },
-    '🕐': {
-        name: 'reloj1',
-        keywords: ['reloj', 'una', '1 en punto  1:00'],
-    },
-    '🕜': {
-        name: 'reloj130',
-        keywords: ['1:30', 'reloj', 'una y media'],
-    },
-    '🕑': {
-        name: 'reloj2',
-        keywords: ['2:00', 'dos', 'reloj', '2 en punto'],
-    },
-    '🕝': {
-        name: 'reloj230',
-        keywords: ['2:30', 'reloj', 'dos y media'],
-    },
-    '🕒': {
-        name: 'reloj3',
-        keywords: ['3:00', 'reloj', 'tres', '3 en punto'],
-    },
-    '🕞': {
-        name: 'reloj330',
-        keywords: ['3:30', 'reloj', 'tres y media'],
-    },
-    '🕓': {
-        name: 'reloj4',
-        keywords: ['4:00', 'cuatro', 'reloj', '4 en punto'],
-    },
-    '🕟': {
-        name: 'reloj430',
-        keywords: ['4:30', 'reloj', 'cuatro y media'],
-    },
-    '🕔': {
-        name: 'reloj5',
-        keywords: ['5:00', 'cinco', 'reloj', '5 en punto'],
-    },
-    '🕠': {
-        name: 'reloj530',
-        keywords: ['5:30', 'reloj', 'cinco y media'],
-    },
-    '🕕': {
-        name: 'reloj6',
-        keywords: ['6:00', 'reloj', 'seis', '6 en punto'],
-    },
-    '🕡': {
-        name: 'reloj630',
-        keywords: ['6:30', 'reloj', 'seis y media'],
-    },
-    '🕖': {
-        name: 'reloj7',
-        keywords: ['7:00', 'reloj', 'siete', '7 en punto'],
-    },
-    '🕢': {
-        name: 'reloj730',
-        keywords: ['7:30', 'reloj', 'siete y media'],
-    },
-    '🕗': {
-        name: 'reloj8',
-        keywords: ['8:00', 'ocho', 'reloj', '8 en punto'],
-    },
-    '🕣': {
-        name: 'reloj830',
-        keywords: ['8:30', 'reloj', 'ocho y media'],
-    },
-    '🕘': {
-        name: 'reloj9',
-        keywords: ['9:00', 'nueve', 'reloj', '9 en punto'],
-    },
-    '🕤': {
-        name: 'reloj930',
-        keywords: ['9:30', 'reloj', 'nueve y media'],
-    },
-    '🕙': {
-        name: 'reloj10',
-        keywords: ['10:00', 'diez', 'reloj', '10 en punto'],
-    },
-    '🕥': {
-        name: 'reloj1030',
-        keywords: ['10:30', 'reloj', 'diez y media'],
-    },
-    '🕚': {
-        name: 'reloj11',
-        keywords: ['11:00', 'once', 'reloj', '11 en punto'],
-    },
-    '🕦': {
-        name: 'reloj1130',
-        keywords: ['11:30', 'reloj', 'once y media'],
-    },
-    '🌑': {
-        name: 'luna_nueva',
-        keywords: ['luna', 'oscuridad', 'luna nueva'],
-    },
-    '🌒': {
-        name: 'luna_nueva_visible',
-        keywords: ['creciente', 'cuarto', 'espacio', 'luna'],
-    },
-    '🌓': {
-        name: 'luna_en_cuarto_creciente',
-        keywords: ['creciente', 'cuarto', 'espacio', 'luna', 'luna en cuarto creciente'],
-    },
-    '🌔': {
-        name: 'luna',
-        keywords: ['creciente', 'gibosa', 'luna'],
-    },
-    '🌕': {
-        name: 'luna_llena',
-        keywords: ['llena', 'luna', 'plenilunio'],
-    },
-    '🌖': {
-        name: 'luna_gibosa_menguante',
-        keywords: ['gibosa', 'luna', 'menguante'],
-    },
-    '🌗': {
-        name: 'luna_en_cuarto_menguante',
-        keywords: ['cuarto', 'luna', 'menguante', 'luna en cuarto menguante'],
-    },
-    '🌘': {
-        name: 'luna_menguante',
-        keywords: ['luna', 'menguante'],
-    },
-    '🌙': {
-        name: 'luna_creciente',
-        keywords: ['creciente', 'espacio', 'luna'],
-    },
-    '🌚': {
-        name: 'luna_nueva_con_cara',
-        keywords: ['cara', 'espacio', 'luna', 'luna nueva con cara'],
-    },
-    '🌛': {
-        name: 'luna_en_cuarto_creciente_con_cara',
-        keywords: ['cara', 'creciente', 'cuarto', 'espacio', 'luna', 'luna de cuarto creciente con cara'],
-    },
-    '🌜': {
-        name: 'luna_en_cuarto_menguante_con_cara',
-        keywords: ['cara', 'creciente', 'cuarto', 'espacio', 'luna', 'luna de cuarto menguante con cara'],
-    },
-    '🌡️': {
-        name: 'termómetro',
-        keywords: ['temperatura', 'termómetro'],
-    },
-    '☀️': {
-        name: 'soleado',
-        keywords: ['espacio', 'rayos', 'soleado', 'sol'],
-    },
-    '🌝': {
-        name: 'luna_llena_con_cara',
-        keywords: ['cara', 'llena', 'luna', 'luna llena con cara'],
-    },
-    '🌞': {
-        name: 'sol_con_cara',
-        keywords: ['brillante', 'cara', 'sol', 'sol con cara'],
-    },
-    '🪐': {
-        name: 'planeta_con_anillos',
-        keywords: ['saturnino', 'saturno', 'planeta con anillos'],
-    },
-    '⭐': {
-        name: 'estrella',
-        keywords: ['estelar  estrella'],
-    },
-    '🌟': {
-        name: 'estrella2',
-        keywords: ['brillante', 'estrella', 'resplandeciente'],
-    },
-    '🌠': {
-        name: 'estrellas',
-        keywords: ['estrella', 'lluvia', 'estrella fugaz'],
-    },
-    '🌌': {
-        name: 'vía_láctea',
-        keywords: ['espacio', 'galaxia', 'vía láctea', 'Vía Láctea'],
-    },
-    '☁️': {
-        name: 'nube',
-        keywords: ['tiempo', 'nube'],
-    },
-    '⛅': {
-        name: 'parcialmente_soleado',
-        keywords: ['nube', 'sol', 'sol con nubes', 'sol detrás de una nube'],
-    },
-    '⛈️': {
-        name: 'nube_de_truenos_y_lluvia',
-        keywords: ['lluvia', 'nube', 'trueno', 'nube con rayo y lluvia'],
-    },
-    '🌤️': {
-        name: 'casi_todo_soleado',
-        keywords: ['nube', 'sol', 'sol detrás de una nube pequeña'],
-    },
-    '🌥️': {
-        name: 'sol_con_nubes',
-        keywords: ['nube', 'sol', 'sol detrás de una nube grande'],
-    },
-    '🌦️': {
-        name: 'parcialmente_soleado_lluvioso',
-        keywords: ['lluvia', 'nube', 'sol', 'sol detrás de una nube con lluvia'],
-    },
-    '🌧️': {
-        name: 'nube_de_lluvia',
-        keywords: ['lluvia', 'nube', 'nube con lluvia'],
-    },
-    '🌨️': {
-        name: 'nube_de_nieve',
-        keywords: ['frío', 'nieve', 'nube', 'nube con nieve'],
-    },
-    '🌩️': {
-        name: 'relámpago',
-        keywords: ['nube', 'rayo', 'nube con rayo'],
-    },
-    '🌪️': {
-        name: 'tornado',
-        keywords: ['nube', 'torbellino', 'tornado'],
-    },
-    '🌫️': {
-        name: 'niebla',
-        keywords: ['nube', 'niebla'],
-    },
-    '🌬️': {
-        name: 'cara_soplando_viento',
-        keywords: ['cara', 'nube', 'soplar', 'viento', 'cara de viento'],
-    },
-    '🌀': {
-        name: 'ciclón',
-        keywords: ['mareo', 'tifón', 'tornado', 'ciclón'],
-    },
-    '🌈': {
-        name: 'arco_iris',
-        keywords: ['colores', 'lluvia', 'arcoíris'],
-    },
-    '🌂': {
-        name: 'paraguas_cerrado',
-        keywords: ['accesorios', 'lluvia', 'paraguas', 'paraguas cerrado'],
-    },
-    '☂️': {
-        name: 'paraguas',
-        keywords: ['lluvia', 'paraguas abierto', 'paraguas'],
-    },
-    '☔': {
-        name: 'paraguas_con_gotas_de_lluvia',
-        keywords: ['gotas', 'lluvia', 'paraguas', 'paraguas con gotas de lluvia'],
-    },
-    '⛱️': {
-        name: 'paraguas_en_el_suelo',
-        keywords: ['arena', 'sol', 'sombrilla', 'sombrilla en la arena'],
-    },
-    '⚡': {
-        name: 'alto_voltaje',
-        keywords: ['electricidad', 'peligro', 'peligro de alto voltaje', 'señal de alto voltaje', 'voltaje', 'alto voltaje'],
-    },
-    '❄️': {
-        name: 'copo_de_nieve',
-        keywords: ['frío', 'nieve', 'copo de nieve'],
-    },
-    '☃️': {
-        name: 'muñeco_de_nieve',
-        keywords: ['nieve', 'muñeco de nieve con nieve'],
-    },
-    '⛄': {
-        name: 'muñeco_de_nieve_sin_nieve',
-        keywords: ['muñeco de nieve sin nieve', 'nieve', 'muñeco de nieve'],
-    },
-    '☄️': {
-        name: 'astro_cometa',
-        keywords: ['cometa', 'espacio', 'meteorito'],
-    },
-    '🔥': {
-        name: 'fuego',
-        keywords: ['llama', 'fuego'],
-    },
-    '💧': {
-        name: 'gota',
-        keywords: ['agua', 'cómic', 'sudor', 'gota'],
-    },
-    '🌊': {
-        name: 'océano',
-        keywords: ['mar', 'océano', 'ola', 'ola de mar'],
-    },
-    '🎃': {
-        name: 'calabaza_iluminada',
-        keywords: ['calabaza', 'celebración', 'Halloween', 'linterna', 'calabaza de Halloween'],
-    },
-    '🎄': {
-        name: 'árbol_de_navidad',
-        keywords: ['abeto de Navidad', 'árbol', 'celebración', 'Navidad', 'árbol de Navidad'],
-    },
-    '🎆': {
-        name: 'fuegos_artificiales',
-        keywords: ['celebración', 'fuegos artificiales'],
-    },
-    '🎇': {
-        name: 'bengala',
-        keywords: ['celebración', 'fuegos artificiales', 'bengala'],
-    },
-    '🧨': {
-        name: 'petardo',
-        keywords: ['dinamita', 'explosivo', 'fuegos artificiales', 'petardo'],
-    },
-    '✨': {
-        name: 'destellos',
-        keywords: ['bengala', 'estrellas', '*', 'chispas'],
-    },
-    '🎈': {
-        name: 'globo',
-        keywords: ['celebración', 'globo'],
-    },
-    '🎉': {
-        name: 'gorro_de_fiesta',
-        keywords: ['celebración', 'confeti', 'fiesta', 'cañón de confeti'],
-    },
-    '🎊': {
-        name: 'bola_de_confeti',
-        keywords: ['celebración', 'confeti', 'bola de confeti'],
-    },
-    '🎋': {
-        name: 'árbol_de_los_deseos',
-        keywords: ['árbol', 'celebración', 'festividad', 'tanabata', 'árbol de tanabata'],
-    },
-    '🎍': {
-        name: 'bambú',
-        keywords: ['año nuevo japonés', 'bambú', 'celebración', 'decoración', 'kadomatsu', 'decoración de pino'],
-    },
-    '🎎': {
-        name: 'muñecas',
-        keywords: ['celebración', 'festival', 'hinamatsuri', 'muñecas', 'muñecas japonesas'],
-    },
-    '🪭': {
-        name: 'abanico_plegable',
-        keywords: ['abanico', 'plegable', 'viento', 'accesorio'],
-    },
-    '🎏': {
-        name: 'banderas',
-        keywords: ['banderín', 'carpa', 'celebración', 'koinobori', 'banderín de carpas'],
-    },
-    '🎐': {
-        name: 'campanilla_de_viento',
-        keywords: ['campanilla', 'furin', 'viento', 'campanilla de viento'],
-    },
-    '🪩': {
-        name: 'bola_de_disco',
-        keywords: ['bola', 'espejo', 'disco', 'fiesta'],
-    },
-    '🎑': {
-        name: 'espiga_de_arroz',
-        keywords: ['celebración', 'contemplación', 'luna', 'tsukimi', 'ceremonia de contemplación de la luna'],
-    },
-    '🧧': {
-        name: 'sobre_rojo',
-        keywords: ['buena suerte', 'hóngbāo', 'lai see', 'regalo', 'sobre rojo'],
-    },
-    '🎀': {
-        name: 'cinta',
-        keywords: ['celebración', 'lazo'],
-    },
-    '🎁': {
-        name: 'regalo',
-        keywords: ['celebración', 'envoltorio', 'presente', 'regalo envuelto', 'regalo'],
-    },
-    '🎗️': {
-        name: 'lazo_de_apoyo',
-        keywords: ['conmemorativo', 'lazo'],
-    },
-    '🎟️': {
-        name: 'boletos_de_entrada',
-        keywords: ['acceso', 'admisión', 'entrada', 'evento', 'entradas'],
-    },
-    '🎫': {
-        name: 'tique',
-        keywords: ['acceso', 'admisión', 'tique'],
-    },
-    '🎖️': {
-        name: 'medalla',
-        keywords: ['celebración', 'medalla', 'militar'],
-    },
-    '🏆': {
-        name: 'trofeo',
-        keywords: ['premio', 'trofeo'],
-    },
-    '🏅': {
-        name: 'medalla_deportiva',
-        keywords: ['medalla', 'premio', 'medalla deportiva'],
-    },
-    '🥇': {
-        name: 'medalla_de_oro',
-        keywords: ['medalla', 'oro', 'primero', 'medalla de oro'],
-    },
-    '🥈': {
-        name: 'medalla_de_plata',
-        keywords: ['medalla', 'plata', 'segundo', 'medalla de plata'],
-    },
-    '🥉': {
-        name: 'medalla_de_bronce',
-        keywords: ['bronce', 'medalla', 'tercero', 'medalla de bronce'],
-    },
-    '⚽': {
-        name: 'fútbol',
-        keywords: ['balón', 'fútbol', 'balón de fútbol'],
-    },
-    '⚾': {
-        name: 'béisbol',
-        keywords: ['balón', 'baseball', 'pelota', 'béisbol'],
-    },
-    '🥎': {
-        name: 'pelota_de_softball',
-        keywords: ['bola', 'pelota', 'softball', 'pelota de softball'],
-    },
-    '🏀': {
-        name: 'baloncesto',
-        keywords: ['balón', 'canasta', 'deporte', 'balón de baloncesto'],
-    },
-    '🏐': {
-        name: 'voleibol',
-        keywords: ['balón', 'juego', 'pelota', 'voleibol', 'pelota de voleibol'],
-    },
-    '🏈': {
-        name: 'balón_de_fútbol_americano',
-        keywords: ['balón', 'deporte', 'fútbol americano', 'balón de fútbol americano'],
-    },
-    '🏉': {
-        name: 'pelota_de_rugby',
-        keywords: ['balón', 'deporte', 'rugby', 'balón de rugby'],
-    },
-    '🎾': {
-        name: 'tenis',
-        keywords: ['deporte', 'pelota', 'tenis', 'pelota de tenis'],
-    },
-    '🥏': {
-        name: 'disco_volador',
-        keywords: ['disco', 'frisbee', 'disco volador'],
-    },
-    '🎳': {
-        name: 'bolos',
-        keywords: ['bola', 'bola de bolos', 'juego', 'bolos'],
-    },
-    '🏏': {
-        name: 'pelota_y_bate_de_cricket',
-        keywords: ['juego', 'pelota', 'críquet'],
-    },
-    '🏑': {
-        name: 'palo_y_pelota_de_hockey',
-        keywords: ['hierba', 'hockey', 'juego', 'palo', 'pelota', 'hockey sobre hierba'],
-    },
-    '🏒': {
-        name: 'palo_y_disco_de_hockey_sobre_hielo',
-        keywords: ['disco', 'hielo', 'hockey', 'palo', 'hockey sobre hielo'],
-    },
-    '🥍': {
-        name: 'lacrosse',
-        keywords: ['bola', 'palo', 'pelota', 'raqueta', 'lacrosse'],
-    },
-    '🏓': {
-        name: 'raqueta_y_pelota_de_tenis_de_mesa',
-        keywords: ['juego', 'mesa', 'pelota', 'ping pong', 'tenis de mesa'],
-    },
-    '🏸': {
-        name: 'raqueta_y_pluma_de_bádminton',
-        keywords: ['pluma', 'raqueta', 'volante', 'bádminton'],
-    },
-    '🥊': {
-        name: 'guante-boxeo',
-        keywords: ['boxeo', 'deporte', 'guante', 'guante de boxeo'],
-    },
-    '🥋': {
-        name: 'uniforme_artes_marciales',
-        keywords: ['artes marciales', 'judo', 'kárate', 'taekwondo', 'uniforme de artes marciales'],
-    },
-    '🥅': {
-        name: 'portería',
-        keywords: ['deporte', 'red', 'portería'],
-    },
-    '⛳': {
-        name: 'golf',
-        keywords: ['banderín', 'golf', 'hoyo', 'banderín en hoyo'],
-    },
-    '⛸️': {
-        name: 'patinaje_sobre_hielo',
-        keywords: ['hielo', 'patín', 'patín de hielo'],
-    },
-    '🎣': {
-        name: 'caña_de_pescar_y_pez',
-        keywords: ['caña', 'entretenimiento', 'esparcimiento', 'pesca', 'pez', 'caña de pescar'],
-    },
-    '🤿': {
-        name: 'máscara_de_buceo',
-        keywords: ['bucear', 'buzo', 'esnórquel', 'máscara', 'tubo', 'máscara de buceo'],
-    },
-    '🎽': {
-        name: 'camiseta_de_correr_con_franja',
-        keywords: ['banda', 'camiseta con banda', 'camiseta de correr', 'deporte', 'camiseta sin mangas'],
-    },
-    '🎿': {
-        name: 'esquí',
-        keywords: ['esquí', 'esquíes', 'nieve', 'esquís'],
-    },
-    '🛷': {
-        name: 'trineo',
-        keywords: ['trineo'],
-    },
-    '🥌': {
-        name: 'piedra_curling',
-        keywords: ['juego', 'roca', 'piedra de curling'],
-    },
-    '🎯': {
-        name: 'dardo',
-        keywords: ['blanco', 'en el blanco', 'juego', 'diana'],
-    },
-    '🪀': {
-        name: 'yoyó',
-        keywords: ['dieta', 'efecto', 'fluctuar', 'juguete', 'yoyó'],
-    },
-    '🪁': {
-        name: 'cometa',
-        keywords: ['juguete', 'planear', 'viento', 'volar', 'cometa'],
-    },
-    '🛝': {
-        name: 'resbaladilla',
-        keywords: ['parque', 'resbaladilla', 'jugar', 'parque'],
-    },
-    '🎱': {
-        name: 'bola_ocho',
-        keywords: ['8', 'billar', 'bola ocho', 'juego', 'bola negra de billar'],
-    },
-    '🔮': {
-        name: 'bola_de_cristal',
-        keywords: ['adivinación', 'bola', 'buena fortuna', 'cristal', 'bola de cristal'],
-    },
-    '🪄': {
-        name: 'varita_mágica',
-        keywords: ['bruja', 'hechicero', 'magia', 'mago', 'prestidigitación', 'varita', 'varita mágica'],
-    },
-    '🧿': {
-        name: 'ojo_turco',
-        keywords: ['amuleto', 'mal de ojo', 'nazar', 'talismán', 'ojo turco'],
-    },
-    '🪬': {
-        name: 'hamsa',
-        keywords: ['hamsa', 'mano', 'protección', 'suerte'],
-    },
-    '🎮': {
-        name: 'videojuego',
-        keywords: ['juego', 'mando', 'videojuego', 'mando de videoconsola'],
-    },
-    '🕹️': {
-        name: 'palanca_de_mando',
-        keywords: ['juego', 'mando', 'palanca', 'videojuego', 'joystick'],
-    },
-    '🎰': {
-        name: 'tragaperras',
-        keywords: ['juego', 'máquina', 'máquina tragaperras'],
-    },
-    '🎲': {
-        name: 'dado',
-        keywords: ['juego', 'dado'],
-    },
-    '🧩': {
-        name: 'pieza_de_puzle',
-        keywords: ['conectar', 'pieza', 'pista', 'puzle', 'rompecabezas', 'pieza de puzle'],
-    },
-    '🧸': {
-        name: 'osito_de_peluche',
-        keywords: ['juguete', 'oso', 'peluche', 'osito de peluche'],
-    },
-    '🪅': {
-        name: 'piñata',
-        keywords: ['caballito', 'celebración', 'fiesta', 'piñata'],
-    },
-    '🪆': {
-        name: 'muñeca_rusa',
-        keywords: ['babushka', 'mamushka', 'matrioska', 'rusia', 'muñeca rusa'],
-    },
-    '♠️': {
-        name: 'picas',
-        keywords: ['carta', 'juego', 'palo', 'picas', 'palo de picas'],
-    },
-    '♥️': {
-        name: 'corazones',
-        keywords: ['carta', 'corazones', 'juego', 'palo', 'palo de corazones'],
-    },
-    '♦️': {
-        name: 'diamantes',
-        keywords: ['carta', 'diamantes', 'juego', 'palo', 'palo de diamantes'],
-    },
-    '♣️': {
-        name: 'tréboles',
-        keywords: ['carta', 'juego', 'palo', 'tréboles', 'palo de tréboles'],
-    },
-    '♟️': {
-        name: 'peón_de_ajedrez',
-        keywords: ['ajedrez', 'peón', 'peón de ajedrez'],
-    },
-    '🃏': {
-        name: 'comodín_negro',
-        keywords: ['joker', 'comodín'],
-    },
-    '🀄': {
-        name: 'dragón_rojo',
-        keywords: ['dragón rojo', 'juego', 'mahjong', 'dragón rojo de mahjong'],
-    },
-    '🎴': {
-        name: 'cartas-de_juegos_de_asociación',
-        keywords: ['carta', 'flor', 'hanafuda', 'naipe japonés', 'cartas de flores'],
-    },
-    '🎭': {
-        name: 'artes_escénicas',
-        keywords: ['actuación', 'arte', 'artes escénicas', 'entretenimiento', 'máscaras de teatro'],
-    },
-    '🖼️': {
-        name: 'marco_con_foto',
-        keywords: ['marco', 'museo', 'cuadro enmarcado'],
-    },
-    '🎨': {
-        name: 'arte',
-        keywords: ['arte', 'artista', 'paleta', 'pintura', 'paleta de pintor'],
-    },
-    '🧵': {
-        name: 'hilo',
-        keywords: ['aguja', 'carrete', 'coser', 'costura', 'hilo'],
-    },
-    '🪡': {
-        name: 'aguja_de_coser',
-        keywords: ['aguja', 'bordado', 'coser', 'hilar', 'punto', 'tejer', 'aguja de coser'],
-    },
-    '🧶': {
-        name: 'ovillo',
-        keywords: ['bola', 'croché', 'punto', 'tejer', 'ovillo'],
-    },
-    '🪢': {
-        name: 'nudo',
-        keywords: ['anudar', 'atar', 'enredar', 'trenzar', 'nudo'],
-    },
-    '👓': {
-        name: 'gafas',
-        keywords: ['accesorios', 'ojo', 'ropa', 'gafas'],
-    },
-    '🕶️': {
-        name: 'gafas_de_sol_oscuras',
-        keywords: ['gafas', 'ojo', 'oscuras', 'sol', 'gafas de sol'],
-    },
-    '🥽': {
-        name: 'gafas_de_protección',
-        keywords: ['gafas', 'nadar', 'protección ocular', 'soldar', 'gafas de protección'],
-    },
-    '🥼': {
-        name: 'bata_de_laboratorio',
-        keywords: ['científico', 'doctor', 'experimento', 'médico', 'bata de laboratorio'],
-    },
-    '🦺': {
-        name: 'chaleco_de_seguridad',
-        keywords: ['chaleco', 'emergencia', 'seguridad', 'chaleco de seguridad'],
-    },
-    '👔': {
-        name: 'corbata',
-        keywords: ['accesorio', 'ropa', 'corbata'],
-    },
-    '👕': {
-        name: 'camiseta',
-        keywords: ['ropa', 'camiseta'],
-    },
-    '👖': {
-        name: 'vaqueros',
-        keywords: ['pantalones', 'ropa', 'vaqueros'],
-    },
-    '🧣': {
-        name: 'bufanda',
-        keywords: ['abrigo', 'cuello', 'bufanda'],
-    },
-    '🧤': {
-        name: 'guantes',
-        keywords: ['mano', 'guantes'],
-    },
-    '🧥': {
-        name: 'abrigo',
-        keywords: ['chaquetón', 'abrigo'],
-    },
-    '🧦': {
-        name: 'calcetines',
-        keywords: ['pies', 'ropa', 'calcetines'],
-    },
-    '👗': {
-        name: 'vestido',
-        keywords: ['mujer', 'ropa', 'vestido'],
-    },
-    '👘': {
-        name: 'kimono',
-        keywords: ['japonés', 'ropa', 'kimono'],
-    },
-    '🥻': {
-        name: 'sari',
-        keywords: ['prenda', 'ropa', 'vestido', 'sari'],
-    },
-    '🩱': {
-        name: 'traje_de_baño_de_una_pieza',
-        keywords: ['bañador', 'traje de baño de una pieza'],
-    },
-    '🩲': {
-        name: 'ropa_interior',
-        keywords: ['bañador', 'bragas', 'braguitas', 'calzoncillos', 'slip', 'ropa interior'],
-    },
-    '🩳': {
-        name: 'pantalones_cortos',
-        keywords: ['bañador', 'bermudas', 'calzoncillos', 'ropa interior', 'shorts', 'pantalones cortos'],
-    },
-    '👙': {
-        name: 'bikini',
-        keywords: ['baño', 'playa', 'ropa', 'bikini'],
-    },
-    '👚': {
-        name: 'ropa_de_mujer',
-        keywords: ['blusa', 'camisa', 'femenina', 'ropa', 'ropa de mujer'],
-    },
-    '👛': {
-        name: 'cartera_de_mano',
-        keywords: ['accesorios', 'cartera', 'complementos', 'monedero'],
-    },
-    '👜': {
-        name: 'bolso',
-        keywords: ['accesorios', 'complementos', 'bolso'],
-    },
-    '👝': {
-        name: 'cartera',
-        keywords: ['accesorios', 'bolso', 'cartera', 'complementos', 'bolso de mano'],
-    },
-    '🛍️': {
-        name: 'bolsas_de_la_compra',
-        keywords: ['bolsa', 'compra', 'bolsas de compras'],
-    },
-    '🎒': {
-        name: 'mochila',
-        keywords: ['colegio', 'mochila', 'mochila escolar'],
-    },
-    '🩴': {
-        name: 'chancla',
-        keywords: ['chancla de dedo', 'chancleta', 'chinela', 'sandalia', 'chancla'],
-    },
-    '👞': {
-        name: 'zapatos_de_hombre',
-        keywords: ['calzado', 'hombre', 'ropa', 'zapato', 'zapato de hombre'],
-    },
-    '👟': {
-        name: 'zapatilla_de_atletismo',
-        keywords: ['calzado', 'correr', 'ropa', 'tenis', 'zapatilla deportiva'],
-    },
-    '🥾': {
-        name: 'bota_de_senderismo',
-        keywords: ['bota', 'camping', 'mochilero', 'senderismo', 'bota de senderismo'],
-    },
-    '🥿': {
-        name: 'bailarina',
-        keywords: ['calzado', 'zapato', 'bailarina'],
-    },
-    '👠': {
-        name: 'tacón_de_aguja',
-        keywords: ['mujer', 'tacón', 'zapato', 'zapato de tacón'],
-    },
-    '👡': {
-        name: 'sandalia',
-        keywords: ['calzado', 'mujer', 'ropa', 'sandalia', 'sandalia de mujer'],
-    },
-    '🩰': {
-        name: 'zapatillas_de_ballet',
-        keywords: ['bailar', 'balé', 'ballet', 'danza', 'zapatillas de ballet'],
-    },
-    '👢': {
-        name: 'bota',
-        keywords: ['bota', 'calzado', 'mujer', 'ropa', 'bota de mujer'],
-    },
-    '👑': {
-        name: 'corona',
-        keywords: ['accesorios', 'complementos', 'reina', 'rey', 'corona'],
-    },
-    '👒': {
-        name: 'sombrero_de_mujer',
-        keywords: ['accesorio', 'mujer', 'ropa', 'sombrero', 'sombrero de mujer'],
-    },
-    '🎩': {
-        name: 'sombrero_de_copa',
-        keywords: ['chistera', 'copa', 'ropa', 'sombrero', 'sombrero de copa'],
-    },
-    '🎓': {
-        name: 'birrete',
-        keywords: ['celebración', 'gorro', 'graduación', 'birrete'],
-    },
-    '🧢': {
-        name: 'gorra',
-        keywords: ['béisbol', 'gorra', 'visera', 'gorra con visera'],
-    },
-    '🪖': {
-        name: 'casco_militar',
-        keywords: ['casco', 'ejército', 'guerra', 'guerrero', 'soldado', 'casco militar'],
-    },
-    '⛑️': {
-        name: 'casco_con_cruz_blanca',
-        keywords: ['ayuda', 'cara', 'casco', 'cruz', 'casco con una cruz blanca'],
-    },
-    '📿': {
-        name: 'rosario',
-        keywords: ['collar', 'cuentas', 'religión', 'rosario'],
-    },
-    '💄': {
-        name: 'lápiz_labial',
-        keywords: ['barra', 'cosmética', 'labios', 'maquillaje', 'pintalabios'],
-    },
-    '💍': {
-        name: 'anillo',
-        keywords: ['diamante', 'anillo'],
-    },
-    '💎': {
-        name: 'joya',
-        keywords: ['diamante', 'gema', 'joya', 'piedra', 'preciosa'],
-    },
-    '🔇': {
-        name: 'mudo',
-        keywords: ['altavoz', 'altavoz con marca de cancelación', 'mute', 'silencio', 'altavoz silenciado'],
-    },
-    '🔈': {
-        name: 'altavoz',
-        keywords: ['volumen bajo', 'altavoz a volumen bajo'],
-    },
-    '🔉': {
-        name: 'sonido',
-        keywords: ['altavoz con volumen medio', 'medio', 'volumen medio', 'altavoz a volumen medio'],
-    },
-    '🔊': {
-        name: 'sonido_agudo',
-        keywords: ['altavoz', 'alto', 'volumen alto', 'altavoz a volumen alto'],
-    },
-    '📢': {
-        name: 'altavoz_sonando',
-        keywords: ['altavoz', 'comunicación', 'altavoz de mano'],
-    },
-    '📣': {
-        name: 'mega',
-        keywords: ['comunicación', 'megáfono'],
-    },
-    '📯': {
-        name: 'corneta',
-        keywords: ['corneta', 'posta', 'corneta de posta'],
-    },
-    '🔔': {
-        name: 'campana',
-        keywords: ['campana'],
-    },
-    '🔕': {
-        name: 'prohibido_claxon',
-        keywords: ['campana', 'cancelación', 'ruido', 'campana con signo de cancelación'],
-    },
-    '🎼': {
-        name: 'partitura',
-        keywords: ['música', 'partitura', 'pentagrama'],
-    },
-    '🎵': {
-        name: 'nota_musical',
-        keywords: ['música', 'nota', 'nota musical'],
-    },
-    '🎶': {
-        name: 'notas',
-        keywords: ['música', 'notas', 'notas musicales'],
-    },
-    '🎙️': {
-        name: 'micrófono_de_estudio',
-        keywords: ['estudio', 'micrófono', 'música', 'micrófono de estudio'],
-    },
-    '🎚️': {
-        name: 'indicador_de_nivel',
-        keywords: ['control', 'fader', 'volumen', 'control de volumen'],
-    },
-    '🎛️': {
-        name: 'mandos_de_control',
-        keywords: ['control', 'diales', 'música', 'potenciómetros', 'ruedas', 'ruedas de control'],
-    },
-    '🎤': {
-        name: 'micrófono',
-        keywords: ['entretenimiento', 'karaoke', 'micro', 'micrófono'],
-    },
-    '🎧': {
-        name: 'auriculares',
-        keywords: ['cascos', 'auricular'],
-    },
-    '📻': {
-        name: 'radio',
-        keywords: ['radio'],
-    },
-    '🎷': {
-        name: 'saxofón',
-        keywords: ['instrumento', 'instrumento musical', 'música', 'saxo', 'saxofón'],
-    },
-    '🪗': {
-        name: 'acordeón',
-        keywords: ['concertina', 'acordeón'],
-    },
-    '🎸': {
-        name: 'guitarra',
-        keywords: ['instrumento', 'instrumento musical', 'música', 'guitarra'],
-    },
-    '🎹': {
-        name: 'teclado_musical',
-        keywords: ['instrumento', 'instrumento musical', 'música', 'teclado', 'piano', 'teclado musical'],
-    },
-    '🪇': {
-        name: 'maracas',
-        keywords: ['maracas', 'música', 'instrumento', 'ritmo'],
-    },
-    '🎺': {
-        name: 'trompeta',
-        keywords: ['instrumento', 'instrumento musical', 'música', 'trompeta'],
-    },
-    '🎻': {
-        name: 'violín',
-        keywords: ['instrumento', 'instrumento musical', 'música', 'violín'],
-    },
-    '🪈': {
-        name: 'flauta',
-        keywords: ['flauta', 'música', 'instrumento', 'viento'],
-    },
-    '🪕': {
-        name: 'banjo',
-        keywords: ['banyo', 'cuerda', 'instrumento', 'música', 'banjo'],
-    },
-    '🥁': {
-        name: 'tambor_con_baquetas',
-        keywords: ['baquetas', 'música', 'tambor'],
-    },
-    '🪘': {
-        name: 'tamboril',
-        keywords: ['conga', 'ritmo', 'tambor', 'tamboril'],
-    },
-    '📱': {
-        name: 'iphone',
-        keywords: ['celular', 'móvil', 'teléfono'],
-    },
-    '📲': {
-        name: 'llamando',
-        keywords: ['flecha', 'llamada', 'móvil', 'recibir', 'teléfono', 'móvil con una flecha'],
-    },
-    '☎️': {
-        name: 'teléfono',
-        keywords: ['teléfono'],
-    },
-    '📞': {
-        name: 'receptor_de_teléfono',
-        keywords: ['comunicación', 'teléfono', 'auricular de teléfono'],
-    },
-    '📟': {
-        name: 'buscapersonas',
-        keywords: ['comunicación', 'localizador', 'busca'],
-    },
-    '📠': {
-        name: 'fax',
-        keywords: ['comunicación', 'fax', 'máquina de fax'],
-    },
-    '🔋': {
-        name: 'batería',
-        keywords: ['batería', 'pila'],
-    },
-    '🪫': {
-        name: 'batería_baja',
-        keywords: ['bajo', 'batería', 'poder', 'carga'],
-    },
-    '🔌': {
-        name: 'enchufe_eléctrico',
-        keywords: ['corriente', 'electricidad', 'eléctrico', 'enchufe'],
-    },
-    '💻': {
-        name: 'ordenador',
-        keywords: ['ordenador', 'pc', 'personal', 'ordenador portátil'],
-    },
-    '🖥️': {
-        name: 'ordenador_de_sobremesa',
-        keywords: ['ordenador', 'sobremesa', 'ordenador de sobremesa'],
-    },
-    '🖨️': {
-        name: 'impresora',
-        keywords: ['ordenador', 'impresora'],
-    },
-    '⌨️': {
-        name: 'teclado',
-        keywords: ['ordenador', 'teclado'],
-    },
-    '🖱️': {
-        name: 'mouse_de_tres_botones',
-        keywords: ['ordenador', 'ratón', 'ratón de ordenador'],
-    },
-    '🖲️': {
-        name: 'bola_de_seguimiento',
-        keywords: ['ordenador', 'trackball', 'bola de desplazamiento'],
-    },
-    '💽': {
-        name: 'minidisc',
-        keywords: ['disco', 'md', 'minidisc'],
-    },
-    '💾': {
-        name: 'disquete',
-        keywords: ['disco', 'disco de 3 1/2', 'disquete'],
-    },
-    '💿': {
-        name: 'cd',
-        keywords: ['cd', 'disco', 'disco óptico'],
-    },
-    '📀': {
-        name: 'dvd',
-        keywords: ['disco', 'dvd', 'disco DVD'],
-    },
-    '🧮': {
-        name: 'ábaco',
-        keywords: ['cálculo', 'contar', 'matemáticas', 'ábaco'],
-    },
-    '🎥': {
-        name: 'cámara_de_cine',
-        keywords: ['cámara', 'cine', 'entretenimiento', 'película', 'cámara de cine'],
-    },
-    '🎞️': {
-        name: 'fotogramas_de_película',
-        keywords: ['cine', 'fotograma', 'película', 'fotograma de película'],
-    },
-    '📽️': {
-        name: 'proyector_de_cine',
-        keywords: ['cine', 'película', 'proyector', 'proyector de cine'],
-    },
-    '🎬': {
-        name: 'claqueta',
-        keywords: ['cine', 'claqueta de cine', 'entretenimiento', 'película', 'claqueta'],
-    },
-    '📺': {
-        name: 'televisión',
-        keywords: ['tv', 'televisión'],
-    },
-    '📷': {
-        name: 'cámara',
-        keywords: ['cámara', 'cámara de fotos'],
-    },
-    '📸': {
-        name: 'cámara_con_flash',
-        keywords: ['cámara', 'flash', 'cámara con flash'],
-    },
-    '📹': {
-        name: 'videocámara',
-        keywords: ['cámara', 'vídeo', 'videocámara'],
-    },
-    '📼': {
-        name: 'vhs',
-        keywords: ['cinta', 'cinta de vídeo'],
-    },
-    '🔍': {
-        name: 'lupa',
-        keywords: ['buscar', 'lupa', 'lupa orientada hacia la izquierda'],
-    },
-    '🔎': {
-        name: 'lupa_derecha',
-        keywords: ['buscar', 'lupa', 'lupa orientada hacia la derecha'],
-    },
-    '🕯️': {
-        name: 'vela',
-        keywords: ['luz', 'vela'],
-    },
-    '💡': {
-        name: 'bombilla',
-        keywords: ['cómic', 'electricidad', 'idea', 'luz', 'bombilla'],
-    },
-    '🔦': {
-        name: 'linterna',
-        keywords: ['luz', 'linterna'],
-    },
-    '🏮': {
-        name: 'farolillo_de_papel',
-        keywords: ['izakaya', 'lámpara roja', 'linterna izakaya', 'linterna japonesa', 'restaurante', 'lámpara japonesa'],
-    },
-    '🪔': {
-        name: 'lámpara_de_aceite',
-        keywords: ['aceite', 'diya', 'lámpara', 'lámpara de aceite'],
-    },
-    '📔': {
-        name: 'cuaderno_con_tapa_decorada',
-        keywords: ['cuaderno', 'decoración', 'tapa', 'cuaderno con tapa decorativa'],
-    },
-    '📕': {
-        name: 'libro_cerrado',
-        keywords: ['cerrado', 'libro'],
-    },
-    '📖': {
-        name: 'libro',
-        keywords: ['abierto', 'libro'],
-    },
-    '📗': {
-        name: 'libro_verde',
-        keywords: ['libro', 'verde'],
-    },
-    '📘': {
-        name: 'libro_azul',
-        keywords: ['azul', 'libro'],
-    },
-    '📙': {
-        name: 'libro_naranja',
-        keywords: ['libro', 'naranja'],
-    },
-    '📚': {
-        name: 'libros',
-        keywords: ['libro', 'libros'],
-    },
-    '📓': {
-        name: 'cuaderno',
-        keywords: ['libreta', 'cuaderno'],
-    },
-    '📒': {
-        name: 'registro',
-        keywords: ['cuaderno', 'libro de contabilidad'],
-    },
-    '📃': {
-        name: 'página_doblada_por_abajo',
-        keywords: ['documento', 'página', 'página doblada'],
-    },
-    '📜': {
-        name: 'pergamino',
-        keywords: ['pergamino de papel', 'pergamino'],
-    },
-    '📄': {
-        name: 'página_boca_arriba',
-        keywords: ['anverso', 'documento', 'página', 'página hacia arriba'],
-    },
-    '📰': {
-        name: 'periódico',
-        keywords: ['diario', 'periódico'],
-    },
-    '🗞️': {
-        name: 'periódico_enrollado',
-        keywords: ['noticias', 'papel', 'periódico', 'periódico enrollado'],
-    },
-    '📑': {
-        name: 'pestañas_de_marcadores',
-        keywords: ['pestañas', 'marcadores'],
-    },
-    '🔖': {
-        name: 'marcador',
-        keywords: ['marcador', 'marcapáginas'],
-    },
-    '🏷️': {
-        name: 'etiqueta',
-        keywords: ['etiqueta'],
-    },
-    '💰': {
-        name: 'bolsa_de_dinero',
-        keywords: ['bolsa', 'bolsa de dólares', 'dinero', 'bolsa de dinero'],
-    },
-    '🪙': {
-        name: 'moneda',
-        keywords: ['dinero', 'metal', 'oro', 'plata', 'tesoro', 'moneda'],
-    },
-    '💴': {
-        name: 'yen',
-        keywords: ['billete', 'billete de banco', 'dinero', 'yen', 'billete de yen'],
-    },
-    '💵': {
-        name: 'dólar',
-        keywords: ['billete', 'billete de banco', 'dinero', 'dólar', 'billete de dólar'],
-    },
-    '💶': {
-        name: 'euro',
-        keywords: ['billete', 'billete de banco', 'dinero', 'euro', 'billete de euro'],
-    },
-    '💷': {
-        name: 'libra_esterlina',
-        keywords: ['billete de banco', 'dinero', 'libra', 'billete de libra'],
-    },
-    '💸': {
-        name: 'dinero_con_alas',
-        keywords: ['billete', 'billete de banco', 'dinero', 'dinero con alas', 'billete con alas'],
-    },
-    '💳': {
-        name: 'tarjeta_de_crédito',
-        keywords: ['crédito', 'tarjeta', 'tarjeta de crédito'],
-    },
-    '🪪': {
-        name: 'tarjeta_de_identificación',
-        keywords: ['identificación', 'tarjeta', 'ID', 'documento'],
-    },
-    '🧾': {
-        name: 'recibo',
-        keywords: ['contabilidad', 'prueba', 'teneduría de libros', 'testimonio', 'recibo'],
-    },
-    '💹': {
-        name: 'gráfico',
-        keywords: ['alza', 'mercado', 'mercado alcista', 'tabla', 'mercado al alza'],
-    },
-    '✉️': {
-        name: 'correo',
-        keywords: ['carta', 'correo', 'sobre'],
-    },
-    '📧': {
-        name: 'correo_electrónico',
-        keywords: ['comunicación', 'correo', 'sobre', 'correo electrónico'],
-    },
-    '📨': {
-        name: 'correo_entrante',
-        keywords: ['carta', 'comunicación', 'correo', 'correo electrónico', 'sobre', 'sobre entrante'],
-    },
-    '📩': {
-        name: 'sobre_con_flecha',
-        keywords: ['carta', 'comunicación', 'correo', 'correo electrónico', 'sobre', 'sobre con flecha'],
-    },
-    '📤': {
-        name: 'bandeja_de_salida',
-        keywords: ['bandeja', 'comunicación', 'correo', 'enviado', 'salida', 'bandeja de salida'],
-    },
-    '📥': {
-        name: 'bandeja_de_entrada',
-        keywords: ['bandeja', 'comunicación', 'correo', 'entrada', 'recibido', 'bandeja de entrada'],
-    },
-    '📦': {
-        name: 'paquete',
-        keywords: ['caja', 'paquete'],
-    },
-    '📫': {
-        name: 'buzón',
-        keywords: ['bandera', 'buzón', 'buzón cerrado', 'con contenido', 'buzón cerrado con la bandera levantada'],
-    },
-    '📪': {
-        name: 'buzón_cerrado',
-        keywords: ['bandera', 'buzón', 'buzón cerrado', 'vacío', 'buzón cerrado con la bandera bajada'],
-    },
-    '📬': {
-        name: 'buzón_con_cartas',
-        keywords: ['bandera', 'buzón', 'buzón abierto', 'con contenido', 'buzón abierto con la bandera levantada'],
-    },
-    '📭': {
-        name: 'buzón_sin_cartas',
-        keywords: ['bandera', 'buzón', 'buzón abierto', 'vacío', 'buzón abierto con la bandera bajada'],
-    },
-    '📮': {
-        name: 'carta_al_buzón',
-        keywords: ['cartas', 'correo', 'buzón'],
-    },
-    '🗳️': {
-        name: 'urna_con_papeleta',
-        keywords: ['papeleta', 'urna', 'voto', 'urna con papeleta'],
-    },
-    '✏️': {
-        name: 'lápiz2',
-        keywords: ['escolar', 'escribir', 'lapicero', 'lápiz'],
-    },
-    '✒️': {
-        name: 'plumín_negro',
-        keywords: ['bolígrafo', 'escribir', 'pluma', 'tinta', 'pluma negra'],
-    },
-    '🖋️': {
-        name: 'pluma_estilográfica_abajo_a_la_izquierda',
-        keywords: ['bolígrafo', 'escribir', 'pluma', 'tinta', 'estilográfica'],
-    },
-    '🖊️': {
-        name: 'bolígrafo_abajo_a_la_izquierda',
-        keywords: ['boli', 'escribir', 'bolígrafo'],
-    },
-    '🖌️': {
-        name: 'pincel_abajo_a_la_izquierda',
-        keywords: ['pintar', 'pincel'],
-    },
-    '🖍️': {
-        name: 'lápiz_abajo_a_la_izquierda',
-        keywords: ['cera', 'lápiz', 'lápiz de cera'],
-    },
-    '📝': {
-        name: 'nota',
-        keywords: ['comunicación', 'cuaderno de notas'],
-    },
-    '💼': {
-        name: 'maletín',
-        keywords: ['cartera', 'documentos', 'maletín'],
-    },
-    '📁': {
-        name: 'carpeta_de_archivos',
-        keywords: ['archivo', 'carpeta', 'carpeta de archivos'],
-    },
-    '📂': {
-        name: 'carpeta_abierta',
-        keywords: ['abierta', 'archivo', 'carpeta', 'carpeta de archivos abierta'],
-    },
-    '🗂️': {
-        name: 'separadores_de_índice_de_tarjetas',
-        keywords: ['fichas', 'fichero', 'separador', 'separador de fichas'],
-    },
-    '📅': {
-        name: 'fecha',
-        keywords: ['fecha', 'calendario'],
-    },
-    '📆': {
-        name: 'calendario',
-        keywords: ['calendario', 'fecha', 'calendario recortable'],
-    },
-    '🗒️': {
-        name: 'cuaderno_de_espiral',
-        keywords: ['bloc', 'cuaderno', 'espiral', 'notas', 'bloc de notas de espiral'],
-    },
-    '🗓️': {
-        name: 'calendario_de_sobremesa',
-        keywords: ['calendario', 'espiral', 'calendario de espiral'],
-    },
-    '📇': {
-        name: 'índice_de_tarjetas',
-        keywords: ['cartera', 'ficha', 'organizador', 'tarjetas', 'organizador de fichas'],
-    },
-    '📈': {
-        name: 'gráfico_con_tendencia_ascendente',
-        keywords: ['ascendente', 'gráfica', 'gráfico', 'tendencia ascendente', 'gráfica de evolución ascendente'],
-    },
-    '📉': {
-        name: 'gráfico_con_tendencia_descendente',
-        keywords: ['descendente', 'gráfica', 'gráfico', 'tendencia descendente', 'gráfica de evolución descendente'],
-    },
-    '📊': {
-        name: 'gráfico_de_barras',
-        keywords: ['barras', 'gráfico', 'gráfico de barras'],
-    },
-    '📋': {
-        name: 'portapapeles',
-        keywords: ['papeles', 'pinza', 'tabla', 'portapapeles'],
-    },
-    '📌': {
-        name: 'chincheta',
-        keywords: ['tachuela', 'chincheta'],
-    },
-    '📍': {
-        name: 'tachuela_redonda',
-        keywords: ['chincheta', 'chincheta redonda'],
-    },
-    '📎': {
-        name: 'clip',
-        keywords: ['clip'],
-    },
-    '🖇️': {
-        name: 'clips_unidos',
-        keywords: ['clips', 'unidos', 'unión'],
-    },
-    '📏': {
-        name: 'regla',
-        keywords: ['regla'],
-    },
-    '📐': {
-        name: 'escuadra',
-        keywords: ['regla', 'regla triangular', 'triángulo', 'escuadra'],
-    },
-    '✂️': {
-        name: 'tijeras',
-        keywords: ['cortar', 'herramienta', 'tijeras'],
-    },
-    '🗃️': {
-        name: 'fichero_de_tarjetas',
-        keywords: ['archivador', 'archivo', 'caja', 'archivador de tarjetas'],
-    },
-    '🗄️': {
-        name: 'archivador',
-        keywords: ['archivos', 'oficina', 'organizador', 'archivador'],
-    },
-    '🗑️': {
-        name: 'papelera',
-        keywords: ['basura', 'cubo', 'papelera'],
-    },
-    '🔒': {
-        name: 'candado',
-        keywords: ['candado', 'cerrado', 'cerrar'],
-    },
-    '🔓': {
-        name: 'activar',
-        keywords: ['abierto', 'abrir', 'candado'],
-    },
-    '🔏': {
-        name: 'candado_con_pluma_de_tinta',
-        keywords: ['candado', 'cerrado', 'estilográfica', 'pluma', 'privacidad', 'candado con pluma estilográfica'],
-    },
-    '🔐': {
-        name: 'candado_cerrado_con_llave',
-        keywords: ['candado', 'cerrado', 'llave', 'seguro', 'candado cerrado y llave'],
-    },
-    '🔑': {
-        name: 'llave',
-        keywords: ['contraseña', 'llave'],
-    },
-    '🗝️': {
-        name: 'llave_vieja',
-        keywords: ['antigua', 'llave'],
-    },
-    '🔨': {
-        name: 'martillo',
-        keywords: ['herramienta', 'martillo'],
-    },
-    '🪓': {
-        name: 'hacha',
-        keywords: ['cortar', 'dividir', 'hachuela', 'madera', 'talar', 'hacha'],
-    },
-    '⛏️': {
-        name: 'pico',
-        keywords: ['herramienta', 'mina', 'pico'],
-    },
-    '⚒️': {
-        name: 'martillo_y_pico',
-        keywords: ['herramienta', 'martillo', 'pico', 'martillo y pico'],
-    },
-    '🛠️': {
-        name: 'martillo_y_llave_inglesa',
-        keywords: ['herramienta', 'llave inglesa', 'martillo', 'martillo y llave inglesa'],
-    },
-    '🗡️': {
-        name: 'daga',
-        keywords: ['arma', 'cuchillo', 'daga', 'puñal'],
-    },
-    '⚔️': {
-        name: 'espadas_cruzadas',
-        keywords: ['arma', 'cruzadas', 'espadas'],
-    },
-    '🔫': {
-        name: 'pistola',
-        keywords: ['agua', 'juguete', 'pistola', 'verano', 'pistola de agua'],
-    },
-    '🪃': {
-        name: 'bumerán',
-        keywords: ['boomerang', 'rebotar', 'bumerán'],
-    },
-    '🏹': {
-        name: 'arco_y_flecha',
-        keywords: ['arco', 'arquero', 'flecha', 'sagitario', 'zodiaco', 'arco y flecha'],
-    },
-    '🛡️': {
-        name: 'escudo',
-        keywords: ['defensa', 'escudo'],
-    },
-    '🪚': {
-        name: 'sierra_de_carpintería',
-        keywords: ['carpintería', 'carpintero', 'herramienta', 'sierra', 'talar', 'sierra de carpintería'],
-    },
-    '🔧': {
-        name: 'llave_de_tuerca',
-        keywords: ['herramienta', 'llave inglesa'],
-    },
-    '🪛': {
-        name: 'destornillador',
-        keywords: ['atornillador', 'herramienta', 'tornillo', 'destornillador'],
-    },
-    '🔩': {
-        name: 'tuerca_y_perno',
-        keywords: ['herramienta', 'tornillo', 'tuerca', 'tornillo y tuerca'],
-    },
-    '⚙️': {
-        name: 'engranaje',
-        keywords: ['herramienta', 'engranaje'],
-    },
-    '🗜️': {
-        name: 'compresión',
-        keywords: ['herramienta', 'tornillo', 'tornillo de banco'],
-    },
-    '⚖️': {
-        name: 'balanza',
-        keywords: ['justicia', 'libra', 'peso', 'zodiaco', 'balanza'],
-    },
-    '🦯': {
-        name: 'bastón',
-        keywords: ['accesibilidad', 'ceguera', 'ciega', 'ciego', 'invidente', 'bastón'],
-    },
-    '🔗': {
-        name: 'eslabón',
-        keywords: ['eslabón'],
-    },
-    '⛓️': {
-        name: 'cadenas',
-        keywords: ['cadena', 'cadenas'],
-    },
-    '🪝': {
-        name: 'gancho',
-        keywords: ['agarrar', 'anzuelo', 'atrapar', 'garfio', 'gancho'],
-    },
-    '🧰': {
-        name: 'caja_de_herramientas',
-        keywords: ['armario', 'herramienta', 'mecánico', 'caja de herramientas'],
-    },
-    '🧲': {
-        name: 'imán',
-        keywords: ['atracción', 'herradura', 'magnético', 'imán'],
-    },
-    '🪜': {
-        name: 'escalera',
-        keywords: ['escalar', 'escalerilla', 'escalón', 'peldaño', 'escalera'],
-    },
-    '⚗️': {
-        name: 'alambique',
-        keywords: ['herramienta', 'química', 'alambique'],
-    },
-    '🧪': {
-        name: 'tubo_de_ensayo',
-        keywords: ['ciencia', 'experimento', 'laboratorio', 'química', 'químico', 'tubo de ensayo'],
-    },
-    '🧫': {
-        name: 'placa_de_petri',
-        keywords: ['bacterias', 'biología', 'biólogo', 'cultivo', 'laboratorio', 'placa de petri'],
-    },
-    '🧬': {
-        name: 'adn',
-        keywords: ['biólogo', 'evolución', 'gen', 'genética', 'vida', 'adn'],
-    },
-    '🔬': {
-        name: 'microscopio',
-        keywords: ['instrumento', 'laboratorio', 'microscopio'],
-    },
-    '🔭': {
-        name: 'telescopio',
-        keywords: ['astronomía', 'instrumento', 'telescopio'],
-    },
-    '🩻': {
-        name: 'rayos_x',
-        keywords: ['rayos x', 'médico', 'escáner', 'radiología'],
-    },
-    '📡': {
-        name: 'antena_de_satélite',
-        keywords: ['antena', 'comunicación', 'satélite', 'antena de satélite'],
-    },
-    '💉': {
-        name: 'jeringuilla',
-        keywords: ['aguja', 'jeringa', 'medicina', 'médico', 'jeringuilla'],
-    },
-    '🩸': {
-        name: 'gota_de_sangre',
-        keywords: ['donación de sangre', 'donar sangre', 'herida', 'medicina', 'sangre', 'gota de sangre'],
-    },
-    '💊': {
-        name: 'píldora',
-        keywords: ['comprimido', 'medicina', 'médico', 'pastilla', 'píldora'],
-    },
-    '🩹': {
-        name: 'tirita',
-        keywords: ['apósito', 'tirita'],
-    },
-    '🩺': {
-        name: 'estetoscopio',
-        keywords: ['corazón', 'doctor', 'fonendoscopio', 'latido', 'medicina', 'médico', 'estetoscopio'],
-    },
-    '🚪': {
-        name: 'puerta',
-        keywords: ['puerta'],
-    },
-    '🛗': {
-        name: 'ascensor',
-        keywords: ['accesibilidad', 'elevador', 'montacargas', 'ascensor'],
-    },
-    '🪞': {
-        name: 'espejo',
-        keywords: ['espéculo', 'reflector', 'reflejo', 'espejo'],
-    },
-    '🪟': {
-        name: 'ventana',
-        keywords: ['abertura', 'apertura', 'cristal', 'marco', 'transparente', 'vista', 'ventana'],
-    },
-    '🛏️': {
-        name: 'cama',
-        keywords: ['dormir', 'hotel', 'cama'],
-    },
-    '🛋️': {
-        name: 'sofá_y_lámpara',
-        keywords: ['hotel', 'lámpara', 'sofá', 'sofá y lámpara'],
-    },
-    '🪑': {
-        name: 'silla',
-        keywords: ['asiento', 'sentarse', 'silla'],
-    },
-    '🚽': {
-        name: 'baño',
-        keywords: ['baño', 'váter', 'wc', 'inodoro'],
-    },
-    '🪠': {
-        name: 'desatascador',
-        keywords: ['fontanero', 'retrete', 'servicio', 'succión', 'desatascador'],
-    },
-    '🚿': {
-        name: 'ducha',
-        keywords: ['agua', 'baño', 'ducha'],
-    },
-    '🛁': {
-        name: 'bañera',
-        keywords: ['baño', 'bañera'],
-    },
-    '🪤': {
-        name: 'ratonera',
-        keywords: ['cebo', 'cepo', 'engañar', 'ratón', 'ratonera', 'trampa', 'trampa de ratones'],
-    },
-    '🪒': {
-        name: 'cuchilla_de_afeitar',
-        keywords: ['afeitado', 'afeitar', 'afilado', 'barbero', 'navaja', 'cuchilla de afeitar'],
-    },
-    '🪮': {
-        name: 'peine_para_cabello',
-        keywords: ['peine', 'cabello', 'herramienta', 'accesorio'],
-    },
-    '🧴': {
-        name: 'bote_de_crema',
-        keywords: ['champú', 'crema', 'hidratante', 'protector solar', 'bote de crema'],
-    },
-    '🧷': {
-        name: 'imperdible',
-        keywords: ['pañal', 'punk rock', 'imperdible'],
-    },
-    '🧹': {
-        name: 'escoba',
-        keywords: ['barrer', 'bruja', 'fregar', 'escoba'],
-    },
-    '🧺': {
-        name: 'cesta',
-        keywords: ['colada', 'cosecha', 'pícnic', 'cesta'],
-    },
-    '🧻': {
-        name: 'rollo_de_papel',
-        keywords: ['papel absorbente', 'papel higiénico', 'rollo de papel'],
-    },
-    '🪣': {
-        name: 'cubo',
-        keywords: ['balde', 'barreño', 'cuba', 'cubeta', 'cubo'],
-    },
-    '🧼': {
-        name: 'jabón',
-        keywords: ['bañarse', 'enjabonarse', 'jabonera', 'lavarse', 'pastilla', 'jabón'],
-    },
-    '🪥': {
-        name: 'cepillo_de_dientes',
-        keywords: ['cepillo', 'dental', 'higiene', 'limpio', 'servicio', 'cepillo de dientes'],
-    },
-    '🧽': {
-        name: 'esponja',
-        keywords: ['absorbente', 'limpiar', 'poroso', 'esponja'],
-    },
-    '🧯': {
-        name: 'extintor',
-        keywords: ['apagar', 'extinguir', 'incendio', 'extintor'],
-    },
-    '🛒': {
-        name: 'carrito_de_compras',
-        keywords: ['carrito', 'carro', 'compra', 'supermercado', 'carrito de la compra'],
-    },
-    '🚬': {
-        name: 'fumando',
-        keywords: ['cigarro', 'fumar', 'cigarrillo'],
-    },
-    '⚰️': {
-        name: 'ataúd',
-        keywords: ['muerte', 'ataúd'],
-    },
-    '🪦': {
-        name: 'lápida',
-        keywords: ['cementario', 'estela', 'sepulcro', 'tumba', 'lápida'],
-    },
-    '⚱️': {
-        name: 'urna_funeraria',
-        keywords: ['funeraria', 'muerte', 'urna'],
-    },
-    '🗿': {
-        name: 'moái',
-        keywords: ['estatua', 'moái', 'Pascua'],
-    },
-    '🪧': {
-        name: 'letrero',
-        keywords: ['anuncio', 'aviso', 'cartel', 'pancarta', 'poste', 'letrero'],
-    },
-    '🏧': {
-        name: 'cajero_automático',
-        keywords: ['atm', 'banco', 'cajero', 'señal de cajero automático'],
-    },
-    '🚮': {
-        name: 'la_basura_en_su_lugar',
-        keywords: ['basura', 'papelera', 'señal', 'tirar la basura en la papelera', 'señal de usar papelera'],
-    },
-    '🚰': {
-        name: 'agua_potable',
-        keywords: ['agua', 'potable'],
-    },
-    '♿': {
-        name: 'silla_de_ruedas',
-        keywords: ['acceso', 'señal', 'silla', 'silla de ruedas', 'símbolo', 'símbolo de silla de ruedas'],
-    },
-    '🚹': {
-        name: 'baño_de_hombres',
-        keywords: ['aseo de caballeros', 'baño', 'señal', 'señal con un hombre', 'servicio', 'aseo para hombres'],
-    },
-    '🚺': {
-        name: 'baño_de_mujeres',
-        keywords: ['aseo de señoras', 'baño', 'señal', 'señal con una mujer', 'servicio', 'señal de aseo para mujeres'],
-    },
-    '🚻': {
-        name: 'signo_de_baño',
-        keywords: ['aseos', 'servicios', 'wc', 'señal de aseos'],
-    },
-    '🚼': {
-        name: 'símbolo_de_bebé',
-        keywords: ['bebé', 'cambiar', 'lactancia', 'señal de bebé'],
-    },
-    '🚾': {
-        name: 'wc',
-        keywords: ['lavabo', 'servicios', 'WC', 'aseos'],
-    },
-    '🛂': {
-        name: 'control_de_pasaportes',
-        keywords: ['control', 'pasaportes', 'control de pasaportes'],
-    },
-    '🛃': {
-        name: 'aduana',
-        keywords: ['aduana'],
-    },
-    '🛄': {
-        name: 'recogida_de_equipaje',
-        keywords: ['equipaje', 'maleta', 'recogida de equipajes'],
-    },
-    '🛅': {
-        name: 'consigna',
-        keywords: ['depósito', 'equipaje', 'servicio de equipaje en depósito', 'consigna'],
-    },
-    '🛜': {
-        name: 'inalámbrico',
-        keywords: ['inalámbrico', 'conexión', 'wifi', 'red'],
-    },
-    '⚠️': {
-        name: 'advertencia',
-        keywords: ['cuidado', 'señal', 'advertencia'],
-    },
-    '🚸': {
-        name: 'niños_cruzando',
-        keywords: ['cruzando', 'niños', 'señal'],
-    },
-    '⛔': {
-        name: 'prohibido_el_paso',
-        keywords: ['no', 'prohibido', 'señal', 'señal de dirección prohibida', 'dirección prohibida'],
-    },
-    '🚫': {
-        name: 'señal_de_prohibido_el_paso',
-        keywords: ['entrar', 'no', 'pasar', 'prohibición', 'prohibido'],
-    },
-    '🚳': {
-        name: 'prohibidas_bicicletas',
-        keywords: ['bicicleta', 'prohibido', 'vehículo', 'bicicletas prohibidas'],
-    },
-    '🚭': {
-        name: 'prohibido_fumar',
-        keywords: ['fumar', 'no', 'prohibido', 'señal'],
-    },
-    '🚯': {
-        name: 'no_tirar_basura',
-        keywords: ['basura', 'prohibido', 'señal', 'señal de no tirar basura', 'prohibido tirar basura'],
-    },
-    '🚱': {
-        name: 'agua_no_potable',
-        keywords: ['agua', 'no potable', 'agua no potable'],
-    },
-    '🚷': {
-        name: 'prohibido_el_paso_a_peatones',
-        keywords: ['peatón', 'peatones', 'prohibido', 'señal', 'prohibido el paso de peatones'],
-    },
-    '📵': {
-        name: 'prohibidos_teléfonos_móviles',
-        keywords: ['móvil', 'no hacer llamadas', 'prohibido', 'teléfono', 'prohibido el uso de móviles'],
-    },
-    '🔞': {
-        name: 'menor_de_edad',
-        keywords: ['prohibido', 'prohibido para menores de 18 años', '18  no apto para menores', 'prohibido para menos de 18 años'],
-    },
-    '☢️': {
-        name: 'señal_de_radioactividad',
-        keywords: ['radiactividad', 'radioactividad', 'radioactivo', 'señal', 'radiactivo'],
-    },
-    '☣️': {
-        name: 'símbolo_de_riesgo_biológico',
-        keywords: ['peligro', 'señal', 'riesgo biológico'],
-    },
-    '⬆️': {
-        name: 'flecha_hacia_arriba',
-        keywords: ['dirección', 'flecha', 'flecha arriba', 'norte', 'flecha hacia arriba'],
-    },
-    '↗️': {
-        name: 'flecha_hacia_arriba_a_la_derecha',
-        keywords: ['arriba', 'derecha', 'dirección', 'flecha', 'noreste', 'flecha hacia la esquina superior derecha'],
-    },
-    '➡️': {
-        name: 'flecha_a_la_derecha',
-        keywords: ['derecha', 'dirección', 'este', 'flecha', 'flecha hacia la derecha'],
-    },
-    '↘️': {
-        name: 'flecha_abajo_a_la_derecha',
-        keywords: ['abajo', 'derecha', 'dirección', 'flecha', 'sudeste', 'flecha hacia la esquina inferior derecha'],
-    },
-    '⬇️': {
-        name: 'flecha_hacia_abajo',
-        keywords: ['abajo', 'dirección', 'flecha', 'sur', 'flecha hacia abajo'],
-    },
-    '↙️': {
-        name: 'flecha_abajo_a_la_iquierda',
-        keywords: ['abajo', 'dirección', 'flecha', 'izquierda', 'suroeste', 'flecha hacia la esquina inferior izquierda'],
-    },
-    '⬅️': {
-        name: 'flecha_a_la_izquierda',
-        keywords: ['flecha', 'izquierda', 'oeste', 'flecha hacia la izquierda'],
-    },
-    '↖️': {
-        name: 'flecha_hacia_arriba_a_la_izquierda',
-        keywords: ['arriba', 'dirección', 'flecha', 'izquierda', 'noroeste', 'flecha hacia la esquina superior izquierda'],
-    },
-    '↕️': {
-        name: 'flecha_hacia_arriba_y_hacia_abajo',
-        keywords: ['abajo', 'arriba', 'dirección', 'flecha', 'flecha arriba y abajo'],
-    },
-    '↔️': {
-        name: 'flecha_izquierda_derecha',
-        keywords: ['derecha', 'dirección', 'flecha', 'izquierda', 'flecha izquierda y derecha'],
-    },
-    '↩️': {
-        name: 'flecha_curvada_a_la_izquierda',
-        keywords: ['curva', 'dirección', 'flecha', 'izquierda', 'flecha derecha curvándose a la izquierda'],
-    },
-    '↪️': {
-        name: 'flecha_en_curva_a_la_derecha',
-        keywords: ['curva', 'derecha', 'dirección', 'flecha', 'flecha izquierda curvándose a la derecha'],
-    },
-    '⤴️': {
-        name: 'flecha_en_dirección_ascendente',
-        keywords: ['arriba', 'curva', 'dirección', 'flecha', 'flecha derecha curvándose hacia arriba'],
-    },
-    '⤵️': {
-        name: 'flecha_en_dirección_descendente',
-        keywords: ['abajo', 'curva', 'dirección', 'flecha', 'flecha derecha curvándose hacia abajo'],
-    },
-    '🔃': {
-        name: 'flechas_en_sentido_horario',
-        keywords: ['flechas', 'flechas verticales sentido horario', 'horario', 'señal de recarga', 'flechas verticales en sentido horario'],
-    },
-    '🔄': {
-        name: 'flechas_en_sentido_antihorario',
-        keywords: ['dirección', 'flechas', 'señal de recarga', 'sentido antihorario', 'flechas en sentido antihorario'],
-    },
-    '🔙': {
-        name: 'atrás',
-        keywords: ['atrás', 'atrás con flecha izquierda', 'back', 'flecha', 'flecha a la izquierda', 'flecha BACK'],
-    },
-    '🔚': {
-        name: 'fin',
-        keywords: ['final', 'final con flecha izquierda', 'flecha', 'flecha a la izquierda', 'flecha END'],
-    },
-    '🔛': {
-        name: 'encendido',
-        keywords: ['flecha', 'on', 'señal', 'flecha de doble punta con la palabra "on" encima  flecha ON!'],
-    },
-    '🔜': {
-        name: 'pronto',
-        keywords: ['flecha', 'soon', 'soon con flecha a la derecha', 'flecha SOON'],
-    },
-    '🔝': {
-        name: 'parte_superior',
-        keywords: ['arriba', 'flecha hacia arriba', 'top', 'top con flecha hacia arriba', 'flecha TOP'],
-    },
-    '🛐': {
-        name: 'lugar_de_culto',
-        keywords: ['culto', 'religión', 'lugar de culto'],
-    },
-    '⚛️': {
-        name: 'símbolo_del_átomo',
-        keywords: ['átomo', 'símbolo', 'símbolo de átomo'],
-    },
-    '🕉️': {
-        name: 'símbolo_de_om',
-        keywords: ['hindú', 'religión', 'om'],
-    },
-    '✡️': {
-        name: 'estrella_de_david',
-        keywords: ['david', 'estrella', 'estrella de david', 'estrella de David', 'judaísmo', 'religión'],
-    },
-    '☸️': {
-        name: 'rueda_del_dharma',
-        keywords: ['budismo', 'dharma', 'religión', 'rueda', 'rueda del dharma'],
-    },
-    '🪯': {
-        name: 'khanda',
-        keywords: ['khanda', 'símbolo', 'sijismo', 'religión'],
-    },
-    '☯️': {
-        name: 'yin_yang',
-        keywords: ['religión', 'taoísmo', 'yang', 'yin'],
-    },
-    '✝️': {
-        name: 'cruz_latina',
-        keywords: ['cristianismo', 'cruz', 'religión', 'cruz latina'],
-    },
-    '☦️': {
-        name: 'cruz_ortodoxa',
-        keywords: ['cruz', 'religión', 'cruz ortodoxa'],
-    },
-    '☪️': {
-        name: 'estrella_y_luna_creciente',
-        keywords: ['estrella', 'islam', 'luna', 'religión', 'media luna y estrella'],
-    },
-    '☮️': {
-        name: 'símbolo_de_la_paz',
-        keywords: ['paz', 'símbolo de la paz'],
-    },
-    '🕎': {
-        name: 'candelabro_de_nueve_brazos',
-        keywords: ['candelabro', 'religión', 'menorá'],
-    },
-    '🔯': {
-        name: 'estrella_de_seis_puntas',
-        keywords: ['adivinación', 'buena fortuna', 'estrella', 'seis puntas', 'estrella de seis puntas'],
-    },
-    '♈': {
-        name: 'aries',
-        keywords: ['aries', 'Aries', 'carnero', 'zodiaco'],
-    },
-    '♉': {
-        name: 'tauro',
-        keywords: ['buey', 'tauro', 'Tauro', 'toro', 'zodiaco'],
-    },
-    '♊': {
-        name: 'géminis',
-        keywords: ['gemelos', 'géminis', 'Géminis', 'zodiaco'],
-    },
-    '♋': {
-        name: 'cáncer',
-        keywords: ['cáncer', 'Cáncer', 'cangrejo', 'zodiaco'],
-    },
-    '♌': {
-        name: 'leo',
-        keywords: ['leo', 'Leo', 'león', 'zodiaco'],
-    },
-    '♍': {
-        name: 'virgo',
-        keywords: ['zodiaco', 'virgo  Virgo'],
-    },
-    '♎': {
-        name: 'libra',
-        keywords: ['balanza', 'escala', 'justicia', 'libra', 'Libra', 'zodiaco'],
-    },
-    '♏': {
-        name: 'escorpio',
-        keywords: ['escorpio', 'Escorpio', 'escorpión', 'zodiaco'],
-    },
-    '♐': {
-        name: 'sagitario',
-        keywords: ['arquero', 'sagitario', 'Sagitario', 'zodiaco'],
-    },
-    '♑': {
-        name: 'capricornio',
-        keywords: ['cabra', 'capricornio', 'Capricornio', 'zodiaco'],
-    },
-    '♒': {
-        name: 'acuario',
-        keywords: ['acuario', 'Acuario', 'agua', 'zodiaco'],
-    },
-    '♓': {
-        name: 'piscis',
-        keywords: ['pescado', 'pez', 'piscis', 'Piscis', 'zodiaco'],
-    },
-    '⛎': {
-        name: 'ofiuco',
-        keywords: ['ofiuco', 'Ofiuco', 'serpiente', 'zodiaco'],
-    },
-    '🔀': {
-        name: 'flechas_cruzadas_hacia_la_derecha',
-        keywords: ['cruzado', 'flechas', 'flechas entrecruzadas', 'reproducción aleatoria'],
-    },
-    '🔁': {
-        name: 'repetir',
-        keywords: ['flechas', 'repetición', 'repetir'],
-    },
-    '🔂': {
-        name: 'repetir_una_vez',
-        keywords: ['flechas', 'repetición', 'uno', 'repetir una vez'],
-    },
-    '▶️': {
-        name: 'flecha_hacia_delante',
-        keywords: ['botón de reproducción', 'flecha', 'triángulo', 'reproducir'],
-    },
-    '⏩': {
-        name: 'avance_rápido',
-        keywords: ['avanzar', 'doble', 'flecha', 'avance rápido'],
-    },
-    '⏭️': {
-        name: 'triángulo_doble_negro_en_dirección_derecha_con_barra_vertical',
-        keywords: ['raya vertical', 'siguiente', 'triángulos', 'pista siguiente'],
-    },
-    '⏯️': {
-        name: 'triángulo_negro_en_dirección_derecha_con_doble_barra_vertical',
-        keywords: ['pausa', 'reproducir', 'triángulo', 'reproducir o pausa'],
-    },
-    '◀️': {
-        name: 'flecha_hacia_atrás',
-        keywords: ['izquierda', 'triángulo', 'retroceso'],
-    },
-    '⏪': {
-        name: 'rebobinar',
-        keywords: ['flecha', 'flecha doble a la izquierda', 'izquierda', 'rebobinado', 'rebobinar', 'retroceso rápido'],
-    },
-    '⏮️': {
-        name: 'triángulo_doble_negro_en_dirección_izquierda_con_barra_vertical',
-        keywords: ['atrás', 'escena anterior', 'triángulo', 'pista anterior'],
-    },
-    '🔼': {
-        name: 'flecha_pequeña_hacia_arriba',
-        keywords: ['arriba', 'botón', 'botón triángulo hacia arriba', 'triángulo', 'triángulo hacia arriba'],
-    },
-    '⏫': {
-        name: 'flecha_doble_hacia_arriba',
-        keywords: ['arriba', 'flecha', 'triángulo doble hacia arriba'],
-    },
-    '🔽': {
-        name: 'flecha_pequeña_hacia_abajo',
-        keywords: ['abajo', 'botón', 'botón triángulo hacia abajo', 'triángulo', 'triángulo hacia abajo'],
-    },
-    '⏬': {
-        name: 'flecha_doble_hacia_abajo',
-        keywords: ['triángulo', 'triángulo doble abajo', 'triángulo doble hacia abajo'],
-    },
-    '⏸️': {
-        name: 'doble_barra_vertical',
-        keywords: ['barras', 'botón', 'vertical', 'pausa'],
-    },
-    '⏹️': {
-        name: 'cuadrado_negro_para_detener',
-        keywords: ['botón', 'cuadrado', 'parar', 'detener'],
-    },
-    '⏺️': {
-        name: 'círculo_negro_de_grabación',
-        keywords: ['botón', 'círculo', 'grabar'],
-    },
-    '⏏️': {
-        name: 'expulsar',
-        keywords: ['botón', 'expulsar'],
-    },
-    '🎦': {
-        name: 'cine',
-        keywords: ['entretenimiento', 'película', 'cine'],
-    },
-    '🔅': {
-        name: 'poco_brillo',
-        keywords: ['bajo', 'brillo', 'señal de brillo bajo', 'tenue'],
-    },
-    '🔆': {
-        name: 'mucho_brillo',
-        keywords: ['alto', 'brillante', 'brillo', 'señal de brillo alto'],
-    },
-    '📶': {
-        name: 'barras_de_recepción_de_señal',
-        keywords: ['antena', 'celular', 'móvil', 'señal', 'teléfono', 'barras de cobertura'],
-    },
-    '📳': {
-        name: 'modo_vibración',
-        keywords: ['móvil', 'teléfono', 'teléfono celular', 'vibración', 'modo vibración'],
-    },
-    '📴': {
-        name: 'móvil_desconectado',
-        keywords: ['apagado', 'móvil', 'teléfono', 'teléfono celular'],
-    },
-    '♀️': {
-        name: 'signo_femenino',
-        keywords: ['mujer', 'signo', 'símbolo', 'signo femenino'],
-    },
-    '♂️': {
-        name: 'signo_masculino',
-        keywords: ['hombre', 'signo', 'símbolo', 'signo masculino'],
-    },
-    '⚧️': {
-        name: 'símbolo_de_transgénero',
-        keywords: ['transgénero', 'símbolo de transgénero'],
-    },
-    '✖️': {
-        name: 'signo_de_multiplicación_grueso',
-        keywords: ['cancelar', 'marca', 'prohibido', 'signo de multiplicación', '×', 'multiplicación', 'x'],
-    },
-    '➕': {
-        name: 'signo_de_suma_grueso',
-        keywords: ['signo', 'suma', '+  más'],
-    },
-    '➖': {
-        name: 'signo_de_resta_grueso',
-        keywords: ['−', 'resta', 'signo', '-', 'menos'],
-    },
-    '➗': {
-        name: 'signo_de_división_grueso',
-        keywords: ['÷', 'signo', 'signo de división', 'división'],
-    },
-    '🟰': {
-        name: 'signo_igual',
-        keywords: ['igual', 'signo', 'matemáticas', 'símbolo'],
-    },
-    '♾️': {
-        name: 'infinito',
-        keywords: ['ilimitado', 'siempre', 'universal', 'infinito'],
-    },
-    '‼️': {
-        name: 'bangbang',
-        keywords: ['exclamación', 'puntuación', 'sorpresa', '!!', 'exclamación doble'],
-    },
-    '⁉️': {
-        name: 'signos_de_interrogación_y_exclamación',
-        keywords: ['exclamación', 'interrogación', '!  !?  ?', 'exclamación e interrogación'],
-    },
-    '❓': {
-        name: 'signo_de_interrogación_rojo',
-        keywords: ['interrogación', 'pregunta', 'puntuación', 'signo de interrogación', '?', 'interrogación roja'],
-    },
-    '❔': {
-        name: 'signo_de_interrogación_gris',
-        keywords: ['interrogación', 'pregunta', 'puntuación', '?', 'interrogación blanca'],
-    },
-    '❕': {
-        name: 'signo_de_exclamación_gris',
-        keywords: ['exclamación', 'puntuación', '!', 'exclamación blanca'],
-    },
-    '❗': {
-        name: 'exclamación',
-        keywords: ['exclamación', 'puntuación', 'signo de exclamación', '!', 'exclamación roja'],
-    },
-    '〰️': {
-        name: 'guion_ondulante',
-        keywords: ['guion', 'marca de sonido largo', 'ondulado'],
-    },
-    '💱': {
-        name: 'cambio_de_divisas',
-        keywords: ['cambio', 'dinero', 'divisa', 'moneda', 'cambio de divisas'],
-    },
-    '💲': {
-        name: 'símbolo_de_dólar_grueso',
-        keywords: ['dinero', 'dólar', 'símbolo', 'símbolo de dólar'],
-    },
-    '⚕️': {
-        name: 'símbolo_médico',
-        keywords: ['asclepio', 'esculapio', 'medicina', 'serpiente', 'símbolo de medicina'],
-    },
-    '♻️': {
-        name: 'reciclar',
-        keywords: ['reciclaje', 'reciclar', 'señal', 'símbolo universal de reciclaje sólido', 'universal', 'símbolo de reciclaje'],
-    },
-    '⚜️': {
-        name: 'flor_de_lis',
-        keywords: ['flor', 'lis', 'flor de lis'],
-    },
-    '🔱': {
-        name: 'tridente',
-        keywords: ['ancla', 'emblema', 'tridente', 'emblema de tridente'],
-    },
-    '📛': {
-        name: 'chapa_identificativa',
-        keywords: ['etiqueta', 'nombre', 'etiqueta identificativa'],
-    },
-    '🔰': {
-        name: 'principiante',
-        keywords: ['amarillo', 'japonés', 'principiante', 'verde', 'símbolo japonés para principiante'],
-    },
-    '⭕': {
-        name: 'o',
-        keywords: ['aro', 'círculo', 'o', 'rojo', 'círculo rojo hueco'],
-    },
-    '✅': {
-        name: 'marca_de_verificación_blanca',
-        keywords: ['✓', 'botón', 'marca', 'selección', 'verificación', 'botón de marca de verificación'],
-    },
-    '☑️': {
-        name: 'casilla_con_marca_de_verificación',
-        keywords: ['✓', 'casilla', 'marca', 'selección', 'verificación', 'casilla con marca de verificación'],
-    },
-    '✔️': {
-        name: 'marca_de_verificación_gruesa',
-        keywords: ['✓', 'marca', 'selección', 'verificación', 'marca de verificación'],
-    },
-    '❌': {
-        name: 'x',
-        keywords: ['cancelar', 'cruz', 'marca de tachado', 'tachar', '×', 'marca de cruz', 'x'],
-    },
-    '❎': {
-        name: 'cruz_negativa_enmarcada',
-        keywords: ['casilla', 'cruz', 'marca', '×  botón con marca de cruz', 'x'],
-    },
-    '➰': {
-        name: 'lazada',
-        keywords: ['giro', 'tirabuzón', 'bucle'],
-    },
-    '➿': {
-        name: 'lazo',
-        keywords: ['bucle', 'doble'],
-    },
-    '〽️': {
-        name: 'signo_de_inicio_de_canción',
-        keywords: ['alternancia', 'marca', 'marca de alternancia'],
-    },
-    '✳️': {
-        name: 'asterisco_de_ocho_puntas',
-        keywords: ['asterisco', '*', 'asterisco de ocho puntas'],
-    },
-    '✴️': {
-        name: 'estrella_negra_de_ocho_puntas',
-        keywords: ['estrella', '*', 'estrella de ocho puntas'],
-    },
-    '❇️': {
-        name: 'destello',
-        keywords: ['*  chispa'],
-    },
-    '©️': {
-        name: 'derechos_de_autor',
-        keywords: ['c', 'símbolo', 'copyright'],
-    },
-    '®️': {
-        name: 'registrado',
-        keywords: ['r', 'símbolo de marca registrada', 'marca registrada'],
-    },
-    '™️': {
-        name: 'tm',
-        keywords: ['marca comercial', 'símbolo de marca comercial'],
-    },
-    '#️⃣': {
-        name: 'almohadilla',
-        keywords: ['Teclas'],
-    },
-    '*️⃣': {
-        name: 'asterisco_enmarcado',
-        keywords: ['Teclas'],
-    },
-    '0️⃣': {
-        name: 'cero',
-        keywords: ['Teclas'],
-    },
-    '1️⃣': {
-        name: 'uno',
-        keywords: ['Teclas'],
-    },
-    '2️⃣': {
-        name: 'dos',
-        keywords: ['Teclas'],
-    },
-    '3️⃣': {
-        name: 'tres',
-        keywords: ['Teclas'],
-    },
-    '4️⃣': {
-        name: 'cuatro',
-        keywords: ['Teclas'],
-    },
-    '5️⃣': {
-        name: 'cinco',
-        keywords: ['Teclas'],
-    },
-    '6️⃣': {
-        name: 'seis',
-        keywords: ['Teclas'],
-    },
-    '7️⃣': {
-        name: 'siete',
-        keywords: ['Teclas'],
-    },
-    '8️⃣': {
-        name: 'ocho',
-        keywords: ['Teclas'],
-    },
-    '9️⃣': {
-        name: 'nueve',
-        keywords: ['Teclas'],
-    },
-    '🔟': {
-        name: 'diez_enmarcado',
-        keywords: ['Teclas'],
-    },
-    '🔠': {
-        name: 'abcd_en_mayúsculas',
-        keywords: ['abcd', 'letras', 'mayúsculas', 'letras latinas mayúsculas'],
-    },
-    '🔡': {
-        name: 'abcd',
-        keywords: ['abcd', 'letras', 'minúsculas', 'letras latinas minúsculas'],
-    },
-    '🔢': {
-        name: '1234',
-        keywords: ['1234', 'dígitos', 'números'],
-    },
-    '🔣': {
-        name: 'símbolos',
-        keywords: ['〒♪&%', 'símbolos'],
-    },
-    '🔤': {
-        name: 'abc',
-        keywords: ['ABC', 'latino', 'alfabeto latino'],
-    },
-    '🅰️': {
-        name: 'a',
-        keywords: ['A', 'grupo', 'sanguíneo', 'tipo A'],
-    },
-    '🆎': {
-        name: 'ab',
-        keywords: ['AB', 'grupo', 'sanguíneo', 'tipo AB'],
-    },
-    '🅱️': {
-        name: 'b',
-        keywords: ['B', 'grupo', 'sanguíneo', 'tipo B'],
-    },
-    '🆑': {
-        name: 'cl',
-        keywords: ['símbolo', 'borrar'],
-    },
-    '🆒': {
-        name: 'guay',
-        keywords: ['botón', 'cool', 'mola', 'botón COOL'],
-    },
-    '🆓': {
-        name: 'gratis',
-        keywords: ['gratis', 'símbolo gratis', 'botón FREE'],
-    },
-    ℹ️: {
-        name: 'fuente_de_información',
-        keywords: ['i', 'información'],
-    },
-    '🆔': {
-        name: 'carné_de_identidad',
-        keywords: ['ID', 'identidad', 'símbolo identidad', 'símbolo de identificación'],
-    },
-    'Ⓜ️': {
-        name: 'm',
-        keywords: ['círculo', 'm', 'm en círculo'],
-    },
-    '🆕': {
-        name: 'nuevo',
-        keywords: ['botón', 'NEW', 'nuevo'],
-    },
-    '🆖': {
-        name: 'nada_guay',
-        keywords: ['botón', 'ng', 'nuevo', 'botón NG'],
-    },
-    '🅾️': {
-        name: 'o2',
-        keywords: ['grupo sanguíneo', 'o', 'grupo sanguíneo tipo O'],
-    },
-    '🆗': {
-        name: 'vale',
-        keywords: ['botón', 'ok', 'botón OK'],
-    },
-    '🅿️': {
-        name: 'aparcamiento',
-        keywords: ['p', 'parking', 'aparcamiento'],
-    },
-    '🆘': {
-        name: 'llamada_de_socorro',
-        keywords: ['ayuda', 'símbolo', 'socorro', 'sos', 'símbolo de socorro'],
-    },
-    '🆙': {
-        name: 'arriba',
-        keywords: ['arriba', 'información', 'novedad', 'símbolo', 'up', 'botón UP!'],
-    },
-    '🆚': {
-        name: 'vs',
-        keywords: ['contra', 'frente a', 'símbolo', 'versus', 'vs', 'botón VS'],
-    },
-    '🈁': {
-        name: 'koko',
-        keywords: ['“aquí”', 'japonés', 'katakana', 'ideograma japonés para "aquí"'],
-    },
-    '🈂️': {
-        name: 'sa',
-        keywords: ['cortesía', 'japonés', 'katakana', 'ideograma japonés para "de cortesía"'],
-    },
-    '🈷️': {
-        name: 'u6708',
-        keywords: ['“cantidad mensual”', 'ideograma', 'japonés', 'kanji', 'ideograma japonés para "cantidad mensual"'],
-    },
-    '🈶': {
-        name: 'u6709',
-        keywords: ['“de pago”', 'ideograma', 'japonés', 'kanji', 'ideograma japonés para "de pago"'],
-    },
-    '🈯': {
-        name: 'u6307',
-        keywords: ['ideograma', 'japonés', 'kanji', 'reservado', 'ideograma japonés para "reservado"'],
-    },
-    '🉐': {
-        name: 'símbolo_de_ganga',
-        keywords: ['ganga', 'ideograma', 'japonés', 'kanji', 'ideograma japonés para "ganga"'],
-    },
-    '🈹': {
-        name: 'u5272',
-        keywords: ['descuento', 'ideograma', 'japonés', 'kanji', 'ideograma japonés para "descuento"'],
-    },
-    '🈚': {
-        name: 'u7121',
-        keywords: ['gratis', 'ideograma', 'japonés', 'kanji', 'ideograma japonés para "gratis"'],
-    },
-    '🈲': {
-        name: 'u7981',
-        keywords: ['ideograma', 'japonés', 'kanji', 'prohibido', 'ideograma japonés para "prohibido"'],
-    },
-    '🉑': {
-        name: 'aceptar',
-        keywords: ['aceptable', 'ideograma', 'japonés', 'kanji', 'ideograma japonés para "aceptable"'],
-    },
-    '🈸': {
-        name: 'u7533',
-        keywords: ['aplicación', 'ideograma', 'japonés', 'kanji', 'ideograma japonés para "aplicación"'],
-    },
-    '🈴': {
-        name: 'u5408',
-        keywords: ['aprobado', 'ideograma', 'japonés', 'kanji', 'ideograma japonés para "aprobado"'],
-    },
-    '🈳': {
-        name: 'u7a7a',
-        keywords: ['ideograma', 'japonés', 'kanji', 'vacante', 'ideograma japonés para "vacante"'],
-    },
-    '㊗️': {
-        name: 'felicitaciones',
-        keywords: ['enhorabuena', 'ideograma', 'japonés', 'kanji', 'ideograma japonés para "enhorabuena"'],
-    },
-    '㊙️': {
-        name: 'secreto',
-        keywords: ['ideograma', 'japonés', 'kanji', 'secreto', 'ideograma japonés para "secreto"'],
-    },
-    '🈺': {
-        name: 'u55b6',
-        keywords: ['abierto', 'ideograma', 'japonés', 'kanji', 'ideograma japonés para "abierto"'],
-    },
-    '🈵': {
-        name: 'u6e80',
-        keywords: ['completo', 'ideograma', 'japonés', 'kanji', 'lleno', 'ideograma japonés para "completo"'],
-    },
-    '🔴': {
-        name: 'círculo_rojo',
-        keywords: ['círculo', 'geometría', 'rojo'],
-    },
-    '🟠': {
-        name: 'círculo_naranja_grande',
-        keywords: ['círculo', 'naranja'],
-    },
-    '🟡': {
-        name: 'círculo_amarillo_grande',
-        keywords: ['amarillo', 'círculo'],
-    },
-    '🟢': {
-        name: 'círculo_verde_grande',
-        keywords: ['círculo', 'verde'],
-    },
-    '🔵': {
-        name: 'círculo_azul_grande',
-        keywords: ['azul', 'círculo', 'geometría'],
-    },
-    '🟣': {
-        name: 'círculo_morado_grande',
-        keywords: ['círculo', 'lila', 'morado', 'púrpura'],
-    },
-    '🟤': {
-        name: 'círculo_marrón_grande',
-        keywords: ['círculo', 'marrón'],
-    },
-    '⚫': {
-        name: 'círculo_negro',
-        keywords: ['círculo', 'geometría', 'círculo negro'],
-    },
-    '⚪': {
-        name: 'círculo_blanco',
-        keywords: ['círculo', 'geometría', 'círculo blanco'],
-    },
-    '🟥': {
-        name: 'cuadrado_rojo_grande',
-        keywords: ['cuadrado', 'rojo'],
-    },
-    '🟧': {
-        name: 'cuadrado_naranja_grande',
-        keywords: ['cuadrado', 'naranja'],
-    },
-    '🟨': {
-        name: 'cuadrado_amarillo_grande',
-        keywords: ['amarillo', 'cuadrado'],
-    },
-    '🟩': {
-        name: 'cuadrado_verde_grande',
-        keywords: ['cuadrado', 'verde'],
-    },
-    '🟦': {
-        name: 'cuadrado_azul_grande',
-        keywords: ['azul', 'cuadrado'],
-    },
-    '🟪': {
-        name: 'cuadrado_morado_grande',
-        keywords: ['cuadrado', 'lila', 'morado', 'púrpura'],
-    },
-    '🟫': {
-        name: 'cuadrado_marrón_grande',
-        keywords: ['cuadrado', 'marrón'],
-    },
-    '⬛': {
-        name: 'gran_cuadrado_negro',
-        keywords: ['cuadrado', 'geometría', 'negro', 'cuadrado negro grande'],
-    },
-    '⬜': {
-        name: 'cuadrado_blanco_grande',
-        keywords: ['blanco', 'cuadrado', 'geometría', 'cuadrado blanco grande'],
-    },
-    '◼️': {
-        name: 'cuadrado_mediano_negro',
-        keywords: ['cuadrado', 'geometría', 'negro', 'cuadrado negro mediano'],
-    },
-    '◻️': {
-        name: 'cuadrado_blanco_mediano',
-        keywords: ['blanco', 'cuadrado', 'geometría', 'cuadrado blanco mediano'],
-    },
-    '◾': {
-        name: 'cuadrado_mediano_pequeño_negro',
-        keywords: ['cuadrado', 'geometría', 'negro', 'cuadrado negro mediano-pequeño'],
-    },
-    '◽': {
-        name: 'cuadrado_blanco_mediano_pequeño',
-        keywords: ['blanco', 'cuadrado', 'geometría', 'cuadrado blanco mediano-pequeño'],
-    },
-    '▪️': {
-        name: 'cuadrado_pequeño_negro',
-        keywords: ['cuadrado', 'geometría', 'negro', 'cuadrado negro pequeño'],
-    },
-    '▫️': {
-        name: 'cuadrado_blanco_pequeño',
-        keywords: ['blanco', 'cuadrado', 'geometría', 'cuadrado blanco pequeño'],
-    },
-    '🔶': {
-        name: 'diamante_naranja_grande',
-        keywords: ['geometría', 'naranja', 'rombo', 'rombo naranja grande'],
-    },
-    '🔷': {
-        name: 'diamante_azul_grande',
-        keywords: ['azul', 'geometría', 'rombo', 'rombo azul grande'],
-    },
-    '🔸': {
-        name: 'diamante_naranja_pequeño',
-        keywords: ['geometría', 'naranja', 'rombo', 'rombo naranja pequeño'],
-    },
-    '🔹': {
-        name: 'diamante_azul_pequeño',
-        keywords: ['azul', 'geometría', 'rombo', 'rombo azul pequeño'],
-    },
-    '🔺': {
-        name: 'triángulo_rojo_pequeño',
-        keywords: ['geometría', 'rojo', 'triángulo', 'triángulo hacia arriba rojo', 'triángulo rojo hacia arriba'],
-    },
-    '🔻': {
-        name: 'triángulo_rojo_pequeño_hacia_abajo',
-        keywords: ['geometría', 'rojo', 'triángulo', 'triángulo hacia abajo rojo', 'triángulo rojo hacia abajo'],
-    },
-    '💠': {
-        name: 'forma_de_diamante_con_un_punto_dentro',
-        keywords: ['flor', 'geometría', 'rombo', 'rombo con pétalo'],
-    },
-    '🔘': {
-        name: 'botón_de_radio',
-        keywords: ['botón', 'opción', 'botón de opción'],
-    },
-    '🔳': {
-        name: 'botón_cuadrado_blanco',
-        keywords: ['botón', 'cuadrado', 'botón cuadrado con borde blanco'],
-    },
-    '🔲': {
-        name: 'botón_cuadrado_negro',
-        keywords: ['botón', 'cuadrado', 'botón cuadrado con borde negro'],
-    },
-    '🏁': {
-        name: 'bandera_de_cuadros',
-        keywords: ['bandera', 'carreras', 'cuadros', 'deporte', 'motor', 'bandera de cuadros'],
-    },
-    '🚩': {
-        name: 'mastil_con_bandera_triangular',
-        keywords: ['bandera', 'bandera de localización triangular', 'bandera informativa de localización', 'localización', 'bandera triangular'],
-    },
-    '🎌': {
-        name: 'banderas_cruzadas',
-        keywords: ['banderas', 'celebración', 'japón', 'banderas cruzadas'],
-    },
-    '🏴': {
-        name: 'ondeando_bandera_negra',
-        keywords: ['bandera', 'negra', 'ondear'],
-    },
-    '🏳️': {
-        name: 'ondeando_bandera_blanca',
-        keywords: ['bandera', 'blanca', 'ondear'],
-    },
-    '🏳️‍🌈': {
-        name: 'bandera-arcoíris',
-        keywords: ['arcoíris', 'bandera', 'bandera del arcoíris'],
-    },
-    '🏳️‍⚧️': {
-        name: 'bandera_transgénero',
-        keywords: ['azul', 'bandera', 'blanco', 'LGTB', 'rosa', 'transgénero'],
-    },
-    '🏴‍☠️': {
-        name: 'bandera_pirata',
-        keywords: ['botín', 'Jolly Roger', 'pirata', 'tesoro', 'bandera pirata'],
-    },
-    '🇦🇨': {
-        name: 'bandera-ac',
-        keywords: ['Bandera'],
-    },
-    '🇦🇩': {
-        name: 'andorra',
-        keywords: ['bandera', 'bandera-ad'],
-    },
-    '🇦🇪': {
-        name: 'emiratos_árabes_unidos',
-        keywords: ['bandera', 'bandera-ae'],
-    },
-    '🇦🇫': {
-        name: 'afganistán',
-        keywords: ['bandera', 'bandera-af'],
-    },
-    '🇦🇬': {
-        name: 'antigua_y_barbuda',
-        keywords: ['bandera', 'bandera-ag'],
-    },
-    '🇦🇮': {
-        name: 'anguila',
-        keywords: ['bandera', 'bandera-ai'],
-    },
-    '🇦🇱': {
-        name: 'albania',
-        keywords: ['bandera', 'bandera-al'],
-    },
-    '🇦🇲': {
-        name: 'armenia',
-        keywords: ['bandera', 'bandera-am'],
-    },
-    '🇦🇴': {
-        name: 'angola',
-        keywords: ['bandera', 'bandera-ao'],
-    },
-    '🇦🇶': {
-        name: 'antártida',
-        keywords: ['bandera', 'bandera-aq'],
-    },
-    '🇦🇷': {
-        name: 'argentina',
-        keywords: ['bandera', 'bandera-ar'],
-    },
-    '🇦🇸': {
-        name: 'samoa_americana',
-        keywords: ['bandera', 'bandera-as'],
-    },
-    '🇦🇹': {
-        name: 'austria',
-        keywords: ['bandera', 'bandera-at'],
-    },
-    '🇦🇺': {
-        name: 'australia',
-        keywords: ['bandera', 'bandera-au'],
-    },
-    '🇦🇼': {
-        name: 'aruba',
-        keywords: ['bandera', 'bandera-aw'],
-    },
-    '🇦🇽': {
-        name: 'islas_de_åland',
-        keywords: ['bandera', 'bandera-ax'],
-    },
-    '🇦🇿': {
-        name: 'azerbaiyán',
-        keywords: ['bandera', 'bandera-az'],
-    },
-    '🇧🇦': {
-        name: 'bosnia_y_herzegovina',
-        keywords: ['bandera', 'bandera-ba'],
-    },
-    '🇧🇧': {
-        name: 'barbados',
-        keywords: ['bandera', 'bandera-bb'],
-    },
-    '🇧🇩': {
-        name: 'bangladesh',
-        keywords: ['bandera', 'bandera-bd'],
-    },
-    '🇧🇪': {
-        name: 'bélgica',
-        keywords: ['bandera', 'bandera-be'],
-    },
-    '🇧🇫': {
-        name: 'burkina_faso',
-        keywords: ['bandera', 'bandera-bf'],
-    },
-    '🇧🇬': {
-        name: 'bulgaria',
-        keywords: ['bandera', 'bandera-bg'],
-    },
-    '🇧🇭': {
-        name: 'bahrein',
-        keywords: ['bandera', 'bandera-bh'],
-    },
-    '🇧🇮': {
-        name: 'burundi',
-        keywords: ['bandera', 'bandera-bi'],
-    },
-    '🇧🇯': {
-        name: 'benin',
-        keywords: ['bandera', 'bandera-bj'],
-    },
-    '🇧🇱': {
-        name: 'san_bartolomé',
-        keywords: ['bandera', 'bandera-bl'],
-    },
-    '🇧🇲': {
-        name: 'islas_bermudas',
-        keywords: ['bandera', 'bandera-bm'],
-    },
-    '🇧🇳': {
-        name: 'brunéi',
-        keywords: ['bandera', 'bandera-bn'],
-    },
-    '🇧🇴': {
-        name: 'bolivia',
-        keywords: ['bandera', 'bandera-bo'],
-    },
-    '🇧🇶': {
-        name: 'bonaire,_san_eustaquio_y_saba',
-        keywords: ['bandera', 'bandera-bq'],
-    },
-    '🇧🇷': {
-        name: 'brazil',
-        keywords: ['bandera', 'bandera-br'],
-    },
-    '🇧🇸': {
-        name: 'bahamas',
-        keywords: ['bandera', 'bandera-bs'],
-    },
-    '🇧🇹': {
-        name: 'bhután',
-        keywords: ['bandera', 'bandera-bt'],
-    },
-    '🇧🇻': {
-        name: 'bandera-bv',
-        keywords: ['Bandera', 'bandera-bv'],
-    },
-    '🇧🇼': {
-        name: 'botsuana',
-        keywords: ['bandera', 'bandera-bw'],
-    },
-    '🇧🇾': {
-        name: 'bielorrusia',
-        keywords: ['bandera', 'bandera-by'],
-    },
-    '🇧🇿': {
-        name: 'belice',
-        keywords: ['bandera', 'bandera-bz'],
-    },
-    '🇨🇦': {
-        name: 'canadá',
-        keywords: ['bandera', 'bandera-ca'],
-    },
-    '🇨🇨': {
-        name: 'islas_cocos_(keeling)',
-        keywords: ['bandera', 'bandera-cc'],
-    },
-    '🇨🇩': {
-        name: 'república_democrática_del_congo',
-        keywords: ['bandera', 'bandera-cd'],
-    },
-    '🇨🇫': {
-        name: 'república_centroafricana',
-        keywords: ['bandera', 'bandera-cf'],
-    },
-    '🇨🇬': {
-        name: 'república_del_congo',
-        keywords: ['bandera', 'bandera-cg'],
-    },
-    '🇨🇭': {
-        name: 'suiza',
-        keywords: ['bandera', 'bandera-ch'],
-    },
-    '🇨🇮': {
-        name: 'costa_de_marfil',
-        keywords: ['bandera', 'bandera-ci'],
-    },
-    '🇨🇰': {
-        name: 'islas_cook',
-        keywords: ['bandera', 'bandera-ck'],
-    },
-    '🇨🇱': {
-        name: 'chile',
-        keywords: ['bandera', 'bandera-cl'],
-    },
-    '🇨🇲': {
-        name: 'camerún',
-        keywords: ['bandera', 'bandera-cm'],
-    },
-    '🇨🇳': {
-        name: 'china',
-        keywords: ['bandera', 'bandera-cn'],
-    },
-    '🇨🇴': {
-        name: 'colombia',
-        keywords: ['bandera', 'bandera-co'],
-    },
-    '🇨🇵': {
-        name: 'bandera-cp',
-        keywords: ['Bandera', 'bandera-cp'],
-    },
-    '🇨🇷': {
-        name: 'costa_rica',
-        keywords: ['bandera', 'bandera-cr'],
-    },
-    '🇨🇺': {
-        name: 'cuba',
-        keywords: ['bandera', 'bandera-cu'],
-    },
-    '🇨🇻': {
-        name: 'cabo_verde',
-        keywords: ['bandera', 'bandera-cv'],
-    },
-    '🇨🇼': {
-        name: 'curazao',
-        keywords: ['bandera', 'bandera-cw'],
-    },
-    '🇨🇽': {
-        name: 'isla_de_navidad',
-        keywords: ['bandera', 'bandera-cx'],
-    },
-    '🇨🇾': {
-        name: 'chipre',
-        keywords: ['bandera', 'bandera-cy'],
-    },
-    '🇨🇿': {
-        name: 'república_checa',
-        keywords: ['bandera', 'bandera-cz'],
-    },
-    '🇩🇪': {
-        name: 'alemania',
-        keywords: ['bandera', 'bandera-de'],
-    },
-    '🇩🇬': {
-        name: 'bandera-dg',
-        keywords: ['Bandera', 'bandera-dg'],
-    },
-    '🇩🇯': {
-        name: 'yibuti',
-        keywords: ['bandera', 'bandera-dj'],
-    },
-    '🇩🇰': {
-        name: 'dinamarca',
-        keywords: ['bandera', 'bandera-dk'],
-    },
-    '🇩🇲': {
-        name: 'dominica',
-        keywords: ['bandera', 'bandera-dm'],
-    },
-    '🇩🇴': {
-        name: 'república_dominicana',
-        keywords: ['bandera', 'bandera-do'],
-    },
-    '🇩🇿': {
-        name: 'argelia',
-        keywords: ['bandera', 'bandera-dz'],
-    },
-    '🇪🇦': {
-        name: 'bandera-ea',
-        keywords: ['Bandera', 'bandera-ea'],
-    },
-    '🇪🇨': {
-        name: 'ecuador',
-        keywords: ['bandera', 'bandera-ec'],
-    },
-    '🇪🇪': {
-        name: 'estonia',
-        keywords: ['bandera', 'bandera-ee'],
-    },
-    '🇪🇬': {
-        name: 'egipto',
-        keywords: ['bandera', 'bandera-eg'],
-    },
-    '🇪🇭': {
-        name: 'sahara_occidental',
-        keywords: ['bandera', 'bandera-eh'],
-    },
-    '🇪🇷': {
-        name: 'eritrea',
-        keywords: ['bandera', 'bandera-er'],
-    },
-    '🇪🇸': {
-        name: 'españa',
-        keywords: ['bandera', 'bandera-es'],
-    },
-    '🇪🇹': {
-        name: 'etiopía',
-        keywords: ['bandera', 'bandera-et'],
-    },
-    '🇪🇺': {
-        name: 'bandera-eu',
-        keywords: ['Bandera', 'bandera-eu'],
-    },
-    '🇫🇮': {
-        name: 'finlandia',
-        keywords: ['bandera', 'bandera-fi'],
-    },
-    '🇫🇯': {
-        name: 'fiyi',
-        keywords: ['bandera', 'bandera-fj'],
-    },
-    '🇫🇰': {
-        name: 'islas_malvinas',
-        keywords: ['bandera', 'bandera-fk'],
-    },
-    '🇫🇲': {
-        name: 'micronesia',
-        keywords: ['bandera', 'bandera-fm'],
-    },
-    '🇫🇴': {
-        name: 'islas_feroe',
-        keywords: ['bandera', 'bandera-fo'],
-    },
-    '🇫🇷': {
-        name: 'francia',
-        keywords: ['bandera', 'bandera-fr'],
-    },
-    '🇬🇦': {
-        name: 'gabón',
-        keywords: ['bandera', 'bandera-ga'],
-    },
-    '🇬🇧': {
-        name: 'reino_unido',
-        keywords: ['bandera', 'bandera-gb'],
-    },
-    '🇬🇩': {
-        name: 'granada',
-        keywords: ['bandera', 'bandera-gd'],
-    },
-    '🇬🇪': {
-        name: 'georgia',
-        keywords: ['bandera', 'bandera-ge'],
-    },
-    '🇬🇫': {
-        name: 'guayana_francesa',
-        keywords: ['bandera', 'bandera-gf'],
-    },
-    '🇬🇬': {
-        name: 'guernsey',
-        keywords: ['bandera', 'bandera-gg'],
-    },
-    '🇬🇭': {
-        name: 'ghana',
-        keywords: ['bandera', 'bandera-gh'],
-    },
-    '🇬🇮': {
-        name: 'gibraltar',
-        keywords: ['bandera', 'bandera-gi'],
-    },
-    '🇬🇱': {
-        name: 'groenlandia',
-        keywords: ['bandera', 'bandera-gl'],
-    },
-    '🇬🇲': {
-        name: 'gambia',
-        keywords: ['bandera', 'bandera-gm'],
-    },
-    '🇬🇳': {
-        name: 'guinea',
-        keywords: ['bandera', 'bandera-gn'],
-    },
-    '🇬🇵': {
-        name: 'guadeloupe',
-        keywords: ['bandera', 'bandera-gp'],
-    },
-    '🇬🇶': {
-        name: 'guinea_ecuatorial',
-        keywords: ['bandera', 'bandera-gq'],
-    },
-    '🇬🇷': {
-        name: 'greece',
-        keywords: ['bandera', 'bandera-gr'],
-    },
-    '🇬🇸': {
-        name: 'islas_georgias_del_sur_y_sandwich_del_sur',
-        keywords: ['bandera', 'bandera-gs'],
-    },
-    '🇬🇹': {
-        name: 'guatemala',
-        keywords: ['bandera', 'bandera-gt'],
-    },
-    '🇬🇺': {
-        name: 'guam',
-        keywords: ['bandera', 'bandera-gu'],
-    },
-    '🇬🇼': {
-        name: 'guinea-bissau',
-        keywords: ['bandera', 'bandera-gw'],
-    },
-    '🇬🇾': {
-        name: 'guyana',
-        keywords: ['bandera', 'bandera-gy'],
-    },
-    '🇭🇰': {
-        name: 'hong_kong',
-        keywords: ['bandera', 'bandera-hk'],
-    },
-    '🇭🇲': {
-        name: 'bandera-hm',
-        keywords: ['Bandera', 'bandera-hm'],
-    },
-    '🇭🇳': {
-        name: 'honduras',
-        keywords: ['bandera', 'bandera-hn'],
-    },
-    '🇭🇷': {
-        name: 'croacia',
-        keywords: ['bandera', 'bandera-hr'],
-    },
-    '🇭🇹': {
-        name: 'haiti',
-        keywords: ['bandera', 'bandera-ht'],
-    },
-    '🇭🇺': {
-        name: 'hungría',
-        keywords: ['bandera', 'bandera-hu'],
-    },
-    '🇮🇨': {
-        name: 'bandera-ic',
-        keywords: ['Bandera', 'bandera-ic'],
-    },
-    '🇮🇩': {
-        name: 'indonesia',
-        keywords: ['bandera', 'bandera-id'],
-    },
-    '🇮🇪': {
-        name: 'irlanda',
-        keywords: ['bandera', 'bandera-ie'],
-    },
-    '🇮🇱': {
-        name: 'israel',
-        keywords: ['bandera', 'bandera-il'],
-    },
-    '🇮🇲': {
-        name: 'isla_de_man',
-        keywords: ['bandera', 'bandera-im'],
-    },
-    '🇮🇳': {
-        name: 'india',
-        keywords: ['bandera', 'bandera-in'],
-    },
-    '🇮🇴': {
-        name: 'territorio_británico_del_océano_índico',
-        keywords: ['bandera', 'bandera-io'],
-    },
-    '🇮🇶': {
-        name: 'irak',
-        keywords: ['bandera', 'bandera-iq'],
-    },
-    '🇮🇷': {
-        name: 'irán',
-        keywords: ['bandera', 'bandera-ir'],
-    },
-    '🇮🇸': {
-        name: 'islandia',
-        keywords: ['bandera', 'bandera-is'],
-    },
-    '🇮🇹': {
-        name: 'italia',
-        keywords: ['bandera', 'bandera-it'],
-    },
-    '🇯🇪': {
-        name: 'jersey',
-        keywords: ['bandera', 'bandera-je'],
-    },
-    '🇯🇲': {
-        name: 'jamaica',
-        keywords: ['bandera', 'bandera-jm'],
-    },
-    '🇯🇴': {
-        name: 'jordania',
-        keywords: ['bandera', 'bandera-jo'],
-    },
-    '🇯🇵': {
-        name: 'japón',
-        keywords: ['bandera', 'bandera-jp'],
-    },
-    '🇰🇪': {
-        name: 'kenia',
-        keywords: ['bandera', 'bandera-ke'],
-    },
-    '🇰🇬': {
-        name: 'kirguistán',
-        keywords: ['bandera', 'bandera-kg'],
-    },
-    '🇰🇭': {
-        name: 'camboya',
-        keywords: ['bandera', 'bandera-kh'],
-    },
-    '🇰🇮': {
-        name: 'bandera-kl',
-        keywords: ['Bandera', 'bandera-kl'],
-    },
-    '🇰🇲': {
-        name: 'comoras',
-        keywords: ['bandera', 'bandera-km'],
-    },
-    '🇰🇳': {
-        name: 'san_cristóbal_y_nieves',
-        keywords: ['bandera', 'bandera-kn'],
-    },
-    '🇰🇵': {
-        name: 'corea_del_norte',
-        keywords: ['bandera', 'bandera-kp'],
-    },
-    '🇰🇷': {
-        name: 'corea_del_sur',
-        keywords: ['bandera', 'bandera-kr'],
-    },
-    '🇰🇼': {
-        name: 'kuwait',
-        keywords: ['bandera', 'bandera-kw'],
-    },
-    '🇰🇾': {
-        name: 'islas_caimán',
-        keywords: ['bandera', 'bandera-ky'],
-    },
-    '🇰🇿': {
-        name: 'kazajistán',
-        keywords: ['bandera', 'bandera-kz'],
-    },
-    '🇱🇦': {
-        name: 'laos',
-        keywords: ['bandera', 'bandera-la'],
-    },
-    '🇱🇧': {
-        name: 'líbano',
-        keywords: ['bandera', 'bandera-lb'],
-    },
-    '🇱🇨': {
-        name: 'santa_lucía',
-        keywords: ['bandera', 'bandera-lc'],
-    },
-    '🇱🇮': {
-        name: 'liechtenstein',
-        keywords: ['bandera', 'bandera-li'],
-    },
-    '🇱🇰': {
-        name: 'sri_lanka',
-        keywords: ['bandera', 'bandera-lk'],
-    },
-    '🇱🇷': {
-        name: 'liberia',
-        keywords: ['bandera', 'bandera-lr'],
-    },
-    '🇱🇸': {
-        name: 'lesoto',
-        keywords: ['bandera', 'bandera-ls'],
-    },
-    '🇱🇹': {
-        name: 'lituania',
-        keywords: ['bandera', 'bandera-lt'],
-    },
-    '🇱🇺': {
-        name: 'luxemburgo',
-        keywords: ['bandera', 'bandera-lu'],
-    },
-    '🇱🇻': {
-        name: 'letonia',
-        keywords: ['bandera', 'bandera-lv'],
-    },
-    '🇱🇾': {
-        name: 'libia',
-        keywords: ['bandera', 'bandera-ly'],
-    },
-    '🇲🇦': {
-        name: 'marruecos',
-        keywords: ['bandera', 'bandera-ma'],
-    },
-    '🇲🇨': {
-        name: 'mónaco',
-        keywords: ['bandera', 'bandera-mc'],
-    },
-    '🇲🇩': {
-        name: 'moldavia',
-        keywords: ['bandera', 'bandera-md'],
-    },
-    '🇲🇪': {
-        name: 'montenegro',
-        keywords: ['bandera', 'bandera-me'],
-    },
-    '🇲🇫': {
-        name: 'san_martín_(francia)',
-        keywords: ['bandera', 'bandera-mf'],
-    },
-    '🇲🇬': {
-        name: 'madagascar',
-        keywords: ['bandera', 'bandera-mg'],
-    },
-    '🇲🇭': {
-        name: 'islas_marshall',
-        keywords: ['bandera', 'bandera-mh'],
-    },
-    '🇲🇰': {
-        name: 'macedônia',
-        keywords: ['bandera', 'bandera-mk'],
-    },
-    '🇲🇱': {
-        name: 'mali',
-        keywords: ['bandera', 'bandera-ml'],
-    },
-    '🇲🇲': {
-        name: 'birmania',
-        keywords: ['bandera', 'bandera-mm'],
-    },
-    '🇲🇳': {
-        name: 'mongolia',
-        keywords: ['bandera', 'bandera-mn'],
-    },
-    '🇲🇴': {
-        name: 'macao',
-        keywords: ['bandera', 'bandera-mo'],
-    },
-    '🇲🇵': {
-        name: 'islas_marianas_del_norte',
-        keywords: ['bandera', 'bandera-mp'],
-    },
-    '🇲🇶': {
-        name: 'martinica',
-        keywords: ['bandera', 'bandera-mq'],
-    },
-    '🇲🇷': {
-        name: 'mauritania',
-        keywords: ['bandera', 'bandera-mr'],
-    },
-    '🇲🇸': {
-        name: 'montserrat',
-        keywords: ['bandera', 'bandera-ms'],
-    },
-    '🇲🇹': {
-        name: 'malta',
-        keywords: ['bandera', 'bandera-mt'],
-    },
-    '🇲🇺': {
-        name: 'mauritius',
-        keywords: ['bandera', 'bandera-mu'],
-    },
-    '🇲🇻': {
-        name: 'islas_maldivas',
-        keywords: ['bandera', 'bandera-mv'],
-    },
-    '🇲🇼': {
-        name: 'malawi',
-        keywords: ['bandera', 'bandera-mw'],
-    },
-    '🇲🇽': {
-        name: 'méxico',
-        keywords: ['bandera', 'bandera-mx'],
-    },
-    '🇲🇾': {
-        name: 'malasia',
-        keywords: ['bandera', 'bandera-my'],
-    },
-    '🇲🇿': {
-        name: 'mozambique',
-        keywords: ['bandera', 'bandera-mz'],
-    },
-    '🇳🇦': {
-        name: 'namibia',
-        keywords: ['bandera', 'bandera-na'],
-    },
-    '🇳🇨': {
-        name: 'nueva_caledonia',
-        keywords: ['bandera', 'bandera-nc'],
-    },
-    '🇳🇪': {
-        name: 'niger',
-        keywords: ['bandera', 'bandera-ne'],
-    },
-    '🇳🇫': {
-        name: 'isla_norfolk',
-        keywords: ['bandera', 'bandera-nf'],
-    },
-    '🇳🇬': {
-        name: 'nigeria',
-        keywords: ['bandera', 'bandera-ng'],
-    },
-    '🇳🇮': {
-        name: 'nicaragua',
-        keywords: ['bandera', 'bandera-ni'],
-    },
-    '🇳🇱': {
-        name: 'países_bajos',
-        keywords: ['bandera', 'bandera-nl'],
-    },
-    '🇳🇴': {
-        name: 'noruega',
-        keywords: ['bandera', 'bandera-no'],
-    },
-    '🇳🇵': {
-        name: 'nepal',
-        keywords: ['bandera', 'bandera-np'],
-    },
-    '🇳🇷': {
-        name: 'nauru',
-        keywords: ['bandera', 'bandera-nr'],
-    },
-    '🇳🇺': {
-        name: 'niue',
-        keywords: ['bandera', 'bandera-nu'],
-    },
-    '🇳🇿': {
-        name: 'nueva_zealand',
-        keywords: ['bandera', 'bandera-nz'],
-    },
-    '🇴🇲': {
-        name: 'omán',
-        keywords: ['bandera', 'bandera-om'],
-    },
-    '🇵🇦': {
-        name: 'panamá',
-        keywords: ['bandera', 'bandera-pa'],
-    },
-    '🇵🇪': {
-        name: 'perú',
-        keywords: ['bandera', 'bandera-pe'],
-    },
-    '🇵🇫': {
-        name: 'polinesia_francesa',
-        keywords: ['bandera', 'bandera-pf'],
-    },
-    '🇵🇬': {
-        name: 'papúa_nueva_guinea',
-        keywords: ['bandera', 'bandera-pg'],
-    },
-    '🇵🇭': {
-        name: 'filipinas',
-        keywords: ['bandera', 'bandera-ph'],
-    },
-    '🇵🇰': {
-        name: 'pakistán',
-        keywords: ['bandera', 'bandera-pk'],
-    },
-    '🇵🇱': {
-        name: 'polonia',
-        keywords: ['bandera', 'bandera-pl'],
-    },
-    '🇵🇲': {
-        name: 'san_pedro_y_miquelón',
-        keywords: ['bandera', 'bandera-pm'],
-    },
-    '🇵🇳': {
-        name: 'islas_pitcairn',
-        keywords: ['bandera', 'bandera-pn'],
-    },
-    '🇵🇷': {
-        name: 'puerto_rico',
-        keywords: ['bandera', 'bandera-pr'],
-    },
-    '🇵🇸': {
-        name: 'palestina',
-        keywords: ['bandera', 'bandera-ps'],
-    },
-    '🇵🇹': {
-        name: 'portugal',
-        keywords: ['bandera', 'bandera-pt'],
-    },
-    '🇵🇼': {
-        name: 'palau',
-        keywords: ['bandera', 'bandera-pw'],
-    },
-    '🇵🇾': {
-        name: 'paraguay',
-        keywords: ['bandera', 'bandera-py'],
-    },
-    '🇶🇦': {
-        name: 'qatar',
-        keywords: ['bandera', 'bandera-qa'],
-    },
-    '🇷🇪': {
-        name: 'reunión',
-        keywords: ['bandera', 'bandera-re'],
-    },
-    '🇷🇴': {
-        name: 'rumanía',
-        keywords: ['bandera', 'bandera-ro'],
-    },
-    '🇷🇸': {
-        name: 'serbia',
-        keywords: ['bandera', 'bandera-rs'],
-    },
-    '🇷🇺': {
-        name: 'rusia',
-        keywords: ['bandera', 'bandera-ru'],
-    },
-    '🇷🇼': {
-        name: 'ruanda',
-        keywords: ['bandera', 'bandera-rw'],
-    },
-    '🇸🇦': {
-        name: 'arabia_saudita',
-        keywords: ['bandera', 'bandera-sa'],
-    },
-    '🇸🇧': {
-        name: 'islas_salomón',
-        keywords: ['bandera', 'bandera-sb'],
-    },
-    '🇸🇨': {
-        name: 'seychelles',
-        keywords: ['bandera', 'bandera-sc'],
-    },
-    '🇸🇩': {
-        name: 'sudán',
-        keywords: ['bandera', 'bandera-sd'],
-    },
-    '🇸🇪': {
-        name: 'suecia',
-        keywords: ['bandera', 'bandera-se'],
-    },
-    '🇸🇬': {
-        name: 'singapur',
-        keywords: ['bandera', 'bandera-sg'],
-    },
-    '🇸🇭': {
-        name: 'santa_elena',
-        keywords: ['bandera', 'bandera-sh'],
-    },
-    '🇸🇮': {
-        name: 'eslovenia',
-        keywords: ['bandera', 'bandera-si'],
-    },
-    '🇸🇯': {
-        name: 'svalbard_y_jan_mayen',
-        keywords: ['bandera', 'bandera-sj'],
-    },
-    '🇸🇰': {
-        name: 'eslovaquia',
-        keywords: ['bandera', 'bandera-sk'],
-    },
-    '🇸🇱': {
-        name: 'sierra_leona',
-        keywords: ['bandera', 'bandera-sl'],
-    },
-    '🇸🇲': {
-        name: 'san_marino',
-        keywords: ['bandera', 'bandera-sm'],
-    },
-    '🇸🇳': {
-        name: 'senegal',
-        keywords: ['bandera', 'bandera-sn'],
-    },
-    '🇸🇴': {
-        name: 'somalia',
-        keywords: ['bandera', 'bandera-so'],
-    },
-    '🇸🇷': {
-        name: 'surinám',
-        keywords: ['bandera', 'bandera-sr'],
-    },
-    '🇸🇸': {
-        name: 'república_de_sudán_del_sur',
-        keywords: ['bandera', 'bandera-ss'],
-    },
-    '🇸🇹': {
-        name: 'santo_tomé_y_príncipe',
-        keywords: ['bandera', 'bandera-st'],
-    },
-    '🇸🇻': {
-        name: 'el_salvador',
-        keywords: ['bandera', 'bandera-sv'],
-    },
-    '🇸🇽': {
-        name: 'sint_maarten',
-        keywords: ['bandera', 'bandera-sx'],
-    },
-    '🇸🇾': {
-        name: 'siria',
-        keywords: ['bandera', 'bandera-sy'],
-    },
-    '🇸🇿': {
-        name: 'swazilandia',
-        keywords: ['bandera', 'bandera-sz'],
-    },
-    '🇹🇦': {
-        name: 'tristán_de_acuña',
-        keywords: ['bandera', 'bandera-ta'],
-    },
-    '🇹🇨': {
-        name: 'islas_turcas_y_caicos',
-        keywords: ['bandera', 'bandera-tc'],
-    },
-    '🇹🇩': {
-        name: 'chad',
-        keywords: ['bandera', 'bandera-td'],
-    },
-    '🇹🇫': {
-        name: 'territorios_australes_y_antárticas_franceses',
-        keywords: ['bandera', 'bandera-tf'],
-    },
-    '🇹🇬': {
-        name: 'togo',
-        keywords: ['bandera', 'bandera-tg'],
-    },
-    '🇹🇭': {
-        name: 'tailandia',
-        keywords: ['bandera', 'bandera-th'],
-    },
-    '🇹🇯': {
-        name: 'tayikistán',
-        keywords: ['bandera', 'bandera-tj'],
-    },
-    '🇹🇰': {
-        name: 'tokelau',
-        keywords: ['bandera', 'bandera-tk'],
-    },
-    '🇹🇱': {
-        name: 'timor_oriental',
-        keywords: ['bandera', 'bandera-tl'],
-    },
-    '🇹🇲': {
-        name: 'turkmenistán',
-        keywords: ['bandera', 'bandera-tm'],
-    },
-    '🇹🇳': {
-        name: 'tunez',
-        keywords: ['bandera', 'bandera-tn'],
-    },
-    '🇹🇴': {
-        name: 'tonga',
-        keywords: ['bandera', 'bandera-to'],
-    },
-    '🇹🇷': {
-        name: 'turquía',
-        keywords: ['bandera', 'bandera-tr'],
-    },
-    '🇹🇹': {
-        name: 'trinidad_y_tobago',
-        keywords: ['bandera', 'bandera-tt'],
-    },
-    '🇹🇻': {
-        name: 'tuvalu',
-        keywords: ['bandera', 'bandera-tv'],
-    },
-    '🇹🇼': {
-        name: 'taiwán',
-        keywords: ['bandera', 'bandera-tw'],
-    },
-    '🇹🇿': {
-        name: 'tanzania',
-        keywords: ['bandera', 'bandera-tz'],
-    },
-    '🇺🇦': {
-        name: 'ucrania',
-        keywords: ['bandera', 'bandera-ua'],
-    },
-    '🇺🇬': {
-        name: 'uganda',
-        keywords: ['bandera', 'bandera-ug'],
-    },
-    '🇺🇲': {
-        name: 'islas_ultramarinas_menores_de_estados_unidos',
-        keywords: ['bandera', 'bandera-um'],
-    },
-    '🇺🇳': {
-        name: 'bandera-onu',
-        keywords: ['Bandera', 'bandera-onu'],
-    },
-    '🇺🇸': {
-        name: 'estados_unidos_de_américa',
-        keywords: ['bandera', 'bandera-us'],
-    },
-    '🇺🇾': {
-        name: 'uruguay',
-        keywords: ['bandera', 'bandera-uy'],
-    },
-    '🇺🇿': {
-        name: 'uzbekistan',
-        keywords: ['bandera', 'bandera-uz'],
-    },
-    '🇻🇦': {
-        name: 'ciudad_del_vaticano',
-        keywords: ['bandera', 'bandera-va'],
-    },
-    '🇻🇨': {
-        name: 'san_vicente_y_las_granadinas',
-        keywords: ['bandera', 'bandera-vc'],
-    },
-    '🇻🇪': {
-        name: 'venezuela',
-        keywords: ['bandera', 'bandera-ve'],
-    },
-    '🇻🇬': {
-        name: 'islas_vírgenes_británicas',
-        keywords: ['bandera', 'bandera-vg'],
-    },
-    '🇻🇮': {
-        name: 'islas_vírgenes_de_los_estados_unidos',
-        keywords: ['bandera', 'bandera-vi'],
-    },
-    '🇻🇳': {
-        name: 'vietnam',
-        keywords: ['bandera', 'bandera-vn'],
-    },
-    '🇻🇺': {
-        name: 'vanuatu',
-        keywords: ['bandera', 'bandera-vu'],
-    },
-    '🇼🇫': {
-        name: 'wallis_y_futuna',
-        keywords: ['bandera', 'bandera-wf'],
-    },
-    '🇼🇸': {
-        name: 'samoa',
-        keywords: ['bandera', 'bandera-ws'],
-    },
-    '🇽🇰': {
-        name: 'kosovo',
-        keywords: ['bandera', 'bandera-xk'],
-    },
-    '🇾🇪': {
-        name: 'yemen',
-        keywords: ['bandera', 'bandera-ye'],
-    },
-    '🇾🇹': {
-        name: 'mayotte',
-        keywords: ['bandera', 'bandera-yt'],
-    },
-    '🇿🇦': {
-        name: 'sudáfrica',
-        keywords: ['bandera', 'bandera-za'],
-    },
-    '🇿🇲': {
-        name: 'zambia',
-        keywords: ['bandera', 'bandera-zm'],
-    },
-    '🇿🇼': {
-        name: 'zimbabue',
-        keywords: ['bandera', 'bandera-zw'],
-    },
-    '🏴󠁧󠁢󠁥󠁮󠁧󠁿': {
-        name: 'inglaterra',
-        keywords: ['bandera', 'bandera-inglaterra'],
-    },
-    '🏴󠁧󠁢󠁳󠁣󠁴󠁿': {
-        name: 'escocia',
-        keywords: ['bandera', 'bandera-escocia'],
-    },
-    '🏴󠁧󠁢󠁷󠁬󠁳󠁿': {
-        name: 'gales',
-        keywords: ['bandera', 'bandera-gales'],
+            const parts = [];
+            if (timeData.days) {
+                parts.push(`${timeData.days} ${timeData.days === 1 ? 'día' : 'días'}`);
+            }
+            if (timeData.hours) {
+                parts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hora' : 'horas'}`);
+            }
+            if (timeData.minutes) {
+                parts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minuto' : 'minutos'}`);
+            }
+
+            let timeText;
+            if (parts.length === 1) {
+                timeText = parts.at(0);
+            } else if (parts.length === 2) {
+                timeText = parts.join(' y ');
+            } else {
+                const lastPart = parts.pop();
+                timeText = `${parts.join(', ')} y ${lastPart}`;
+            }
+
+            return `Por favor, espera ${timeText} antes de intentarlo de nuevo.`;
+        },
+    },
+    welcomeSignUpForm: {
+        join: 'Unirse',
+    },
+    detailsPage: {
+        localTime: 'Hora local',
+    },
+    newChatPage: {
+        startGroup: 'Crear grupo',
+        addToGroup: 'Añadir al grupo',
+    },
+    yearPickerPage: {
+        year: 'Año',
+        selectYear: 'Por favor, selecciona un año',
+    },
+    focusModeUpdateModal: {
+        title: '¡Bienvenido al modo #concentración!',
+        prompt: 'Mantente al tanto de todo viendo sólo los chats no leídos o los que necesitan tu atención. No te preocupes, puedes cambiar el ajuste en cualquier momento desde la ',
+        settings: 'configuración',
+    },
+    notFound: {
+        chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',
+        getMeOutOfHere: 'Sácame de aquí',
+        iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
+        notHere: 'Hmm… no está aquí',
+        pageNotFound: 'Ups, no deberías estar aquí',
+        noAccess: 'Ese chat no existe o no tienes acceso a él. Intenta usar la búsqueda para encontrar un chat.',
+        goBackHome: 'Volver a la página principal',
+    },
+    setPasswordPage: {
+        enterPassword: 'Escribe una contraseña',
+        setPassword: 'Configura tu contraseña',
+        newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
+        passwordFormTitle: '¡Bienvenido de vuelta a New Expensify! Por favor, elige una contraseña.',
+        passwordNotSet: 'No se pudo cambiar tu clave. Te hemos enviado un nuevo enlace para que intentes cambiar la clave nuevamente.',
+        setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
+        validateAccount: 'Verificar cuenta',
+    },
+    statusPage: {
+        status: 'Estado',
+        statusExplanation: 'Añade un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes añadir un mensaje opcionalmente!',
+        today: 'Hoy',
+        clearStatus: 'Borrar estado',
+        save: 'Guardar',
+        message: 'Mensaje',
+        timePeriods: {
+            never: 'Nunca',
+            thirtyMinutes: '30 minutos',
+            oneHour: '1 hora',
+            afterToday: 'Hoy',
+            afterWeek: 'Una semana',
+            custom: 'Personalizado',
+        },
+        untilTomorrow: 'Hasta mañana',
+        untilTime: ({time}: UntilTimeParams) => {
+            // Check for HH:MM AM/PM format and starts with '01:'
+            if (CONST.REGEX.TIME_STARTS_01.test(time)) {
+                return `Hasta la ${time}`;
+            }
+            // Check for any HH:MM AM/PM format not starting with '01:'
+            if (CONST.REGEX.TIME_FORMAT.test(time)) {
+                return `Hasta las ${time}`;
+            }
+            // Check for date-time format like "06-29 11:30 AM"
+            if (CONST.REGEX.DATE_TIME_FORMAT.test(time)) {
+                return `Hasta el día ${time}`;
+            }
+            // Default case
+            return `Hasta ${time}`;
+        },
+        date: 'Fecha',
+        time: 'Hora',
+        clearAfter: 'Borrar después',
+        whenClearStatus: '¿Cuándo deberíamos borrar tu estado?',
+    },
+    stepCounter: ({step, total, text}: StepCounterParams) => {
+        let result = `Paso ${step}`;
+
+        if (total) {
+            result = `${result} de ${total}`;
+        }
+
+        if (text) {
+            result = `${result}: ${text}`;
+        }
+        return result;
+    },
+    bankAccount: {
+        bankInfo: 'Información bancaria',
+        confirmBankInfo: 'Confirmar información bancaria',
+        manuallyAdd: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
+        letsDoubleCheck: 'Verifiquemos que todo esté correcto.',
+        accountEnding: 'Cuenta terminada en',
+        thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo',
+        accountNumber: 'Número de cuenta',
+        routingNumber: 'Número de ruta',
+        chooseAnAccountBelow: 'Elige una cuenta a continuación',
+        addBankAccount: 'Añadir cuenta bancaria',
+        chooseAnAccount: 'Elige una cuenta',
+        connectOnlineWithPlaid: 'Inicia sesión en tu banco',
+        connectManually: 'Conectar manualmente',
+        desktopConnection: 'Para conectarse con Chase, Wells Fargo, Capital One o Bank of America, haz clic aquí para completar este proceso en un navegador.',
+        yourDataIsSecure: 'Tus datos están seguros',
+        toGetStarted: 'Conecta una cuenta bancaria para reembolsar gastos, emitir Tarjetas Expensify, y cobrar y pagar facturas todo desde un mismo lugar.',
+        plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
+        checkHelpLine: 'Tus números de ruta y de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
+        validateAccountError: {
+            phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',
+            phrase2: 'vuelve a iniciar sesión con un código mágico',
+            phrase3: 'o',
+            phrase4: 'verifica aquí tu cuenta',
+        },
+        hasPhoneLoginError:
+            'Para añadir una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
+        hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
+        hasCurrencyError: '¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Por favor, configúrala en USD e inténtalo nuevamente.',
+        error: {
+            youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar.',
+            noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible.',
+            noBankAccountSelected: 'Por favor, elige una cuenta bancaria.',
+            taxID: 'Por favor, introduce un número de identificación fiscal válido.',
+            website: 'Por favor, introduce un sitio web válido.',
+            zipCode: `Formato de código postal incorrecto. Formato aceptable: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}.`,
+            phoneNumber: 'Por favor, introduce un teléfono válido.',
+            email: 'Por favor, introduce una dirección de correo electrónico válida.',
+            companyName: 'Por favor, introduce un nombre comercial legal válido.',
+            addressCity: 'Por favor, introduce una ciudad válida.',
+            addressStreet: 'Por favor, introduce una dirección válida que no sea un apartado postal.',
+            addressState: 'Por favor, selecciona un estado.',
+            incorporationDateFuture: 'La fecha de incorporación no puede ser futura.',
+            incorporationState: 'Por favor, selecciona una estado válido.',
+            industryCode: 'Por favor, introduce un código de clasificación de industria válido.',
+            restrictedBusiness: 'Por favor, confirma que la empresa no está en la lista de negocios restringidos.',
+            routingNumber: 'Por favor, introduce un número de ruta válido.',
+            accountNumber: 'Por favor, introduce un número de cuenta válido.',
+            routingAndAccountNumberCannotBeSame: 'Los números de ruta y de cuenta no pueden ser iguales.',
+            companyType: 'Por favor, selecciona un tipo de compañía válido.',
+            tooManyAttempts:
+                'Debido a la gran cantidad de intentos de inicio de sesión, esta opción ha sido desactivada temporalmente durante 24 horas. Por favor, inténtalo de nuevo más tarde.',
+            address: 'Por favor, introduce una dirección válida.',
+            dob: 'Por favor, selecciona una fecha de nacimiento válida.',
+            age: 'Debe ser mayor de 18 años.',
+            ssnLast4: 'Por favor, introduce los últimos 4 dígitos del número de seguridad social.',
+            firstName: 'Por favor, introduce el nombre.',
+            lastName: 'Por favor, introduce los apellidos.',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor, añade una cuenta bancaria para depósitos o una tarjeta de débito.',
+            validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
+            fullName: 'Please enter a valid full name.',
+            ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido.',
+        },
+    },
+    addPersonalBankAccount: {
+        countrySelectionStepHeader: '¿Dónde está ubicada tu cuenta bancaria?',
+        accountDetailsStepHeader: '¿Cuáles son los detalles de tu cuenta?',
+        accountTypeStepHeader: '¿Qué tipo de cuenta es esta?',
+        bankInformationStepHeader: '¿Cuáles son los detalles de tu banco?',
+        accountHolderInformationStepHeader: '¿Cuáles son los detalles del titular de la cuenta?',
+        howDoWeProtectYourData: '¿Cómo protegemos tus datos?',
+        currencyHeader: '¿Cuál es la moneda de tu cuenta bancaria?',
+        confirmationStepHeader: 'Verifica tu información.',
+        confirmationStepSubHeader: 'Verifica dos veces los detalles a continuación y marca la casilla de términos para confirmar.',
+    },
+    addPersonalBankAccountPage: {
+        enterPassword: 'Escribe tu contraseña de Expensify',
+        alreadyAdded: 'Esta cuenta ya ha sido añadida.',
+        chooseAccountLabel: 'Cuenta',
+        successTitle: '¡Cuenta bancaria personal añadida!',
+        successMessage: 'Enhorabuena, tu cuenta bancaria está lista para recibir reembolsos.',
+    },
+    attachmentView: {
+        unknownFilename: 'Archivo desconocido',
+        passwordRequired: 'Por favor, introduce tu contraseña',
+        passwordIncorrect: 'Contraseña incorrecta. Por favor, inténtalo de nuevo.',
+        failedToLoadPDF: 'Se ha producido un error al intentar cargar el PDF.',
+        pdfPasswordForm: {
+            title: 'PDF protegido con contraseña',
+            infoText: 'Este PDF esta protegido con contraseña.',
+            beforeLinkText: 'Por favor',
+            linkText: 'introduce la contraseña',
+            afterLinkText: 'para verlo.',
+            formLabel: 'Ver PDF',
+        },
+        attachmentNotFound: 'Archivo adjunto no encontrado',
+    },
+    messages: {
+        errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        errorMessageInvalidEmail: 'Correo electrónico inválido',
+        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} ya es miembro de ${name}`,
+    },
+    onfidoStep: {
+        acceptTerms: 'Al continuar con la solicitud para activar tu Billetera Expensify, confirma que ha leído, comprende y acepta ',
+        facialScan: 'Política y lanzamiento de la exploración facial de Onfido',
+        tryAgain: 'Intentar otra vez',
+        verifyIdentity: 'Verificar identidad',
+        letsVerifyIdentity: '¡Vamos a verificar tu identidad!',
+        butFirst: 'Pero primero, lo aburrido. Lee la jerga legal en el siguiente paso y haz clic en "Aceptar" cuando estés listo.',
+        genericError: 'Se ha producido un error al procesar este paso. Inténtalo de nuevo.',
+        cameraPermissionsNotGranted: 'Permiso para acceder a la cámara',
+        cameraRequestMessage: 'Necesitamos acceso a tu cámara para completar la verificación de tu cuenta de banco. Por favor habilita los permisos en Configuración > New Expensify.',
+        microphonePermissionsNotGranted: 'Permiso para acceder al micrófono',
+        microphoneRequestMessage: 'Necesitamos acceso a tu micrófono para completar la verificación de tu cuenta de banco. Por favor habilita los permisos en Configuración > New Expensify.',
+        originalDocumentNeeded: 'Por favor, sube una imagen original de tu identificación en lugar de una captura de pantalla o imagen escaneada.',
+        documentNeedsBetterQuality:
+            'Parece que tu identificación esta dañado o le faltan características de seguridad. Por favor, sube una imagen de tu documento sin daños y que se vea completamente.',
+        imageNeedsBetterQuality: 'Hay un problema con la calidad de la imagen de tu identificación. Por favor, sube una nueva imagen donde el identificación se vea con claridad.',
+        selfieIssue: 'Hay un problema con tu selfie/video. Por favor, sube un nuevo selfie/video grabado en el momento',
+        selfieNotMatching: 'Tu selfie/video no concuerda con tu identificación. Por favor, sube un nuevo selfie/video donde se vea tu cara con claridad.',
+        selfieNotLive: 'Tu selfie/video no parece ser un selfie/video en vivo. Por favor, sube un selfie/video a tiempo real.',
+    },
+    additionalDetailsStep: {
+        headerTitle: 'Detalles adicionales',
+        helpText: 'Necesitamos confirmar la siguiente información antes de que puedas enviar y recibir dinero desde tu billetera.',
+        helpTextIdologyQuestions: 'Tenemos que preguntarte unas preguntas más para terminar de verificar tu identidad',
+        helpLink: 'Obtén más información sobre por qué necesitamos esto.',
+        legalFirstNameLabel: 'Primer nombre legal',
+        legalMiddleNameLabel: 'Segundo nombre legal',
+        legalLastNameLabel: 'Apellidos legales',
+        selectAnswer: 'Selecciona una respuesta.',
+        ssnFull9Error: 'Por favor, introduce los 9 dígitos de un número de seguridad social válido.',
+        needSSNFull9: 'Estamos teniendo problemas para verificar tu número de seguridad social. Introduce los 9 dígitos del número de seguridad social.',
+        weCouldNotVerify: 'No se pudo verificar',
+        pleaseFixIt: 'Corrige esta información antes de continuar.',
+        failedKYCTextBefore: 'No se ha podido verificar correctamente tu identidad. Vuelve a intentarlo más tarde o comunicate con ',
+        failedKYCTextAfter: ' si tienes alguna pregunta.',
+    },
+    termsStep: {
+        headerTitle: 'Condiciones y tarifas',
+        headerTitleRefactor: 'Tarifas y condiciones',
+        haveReadAndAgree: 'He leído y acepto recibir ',
+        electronicDisclosures: 'divulgaciones electrónicas',
+        agreeToThe: 'Estoy de acuerdo con el ',
+        walletAgreement: 'Acuerdo de la billetera',
+        enablePayments: 'Habilitar pagos',
+        monthlyFee: 'Cuota mensual',
+        inactivity: 'Inactividad',
+        noOverdraftOrCredit: 'Sin función de sobregiro/crédito',
+        electronicFundsWithdrawal: 'Retiro electrónico de fondos',
+        standard: 'Estándar',
+        reviewTheFees: 'Echa un vistazo a algunas de las tarifas.',
+        checkTheBoxes: 'Por favor, marca las siguientes casillas.',
+        agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
+        shortTermsForm: {
+            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La Billetera Expensify es emitida por ${walletProgram}.`,
+            perPurchase: 'Por compra',
+            atmWithdrawal: 'Retiro en cajeros automáticos',
+            cashReload: 'Recarga de efectivo',
+            inNetwork: 'en la red',
+            outOfNetwork: 'fuera de la red',
+            atmBalanceInquiry: 'Consulta de saldo en cajeros automáticos',
+            inOrOutOfNetwork: '(dentro o fuera de la red)',
+            customerService: 'Servicio al cliente',
+            automatedOrLive: '(agente automatizado o en vivo)',
+            afterTwelveMonths: '(después de 12 meses sin transacciones)',
+            weChargeOneFee: 'Cobramos otro tipo de tarifa. Es:',
+            fdicInsurance: 'Tus fondos pueden acogerse al seguro de la FDIC.',
+            generalInfo: 'Para obtener información general sobre cuentas de prepago, visite',
+            conditionsDetails: 'Encuentra detalles y condiciones para todas las tarifas y servicios visitando',
+            conditionsPhone: 'o llamando al +1 833-400-0904.',
+            instant: '(instantáneo)',
+            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(mínimo ${amount})`,
+        },
+        longTermsForm: {
+            listOfAllFees: 'Una lista de todas las tarifas de la Billetera Expensify',
+            typeOfFeeHeader: 'Todas las tarifas',
+            feeAmountHeader: 'Cantidad',
+            moreDetailsHeader: 'Descripción',
+            openingAccountTitle: 'Abrir una cuenta',
+            openingAccountDetails: 'No hay tarifa para abrir una cuenta.',
+            monthlyFeeDetails: 'No hay tarifa mensual.',
+            customerServiceTitle: 'Servicio al cliente',
+            customerServiceDetails: 'No hay tarifas de servicio al cliente.',
+            inactivityDetails: 'No hay tarifa de inactividad.',
+            sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
+            sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando tu saldo cuenta bancaria o tarjeta de débito',
+            electronicFundsStandardDetails:
+                'No hay cargo por transferir fondos desde tu Billetera Expensify ' +
+                'a tu cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en' +
+                '1-3 días laborables.',
+            electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
+                'Hay una tarifa para transferir fondos desde tu Billetera Expensify a ' +
+                'la tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia ' +
+                `generalmente se completa dentro de varios minutos. La tarifa es el ${percentage}% del importe de la ` +
+                `transferencia (con una tarifa mínima de ${amount}). `,
+            fdicInsuranceBancorp: ({amount}: TermsParams) =>
+                'Tus fondos pueden acogerse al seguro de la FDIC. Tus fondos se mantendrán o serán ' +
+                `transferidos a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC. Una vez allí, tus fondos ` +
+                `están asegurados hasta ${amount} por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre, si se cumplen ` +
+                `los requisitos específicos del seguro de depósitos y tu tarjeta está registrada. Ver`,
+            fdicInsuranceBancorp2: 'para más detalles.',
+            contactExpensifyPayments: `Comunícate con ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} llamando al + 1833-400-0904, o por correo electrónico a`,
+            contactExpensifyPayments2: 'o inicie sesión en',
+            generalInformation: 'Para obtener información general sobre cuentas de prepago, visite',
+            generalInformation2: 'Si tienes alguna queja sobre una cuenta de prepago, llama al Consumer Financial Oficina de Protección al 1-855-411-2372 o visita',
+            printerFriendlyView: 'Ver versión para imprimir',
+            automated: 'Automatizado',
+            liveAgent: 'Agente en vivo',
+            instant: 'Instantáneo',
+            electronicFundsInstantFeeMin: ({amount}: TermsParams) => `Mínimo ${amount}`,
+        },
+    },
+    activateStep: {
+        headerTitle: 'Habilitar pagos',
+        activatedTitle: '¡Billetera  activada!',
+        activatedMessage: 'Felicidades, tu billetera está configurada y lista para hacer pagos.',
+        checkBackLaterTitle: 'Un momento...',
+        checkBackLaterMessage: 'Todavía estamos revisando tu información. Por favor, vuelve más tarde.',
+        continueToPayment: 'Continuar al pago',
+        continueToTransfer: 'Continuar a la transferencia',
+    },
+    companyStep: {
+        headerTitle: 'Información de la empresa',
+        subtitle: '¡Ya casi estamos! Por motivos de seguridad, necesitamos confirmar la siguiente información:',
+        legalBusinessName: 'Nombre comercial legal',
+        companyWebsite: 'Página web de la empresa',
+        taxIDNumber: 'Número de identificación fiscal',
+        taxIDNumberPlaceholder: '9 dígitos',
+        companyType: 'Tipo de empresa',
+        incorporationDate: 'Fecha de incorporación',
+        incorporationState: 'Estado de incorporación',
+        industryClassificationCode: 'Código de clasificación industrial',
+        confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
+        listOfRestrictedBusinesses: 'lista de negocios restringidos',
+        incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
+        incorporationTypes: {
+            LLC: 'LLC',
+            CORPORATION: 'Corp',
+            PARTNERSHIP: 'Sociedad',
+            COOPERATIVE: 'Cooperativa',
+            SOLE_PROPRIETORSHIP: 'Propietario único',
+            OTHER: 'Otra',
+        },
+    },
+    requestorStep: {
+        headerTitle: 'Información personal',
+        learnMore: 'Más información',
+        isMyDataSafe: '¿Están seguros mis datos?',
+    },
+    personalInfoStep: {
+        personalInfo: 'Información Personal',
+        enterYourLegalFirstAndLast: '¿Cuál es tu nombre legal?',
+        legalFirstName: 'Nombre',
+        legalLastName: 'Apellidos',
+        legalName: 'Nombre legal',
+        enterYourDateOfBirth: '¿Cuál es tu fecha de nacimiento?',
+        enterTheLast4: '¿Cuáles son los últimos 4 dígitos de tu número de la seguridad social?',
+        dontWorry: 'No te preocupes, no hacemos verificaciones de crédito personales.',
+        last4SSN: 'Últimos 4 dígitos de tu SSN',
+        enterYourAddress: '¿Cuál es tu dirección?',
+        address: 'Dirección',
+        letsDoubleCheck: 'Revisemos que todo esté bien',
+        byAddingThisBankAccount: 'Añadiendo esta cuenta bancaria, confirmas que has leído, entendido y aceptado',
+        whatsYourLegalName: '¿Cuál es tu nombre legal?',
+        whatsYourDOB: '¿Cuál es tu fecha de nacimiento?',
+        whatsYourAddress: '¿Cuál es tu dirección?',
+        whatsYourSSN: '¿Cuáles son los últimos 4 dígitos de tu número de la seguridad social?',
+        noPersonalChecks: 'No te preocupes, no hacemos verificaciones de crédito personales.',
+        whatsYourPhoneNumber: '¿Cuál es tu número de teléfono?',
+        weNeedThisToVerify: 'Necesitamos esto para verificar tu billetera.',
+    },
+    businessInfoStep: {
+        businessInfo: 'Información de la empresa',
+        enterTheNameOfYourBusiness: '¿Cuál es el nombre de tu empresa?',
+        businessName: 'Nombre de la empresa',
+        enterYourCompanysTaxIdNumber: '¿Cuál es el número de identificación fiscal?',
+        taxIDNumber: 'Número de identificación fiscal',
+        taxIDNumberPlaceholder: '9 dígitos',
+        enterYourCompanysWebsite: '¿Cuál es la página web de tu empresa?',
+        companyWebsite: 'Página web de la empresa',
+        enterYourCompanysPhoneNumber: '¿Cuál es el número de teléfono de tu empresa?',
+        enterYourCompanysAddress: '¿Cuál es la dirección de tu empresa?',
+        selectYourCompanysType: '¿Cuál es el tipo de empresa?',
+        companyType: 'Tipo de empresa',
+        incorporationType: {
+            LLC: 'SRL',
+            CORPORATION: 'Corporación',
+            PARTNERSHIP: 'Sociedad',
+            COOPERATIVE: 'Cooperativa',
+            SOLE_PROPRIETORSHIP: 'Empresa individual',
+            OTHER: 'Otros',
+        },
+        selectYourCompanysIncorporationDate: '¿Cuál es la fecha de constitución de la empresa?',
+        incorporationDate: 'Fecha de constitución',
+        incorporationDatePlaceholder: 'Fecha de inicio (yyyy-mm-dd)',
+        incorporationState: 'Estado en el que se constituyó',
+        pleaseSelectTheStateYourCompanyWasIncorporatedIn: '¿Cuál es el estado en el que se constituyó la empresa?',
+        letsDoubleCheck: 'Verifiquemos que todo esté correcto',
+        companyAddress: 'Dirección de la empresa',
+        listOfRestrictedBusinesses: 'lista de negocios restringidos',
+        confirmCompanyIsNot: 'Confirmo que esta empresa no está en la',
+        businessInfoTitle: 'Información del negocio',
+        legalBusinessName: 'Nombre legal de la empresa',
+        whatsTheBusinessName: '¿Cuál es el nombre de la empresa?',
+        whatsTheBusinessAddress: '¿Cuál es la dirección de la empresa?',
+        whatsTheBusinessContactInformation: '¿Cuál es la información de contacto de la empresa?',
+        whatsTheBusinessRegistrationNumber: '¿Cuál es el número de registro de la empresa?',
+        whatsTheBusinessTaxIDEIN: '¿Cuál es el número de identificación fiscal ID/EIN/VAT/GST de la empresa?',
+        whatsThisNumber: '¿Qué es este número?',
+        whereWasTheBusinessIncorporated: '¿Dónde se constituyó la empresa?',
+        whatTypeOfBusinessIsIt: '¿Qué tipo de empresa es?',
+        whatsTheBusinessAnnualPayment: '¿Cuál es el volumen anual de pagos de la empresa?',
+        whatsYourExpectedAverageReimbursements: '¿Cuál es el monto promedio esperado de reembolso?',
+        registrationNumber: 'Número de registro',
+        taxIDEIN: 'Número de identificación fiscal/EIN',
+        businessAddress: 'Dirección de la empresa',
+        businessType: 'Tipo de empresa',
+        incorporation: 'Constitución',
+        incorporationCountry: 'País de constitución',
+        incorporationTypeName: 'Tipo de constitución',
+        businessCategory: 'Categoría de la empresa',
+        annualPaymentVolume: 'Volumen anual de pagos',
+        annualPaymentVolumeInCurrency: ({currencyCode}: CurrencyCodeParams) => `Volumen anual de pagos en ${currencyCode}`,
+        averageReimbursementAmount: 'Monto promedio de reembolso',
+        averageReimbursementAmountInCurrency: ({currencyCode}: CurrencyCodeParams) => `Monto promedio de reembolso en ${currencyCode}`,
+        selectIncorporationType: 'Seleccione tipo de constitución',
+        selectBusinessCategory: 'Seleccione categoría de la empresa',
+        selectAnnualPaymentVolume: 'Seleccione volumen anual de pagos',
+        selectIncorporationCountry: 'Seleccione país de constitución',
+        selectIncorporationState: 'Seleccione estado de constitución',
+        selectAverageReimbursement: 'Selecciona el monto promedio de reembolso',
+        findIncorporationType: 'Buscar tipo de constitución',
+        findBusinessCategory: 'Buscar categoría de la empresa',
+        findAnnualPaymentVolume: 'Buscar volumen anual de pagos',
+        findIncorporationState: 'Buscar estado de constitución',
+        findAverageReimbursement: 'Encuentra el monto promedio de reembolso',
+        error: {
+            registrationNumber: 'Por favor, proporciona un número de registro válido.',
+        },
+    },
+    beneficialOwnerInfoStep: {
+        doYouOwn25percent: '¿Posees el 25% o más de',
+        doAnyIndividualOwn25percent: '¿Alguna persona posee el 25% o más de',
+        areThereMoreIndividualsWhoOwn25percent: '¿Hay más personas que posean el 25% o más de',
+        regulationRequiresUsToVerifyTheIdentity: 'La ley nos exige verificar la identidad de cualquier persona que posea más del 25% de la empresa.',
+        companyOwner: 'Dueño de la empresa',
+        enterLegalFirstAndLastName: '¿Cuál es el nombre legal del dueño?',
+        legalFirstName: 'Nombre legal',
+        legalLastName: 'Apellidos legales',
+        enterTheDateOfBirthOfTheOwner: '¿Cuál es la fecha de nacimiento del dueño?',
+        enterTheLast4: '¿Cuáles son los últimos 4 dígitos del número de la seguridad social del dueño?',
+        last4SSN: 'Últimos 4 dígitos del número de la seguridad social',
+        dontWorry: 'No te preocupes, ¡no realizamos verificaciones de crédito personales!',
+        enterTheOwnersAddress: '¿Cuál es la dirección del dueño?',
+        letsDoubleCheck: 'Vamos a verificar que todo esté correcto.',
+        legalName: 'Nombre legal',
+        address: 'Dirección',
+        byAddingThisBankAccount: 'Al añadir esta cuenta bancaria, confirmas que has leído, comprendido y aceptado',
+        owners: 'Dueños',
+    },
+    ownershipInfoStep: {
+        ownerInfo: 'Información del propietario',
+        businessOwner: 'Propietario del negocio',
+        signerInfo: 'Información del firmante',
+        doYouOwn: ({companyName}: CompanyNameParams) => `¿Posee el 25% o más de ${companyName}?`,
+        doesAnyoneOwn: ({companyName}: CompanyNameParams) => `¿Alguien posee el 25% o más de ${companyName}?`,
+        regulationsRequire: 'Las regulaciones requieren que verifiquemos la identidad de cualquier persona que posea más del 25% del negocio.',
+        legalFirstName: 'Nombre legal',
+        legalLastName: 'Apellido legal',
+        whatsTheOwnersName: '¿Cuál es el nombre legal del propietario?',
+        whatsYourName: '¿Cuál es su nombre legal?',
+        whatPercentage: '¿Qué porcentaje del negocio pertenece al propietario?',
+        whatsYoursPercentage: '¿Qué porcentaje del negocio posee?',
+        ownership: 'Propiedad',
+        whatsTheOwnersDOB: '¿Cuál es la fecha de nacimiento del propietario?',
+        whatsYourDOB: '¿Cuál es su fecha de nacimiento?',
+        whatsTheOwnersAddress: '¿Cuál es la dirección del propietario?',
+        whatsYourAddress: '¿Cuál es su dirección?',
+        whatAreTheLast: '¿Cuáles son los últimos 4 dígitos del número de seguro social del propietario?',
+        whatsYourLast: '¿Cuáles son los últimos 4 dígitos de su número de seguro social?',
+        dontWorry: 'No se preocupe, ¡no realizamos ninguna verificación de crédito personal!',
+        last4: 'Últimos 4 del SSN',
+        whyDoWeAsk: '¿Por qué solicitamos esto?',
+        letsDoubleCheck: 'Verifiquemos que todo esté correcto.',
+        legalName: 'Nombre legal',
+        ownershipPercentage: 'Porcentaje de propiedad',
+        areThereOther: ({companyName}: CompanyNameParams) => `¿Hay otras personas que posean el 25% o más de ${companyName}?`,
+        owners: 'Propietarios',
+        addCertified: 'Agregue un organigrama certificado que muestre los propietarios beneficiarios',
+        regulationRequiresChart: 'La regulación nos exige recopilar una copia certificada del organigrama que muestre a cada persona o entidad que posea el 25% o más del negocio.',
+        uploadEntity: 'Subir organigrama de propiedad de la entidad',
+        noteEntity: 'Nota: El organigrama de propiedad de la entidad debe estar firmado por su contador, asesor legal o notariado.',
+        certified: 'Organigrama certificado de propiedad de la entidad',
+        selectCountry: 'Seleccionar país',
+        findCountry: 'Buscar país',
+        address: 'Dirección',
+        chooseFile: 'Elige archivo',
+        uploadDocuments: 'Sube documentación adicional',
+        pleaseUpload:
+            'Por favor, sube la documentación adicional a continuación para ayudarnos a verificar tu identidad como propietario directo o indirecto del 25% o más de la entidad empresarial.',
+        acceptedFiles: 'Formatos de archivo aceptados: PDF, PNG, JPEG. El tamaño total del archivo para cada sección no puede superar los 5 MB.',
+        proofOfBeneficialOwner: 'Prueba del propietario beneficiario',
+        proofOfBeneficialOwnerDescription:
+            'Por favor, proporciona una declaración firmada y un organigrama de un contador público, notario o abogado que verifique la propiedad del 25% o más del negocio. Debe estar fechado dentro de los últimos tres meses e incluir el número de licencia del firmante.',
+        copyOfID: 'Copia de la identificación del propietario beneficiario',
+        copyOfIDDescription: 'Ejemplos: Pasaporte, licencia de conducir, etc.',
+        proofOfAddress: 'Prueba de la dirección del propietario beneficiario',
+        proofOfAddressDescription: 'Ejemplos: Factura de servicios, contrato de alquiler, etc.',
+        codiceFiscale: 'Codice fiscale/ID fiscal',
+        codiceFiscaleDescription:
+            'Por favor, sube un video de una visita al sitio o una llamada grabada con el oficial firmante. El oficial debe proporcionar: nombre completo, fecha de nacimiento, nombre de la empresa, número de registro, número de código fiscal, dirección registrada, naturaleza del negocio y propósito de la cuenta.',
+    },
+    validationStep: {
+        headerTitle: 'Validar cuenta bancaria',
+        buttonText: 'Finalizar configuración',
+        maxAttemptsReached: 'Se ha inhabilitado la validación de esta cuenta bancaria debido a demasiados intentos incorrectos.',
+        description: 'Enviaremos tres (3) pequeñas transacciones a tu cuenta bancaria a nombre de "Expensify, Inc. Validation" dentro de los próximos 1-2 días laborables.',
+        descriptionCTA: 'Introduce el importe de cada transacción en los campos siguientes. Ejemplo: 1.51.',
+        reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulta el chat con Concierge ',
+        forNextStep: ' para conocer los próximos pasos para terminar de configurar tu cuenta bancaria.',
+        letsChatCTA: 'Sí, vamos a chatear',
+        letsChatText: '¡Ya casi estamos! Necesitamos tu ayuda para verificar unos últimos datos a través del chat. ¿Estás listo?',
+        letsChatTitle: '¡Vamos a chatear!',
+        enable2FATitle: 'Evita fraudes, activa la autenticación de dos factores!',
+        enable2FAText: 'Tu seguridad es importante para nosotros. Por favor, configura ahora la autenticación de dos factores para añadir una capa adicional de protección a tu cuenta.',
+        secureYourAccount: 'Asegura tu cuenta',
+    },
+    beneficialOwnersStep: {
+        additionalInformation: 'Información adicional',
+        checkAllThatApply: 'Marca todos los que apliquen, en caso de que ninguno aplique dejar en blanco.',
+        iOwnMoreThan25Percent: 'Soy dueño de mas de 25% de ',
+        someoneOwnsMoreThan25Percent: 'Otra persona es dueña de mas de 25% de ',
+        additionalOwner: 'Beneficiario efectivo adicional',
+        removeOwner: 'Eliminar este beneficiario efectivo',
+        addAnotherIndividual: 'Añadir otra persona que es dueña de mas de 25% de ',
+        agreement: 'Acuerdo:',
+        termsAndConditions: 'Términos y condiciones',
+        certifyTrueAndAccurate: 'Certifico que la información dada es correcta',
+        error: {
+            certify: 'Debe certificar que la información es verdadera y precisa.',
+        },
+    },
+    completeVerificationStep: {
+        completeVerification: 'Completar la verificación',
+        confirmAgreements: 'Por favor, confirma los acuerdos siguientes.',
+        certifyTrueAndAccurate: 'Certifico que la información dada es verdadera y precisa',
+        certifyTrueAndAccurateError: 'Por favor, certifica que la información es verdadera y exacta',
+        isAuthorizedToUseBankAccount: 'Estoy autorizado para usar la cuenta bancaria de mi empresa para gastos de empresa',
+        isAuthorizedToUseBankAccountError: 'Debes ser el responsable oficial con autorización para operar la cuenta bancaria de la empresa.',
+        termsAndConditions: 'Términos y Condiciones',
+    },
+    connectBankAccountStep: {
+        connectBankAccount: 'Conectar cuenta bancaria',
+        finishButtonText: 'Finalizar configuración',
+        validateYourBankAccount: 'Valida tu cuenta bancaria',
+        validateButtonText: 'Validar',
+        validationInputLabel: 'Transacción',
+        maxAttemptsReached: 'La validación de esta cuenta bancaria se ha desactivado debido a demasiados intentos incorrectos.',
+        description: 'Enviaremos tres (3) pequeñas transacciones a tu cuenta bancaria a nombre de "Expensify, Inc. Validation" dentro de los próximos 1-2 días laborables.',
+        descriptionCTA: 'Introduce el importe de cada transacción en los campos siguientes. Ejemplo: 1.51.',
+        reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulta el chat con Concierge ',
+        forNextSteps: ' para conocer los próximos pasos para terminar de configurar tu cuenta bancaria.',
+        letsChatCTA: 'Sí, vamos a chatear',
+        letsChatText: '¡Ya casi estamos! Necesitamos tu ayuda para verificar unos últimos datos a través del chat. ¿Estás listo?',
+        letsChatTitle: '¡Vamos a chatear!',
+        enable2FATitle: '¡Evita fraudes, activa la autenticación de dos factores!',
+        enable2FAText: 'Tu seguridad es importante para nosotros. Por favor, configura ahora la autenticación de dos factores para añadir una capa adicional de protección a tu cuenta.',
+        secureYourAccount: 'Asegura tu cuenta',
+    },
+    countryStep: {
+        confirmBusinessBank: 'Confirmar moneda y país de la cuenta bancaria comercial',
+        confirmCurrency: 'Confirmar moneda y país',
+        yourBusiness: 'La moneda de su cuenta bancaria comercial debe coincidir con la moneda de su espacio de trabajo.',
+        youCanChange: 'Puede cambiar la moneda de su espacio de trabajo en su',
+        findCountry: 'Encontrar país',
+        selectCountry: 'Seleccione su país',
+    },
+    bankInfoStep: {
+        whatAreYour: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
+        letsDoubleCheck: 'Verifiquemos que todo esté bien.',
+        thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo.',
+        accountNumber: 'Número de cuenta',
+        bankStatement: 'Extracto bancario',
+        chooseFile: 'Elegir archivo',
+        uploadYourLatest: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
+        pleaseUpload: ({lastFourDigits}: LastFourDigitsParams) => `Por favor suba el estado de cuenta mensual más reciente de tu cuenta bancaria comercial que termina en ${lastFourDigits}.`,
+    },
+    signerInfoStep: {
+        signerInfo: 'Información del firmante',
+        areYouDirector: ({companyName}: CompanyNameParams) => `¿Es usted director o alto funcionario de ${companyName}?`,
+        regulationRequiresUs: 'La regulación requiere que verifiquemos si el firmante tiene la autoridad para realizar esta acción en nombre de la empresa.',
+        whatsYourName: '¿Cuál es tu nombre legal?',
+        fullName: 'Nombre legal completo',
+        whatsYourJobTitle: '¿Cuál es tu puesto de trabajo?',
+        jobTitle: 'Título profesional',
+        whatsYourDOB: '¿Cual es tu fecha de nacimiento?',
+        uploadID: 'Subir documento de identidad y prueba de domicilio',
+        id: 'Identificación (licencia de conducir o pasaporte)',
+        personalAddress: 'Prueba de domicilio personal (por ejemplo, factura de servicios públicos)',
+        letsDoubleCheck: 'Vamos a verificar que todo esté correcto.',
+        legalName: 'Nombre legal',
+        proofOf: 'Comprobante de domicilio personal',
+        enterOneEmail: 'Introduce el correo electrónico del director o alto funcionario en',
+        regulationRequiresOneMoreDirector: 'El reglamento exige que haya otro director o funcionario superior como firmante.',
+        hangTight: 'Espera un momento...',
+        enterTwoEmails: 'Introduce los correos electrónicos de dos directores o altos funcionarios en',
+        sendReminder: 'Enviar un recordatorio',
+        chooseFile: 'Seleccionar archivo',
+        weAreWaiting: 'Estamos esperando que otros verifiquen sus identidades como directores o altos funcionarios de la empresa.',
+    },
+    agreementsStep: {
+        agreements: 'Acuerdos',
+        pleaseConfirm: 'Por favor confirme los acuerdos a continuación',
+        regulationRequiresUs: 'La normativa requiere que verifiquemos la identidad de cualquier individuo que posea más del 25% del negocio.',
+        iAmAuthorized: 'Estoy autorizado para usar la cuenta bancaria para gastos del negocio.',
+        iCertify: 'Certifico que la información proporcionada es verdadera y correcta.',
+        termsAndConditions: 'términos y condiciones.',
+        accept: 'Agregar y aceptar cuenta bancaria',
+        error: {
+            authorized: 'Debe ser un funcionario controlador con autorización para operar la cuenta bancaria comercial',
+            certify: 'Por favor certifique que la información es verdadera y exacta',
+        },
+    },
+    finishStep: {
+        connect: 'Conectar cuenta bancaria',
+        letsFinish: '¡Terminemos en el chat!',
+        thanksFor:
+            'Gracias por esos detalles. Un agente de soporte dedicado revisará ahora tu información. Nos pondremos en contacto si necesitamos algo más de tu parte, pero mientras tanto, no dudes en comunicarte con nosotros si tienes alguna pregunta.',
+        iHaveA: 'Tengo una pregunta',
+        enable2FA: 'Habilite la autenticación de dos factores (2FA) para prevenir fraudes',
+        weTake: 'Nos tomamos su seguridad en serio. Por favor, configure 2FA ahora para agregar una capa adicional de protección a su cuenta.',
+        secure: 'Asegure su cuenta',
+    },
+    reimbursementAccountLoadingAnimation: {
+        oneMoment: 'Un momento',
+        explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
+    },
+    session: {
+        offlineMessageRetry: 'Parece que estás desconectado. Por favor, comprueba tu conexión e inténtalo de nuevo.',
+    },
+    travel: {
+        header: 'Reservar viajes',
+        title: 'Viaja de forma inteligente',
+        subtitle: 'Utiliza Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos los gastos de tu negocio en un solo lugar.',
+        features: {
+            saveMoney: 'Ahorra dinero en tus reservas',
+            alerts: 'Obtén actualizaciones y alertas en tiempo real',
+        },
+        bookTravel: 'Reservar viajes',
+        bookDemo: 'Pedir demostración',
+        bookADemo: 'Reserva una demo',
+        toLearnMore: ' para obtener más información.',
+        termsAndConditions: {
+            header: 'Antes de continuar...',
+            title: 'Términos y condiciones de Expensify Travel',
+            subtitle: 'Por favor, acepta los ',
+            termsconditions: 'términos y condiciones',
+            travelTermsAndConditions: 'términos y condiciones',
+            agree: 'Acepto los ',
+            error: 'Debes aceptar los términos y condiciones de Expensify Travel para continuar',
+        },
+        flight: 'Vuelo',
+        flightDetails: {
+            passenger: 'Pasajero',
+            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>Tienes una <strong>escala de ${layover}</strong> antes de este vuelo</muted-text-label>`,
+            takeOff: 'Despegue',
+            landing: 'Aterrizaje',
+            seat: 'Asiento',
+            class: 'Clase de cabina',
+            recordLocator: 'Localizador de la reserva',
+        },
+        hotel: 'Hotel',
+        hotelDetails: {
+            guest: 'Cliente',
+            checkIn: 'Entrada',
+            checkOut: 'Salida',
+            roomType: 'Tipo de habitación',
+            cancellation: 'Política de cancelación',
+            cancellationUntil: 'Cancelación gratuita hasta el',
+            confirmation: 'Número de confirmación',
+            cancellationPolicies: {
+                unknown: 'Desconocido',
+                nonRefundable: 'No reembolsable',
+                freeCancellationUntil: 'Cancelación gratuita hasta',
+                partiallyRefundable: 'Parcialmente reembolsable',
+            },
+        },
+        car: 'Auto',
+        carDetails: {
+            rentalCar: 'Coche de alquiler',
+            pickUp: 'Recogida',
+            dropOff: 'Devolución',
+            driver: 'Conductor',
+            carType: 'Tipo de coche',
+            cancellation: 'Política de cancelación',
+            cancellationUntil: 'Cancelación gratuita hasta el',
+            freeCancellation: 'Cancelación gratuita',
+            confirmation: 'Número de confirmación',
+        },
+        train: 'Tren',
+        trainDetails: {
+            passenger: 'Pasajero',
+            departs: 'Sale',
+            arrives: 'Llega',
+            coachNumber: 'Número de vagón',
+            seat: 'Asiento',
+            fareDetails: 'Detalles de la tarifa',
+            confirmation: 'Número de confirmación',
+        },
+        viewTrip: 'Ver viaje',
+        modifyTrip: 'Modificar viaje',
+        tripSupport: 'Soporte de Viaje',
+        tripDetails: 'Detalles del viaje',
+        viewTripDetails: 'Ver detalles del viaje',
+        trip: 'Viaje',
+        trips: 'Viajes',
+        tripSummary: 'Resumen del viaje',
+        departs: 'Sale',
+        errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
+        phoneError: 'Para reservar viajes, tu método de contacto predeterminado debe ser un correo electrónico válido',
+        domainSelector: {
+            title: 'Dominio',
+            subtitle: 'Elige un dominio para configurar Expensify Travel.',
+            recommended: 'Recomendado',
+        },
+        domainPermissionInfo: {
+            title: 'Dominio',
+            restrictionPrefix: `No tienes permiso para habilitar Expensify Travel para el dominio`,
+            restrictionSuffix: `Tendrás que pedir a alguien de ese dominio que habilite Travel por ti.`,
+            accountantInvitationPrefix: `Si eres contador, considera unirte al`,
+            accountantInvitationLink: `programa de contadores ExpensifyApproved!`,
+            accountantInvitationSuffix: `para habilitar Travel para este dominio.`,
+        },
+        publicDomainError: {
+            title: 'Comienza con Expensify Travel',
+            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
+        },
+        blockedFeatureModal: {
+            title: 'Expensify Travel ha sido deshabilitado',
+            message: 'Tu administrador ha desactivado Expensify Travel. Por favor, sigue la política de reservas de tu empresa para organizar tus viajes.',
+        },
+    },
+    workspace: {
+        common: {
+            card: 'Tarjetas',
+            expensifyCard: 'Tarjeta Expensify',
+            companyCards: 'Tarjetas de empresa',
+            workflows: 'Flujos de trabajo',
+            workspace: 'Espacio de trabajo',
+            edit: 'Editar espacio de trabajo',
+            enabled: 'Activada',
+            disabled: 'Desactivada',
+            everyone: 'Todos',
+            delete: 'Eliminar espacio de trabajo',
+            settings: 'Configuración',
+            reimburse: 'Reembolsos',
+            categories: 'Categorías',
+            tags: 'Etiquetas',
+            reportFields: 'Campos de informe',
+            taxes: 'Impuestos',
+            bills: 'Pagar facturas',
+            invoices: 'Facturas',
+            travel: 'Viajes',
+            members: 'Miembros',
+            accounting: 'Contabilidad',
+            rules: 'Reglas',
+            plan: 'Plan',
+            profile: 'Resumen',
+            bankAccount: 'Cuenta bancaria',
+            displayedAs: 'Mostrado como',
+            connectBankAccount: 'Conectar cuenta bancaria',
+            testTransactions: 'Transacciones de prueba',
+            issueAndManageCards: 'Emitir y gestionar tarjetas',
+            reconcileCards: 'Reconciliar tarjetas',
+            selected: () => ({
+                one: '1 seleccionado',
+                other: (count: number) => `${count} seleccionados`,
+            }),
+            settlementFrequency: 'Frecuencia de liquidación',
+            setAsDefault: 'Establecer como espacio de trabajo predeterminado',
+            defaultNote: `Los recibos enviados a ${CONST.EMAIL.RECEIPTS} aparecerán en este espacio de trabajo.`,
+            deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
+            deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
+            unavailable: 'Espacio de trabajo no disponible',
+            memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón invitar que está arriba.',
+            notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a este espacio de trabajo, pide al dueño del espacio de trabajo que te añada como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
+            goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
+            goToWorkspace: 'Ir al espacio de trabajo',
+            goToWorkspaces: 'Ir a espacios de trabajo',
+            clearFilter: 'Borrar filtro',
+            workspaceName: 'Nombre del espacio de trabajo',
+            workspaceOwner: 'Dueño',
+            workspaceType: 'Tipo de espacio de trabajo',
+            workspaceAvatar: 'Espacio de trabajo avatar',
+            mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
+            moreFeatures: 'Más características',
+            requested: 'Solicitado',
+            distanceRates: 'Tasas de distancia',
+            defaultDescription: 'Un solo lugar para todos tus recibos y gastos.',
+            welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
+            subscription: 'Suscripción',
+            markAsExported: 'Marcar como introducido manualmente',
+            exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            letsDoubleCheck: 'Verifiquemos que todo esté correcto',
+            reportField: 'Campo del informe',
+            lineItemLevel: 'Nivel de partida',
+            reportLevel: 'Nivel de informe',
+            appliedOnExport: 'No se importa en Expensify, se aplica en la exportación',
+            shareNote: {
+                header: 'Comparte tu espacio de trabajo con otros miembros',
+                content: {
+                    firstPart:
+                        'Comparte este código QR o copia el enlace de abajo para facilitar que los miembros soliciten acceso a tu espacio de trabajo. Todas las solicitudes para unirse al espacio de trabajo aparecerán en la sala',
+                    secondPart: 'para tu revisión.',
+                },
+            },
+            createNewConnection: 'Crear una nueva conexión',
+            reuseExistingConnection: 'Reutilizar la conexión existente',
+            existingConnections: 'Conexiones existentes',
+            lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Última sincronización ${formattedDate}`,
+            topLevel: 'Nivel superior',
+            authenticationError: ({connectionName}: AuthenticationErrorParams) => `No se puede conectar a ${connectionName} debido a un error de autenticación.`,
+            learnMore: 'Más información.',
+            memberAlternateText: 'Los miembros pueden presentar y aprobar informes.',
+            adminAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
+            auditorAlternateText: 'Los auditores pueden ver y comentar los informes.',
+            roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
+                switch (role) {
+                    case CONST.POLICY.ROLE.ADMIN:
+                        return 'Administrador';
+                    case CONST.POLICY.ROLE.AUDITOR:
+                        return 'Auditor';
+                    case CONST.POLICY.ROLE.USER:
+                        return 'Miembro';
+                    default:
+                        return 'Miembro';
+                }
+            },
+            frequency: {
+                manual: 'Manualmente',
+                instant: 'Instantáneo',
+                immediate: 'Diaria',
+                trip: 'Por viaje',
+                weekly: 'Semanal',
+                semimonthly: 'Dos veces al mes',
+                monthly: 'Mensual',
+            },
+            planType: 'Tipo de plan',
+            submitExpense: 'Envía tus gastos a continuación:',
+            defaultCategory: 'Categoría predeterminada',
+            viewTransactions: 'Ver transacciones',
+            policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s gastos`,
+        },
+        perDiem: {
+            subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
+            amount: 'Cantidad',
+            deleteRates: () => ({
+                one: 'Eliminar tasa',
+                other: 'Eliminar tasas',
+            }),
+            deletePerDiemRate: 'Eliminar tasa per diem',
+            areYouSureDelete: () => ({
+                one: '¿Estás seguro de que quieres eliminar esta tasa?',
+                other: '¿Estás seguro de que quieres eliminar estas tasas?',
+            }),
+            emptyList: {
+                title: 'Per diem',
+                subtitle: 'Establece dietas per diem para controlar el gasto diario de los empleados. Importa las tarifas desde una hoja de cálculo para comenzar.',
+            },
+            errors: {
+                existingRateError: ({rate}: CustomUnitRateParams) => `Ya existe una tasa con el valor ${rate}.`,
+            },
+            importPerDiemRates: 'Importar tasas de per diem',
+            editPerDiemRate: 'Editar la tasa de per diem',
+            editPerDiemRates: 'Editar las tasas de per diem',
+            editDestinationSubtitle: ({destination}: EditDestinationSubtitleParams) => `Actualizar este destino lo modificará para todas las subtasas per diem de ${destination}.`,
+            editCurrencySubtitle: ({destination}: EditDestinationSubtitleParams) => `Actualizar esta moneda la modificará para todas las subtasas per diem de ${destination}.`,
+        },
+        qbd: {
+            exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Desktop.',
+            exportOutOfPocketExpensesCheckToogle: 'Marcar los cheques como “imprimir más tarde”',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Desktop.',
+            date: 'Fecha de exportación',
+            exportInvoices: 'Exportar facturas a',
+            exportExpensifyCard: 'Exportar las transacciones de la tarjeta Expensify como',
+            account: 'Cuenta',
+            accountDescription: 'Elige dónde contabilizar los asientos contables.',
+            accountsPayable: 'Cuentas por pagar',
+            accountsPayableDescription: 'Elige dónde crear las facturas de proveedores.',
+            bankAccount: 'Cuenta bancaria',
+            notConfigured: 'No configurado',
+            bankAccountDescription: 'Elige desde dónde enviar los cheques.',
+            creditCardAccount: 'Cuenta de la tarjeta de crédito',
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Usa esta fecha al exportar informes a QuickBooks Desktop.',
+                values: {
+                    [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente en el informe.',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha de exportación del informe a QuickBooks Desktop.',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en la que el informe se envió para aprobación.',
+                    },
+                },
+            },
+            exportCheckDescription: 'Crearemos un cheque desglosado para cada informe de Expensify y lo enviaremos desde la cuenta bancaria a continuación.',
+            exportJournalEntryDescription: 'Crearemos una entrada contable desglosada para cada informe de Expensify y lo contabilizaremos en la cuenta a continuación.',
+            exportVendorBillDescription:
+                'Crearemos una factura de proveedor desglosada para cada informe de Expensify y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos el 1º del siguiente periodo abierto.',
+            deepDiveExpensifyCard: 'Las transacciones de la Tarjeta Expensify se exportarán automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con',
+            deepDiveExpensifyCardIntegration: 'nuestra integración.',
+            outOfPocketTaxEnabledDescription:
+                'QuickBooks Desktop no admite impuestos en las exportaciones de asientos contables. Como tienes impuestos habilitados en tu espacio de trabajo, esta opción de exportación no está disponible.',
+            outOfPocketTaxEnabledError: 'Los asientos contables no están disponibles cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación.',
+            accounts: {
+                [CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Tarjeta de crédito',
+                [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Factura del proveedor',
+                [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Asiento contable',
+                [CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Cheque',
+
+                [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}Description`]:
+                    'Crearemos un cheque desglosado para cada informe de Expensify y lo enviaremos desde la cuenta bancaria a continuación.',
+                [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
+                    "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
+                [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
+                    'Crearemos una factura de proveedor desglosada para cada informe de Expensify con la fecha del último gasto, y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos el 1º del siguiente periodo abierto.',
+
+                [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Elige dónde exportar las transacciones con tarjeta de crédito.',
+                [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]:
+                    'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+                [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK}AccountDescription`]: 'Elige desde dónde enviar los cheques.',
+
+                [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
+                    'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación.',
+                [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]:
+                    'Los cheques no están disponibles cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación.',
+                [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
+                    'Los asientos contables no están disponibles cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación.',
+            },
+            noAccountsFound: 'No se encontraron cuentas',
+            noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Desktop y sincroniza de nuevo la conexión.',
+            qbdSetup: 'Configuración de QuickBooks Desktop',
+            requiredSetupDevice: {
+                title: 'No se puede conectar desde este dispositivo',
+                body1: 'Deberás configurar esta conexión desde la computadora que hospeda tu archivo de empresa de QuickBooks Desktop.',
+                body2: 'Una vez que estés conectado, podrás sincronizar y exportar desde cualquier lugar.',
+            },
+            setupPage: {
+                title: 'Abre este enlace para conectar',
+                body: 'Para completar la configuración, abre el siguiente enlace en la computadora donde se está ejecutando QuickBooks Desktop.',
+                setupErrorTitle: '¡Ups! Ha ocurrido un error',
+                setupErrorBody1: 'La conexión con QuickBooks Desktop no está funcionando en este momento. Por favor, inténtalo de nuevo más tarde o',
+                setupErrorBody2: 'si el problema persiste.',
+                setupErrorBodyContactConcierge: 'contacta con Concierge',
+            },
+            importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Desktop a Expensify.',
+            classes: 'Clases',
+            items: 'Artículos',
+            customers: 'Clientes/proyectos',
+            exportCompanyCardsDescription: 'Establece cómo se exportan las compras con tarjeta de empresa a QuickBooks Desktop.',
+            defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
+            accountsDescription: 'Tu plan de cuentas de QuickBooks Desktop se importará a Expensify como categorías.',
+            accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
+            accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
+            classesDescription: 'Elige cómo gestionar las clases de QuickBooks Desktop en Expensify.',
+            tagsDisplayedAsDescription: 'Nivel de partida',
+            reportFieldsDisplayedAsDescription: 'Nivel de informe',
+            customersDescription: 'Elige cómo gestionar los clientes/proyectos de QuickBooks Desktop en Expensify.',
+            advancedConfig: {
+                autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Desktop todos los días.',
+                createEntities: 'Crear entidades automáticamente',
+                createEntitiesDescription: 'Expensify creará automáticamente proveedores en QuickBooks Desktop si aún no existen.',
+            },
+            itemsDescription: 'Elige cómo gestionar los elementos de QuickBooks Desktop en Expensify.',
+        },
+        qbo: {
+            connectedTo: 'Conectado a',
+            importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
+            classes: 'Clases',
+            locations: 'Lugares',
+            customers: 'Clientes/proyectos',
+            accountsDescription: 'Tu plan de cuentas de QuickBooks Online se importará a Expensify como categorías.',
+            accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
+            accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
+            classesDescription: 'Elige cómo gestionar las clases de QuickBooks Online en Expensify.',
+            customersDescription: 'Elige cómo gestionar los clientes/proyectos de QuickBooks Online en Expensify.',
+            locationsDescription: 'Elige cómo gestionar los lugares de QuickBooks Online en Expensify.',
+            locationsLineItemsRestrictionDescription:
+                'QuickBooks Online no admite Ubicaciones a nivel de línea para cheques o facturas de proveedores. Si deseas tener ubicaciones a nivel de línea, asegúrate de estar usando asientos contables y gastos con tarjetas de crédito/débito.',
+            taxesDescription: 'Elige cómo gestionar los impuestos de QuickBooks Online en Expensify.',
+            taxesJournalEntrySwitchNote: 'QuickBooks Online no permite impuestos en los asientos contables. Por favor, cambia la opción de exportación a factura de proveedor o cheque.',
+            exportInvoices: 'Exportar facturas a',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Online.',
+            date: 'Fecha de exportación',
+            deepDiveExpensifyCard: 'Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con',
+            deepDiveExpensifyCardIntegration: 'nuestra integración.',
+            exportExpensifyCard: 'Exportar las transacciones de las tarjetas Expensify como',
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Usa esta fecha al exportar informe a QuickBooks Online.',
+                values: {
+                    [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto mas reciente en el informe.',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha de exportación del informe a QuickBooks Online.',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en la que el informe se envió para tu aprobación.',
+                    },
+                },
+            },
+            receivable: 'Cuentas por cobrar', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
+            archive: 'Archivo de cuentas por cobrar', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
+            exportInvoicesDescription: 'Usa esta cuenta al exportar facturas a QuickBooks Online.',
+            exportCompanyCardsDescription: 'Establece cómo se exportan las compras con tarjeta de empresa a QuickBooks Online.',
+            account: 'Cuenta',
+            accountDescription: 'Elige dónde contabilizar los asientos contables.',
+            vendor: 'Proveedor',
+            defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
+            accountsPayable: 'Cuentas por pagar',
+            accountsPayableDescription: 'Elige dónde crear las facturas de proveedores.',
+            bankAccount: 'Cuenta bancaria',
+            notConfigured: 'No configurado',
+            bankAccountDescription: 'Elige desde dónde enviar los cheques.',
+            creditCardAccount: 'Cuenta de la tarjeta de crédito',
+            companyCardsLocationEnabledDescription:
+                'QuickBooks Online no permite lugares en las exportaciones de facturas de proveedores. Como tienes activadas los lugares en tu espacio de trabajo, esta opción de exportación no está disponible.',
+            exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Online.',
+            exportCheckDescription: 'Crearemos un cheque desglosado para cada informe de Expensify y lo enviaremos desde la cuenta bancaria a continuación.',
+            exportJournalEntryDescription: 'Crearemos una entrada contable desglosada para cada informe de Expensify y lo contabilizaremos en la cuenta a continuación.',
+            exportVendorBillDescription:
+                'Crearemos una factura de proveedor desglosada para cada informe de Expensify y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos en el día 1 del siguiente periodo abierto.',
+            outOfPocketTaxEnabledDescription:
+                'QuickBooks Online no permite impuestos en las exportaciones de entradas a los asientos contables. Como tienes los impuestos activados en tu espacio de trabajo, esta opción de exportación no está disponible.',
+            outOfPocketTaxEnabledError: 'La anotacion en el diario no está disponible cuando los impuestos están activados. Por favor, selecciona otra opción de exportación diferente.',
+
+            advancedConfig: {
+                autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Online todos los días.',
+                inviteEmployees: 'Invitar empleados',
+                inviteEmployeesDescription: 'Importe los registros de los empleados de QuickBooks Online e invítelos a este espacio de trabajo.',
+                createEntities: 'Crear entidades automáticamente',
+                createEntitiesDescription: 'Expensify creará automáticamente proveedores en QuickBooks Online si aún no existen, y creará automáticamente clientes al exportar facturas.',
+                reimbursedReportsDescription:
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de QuickBooks Online indicadas a continuación.',
+                qboBillPaymentAccount: 'Cuenta de pago de las facturas de QuickBooks',
+                qboInvoiceCollectionAccount: 'Cuenta de cobro de las facturas QuickBooks',
+                accountSelectDescription: 'Elige desde dónde pagar las facturas y crearemos el pago en QuickBooks Online.',
+                invoiceAccountSelectorDescription: 'Elige dónde recibir los pagos de facturas y crearemos el pago en QuickBooks Online.',
+            },
+            accounts: {
+                [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Tarjeta de débito',
+                [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Tarjeta de crédito',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Factura del proveedor',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Asiento contable',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Cheque',
+
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
+                    "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.",
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
+                    "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
+                    'Crearemos una factura de proveedor desglosada para cada informe de Expensify con la fecha del último gasto, y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos en el día 1 del siguiente periodo abierto.',
+
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Elige dónde exportar las transacciones con tarjeta de débito.',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Elige dónde exportar las transacciones con tarjeta de crédito.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
+                    'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación diferente.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]:
+                    'La verificación no está disponible cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación diferente.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
+                    'El asiento de diario no está disponible cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación diferente.',
+            },
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión.',
+        },
+        workspaceList: {
+            joinNow: 'Únete ahora',
+            askToJoin: 'Pedir unirse',
+        },
+        xero: {
+            organization: 'Organización Xero',
+            organizationDescription: 'Seleccione la organización en Xero desde la que está importando los datos.',
+            importDescription: 'Elija qué configuraciones de codificación se importan de Xero a Expensify.',
+            accountsDescription: 'Tu plan de cuentas de Xero se importará a Expensify como categorías.',
+            accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
+            accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
+            trackingCategories: 'Categorías de seguimiento',
+            trackingCategoriesDescription: 'Elige cómo gestionar categorías de seguimiento de Xero en Expensify.',
+            mapTrackingCategoryTo: ({categoryName}: CategoryNameParams) => `Asignar ${categoryName} de Xero a`,
+            mapTrackingCategoryToDescription: ({categoryName}: CategoryNameParams) => `Elige dónde mapear ${categoryName} al exportar a Xero.`,
+            customers: 'Volver a facturar a los clientes',
+            customersDescription:
+                'Elige si quieres volver a facturar a los clientes en Expensify. Tus contactos de clientes de Xero se pueden etiquetar como gastos, y se exportarán a Xero como una factura de venta.',
+            taxesDescription: 'Elige cómo gestionar los impuestos de Xero en Expensify.',
+            notImported: 'No importado',
+            notConfigured: 'No configurado',
+            trackingCategoriesOptions: {
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.DEFAULT]: 'Contacto de Xero por defecto',
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.TAG]: 'Etiquetas',
+                [CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD]: 'Campos de informes',
+            },
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a Xero.',
+            purchaseBill: 'Factura de compra',
+            exportDeepDiveCompanyCard:
+                'Cada gasto exportado se contabiliza como una transacción bancaria en la cuenta bancaria de Xero que selecciones a continuación. Las fechas de las transacciones coincidirán con las fechas de el extracto bancario.',
+            bankTransactions: 'Transacciones bancarias',
+            xeroBankAccount: 'Cuenta bancaria de Xero',
+            xeroBankAccountDescription: 'Elige dónde se contabilizarán los gastos como transacciones bancarias.',
+            exportExpensesDescription: 'Los informes se exportarán como una factura de compra utilizando la fecha y el estado que seleccione a continuación',
+            purchaseBillDate: 'Fecha de la factura de compra',
+            exportInvoices: 'Exportar facturas como',
+            salesInvoice: 'Factura de venta',
+            exportInvoicesDescription: 'Las facturas de venta siempre muestran la fecha en la que se envió la factura.',
+            advancedConfig: {
+                autoSyncDescription: 'Expensify se sincronizará automáticamente con Xero todos los días.',
+                purchaseBillStatusTitle: 'Estado de la factura de compra',
+                reimbursedReportsDescription:
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Xero indicadas a continuación.',
+                xeroBillPaymentAccount: 'Cuenta de pago de las facturas de Xero',
+                xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
+                xeroBillPaymentAccountDescription: 'Elige desde dónde pagar las facturas y crearemos el pago en Xero.',
+                invoiceAccountSelectorDescription: 'Elige dónde recibir los pagos de facturas y crearemos el pago en Xero.',
+            },
+            exportDate: {
+                label: 'Fecha de la factura de compra',
+                description: 'Usa esta fecha al exportar el informe a Xero.',
+                values: {
+                    [CONST.XERO_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto mas reciente en el informe.',
+                    },
+                    [CONST.XERO_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha de exportación del informe a Xero.',
+                    },
+                    [CONST.XERO_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en la que el informe se envió para su aprobación.',
+                    },
+                },
+            },
+            invoiceStatus: {
+                label: 'Estado de la factura de compra',
+                description: 'Usa este estado al exportar facturas de compra a Xero.',
+                values: {
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Borrador',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Pendiente de aprobación',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Pendiente de pago',
+                },
+            },
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión.',
+        },
+
+        sageIntacct: {
+            preferredExporter: 'Exportador preferido',
+            notConfigured: 'No configurado',
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Utilice esta fecha cuando exporte informes a Sage Intacct.',
+                values: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente del informe.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha en la que se exportó el informe a Sage Intacct.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha de presentación del informe para su aprobación.',
+                    },
+                },
+            },
+            reimbursableExpenses: {
+                description: 'Establece cómo se exportan los gastos por cuenta propia a Sage Intacct.',
+                values: {
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Informes de gastos',
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
+                },
+            },
+            nonReimbursableExpenses: {
+                description: 'Establece cómo se exportan las compras con tarjeta de empresa a Sage Intacct.',
+                values: {
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Tarjetas de crédito',
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
+                },
+            },
+            creditCardAccount: 'Cuenta de tarjeta de crédito',
+            defaultVendor: 'Proveedor por defecto',
+            defaultVendorDescription: ({isReimbursable}: DefaultVendorDescriptionParams) =>
+                `Establezca un proveedor predeterminado que se aplicará a los gastos ${isReimbursable ? '' : 'no '}reembolsables que no tienen un proveedor coincidente en Sage Intacct.`,
+            exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Intacct.',
+            exportPreferredExporterNote:
+                'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
+            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: 'Añade la cuenta en Sage Intacct y sincroniza de nuevo la conexión.',
+            autoSync: 'Sincronización automática',
+            autoSyncDescription: 'Sincronice Sage Intacct y Expensify automáticamente, todos los días.',
+            inviteEmployees: 'Invitar a los empleados',
+            inviteEmployeesDescription:
+                'Importe los registros de empleados de Sage Intacct e invite a los empleados a este espacio de trabajo. Su flujo de trabajo de aprobación será por defecto la aprobación del gerente y se puede configurar aún más en la página Miembros.',
+            syncReimbursedReports: 'Sincronizar informes reembolsados',
+            syncReimbursedReportsDescription:
+                'Cuando un informe se reembolsa utilizando Expensify ACH, la factura de compra correspondiente se creará en la cuenta de Sage Intacct a continuación.',
+            paymentAccount: 'Cuenta de pago Sage Intacct',
+        },
+        netsuite: {
+            subsidiary: 'Subsidiaria',
+            subsidiarySelectDescription: 'Elige la subsidiaria de NetSuite de la que deseas importar datos.',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a NetSuite.',
+            exportInvoices: 'Exportar facturas a',
+            journalEntriesTaxPostingAccount: 'Cuenta de registro de impuestos de asientos contables',
+            journalEntriesProvTaxPostingAccount: 'Cuenta de registro de impuestos provinciales de asientos contables',
+            foreignCurrencyAmount: 'Exportar importe en moneda extranjera',
+            exportToNextOpenPeriod: 'Exportar al siguiente período abierto',
+            nonReimbursableJournalPostingAccount: 'Cuenta de registro de diario no reembolsable',
+            reimbursableJournalPostingAccount: 'Cuenta de registro de diario reembolsable',
+            journalPostingPreference: {
+                label: 'Preferencia de registro de asientos contables',
+                values: {
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Entrada única y detallada para cada informe',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Entrada única para cada gasto individual',
+                },
+            },
+            invoiceItem: {
+                label: 'Artículo de la factura',
+                values: {
+                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE]: {
+                        label: 'Crear uno para mí',
+                        description: "Crearemos un 'Artículo de línea de factura de Expensify' para ti al exportar (si aún no existe).",
+                    },
+                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT]: {
+                        label: 'Seleccionar existente',
+                        description: 'Asociaremos las facturas de Expensify al artículo seleccionado a continuación.',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Usa esta fecha al exportar informe a NetSuite.',
+                values: {
+                    [CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto mas reciente en el informe.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DATE.EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha de exportación del informe a NetSuite.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DATE.SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en la que el informe se envió para su aprobación.',
+                    },
+                },
+            },
+            exportDestination: {
+                values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
+                        label: 'Informes de gastos',
+                        reimbursableDescription: 'Los gastos reembolsables se exportarán como informes de gastos a NetSuite.',
+                        nonReimbursableDescription: 'Los gastos no reembolsables se exportarán como informes de gastos a NetSuite.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
+                        label: 'Facturas de proveedores',
+                        reimbursableDescription:
+                            'Los gastos reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.\n' +
+                            '\n' +
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
+                        nonReimbursableDescription:
+                            'Los gastos no reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.\n' +
+                            '\n' +
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
+                        label: 'Asientos contables',
+                        reimbursableDescription:
+                            'Los gastos reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.\n' +
+                            '\n' +
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
+                        nonReimbursableDescription:
+                            'Los gastos no reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.\n' +
+                            '\n' +
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
+                    },
+                },
+            },
+            advancedConfig: {
+                autoSyncDescription: 'Expensify se sincronizará automáticamente con NetSuite todos los días.',
+                reimbursedReportsDescription:
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de NetSuite indicadas a continuación.',
+                reimbursementsAccount: 'Cuenta de reembolsos',
+                reimbursementsAccountDescription: 'Elija la cuenta bancaria que utilizará para los reembolsos y crearemos el pago asociado en NetSuite.',
+                collectionsAccount: 'Cuenta de cobros',
+                collectionsAccountDescription: 'Una vez que una factura se marca como pagada en Expensify y se exporta a NetSuite, aparecerá contra la cuenta de abajo.',
+                approvalAccount: 'Cuenta de aprobación de cuentas por pagar',
+                approvalAccountDescription:
+                    'Elija la cuenta con la que se aprobarán las transacciones en NetSuite. Si está sincronizando informes reembolsados, esta es también la cuenta con la que se crearán los pagos de facturas.',
+                defaultApprovalAccount: 'Preferencia predeterminada de NetSuite',
+                inviteEmployees: 'Invitar empleados y establecer aprobaciones',
+                inviteEmployeesDescription:
+                    'Importar registros de empleados de NetSuite e invitar a empleados a este espacio de trabajo. Su flujo de trabajo de aprobación será por defecto la aprobación del gerente y se puede configurar más en la página *Miembros*.',
+                autoCreateEntities: 'Crear automáticamente empleados/proveedores',
+                enableCategories: 'Activar categorías recién importadas',
+                customFormID: 'ID de formulario personalizado',
+                customFormIDDescription:
+                    'Por defecto, Expensify creará entradas utilizando el formulario de transacción preferido configurado en NetSuite. Alternativamente, tienes la opción de designar un formulario de transacción específico para ser utilizado.',
+                customFormIDReimbursable: 'Gasto reembolsable',
+                customFormIDNonReimbursable: 'Gasto no reembolsable',
+                exportReportsTo: {
+                    label: 'Nivel de aprobación del informe de gastos',
+                    description:
+                        'Una vez aprobado un informe de gastos en Expensify y exportado a NetSuite, puede establecer un nivel adicional de aprobación en NetSuite antes de su contabilización.',
+                    values: {
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE]: 'Preferencia predeterminada de NetSuite',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_SUPERVISOR_APPROVED]: 'Solo aprobado por el supervisor',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_ACCOUNTING_APPROVED]: 'Solo aprobado por contabilidad',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_BOTH]: 'Aprobado por supervisor y contabilidad',
+                    },
+                },
+                accountingMethods: {
+                    label: 'Cuándo Exportar',
+                    description: 'Elige cuándo exportar los gastos:',
+                    values: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                    },
+                    alternateText: {
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
+                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
+                    },
+                },
+                exportVendorBillsTo: {
+                    label: 'Nivel de aprobación de facturas de proveedores',
+                    description:
+                        'Una vez aprobada una factura de proveedor en Expensify y exportada a NetSuite, puede establecer un nivel adicional de aprobación en NetSuite antes de su contabilización.',
+                    values: {
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED_NONE]: 'Preferencia predeterminada de NetSuite',
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVAL_PENDING]: 'Aprobación pendiente',
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED]: 'Aprobado para publicación',
+                    },
+                },
+                exportJournalsTo: {
+                    label: 'Nivel de aprobación de asientos contables',
+                    description: 'Una vez aprobado un asiento en Expensify y exportado a NetSuite, puede establecer un nivel adicional de aprobación en NetSuite antes de contabilizarlo.',
+                    values: {
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE]: 'Preferencia predeterminada de NetSuite',
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVAL_PENDING]: 'Aprobación pendiente',
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED]: 'Aprobado para publicación',
+                    },
+                },
+                error: {
+                    customFormID: 'Introduzca un ID numérico válido para el formulario personalizado.',
+                },
+            },
+            noAccountsFound: 'No se han encontrado cuentas',
+            noAccountsFoundDescription: 'Añade la cuenta en NetSuite y sincroniza la conexión de nuevo.',
+            noVendorsFound: 'No se han encontrado proveedores',
+            noVendorsFoundDescription: 'Añade proveedores en NetSuite y sincroniza la conexión de nuevo.',
+            noItemsFound: 'No se han encontrado artículos de factura',
+            noItemsFoundDescription: 'Añade artículos de factura en NetSuite y sincroniza la conexión de nuevo.',
+            noSubsidiariesFound: 'No se ha encontrado subsidiarias',
+            noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión.',
+            tokenInput: {
+                title: 'Netsuite configuración',
+                formSteps: {
+                    installBundle: {
+                        title: 'Instala el paquete de Expensify',
+                        description: 'En NetSuite, ir a *Personalización > SuiteBundler > Buscar e Instalar Paquetes* > busca "Expensify" > instala el paquete.',
+                    },
+                    enableTokenAuthentication: {
+                        title: 'Habilitar la autenticación basada en token',
+                        description: 'En NetSuite, ir a *Configuración > Empresa > Habilitar Funciones > SuiteCloud* > activar *autenticación basada en token*.',
+                    },
+                    enableSoapServices: {
+                        title: 'Habilitar servicios web SOAP',
+                        description: 'En NetSuite, ir a *Configuración > Empresa > Habilitar funciones > SuiteCloud* > habilitar *Servicios Web SOAP*.',
+                    },
+                    createAccessToken: {
+                        title: 'Crear un token de acceso',
+                        description:
+                            'En NetSuite, ir a *Configuración > Usuarios/Roles > Tokens de Acceso* > crear un token de acceso para la aplicación "Expensify" y tambiém para el rol de "Integración Expensify" o "Administrador".\n\n*Importante:* Asegúrese de guardar el ID y el secreto del Token en este paso. Los necesitará para el siguiente paso.',
+                    },
+                    enterCredentials: {
+                        title: 'Ingresa tus credenciales de NetSuite',
+                        formInputs: {
+                            netSuiteAccountID: 'ID de Cuenta NetSuite',
+                            netSuiteTokenID: 'ID de Token',
+                            netSuiteTokenSecret: 'Secreto de Token',
+                        },
+                        netSuiteAccountIDDescription: 'En NetSuite, ir a *Configuración > Integración > Preferencias de Servicios Web SOAP*.',
+                    },
+                },
+            },
+            import: {
+                expenseCategories: 'Categorías de gastos',
+                expenseCategoriesDescription: 'Las categorías de gastos de NetSuite se importan a Expensify como categorías.',
+                crossSubsidiaryCustomers: 'Clientes/proyectos entre subsidiaria',
+                importFields: {
+                    departments: {
+                        title: 'Departamentos',
+                        subtitle: 'Elige cómo manejar los *departamentos* de NetSuite en Expensify.',
+                    },
+                    classes: {
+                        title: 'Clases',
+                        subtitle: 'Elige cómo manejar las *clases* en Expensify.',
+                    },
+                    locations: {
+                        title: 'Ubicaciones',
+                        subtitle: 'Elija cómo manejar *ubicaciones* en Expensify.',
+                    },
+                },
+                customersOrJobs: {
+                    title: 'Clientes/proyectos',
+                    subtitle: 'Elija cómo manejar los *clientes* y *proyectos* de NetSuite en Expensify.',
+                    importCustomers: 'Importar clientes',
+                    importJobs: 'Importar proyectos',
+                    customers: 'clientes',
+                    jobs: 'proyectos',
+                    label: ({importFields, importType}: CustomersOrJobsLabelParams) => `${importFields.join(' y ')}, ${importType}`,
+                },
+                importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
+                importCustomFields: {
+                    chooseOptionBelow: 'Elija una de las opciones siguientes:',
+                    label: ({importedTypes}: ImportedTypesParams) => `Importados como ${importedTypes.join(' y ')}`,
+                    requiredFieldError: ({fieldName}: RequiredFieldParams) => `Por favor, introduzca el ${fieldName}`,
+                    customSegments: {
+                        title: 'Segmentos/registros personalizados',
+                        addText: 'Añadir segmento/registro personalizado',
+                        recordTitle: 'Segmento/registro personalizado',
+                        helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS,
+                        helpLinkText: 'Ver instrucciones detalladas',
+                        helpText: ' sobre la configuración de segmentos/registros personalizado.',
+                        emptyTitle: 'Añadir un segmento personalizado o un registro personalizado',
+                        fields: {
+                            segmentName: 'Name',
+                            internalID: 'Identificación interna',
+                            scriptID: 'ID de guión',
+                            mapping: 'Mostrado como',
+                            customRecordScriptID: 'ID de columna de transacción',
+                        },
+                        removeTitle: 'Eliminar segmento/registro personalizado',
+                        removePrompt: '¿Está seguro de que desea eliminar este segmento/registro personalizado?',
+                        addForm: {
+                            customSegmentName: 'nombre de segmento personalizado',
+                            customRecordName: 'nombre de registro personalizado',
+                            segmentTitle: 'Segmento personalizado',
+                            customSegmentAddTitle: 'Añadir segmento personalizado',
+                            customRecordAddTitle: 'Añadir registro personalizado',
+                            recordTitle: 'Registro personalizado',
+                            segmentRecordType: '¿Desea añadir un segmento personalizado o un registro personalizado?',
+                            customSegmentNameTitle: '¿Cuál es el nombre del segmento personalizado?',
+                            customRecordNameTitle: '¿Cuál es el nombre del registro personalizado?',
+                            customSegmentNameFooter: `Puede encontrar los nombres de los segmentos personalizados en NetSuite en la página *Personalizaciones > Vínculos, registros y campos > Segmentos personalizados*.\nn_Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customRecordNameFooter: `Puede encontrar nombres de registros personalizados en NetSuite introduciendo el "Campo de columna de transacción" en la búsqueda global.\nn_Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customSegmentInternalIDTitle: '¿Cuál es la identificación interna?',
+                            customSegmentInternalIDFooter: `En primer lugar, asegúrese de que ha habilitado los ID internos en NetSuite en *Inicio > Establecer preferencias > Mostrar ID interno*. *Personalización > Listas, registros y campos > Segmentos personalizados*.\n2. Haga clic en un segmento personalizado. Haga clic en un segmento personalizado. Haga clic en el hipervínculo situado junto a *Tipo de registro personalizado*.\n4. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
+                            customRecordInternalIDFooter: `Puede encontrar IDs internos de registros personalizados en NetSuite siguiendo estos pasos:\n\n1. Introduzca "Campos de línea de transacción" en la búsqueda global. Haga clic en un registro personalizado. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customSegmentScriptIDTitle: '¿Cuál es el ID del guión?',
+                            customSegmentScriptIDFooter: `Puede encontrar IDs de script de segmentos personalizados en NetSuite en: \n\n1. *Personalización > Listas, Registros y Campos > Segmentos Personalizados*.\n2. Haga clic en un segmento personalizado. a. Si desea mostrar el segmento personalizado como una *etiqueta* (a nivel de partida) en Expensify, haga clic en la subpestaña *Columnas de transacción* y utilice el *ID de campo*. b. Si desea mostrar el segmento personalizado como una *etiqueta* (a nivel de partida) en Expensify, haga clic en la subpestaña *Columnas de transacción* y utilice el *ID de campo*. Si desea mostrar el segmento personalizado como un *campo de informe* (a nivel de informe) en Expensify, haga clic en la subpestaña *Transacciones* y utilice el *ID de campo*. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
+                            customRecordScriptIDTitle: '¿Cuál es el ID de columna de la transacción?',
+                            customRecordScriptIDFooter: `Puede encontrar IDs de script de registro personalizados en NetSuite en:\n\n1. Introduzca "Campos de línea de transacción" en la búsqueda global.\n2. Haga clic en un registro personalizado.\n3. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
+                            customSegmentMappingTitle: '¿Cómo debería mostrarse este segmento personalizado en Expensify?',
+                            customRecordMappingTitle: '¿Cómo debería mostrarse este registro de segmento personalizado en Expensify?',
+                        },
+                        errors: {
+                            uniqueFieldError: ({fieldName}: RequiredFieldParams) => `Ya existe un segmento/registro personalizado con este ${fieldName?.toLowerCase()}.`,
+                        },
+                    },
+                    customLists: {
+                        title: 'Listas personalizadas',
+                        addText: 'Añadir lista personalizada',
+                        recordTitle: 'Lista personalizado',
+                        helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS,
+                        helpLinkText: 'Ver instrucciones detalladas',
+                        helpText: ' sobre cómo configurar listas personalizada.',
+                        emptyTitle: 'Añadir una lista personalizado',
+                        fields: {
+                            listName: 'Nombre',
+                            internalID: 'Identificación interna',
+                            transactionFieldID: 'ID del campo de transacción',
+                            mapping: 'Mostrado como',
+                        },
+                        removeTitle: 'Eliminar lista personalizado',
+                        removePrompt: '¿Está seguro de que desea eliminar esta lista personalizado?',
+                        addForm: {
+                            listNameTitle: 'Elija una lista personalizada',
+                            transactionFieldIDTitle: '¿Cuál es el ID del campo de transacción?',
+                            transactionFieldIDFooter: `Puede encontrar los ID de campo de transacción en NetSuite siguiendo estos pasos:\n\n1. Introduzca "Campos de línea de transacción" en búsqueda global. Introduzca "Campos de línea de transacción" en la búsqueda global.\n2. Haga clic en una lista personalizada.\n3. Para obtener instrucciones más detalladas, [visite nuestro sitio de ayuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
+                            mappingTitle: '¿Cómo debería mostrarse esta lista personalizada en Expensify?',
+                        },
+                        errors: {
+                            uniqueTransactionFieldIDError: `Ya existe una lista personalizada con este ID de campo de transacción.`,
+                        },
+                    },
+                },
+                importTypes: {
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
+                        label: 'Predeterminado del empleado NetSuite',
+                        description: 'No importado a Expensify, aplicado en exportación',
+                        footerContent: ({importField}: ImportFieldParams) =>
+                            `Si usa ${importField} en NetSuite, aplicaremos el conjunto predeterminado en el registro del empleado al exportarlo a Informe de gastos o Entrada de diario.`,
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
+                        label: 'Etiquetas',
+                        description: 'Nivel de línea de pedido',
+                        footerContent: ({importField}: ImportFieldParams) => `Se podrán seleccionar ${importField} para cada gasto individual en el informe de un empleado.`,
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
+                        label: 'Campos de informe',
+                        description: 'Nivel de informe',
+                        footerContent: ({importField}: ImportFieldParams) => `La selección de ${importField} se aplicará a todos los gastos en el informe de un empleado.`,
+                    },
+                },
+            },
+        },
+        nsqs: {
+            setup: {
+                title: 'NSQS configuración',
+                description: 'Introduce tu ID de NSQS',
+                formInputs: {
+                    netSuiteAccountID: 'ID de Cuenta NSQS',
+                },
+            },
+            import: {
+                expenseCategories: 'Categorías de gastos',
+                expenseCategoriesDescription: 'Las categorías de gastos de NSQS se importan a Expensify como categorías.',
+                importTypes: {
+                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
+                        label: 'Etiquetas',
+                        description: 'Nivel de línea de pedido',
+                    },
+                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
+                        label: 'Campos de informe',
+                        description: 'Nivel de informe',
+                    },
+                },
+                importFields: {
+                    customers: {
+                        title: 'Clientes',
+                        subtitle: 'Elige cómo gestionar los *clientes* de NSQS en Expensify.',
+                    },
+                    projects: {
+                        title: 'Proyectos',
+                        subtitle: 'Elige cómo gestionar los *proyectos* de NSQS en Expensify.',
+                    },
+                },
+            },
+            export: {
+                description: 'Configura cómo se exportan los datos de Expensify a NSQS.',
+                exportDate: {
+                    label: 'Fecha de exportación',
+                    description: 'Usa esta fecha al exportar informe a NSQS.',
+                    values: {
+                        [CONST.NSQS_EXPORT_DATE.LAST_EXPENSE]: {
+                            label: 'Fecha del último gasto',
+                            description: 'Fecha del gasto mas reciente en el informe.',
+                        },
+                        [CONST.NSQS_EXPORT_DATE.EXPORTED]: {
+                            label: 'Fecha de exportación',
+                            description: 'Fecha de exportación del informe a NSQS.',
+                        },
+                        [CONST.NSQS_EXPORT_DATE.SUBMITTED]: {
+                            label: 'Fecha de envío',
+                            description: 'Fecha en la que el informe se envió para su aprobación.',
+                        },
+                    },
+                },
+                expense: 'Gasto',
+                reimbursableExpenses: 'Exportar gastos reembolsables como',
+                nonReimbursableExpenses: 'Exportar gastos no reembolsables como',
+                defaultPaymentAccount: 'Preferencia predeterminada de NSQS',
+                paymentAccount: 'Cuenta de pago',
+                paymentAccountDescription: 'Elige la cuenta que se utilizará como cuenta de pago para las transacciones NSQS.',
+            },
+            advanced: {
+                autoSyncDescription: 'Sincroniza NSQS y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
+            },
+        },
+        intacct: {
+            sageIntacctSetup: 'Sage Intacct configuración',
+            prerequisitesTitle: 'Antes de conectar...',
+            downloadExpensifyPackage: 'Descargar el paquete Expensify para Sage Intacct',
+            followSteps: 'Siga los pasos de nuestras instrucciones Cómo: Instrucciones para conectarse a Sage Intacct',
+            enterCredentials: 'Introduzca sus credenciales de Sage Intacct',
+            entity: 'Entidad',
+            employeeDefault: 'Sage Intacct empleado por defecto',
+            employeeDefaultDescription: 'El departamento por defecto del empleado se aplicará a sus gastos en Sage Intacct si existe.',
+            displayedAsTagDescription: 'Se podrá seleccionar el departamento para cada gasto individual en el informe de un empleado.',
+            displayedAsReportFieldDescription: 'La selección de departamento se aplicará a todos los gastos que figuren en el informe de un empleado.',
+            toggleImportTitleFirstPart: 'Elija cómo gestionar Sage Intacct ',
+            toggleImportTitleSecondPart: ' en Expensify.',
+            expenseTypes: 'Tipos de gastos',
+            expenseTypesDescription: 'Los tipos de gastos de Sage Intacct se importan a Expensify como categorías.',
+            importTaxDescription: 'Importar el tipo impositivo de compra desde Sage Intacct.',
+            userDefinedDimensions: 'Dimensiones definidas por el usuario',
+            addUserDefinedDimension: 'Añadir dimensión definida por el usuario',
+            integrationName: 'Nombre de la integración',
+            dimensionExists: 'Ya existe una dimensión con ese nombre.',
+            removeDimension: 'Eliminar dimensión definida por el usuario',
+            removeDimensionPrompt: 'Está seguro de que desea eliminar esta dimensión definida por el usuario?',
+            userDefinedDimension: 'Dimensión definida por el usuario',
+            addAUserDefinedDimension: 'Añadir una dimensión definida por el usuario',
+            detailedInstructionsLink: 'Ver instrucciones detalladas',
+            detailedInstructionsRestOfSentence: ' para añadir dimensiones definidas por el usuario.',
+            userDimensionsAdded: () => ({
+                one: '1 UDD añadido',
+                other: (count: number) => `${count} UDDs añadido`,
+            }),
+            mappingTitle: ({mappingName}: IntacctMappingTitleParams) => {
+                switch (mappingName) {
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
+                        return 'departamentos';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
+                        return 'clases';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
+                        return 'lugares';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
+                        return 'clientes';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
+                        return 'proyectos (empleos)';
+                    default:
+                        return 'asignaciones';
+                }
+            },
+        },
+        multiConnectionSelector: {
+            title: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} configuración`,
+            description: ({connectionName}: ConnectionNameParams) => `Selecciona tu versión de ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} para continuar.`,
+        },
+        type: {
+            free: 'Gratis',
+            control: 'Controlar',
+            collect: 'Recopilar',
+        },
+        companyCards: {
+            addCards: 'Añadir tarjetas',
+            selectCards: 'Seleccionar tarjetas',
+            addNewCard: {
+                other: 'Otros',
+                cardProviders: {
+                    gl1025: 'Tarjetas de empresa American Express',
+                    cdf: 'Tarjetas comerciales Mastercard',
+                    vcf: 'Tarjetas comerciales Visa',
+                    stripe: 'Tarjetas comerciales Stripe',
+                },
+                yourCardProvider: `¿Quién es su proveedor de tarjetas?`,
+                whoIsYourBankAccount: '¿Cuál es tu banco?',
+                howDoYouWantToConnect: '¿Cómo deseas conectarte a tu banco?',
+                learnMoreAboutOptions: {
+                    text: 'Obtén más información sobre estas ',
+                    linkText: 'opciones.',
+                },
+                commercialFeedDetails: 'Requiere configuración con tu banco. Esto suele ser utilizado por empresas más grandes y a menudo es la mejor opción si calificas.',
+                directFeedDetails: 'El enfoque más simple. Conéctate de inmediato usando tus credenciales maestras. Este método es el más común.',
+                enableFeed: {
+                    title: ({provider}: GoBackMessageParams) => `Habilita tu feed ${provider}`,
+                    heading:
+                        'Tenemos una integración directa con el emisor de su tarjeta y podemos importar los datos de sus transacciones a Expensify de forma rápida y precisa.\n\nPara empezar, simplemente:',
+                    visa: 'Contamos con integraciones globales con Visa, aunque la elegibilidad varía según el banco y el programa de la tarjeta.\n\nTPara empezar, simplemente:',
+                    mastercard: 'Contamos con integraciones globales con Mastercard, aunque la elegibilidad varía según el banco y el programa de la tarjeta.\n\nPara empezar, simplemente:',
+                    vcf: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP}) para obtener instrucciones detalladas sobre cómo configurar sus tarjetas comerciales Visa.\n\n2. [Póngase en contacto con su banco](${CONST.COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP}) para comprobar que admiten un feed personalizado para su programa, y pídales que lo activen.\n\n3. *Una vez que el feed esté habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
+                    gl1025: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_AMEX_COMMERICAL_CARD_HELP}) para saber si American Express puede habilitar un feed personalizado para su programa.\n\n2. Una vez activada la alimentación, Amex le enviará una carta de producción.\n\n3. *Una vez que tenga la información de alimentación, continúe con la siguiente pantalla.*`,
+                    cdf: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) para obtener instrucciones detalladas sobre cómo configurar sus tarjetas comerciales Mastercard.\n\n 2. [Póngase en contacto con su banco](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) para verificar que admiten un feed personalizado para su programa, y pídales que lo habiliten.\n\n3. *Una vez que el feed esté habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
+                    stripe: `1. Visita el Panel de Stripe y ve a [Configuraciones](${CONST.COMPANY_CARDS_STRIPE_HELP}).\n\n2. En Integraciones de Productos, haz clic en Habilitar junto a Expensify.\n\n3. Una vez que la fuente esté habilitada, haz clic en Enviar abajo y comenzaremos a añadirla.`,
+                },
+                whatBankIssuesCard: '¿Qué banco emite estas tarjetas?',
+                enterNameOfBank: 'Introduzca el nombre del banco',
+                feedDetails: {
+                    vcf: {
+                        title: '¿Cuáles son los datos de alimentación de Visa?',
+                        processorLabel: 'ID del procesador',
+                        bankLabel: 'Identificación de la institución financiera (banco)',
+                        companyLabel: 'Empresa ID',
+                        helpLabel: '¿Dónde encuentro estos IDs?',
+                    },
+                    gl1025: {
+                        title: `¿Cuál es el nombre del archivo de entrega de Amex?`,
+                        fileNameLabel: 'Nombre del archivo de entrega',
+                        helpLabel: '¿Dónde encuentro el nombre del archivo de entrega?',
+                    },
+                    cdf: {
+                        title: `¿Cuál es el identificador de distribución de Mastercard?`,
+                        distributionLabel: 'ID de distribución',
+                        helpLabel: '¿Dónde encuentro el ID de distribución?',
+                    },
+                },
+                amexCorporate: 'Seleccione esto si el frente de sus tarjetas dice “Corporativa”',
+                amexBusiness: 'Seleccione esta opción si el frente de sus tarjetas dice “Negocios”',
+                amexPersonal: 'Selecciona esta opción si tus tarjetas son personales',
+                error: {
+                    pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar.',
+                    pleaseSelectBankAccount: 'Seleccione una cuenta bancaria antes de continuar.',
+                    pleaseSelectBank: 'Seleccione una bancaria antes de continuar.',
+                    pleaseSelectFeedType: 'Seleccione un tipo de pienso antes de continuar.',
+                },
+            },
+            assignCard: 'Asignar tarjeta',
+            cardNumber: 'Número de la tarjeta',
+            commercialFeed: 'Fuente comercial',
+            feedName: ({feedName}: CompanyCardFeedNameParams) => `Tarjetas ${feedName}`,
+            directFeed: 'Fuente directa',
+            whoNeedsCardAssigned: '¿Quién necesita una tarjeta?',
+            chooseCard: 'Elige una tarjeta',
+            chooseCardFor: ({assignee, feed}: AssignCardParams) => `Elige una tarjeta para ${assignee} del feed de tarjetas ${feed}.`,
+            noActiveCards: 'No hay tarjetas activas en este feed',
+            somethingMightBeBroken: 'O algo podría estar roto. De cualquier manera, si tienes alguna pregunta,',
+            contactConcierge: 'contacta a Concierge',
+            chooseTransactionStartDate: 'Elige una fecha de inicio de transacciones',
+            startDateDescription: 'Importaremos todas las transacciones desde esta fecha en adelante. Si no se especifica una fecha, iremos tan atrás como lo permita tu banco.',
+            fromTheBeginning: 'Desde el principio',
+            customStartDate: 'Fecha de inicio personalizada',
+            letsDoubleCheck: 'Verifiquemos que todo esté bien.',
+            confirmationDescription: 'Comenzaremos a importar transacciones inmediatamente.',
+            cardholder: 'Titular de la tarjeta',
+            card: 'Tarjeta',
+            cardName: 'Nombre de la tarjeta',
+            brokenConnectionErrorFirstPart: `La conexión de la fuente de tarjetas está rota. Por favor, `,
+            brokenConnectionErrorLink: 'inicia sesión en tu banco ',
+            brokenConnectionErrorSecondPart: 'para que podamos restablecer la conexión.',
+            assignedCard: ({assignee, link}: AssignedCardParams) => `ha asignado a ${assignee} una ${link}! Las transacciones importadas aparecerán en este chat.`,
+            companyCard: 'tarjeta de empresa',
+            chooseCardFeed: 'Elige feed de tarjetas',
+        },
+        expensifyCard: {
+            issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
+            getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
+            verificationInProgress: 'Verificación en curso...',
+            verifyingTheDetails: 'Estamos verificando algunos detalles. Concierge te avisará cuando las tarjetas de Expensify estén listas para emitirse.',
+            disclaimer:
+                'La tarjeta comercial Expensify Visa® es emitida por The Bancorp Bank, N.A., miembro de la FDIC, en virtud de una licencia de Visa U.S.A. Inc. y no puede utilizarse en todos los comercios que aceptan tarjetas Visa. Apple® y el logotipo de Apple® son marcas comerciales de Apple Inc. registradas en EE.UU. y otros países. App Store es una marca de servicio de Apple Inc. Google Play y el logotipo de Google Play son marcas comerciales de Google LLC.',
+            issueCard: 'Emitir tarjeta',
+            newCard: 'Nueva tarjeta',
+            name: 'Nombre',
+            lastFour: '4 últimos',
+            limit: 'Limite',
+            currentBalance: 'Saldo actual',
+            currentBalanceDescription:
+                'El saldo actual es la suma de todas las transacciones contabilizadas con la Tarjeta Expensify que se han producido desde la última fecha de liquidación.',
+            balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `El saldo se liquidará el ${settlementDate}.`,
+            settleBalance: 'Liquidar saldo',
+            cardLimit: 'Límite de la tarjeta',
+            remainingLimit: 'Límite restante',
+            requestLimitIncrease: 'Solicitar aumento de límite',
+            remainingLimitDescription:
+                'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
+            earnedCashback: 'Reembolso',
+            earnedCashbackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
+            issueNewCard: 'Emitir nueva tarjeta',
+            finishSetup: 'Terminar configuración',
+            chooseBankAccount: 'Elegir cuenta bancaria',
+            chooseExistingBank: 'Elige una cuenta bancaria comercial existente para pagar el saldo de su Tarjeta Expensify o añade una nueva cuenta bancaria.',
+            accountEndingIn: 'Cuenta terminada en',
+            addNewBankAccount: 'Añadir nueva cuenta bancaria',
+            settlementAccount: 'Cuenta de liquidación',
+            settlementAccountDescription: 'Elige una cuenta para pagar el saldo de tu Tarjeta Expensify.',
+            settlementAccountInfoPt1: 'Asegúrate de que esta cuenta coincide con tu',
+            settlementAccountInfoPt2: 'para que Reconciliación Continua funcione correctamente.',
+            reconciliationAccount: 'Cuenta de conciliación',
+            settlementFrequency: 'Frecuencia de liquidación',
+            settlementFrequencyDescription: 'Elige con qué frecuencia pagarás el saldo de tu Tarjeta Expensify',
+            settlementFrequencyInfo:
+                'Si deseas cambiar a la liquidación mensual, deberás conectar tu cuenta bancaria a través de Plaid y tener un historial de saldo positivo en los últimos 90 días.',
+            frequency: {
+                daily: 'Cada día',
+                monthly: 'Mensual',
+            },
+            cardDetails: 'Datos de la tarjeta',
+            virtual: 'Virtual',
+            physical: 'Física',
+            deactivate: 'Desactivar tarjeta',
+            changeCardLimit: 'Modificar el límite de la tarjeta',
+            changeLimit: 'Modificar límite',
+            smartLimitWarning: ({limit}: CharacterLimitParams) =>
+                `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta que apruebes antiguos gastos de la tarjeta.`,
+            monthlyLimitWarning: ({limit}: CharacterLimitParams) => `Si cambias el límite de esta tarjeta a ${limit}, las nuevas transacciones serán rechazadas hasta el próximo mes.`,
+            fixedLimitWarning: ({limit}: CharacterLimitParams) => `Si cambias el límite de esta tarjeta a ${limit}, se rechazarán las nuevas transacciones.`,
+            changeCardLimitType: 'Modificar el tipo de límite de la tarjeta',
+            changeLimitType: 'Modificar el tipo de límite',
+            changeCardSmartLimitTypeWarning: ({limit}: CharacterLimitParams) =>
+                `Si cambias el tipo de límite de esta tarjeta a Límite inteligente, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} no aprobado.`,
+            changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) =>
+                `Si cambias el tipo de límite de esta tarjeta a Mensual, las nuevas transacciones serán rechazadas porque ya se ha alcanzado el límite de ${limit} mensual.`,
+            addShippingDetails: 'Añadir detalles de envío',
+            issuedCard: ({assignee}: AssigneeParams) => `emitió a ${assignee} una Tarjeta Expensify. La tarjeta llegará en 2-3 días laborables.`,
+            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `emitió a ${assignee} una Tarjeta Expensify. La tarjeta se enviará una vez que se agreguen los detalles de envío.`,
+            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `emitió a ${assignee} una ${link} virtual. La tarjeta puede utilizarse inmediatamente.`,
+            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} agregó los detalles de envío. La Tarjeta Expensify llegará en 2-3 días hábiles.`,
+            verifyingHeader: 'Verificando',
+            bankAccountVerifiedHeader: 'Cuenta bancaria verificada',
+            verifyingBankAccount: 'Verificando cuenta bancaria...',
+            verifyingBankAccountDescription: 'Por favor, espere mientras confirmamos que esta cuenta se puede utilizar para emitir tarjetas Expensify.',
+            bankAccountVerified: '¡Cuenta bancaria verificada!',
+            bankAccountVerifiedDescription: 'Ahora puedes emitir tarjetas de Expensify para los miembros de tu espacio de trabajo.',
+            oneMoreStep: 'Un paso más',
+            oneMoreStepDescription: 'Parece que tenemos que verificar manualmente tu cuenta bancaria. Dirígete a Concierge, donde te esperan las instrucciones.',
+            gotIt: 'Entendido',
+            goToConcierge: 'Ir a Concierge',
+        },
+        categories: {
+            deleteCategories: 'Eliminar categorías',
+            deleteCategoriesPrompt: '¿Estás seguro de que quieres eliminar estas categorías?',
+            deleteCategory: 'Eliminar categoría',
+            deleteCategoryPrompt: '¿Estás seguro de que quieres eliminar esta categoría?',
+            disableCategories: 'Desactivar categorías',
+            disableCategory: 'Desactivar categoría',
+            enableCategories: 'Activar categorías',
+            enableCategory: 'Activar categoría',
+            defaultSpendCategories: 'Categorías de gasto predeterminadas',
+            spendCategoriesDescription: 'Personaliza cómo se categorizan los gastos de los comerciantes para las transacciones con tarjeta de crédito y los recibos escaneados.',
+            deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
+            categoryName: 'Nombre de la categoría',
+            requiresCategory: 'Los miembros deben clasificar todos los gastos',
+            needCategoryForExportToIntegration: ({connectionName}: NeedCategoryForExportToIntegrationParams) =>
+                `Todos los gastos deben estar categorizados para poder exportar a ${connectionName}.`,
+            subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
+            emptyCategories: {
+                title: 'No has creado ninguna categoría',
+                subtitle: 'Añade una categoría para organizar tu gasto.',
+            },
+            updateFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
+            createFailureMessage: 'Se ha producido un error al intentar crear la categoría. Por favor, inténtalo más tarde.',
+            addCategory: 'Añadir categoría',
+            editCategory: 'Editar categoría',
+            editCategories: 'Editar categorías',
+            categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
+            existingCategoryError: 'Ya existe una categoría con este nombre.',
+            invalidCategoryName: 'Lo nombre de la categoría es invalido.',
+            importedFromAccountingSoftware: 'Categorías importadas desde',
+            payrollCode: 'Código de nómina',
+            updatePayrollCodeFailureMessage: 'Se produjo un error al actualizar el código de nómina, por favor intente nuevamente.',
+            glCode: 'Código de Libro Mayor',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
+            importCategories: 'Importar categorías',
+        },
+        moreFeatures: {
+            subtitle: 'Utiliza los botones de abajo para activar más funciones a medida que creces. Cada función aparecerá en el menú de navegación para una mayor personalización.',
+            spendSection: {
+                title: 'Gasto',
+                subtitle: 'Habilita otras funcionalidades que ayudan a aumentar tu equipo.',
+            },
+            manageSection: {
+                title: 'Gestionar',
+                subtitle: 'Añade controles que ayudan a mantener los gastos dentro del presupuesto.',
+            },
+            earnSection: {
+                title: 'Gane',
+                subtitle: 'Agiliza tus ingresos y recibe pagos más rápido.',
+            },
+            organizeSection: {
+                title: 'Organizar',
+                subtitle: 'Agrupa y analiza el gasto, registra cada impuesto pagado.',
+            },
+            integrateSection: {
+                title: 'Integrar',
+                subtitle: 'Conecta Expensify a otros productos financieros populares.',
+            },
+            distanceRates: {
+                title: 'Tasas de distancia',
+                subtitle: 'Añade, actualiza y haz cumplir las tasas.',
+            },
+            perDiem: {
+                title: 'Per diem',
+                subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados.',
+            },
+            expensifyCard: {
+                title: 'Tarjeta Expensify',
+                subtitle: 'Obtén información y control sobre tus gastos.',
+                disableCardTitle: 'Deshabilitar la Tarjeta Expensify',
+                disableCardPrompt: 'No puedes deshabilitar la Tarjeta Expensify porque ya está en uso. Por favor, contacta con Concierge para conocer los pasos a seguir.',
+                disableCardButton: 'Chatear con Concierge',
+                feed: {
+                    title: 'Consigue la Tarjeta Expensify',
+                    subTitle: 'Simplifica los gastos de tu empresa y ahorra hasta un 50 % en tu factura de Expensify, además:',
+                    features: {
+                        cashBack: 'Devolución de dinero en cada compra en Estados Unidos',
+                        unlimited: 'Un número ilimitado de tarjetas virtuales',
+                        spend: 'Controles de gastos y límites personalizados',
+                    },
+                    ctaTitle: 'Emitir nueva tarjeta',
+                },
+            },
+            companyCards: {
+                title: 'Tarjetas de empresa',
+                subtitle: 'Importar gastos de las tarjetas de empresa existentes.',
+                feed: {
+                    title: 'Importar tarjetas de empresa',
+                    features: {
+                        support: 'Compatibilidad con los principales proveedores de tarjetas',
+                        assignCards: 'Asignar tarjetas a todo el equipo',
+                        automaticImport: 'Importación automática de transacciones',
+                    },
+                },
+                disableCardTitle: 'Deshabilitar tarjetas de empresa',
+                disableCardPrompt: 'No puedes deshabilitar las tarjetas de empresa porque esta función está en uso. Por favor, contacta a Concierge para los próximos pasos.',
+                disableCardButton: 'Chatear con Concierge',
+                cardDetails: 'Datos de la tarjeta',
+                cardNumber: 'Número de la tarjeta',
+                cardholder: 'Titular de la tarjeta',
+                cardName: 'Nombre de la tarjeta',
+                integrationExport: ({integration, type}: IntegrationExportParams) =>
+                    integration && type ? `Exportación a ${integration} ${type.toLowerCase()}` : `Exportación a ${integration}`,
+                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Seleccione la cuenta ${integration} donde se deben exportar las transacciones.`,
+                integrationExportTitleLinkPart: 'opción de exportación',
+                integrationExportTitlePart: 'Seleccione una cuenta diferente',
+                integrationExportTitleSecondPart: 'para cambiar las cuentas disponibles.',
+                lastUpdated: 'Última actualización',
+                transactionStartDate: 'Fecha de inicio de transacciones',
+                updateCard: 'Actualizar tarjeta',
+                unassignCard: 'Desasignar tarjeta',
+                unassign: 'Desasignar',
+                unassignCardDescription: 'Desasignar esta tarjeta eliminará todas las transacciones en informes en borrador de la cuenta del titular.',
+                assignCard: 'Asignar tarjeta',
+                cardFeedName: 'Nombre del feed de tarjeta',
+                cardFeedNameDescription: 'Dale al feed de tarjeta un nombre único para que puedas distinguirlo de los demás.',
+                cardFeedTransaction: 'Eliminar transacciones',
+                cardFeedTransactionDescription: 'Elige si los titulares de tarjetas pueden eliminar transacciones de tarjetas. Las nuevas transacciones seguirán estas reglas.',
+                cardFeedRestrictDeletingTransaction: 'Restringir eliminación de transacciones',
+                cardFeedAllowDeletingTransaction: 'Permitir eliminación de transacciones',
+                removeCardFeed: 'Quitar la alimentación de tarjetas',
+                removeCardFeedTitle: ({feedName}: CompanyCardFeedNameParams) => `Eliminar el feed de ${feedName}`,
+                removeCardFeedDescription: '¿Estás seguro de que deseas eliminar esta fuente de tarjetas? Esto anulará la asignación de todas las tarjetas.',
+                error: {
+                    feedNameRequired: 'Se requiere el nombre de la fuente de la tarjeta.',
+                },
+                corporate: 'Restringir eliminación de transacciones',
+                personal: 'Permitir eliminación de transacciones',
+                setFeedNameDescription: 'Dale al feed de tarjeta un nombre único para que puedas distinguirlo de los demás.',
+                setTransactionLiabilityDescription:
+                    'Cuando está habilitada, los titulares de tarjetas pueden eliminar transacciones con tarjeta. Las transacciones nuevas seguirán esta regla.',
+                emptyAddedFeedTitle: 'Asignar tarjetas de empresa',
+                emptyAddedFeedDescription: 'Comienza asignando tu primera tarjeta a un miembro.',
+                pendingFeedTitle: `Estamos revisando tu solicitud...`,
+                pendingFeedDescription: `Actualmente estamos revisando los detalles de tu feed. Una vez hecho esto, nos pondremos en contacto contigo a través de`,
+                pendingBankTitle: 'Comprueba la ventana de tu navegador',
+                pendingBankDescription: ({bankName}: CompanyCardBankName) => `Conéctese a ${bankName} a través de la ventana del navegador que acaba de abrir. Si no se abrió, `,
+                pendingBankLink: 'por favor haga clic aquí.',
+                giveItNameInstruction: 'Nombra la tarjeta para distingirla de las demás.',
+                updating: 'Actualizando...',
+                noAccountsFound: 'No se han encontrado cuentas',
+                defaultCard: 'Tarjeta predeterminada',
+                downgradeTitle: 'No se puede degradar el espacio de trabajo',
+                downgradeSubTitleFirstPart: `No es posible cambiar a una versión inferior de este espacio de trabajo porque hay varias fuentes de tarjetas conectadas (excluidas las tarjetas Expensify). Por favor`,
+                downgradeSubTitleMiddlePart: 'mantenga solo una tarjeta',
+                downgradeSubTitleLastPart: 'para continuar.',
+                noAccountsFoundDescription: ({connection}: ConnectionParams) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
+                expensifyCardBannerTitle: 'Obtén la Tarjeta Expensify',
+                expensifyCardBannerSubtitle:
+                    'Disfruta de una devolución en cada compra en Estados Unidos, hasta un 50% de descuento en tu factura de Expensify, tarjetas virtuales ilimitadas y mucho más.',
+                expensifyCardBannerLearnMoreButton: 'Más información',
+            },
+            workflows: {
+                title: 'Flujos de trabajo',
+                subtitle: 'Configura cómo se aprueba y paga los gastos.',
+                disableApprovalPrompt:
+                    'Las Tarjetas Expensify de este espacio de trabajo dependen actualmente de la aprobación para definir sus Límites Inteligentes. Por favor, modifica los tipos de límite de cualquier Tarjeta Expensify con Límites Inteligentes antes de deshabilitar las aprobaciones.',
+            },
+            invoices: {
+                title: 'Facturas',
+                subtitle: 'Enviar y recibir facturas.',
+            },
+            categories: {
+                title: 'Categorías',
+                subtitle: 'Monitoriza y organiza los gastos.',
+            },
+            tags: {
+                title: 'Etiquetas',
+                subtitle: 'Clasifica costes y rastrea gastos facturables.',
+            },
+            taxes: {
+                title: 'Impuestos',
+                subtitle: 'Documenta y reclama los impuestos aplicables.',
+            },
+            reportFields: {
+                title: 'Campos de informes',
+                subtitle: 'Configura campos personalizados para los gastos.',
+            },
+            connections: {
+                title: 'Contabilidad',
+                subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
+            },
+            connectionsWarningModal: {
+                featureEnabledTitle: 'No tan rápido...',
+                featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
+                disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
+                manageSettings: 'Gestionar la configuración',
+            },
+            rules: {
+                title: 'Reglas',
+                subtitle: 'Solicita recibos, resalta gastos de alto importe y mucho más.',
+            },
+        },
+        reportFields: {
+            addField: 'Añadir campo',
+            delete: 'Eliminar campo',
+            deleteFields: 'Eliminar campos',
+            deleteConfirmation: '¿Está seguro de que desea eliminar este campo del informe?',
+            deleteFieldsConfirmation: '¿Está seguro de que desea eliminar estos campos del informe?',
+            emptyReportFields: {
+                title: 'No has creado ningún campo de informe',
+                subtitle: 'Añade un campo personalizado (texto, fecha o desplegable) que aparezca en los informes.',
+            },
+            subtitle: 'Los campos de informe se aplican a todos los gastos y pueden ser útiles cuando quieras solicitar información adicional.',
+            disableReportFields: 'Desactivar campos de informe',
+            disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
+            importedFromAccountingSoftware: 'Campos de informes importadas desde',
+            textType: 'Texto',
+            dateType: 'Fecha',
+            dropdownType: 'Lista',
+            textAlternateText: 'Añade un campo para introducir texto libre.',
+            dateAlternateText: 'Añade un calendario para la selección de fechas.',
+            dropdownAlternateText: 'Añade una lista de opciones para elegir.',
+            nameInputSubtitle: 'Elige un nombre para el campo del informe.',
+            typeInputSubtitle: 'Elige qué tipo de campo de informe utilizar.',
+            initialValueInputSubtitle: 'Ingresa un valor inicial para mostrar en el campo del informe.',
+            listValuesInputSubtitle: 'Estos valores aparecerán en el desplegable del campo de tu informe. Los miembros pueden seleccionar los valores habilitados.',
+            listInputSubtitle: 'Estos valores aparecerán en la lista de campos de tu informe. Los miembros pueden seleccionar los valores habilitados.',
+            deleteValue: 'Eliminar valor',
+            deleteValues: 'Eliminar valores',
+            disableValue: 'Desactivar valor',
+            disableValues: 'Desactivar valores',
+            enableValue: 'Habilitar valor',
+            enableValues: 'Habilitar valores',
+            emptyReportFieldsValues: {
+                title: 'No has creado ningún valor en la lista',
+                subtitle: 'Añade valores personalizados para que aparezcan en los informes.',
+            },
+            deleteValuePrompt: '¿Estás seguro de que quieres eliminar este valor de la lista?',
+            deleteValuesPrompt: '¿Estás seguro de que quieres eliminar estos valores de la lista?',
+            listValueRequiredError: 'Ingresa un nombre para el valor de la lista',
+            existingListValueError: 'Ya existe un valor en la lista con este nombre',
+            editValue: 'Editar valor',
+            listValues: 'Valores de la lista',
+            addValue: 'Añade valor',
+            existingReportFieldNameError: 'Ya existe un campo de informe con este nombre',
+            reportFieldNameRequiredError: 'Ingresa un nombre de campo de informe',
+            reportFieldTypeRequiredError: 'Elige un tipo de campo de informe',
+            reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
+            genericFailureMessage: 'Se ha producido un error al actualizar el campo de informe. Por favor, inténtalo de nuevo.',
+        },
+        tags: {
+            tagName: 'Nombre de etiqueta',
+            requiresTag: 'Los miembros deben etiquetar todos los gastos',
+            trackBillable: 'Permitir marcar gastos como facturables',
+            customTagName: 'Nombre de etiqueta personalizada',
+            enableTag: 'Habilitar etiqueta',
+            enableTags: 'Habilitar etiquetas',
+            disableTag: 'Desactivar etiqueta',
+            disableTags: 'Desactivar etiquetas',
+            addTag: 'Añadir etiqueta',
+            editTag: 'Editar etiqueta',
+            editTags: 'Editar etiquetas',
+            subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
+            emptyTags: {
+                title: 'No has creado ninguna etiqueta',
+                subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
+            },
+            deleteTag: 'Eliminar etiqueta',
+            deleteTags: 'Eliminar etiquetas',
+            deleteTagConfirmation: '¿Estás seguro de que quieres eliminar esta etiqueta?',
+            deleteTagsConfirmation: '¿Estás seguro de que quieres eliminar estas etiquetas?',
+            deleteFailureMessage: 'Se ha producido un error al intentar eliminar la etiqueta. Por favor, inténtalo más tarde.',
+            tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
+            existingTagError: 'Ya existe una etiqueta con este nombre.',
+            invalidTagNameError: 'El nombre de la etiqueta no puede ser 0. Por favor, elige un valor diferente.',
+            genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
+            importedFromAccountingSoftware: 'Etiquetas importadas desde',
+            glCode: 'Código de Libro Mayor',
+            updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
+            tagRules: 'Reglas de etiquetas',
+            approverDescription: 'Aprobador',
+            importTags: 'Importar categorías',
+            importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
+                `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
+        },
+        taxes: {
+            subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
+            addRate: 'Añadir tasa',
+            workspaceDefault: 'Moneda por defecto del espacio de trabajo',
+            foreignDefault: 'Moneda extranjera por defecto',
+            customTaxName: 'Nombre del impuesto',
+            value: 'Valor',
+            taxRate: 'Tasa de impuesto',
+            taxReclaimableOn: 'Impuesto recuperable en',
+            error: {
+                taxRateAlreadyExists: 'Ya existe un impuesto con este nombre.',
+                taxCodeAlreadyExists: 'Ya existe un código de impuesto con este nombre.',
+                customNameRequired: 'El nombre del impuesto es obligatorio.',
+                valuePercentageRange: 'Por favor, introduce un porcentaje entre 0 y 100.',
+                deleteFailureMessage: 'Se ha producido un error al intentar eliminar la tasa de impuesto. Por favor, inténtalo más tarde.',
+                updateFailureMessage: 'Se ha producido un error al intentar modificar la tasa de impuesto. Por favor, inténtalo más tarde.',
+                createFailureMessage: 'Se ha producido un error al intentar crear la tasa de impuesto. Por favor, inténtalo más tarde.',
+                updateTaxClaimableFailureMessage: 'La porción recuperable debe ser menor al monto del importe por distancia.',
+            },
+            deleteTaxConfirmation: '¿Estás seguro de que quieres eliminar este impuesto?',
+            deleteMultipleTaxConfirmation: ({taxAmount}: TaxAmountParams) => `¿Estás seguro de que quieres eliminar ${taxAmount} impuestos?`,
+            actions: {
+                delete: 'Eliminar tasa',
+                deleteMultiple: 'Eliminar tasas',
+                enable: 'Activar tasa',
+                disable: 'Desactivar tasa',
+                enableTaxRates: () => ({
+                    one: 'Activar tasa',
+                    other: 'Activar tasas',
+                }),
+                disableTaxRates: () => ({
+                    one: 'Desactivar tasa',
+                    other: 'Desactivar tasas',
+                }),
+            },
+            importedFromAccountingSoftware: 'Impuestos importadas desde',
+            taxCode: 'Código de impuesto',
+            updateTaxCodeFailureMessage: 'Se produjo un error al actualizar el código tributario, inténtelo nuevamente.',
+        },
+        emptyWorkspace: {
+            title: 'Crea un espacio de trabajo',
+            subtitle: 'Crea un espacio de trabajo para organizar recibos, reembolsar gastos, gestionar viajes, enviar facturas y mucho más, todo a la velocidad del chat.',
+            createAWorkspaceCTA: 'Comenzar',
+            features: {
+                trackAndCollect: 'Organiza recibos',
+                reimbursements: 'Reembolsa a los empleados',
+                companyCards: 'Gestiona tarjetas de la empresa',
+            },
+            notFound: 'No se encontró ningún espacio de trabajo',
+            description: 'Las salas son un gran lugar para discutir y trabajar con varias personas. Para comenzar a colaborar, cree o únase a un espacio de trabajo',
+        },
+        switcher: {
+            headerTitle: 'Filtrar por espacio de trabajo',
+            everythingSection: 'Todo',
+            placeholder: 'Encuentra un espacio de trabajo',
+        },
+        new: {
+            newWorkspace: 'Nuevo espacio de trabajo',
+            getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
+            confirmWorkspace: 'Confirmar espacio de trabajo',
+            myGroupWorkspace: 'Mi Espacio de Trabajo en Grupo',
+            workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `Espacio de trabajo${workspaceNumber ? ` ${workspaceNumber}` : ''} de ${userName}`,
+        },
+        people: {
+            genericFailureMessage: 'Se ha producido un error al intentar eliminar a un miembro del espacio de trabajo. Por favor, inténtalo más tarde.',
+            removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+                one: `¿Estás seguro de que deseas eliminar ${memberName}`,
+                other: '¿Estás seguro de que deseas eliminar a estos miembros?',
+            }),
+            removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
+                `${memberName} es un aprobador en este espacio de trabajo. Cuando lo elimine de este espacio de trabajo, los sustituiremos en el flujo de trabajo de aprobación por el propietario del espacio de trabajo, ${ownerName}`,
+            removeMembersTitle: () => ({
+                one: 'Eliminar miembro',
+                other: 'Eliminar miembros',
+            }),
+            removeWorkspaceMemberButtonTitle: 'Eliminar del espacio de trabajo',
+            removeGroupMemberButtonTitle: 'Eliminar del grupo',
+            removeRoomMemberButtonTitle: 'Eliminar del chat',
+            removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
+            removeMemberTitle: 'Eliminar miembro',
+            transferOwner: 'Transferir la propiedad',
+            makeMember: 'Hacer miembro',
+            makeAdmin: 'Hacer administrador',
+            makeAuditor: 'Hacer auditor',
+            selectAll: 'Seleccionar todo',
+            error: {
+                genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo.',
+                cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
+                genericRemove: 'Ha ocurrido un problema al eliminar al miembro del espacio de trabajo.',
+            },
+            addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
+            invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
+            membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
+            importMembers: 'Importar miembros',
+        },
+        accounting: {
+            settings: 'configuración',
+            title: 'Conexiones',
+            subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
+            qbo: 'QuickBooks Online',
+            qbd: 'QuickBooks Desktop',
+            xero: 'Xero',
+            netsuite: 'NetSuite',
+            nsqs: 'NSQS',
+            intacct: 'Sage Intacct',
+            talkYourOnboardingSpecialist: 'Chatea con tu especialista asignado.',
+            talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
+            talkToConcierge: 'Chatear con Concierge.',
+            needAnotherAccounting: '¿Necesitas otro software de contabilidad? ',
+            connectionName: ({connectionName}: ConnectionNameParams) => {
+                switch (connectionName) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'QuickBooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return 'NetSuite';
+                    case CONST.POLICY.CONNECTIONS.NAME.NSQS:
+                        return 'NSQS';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                        return 'Sage Intacct';
+                    default: {
+                        return '';
+                    }
+                }
+            },
+            errorODIntegration: 'Hay un error con una conexión que se ha configurado en Expensify Classic. ',
+            goToODToFix: 'Ve a Expensify Classic para solucionar este problema.',
+            goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
+            setup: 'Configurar',
+            lastSync: ({relativeDate}: LastSyncAccountingParams) => `Recién sincronizado ${relativeDate}`,
+            import: 'Importar',
+            export: 'Exportar',
+            advanced: 'Avanzado',
+            other: 'Otras integraciones',
+            syncNow: 'Sincronizar ahora',
+            disconnect: 'Desconectar',
+            reinstall: 'Reinstalar el conector',
+            disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
+                const integrationName =
+                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integración';
+                return `Desconectar ${integrationName}`;
+            },
+            connectTitle: ({connectionName}: ConnectionNameParams) => `Conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'accounting integration'}`,
+            syncError: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
+                switch (connectionName) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'No se puede conectar a QuickBooks Online.';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'No se puede conectar a Xero.';
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return 'No se puede conectar a NetSuite.';
+                    case CONST.POLICY.CONNECTIONS.NAME.NSQS:
+                        return 'No se puede conectar a NSQS.';
+                    case CONST.POLICY.CONNECTIONS.NAME.QBD:
+                        return 'No se puede conectar a QuickBooks Desktop.';
+                    default: {
+                        return 'No se ha podido conectar a la integración.';
+                    }
+                }
+            },
+            accounts: 'Plan de cuentas',
+            taxes: 'Impuestos',
+            imported: 'Importado',
+            notImported: 'No importado',
+            importAsCategory: 'Importado como categorías',
+            importTypes: {
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: 'Importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: 'Importado como etiquetas',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: 'Importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'No importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Predeterminado del empleado NetSuite',
+            },
+            disconnectPrompt: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
+                const integrationName =
+                    connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integración';
+                return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
+            },
+            connectPrompt: ({connectionName}: ConnectionNameParams) =>
+                `¿Estás seguro de que quieres conectar a ${
+                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'
+                }? Esto eliminará cualquier conexión contable existente.`,
+            enterCredentials: 'Ingresa tus credenciales',
+            connections: {
+                syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                    switch (stage) {
+                        case 'quickbooksOnlineImportCustomers':
+                        case 'quickbooksDesktopImportCustomers':
+                            return 'Importando clientes';
+                        case 'quickbooksOnlineImportEmployees':
+                        case 'netSuiteSyncImportEmployees':
+                        case 'intacctImportEmployees':
+                        case 'quickbooksDesktopImportEmployees':
+                            return 'Importando empleados';
+                        case 'quickbooksOnlineImportAccounts':
+                        case 'quickbooksDesktopImportAccounts':
+                            return 'Importando cuentas';
+                        case 'quickbooksOnlineImportClasses':
+                        case 'quickbooksDesktopImportClasses':
+                            return 'Importando clases';
+                        case 'quickbooksOnlineImportLocations':
+                            return 'Importando localidades';
+                        case 'quickbooksOnlineImportProcessing':
+                            return 'Procesando datos importados';
+                        case 'quickbooksOnlineSyncBillPayments':
+                        case 'intacctImportSyncBillPayments':
+                            return 'Sincronizando reportes reembolsados y facturas pagadas';
+                        case 'quickbooksOnlineSyncTaxCodes':
+                            return 'Importando tipos de impuestos';
+                        case 'quickbooksOnlineCheckConnection':
+                            return 'Revisando conexión a QuickBooks Online';
+                        case 'quickbooksOnlineImportMain':
+                            return 'Importando datos desde QuickBooks Online';
+                        case 'startingImportXero':
+                            return 'Importando datos desde Xero';
+                        case 'startingImportQBO':
+                            return 'Importando datos desde QuickBooks Online';
+                        case 'startingImportQBD':
+                        case 'quickbooksDesktopImportMore':
+                            return 'Importando datos desde QuickBooks Desktop';
+                        case 'quickbooksDesktopImportTitle':
+                            return 'Importando título';
+                        case 'quickbooksDesktopImportApproveCertificate':
+                            return 'Importando certificado de aprobación';
+                        case 'quickbooksDesktopImportDimensions':
+                            return 'Importando dimensiones';
+                        case 'quickbooksDesktopImportSavePolicy':
+                            return 'Importando política de guardado';
+                        case 'quickbooksDesktopWebConnectorReminder':
+                            return 'Aún sincronizando datos con QuickBooks... Por favor, asegúrate de que el Conector Web esté en funcionamiento';
+                        case 'quickbooksOnlineSyncTitle':
+                            return 'Sincronizando datos desde QuickBooks Online';
+                        case 'quickbooksOnlineSyncLoadData':
+                        case 'xeroSyncStep':
+                        case 'intacctImportData':
+                            return 'Cargando datos';
+                        case 'quickbooksOnlineSyncApplyCategories':
+                            return 'Actualizando categorías';
+                        case 'quickbooksOnlineSyncApplyCustomers':
+                            return 'Actualizando clientes/proyectos';
+                        case 'quickbooksOnlineSyncApplyEmployees':
+                            return 'Actualizando empleados';
+                        case 'quickbooksOnlineSyncApplyClassesLocations':
+                            return 'Actualizando clases';
+                        case 'jobDone':
+                            return 'Esperando a que se carguen los datos importados';
+                        case 'xeroSyncImportChartOfAccounts':
+                            return 'Sincronizando plan de cuentas';
+                        case 'xeroSyncImportCategories':
+                            return 'Sincronizando categorias';
+                        case 'xeroSyncImportCustomers':
+                            return 'Sincronizando clientes';
+                        case 'xeroSyncXeroReimbursedReports':
+                            return 'Marcar los informes de Expensify como reembolsados';
+                        case 'xeroSyncExpensifyReimbursedReports':
+                            return 'Marcar facturas y recibos de Xero como pagados';
+                        case 'xeroSyncImportTrackingCategories':
+                            return 'Sincronizando categorías de seguimiento';
+                        case 'xeroSyncImportBankAccounts':
+                            return 'Sincronizando cuentas bancarias';
+                        case 'xeroSyncImportTaxRates':
+                            return 'Sincronizando las tasas de impuesto';
+                        case 'xeroCheckConnection':
+                            return 'Comprobando la conexión a Xero';
+                        case 'xeroSyncTitle':
+                            return 'Sincronizando los datos de Xero';
+                        case 'netSuiteSyncConnection':
+                            return 'Iniciando conexión a NetSuite';
+                        case 'netSuiteSyncCustomers':
+                            return 'Importando clientes';
+                        case 'netSuiteSyncInitData':
+                            return 'Recuperando datos de NetSuite';
+                        case 'netSuiteSyncImportTaxes':
+                            return 'Importando impuestos';
+                        case 'netSuiteSyncImportItems':
+                            return 'Importando artículos';
+                        case 'netSuiteSyncData':
+                            return 'Importando datos a Expensify';
+                        case 'netSuiteSyncAccounts':
+                        case 'nsqsSyncAccounts':
+                            return 'Sincronizando cuentas';
+                        case 'netSuiteSyncCurrencies':
+                            return 'Sincronizando divisas';
+                        case 'netSuiteSyncCategories':
+                            return 'Sincronizando categorías';
+                        case 'netSuiteSyncReportFields':
+                            return 'Importando datos como campos de informe de Expensify';
+                        case 'netSuiteSyncTags':
+                            return 'Importando datos como etiquetas de Expensify';
+                        case 'netSuiteSyncUpdateConnectionData':
+                            return 'Actualizando información de conexión';
+                        case 'netSuiteSyncNetSuiteReimbursedReports':
+                            return 'Marcando informes de Expensify como reembolsados';
+                        case 'netSuiteSyncImportCustomLists':
+                            return 'Importando listas personalizadas';
+                        case 'netSuiteSyncImportSubsidiaries':
+                            return 'Importando subsidiarias';
+                        case 'netSuiteSyncImportVendors':
+                        case 'quickbooksDesktopImportVendors':
+                            return 'Importando proveedores';
+                        case 'nsqsSyncConnection':
+                            return 'Iniciando conexión a NSQS';
+                        case 'nsqsSyncEmployees':
+                            return 'Sincronizando empleados';
+                        case 'nsqsSyncCustomers':
+                            return 'Sincronizando clientes';
+                        case 'nsqsSyncProjects':
+                            return 'Sincronizando proyectos';
+                        case 'nsqsSyncCurrency':
+                            return 'Sincronizando moneda';
+                        case 'netSuiteSyncExpensifyReimbursedReports':
+                            return 'Marcando facturas y recibos de NetSuite como pagados';
+                        case 'netSuiteImportVendorsTitle':
+                            return 'Importando proveedores';
+                        case 'netSuiteImportCustomListsTitle':
+                            return 'Importando listas personalizadas';
+                        case 'intacctCheckConnection':
+                            return 'Comprobando la conexión a Sage Intacct';
+                        case 'intacctImportDimensions':
+                            return 'Importando dimensiones';
+                        case 'intacctImportTitle':
+                            return 'Importando datos desde Sage Intacct';
+                        default: {
+                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                            return `Translation missing for stage: ${stage}`;
+                        }
+                    }
+                },
+            },
+            preferredExporter: 'Exportador preferido',
+            exportPreferredExporterNote:
+                'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
+            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
+            exportAs: 'Exportar cómo',
+            exportOutOfPocket: ' Exportar gastos por cuenta propia como',
+            exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
+            exportDate: 'Fecha de exportación',
+            defaultVendor: 'Proveedor predeterminado',
+            autoSync: 'Autosincronización',
+            autoSyncDescription: 'Sincroniza NetSuite y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
+            reimbursedReports: 'Sincronizar informes reembolsados',
+            cardReconciliation: 'Conciliación de tarjetas',
+            reconciliationAccount: 'Cuenta de conciliación',
+            continuousReconciliation: 'Conciliación continua',
+            saveHoursOnReconciliation:
+                'Ahorra horas de conciliación en cada período contable haciendo que Expensify concilie continuamente los extractos y liquidaciones de la Tarjeta Expensify en tu nombre.',
+            enableContinuousReconciliation: 'Para activar la Conciliación Continua, activa la ',
+            chooseReconciliationAccount: {
+                chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
+                accountMatches: 'Asegúrate de que esta cuenta coincide con ',
+                settlementAccount: 'la cuenta de liquidación de tu Tarjeta Expensify ',
+                reconciliationWorks: ({lastFourPAN}: ReconciliationWorksParams) => `(que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
+            },
+        },
+        card: {
+            issueCard: 'Emitir tarjeta',
+            getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
+            issueNewCard: {
+                whoNeedsCard: '¿Quién necesita una tarjeta?',
+                findMember: 'Buscar miembro',
+                chooseCardType: 'Elegir un tipo de tarjeta',
+                physicalCard: 'Tarjeta física',
+                physicalCardDescription: 'Ideal para los consumidores habituales',
+                virtualCard: 'Tarjeta virtual',
+                virtualCardDescription: 'Instantáneo y flexible',
+                chooseLimitType: 'Elegir un tipo de límite',
+                smartLimit: 'Límite inteligente',
+                smartLimitDescription: 'Gasta hasta una determinada cantidad antes de requerir aprobación',
+                monthly: 'Mensual',
+                monthlyDescription: 'Gasta hasta una determinada cantidad al mes',
+                fixedAmount: 'Cantidad fija',
+                fixedAmountDescription: 'Gasta hasta una determinada cantidad una vez',
+                cardLimitError: 'Por favor, introduce un monto menor a $21,474,836',
+                setLimit: 'Establecer un límite',
+                giveItName: 'Dale un nombre',
+                giveItNameInstruction: 'Hazlo lo suficientemente único para distinguirla de otras tarjetas. ¡Los casos de uso específicos son aún mejores!',
+                cardName: 'Nombre de la tarjeta',
+                letsDoubleCheck: 'Vuelve a comprobar que todo parece correcto. ',
+                willBeReady: 'Esta tarjeta estará lista para su uso inmediato.',
+                cardholder: 'Titular de la tarjeta',
+                cardType: 'Tipo de tarjeta',
+                limit: 'Limite',
+                limitType: 'Tipo de limite',
+                name: 'Nombre',
+            },
+            deactivateCardModal: {
+                deactivate: 'Desactivar',
+                deactivateCard: 'Desactivar tarjeta',
+                deactivateConfirmation: 'Al desactivar esta tarjeta, se rechazarán todas las transacciones futuras y no se podrá deshacer.',
+            },
+        },
+
+        export: {
+            notReadyHeading: 'No está listo para exportar',
+            notReadyDescription:
+                'Los borradores o informes de gastos pendientes no se pueden exportar al sistema contabilidad. Por favor, apruebe o pague estos gastos antes de exportarlos.',
+        },
+        invoices: {
+            sendInvoice: 'Enviar factura',
+            sendFrom: 'Enviar desde',
+            invoicingDetails: 'Detalles de facturación',
+            invoicingDetailsDescription: 'Esta información aparecerá en tus facturas.',
+            companyName: 'Nombre de la empresa',
+            companyWebsite: 'Sitio web de la empresa',
+            paymentMethods: {
+                personal: 'Personal',
+                business: 'Empresas',
+                chooseInvoiceMethod: 'Elija un método de pago:',
+                addBankAccount: 'Añadir cuenta bancaria',
+                payingAsIndividual: 'Pago individual',
+                payingAsBusiness: 'Pagar como una empresa',
+            },
+            invoiceBalance: 'Saldo de la factura',
+            invoiceBalanceSubtitle: 'Este es tu saldo actual de la recaudación de pagos de facturas. Se transferirá automáticamente a tu cuenta bancaria si has agregado una.',
+            bankAccountsSubtitle: 'Agrega una cuenta bancaria para hacer y recibir pagos de facturas.',
+        },
+        invite: {
+            member: 'Invitar miembros',
+            members: 'Invitar miembros',
+            invitePeople: 'Invitar nuevos miembros',
+            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Vuelva a intentarlo.',
+            pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            user: 'miembro',
+            users: 'miembros',
+            invited: 'invitó',
+            removed: 'eliminó',
+            to: 'a',
+            from: 'de',
+        },
+        inviteMessage: {
+            confirmDetails: 'Confirma los detalles',
+            inviteMessagePrompt: '¡Añadir un mensaje para hacer tu invitación destacar!',
+            personalMessagePrompt: 'Mensaje',
+            inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
+            genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo.',
+        },
+        distanceRates: {
+            oopsNotSoFast: 'Ups! No tan rápido...',
+            workspaceNeeds: 'Un espacio de trabajo necesita al menos una tasa de distancia activa.',
+            distance: 'Distancia',
+            centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
+            rate: 'Tasa',
+            addRate: 'Agregar tasa',
+            trackTax: 'Impuesto de seguimiento',
+            deleteRates: () => ({
+                one: 'Eliminar tasa',
+                other: 'Eliminar tasas',
+            }),
+            enableRates: () => ({
+                one: 'Activar tasa',
+                other: 'Activar tasas',
+            }),
+            disableRates: () => ({
+                one: 'Desactivar tasa',
+                other: 'Desactivar tasas',
+            }),
+            enableRate: 'Activar tasa',
+            status: 'Estado',
+            unit: 'Unidad',
+            taxFeatureNotEnabledMessage: 'Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a ',
+            changePromptMessage: ' para hacer ese cambio.',
+            deleteDistanceRate: 'Eliminar tasa de distancia',
+            areYouSureDelete: () => ({
+                one: '¿Estás seguro de que quieres eliminar esta tasa?',
+                other: '¿Estás seguro de que quieres eliminar estas tasas?',
+            }),
+        },
+        editor: {
+            nameInputLabel: 'Nombre',
+            descriptionInputLabel: 'Descripción',
+            typeInputLabel: 'Tipo',
+            initialValueInputLabel: 'Valor inicial',
+            nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
+            nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
+            currencyInputLabel: 'Moneda por defecto',
+            currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
+            currencyInputDisabledText: 'La moneda predeterminada no se puede cambiar porque este espacio de trabajo está vinculado a una cuenta bancaria en USD.',
+            save: 'Guardar',
+            genericFailureMessage: 'Se ha producido un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
+            avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+            addressContext: 'Se requiere una dirección para habilitar Expensify Travel. Por favor, introduce una dirección asociada con tu negocio.',
+        },
+        bankAccount: {
+            continueWithSetup: 'Continuar con la configuración',
+            youreAlmostDone: 'Casi has acabado de configurar tu cuenta bancaria, que te permitirá emitir tarjetas corporativas, reembolsar gastos y cobrar pagar facturas.',
+            streamlinePayments: 'Optimiza pagos',
+            connectBankAccountNote: 'Nota: No se pueden usar cuentas bancarias personales para realizar pagos en los espacios de trabajo.',
+            oneMoreThing: '¡Una cosa más!',
+            allSet: '¡Todo listo!',
+            accountDescriptionWithCards: 'Esta cuenta bancaria se utilizará para emitir tarjetas corporativas, reembolsar gastos y cobrar y pagar facturas.',
+            letsFinishInChat: '¡Continuemos en el chat!',
+            almostDone: '¡Casi listo!',
+            disconnectBankAccount: 'Desconectar cuenta bancaria',
+            noLetsStartOver: 'No, empecemos de nuevo',
+            startOver: 'Empezar de nuevo',
+            yesDisconnectMyBankAccount: 'Sí, desconecta mi cuenta bancaria',
+            yesStartOver: 'Sí, empezar de nuevo',
+            disconnectYour: 'Desconecta tu cuenta bancaria de ',
+            bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
+            clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
+            areYouSure: '¿Estás seguro?',
+            workspaceCurrency: 'Moneda del espacio de trabajo',
+            updateCurrencyPrompt:
+                'Parece que tu espacio de trabajo está configurado actualmente en una moneda diferente a USD. Por favor, haz clic en el botón de abajo para actualizar tu moneda a USD ahora.',
+            updateToUSD: 'Actualizar a USD',
+        },
+        changeOwner: {
+            changeOwnerPageTitle: 'Transferir la propiedad',
+            addPaymentCardTitle: 'Ingrese tu tarjeta de pago para transferir la propiedad',
+            addPaymentCardButtonText: 'Aceptar términos y agregar tarjeta de pago',
+            addPaymentCardReadAndAcceptTextPart1: 'Lea y acepte',
+            addPaymentCardReadAndAcceptTextPart2: 'para agregar tu tarjeta',
+            addPaymentCardTerms: 'los términos',
+            addPaymentCardPrivacy: 'la política de privacidad',
+            addPaymentCardAnd: 'y',
+            addPaymentCardPciCompliant: 'PCI-DSS obediente',
+            addPaymentCardBankLevelEncrypt: 'Cifrado a nivel bancario',
+            addPaymentCardRedundant: 'Infraestructura redundante',
+            addPaymentCardLearnMore: 'Conozca más sobre nuestra',
+            addPaymentCardSecurity: 'seguridad',
+            amountOwedTitle: 'Saldo pendiente',
+            amountOwedButtonText: 'OK',
+            amountOwedText: 'Esta cuenta tiene un saldo pendiente de un mes anterior.\n\n¿Quiere liquidar el saldo y hacerse cargo de la facturación de este espacio de trabajo?',
+            ownerOwesAmountTitle: 'Saldo pendiente',
+            ownerOwesAmountButtonText: 'Transferir saldo',
+            ownerOwesAmountText: ({email, amount}: OwnerOwesAmountParams) =>
+                `La cuenta propietaria de este espacio de trabajo (${email}) tiene un saldo pendiente de un mes anterior.\n\n¿Desea transferir este monto (${amount}) para hacerse cargo de la facturación de este espacio de trabajo? tu tarjeta de pago se cargará inmediatamente.`,
+            subscriptionTitle: 'Asumir la suscripción anual',
+            subscriptionButtonText: 'Transferir suscripción',
+            subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
+                `Al hacerse cargo de este espacio de trabajo se fusionará tu suscripción anual asociada con tu suscripción actual. Esto aumentará el tamaño de tu suscripción en ${usersCount} miembros, lo que hará que tu nuevo tamaño de suscripción sea ${finalCount}. ¿Te gustaria continuar?`,
+            duplicateSubscriptionTitle: 'Alerta de suscripción duplicada',
+            duplicateSubscriptionButtonText: 'Continuar',
+            duplicateSubscriptionText: ({email, workspaceName}: ChangeOwnerDuplicateSubscriptionParams) =>
+                `Parece que estás intentando hacerte cargo de la facturación de los espacios de trabajo de ${email}, pero para hacerlo, primero debes ser administrador de todos sus espacios de trabajo.\n\nHaz clic en "Continuar" si solo quieres tomar sobrefacturación para el espacio de trabajo ${workspaceName}.\n\nSi desea hacerse cargo de la facturación de toda tu suscripción, pídales que lo agreguen como administrador a todos sus espacios de trabajo antes de hacerse cargo de la facturación.`,
+            hasFailedSettlementsTitle: 'No se puede transferir la propiedad',
+            hasFailedSettlementsButtonText: 'Entiendo',
+            hasFailedSettlementsText: ({email}: ChangeOwnerHasFailedSettlementsParams) =>
+                `No puede hacerse cargo de la facturación porque ${email} tiene una liquidación vencida de la tarjeta Expensify. Avíseles que se comuniquen con concierge@expensify.com para resolver el problema. Luego, podrá hacerse cargo de la facturación de este espacio de trabajo.`,
+            failedToClearBalanceTitle: 'Fallo al liquidar el saldo',
+            failedToClearBalanceButtonText: 'OK',
+            failedToClearBalanceText: 'No hemos podido liquidar el saldo, por favor, inténtalo más tarde.',
+            successTitle: '¡Guau! Todo listo.',
+            successDescription: 'Ahora eres el propietario de este espacio de trabajo.',
+            errorTitle: '¡Ups! No tan rapido...',
+            errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
+            errorDescriptionPartTwo: 'contacta con el conserje',
+            errorDescriptionPartThree: 'por ayuda.',
+        },
+
+        exportAgainModal: {
+            title: '¡Cuidado!',
+            description: ({reportName, connectionName}: ExportAgainModalDescriptionParams) =>
+                `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\n¿Estás seguro de que deseas exportarlos de nuevo?`,
+            confirmText: 'Sí, exportar de nuevo',
+            cancelText: 'Cancelar',
+        },
+        planTypePage: {
+            planTypes: {
+                team: {
+                    label: 'Recopilar',
+                    description: 'Para equipos que buscan automatizar sus procesos.',
+                },
+                corporate: {
+                    label: 'Controlar',
+                    description: 'Para organizaciones con requisitos avanzados.',
+                },
+            },
+            description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
+            subscriptionLink: 'página de ayuda sobre tipos de planes y precios',
+            lockedPlanDescription: ({count, annualSubscriptionEndDate}: WorkspaceLockedPlanTypeParams) => ({
+                one: `Tienes un compromiso anual de 1 miembro activo en el plan Controlar hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
+                other: `Tienes un compromiso anual de ${count} miembros activos en el plan Controlar hasta el ${annualSubscriptionEndDate}. Puedes cambiar a una suscripción de pago por uso y desmejorar al plan Recopilar a partir del ${annualSubscriptionEndDate} desactivando la renovación automática en`,
+            }),
+            subscriptions: 'Suscripciones',
+        },
+        upgrade: {
+            reportFields: {
+                title: 'Los campos',
+                description: `Los campos de informe permiten especificar detalles a nivel de cabecera, distintos de las etiquetas que pertenecen a los gastos en partidas individuales. Estos detalles pueden incluir nombres de proyectos específicos, información sobre viajes de negocios, ubicaciones, etc.`,
+                onlyAvailableOnPlan: 'Los campos de informe sólo están disponibles en el plan Controlar, a partir de ',
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                title: 'NetSuite',
+                description: `Disfruta de la sincronización automática y reduce las entradas manuales con la integración Expensify + NetSuite. Obtén información financiera en profundidad y en tiempo real con la compatibilidad nativa y personalizada con segmentos, incluida la asignación de proyectos y clientes.`,
+                onlyAvailableOnPlan: 'Nuestra integración NetSuite sólo está disponible en el plan Controlar, a partir de ',
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                title: 'Sage Intacct',
+                description: `Disfruta de una sincronización automatizada y reduce las entradas manuales con la integración Expensify + Sage Intacct. Obtén información financiera en profundidad y en tiempo real con dimensiones definidas por el usuario, así como codificación de gastos por departamento, clase, ubicación, cliente y proyecto (trabajo).`,
+                onlyAvailableOnPlan: 'Nuestra integración Sage Intacct sólo está disponible en el plan Controlar, a partir de ',
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                title: 'QuickBooks Desktop',
+                description: `Disfruta de la sincronización automática y reduce las entradas manuales con la integración de Expensify + QuickBooks Desktop. Obtén la máxima eficiencia con una conexión bidireccional en tiempo real y la codificación de gastos por clase, artículo, cliente y proyecto.`,
+                onlyAvailableOnPlan: 'Nuestra integración con QuickBooks Desktop solo está disponible en el plan Controlar, que comienza en ',
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
+                title: 'Aprobaciones anticipadas',
+                description: `Si quieres añadir más niveles de aprobación, o simplemente asegurarte de que los gastos más importantes reciben otro vistazo, no hay problema. Las aprobaciones avanzadas ayudan a realizar las comprobaciones adecuadas a cada nivel para mantener los gastos de tu equipo bajo control.`,
+                onlyAvailableOnPlan: 'Las aprobaciones avanzadas sólo están disponibles en el plan Controlar, con precios desde ',
+            },
+            categories: {
+                title: 'Categorías',
+                description: `Las categorías te ayudan a organizar mejor los gastos y a llevar un seguimiento de en qué estás gastando tu dinero. Utiliza nuestra lista de categorías sugeridas o crea las tuyas propias.`,
+                onlyAvailableOnPlan: 'Las categorías están disponibles en el plan Recopilar, a partir de ',
+            },
+            glCodes: {
+                title: 'Códigos de libro mayor',
+                description: `Añada códigos de libro mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
+                onlyAvailableOnPlan: 'Los códigos de libro mayor solo están disponibles en el plan Controlar, a partir de ',
+            },
+            glAndPayrollCodes: {
+                title: 'Códigos de libro mayor y nómina',
+                description: `Añada códigos de libro mayor y nómina a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
+                onlyAvailableOnPlan: 'Los códigos de libro mayor y nómina solo están disponibles en el plan Controlar, a partir de ',
+            },
+            taxCodes: {
+                title: 'Código de impuesto',
+                description: `Añada código de impuesto mayor a sus categorías para exportar fácilmente los gastos a sus sistemas de contabilidad y nómina.`,
+                onlyAvailableOnPlan: 'Los código de impuesto mayor solo están disponibles en el plan Controlar, a partir de ',
+            },
+            companyCards: {
+                title: 'Tarjetas de empresa ilimitadas',
+                description: `¿Necesita agregar más canales de tarjetas? Desbloquee tarjetas de empresa ilimitadas para sincronizar transacciones de todos los principales emisores de tarjetas.`,
+                onlyAvailableOnPlan: 'Esto solo está disponible en el plan Control, a partir de ',
+            },
+            rules: {
+                title: 'Reglas',
+                description: `Las reglas se ejecutan en segundo plano y mantienen tus gastos bajo control para que no tengas que preocuparte por los detalles pequeños.\n\nExige detalles de los gastos, como recibos y descripciones, establece límites y valores predeterminados, y automatiza las aprobaciones y los pagos, todo en un mismo lugar.`,
+                onlyAvailableOnPlan: 'Las reglas están disponibles solo en el plan Controlar, que comienza en ',
+            },
+            perDiem: {
+                title: 'Per diem',
+                description:
+                    'Las dietas per diem (ej.: $100 por día para comidas) son una excelente forma de mantener los gastos diarios predecibles y ajustados a las políticas de la empresa, especialmente si tus empleados viajan por negocios. Disfruta de funciones como tasas personalizadas, categorías por defecto y detalles más específicos como destinos y subtasas.',
+                onlyAvailableOnPlan: 'Las dietas per diem solo están disponibles en el plan Control, a partir de ',
+            },
+            travel: {
+                title: 'Viajes',
+                description:
+                    'Expensify Travel es una nueva plataforma corporativa de reserva y gestión de viajes que permite a los miembros reservar alojamientos, vuelos, transporte y mucho más.',
+                onlyAvailableOnPlan: 'Los viajes están disponibles en el plan Recopilar, a partir de ',
+            },
+            note: {
+                upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
+                learnMore: 'más información',
+                aboutOurPlans: 'sobre nuestros planes y precios.',
+            },
+            pricing: {
+                perActiveMember: 'por miembro activo al mes.',
+            },
+            upgradeToUnlock: 'Desbloquear esta función',
+            completed: {
+                headline: 'Has mejorado tu espacio de trabajo.',
+                categorizeMessage: `Has actualizado con éxito a un espacio de trabajo en el plan Recopilar. ¡Ahora puedes categorizar tus gastos!`,
+                travelMessage: 'Has mejorado con éxito a un espacio de trabajo en el plan Recopilar. ¡Ahora puedes comenzar a reservar y gestionar viajes!',
+                successMessage: ({policyName}: ReportPolicyNameParams) => `Has actualizado con éxito ${policyName} al plan Controlar.`,
+                viewSubscription: 'Ver su suscripción',
+                moreDetails: 'para obtener más información.',
+                gotIt: 'Entendido, gracias.',
+            },
+            commonFeatures: {
+                title: 'Mejorar al plan Controlar',
+                note: 'Desbloquea nuestras funciones más potentes, incluyendo:',
+                benefits: {
+                    startsAt: 'El plan Controlar comienza desde ',
+                    perMember: 'por miembro activo al mes.',
+                    learnMore: 'Más información',
+                    pricing: 'sobre nuestros planes y precios.',
+                    benefit1: 'Conexiones avanzadas de contabilidad (NetSuite, Sage Intacct y más)',
+                    benefit2: 'Reglas inteligentes de gastos',
+                    benefit3: 'Flujos de aprobación de varios niveles',
+                    benefit4: 'Controles de seguridad mejorados',
+                    toUpgrade: 'Para mejorar, haz clic en',
+                    selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a',
+                },
+            },
+        },
+        downgrade: {
+            commonFeatures: {
+                title: 'Desmejorar al plan Recopilar',
+                note: 'Si desmejoras, perderás acceso a estas funciones y más:',
+                benefits: {
+                    note: 'Para una comparación completa de nuestros planes, consulta nuestra',
+                    pricingPage: 'página de precios',
+                    confirm: '¿Estás seguro de que deseas desmejorar y eliminar tus configuraciones?',
+                    warning: 'Esto no se puede deshacer.',
+                    benefit1: 'Conexiones de contabilidad (excepto QuickBooks Online y Xero)',
+                    benefit2: 'Reglas inteligentes de gastos',
+                    benefit3: 'Flujos de aprobación de varios niveles',
+                    benefit4: 'Controles de seguridad mejorados',
+                    headsUp: '¡Atención!',
+                    multiWorkspaceNote:
+                        'Tendrás que bajar de categoría todos tus espacios de trabajo antes de tu primer pago mensual para comenzar una suscripción con la tasa del plan Recopilar. Haz clic en',
+                    selectStep: '> selecciona cada espacio de trabajo > cambia el tipo de plan a',
+                },
+            },
+            completed: {
+                headline: 'Tu espacio de trabajo ha sido bajado de categoría',
+                description: 'Tienes otros espacios de trabajo en el plan Controlar. Para facturarte con la tasa del plan Recopilar, debes bajar de categoría todos los espacios de trabajo.',
+                gotIt: 'Entendido, gracias.',
+            },
+        },
+        restrictedAction: {
+            restricted: 'Restringido',
+            actionsAreCurrentlyRestricted: ({workspaceName}: ActionsAreCurrentlyRestricted) => `Las acciones en el espacio de trabajo ${workspaceName} están actualmente restringidas`,
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}: WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams) =>
+                `El propietario del espacio de trabajo, ${workspaceOwnerName} tendrá que añadir o actualizar la tarjeta de pago registrada para desbloquear nueva actividad en el espacio de trabajo.`,
+            youWillNeedToAddOrUpdatePaymentCard: 'Debes añadir o actualizar la tarjeta de pago registrada para desbloquear nueva actividad en el espacio de trabajo.',
+            addPaymentCardToUnlock: 'Añade una tarjeta para desbloquearlo!',
+            addPaymentCardToContinueUsingWorkspace: 'Añade una tarjeta de pago para seguir utilizando este espacio de trabajo',
+            pleaseReachOutToYourWorkspaceAdmin: 'Si tienes alguna pregunta, ponte en contacto con el administrador de su espacio de trabajo.',
+            chatWithYourAdmin: 'Chatea con tu administrador',
+            chatInAdmins: 'Chatea en #admins',
+            addPaymentCard: 'Agregar tarjeta de pago',
+        },
+        rules: {
+            individualExpenseRules: {
+                title: 'Gastos',
+                subtitle: 'Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para',
+                receiptRequiredAmount: 'Cantidad requerida para los recibos',
+                receiptRequiredAmountDescription: 'Exige recibos cuando los gastos superen este importe, a menos que lo anule una regla de categoría.',
+                maxExpenseAmount: 'Importe máximo del gasto',
+                maxExpenseAmountDescription: 'Marca los gastos que superen este importe, a menos que una regla de categoría lo anule.',
+                maxAge: 'Antigüedad máxima',
+                maxExpenseAge: 'Antigüedad máxima de los gastos',
+                maxExpenseAgeDescription: 'Marca los gastos de más de un número determinado de días.',
+                maxExpenseAgeDays: () => ({
+                    one: '1 día',
+                    other: (count: number) => `${count} días`,
+                }),
+                billableDefault: 'Valor predeterminado facturable',
+                billableDefaultDescription: 'Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto. Los gastos facturables se activan o desactivan en',
+                billable: 'Facturable',
+                billableDescription: 'Los gastos se vuelven a facturar a los clientes en la mayoría de los casos',
+                nonBillable: 'No facturable',
+                nonBillableDescription: 'Los gastos se vuelven a facturar a los clientes en ocasiones',
+                eReceipts: 'Recibos electrónicos',
+                eReceiptsHint: 'Los recibos electrónicos se crean automáticamente',
+                eReceiptsHintLink: 'para la mayoría de las transacciones en USD',
+            },
+            expenseReportRules: {
+                examples: 'Ejemplos:',
+                title: 'Informes de gastos',
+                subtitle: 'Automatiza el cumplimiento, la aprobación y el pago de los informes de gastos.',
+                customReportNamesTitle: 'Nombres personalizados de informes',
+                customReportNamesSubtitle: 'Crea nombres personalizados usando nuestras fórmulas variadas.',
+                customNameTitle: 'Nombre personalizado',
+                customNameDescription: 'Elige un nombre personalizado para los informes de gastos usando nuestras ',
+                customNameDescriptionLink: 'fórmulas variadas',
+                customNameInputLabel: 'Nombre',
+                customNameEmailPhoneExample: 'Correo electrónico o teléfono del miembro: {report:submit:from}',
+                customNameStartDateExample: 'Fecha de inicio del informe: {report:startdate}',
+                customNameWorkspaceNameExample: 'Nombre del espacio de trabajo: {report:policyname}',
+                customNameReportIDExample: 'ID del informe: {report:id}',
+                customNameTotalExample: 'Total: {report:total}.',
+                preventMembersFromChangingCustomNamesTitle: 'Evitar que los miembros cambien los nombres personalizados de los informes',
+                preventSelfApprovalsTitle: 'Evitar autoaprobaciones',
+                preventSelfApprovalsSubtitle: 'Evita que los miembros del espacio de trabajo aprueben sus propios informes de gastos.',
+                autoApproveCompliantReportsTitle: 'Aprobación automática de informes conformes',
+                autoApproveCompliantReportsSubtitle: 'Configura qué informes de gastos pueden aprobarse de forma automática.',
+                autoApproveReportsUnderTitle: 'Aprobar automáticamente informes por debajo de',
+                autoApproveReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de esta cantidad se aprobarán automáticamente.',
+                randomReportAuditTitle: 'Auditoría aleatoria de informes',
+                randomReportAuditDescription: 'Requiere que algunos informes sean aprobados manualmente, incluso si son elegibles para la aprobación automática.',
+                autoPayApprovedReportsTitle: 'Pago automático de informes aprobados',
+                autoPayApprovedReportsSubtitle: 'Configura qué informes de gastos pueden pagarse de forma automática.',
+                autoPayApprovedReportsLimitError: ({currency}: AutoPayApprovedReportsLimitErrorParams = {}) => `Por favor, introduce un monto menor a ${currency ?? ''}20,000`,
+                autoPayApprovedReportsLockedSubtitle: 'Ve a más funciones y habilita flujos de trabajo, luego agrega pagos para desbloquear esta función.',
+                autoPayReportsUnderTitle: 'Pagar automáticamente informes por debajo de',
+                autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de esta cantidad se pagarán automáticamente.',
+                unlockFeatureGoToSubtitle: 'Ir a',
+                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `y habilita flujos de trabajo, luego agrega ${featureName} para desbloquear esta función.`,
+                enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `y habilita ${featureName} para desbloquear esta función.`,
+            },
+            categoryRules: {
+                title: 'Reglas de categoría',
+                approver: 'Aprobador',
+                requireDescription: 'Requerir descripción',
+                descriptionHint: 'Sugerencia de descripción',
+                descriptionHintDescription: ({categoryName}: CategoryNameParams) =>
+                    `Recuerda a los empleados que deben proporcionar información adicional para los gastos de “${categoryName}”. Esta sugerencia aparece en el campo de descripción en los gastos.`,
+                descriptionHintLabel: 'Sugerencia',
+                descriptionHintSubtitle: 'Consejo: ¡Cuanto más corta, mejor!',
+                maxAmount: 'Importe máximo',
+                flagAmountsOver: 'Señala importes superiores a',
+                flagAmountsOverDescription: ({categoryName}: CategoryNameParams) => `Aplica a la categoría “${categoryName}”.`,
+                flagAmountsOverSubtitle: 'Esto anula el importe máximo para todos los gastos.',
+                expenseLimitTypes: {
+                    expense: 'Gasto individual',
+                    expenseSubtitle: 'Señala importes de gastos por categoría. Esta regla anula la regla general del espacio de trabajo para el importe máximo de gastos.',
+                    daily: 'Total por categoría',
+                    dailySubtitle: 'Marcar el gasto total por categoría en cada informe de gastos.',
+                },
+                requireReceiptsOver: 'Requerir recibos para importes superiores a',
+                requireReceiptsOverList: {
+                    default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predeterminado`,
+                    never: 'Nunca requerir recibos',
+                    always: 'Requerir recibos siempre',
+                },
+                defaultTaxRate: 'Tasa de impuesto predeterminada',
+                goTo: 'Ve a',
+                andEnableWorkflows: 'y habilita los flujos de trabajo, luego añade aprobaciones para desbloquear esta función.',
+            },
+            customRules: {
+                title: 'Reglas personalizadas',
+                subtitle: 'Descripción',
+                description: 'Introduzca reglas personalizadas para los informes de gastos',
+            },
+        },
+    },
+    getAssistancePage: {
+        title: 'Obtener ayuda',
+        subtitle: '¡Estamos aquí para ayudarte!',
+        description: 'Elige una de las siguientes opciones:',
+        chatWithConcierge: 'Chatear con Concierge',
+        scheduleSetupCall: 'Concertar una llamada',
+        scheduleADemo: 'Programa una demostración',
+        questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
+        exploreHelpDocs: 'Explorar la documentación de ayuda',
+    },
+    emojiPicker: {
+        skinTonePickerLabel: 'Elige el tono de piel por defecto',
+        headers: {
+            frequentlyUsed: 'Usado frecuentemente',
+            smileysAndEmotion: 'Emoticonos y emociones',
+            peopleAndBody: 'Personas y Cuerpo',
+            animalsAndNature: 'Animales y naturaleza',
+            foodAndDrink: 'Alimentos y bebidas',
+            travelAndPlaces: 'Viajes y lugares',
+            activities: 'Actividades',
+            objects: 'Objetos',
+            symbols: 'Símbolos',
+            flags: 'Banderas',
+        },
+    },
+    newRoomPage: {
+        newRoom: 'Nueva sala de chat',
+        groupName: 'Nombre del grupo',
+        roomName: 'Nombre de la sala',
+        visibility: 'Visibilidad',
+        restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala',
+        privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
+        publicDescription: 'Cualquier persona puede unirse a esta sala',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        public_announceDescription: 'Cualquier persona puede unirse a esta sala',
+        createRoom: 'Crea una sala de chat',
+        roomAlreadyExistsError: 'Ya existe una sala con este nombre.',
+        roomNameReservedError: ({reservedName}: RoomNameReservedErrorParams) =>
+            `${reservedName} es el nombre una sala por defecto de todos los espacios de trabajo. Por favor, elige otro nombre.`,
+        roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones.',
+        pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala.',
+        pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo.',
+        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `cambió el nombre de la sala a "${newName}" (previamente "${oldName}")`,
+        roomRenamedTo: ({newName}: RoomRenamedToParams) => `Sala renombrada a ${newName}`,
+        social: 'social',
+        selectAWorkspace: 'Seleccionar un espacio de trabajo',
+        growlMessageOnRenameError: 'No se ha podido cambiar el nombre del espacio de trabajo. Por favor, comprueba tu conexión e inténtalo de nuevo.',
+        visibilityOptions: {
+            restricted: 'Espacio de trabajo', // the translation for "restricted" visibility is actually workspace. This is so we can display restricted visibility rooms as "workspace" without having to change what's stored.
+            private: 'Privada',
+            public: 'Público',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            public_announce: 'Anuncio Público',
+        },
+    },
+    workspaceApprovalModes: {
+        submitAndClose: 'Enviar y Cerrar',
+        submitAndApprove: 'Enviar y Aprobar',
+        advanced: 'AVANZADO',
+        dynamictExternal: 'DINÁMICO_EXTERNO',
+        smartReport: 'INFORME_INTELIGENTE',
+        billcom: 'BILLCOM',
+    },
+    workspaceActions: {
+        addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `añadió la categoría "${categoryName}""`,
+        deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
+        updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renombró la categoría "${oldName}" a "${newName}`,
+        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
+        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
+        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
+        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
+        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+            if (oldValue) {
+                return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" cambiando el ${updatedField} a "${newValue}" (previamente "${oldValue}")`;
+            }
+            return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" añadiendo un ${updatedField} de "${newValue}"`;
+        },
+        addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
+        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
+            `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
+        deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
+        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+            `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
+        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `cambió el monto máximo de gasto requerido sin recibo a ${newValue} (previamente ${oldValue})`,
+        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `cambió el monto máximo de gasto para violaciones a ${newValue} (previamente ${oldValue})`,
+        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `actualizó "Antigüedad máxima de gastos (días)" a "${newValue}" (previamente "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
+        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `actualizó "Volver a facturar gastos a clientes" a "${newValue}" (previamente "${oldValue}")`,
+        updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
+            if (!oldValue) {
+                return `establecer la fecha de envío del informe mensual a "${newValue}"`;
+            }
+            return `actualizar la fecha de envío del informe mensual a "${newValue}" (previamente "${oldValue}")`;
+        },
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `cambió "Requerir título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
+        updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
+            !oldDescription
+                ? `estableció la descripción de este espacio de trabajo como "${newDescription}"`
+                : `actualizó la descripción de este espacio de trabajo a "${newDescription}" (previamente "${oldDescription}")`,
+        renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `actualizó el nombre de este espacio de trabajo a "${newName}" (previamente "${oldName}")`,
+        removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
+            let joinedNames = '';
+            if (submittersNames.length === 1) {
+                joinedNames = submittersNames.at(0) ?? '';
+            } else if (submittersNames.length === 2) {
+                joinedNames = submittersNames.join(' y ');
+            } else if (submittersNames.length > 2) {
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames.at(-1)}`;
+            }
+            return {
+                one: `te eliminó del flujo de trabajo de aprobaciones y del chat del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
+                other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
+            };
+        },
+        demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) =>
+            `cambió tu rol en ${policyName} de ${oldRole} a miembro. Te eliminamos de todos los chats del espacio de trabajo, excepto el suyo.`,
+        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `actualizó la moneda predeterminada a ${newCurrency} (previamente ${oldCurrency})`,
+        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
+            `actualizó la frecuencia de generación automática de informes a "${newFrequency}" (previamente "${oldFrequency}")`,
+        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `actualizó el modo de aprobación a "${newValue}" (previamente "${oldValue}")`,
+        upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
+        downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
+    },
+    roomMembersPage: {
+        memberNotFound: 'Miembro no encontrado.',
+        useInviteButton: 'Para invitar a un nuevo miembro al chat, por favor, utiliza el botón invitar que está más arriba.',
+        notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a esta sala, pide a un miembro de la sala que te añada. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+            one: `¿Estás seguro de que quieres eliminar ${memberName} de la sala de chat?`,
+            other: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
+        }),
+        error: {
+            genericAdd: 'Hubo un problema al añadir este miembro a la sala de chat.',
+        },
+    },
+    newTaskPage: {
+        assignTask: 'Asignar tarea',
+        assignMe: 'Asignar a mí mismo',
+        confirmTask: 'Confirmar tarea',
+        confirmError: 'Por favor, introduce un título y selecciona un destino de tarea.',
+        descriptionOptional: 'Descripción (opcional)',
+        pleaseEnterTaskName: 'Por favor, introduce un título',
+        pleaseEnterTaskDestination: 'Por favor, selecciona dónde deseas compartir esta tarea.',
+    },
+    task: {
+        task: 'Tarea',
+        title: 'Título',
+        description: 'Descripción',
+        assignee: 'Miembro asignado',
+        completed: 'Completada',
+        messages: {
+            created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
+            completed: 'marcada como completa',
+            canceled: 'tarea eliminada',
+            reopened: 'marcada como incompleta',
+            error: 'No tiene permiso para realizar la acción solicitada.',
+        },
+        markAsComplete: 'Marcar como completada',
+        markAsIncomplete: 'Marcar como incompleta',
+        assigneeError: 'Se ha producido un error al asignar esta tarea. Por favor, inténtalo con otro miembro.',
+        genericCreateTaskFailureMessage: 'Error inesperado al crear la tarea. Por favor, inténtalo más tarde.',
+        deleteTask: 'Eliminar tarea',
+        deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
+    },
+    statementPage: {
+        title: ({year, monthName}: StatementTitleParams) => `Estado de cuenta de ${monthName} ${year}`,
+    },
+    keyboardShortcutsPage: {
+        title: 'Atajos de teclado',
+        subtitle: 'Ahorra tiempo con estos atajos de teclado:',
+        shortcuts: {
+            openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
+            escape: 'Diálogos de escape',
+            search: 'Abrir diálogo de búsqueda',
+            newChat: 'Nueva pantalla de chat',
+            copy: 'Copiar comentario',
+            openDebug: 'Abrir el diálogo de preferencias de pruebas',
+        },
+    },
+    guides: {
+        screenShare: 'Compartir pantalla',
+        screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
+    },
+    search: {
+        resultsAreLimited: 'Los resultados de búsqueda están limitados.',
+        viewResults: 'Ver resultados',
+        resetFilters: 'Restablecer filtros',
+        searchResults: {
+            emptyResults: {
+                title: 'No hay nada que ver aquí',
+                subtitle: 'Intenta ajustar tus criterios de búsqueda o crear algo con el botón verde +.',
+            },
+            emptyExpenseResults: {
+                title: 'Aún no has creado ningún gasto',
+                subtitle: 'Usa el botón verde de abajo para crear un gasto o haz un tour por Expensify para aprender más.',
+            },
+            emptyInvoiceResults: {
+                title: 'Aún no has creado \nninguna factura',
+                subtitle: 'Usa el botón verde de abajo para crear una factura o haz un tour por Expensify para aprender más.',
+            },
+            emptyTripResults: {
+                title: 'No tienes viajes',
+                subtitle: 'Reserva tu primer viaje a continuación.',
+                buttonText: 'Reserva un viaje',
+            },
+        },
+        saveSearch: 'Guardar búsqueda',
+        savedSearchesMenuItemTitle: 'Guardadas',
+        searchName: 'Nombre de la búsqueda',
+        deleteSavedSearch: 'Eliminar búsqueda guardada',
+        deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
+        groupedExpenses: 'gastos agrupados',
+        bulkActions: {
+            approve: 'Aprobar',
+            pay: 'Pagar',
+            delete: 'Eliminar',
+            hold: 'Retener',
+            unhold: 'Desbloquear',
+            noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
+        },
+        filtersHeader: 'Filtros',
+        filters: {
+            date: {
+                before: ({date}: OptionalParam<DateParams> = {}) => `Antes de ${date ?? ''}`,
+                after: ({date}: OptionalParam<DateParams> = {}) => `Después de ${date ?? ''}`,
+            },
+            status: 'Estado',
+            keyword: 'Palabra clave',
+            hasKeywords: 'Tiene palabras clave',
+            currency: 'Divisa',
+            link: 'Enlace',
+            pinned: 'Fijado',
+            unread: 'No leído',
+            card: {
+                expensify: 'Expensify',
+                individualCards: 'Tarjetas individuales',
+                closedCards: 'Tarjetas cerradas',
+                cardFeeds: 'Flujos de tarjetas',
+                cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
+                    `Todo ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Todas las Tarjetas Importadas desde CSV${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+            },
+            amount: {
+                lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Menos de ${amount ?? ''}`,
+                greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Más que ${amount ?? ''}`,
+                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Entre ${greaterThan} y ${lessThan}`,
+            },
+            current: 'Actual',
+            past: 'Anterior',
+            submitted: 'Enviado',
+            approved: 'Aprobado',
+            paid: 'Pagado',
+            exported: 'Exportado',
+            posted: 'Contabilizado',
+        },
+        noCategory: 'Sin categoría',
+        noTag: 'Sin etiqueta',
+        expenseType: 'Tipo de gasto',
+        recentSearches: 'Búsquedas recientes',
+        recentChats: 'Chats recientes',
+        searchIn: 'Buscar en',
+        searchPlaceholder: 'Busca algo',
+        suggestions: 'Sugerencias',
+    },
+    genericErrorPage: {
+        title: '¡Oh-oh, algo salió mal!',
+        body: {
+            helpTextMobile: 'Intenta cerrar y volver a abrir la aplicación o cambiar a la',
+            helpTextWeb: 'web.',
+            helpTextConcierge: 'Si el problema persiste, comunícate con',
+        },
+        refresh: 'Actualizar',
+    },
+    fileDownload: {
+        success: {
+            title: '¡Descargado!',
+            message: 'Archivo descargado correctamente',
+            qrMessage:
+                'Busca la copia de tu código QR en la carpeta de fotos o descargas. Consejo: Añádelo a una presentación para que el público pueda escanearlo y conectar contigo directamente.',
+        },
+        generalError: {
+            title: 'Error en la descarga',
+            message: 'No se puede descargar el archivo adjunto.',
+        },
+        permissionError: {
+            title: 'Permiso para acceder al almacenamiento',
+            message: 'Expensify no puede guardar los archivos adjuntos sin permiso para acceder al almacenamiento. Haz click en configuración para actualizar los permisos.',
+        },
+    },
+    desktopApplicationMenu: {
+        mainMenu: 'New Expensify',
+        about: 'Sobre New Expensify',
+        update: 'Actualizar New Expensify',
+        checkForUpdates: 'Buscar actualizaciones',
+        toggleDevTools: 'Ver herramientas de desarrollo',
+        viewShortcuts: 'Ver atajos de teclado',
+        services: 'Servicios',
+        hide: 'Ocultar New Expensify',
+        hideOthers: 'Ocultar otros',
+        showAll: 'Mostrar todos',
+        quit: 'Salir de New Expensify',
+        fileMenu: 'Archivo',
+        closeWindow: 'Cerrar ventana',
+        editMenu: 'Editar',
+        undo: 'Deshacer',
+        redo: 'Rehacer',
+        cut: 'Cortar',
+        copy: 'Copiar',
+        paste: 'Pegar',
+        pasteAndMatchStyle: 'Pegar adaptando el estilo',
+        pasteAsPlainText: 'Pegar como texto sin formato',
+        delete: 'Eliminar',
+        selectAll: 'Seleccionar todo',
+        speechSubmenu: 'Voz',
+        startSpeaking: 'Empezar a hablar',
+        stopSpeaking: 'Dejar de Hablar',
+        viewMenu: 'Ver',
+        reload: 'Cargar de nuevo',
+        forceReload: 'Forzar recarga',
+        resetZoom: 'Tamaño real',
+        zoomIn: 'Acercar',
+        zoomOut: 'Alejar',
+        togglefullscreen: 'Alternar pantalla completa',
+        historyMenu: 'Historial',
+        back: 'Atrás',
+        forward: 'Adelante',
+        windowMenu: 'Ventana',
+        minimize: 'Minimizar',
+        zoom: 'Zoom',
+        front: 'Traer todo al frente',
+        helpMenu: 'Ayuda',
+        learnMore: 'Más información',
+        documentation: 'Documentación',
+        communityDiscussions: 'Debates de la comunidad',
+        searchIssues: 'Buscar problemas',
+    },
+    historyMenu: {
+        forward: 'Adelante',
+        back: 'Atrás',
+    },
+    checkForUpdatesModal: {
+        available: {
+            title: 'Actualización disponible',
+            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
+                `La nueva versión estará disponible dentro de poco.${isSilentUpdating ? ' Te notificaremos cuando esté lista.' : ''}`,
+            soundsGood: 'Suena bien',
+        },
+        notAvailable: {
+            title: 'Actualización no disponible',
+            message: '¡No existe ninguna actualización disponible! Inténtalo de nuevo más tarde.',
+            okay: 'Vale',
+        },
+        error: {
+            title: 'Comprobación fallida.',
+            message: 'No hemos podido comprobar si existe una actualización. ¡Inténtalo de nuevo más tarde!.',
+        },
+    },
+    report: {
+        newReport: {
+            createReport: 'Crear informe',
+            chooseWorkspace: 'Elige un espacio de trabajo para este informe.',
+        },
+        genericCreateReportFailureMessage: 'Error inesperado al crear el chat. Por favor, inténtalo más tarde.',
+        genericAddCommentFailureMessage: 'Error inesperado al añadir el comentario. Por favor, inténtalo más tarde.',
+        genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
+        genericUpdateReporNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
+        noActivityYet: 'Sin actividad todavía',
+        actions: {
+            type: {
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} de ${oldValue} a ${newValue}`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} a ${newValue}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
+                    `cambió el espacio de trabajo a ${toPolicyName}${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`,
+                changeType: ({oldType, newType}: ChangeTypeParams) => `cambió type de ${oldType} a ${newType}`,
+                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
+                exportedToCSV: `exportó este informe a CSV`,
+                exportedToIntegration: {
+                    automatic: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}.`,
+                    automaticActionOne: ({label}: ExportedToIntegrationParams) => `exportó automáticamente este informe a ${label} a través de la`,
+                    automaticActionTwo: 'configuración contable.',
+                    manual: ({label}: ExportedToIntegrationParams) => `marcó este informe como exportado manualmente a ${label}.`,
+                    reimburseableLink: 'Ver los gastos por cuenta propia.',
+                    nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
+                    pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
+                },
+                integrationsMessage: ({label, errorMessage, linkText, linkURL}: IntegrationSyncFailedParams) =>
+                    `no se pudo exportar este informe a ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                managerAttachReceipt: `agregó un recibo`,
+                managerDetachReceipt: `quitó un recibo`,
+                markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
+                markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `pagó ${currency}${amount} mediante integración`,
+                outdatedBankAccount: `no se pudo procesar el pago debido a un problema con la cuenta bancaria del pagador`,
+                reimbursementACHBounce: `no se pudo procesar el pago porque el pagador no tiene fondos suficientes`,
+                reimbursementACHCancelled: `canceled the payment`,
+                reimbursementAccountChanged: `no se pudo procesar el pago porque el pagador cambió de cuenta bancaria`,
+                reimbursementDelayed: `procesó el pago pero se retrasó entre 1 y 2 días hábiles más`,
+                selectedForRandomAudit: `seleccionado al azar para revisión`,
+                selectedForRandomAuditMarkdown: `[seleccionado al azar](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) para revisión`,
+                share: ({to}: ShareParams) => `miembro invitado ${to}`,
+                unshare: ({to}: UnshareParams) => `miembro eliminado ${to}`,
+                stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
+                takeControl: `tomó el control`,
+                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role}`,
+                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
+                leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} salió del espacio de trabajo`,
+                removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role} ${email}`,
+                removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+            },
+        },
+    },
+    chronos: {
+        oooEventSummaryFullDay: ({summary, dayCount, date}: OOOEventSummaryFullDayParams) => `${summary} por ${dayCount} ${dayCount === 1 ? 'día' : 'días'} hasta el ${date}`,
+        oooEventSummaryPartialDay: ({summary, timePeriod, date}: OOOEventSummaryPartialDayParams) => `${summary} de ${timePeriod} del ${date}`,
+    },
+    footer: {
+        features: 'Características',
+        expenseManagement: 'Gestión de Gastos',
+        spendManagement: 'Control de Gastos',
+        expenseReports: 'Informes de Gastos',
+        companyCreditCard: 'Tarjeta de Crédito Corporativa',
+        receiptScanningApp: 'Aplicación de Escaneado de Recibos',
+        billPay: 'Pago de Facturas',
+        invoicing: 'Facturación',
+        CPACard: 'Tarjeta Para Contables',
+        payroll: 'Nómina',
+        travel: 'Viajes',
+        resources: 'Recursos',
+        expensifyApproved: 'ExpensifyApproved!',
+        pressKit: 'Kit de Prensa',
+        support: 'Soporte',
+        expensifyHelp: 'ExpensifyHelp',
+        terms: 'Términos de Servicio',
+        privacy: 'Privacidad',
+        learnMore: 'Más Información',
+        aboutExpensify: 'Acerca de Expensify',
+        blog: 'Blog',
+        jobs: 'Empleo',
+        expensifyOrg: 'Expensify.org',
+        investorRelations: 'Relaciones Con Los Inversores',
+        getStarted: 'Comenzar',
+        createAccount: 'Crear Una Cuenta Nueva',
+        logIn: 'Conectarse',
+    },
+    allStates: {
+        AK: {
+            stateISO: 'AK',
+            stateName: 'Alaska',
+        },
+        AL: {
+            stateISO: 'AL',
+            stateName: 'Alabama',
+        },
+        AR: {
+            stateISO: 'AR',
+            stateName: 'Arkansas',
+        },
+        AZ: {
+            stateISO: 'AZ',
+            stateName: 'Arizona',
+        },
+        CA: {
+            stateISO: 'CA',
+            stateName: 'California',
+        },
+        CO: {
+            stateISO: 'CO',
+            stateName: 'Colorado',
+        },
+        CT: {
+            stateISO: 'CT',
+            stateName: 'Connecticut',
+        },
+        DE: {
+            stateISO: 'DE',
+            stateName: 'Delaware',
+        },
+        FL: {
+            stateISO: 'FL',
+            stateName: 'Florida',
+        },
+        GA: {
+            stateISO: 'GA',
+            stateName: 'Georgia',
+        },
+        HI: {
+            stateISO: 'HI',
+            stateName: 'Hawái',
+        },
+        IA: {
+            stateISO: 'IA',
+            stateName: 'Iowa',
+        },
+        ID: {
+            stateISO: 'ID',
+            stateName: 'Idaho',
+        },
+        IL: {
+            stateISO: 'IL',
+            stateName: 'Illinois',
+        },
+        IN: {
+            stateISO: 'IN',
+            stateName: 'Indiana',
+        },
+        KS: {
+            stateISO: 'KS',
+            stateName: 'Kansas',
+        },
+        KY: {
+            stateISO: 'KY',
+            stateName: 'Kentucky',
+        },
+        LA: {
+            stateISO: 'LA',
+            stateName: 'Luisiana',
+        },
+        MA: {
+            stateISO: 'MA',
+            stateName: 'Massachusetts',
+        },
+        MD: {
+            stateISO: 'MD',
+            stateName: 'Maryland',
+        },
+        ME: {
+            stateISO: 'ME',
+            stateName: 'Maine',
+        },
+        MI: {
+            stateISO: 'MI',
+            stateName: 'Míchigan',
+        },
+        MN: {
+            stateISO: 'MN',
+            stateName: 'Minnesota',
+        },
+        MO: {
+            stateISO: 'MO',
+            stateName: 'Misuri',
+        },
+        MS: {
+            stateISO: 'MS',
+            stateName: 'Misisipi',
+        },
+        MT: {
+            stateISO: 'MT',
+            stateName: 'Montana',
+        },
+        NC: {
+            stateISO: 'NC',
+            stateName: 'Carolina del Norte',
+        },
+        ND: {
+            stateISO: 'ND',
+            stateName: 'Dakota del Norte',
+        },
+        NE: {
+            stateISO: 'NE',
+            stateName: 'Nebraska',
+        },
+        NH: {
+            stateISO: 'NH',
+            stateName: 'Nuevo Hampshire',
+        },
+        NJ: {
+            stateISO: 'NJ',
+            stateName: 'Nueva Jersey',
+        },
+        NM: {
+            stateISO: 'NM',
+            stateName: 'Nuevo México',
+        },
+        NV: {
+            stateISO: 'NV',
+            stateName: 'Nevada',
+        },
+        NY: {
+            stateISO: 'NY',
+            stateName: 'Nueva York',
+        },
+        OH: {
+            stateISO: 'OH',
+            stateName: 'Ohio',
+        },
+        OK: {
+            stateISO: 'OK',
+            stateName: 'Oklahoma',
+        },
+        OR: {
+            stateISO: 'OR',
+            stateName: 'Oregón',
+        },
+        PA: {
+            stateISO: 'PA',
+            stateName: 'Pensilvania',
+        },
+        PR: {
+            stateISO: 'PR',
+            stateName: 'Puerto Rico',
+        },
+        RI: {
+            stateISO: 'RI',
+            stateName: 'Rhode Island',
+        },
+        SC: {
+            stateISO: 'SC',
+            stateName: 'Carolina del Sur',
+        },
+        SD: {
+            stateISO: 'SD',
+            stateName: 'Dakota del Sur',
+        },
+        TN: {
+            stateISO: 'TN',
+            stateName: 'Tennessee',
+        },
+        TX: {
+            stateISO: 'TX',
+            stateName: 'Texas',
+        },
+        UT: {
+            stateISO: 'UT',
+            stateName: 'Utah',
+        },
+        VA: {
+            stateISO: 'VA',
+            stateName: 'Virginia',
+        },
+        VT: {
+            stateISO: 'VT',
+            stateName: 'Vermont',
+        },
+        WA: {
+            stateISO: 'WA',
+            stateName: 'Washington',
+        },
+        WI: {
+            stateISO: 'WI',
+            stateName: 'Wisconsin',
+        },
+        WV: {
+            stateISO: 'WV',
+            stateName: 'Virginia Occidental',
+        },
+        WY: {
+            stateISO: 'WY',
+            stateName: 'Wyoming',
+        },
+        DC: {
+            stateISO: 'DC',
+            stateName: 'Distrito de Columbia',
+        },
+    },
+    allCountries: {
+        AF: 'Afganistán',
+        AL: 'Albania',
+        DE: 'Alemania',
+        AD: 'Andorra',
+        AO: 'Angola',
+        AI: 'Anguila',
+        AQ: 'Antártida',
+        AG: 'Antigua y Barbuda',
+        SA: 'Arabia Saudita',
+        DZ: 'Argelia',
+        AR: 'Argentina',
+        AM: 'Armenia',
+        AW: 'Aruba',
+        AU: 'Australia',
+        AT: 'Austria',
+        AZ: 'Azerbaiyán',
+        BS: 'Bahamas',
+        BH: 'Bahrein',
+        BD: 'Bangladesh',
+        BB: 'Barbados',
+        BE: 'Bélgica',
+        BZ: 'Belice',
+        BJ: 'Benin',
+        BT: 'Bhután',
+        BY: 'Bielorrusia',
+        MM: 'Birmania',
+        BO: 'Bolivia',
+        BQ: 'Bonaire, San Eustaquio y Saba',
+        BA: 'Bosnia y Herzegovina',
+        BW: 'Botsuana',
+        BR: 'Brazil',
+        BN: 'Brunéi',
+        BG: 'Bulgaria',
+        BF: 'Burkina Faso',
+        BI: 'Burundi',
+        CV: 'Cabo Verde',
+        KH: 'Camboya',
+        CM: 'Camerún',
+        CA: 'Canadá',
+        TD: 'Chad',
+        CL: 'Chile',
+        CN: 'China',
+        CY: 'Chipre',
+        VA: 'Ciudad del Vaticano',
+        CO: 'Colombia',
+        KM: 'Comoras',
+        KP: 'Corea del Norte',
+        KR: 'Corea del Sur',
+        CI: 'Costa de Marfil',
+        CR: 'Costa Rica',
+        HR: 'Croacia',
+        CU: 'Cuba',
+        CW: 'Curazao',
+        DK: 'Dinamarca',
+        DM: 'Dominica',
+        EC: 'Ecuador',
+        EG: 'Egipto',
+        SV: 'El Salvador',
+        AE: 'Emiratos Árabes Unidos',
+        ER: 'Eritrea',
+        SK: 'Eslovaquia',
+        SI: 'Eslovenia',
+        ES: 'España',
+        US: 'Estados Unidos de América',
+        EE: 'Estonia',
+        ET: 'Etiopía',
+        PH: 'Filipinas',
+        FI: 'Finlandia',
+        FJ: 'Fiyi',
+        FR: 'Francia',
+        GA: 'Gabón',
+        GM: 'Gambia',
+        GE: 'Georgia',
+        GH: 'Ghana',
+        GI: 'Gibraltar',
+        GD: 'Granada',
+        GR: 'Greece',
+        GL: 'Groenlandia',
+        GP: 'Guadeloupe',
+        GU: 'Guam',
+        GT: 'Guatemala',
+        GF: 'Guayana Francesa',
+        GG: 'Guernsey',
+        GN: 'Guinea',
+        GQ: 'Guinea Ecuatorial',
+        GW: 'Guinea-Bissau',
+        GY: 'Guyana',
+        HT: 'Haiti',
+        HN: 'Honduras',
+        HK: 'Hong Kong',
+        HU: 'Hungría',
+        IN: 'India',
+        ID: 'Indonesia',
+        IQ: 'Irak',
+        IR: 'Irán',
+        IE: 'Irlanda',
+        AC: 'Isla Ascensión',
+        IM: 'Isla de Man',
+        CX: 'Isla de Navidad',
+        NF: 'Isla Norfolk',
+        IS: 'Islandia',
+        BM: 'Islas Bermudas',
+        KY: 'Islas Caimán',
+        CC: 'Islas Cocos (Keeling)',
+        CK: 'Islas Cook',
+        AX: 'Islas de Åland',
+        FO: 'Islas Feroe',
+        GS: 'Islas Georgias del Sur y Sandwich del Sur',
+        MV: 'Islas Maldivas',
+        FK: 'Islas Malvinas',
+        MP: 'Islas Marianas del Norte',
+        MH: 'Islas Marshall',
+        PN: 'Islas Pitcairn',
+        SB: 'Islas Salomón',
+        TC: 'Islas Turcas y Caicos',
+        UM: 'Islas Ultramarinas Menores de Estados Unidos',
+        VG: 'Islas Vírgenes Británicas',
+        VI: 'Islas Vírgenes de los Estados Unidos',
+        IL: 'Israel',
+        IT: 'Italia',
+        JM: 'Jamaica',
+        JP: 'Japón',
+        JE: 'Jersey',
+        JO: 'Jordania',
+        KZ: 'Kazajistán',
+        KE: 'Kenia',
+        KG: 'Kirguistán',
+        KI: 'Kiribati',
+        XK: 'Kosovo',
+        KW: 'Kuwait',
+        LA: 'Laos',
+        LS: 'Lesoto',
+        LV: 'Letonia',
+        LB: 'Líbano',
+        LR: 'Liberia',
+        LY: 'Libia',
+        LI: 'Liechtenstein',
+        LT: 'Lituania',
+        LU: 'Luxemburgo',
+        MO: 'Macao',
+        MK: 'Macedônia',
+        MG: 'Madagascar',
+        MY: 'Malasia',
+        MW: 'Malawi',
+        ML: 'Mali',
+        MT: 'Malta',
+        MA: 'Marruecos',
+        MQ: 'Martinica',
+        MR: 'Mauritania',
+        MU: 'Mauritius',
+        YT: 'Mayotte',
+        MX: 'México',
+        FM: 'Micronesia',
+        MD: 'Moldavia',
+        MC: 'Mónaco',
+        MN: 'Mongolia',
+        ME: 'Montenegro',
+        MS: 'Montserrat',
+        MZ: 'Mozambique',
+        NA: 'Namibia',
+        NR: 'Nauru',
+        NP: 'Nepal',
+        NI: 'Nicaragua',
+        NE: 'Niger',
+        NG: 'Nigeria',
+        NU: 'Niue',
+        NO: 'Noruega',
+        NC: 'Nueva Caledonia',
+        NZ: 'Nueva Zealand',
+        OM: 'Omán',
+        NL: 'Países Bajos',
+        PK: 'Pakistán',
+        PW: 'Palau',
+        PS: 'Palestina',
+        PA: 'Panamá',
+        PG: 'Papúa Nueva Guinea',
+        PY: 'Paraguay',
+        PE: 'Perú',
+        PF: 'Polinesia Francesa',
+        PL: 'Polonia',
+        PT: 'Portugal',
+        PR: 'Puerto Rico',
+        QA: 'Qatar',
+        GB: 'Reino Unido',
+        CF: 'República Centroafricana',
+        CZ: 'República Checa',
+        SS: 'República de Sudán del Sur',
+        CG: 'República del Congo',
+        CD: 'República Democrática del Congo',
+        DO: 'República Dominicana',
+        RE: 'Reunión',
+        RW: 'Ruanda',
+        RO: 'Rumanía',
+        RU: 'Rusia',
+        EH: 'Sahara Occidental',
+        WS: 'Samoa',
+        AS: 'Samoa Americana',
+        BL: 'San Bartolomé',
+        KN: 'San Cristóbal y Nieves',
+        SM: 'San Marino',
+        MF: 'San Martín (Francia)',
+        PM: 'San Pedro y Miquelón',
+        VC: 'San Vicente y las Granadinas',
+        SH: 'Santa Elena',
+        LC: 'Santa Lucía',
+        ST: 'Santo Tomé y Príncipe',
+        SN: 'Senegal',
+        RS: 'Serbia',
+        SC: 'Seychelles',
+        SL: 'Sierra Leona',
+        SG: 'Singapur',
+        SX: 'Sint Maarten',
+        SY: 'Siria',
+        SO: 'Somalia',
+        LK: 'Sri Lanka',
+        ZA: 'Sudáfrica',
+        SD: 'Sudán',
+        SE: 'Suecia',
+        CH: 'Suiza',
+        SR: 'Surinám',
+        SJ: 'Svalbard y Jan Mayen',
+        SZ: 'Swazilandia',
+        TH: 'Tailandia',
+        TW: 'Taiwán',
+        TZ: 'Tanzania',
+        TJ: 'Tayikistán',
+        IO: 'Territorio Británico del Océano Índico',
+        TF: 'Territorios Australes y Antárticas Franceses',
+        TL: 'Timor Oriental',
+        TG: 'Togo',
+        TK: 'Tokelau',
+        TO: 'Tonga',
+        TT: 'Trinidad y Tobago',
+        TA: 'Tristán de Acuña',
+        TN: 'Tunez',
+        TM: 'Turkmenistán',
+        TR: 'Turquía',
+        TV: 'Tuvalu',
+        UA: 'Ucrania',
+        UG: 'Uganda',
+        UY: 'Uruguay',
+        UZ: 'Uzbekistan',
+        VU: 'Vanuatu',
+        VE: 'Venezuela',
+        VN: 'Vietnam',
+        WF: 'Wallis y Futuna',
+        YE: 'Yemen',
+        DJ: 'Yibuti',
+        ZM: 'Zambia',
+        ZW: 'Zimbabue',
+    },
+    accessibilityHints: {
+        navigateToChatsList: 'Vuelve a la lista de chats',
+        chatWelcomeMessage: 'Mensaje de bienvenida al chat',
+        navigatesToChat: 'Navega a un chat',
+        newMessageLineIndicator: 'Indicador de nueva línea de mensaje',
+        chatMessage: 'mensaje de chat',
+        lastChatMessagePreview: 'Vista previa del último mensaje del chat',
+        workspaceName: 'Nombre del espacio de trabajo',
+        chatUserDisplayNames: 'Nombres de los miembros del chat',
+        scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
+        prestyledText: 'texto preestilizado',
+        viewAttachment: 'Ver archivo adjunto',
+    },
+    parentReportAction: {
+        deletedReport: 'Informe eliminado',
+        deletedMessage: 'Mensaje eliminado',
+        deletedExpense: 'Gasto eliminado',
+        reversedTransaction: 'Transacción anulada',
+        deletedTask: 'Tarea eliminada',
+        hiddenMessage: 'Mensaje oculto',
+    },
+    threads: {
+        thread: 'Hilo',
+        replies: 'Respuestas',
+        reply: 'Respuesta',
+        from: 'De',
+        in: 'en',
+        parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `De ${reportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
+    },
+    qrCodes: {
+        copy: 'Copiar URL',
+        copied: '¡Copiado!',
+    },
+    actionableMentionWhisperOptions: {
+        invite: 'Invitar',
+        nothing: 'No hacer nada',
+    },
+    actionableMentionJoinWorkspaceOptions: {
+        accept: 'Aceptar',
+        decline: 'Rechazar',
+    },
+    actionableMentionTrackExpense: {
+        submit: 'Pedirle a alguien que lo pague',
+        categorize: 'Categorizarlo',
+        share: 'Compartirlo con mi contador',
+        nothing: 'Por ahora, nada',
+    },
+    moderation: {
+        flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para tu revisión.',
+        chooseAReason: 'Elige abajo un motivo para reportarlo:',
+        spam: 'Spam',
+        spamDescription: 'Publicidad no solicitada',
+        inconsiderate: 'Desconsiderado',
+        inconsiderateDescription: 'Frase insultante o irrespetuosa, con intenciones cuestionables',
+        intimidation: 'Intimidación',
+        intimidationDescription: 'Persigue agresivamente una agenda sobre objeciones válidas',
+        bullying: 'Bullying',
+        bullyingDescription: 'Se dirige a un individuo para obtener obediencia',
+        harassment: 'Acoso',
+        harassmentDescription: 'Comportamiento racista, misógino u otro comportamiento discriminatorio',
+        assault: 'Agresion',
+        assaultDescription: 'Ataque emocional específicamente dirigido con la intención de hacer daño',
+        flaggedContent: 'Este mensaje ha sido marcado por violar las reglas de nuestra comunidad y el contenido se ha ocultado.',
+        hideMessage: 'Ocultar mensaje',
+        revealMessage: 'Revelar mensaje',
+        levelOneResult: 'Envía una advertencia anónima y el mensaje es reportado para revisión.',
+        levelTwoResult: 'Mensaje ocultado en el canal, más advertencia anónima y mensaje reportado para revisión.',
+        levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
+    },
+    teachersUnitePage: {
+        teachersUnite: 'Profesores Unidos',
+        joinExpensifyOrg: 'Únete a Expensify.org para eliminar la injusticia en todo el mundo y ayuda a los profesores a dividir sus gastos para las aulas más necesitadas.',
+        iKnowATeacher: 'Yo conozco a un profesor',
+        iAmATeacher: 'Soy profesor',
+        getInTouch: '¡Excelente! Por favor, comparte tu información para que podamos ponernos en contacto con ellos.',
+        introSchoolPrincipal: 'Introducción al director del colegio',
+        schoolPrincipalVerfiyExpense:
+            'Expensify.org divide el coste del material escolar esencial para que los estudiantes de familias con bajos ingresos puedan tener una mejor experiencia de aprendizaje. Se pedirá a tu director que verifique tus gastos.',
+        principalFirstName: 'Nombre del director',
+        principalLastName: 'Apellido del director',
+        principalWorkEmail: 'Correo electrónico de trabajo del director',
+        updateYourEmail: 'Actualiza tu dirección de correo electrónico',
+        updateEmail: 'Actualización de la dirección de correo electrónico',
+        contactMethods: 'Métodos de contacto.',
+        schoolMailAsDefault:
+            'Antes de seguir adelante, asegúrate de establecer el correo electrónico de tu colegio como método de contacto predeterminado. Puede hacerlo en Configuración > Perfil > ',
+        error: {
+            enterPhoneEmail: 'Ingrese un correo electrónico o número de teléfono válido.',
+            enterEmail: 'Introduce un correo electrónico.',
+            enterValidEmail: 'Introduzca un correo electrónico válido.',
+            tryDifferentEmail: 'Por favor intenta con un correo electrónico diferente.',
+        },
+    },
+    cardTransactions: {
+        notActivated: 'No activado',
+        outOfPocket: 'Gastos por cuenta propia',
+        companySpend: 'Gastos de empresa',
+    },
+    distance: {
+        addStop: 'Añadir parada',
+        deleteWaypoint: 'Eliminar punto de ruta',
+        deleteWaypointConfirmation: '¿Estás seguro de que quieres eliminar este punto de ruta?',
+        address: 'Dirección',
+        waypointDescription: {
+            start: 'Comienzo',
+            stop: 'Parada',
+        },
+        mapPending: {
+            title: 'Mapa pendiente',
+            subtitle: 'El mapa se generará cuando vuelvas a estar en línea',
+            onlineSubtitle: 'Un momento mientras configuramos el mapa',
+            errorTitle: 'Mapa error',
+            errorSubtitle: 'No se pudo cargar el mapa. Por favor, inténtalo de nuevo.',
+        },
+        error: {
+            selectSuggestedAddress: 'Por favor, selecciona una dirección sugerida o usa la ubicación actual.',
+        },
+    },
+    reportCardLostOrDamaged: {
+        report: 'Notificar la pérdida / daño de la tarjeta física',
+        screenTitle: 'Notificar la pérdida o deterioro de la tarjeta',
+        nextButtonLabel: 'Siguiente',
+        reasonTitle: '¿Por qué necesitas una tarjeta nueva?',
+        cardDamaged: 'Mi tarjeta está dañada',
+        cardLostOrStolen: 'He perdido o me han robado la tarjeta',
+        confirmAddressTitle: 'Por favor, confirma la dirección postal de tu nueva tarjeta.',
+        cardDamagedInfo: 'La nueva tarjeta te llegará en 2-3 días laborables. La tarjeta actual seguirá funcionando hasta que actives la nueva.',
+        cardLostOrStolenInfo: 'La tarjeta actual se desactivará permanentemente en cuanto realices el pedido. La mayoría de las tarjetas llegan en pocos días laborables.',
+        address: 'Dirección',
+        deactivateCardButton: 'Desactivar tarjeta',
+        shipNewCardButton: 'Enviar tarjeta nueva',
+        addressError: 'La dirección es obligatoria',
+        reasonError: 'Se requiere justificación',
+    },
+    eReceipt: {
+        guaranteed: 'eRecibo garantizado',
+        transactionDate: 'Fecha de transacción',
+    },
+    referralProgram: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
+            buttonText1: 'Inicia un chat y ',
+            buttonText2: 'recomienda a un amigo',
+            header: 'Inicia un chat, recomienda a un amigo',
+            body: '¿Quieres que tus amigos también usen Expensify? Simplemente inicia un chat con ellos y nosotros nos encargaremos del resto.',
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
+            buttonText1: 'Presenta un gasto, ',
+            buttonText2: 'recomienda a tu jefe',
+            header: 'Envía un gasto, recomienda a tu jefe',
+            body: '¿Quieres que tu jefe también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
+            header: 'Recomienda a un amigo',
+            body: '¿Quieres que tus amigos también usen Expensify? Simplemente chatea, paga o divide un gasto con ellos y nosotros nos encargaremos del resto. ¡O simplemente comparte tu enlace de invitación!',
+        },
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
+            buttonText: 'Recomienda a un amigo',
+            header: 'Recomienda a un amigo',
+            body: '¿Quieres que tus amigos también usen Expensify? Simplemente chatea, paga o divide un gasto con ellos y nosotros nos encargaremos del resto. ¡O simplemente comparte tu enlace de invitación!',
+        },
+        copyReferralLink: 'Copiar enlace de invitación',
+    },
+    systemChatFooterMessage: {
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
+            phrase1: 'Chatea con tu especialista asignado en ',
+            phrase2: ' para obtener ayuda',
+        },
+        default: {
+            phrase1: 'Envía un correo electrónico a ',
+            phrase2: ' para obtener ayuda con la configuración',
+        },
+    },
+    violations: {
+        allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
+        autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,
+        billableExpense: 'La opción facturable ya no es válida',
+        cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Recibo obligatorio para cantidades mayores de ${formattedLimit}`,
+        categoryOutOfPolicy: 'La categoría ya no es válida',
+        conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `${surcharge}% de recargo aplicado`,
+        customUnitOutOfPolicy: 'Tasa inválida para este espacio de trabajo',
+        duplicatedTransaction: 'Duplicado',
+        fieldRequired: 'Los campos del informe son obligatorios',
+        futureDate: 'Fecha futura no permitida',
+        invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `Incrementado un ${invoiceMarkup}%`,
+        maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Fecha de más de ${maxAge} días`,
+        missingCategory: 'Falta categoría',
+        missingComment: 'Descripción obligatoria para la categoría seleccionada',
+        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Falta ${tagName ?? 'etiqueta'}`,
+        modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
+            switch (type) {
+                case 'distance':
+                    return 'Importe difiere del calculado basado en distancia';
+                case 'card':
+                    return 'Importe mayor al de la transacción de la tarjeta';
+                default:
+                    if (displayPercentVariance) {
+                        return `Importe ${displayPercentVariance}% mayor al del recibo escaneado`;
+                    }
+                    return 'Importe mayor al del recibo escaneado';
+            }
+        },
+        modifiedDate: 'Fecha difiere del recibo escaneado',
+        nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
+        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) =>
+            `Importe supera el límite de aprobación automática${formattedLimit ? ` de ${formattedLimit}` : ''}`,
+        overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Importe supera el límite para la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
+        overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
+        overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
+        perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
+        receiptNotSmartScanned: 'Escaneo de recibo incompleto. Por favor, verifica los detalles manualmente.',
+        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+            let message = 'Recibo obligatorio';
+            if (formattedLimit ?? category) {
+                message += ' para importes sobre';
+                if (formattedLimit) {
+                    message += ` ${formattedLimit}`;
+                }
+                if (category) {
+                    message += ' el límite de la categoría';
+                }
+            }
+            return message;
+        },
+        customRules: ({message}: ViolationsCustomRulesParams) => message,
+        reviewRequired: 'Revisión requerida',
+        rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
+                return '';
+            }
+            if (brokenBankConnection) {
+                return isAdmin
+                    ? `No se puede adjuntar recibo debido a un problema con la conexión a tu banco que ${email} necesita arreglar`
+                    : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco que necesitas arreglar';
+            }
+            if (!isTransactionOlderThan7Days) {
+                return isAdmin
+                    ? `Pide a ${member} que marque la transacción como efectivo o espera 7 días e inténtalo de nuevo`
+                    : 'Esperando a adjuntar automáticamente la transacción de tarjeta de crédito';
+            }
+            return '';
+        },
+        brokenConnection530Error: 'Recibo pendiente debido a una conexión bancaria rota.',
+        adminBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en ',
+        memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
+        markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
+        smartscanFailed: ({canEdit = true}) => `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`,
+        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Falta ${tagName ?? 'Tag'}`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
+        taxAmountChanged: 'El importe del impuesto fue modificado',
+        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams = {}) => `${taxName ?? 'El impuesto'} ya no es válido`,
+        taxRateChanged: 'La tasa de impuesto fue modificada',
+        taxRequired: 'Falta la tasa de impuesto',
+        none: 'Ninguno',
+        taxCodeToKeep: 'Elige qué tasa de impuesto quieres conservar',
+        tagToKeep: 'Elige qué etiqueta quieres conservar',
+        isTransactionReimbursable: 'Elige si la transacción es reembolsable',
+        merchantToKeep: 'Elige qué comerciante quieres conservar',
+        descriptionToKeep: 'Elige qué descripción quieres conservar',
+        categoryToKeep: 'Elige qué categoría quieres conservar',
+        isTransactionBillable: 'Elige si la transacción es facturable',
+        keepThisOne: 'Mantener éste',
+        confirmDetails: 'Confirma los detalles que conservas',
+        confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
+        hold: 'Retenido',
+    },
+    reportViolations: {
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} es obligatorio`,
+    },
+    violationDismissal: {
+        rter: {
+            manual: 'marcó el recibo como pagado en efectivo',
+        },
+        duplicatedTransaction: {
+            manual: 'resolvió el duplicado',
+        },
+    },
+    videoPlayer: {
+        play: 'Reproducir',
+        pause: 'Pausar',
+        fullscreen: 'Pantalla completa',
+        playbackSpeed: 'Velocidad',
+        expand: 'Expandir',
+        mute: 'Silenciar',
+        unmute: 'Activar sonido',
+        normal: 'Normal',
+    },
+    exitSurvey: {
+        header: 'Antes de irte',
+        reasonPage: {
+            title: 'Dinos por qué te vas',
+            subtitle: 'Antes de irte, por favor dinos por qué te gustaría cambiarte a Expensify Classic.',
+        },
+        reasons: {
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: 'Necesito una función que sólo está disponible en Expensify Classic.',
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: 'No entiendo cómo usar New Expensify.',
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Entiendo cómo usar New Expensify, pero prefiero Expensify Classic.',
+        },
+        prompts: {
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: '¿Qué función necesitas que no esté disponible en New Expensify?',
+            [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: '¿Qué estás tratando de hacer?',
+            [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: '¿Por qué prefieres Expensify Classic?',
+        },
+        responsePlaceholder: 'Tu respuesta',
+        thankYou: '¡Gracias por tus comentarios!',
+        thankYouSubtitle: 'Sus respuestas nos ayudarán a crear un mejor producto para hacer las cosas bien. ¡Muchas gracias!',
+        goToExpensifyClassic: 'Cambiar a Expensify Classic',
+        offlineTitle: 'Parece que estás atrapado aquí...',
+        offline:
+            'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+        quickTip: 'Consejo rápido...',
+        quickTipSubTitle: 'Puedes ir directamente a Expensify Classic visitando expensify.com. Márcalo como favorito para tener un acceso directo fácil.',
+        bookACall: 'Reservar una llamada',
+        noThanks: 'No, gracias',
+        bookACallTitle: '¿Desea hablar con un responsable de producto?',
+        benefits: {
+            [CONST.EXIT_SURVEY.BENEFIT.CHATTING_DIRECTLY]: 'Chat directo sobre gastos e informes',
+            [CONST.EXIT_SURVEY.BENEFIT.EVERYTHING_MOBILE]: 'Posibilidad de hacerlo todo desde el móvil',
+            [CONST.EXIT_SURVEY.BENEFIT.TRAVEL_EXPENSE]: 'Viajes y gastos a la velocidad del chat',
+        },
+        bookACallTextTop: 'Al cambiar a Expensify Classic, se perderá:',
+        bookACallTextBottom: 'Nos encantaría hablar con usted para entender por qué. Puede concertar una llamada con uno de nuestros jefes de producto para hablar de sus necesidades.',
+        takeMeToExpensifyClassic: 'Llévame a Expensify Classic',
+    },
+    listBoundary: {
+        errorMessage: 'Se ha producido un error al cargar más mensajes.',
+        tryAgain: 'Inténtalo de nuevo',
+    },
+    systemMessage: {
+        mergedWithCashTransaction: 'encontró un recibo para esta transacción',
+    },
+    subscription: {
+        authenticatePaymentCard: 'Autenticar tarjeta de pago',
+        mobileReducedFunctionalityMessage: 'No puedes hacer cambios en tu suscripción en la aplicación móvil.',
+        badge: {
+            freeTrial: ({numOfDays}: BadgeFreeTrialParams) => `Prueba gratuita: ${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}`,
+        },
+        billingBanner: {
+            policyOwnerAmountOwed: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `Actualiza tu tarjeta de pago antes del ${date} para continuar utilizando todas tus herramientas favoritas`,
+            },
+            policyOwnerAmountOwedOverdue: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: 'Por favor, actualiza tu información de pago.',
+            },
+            policyOwnerUnderInvoicing: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `Tu pago está vencido. Por favor, paga tu factura antes del ${date} para evitar la interrupción del servicio.`,
+            },
+            policyOwnerUnderInvoicingOverdue: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: 'Tu pago está vencido. Por favor, paga tu factura.',
+            },
+            billingDisputePending: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({amountOwed, cardEnding}: BillingBannerDisputePendingParams) =>
+                    `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
+            },
+            cardAuthenticationRequired: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
+                    `Tu tarjeta de pago no ha sido autenticada completamente. Por favor, completa el proceso de autenticación para activar tu tarjeta de pago que termina en ${cardEnding}.`,
+            },
+            insufficientFunds: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({amountOwed}: BillingBannerInsufficientFundsParams) =>
+                    `Tu tarjeta de pago fue rechazada por falta de fondos. Vuelve a intentarlo o añade una nueva tarjeta de pago para liquidar tu saldo pendiente de ${amountOwed}.`,
+            },
+            cardExpired: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({amountOwed}: BillingBannerCardExpiredParams) =>
+                    `Tu tarjeta de pago ha expirado. Por favor, añade una nueva tarjeta de pago para liquidar tu saldo pendiente de ${amountOwed}.`,
+            },
+            cardExpireSoon: {
+                title: 'Tu tarjeta caducará pronto',
+                subtitle:
+                    'Tu tarjeta de pago caducará a finales de este mes. Haz clic en el menú de tres puntos que aparece a continuación para actualizarla y continuar utilizando todas tus herramientas favoritas.',
+            },
+            retryBillingSuccess: {
+                title: 'Éxito!',
+                subtitle: 'Tu tarjeta fue facturada correctamente.',
+            },
+            retryBillingError: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle:
+                    'Antes de volver a intentarlo, llama directamente a tu banco para que autorice los cargos de Expensify y elimine las retenciones. De lo contrario, añade una tarjeta de pago diferente.',
+            },
+            cardOnDispute: ({amountOwed, cardEnding}: BillingBannerCardOnDisputeParams) =>
+                `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
+            preTrial: {
+                title: 'Iniciar una prueba gratuita',
+                subtitleStart: 'El próximo paso es ',
+                subtitleLink: 'completar la configuración ',
+                subtitleEnd: 'para que tu equipo pueda empezar a enviar gastos.',
+            },
+            trialStarted: {
+                title: ({numOfDays}: TrialStartedTitleParams) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
+                subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
+            },
+            trialEnded: {
+                title: 'Tu prueba gratuita ha terminado',
+                subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
+            },
+            earlyDiscount: {
+                claimOffer: 'Solicitar oferta',
+                noThanks: 'No, gracias',
+                subscriptionPageTitle: {
+                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año!`,
+                    phrase2: `¡Solo añade una tarjeta de pago y comienza una suscripción anual!`,
+                },
+                onboardingChatTitle: {
+                    phrase1: 'Oferta por tiempo limitado:',
+                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año!`,
+                },
+                subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Solicítala en ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
+            },
+        },
+        cardSection: {
+            title: 'Pago',
+            subtitle: 'Añade una tarjeta para pagar tu suscripción a Expensify.',
+            addCardButton: 'Añade tarjeta de pago',
+            cardNextPayment: ({nextPaymentDate}: CardNextPaymentParams) => `Tu próxima fecha de pago es ${nextPaymentDate}.`,
+            cardEnding: ({cardNumber}: CardEndingParams) => `Tarjeta terminada en ${cardNumber}`,
+            cardInfo: ({name, expiration, currency}: CardInfoParams) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
+            changeCard: 'Cambiar tarjeta de pago',
+            changeCurrency: 'Cambiar moneda de pago',
+            cardNotFound: 'No se ha añadido ninguna tarjeta de pago',
+            retryPaymentButton: 'Reintentar el pago',
+            authenticatePayment: 'Autenticar el pago',
+            requestRefund: 'Solicitar reembolso',
+            requestRefundModal: {
+                phrase1: 'Obtener un reembolso es fácil, simplemente baja tu cuenta de categoría antes de la próxima fecha de facturación y recibirás un reembolso.',
+                phrase2:
+                    'Atención: Bajar tu cuenta de categoría significa que tu(s) espacio(s) de trabajo será(n) eliminado(s). Esta acción no se puede deshacer, pero siempre puedes crear un nuevo espacio de trabajo si cambias de opinión.',
+                confirm: 'Eliminar y bajar de categoría',
+            },
+            viewPaymentHistory: 'Ver historial de pagos',
+        },
+        yourPlan: {
+            title: 'Tu plan',
+            collect: {
+                title: 'Recopilar',
+                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                benefit1: 'SmartScans ilimitados y seguimiento de la distancia',
+                benefit2: 'Tarjetas Expensify con Límites Inteligentes',
+                benefit3: 'Pago de facturas y facturación',
+                benefit4: 'Aprobación de gastos',
+                benefit5: 'Reembolso ACH',
+                benefit6: 'Integraciones con QuickBooks y Xero',
+                benefit7: 'Reportes e informes personalizados',
+            },
+            control: {
+                title: 'Controlar',
+                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                benefit1: 'Todo en Recopilar, más:',
+                benefit2: 'Integraciones con NetSuite y Sage Intacct',
+                benefit3: 'Sincronización de Certinia y Workday',
+                benefit4: 'Varios aprobadores de gastos',
+                benefit5: 'SAML/SSO',
+                benefit6: 'Presupuestos',
+            },
+            saveWithExpensifyTitle: 'Ahorra con la Tarjeta Expensify',
+            saveWithExpensifyDescription: 'Utiliza nuestra calculadora de ahorro para ver cómo el reembolso en efectivo de la Tarjeta Expensify puede reducir tu factura de Expensify',
+            saveWithExpensifyButton: 'Más información',
+        },
+        details: {
+            title: 'Datos de suscripción',
+            annual: 'Suscripción anual',
+            taxExempt: 'Solicitar estado de exención de impuestos',
+            taxExemptEnabled: 'Exento de impuestos',
+            payPerUse: 'Pago por uso',
+            subscriptionSize: 'Tamaño de suscripción',
+            headsUp:
+                'Atención: Si no estableces ahora el tamaño de tu suscripción, lo haremos automáticamente con el número de suscriptores activos del primer mes. A partir de ese momento, estarás suscrito para pagar al menos por ese número de afiliados durante los 12 meses siguientes. Puedes aumentar el tamaño de tu suscripción en cualquier momento, pero no puedes reducirlo hasta que finalice tu suscripción.',
+            zeroCommitment: 'Compromiso cero con la tarifa de suscripción anual reducida',
+        },
+        subscriptionSize: {
+            title: 'Tamaño de suscripción',
+            yourSize: 'El tamaño de tu suscripción es el número de plazas abiertas que puede ocupar cualquier miembro activo en un mes determinado.',
+            eachMonth:
+                'Cada mes, tu suscripción cubre hasta el número de miembros activos establecido anteriormente. Cada vez que aumentes el tamaño de tu suscripción, iniciarás una nueva suscripción de 12 meses con ese nuevo tamaño.',
+            note: 'Nota: Un miembro activo es cualquiera que haya creado, editado, enviado, aprobado, reembolsado, o exportado datos de gastos vinculados al espacio de trabajo de tu empresa.',
+            confirmDetails: 'Confirma los datos de tu nueva suscripción anual:',
+            subscriptionSize: 'Tamaño de suscripción',
+            activeMembers: ({size}: SubscriptionSizeParams) => `${size} miembros activos/mes`,
+            subscriptionRenews: 'Renovación de la suscripción',
+            youCantDowngrade: 'No puedes bajar de categoría durante tu suscripción anual.',
+            youAlreadyCommitted: ({size, date}: SubscriptionCommitmentParams) =>
+                `Ya se ha comprometido a un tamaño de suscripción anual de ${size} miembros activos al mes hasta el ${date}. Puede cambiar a una suscripción de pago por uso en ${date} desactivando la auto-renovación.`,
+            error: {
+                size: 'Por favor ingrese un tamaño de suscripción valido.',
+                sameSize: 'Por favor, introduce un número diferente al de tu subscripción actual.',
+            },
+        },
+        paymentCard: {
+            addPaymentCard: 'Añade tarjeta de pago',
+            enterPaymentCardDetails: 'Introduce los datos de tu tarjeta de pago',
+            security: 'Expensify es PCI-DSS obediente, utiliza cifrado a nivel bancario, y emplea infraestructura redundante para proteger tus datos.',
+            learnMoreAboutSecurity: 'Obtén más información sobre nuestra seguridad.',
+        },
+        subscriptionSettings: {
+            title: 'Configuración de suscripción',
+            autoRenew: 'Auto-renovación',
+            autoIncrease: 'Auto-incremento',
+            saveUpTo: ({amountWithCurrency}: SubscriptionSettingsSaveUpToParams) => `Ahorre hasta ${amountWithCurrency} al mes por miembro activo`,
+            automaticallyIncrease:
+                'Aumenta automáticamente tus plazas anuales para dar lugar a los miembros activos que superen el tamaño de tu suscripción. Nota: Esto ampliará la fecha de finalización de tu suscripción anual.',
+            disableAutoRenew: 'Desactivar auto-renovación',
+            helpUsImprove: 'Ayúdanos a mejorar Expensify',
+            whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
+            renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Se renovará el ${date}.`,
+        },
+        requestEarlyCancellation: {
+            title: 'Solicitar cancelación anticipada',
+            subtitle: '¿Cuál es la razón principal por la que solicitas la cancelación anticipada?',
+            subscriptionCanceled: {
+                title: 'Suscripción cancelada',
+                subtitle: 'Tu suscripción anual ha sido cancelada.',
+                info: 'Ya puedes seguir utilizando tu(s) espacio(s) de trabajo en la modalidad de pago por uso.',
+                preventFutureActivity: {
+                    part1: 'Si quieres evitar actividad y cargos futuros, debes ',
+                    link: 'eliminar tu(s) espacio(s) de trabajo.',
+                    part2: ' Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.',
+                },
+            },
+            requestSubmitted: {
+                title: 'Solicitud enviada',
+                subtitle: {
+                    part1: 'Gracias por hacernos saber que deseas cancelar tu suscripción. Estamos revisando tu solicitud y nos comunicaremos contigo en breve a través de tu chat con ',
+                    link: 'Concierge',
+                    part2: '.',
+                },
+            },
+            acknowledgement: {
+                part1: 'Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las ',
+                link: 'Condiciones de Servicio',
+                part2: ' de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.',
+            },
+        },
+    },
+    feedbackSurvey: {
+        tooLimited: 'Hay que mejorar la funcionalidad',
+        tooExpensive: 'Demasiado caro',
+        inadequateSupport: 'Atención al cliente inadecuada',
+        businessClosing: 'Cierre, reducción, o adquisición de la empresa',
+        additionalInfoTitle: '¿A qué software está migrando y por qué?',
+        additionalInfoInputLabel: 'Tu respuesta',
+    },
+    roomChangeLog: {
+        updateRoomDescription: 'establece la descripción de la sala a:',
+        clearRoomDescription: 'la descripción de la habitación ha sido borrada',
+    },
+    delegate: {
+        switchAccount: 'Cambiar de cuenta:',
+        copilotDelegatedAccess: 'Copilot: Acceso delegado',
+        copilotDelegatedAccessDescription: 'Permitir que otros miembros accedan a tu cuenta.',
+        addCopilot: 'Agregar copiloto',
+        membersCanAccessYourAccount: 'Estos miembros pueden acceder a tu cuenta:',
+        youCanAccessTheseAccounts: 'Puedes acceder a estas cuentas a través del conmutador de cuentas:',
+        role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
+            switch (role) {
+                case CONST.DELEGATE_ROLE.ALL:
+                    return 'Completo';
+                case CONST.DELEGATE_ROLE.SUBMITTER:
+                    return 'Limitado';
+                default:
+                    return '';
+            }
+        },
+        genericError: '¡Ups! Ha ocurrido un error. Por favor, inténtalo de nuevo.',
+        onBehalfOfMessage: ({delegator}: DelegatorParams) => `en nombre de ${delegator}`,
+        accessLevel: 'Nivel de acceso',
+        confirmCopilot: 'Confirma tu copiloto a continuación.',
+        accessLevelDescription: 'Elige un nivel de acceso a continuación. Tanto el acceso Completo como el Limitado permiten a los copilotos ver todas las conversaciones y gastos.',
+        roleDescription: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
+            switch (role) {
+                case CONST.DELEGATE_ROLE.ALL:
+                    return 'Permite a otro miembro realizar todas las acciones en tu cuenta, en tu nombre. Incluye chat, presentaciones, aprobaciones, pagos, actualizaciones de configuración y más.';
+                case CONST.DELEGATE_ROLE.SUBMITTER:
+                    return 'Permite a otro miembro realizar la mayoría de las acciones en tu cuenta, en tu nombre. Excluye aprobaciones, pagos, rechazos y retenciones.';
+                default:
+                    return '';
+            }
+        },
+        removeCopilot: 'Eliminar copiloto',
+        removeCopilotConfirmation: '¿Estás seguro de que quieres eliminar este copiloto?',
+        changeAccessLevel: 'Cambiar nivel de acceso',
+        makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
+        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
+            `Por favor, introduce el código mágico enviado a ${contactMethod} para agregar un copiloto. Debería llegar en un par de minutos.`,
+        enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) =>
+            `Por favor, introduce el código mágico enviado a ${contactMethod} para actualizar el nivel de acceso de tu copiloto.`,
+        notAllowed: 'No tan rápido...',
+        noAccessMessage: 'Como copiloto, no tienes acceso a esta página. ¡Lo sentimos!',
+        notAllowedMessageStart: `Como`,
+        notAllowedMessageHyperLinked: ' copiloto',
+        notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` de ${accountOwnerEmail}, no tienes permiso para realizar esta acción. ¡Lo siento!`,
+    },
+    debug: {
+        debug: 'Depuración',
+        details: 'Detalles',
+        JSON: 'JSON',
+        reportActions: 'Actions',
+        reportActionPreview: 'Previa',
+        nothingToPreview: 'Nada que previsualizar',
+        editJson: 'Editar JSON:',
+        preview: 'Previa:',
+        missingProperty: ({propertyName}: MissingPropertyParams) => `Falta ${propertyName}`,
+        invalidProperty: ({propertyName, expectedType}: InvalidPropertyParams) => `Propiedad inválida: ${propertyName} - Esperado: ${expectedType}`,
+        invalidValue: ({expectedValues}: InvalidValueParams) => `Valor inválido - Esperado: ${expectedValues}`,
+        missingValue: 'Valor en falta',
+        createReportAction: 'Crear Report Action',
+        reportAction: 'Report Action',
+        report: 'Report',
+        transaction: 'Transacción',
+        violations: 'Violaciones',
+        transactionViolation: 'Violación de transacción',
+        hint: 'Los cambios de datos no se enviarán al backend',
+        textFields: 'Campos de texto',
+        numberFields: 'Campos numéricos',
+        booleanFields: 'Campos booleanos',
+        constantFields: 'Campos constantes',
+        dateTimeFields: 'Campos de fecha y hora',
+        date: 'Fecha',
+        time: 'Hora',
+        none: 'Ninguno',
+        visibleInLHN: 'Visible en LHN',
+        GBR: 'GBR',
+        RBR: 'RBR',
+        true: 'verdadero',
+        false: 'falso',
+        viewReport: 'Ver Informe',
+        viewTransaction: 'Ver transacción',
+        createTransactionViolation: 'Crear infracción de transacción',
+        reasonVisibleInLHN: {
+            hasDraftComment: 'Tiene comentario en borrador',
+            hasGBR: 'Tiene GBR',
+            hasRBR: 'Tiene RBR',
+            pinnedByUser: 'Fijado por el miembro',
+            hasIOUViolations: 'Tiene violaciones de IOU',
+            hasAddWorkspaceRoomErrors: 'Tiene errores al agregar sala de espacio de trabajo',
+            isUnread: 'No leído (modo de enfoque)',
+            isArchived: 'Archivado (modo más reciente)',
+            isSelfDM: 'Es un mensaje directo propio',
+            isFocused: 'Está temporalmente enfocado',
+        },
+        reasonGBR: {
+            hasJoinRequest: 'Tiene solicitud de unión (sala de administrador)',
+            isUnreadWithMention: 'No leído con mención',
+            isWaitingForAssigneeToCompleteAction: 'Esperando a que el asignado complete la acción',
+            hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
+            hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
+        },
+        reasonRBR: {
+            hasErrors: 'Tiene errores en los datos o las acciones del informe',
+            hasViolations: 'Tiene violaciones',
+            hasTransactionThreadViolations: 'Tiene violaciones de hilo de transacciones',
+        },
+        indicatorStatus: {
+            theresAReportAwaitingAction: 'Hay un informe pendiente de acción',
+            theresAReportWithErrors: 'Hay un informe con errores',
+            theresAWorkspaceWithCustomUnitsErrors: 'Hay un espacio de trabajo con errores en las unidades personalizadas',
+            theresAProblemWithAWorkspaceMember: 'Hay un problema con un miembro del espacio de trabajo',
+            theresAProblemWithAContactMethod: 'Hay un problema con un método de contacto',
+            aContactMethodRequiresVerification: 'Un método de contacto requiere verificación',
+            theresAProblemWithAPaymentMethod: 'Hay un problema con un método de pago',
+            theresAProblemWithAWorkspace: 'Hay un problema con un espacio de trabajo',
+            theresAProblemWithYourReimbursementAccount: 'Hay un problema con tu cuenta de reembolso',
+            theresABillingProblemWithYourSubscription: 'Hay un problema de facturación con tu suscripción',
+            yourSubscriptionHasBeenSuccessfullyRenewed: 'Tu suscripción se ha renovado con éxito',
+            theresWasAProblemDuringAWorkspaceConnectionSync: 'Hubo un problema durante la sincronización de la conexión del espacio de trabajo',
+            theresAProblemWithYourWallet: 'Hay un problema con tu billetera',
+            theresAProblemWithYourWalletTerms: 'Hay un problema con los términos de tu billetera',
+        },
+    },
+    emptySearchView: {
+        takeATour: 'Haz un tour',
+    },
+    tour: {
+        takeATwoMinuteTour: 'Haz un tour de 2 minutos',
+        exploreExpensify: 'Explora todo lo que Expensify tiene para ofrecer',
+    },
+    migratedUserWelcomeModal: {
+        title: 'Viajes y gastos, a la velocidad del chat',
+        subtitle: 'New Expensify tiene la misma excelente automatización, pero ahora con una colaboración increíble:',
+        confirmText: 'Vamos!',
+        features: {
+            chat: '<strong>Chatea directamente en cualquier gasto</strong>, informe o espacio de trabajo',
+            scanReceipt: '<strong>Escanea recibos</strong> y obtén reembolsos',
+            crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
+        },
+    },
+    productTrainingTooltip: {
+        conciergeLHNGBR: {
+            part1: '¡Comienza',
+            part2: ' aquí!',
+        },
+        saveSearchTooltip: {
+            part1: 'Renombra tus búsquedas guardadas',
+            part2: ' aquí',
+        },
+        quickActionButton: {
+            part1: '¡Acción rápida!',
+            part2: ' A solo un toque',
+        },
+        workspaceChatCreate: {
+            part1: 'Envía tus',
+            part2: ' gastos',
+            part3: ' aquí',
+        },
+        searchFilterButtonTooltip: {
+            part1: 'Personaliza tu búsqueda',
+            part2: ' aquí!',
+        },
+        bottomNavInboxTooltip: {
+            part1: 'Tu lista de tareas',
+            part2: '\n🟢 = listo para ti',
+            part3: ' 🔴 = necesita revisión',
+        },
+        workspaceChatTooltip: {
+            part1: 'Envía gastos',
+            part2: ' y chatea con',
+            part3: '\naprobadores aquí!',
+        },
+        globalCreateTooltip: {
+            part1: 'Crea gastos',
+            part2: ', comienza a chatear,',
+            part3: '\ny mucho más!',
+        },
+        scanTestTooltip: {
+            part1: '¿Quieres ver cómo funciona Escanear?',
+            part2: ' \n¡Prueba con un recibo de prueba!',
+            part3: '¡Elige a',
+            part4: ' nuestro gerente',
+            part5: ' de prueba para probarlo!',
+            part6: 'Ahora,',
+            part7: ' envía tu gasto y',
+            part8: '\n¡observa cómo ocurre la magia!',
+            tryItOut: 'Prueba esto',
+            noThanks: 'No, gracias',
+        },
+    },
+    discardChangesConfirmation: {
+        title: '¿Descartar cambios?',
+        body: '¿Estás seguro de que quieres descartar los cambios que hiciste?',
+        confirmText: 'Descartar cambios',
     },
 };
 
-export default esEmojis;
+export default translations satisfies TranslationDeepObject<typeof en>;
