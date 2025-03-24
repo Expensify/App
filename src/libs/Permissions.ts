@@ -3,7 +3,8 @@ import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.ALL);
+    // return !!betas?.includes(CONST.BETAS.ALL);
+    return true;
 }
 
 function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
@@ -58,6 +59,10 @@ function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
 }
 
+function canUseMoneyRequestReportPreview(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.MONEY_REQUEST_REPORT_PREVIEW) || canUseAllBetas(betas);
+}
+
 function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
 }
@@ -75,5 +80,6 @@ export default {
     canUseNSQS,
     canUseCustomRules,
     canUseTableReportView,
+    canUseMoneyRequestReportPreview,
     canUseProhibitedExpenses,
 };
