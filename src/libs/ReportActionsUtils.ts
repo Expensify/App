@@ -1923,10 +1923,10 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
             });
         }
 
-        if (updatedField === 'maxExpenseAmount' && (typeof oldValue === 'string' || typeof oldValue === 'number') && typeof newValue === 'number') {
+        if (updatedField === 'maxExpenseAmount' && (typeof oldValue === 'string' || typeof oldValue === 'number')) {
             return translateLocal('workspaceActions.updateCategoryMaxExpenseAmount', {
                 oldAmount: Number(oldValue) ? convertAmountToDisplayString(Number(oldValue), currency) : undefined,
-                newAmount: Number(newValue) ? convertAmountToDisplayString(Number(newValue), currency) : undefined,
+                newAmount: Number(newValue ?? 0) ? convertAmountToDisplayString(Number(newValue), currency) : undefined,
                 categoryName,
             });
         }
