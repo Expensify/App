@@ -2209,7 +2209,6 @@ function getCardIssuedMessage({
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
     policyID?: string;
-    shouldDisplayLinkToCard?: boolean;
     card?: Card;
 }) {
     const cardIssuedActionOriginalMessage = isActionOfType(
