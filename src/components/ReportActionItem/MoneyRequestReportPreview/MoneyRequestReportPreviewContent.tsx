@@ -347,7 +347,7 @@ function MoneyRequestReportPreviewContent({
                 count: numberOfRequests,
             }),
         };
-    }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
+    }, [translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
     /*
      * Manual export
