@@ -1666,11 +1666,18 @@ function getIOUActionForReportID(reportID: string | undefined, transactionID: st
     }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportActions = getAllReportActions(report?.reportID);
-    const action = Object.values(reportActions ?? {})?.find((reportAction) => {
+
+    return getIOUActionForReportIDPure(Object.values(reportActions ?? {}), transactionID);
+}
+
+/**
+ * Get IOU action for a reportID and transactionID
+ */
+function getIOUActionForReportIDPure(reportActions: ReportAction[], transactionID: string): OnyxEntry<ReportAction> {
+    return reportActions.find((reportAction) => {
         const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
         return IOUTransactionID === transactionID;
     });
-    return action;
 }
 
 /**
@@ -2308,6 +2315,7 @@ export {
     getDismissedViolationMessageText,
     getFirstVisibleReportActionID,
     getIOUActionForReportID,
+    getIOUActionForReportIDPure,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
     getLastVisibleAction,

@@ -27,7 +27,7 @@ import type {ActionListContextType, ReactionListRef, ScrollPosition} from '@src/
 import type SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
 
-type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
+type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
 
 const defaultReportMetadata = {
     isLoadingInitialReportActions: true,
@@ -38,7 +38,7 @@ const defaultReportMetadata = {
     isOptimisticReport: false,
 };
 
-function SearchMoneyRequestReportPage({route}: SearchPageProps) {
+function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -97,15 +97,14 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                     shouldDisplaySearchRouter
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.goBack}
-                    // shouldShowLink={shouldShowNotFoundLinkedAction}
                     linkKey="notFound.noAccess"
-                    // onLinkPress={navigateToEndOfReport}
                 >
                     <MoneyRequestReportView
                         report={report}
                         reportMetadata={reportMetadata}
                         policy={policy}
                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                        backToRoute={route.params.backTo}
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
@@ -141,9 +140,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                                 shouldDisplaySearchRouter
                                 shouldShowBackButton={shouldUseNarrowLayout}
                                 onBackButtonPress={Navigation.goBack}
-                                // shouldShowLink={shouldShowNotFoundLinkedAction}
                                 linkKey="notFound.noAccess"
-                                // onLinkPress={navigateToEndOfReport}
                             >
                                 <DragAndDropProvider isDisabled={isEditingDisabled}>
                                     <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
@@ -152,6 +149,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                                             reportMetadata={reportMetadata}
                                             policy={policy}
                                             shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                            backToRoute={route.params.backTo}
                                         />
                                     </View>
                                     <PortalHost name="suggestions" />

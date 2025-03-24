@@ -6,7 +6,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -80,7 +79,6 @@ function getTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Trans
 
 /**
  * TODO make this component have the same functionalities as `ReportActionsList`
- *  - onScroll
  *  - shouldDisplayNewMarker
  */
 function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
@@ -367,7 +365,12 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                     onEndReachedThreshold={0.75}
                     onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
-                    ListHeaderComponent={<MoneyRequestReportTransactionList transactions={transactions} />}
+                    ListHeaderComponent={
+                        <MoneyRequestReportTransactionList
+                            transactions={transactions}
+                            reportActions={reportActions}
+                        />
+                    }
                     keyboardShouldPersistTaps="handled"
                     onScroll={trackVerticalScrolling}
                     ref={reportScrollManager.ref}

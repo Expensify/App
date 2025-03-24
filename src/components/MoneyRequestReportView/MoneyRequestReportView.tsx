@@ -14,6 +14,7 @@ import {canEditReportAction, getReportOfflinePendingActionAndErrors} from '@libs
 import Navigation from '@navigation/Navigation';
 import ReportFooter from '@pages/home/report/ReportFooter';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
 
@@ -29,6 +30,9 @@ type MoneyRequestReportViewProps = {
 
     /** Whether Report footer (that includes Composer) should be displayed */
     shouldDisplayReportFooter: boolean;
+
+    /** The `backTo` route that should be used when clicking back button */
+    backToRoute: Route | undefined;
 };
 
 function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
@@ -38,7 +42,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -84,7 +88,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 transactionThreadReportID={undefined}
                 shouldDisplayBackButton
                 onBackButtonPress={() => {
-                    Navigation.goBack();
+                    Navigation.goBack(backToRoute);
                 }}
             />
             {report && !isLoadingApp ? (

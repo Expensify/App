@@ -46,7 +46,7 @@ function SortableTableHeader({columns, sortBy, sortOrder, shouldShowColumn, date
 
                     return (
                         <SortableHeaderText
-                            key={translationKey}
+                            key={columnName}
                             text={translationKey ? translate(translationKey) : ''}
                             textStyle={textStyle}
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}

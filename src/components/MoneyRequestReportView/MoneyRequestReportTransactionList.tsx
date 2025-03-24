@@ -1,19 +1,30 @@
-import React, {useEffect, useState, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
+import {getButtonRole} from '@components/Button/utils';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {SortOrder} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
+import useHover from '@hooks/useHover';
+import useLocalize from '@hooks/useLocalize';
+import {useMouseContext} from '@hooks/useMouseContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
+import {getIOUActionForReportIDPure} from '@libs/ReportActionsUtils';
 import {compareValues} from '@libs/SearchUIUtils';
+import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 
 type MoneyRequestReportTransactionListProps = {
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
+
+    /** Array of report actions for the report that these transactions belong to */
+    reportActions: OnyxTypes.ReportAction[];
 };
 
 const sortableColumnNames = [
@@ -49,15 +60,25 @@ const areTransactionValuesEqual = (transactions: OnyxTypes.Transaction[], key: S
     return transactions.every((transaction) => transaction[getTransactionKey(transaction, key)] === firstValidTransaction[keyOfFirstValidTransaction]);
 };
 
-function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({transactions, reportActions}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
+
+    const {bind} = useHover();
+    const {isMouseDownOnInput, setMouseUp} = useMouseContext();
+
+    const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
+        bind.onMouseLeave();
+        e.stopPropagation();
+        setMouseUp();
+    };
 
     const [sortedData, setSortedData] = useState<SortedTransactions>({
         transactions,
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
     });
 
     const {sortBy, sortOrder} = sortedData;
@@ -73,10 +94,34 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
         }));
     }, [sortBy, sortOrder, transactions]);
 
+    const navigateToTransaction = useCallback(
+        (transaction: OnyxTypes.Transaction) => {
+            const backTo = Navigation.getActiveRoute();
+
+            const iouAction = getIOUActionForReportIDPure(reportActions, transaction.transactionID);
+            const reportIDToNavigate = iouAction?.childReportID;
+            if (!reportIDToNavigate) {
+                return;
+            }
+
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+        },
+        [reportActions],
+    );
+
     const dateColumnSize = useMemo(() => {
         const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
         return shouldShowYearForSomeTransaction ? 'wide' : 'normal';
     }, [transactions]);
+
+    if (sortedData.transactions.length === 0) {
+        return;
+    }
+
+    const pressableStyle = [
+        styles.overflowHidden,
+        // item.isSelected && styles.activeComponentBG,
+    ];
 
     return (
         <>
@@ -98,16 +143,38 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
             <View style={[styles.pv2, styles.ph5]}>
                 {sortedData.transactions.map((transaction) => {
                     return (
-                        <View style={[styles.mb2]}>
-                            <TransactionItemRow
-                                transactionItem={transaction}
-                                isSelected={false}
-                                shouldShowTooltip
-                                dateColumnSize={dateColumnSize}
-                                shouldUseNarrowLayout={displayNarrowVersion}
-                                shouldShowChatBubbleComponent
-                            />
-                        </View>
+                        <PressableWithFeedback
+                            onPress={(e) => {
+                                if (isMouseDownOnInput) {
+                                    e?.stopPropagation();
+                                    return;
+                                }
+
+                                navigateToTransaction(transaction);
+                            }}
+                            accessibilityLabel={translate('iou.viewDetails')}
+                            role={getButtonRole(true)}
+                            isNested
+                            hoverDimmingValue={1}
+                            // pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
+                            // hoverStyle={item.isSelected && styles.activeComponentBG}
+                            onMouseDown={(e) => e.preventDefault()}
+                            id={transaction.transactionID}
+                            style={[pressableStyle]}
+                            onMouseLeave={handleMouseLeave}
+                            wrapperStyle={[]}
+                        >
+                            <View style={[styles.mb2]}>
+                                <TransactionItemRow
+                                    transactionItem={transaction}
+                                    isSelected={false}
+                                    shouldShowTooltip
+                                    dateColumnSize={dateColumnSize}
+                                    shouldUseNarrowLayout={displayNarrowVersion}
+                                    shouldShowChatBubbleComponent
+                                />
+                            </View>
+                        </PressableWithFeedback>
                     );
                 })}
             </View>
