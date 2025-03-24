@@ -117,10 +117,6 @@ jobs:
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
 
-      - name: Update submodule to match main
-        run: |
-          git submodule update --init --remote
-
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
@@ -454,13 +450,8 @@ jobs:
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
 
-      - name: Update submodule
-        run: |
-          git submodule update --init --remote
-
       - name: Configure MapBox SDK
-        run: |
-          ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
         id: setup-node
