@@ -28,6 +28,7 @@ import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setBankAccountSubStep} from './ReimbursementAccount';
+import { getCurrentUserEmail } from './Report';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -260,6 +261,19 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
                     currentStep: CONST.WALLET.STEP.ADDITIONAL_DETAILS,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    achAccount: {
+                        addressName: account.addressName,
+                        accountNumber: account.accountNumber,
+                        routingNumber: account.routingNumber,
+                        bank: account.bankName,
+                        reimburser: getCurrentUserEmail(),
+                    }
+                }
+            }
         ],
         failureData: [
             {
