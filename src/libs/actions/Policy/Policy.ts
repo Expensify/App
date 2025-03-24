@@ -239,6 +239,12 @@ Onyx.connect({
     callback: (value) => (allTransactionViolations = value),
 });
 
+let introSelected: OnyxEntry<IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (introSelected = value),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -1766,12 +1772,6 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
 
     Onyx.update(optimisticData);
 }
-
-let introSelected: OnyxEntry<IntroSelected>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => (introSelected = value),
-});
 
 /**
  * Generates onyx data for creating a new workspace
