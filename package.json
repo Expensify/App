@@ -352,7 +352,8 @@
     "webpack-cli": "^5.0.4",
     "webpack-dev-server": "^5.0.4",
     "webpack-merge": "^5.8.0",
-    "xlsx": "file:vendor/xlsx-0.20.3.tgz"
+    "xlsx": "file:vendor/xlsx-0.20.3.tgz",
+    "nitro-codegen": "0.21.0"
   },
   "overrides": {
     "react-native": "0.76.3",
