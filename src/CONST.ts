@@ -775,7 +775,6 @@ const CONST = {
         NSQS: 'nsqs',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
-        MONEY_REQUEST_REPORT_PREVIEW: 'moneyRequestReportPreview',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
     },
     BUTTON_STATES: {
