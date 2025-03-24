@@ -136,10 +136,10 @@ function setClipboardMessage(content: string | undefined) {
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(Parser.htmlToMarkdown(content));
     } else {
-        const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
-        const isAnchorTag = anchorRegex.test(content);
-        const plainText = isAnchorTag ? Parser.htmlToMarkdown(content) : Parser.htmlToText(content);
-        Clipboard.setHtml(content, plainText);
+        // Use markdown format text for the plain text(clipboard type "text/plain") to ensure consistency across all platforms.
+        // More info: https://github.com/Expensify/App/issues/53718
+        const markdownText = Parser.htmlToMarkdown(content);
+        Clipboard.setHtml(content, markdownText);
     }
 }
 
@@ -435,6 +435,19 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: true,
+        textTranslateKey: 'reportActionContextMenu.copyToClipboard',
+        icon: Expensicons.Copy,
+        successTextTranslateKey: 'reportActionContextMenu.copied',
+        successIcon: Expensicons.Checkmark,
+        shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.TEXT,
+        onPress: (closePopover, {selection}) => {
+            Clipboard.setString(selection);
+            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+        },
+        getDescription: () => undefined,
+    },
+    {
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -582,8 +595,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const reason = originalMessage?.reason;
                     const violationName = originalMessage?.violationName;
                     Clipboard.setString(translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths));
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
-                    Clipboard.setString(translateLocal('violations.resolvedDuplicates'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
                     setClipboardMessage(getExportIntegrationMessageHTML(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
@@ -768,7 +779,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             !isChronosReport &&
             !isMessageDeleted(reportAction),
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
-            const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : reportIDParam;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const reportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID || reportIDParam : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));

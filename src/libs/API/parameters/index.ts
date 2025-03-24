@@ -20,7 +20,6 @@ export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyTo
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
-export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyToQuickbooksDesktopParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
@@ -62,6 +61,7 @@ export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensif
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
 export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
 export type {default as SendPerformanceTimingParams} from './SendPerformanceTimingParams';
+export type {default as GraphiteParams} from './GraphiteParams';
 export type {default as SetContactMethodAsDefaultParams} from './SetContactMethodAsDefaultParams';
 export type {default as SignInUserWithLinkParams} from './SignInUserWithLinkParams';
 export type {default as SignInWithShortLivedAuthTokenParams} from './SignInWithShortLivedAuthTokenParams';
@@ -206,6 +206,7 @@ export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPagePa
 export type {default as OpenPolicyReportFieldsPageParams} from './OpenPolicyReportFieldsPageParams';
 export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
+export type {default as OpenPolicyMemberProfilePageParams} from './OpenPolicyMemberProfilePageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
 export type {default as EnableDistanceRequestTaxParams} from './EnableDistanceRequestTaxParams';
@@ -246,7 +247,7 @@ export type {default as SearchParams} from './Search';
 export type {default as SendInvoiceParams} from './SendInvoiceParams';
 export type {default as PayInvoiceParams} from './PayInvoiceParams';
 export type {default as MarkAsCashParams} from './MarkAsCashParams';
-export type {default as MergeDuplicatesParams} from './MergeDuplicatesParams';
+export type {default as TransactionMergeParams} from './TransactionMergeParams';
 export type {default as ResolveDuplicatesParams} from './ResolveDuplicatesParams';
 export type {default as UpdateSubscriptionTypeParams} from './UpdateSubscriptionTypeParams';
 export type {default as SignUpUserParams} from './SignUpUserParams';
@@ -382,3 +383,5 @@ export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboard
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
+export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
+export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
