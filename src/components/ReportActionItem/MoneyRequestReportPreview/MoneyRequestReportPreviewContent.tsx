@@ -391,7 +391,6 @@ function MoneyRequestReportPreviewContent({
         }
     }).current;
 
-    // yet to be updated, doesn't handle a case when first element scrolled to the left (visible in 100%)
     const handleChange = (index: number) => {
         if (index >= transactions.length - 1) {
             return;
@@ -412,6 +411,9 @@ function MoneyRequestReportPreviewContent({
         }
         return null;
     };
+
+    // eslint-disable-next-line react-compiler/react-compiler
+    const viewabilityConfig = useRef({itemVisiblePercentThreshold: 99}).current;
 
     return (
         <OfflineWithFeedback
@@ -469,7 +471,7 @@ function MoneyRequestReportPreviewContent({
                                                     accessible
                                                     accessibilityLabel="button"
                                                     style={styles.carouselArrowButton}
-                                                    onPress={() => handleChange(currentIndex)}
+                                                    onPress={() => handleChange(currentIndex-1)}
                                                 >
                                                     <Icon
                                                         src={Expensicons.BackArrow}
@@ -518,6 +520,7 @@ function MoneyRequestReportPreviewContent({
                                         showsHorizontalScrollIndicator={false}
                                         renderItem={renderFlatlistItem}
                                         onViewableItemsChanged={onViewableItemsChanged}
+                                        viewabilityConfig={viewabilityConfig}
                                     />
                                 </View>
                                 {shouldUseNarrowLayout && transactions.length > 2 && (
