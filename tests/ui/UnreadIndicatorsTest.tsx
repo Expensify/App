@@ -210,8 +210,7 @@ describe('Unread Indicators', () => {
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-                const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(1);
 
                 // And that the text is bold
@@ -350,8 +349,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // // Verify the new report option appears in the LHN
-                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-                const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(2);
                 // Verify the text for both chats are bold indicating that nothing has not yet been read
                 const displayNameHintTexts = translateLocal('accessibilityHints.chatUserDisplayNames');

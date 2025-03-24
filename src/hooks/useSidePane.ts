@@ -5,6 +5,8 @@ import {Animated} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {triggerSidePane} from '@libs/actions/SidePane';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,8 +31,14 @@ function useSidePane() {
 
     const [sidePaneNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
+        selector: (modal) =>
+            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT ||
+            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
+            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL,
+    });
     const isLanguageUnsupported = language !== CONST.LOCALES.EN;
-    const isPaneHidden = isSidePaneHidden(sidePaneNVP, isExtraLargeScreenWidth) || isLanguageUnsupported;
+    const isPaneHidden = isSidePaneHidden(sidePaneNVP, isExtraLargeScreenWidth) || isLanguageUnsupported || isModalCenteredVisible;
 
     const sidePaneWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;
@@ -62,12 +70,12 @@ function useSidePane() {
             Animated.timing(sidePaneOffset.current, {
                 toValue: shouldApplySidePaneOffset ? variables.sideBarWidth : 0,
                 duration: CONST.ANIMATED_TRANSITION,
-                useNativeDriver: false,
+                useNativeDriver: true,
             }),
             Animated.timing(sidePaneTranslateX.current, {
                 toValue: isPaneHidden ? sidePaneWidth : 0,
                 duration: CONST.ANIMATED_TRANSITION,
-                useNativeDriver: false,
+                useNativeDriver: true,
             }),
         ]).start(() => {
             setShouldHideSidePane(isPaneHidden);
@@ -86,12 +94,16 @@ function useSidePane() {
                 isOpen: shouldOnlyUpdateNarrowLayout ? undefined : false,
                 isOpenNarrowScreen: shouldOnlyUpdateNarrowLayout ? false : undefined,
             });
+
+            // Focus the composer after closing the side pane
+            focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
         },
         [isExtraLargeScreenWidth, sidePaneNVP],
     );
 
     return {
         sidePane: sidePaneNVP,
+        isPaneHidden,
         shouldHideSidePane,
         shouldHideSidePaneBackdrop,
         shouldHideHelpButton,
