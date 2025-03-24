@@ -151,7 +151,7 @@ function ConnectionLayout({
                 />
                 {shouldUseScrollView ? (
                     <ScrollView
-                        contentContainerStyle={enableEdgeToEdgeBottomSafeAreaPadding ? undefined : contentContainerStyle}
+                        contentContainerStyle={contentContainerStyleProp}
                         addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
                     >
                         {renderSelectionContent}
