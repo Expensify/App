@@ -180,10 +180,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        // TODO double check condition for non USD accounts - will be done in https://github.com/Expensify/App/issues/50912
-        setShouldShowConnectedVerifiedBankAccount(hasForeignCurrency ? !!achData?.corpay?.consentToPrivacyNotice : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
+        setShouldShowConnectedVerifiedBankAccount(hasForeignCurrency ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
-    }, [achData?.corpay?.consentToPrivacyNotice, achData?.currentStep, shouldShowContinueSetupButtonValue, hasForeignCurrency, isPreviousPolicy]);
+    }, [achData?.currentStep, shouldShowContinueSetupButtonValue, hasForeignCurrency, isPreviousPolicy, achData?.state]);
 
     useEffect(
         () => {
@@ -274,7 +273,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         }
 
         if (achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
-            setUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
         }
     };
 
