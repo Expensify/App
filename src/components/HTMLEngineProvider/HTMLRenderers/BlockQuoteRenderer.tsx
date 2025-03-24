@@ -13,13 +13,13 @@ function BlockQuoteRenderer({TDefaultRenderer, style, tnode, ...props}: CustomRe
     return isChildOfTaskTitle ? (
         <TNodeChildrenRenderer
             tnode={tnode}
-            renderChild={(props2) => {
+            renderChild={(childProps) => {
                 return (
                     <Text
                         style={[styles.webViewStyles.baseFontStyle]}
-                        key={props2.key}
+                        key={childProps.key}
                     >
-                        {props2.childElement}
+                        {childProps.childElement}
                     </Text>
                 );
             }}
