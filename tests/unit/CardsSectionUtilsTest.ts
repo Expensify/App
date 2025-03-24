@@ -6,6 +6,7 @@ import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {BillingStatusResult} from '@src/pages/settings/Subscription/CardSection/utils';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
+import type {Purchase} from '@src/types/onyx/PurchaseList';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- this param is required for the mock
 function translateMock<TPath extends TranslationPaths>(path: TPath, ...phraseParameters: TranslationParameters<TPath>): string {
@@ -105,7 +106,18 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
         });
 
-        expect(CardSectionUtils.getBillingStatus({translate: translateMock, accountData: ACCOUNT_DATA})).toEqual({
+        const mockPurchase = {
+            message: {
+                billingType: 'failed_2018',
+                billableAmount: 1000,
+            },
+            currency: 'USD',
+            created: '2023-01-01',
+            amount: 1000,
+            purchaseID: 12345,
+        } as Purchase;
+
+        expect(CardSectionUtils.getBillingStatus({translate: translateMock, accountData: ACCOUNT_DATA, purchase: mockPurchase})).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
             subtitle: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle',
             isError: true,
