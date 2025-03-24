@@ -146,6 +146,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_THEME,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: {
+                            path: ROUTES.SETTINGS_PAYMENT_CURRENCY,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.CLOSE]: {
                             path: ROUTES.SETTINGS_CLOSE,
                             exact: true,
@@ -954,6 +958,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_CUSTOM]: {
                             path: ROUTES.RULES_CUSTOM.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
+                            path: ROUTES.RULES_PROHIBITED_DEFAULT.route,
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
