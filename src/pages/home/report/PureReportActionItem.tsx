@@ -1,4 +1,5 @@
 import lodashIsEqual from 'lodash/isEqual';
+import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
@@ -7,6 +8,7 @@ import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -40,7 +42,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
-import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
@@ -49,7 +51,6 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
-    getAllReportActions,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getIOUReportIDFromReportActionPreview,
@@ -88,7 +89,6 @@ import {
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
-    isModifiedExpenseAction,
     isMoneyRequestAction,
     isPendingRemove,
     isReimbursementDeQueuedAction,
@@ -110,6 +110,7 @@ import {
     getIOUForwardedMessage,
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
+    getPolicyChangeMessage,
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallySubmittedMessage,
     getWhisperDisplayNames,
@@ -131,7 +132,6 @@ import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member'
 import {expandURLPreview} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
-import {getLastModifiedExpense, revert} from '@userActions/Transaction';
 import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
@@ -163,6 +163,10 @@ type PureReportActionItemProps = {
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
+    /** Array of report actions for the report for this action */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportActions: OnyxTypes.ReportAction[];
+
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -192,6 +196,7 @@ type PureReportActionItemProps = {
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
+    /** Report action ID that was referenced in the deeplink to report  */
     linkedReportActionID?: string;
 
     /** Callback to be called on onPress */
@@ -409,19 +414,26 @@ function PureReportActionItem({
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
 
-    const onClose = () => {
-        let transactionID;
-        if (isMoneyRequestAction(action)) {
-            transactionID = getOriginalMessage(action)?.IOUTransactionID;
-            revert(transactionID, getLastModifiedExpense(reportID));
-        } else if (isModifiedExpenseAction(action)) {
-            transactionID = getOriginalMessage(Object.values(getAllReportActions(reportID)).find(isMoneyRequestAction))?.IOUTransactionID;
-            revert(transactionID, getOriginalMessage(action));
-        }
+    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
+    const dismissError = useCallback(() => {
+        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (transactionID) {
             clearError(transactionID);
         }
         clearAllRelatedReportActionErrors(reportID, action);
+    }, [reportID, clearError, clearAllRelatedReportActionErrors, action]);
+
+    const onClose = () => {
+        const errors = linkedTransactionRouteError ?? getLatestErrorMessageField(action as OnyxDataWithErrors);
+        const errorEntries = Object.entries(errors ?? {});
+        const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
+        const hasReceiptError = Object.values(errorMessages).some((error) => isReceiptError(error));
+
+        if (hasReceiptError) {
+            setShowConfirmDismissReceiptError(true);
+        } else {
+            dismissError();
+        }
     };
     useEffect(
         () => () => {
@@ -522,27 +534,29 @@ function PureReportActionItem({
 
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
-            showContextMenu(
-                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+            showContextMenu({
+                type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
                 event,
                 selection,
-                popoverAnchorRef.current,
-                reportID,
-                action.reportActionID,
-                originalReportID,
-                draftMessage ?? '',
-                () => setIsContextMenuActive(true),
-                toggleContextMenuFromActiveReportAction,
-                isArchivedRoom,
-                isChronosReport,
-                false,
-                false,
-                disabledActions,
-                false,
-                setIsEmojiPickerActive as () => void,
-                undefined,
-                isThreadReportParentAction,
-            );
+                contextMenuAnchor: popoverAnchorRef.current,
+                report: {
+                    reportID,
+                    originalReportID,
+                    isArchivedRoom,
+                    isChronos: isChronosReport,
+                },
+                reportAction: {
+                    reportActionID: action.reportActionID,
+                    draftMessage,
+                    isThreadReportParentAction,
+                },
+                callbacks: {
+                    onShow: toggleContextMenuFromActiveReportAction,
+                    onHide: toggleContextMenuFromActiveReportAction,
+                    setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
+                },
+                disabledOptions: disabledActions,
+            });
         },
         [
             draftMessage,
@@ -831,25 +845,25 @@ function PureReportActionItem({
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUSubmittedMessage(action)} />;
+                children = <ReportActionItemBasicMessage message={getIOUSubmittedMessage(action, report)} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoApproved) {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUApprovedMessage(action)} />;
+                children = <ReportActionItemBasicMessage message={getIOUApprovedMessage(action, report)} />;
             }
         } else if (isUnapprovedAction(action)) {
-            children = <ReportActionItemBasicMessage message={getIOUUnapprovedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getIOUUnapprovedMessage(action, report)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
             const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {
@@ -873,6 +887,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getReportActionText(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
+            children = <ReportActionItemBasicMessage message={getPolicyChangeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
@@ -1218,6 +1234,7 @@ function PureReportActionItem({
                         >
                             <OfflineWithFeedback
                                 onClose={onClose}
+                                dismissError={dismissError}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
@@ -1260,6 +1277,22 @@ function PureReportActionItem({
             <View style={styles.reportActionSystemMessageContainer}>
                 <InlineSystemMessage message={action.error} />
             </View>
+            <ConfirmModal
+                isVisible={showConfirmDismissReceiptError}
+                onConfirm={() => {
+                    dismissError();
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                onCancel={() => {
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                title={translate('iou.dismissReceiptError')}
+                prompt={translate('iou.dismissReceiptErrorConfirmation')}
+                confirmText={translate('common.dismiss')}
+                cancelText={translate('common.cancel')}
+                shouldShowCancelButton
+                danger
+            />
         </PressableWithSecondaryInteraction>
     );
 }
@@ -1293,6 +1326,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
         lodashIsEqual(prevProps.report?.fieldList, nextProps.report?.fieldList) &&
         lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
+        lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
         lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&

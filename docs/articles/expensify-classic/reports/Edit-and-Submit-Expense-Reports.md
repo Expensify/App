@@ -3,13 +3,77 @@ title: Edit and Submit Reports
 description: Learn how to edit, submit, and manage expense reports in Expensify, including workspace changes, approvals, and report statuses.
 ---
 
+<div id="expensify-classic" markdown="1">
+
+You can easily edit and submit reports in Expensify to keep your expenses organized and ensure they go through the right approval process. This guide walks you through adding expenses to a report, updating report details, submitting reports for approval, and managing report statuses.
+
+---
+
+# Add Expenses to Reports
+
+Once you’ve created your expenses, they may be automatically added to a report if your company has this feature enabled. Otherwise, you’ll need to manually add them to a report for submission.
+
+**Note:** Your ability to create reports may be restricted by your workspace settings.
+
+## Add Expenses to an Existing Report
+
+**On Desktop:**
+1. Click **Reports**.
+2. Open the report.
+3. Click **Add Expenses**.
+4. Select the expenses to add.
+   - If an expense doesn’t appear, use the filter to search by merchant name or adjust the date range.
+   - Only expenses not already on a report will be listed.
+
+**On Mobile:**
+1. Tap ☰ in the top left.
+2. Tap **Reports**.
+3. Open the report.
+4. Tap **Add Expense**, then select an expense to add.
+
+## Move Expenses to Another Report (Desktop Only)
+1. Open **Expenses**.
+2. Select the open expenses to move.
+3. Click **Add to Report**.
+4. Choose the destination report.
+   - Only open expenses can be moved.
+   - Submitted expenses in **Processing, Approved, Reimbursed, or Closed** states cannot be moved.
+
+## Create a New Report
+
+**On Desktop:**
+1. Click **Reports**.
+   - If a report has been automatically created for your most recent expense, no action is needed.
+2. Click **New Report**, then select **Expense Report**.
+3. Click **Add Expenses** and select expenses to add.
+4. (Optional) Edit the report:
+   - Click the **Edit** icon to rename the report.
+   - Click **X** next to an expense to remove it.
+   - Click **Expense Details** to edit an expense.
+   - Add comments or attachments at the bottom of the report.
+
+**On Mobile:**
+1. Tap ☰ in the top left.
+2. Tap **Reports**.
+   - If a report was automatically created, no action is needed.
+3. Tap **+**, then select **Expense Report**.
+4. Tap **Add Expenses** and select expenses.
+5. (Optional) Edit the report:
+   - Tap the report name to rename it.
+   - Tap an expense to edit details.
+   - Add comments or attachments.
+
+---
+
+# Edit Reports
+
 You can update a report’s details such as the **report title**, **workspace**, **report type**, **layout**, and **attached expenses**.
 
 **Note:** Some report details may be restricted from editing depending on your workspace settings.
 
 ## Edit the Title
 
-**On the Web:**
+**On Desktop:**
 1. Click the **Reports** tab and select the report.
 2. Click the **pencil icon** next to the name and edit the title.
 3. Press **Enter** to save changes.
@@ -21,7 +85,7 @@ You can update a report’s details such as the **report title**, **workspace**,
 
 ## Change the Workspace
 
-**On the Web:**
+**On Desktop:**
 1. Click the **Reports** tab and select the report.
 2. Click **Details** in the top right of the report.
 3. Click the **Workspace** dropdown list and select the correct workspace.
@@ -35,7 +99,7 @@ You can update a report’s details such as the **report title**, **workspace**,
 
 ## Change the Type of Expense Report
 
-**On the Web:**
+**On Desktop:**
 1. Click the **Reports** tab and select the report.
 2. Click **Details** in the top right of the report.
 3. Click the **Type** dropdown and select either **Expense Report** or **Invoice**.
@@ -47,7 +111,7 @@ You can update a report’s details such as the **report title**, **workspace**,
 4. Tap either **Expense Report** or **Invoice**.
 5. Tap **Done**.
 
-## Change the Layout
+## Change the Report Layout
 
 1. Click the **Reports** tab and select the report.
 2. Click **Details** in the top right of the report.
@@ -61,7 +125,7 @@ You can update a report’s details such as the **report title**, **workspace**,
 # Submit a Report for Approval
 Some workspaces automatically submit or approve reports, removing the need for manual submission.
 
-**On the Web:**
+**On Desktop:**
 1. Click the **Reports** tab.
 2. Select the **report**.
 3. Click **Submit**.
@@ -94,7 +158,7 @@ Some workspaces automatically submit or approve reports, removing the need for m
 
 ## Retract a Submitted Report
 
-**On the Web:**
+**On Desktop:**
 1. Click the **Reports** tab.
 2. Select the **report**.
 3. Click **Undo Submit**.
@@ -113,7 +177,7 @@ Some workspaces automatically submit or approve reports, removing the need for m
 
 You can add comments and attachments to a report to clarify or justify expenses.
 
-**On the Web:**
+**On Desktop:**
 1. Click **Reports**.
 2. Select the report.
 3. Scroll to the bottom of the report and:
@@ -131,7 +195,15 @@ You can add comments and attachments to a report to clarify or justify expenses.
 ## Report History
 Expensify logs all actions taken on the report in the **Report History & Comments** section at the bottom of the report.
 
+**To access a report's history:**
+1. Click the **Reports tab**.
+2. Open a report.
+3. Scroll to the bottom of the report.
+
+When impactful changes are made to the report, such as changing an expense's reimbursable status, approving or denial of an expense, or adding a comment, the report submitter is notified via email.
+
 ---
+
 # Report Statuses
 
 Each report has a status based on its approval progress:
@@ -144,6 +216,7 @@ Each report has a status based on its approval progress:
 - **Closed**: The report is finalized.
 
 ---
+
 # FAQ
 
 ## How are credits or refunds displayed on Expense Reports?

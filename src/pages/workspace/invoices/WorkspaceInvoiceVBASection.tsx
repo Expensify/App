@@ -222,7 +222,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                         {shouldShowMakeDefaultButton && (
                             <MenuItem
                                 title={translate('walletPage.setDefaultConfirmation')}
-                                icon={Expensicons.Mail}
+                                icon={Expensicons.Star}
                                 onPress={() => {
                                     makeDefaultPaymentMethod();
                                     setShouldShowDefaultDeleteMenu(false);

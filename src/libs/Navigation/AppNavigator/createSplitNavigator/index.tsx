@@ -13,11 +13,11 @@ import type {
 } from '@libs/Navigation/PlatformStackNavigation/types';
 import SidebarSpacerWrapper from './SidebarSpacerWrapper';
 import SplitRouter from './SplitRouter';
-import usePreserveSplitNavigatorState from './usePreserveSplitNavigatorState';
+import usePreserveNavigatorState from './usePreserveNavigatorState';
 
 function useCustomEffects(props: CustomEffectsHookProps) {
     useNavigationResetOnLayoutChange(props);
-    usePreserveSplitNavigatorState(props.state, props.parentRoute);
+    usePreserveNavigatorState(props.state, props.parentRoute);
 }
 
 function useCustomSplitNavigatorState({state}: CustomStateHookProps) {

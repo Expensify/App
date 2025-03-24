@@ -1,10 +1,11 @@
 import React from 'react';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackNavigationOptions, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {AuthScreensParamList, SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import createSearchFullscreenNavigator from '@navigation/AppNavigator/createSearchFullscreenNavigator';
 import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
 import useRootNavigatorScreenOptions from '@navigation/AppNavigator/useRootNavigatorScreenOptions';
+import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
@@ -13,9 +14,8 @@ const loadSearchMoneyReportPage = () => require<ReactComponentModule>('@pages/Se
 
 const Stack = createSearchFullscreenNavigator<SearchFullscreenNavigatorParamList>();
 
-function SearchFullscreenNavigator() {
+function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR>) {
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
-
     const searchRootScreenOptions: PlatformStackNavigationOptions = {
         ...rootNavigatorScreenOptions.fullScreen,
         web: {
@@ -23,12 +23,12 @@ function SearchFullscreenNavigator() {
             cardStyleInterpolator: undefined,
         },
     };
-
     return (
         <FreezeWrapper>
             <Stack.Navigator
                 screenOptions={searchRootScreenOptions}
                 defaultCentralScreen={SCREENS.SEARCH.ROOT}
+                parentRoute={route}
             >
                 <Stack.Screen
                     name={SCREENS.SEARCH.ROOT}

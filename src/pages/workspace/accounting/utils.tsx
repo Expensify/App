@@ -109,6 +109,8 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
                     ...(qboConfig?.collectionAccountID ? [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID] : []),
                 ],
+                pendingFields: {...qboConfig?.pendingFields, ...policy?.connections?.quickbooksOnline?.config?.pendingFields},
+                errorFields: {...qboConfig?.errorFields, ...policy?.connections?.quickbooksOnline?.config?.errorFields},
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {

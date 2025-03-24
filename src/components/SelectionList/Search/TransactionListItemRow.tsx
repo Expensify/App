@@ -123,6 +123,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
+                transactionItem={transactionItem}
             />
         </View>
     );
@@ -149,9 +150,9 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     const description = getTransactionDescription(transactionItem);
     let merchantOrDescriptionToDisplay = transactionItem.formattedMerchant;
     if (!merchantOrDescriptionToDisplay && !isLargeScreenWidth) {
-        merchantOrDescriptionToDisplay = Parser.htmlToText(Parser.replace(description));
+        merchantOrDescriptionToDisplay = Parser.htmlToText(description);
     }
-    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(Parser.replace(description));
+    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
 
     if (hasReceipt(transactionItem) && isPartial(transactionItem) && isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
@@ -387,48 +388,50 @@ function TransactionListItemRow({
                 />
             )}
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, canSelectMultiple && styles.pl4]}>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                     <ReceiptCell
                         transactionItem={item}
                         isLargeScreenWidth
                         showTooltip={false}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
                     <TypeCell
                         transactionItem={item}
                         isLargeScreenWidth={isLargeScreenWidth}
                         showTooltip={false}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
                         transactionItem={item}
                         showTooltip={showTooltip}
                         isLargeScreenWidth
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
                     <MerchantCell
                         transactionItem={item}
                         showTooltip={showTooltip}
                         isLargeScreenWidth
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
-                        participant={item.from}
+                        accountID={item.from.accountID}
+                        avatar={item.from.avatar}
                         displayName={item.formattedFrom}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
-                        participant={item.to}
+                        accountID={item.to.accountID}
+                        avatar={item.to.avatar}
                         displayName={item.formattedTo}
                     />
                 </View>
                 {item.shouldShowCategory && (
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
                         <CategoryCell
                             isLargeScreenWidth
                             showTooltip={showTooltip}
@@ -437,7 +440,7 @@ function TransactionListItemRow({
                     </View>
                 )}
                 {item.shouldShowTag && (
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
                         <TagCell
                             isLargeScreenWidth
                             showTooltip={showTooltip}
@@ -446,7 +449,7 @@ function TransactionListItemRow({
                     </View>
                 )}
                 {item.shouldShowTax && (
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
                         <TaxCell
                             transactionItem={item}
                             isLargeScreenWidth
@@ -455,7 +458,7 @@ function TransactionListItemRow({
                     </View>
                 )}
 
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                     <TotalCell
                         showTooltip={showTooltip}
                         transactionItem={item}
@@ -463,7 +466,7 @@ function TransactionListItemRow({
                         isChildListItem={isChildListItem}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={item.action}
                         isSelected={isButtonSelected}

@@ -46,6 +46,7 @@ approved = "approved"i { return "approved"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
+groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 feed = "feed"i { return "feed"; }
 
 operator "operator"

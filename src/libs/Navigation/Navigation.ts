@@ -5,7 +5,7 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import omit from 'lodash/omit';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {Writable} from 'type-fest';
+import type {MergeExclusive, Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -24,7 +24,9 @@ import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getPolicyIDFromState from './helpers/getPolicyIDFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
+import {isFullScreenName} from './helpers/isNavigatorName';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
+import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
@@ -468,25 +470,30 @@ function waitForProtectedRoutes() {
     });
 }
 
-type NavigateToReportWithPolicyCheckPayload = {report?: OnyxEntry<Report>; reportID?: string; reportActionID?: string; referrer?: string; policyIDToCheck?: string};
+// It should not be possible to pass a report and a reportID at the same time.
+type NavigateToReportWithPolicyCheckPayload = MergeExclusive<{report: OnyxEntry<Report>}, {reportID: string}> & {
+    reportActionID?: string;
+    referrer?: string;
+    policyIDToCheck?: string;
+};
 
 /**
  * Navigates to a report passed as a param (as an id or report object) and checks whether the target object belongs to the currently selected workspace.
  * If not, the current workspace is set to global.
  */
-function navigateToReportWithPolicyCheck({report, reportID, reportActionID, referrer, policyIDToCheck}: NavigateToReportWithPolicyCheckPayload, ref = navigationRef) {
+function navigateToReportWithPolicyCheck({report, reportID, reportActionID, referrer, policyIDToCheck}: NavigateToReportWithPolicyCheckPayload, forceReplace = false, ref = navigationRef) {
     const targetReport = reportID ? {reportID, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]} : report;
     const policyID = policyIDToCheck ?? getPolicyIDFromState(navigationRef.getRootState() as State<RootNavigatorParamList>);
     const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
     const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
     if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
-        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID, reportActionID, referrer));
+        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID, reportActionID, referrer), {forceReplace: !!forceReplace});
         return;
     }
 
-    const params: Record<string, string> = {
-        reportID: targetReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+    const params: Record<string, string | undefined> = {
+        reportID: targetReport?.reportID,
     };
 
     if (reportActionID) {
@@ -495,6 +502,17 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
 
     if (referrer) {
         params.referrer = referrer;
+    }
+
+    if (forceReplace) {
+        ref.dispatch(
+            StackActions.replace(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
+                policyID: undefined,
+                screen: SCREENS.REPORT,
+                params,
+            }),
+        );
+        return;
     }
 
     ref.dispatch(
@@ -527,23 +545,31 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 /**
  * Closes the modal navigator (RHP, LHP, onboarding).
  */
-const dismissModal = (reportID?: string, ref = navigationRef) => {
+const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
-        if (!reportID) {
-            return;
-        }
-        navigateToReportWithPolicyCheck({reportID});
     });
 };
 
 /**
  * Dismisses the modal and opens the given report.
  */
-const dismissModalWithReport = (report: OnyxEntry<Report>, ref = navigationRef) => {
+const dismissModalWithReport = (navigateToReportPayload: NavigateToReportWithPolicyCheckPayload, ref = navigationRef) => {
     isNavigationReady().then(() => {
-        ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
-        navigateToReportWithPolicyCheck({report});
+        const topmostReportID = getTopmostReportId();
+        const areReportsIDsDefined = !!topmostReportID && !!navigateToReportPayload.reportID;
+        const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+        if (topmostReportID === navigateToReportPayload.reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
+            dismissModal();
+            return;
+        }
+        if (getIsNarrowLayout()) {
+            const forceReplace = true;
+            navigateToReportWithPolicyCheck(navigateToReportPayload, forceReplace);
+            return;
+        }
+        dismissModal();
+        navigateToReportWithPolicyCheck(navigateToReportPayload);
     });
 };
 
@@ -560,6 +586,11 @@ function popToTop() {
     navigationRef.current?.dispatch(StackActions.popToTop());
 }
 
+function popRootToTop() {
+    const rootState = navigationRef.getRootState();
+    navigationRef.current?.dispatch({...StackActions.popToTop(), target: rootState.key});
+}
+
 function removeScreenFromNavigationState(screen: string) {
     isNavigationReady().then(() => {
         navigationRef.current?.dispatch((state) => {
@@ -571,6 +602,11 @@ function removeScreenFromNavigationState(screen: string) {
             });
         });
     });
+}
+
+function isTopmostRouteModalScreen() {
+    const topmostRouteName = navigationRef.getRootState()?.routes?.at(-1)?.name;
+    return isSideModalNavigator(topmostRouteName);
 }
 
 function removeScreenByKey(key: string) {
@@ -610,11 +646,13 @@ export default {
     setNavigationActionToMicrotaskQueue,
     navigateToReportWithPolicyCheck,
     popToTop,
+    popRootToTop,
     removeScreenFromNavigationState,
     removeScreenByKey,
     getReportRouteByID,
     switchPolicyID,
     replaceWithSplitNavigator,
+    isTopmostRouteModalScreen,
 };
 
 export {navigationRef};
