@@ -65,12 +65,6 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
     /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
 
-    /** Indicates if country can be changed by user */
-    shouldAllowCountryChange?: boolean;
-
-    /** Indicates if zip code format should be validated */
-    shouldValidateZipCodeFormat?: boolean;
-
     /** Translation key of street field */
     streetTranslationKey?: TranslationPaths;
 
@@ -98,8 +92,6 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
     onCountryChange,
-    shouldAllowCountryChange = true,
-    shouldValidateZipCodeFormat = true,
     streetTranslationKey = 'common.streetAddress',
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
