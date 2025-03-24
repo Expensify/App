@@ -92,6 +92,7 @@ jest.mock('@libs/runOnLiveMarkdownRuntime', () => {
 jest.mock('@src/libs/actions/Timing', () => ({
     start: jest.fn(),
     end: jest.fn(),
+    clearData: jest.fn(),
 }));
 
 jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({

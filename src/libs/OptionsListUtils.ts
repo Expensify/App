@@ -27,7 +27,7 @@ import type {
     TransactionViolation,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
@@ -155,13 +155,13 @@ type OptionTree = {
     tooltipText: string;
     isDisabled: boolean;
     isSelected: boolean;
-    pendingAction?: PendingAction;
+    pendingAction?: OnyxCommon.PendingAction;
 } & Option;
 
 type PayeePersonalDetails = {
     text: string;
     alternateText: string;
-    icons: Icon[];
+    icons: OnyxCommon.Icon[];
     descriptiveText: string;
     login: string;
     accountID: number;
@@ -234,8 +234,8 @@ type MemberForList = {
     isDisabled: boolean;
     accountID?: number;
     login: string;
-    icons?: Icon[];
-    pendingAction?: PendingAction;
+    icons?: OnyxCommon.Icon[];
+    pendingAction?: OnyxCommon.PendingAction;
     reportID: string;
 };
 
@@ -251,14 +251,7 @@ type Options = {
     selfDMChat?: OptionData | undefined;
 };
 
-type PreviewConfig = {
-    showChatPreviewLine?: boolean;
-    forcePolicyNamePreview?: boolean;
-    showPersonalDetails?: boolean;
-    isDisabled?: boolean | null;
-    selected?: boolean;
-    isSelected?: boolean;
-};
+type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
     canInviteUser?: boolean;
@@ -429,7 +422,7 @@ Onyx.connect({
  * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
  * @returns Returns avatar data for a list of user accountIDs
  */
-function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>, defaultValues: Record<string, number> = {}): Icon[] {
+function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>, defaultValues: Record<string, number> = {}): OnyxCommon.Icon[] {
     const reversedDefaultValues: Record<number, string> = {};
 
     Object.entries(defaultValues).forEach((item) => {
@@ -540,8 +533,8 @@ function uniqFast(items: string[]): string[] {
 /**
  * Get the last actor display name from last actor details.
  */
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
-    if (!hasMultipleParticipants || !lastActorDetails) {
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null) {
+    if (!lastActorDetails) {
         return '';
     }
 
@@ -591,24 +584,6 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
     return showChatPreviewLine && formattedLastMessageText
         ? formattedLastMessageTextWithPrefix
         : formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList.at(0)?.login ?? '' : '');
-}
-
-/**
- * Searches for a match when provided with a value
- */
-function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isReportChatRoom = false): boolean {
-    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(' '));
-    const valueToSearch = searchText?.replace(new RegExp(/&nbsp;/g), '');
-    let matching = true;
-    searchWords.forEach((word) => {
-        // if one of the word is not matching, we don't need to check further
-        if (!matching) {
-            return;
-        }
-        const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        matching = matchRegex.test(valueToSearch ?? '') || (!isReportChatRoom && participantNames.has(word));
-    });
-    return matching;
 }
 
 function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {
@@ -778,7 +753,7 @@ function createOption(
     reportActions: ReportActions,
     config?: PreviewConfig,
 ): OptionData {
-    const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
+    const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false} = config ?? {};
     const result: OptionData = {
         text: undefined,
         alternateText: undefined,
@@ -811,9 +786,6 @@ function createOption(
         isOptimisticPersonalDetail: false,
         lastMessageText: '',
         lastVisibleActionCreated: undefined,
-        selected,
-        isSelected,
-        isDisabled,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -861,7 +833,7 @@ function createOption(
         subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
 
         const lastActorDetails = report.lastActorAccountID ? personalDetailMap[report.lastActorAccountID] : null;
-        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
 
@@ -948,43 +920,6 @@ function getReportOption(participant: Participant): OptionData {
 }
 
 /**
- * Get the display option for a given report.
- */
-function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: OnyxEntry<Participant>): OptionData {
-    const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
-
-    const option = createOption(
-        visibleParticipantAccountIDs,
-        allPersonalDetails ?? {},
-        !isEmptyObject(report) ? report : undefined,
-        {},
-        {
-            showChatPreviewLine: false,
-            forcePolicyNamePreview: false,
-        },
-    );
-
-    // Update text & alternateText because createOption returns workspace name only if report is owned by the user
-    if (option.isSelfDM) {
-        option.alternateText = translateLocal('reportActionsView.yourSpace');
-    } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report);
-        option.alternateText = translateLocal('workspace.common.invoices');
-    } else if (unknownUserDetails && !option.text) {
-        option.text = unknownUserDetails.text ?? unknownUserDetails.login;
-        option.alternateText = unknownUserDetails.login;
-        option.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
-    } else if (report?.ownerAccountID !== 0 || !option.text) {
-        option.text = getPolicyName({report});
-        option.alternateText = translateLocal('workspace.common.workspace');
-    }
-    option.isDisabled = true;
-    option.selected = false;
-    option.isSelected = false;
-
-    return option;
-}
-/**
  * Get the option for a policy expense report.
  */
 function getPolicyExpenseReportOption(participant: Participant | OptionData): OptionData {
@@ -1011,6 +946,24 @@ function getPolicyExpenseReportOption(participant: Participant | OptionData): Op
     option.selected = participant.selected;
     option.isSelected = participant.selected;
     return option;
+}
+
+/**
+ * Searches for a match when provided with a value
+ */
+function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isChatRoom = false): boolean {
+    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(' '));
+    const valueToSearch = searchText?.replace(new RegExp(/&nbsp;/g), '');
+    let matching = true;
+    searchWords.forEach((word) => {
+        // if one of the word is not matching, we don't need to check further
+        if (!matching) {
+            return;
+        }
+        const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
+        matching = matchRegex.test(valueToSearch ?? '') || (!isChatRoom && participantNames.has(word));
+    });
+    return matching;
 }
 
 /**
@@ -1516,6 +1469,62 @@ function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
 }
 
 /**
+ * Helper method to check if participant email is Manager McTest
+ */
+function isSelectedManagerMcTest(email: string | null | undefined): boolean {
+    return email === CONST.EMAIL.MANAGER_MCTEST;
+}
+
+function getValidPersonalDetailOptions(
+    options: OptionList['personalDetails'],
+    {
+        loginsToExclude = {},
+        includeDomainEmail = false,
+        shouldBoldTitleByDefault = false,
+        currentUserRef,
+    }: {
+        loginsToExclude?: Record<string, boolean>;
+        includeDomainEmail?: boolean;
+        shouldBoldTitleByDefault: boolean;
+        // If the current user is found in the options and you pass an object ref, it will be assigned
+        currentUserRef?: {
+            current?: OptionData;
+        };
+    },
+) {
+    const personalDetailsOptions: OptionData[] = [];
+    for (let i = 0; i < options.length; i++) {
+        // eslint-disable-next-line rulesdir/prefer-at
+        const detail = options[i];
+        if (
+            !detail?.login ||
+            !detail.accountID ||
+            !!detail?.isOptimisticPersonalDetail ||
+            (!includeDomainEmail && Str.isDomainEmail(detail.login)) ||
+            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
+            detail?.login === CONST.SETUP_SPECIALIST_LOGIN
+        ) {
+            continue;
+        }
+
+        if (currentUserRef && !!currentUserLogin && detail.login === currentUserLogin) {
+            // eslint-disable-next-line no-param-reassign
+            currentUserRef.current = detail;
+        }
+
+        if (loginsToExclude[detail.login]) {
+            continue;
+        }
+
+        detail.isBold = shouldBoldTitleByDefault;
+
+        personalDetailsOptions.push(detail);
+    }
+
+    return personalDetailsOptions;
+}
+
+/**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
 function getValidOptions(
@@ -1585,8 +1594,10 @@ function getValidOptions(
     }
 
     // Get valid personal details and check if we can find the current user:
-    const personalDetailsOptions: OptionData[] = [];
-    let currentUserOption: OptionData | undefined;
+    let personalDetailsOptions: OptionData[] = [];
+    const currentUserRef = {
+        current: undefined as OptionData | undefined,
+    };
     if (includeP2P) {
         let personalDetailLoginsToExclude = loginsToExclude;
         if (currentUserLogin) {
@@ -1595,32 +1606,13 @@ function getValidOptions(
                 [currentUserLogin]: true,
             };
         }
-        for (let i = 0; i < options.personalDetails.length; i++) {
-            // eslint-disable-next-line rulesdir/prefer-at
-            const detail = options.personalDetails[i];
-            if (
-                !detail?.login ||
-                !detail.accountID ||
-                !!detail?.isOptimisticPersonalDetail ||
-                (!includeDomainEmail && Str.isDomainEmail(detail.login)) ||
-                // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-                detail?.login === CONST.SETUP_SPECIALIST_LOGIN
-            ) {
-                continue;
-            }
 
-            if (!!currentUserLogin && detail.login === currentUserLogin) {
-                currentUserOption = detail;
-            }
-
-            if (personalDetailLoginsToExclude[detail.login]) {
-                continue;
-            }
-
-            detail.isBold = shouldBoldTitleByDefault;
-
-            personalDetailsOptions.push(detail);
-        }
+        personalDetailsOptions = getValidPersonalDetailOptions(options.personalDetails, {
+            loginsToExclude: personalDetailLoginsToExclude,
+            shouldBoldTitleByDefault,
+            includeDomainEmail,
+            currentUserRef,
+        });
     }
 
     if (excludeHiddenThreads) {
@@ -1630,7 +1622,7 @@ function getValidOptions(
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
-        currentUserOption,
+        currentUserOption: currentUserRef.current,
         // User to invite is generated by the search input of a user.
         // As this function isn't concerned with any search input yet, this is null (will be set when using filterOptions).
         userToInvite: null,
@@ -1889,8 +1881,8 @@ function formatSectionsFromSearchTerm(
                 title: undefined,
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
-                          const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                          return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                          const isPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                          return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
                 shouldShow: selectedOptions.length > 0,
@@ -1915,8 +1907,8 @@ function formatSectionsFromSearchTerm(
             title: undefined,
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
-                      const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                      return isReportPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                      const isPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                      return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
             shouldShow: selectedParticipantsWithoutDetails.length > 0,
@@ -2211,6 +2203,7 @@ export {
     isCurrentUser,
     isPersonalDetailsReady,
     getValidOptions,
+    getValidPersonalDetailOptions,
     getSearchOptions,
     getShareDestinationOptions,
     getMemberInviteOptions,
@@ -2253,7 +2246,6 @@ export {
     shouldUseBoldText,
     getAttendeeOptions,
     getAlternateText,
-    getReportDisplayOption,
     hasReportErrors,
     combineOrderingOfReportsAndPersonalDetails,
     filterWorkspaceChats,
@@ -2262,6 +2254,7 @@ export {
     filterReports,
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
+    isSelectedManagerMcTest,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};

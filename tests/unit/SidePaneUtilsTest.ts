@@ -72,4 +72,39 @@ describe('substituteRouteParameters', () => {
         const params = {reportID: '321'};
         expect(substituteRouteParameters(route, params)).toBe('/analysis/:reportID/report321/details');
     });
+
+    test('should apply simple route parameter overrides', () => {
+        const route = '/workspaces/123/rules/456';
+        const params = {workspaceID: '123', ruleID: '456'};
+        const overrides = {workspaceID: 'workspace', ruleID: 'rule'};
+        expect(substituteRouteParameters(route, params, overrides)).toBe('/workspaces/workspace/rules/rule');
+    });
+
+    test('should apply overrides to repeated parameters in the route', () => {
+        const route = '/reports/123/report/123/details';
+        const params = {id: '123'};
+        const overrides = {id: 'expense'};
+        expect(substituteRouteParameters(route, params, overrides)).toBe('/reports/expense/report/expense/details');
+    });
+
+    test('should correctly replace a parameter with a multi-segment override', () => {
+        const route = '/transactions/555/audit/555/details';
+        const params = {transactionID: '555'};
+        const overrides = {transactionID: ':record/:subtype'};
+        expect(substituteRouteParameters(route, params, overrides)).toBe('/transactions/:record/:subtype/audit/:record/:subtype/details');
+    });
+
+    test('should prioritize overrides over default substitution', () => {
+        const route = '/projects/999/tasks/888';
+        const params = {projectID: '999', taskID: '888'};
+        const overrides = {taskID: 'task-replace'};
+        expect(substituteRouteParameters(route, params, overrides)).toBe('/projects/:projectID/tasks/task-replace');
+    });
+
+    test('should apply overrides even when override matches another route param', () => {
+        const route = '/workspaces/123/rules/456';
+        const params = {workspaceID: '123', ruleID: '456'};
+        const overrides = {workspaceID: '456', ruleID: 'rule'};
+        expect(substituteRouteParameters(route, params, overrides)).toBe('/workspaces/rule/rules/rule');
+    });
 });
