@@ -26,7 +26,7 @@
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
   self.dependencyProvider = [RCTAppDependencyProvider new];
-
+  
   // Configure firebase
   [FIRApp configure];
 
@@ -38,7 +38,7 @@
 
   [RCTBootSplash initWithStoryboard:@"BootSplash"
                            rootView:(RCTRootView *)self.window.rootViewController.view]; // <- initialization using the storyboard file name
-
+  
   // Define UNUserNotificationCenter
   UNUserNotificationCenter *center =
       [UNUserNotificationCenter currentNotificationCenter];
@@ -53,7 +53,7 @@
       [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
       [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"isFirstRunComplete"];
   }
-
+  
   [RNBackgroundTaskManager setup];
 
   return YES;
@@ -85,37 +85,13 @@
 
 - (NSURL *)bundleURL
 {
-    return [self getBundleURL];
-}
-
-- (NSURL *)getBundleURL
-{
-    NSURL *jsCodeLocation = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
-    #if DEBUG && !TARGET_OS_SIMULATOR
-        NSString *ipPath = [[NSBundle mainBundle] pathForResource:@"ip" ofType:@"txt"];
-
-        if (ipPath) {
-            NSError *error;
-            NSString *ip = [[NSString stringWithContentsOfFile:ipPath encoding:NSUTF8StringEncoding error:&error]
-                                stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-
-            if (ip && !error) {
-                NSString *metroAddress = [NSString stringWithFormat:@"http://%@:8081/index.bundle?platform=ios", ip];
-                jsCodeLocation = [NSURL URLWithString:metroAddress];
-                NSLog(@"Using %@ as metro server address", metroAddress);
-            } else {
-                NSLog(@"Failed to get metro server ip from %@, error: %@", ipPath, error.localizedDescription);
-            }
-        } else {
-            NSLog(@"Could not locate ip.txt");
-        }
-    #endif
-
-    #if DEBUG && TARGET_OS_SIMULATOR
-        jsCodeLocation = [[NSURL alloc] initWithString:@"http://localhost:8081/index.bundle?platform=ios"];
-    #endif
-
-    return jsCodeLocation;
+#if DEBUG
+  return
+      [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+#else
+  return [[NSBundle mainBundle] URLForResource:@"main"
+                                 withExtension:@"jsbundle"];
+#endif
 }
 
 // This methods is needed to support the hardware keyboard shortcuts
