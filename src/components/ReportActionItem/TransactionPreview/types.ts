@@ -18,7 +18,7 @@ type TransactionPreviewProps = {
     onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** All the data of the action, used for showing context menu */
-    action: ReportAction;
+    action: OnyxEntry<ReportAction>;
 
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor?: ContextMenuAnchor;
@@ -85,7 +85,7 @@ type TransactionPreviewContentProps = {
     transaction: OnyxEntry<Transaction>;
 
     /** Represents the action entry from Onyx */
-    action: ReportAction;
+    action: OnyxEntry<ReportAction>;
 
     /** Contains data about potential transaction violations */
     violations: TransactionViolations;

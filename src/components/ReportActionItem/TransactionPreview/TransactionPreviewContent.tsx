@@ -159,12 +159,12 @@ function TransactionPreviewContent({
         () =>
             shouldShowSplitShare
                 ? transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
-                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount ?? 0, requestCurrency ?? '', action.actorAccountID === sessionAccountID)
+                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount ?? 0, requestCurrency ?? '', action?.actorAccountID === sessionAccountID)
                 : 0,
         [
             shouldShowSplitShare,
             isReportAPolicyExpenseChat,
-            action.actorAccountID,
+            action?.actorAccountID,
             participantAccountIDs.length,
             transaction?.comment?.splits,
             requestAmount,

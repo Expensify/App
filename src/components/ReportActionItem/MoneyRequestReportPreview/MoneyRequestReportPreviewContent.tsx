@@ -324,10 +324,7 @@ function MoneyRequestReportPreviewContent({
     const bankAccountRoute = getBankAccountRoute(chatReport);
 
     const shouldShowSettlementButton = !shouldShowSubmitButton && (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
-
-    // commented on design testing purposes
-    // const shouldShowRBR = hasErrors && !iouSettled;
-    const shouldShowRBR = true;
+    const shouldShowRBR = hasErrors && !iouSettled;
 
     /*
      Show subtitle if at least one of the expenses is not being smart scanned, and either:

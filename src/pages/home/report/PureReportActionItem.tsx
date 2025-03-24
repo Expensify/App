@@ -24,7 +24,7 @@ import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListAc
 import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
-import ReportPreview from '@components/ReportActionItem/ReportPreview';
+import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
@@ -754,19 +754,19 @@ function PureReportActionItem({
             children = isClosedExpenseReportWithNoExpenses ? (
                 <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />
             ) : (
-                <ReportPreview
+                <MoneyRequestReportPreview
                     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                     iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
-                    chatReportID={reportID}
                     policyID={report?.policyID}
-                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
+                    chatReportID={reportID}
                     action={action}
-                    isHovered={hovered}
+                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     contextMenuAnchor={popoverAnchorRef.current}
+                    isHovered={hovered}
+                    isWhisper={isWhisper}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
-                    isWhisper={isWhisper}
                 />
             );
         } else if (isTaskAction(action)) {
