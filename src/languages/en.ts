@@ -6035,14 +6035,14 @@ const translations = {
             part3: ' 🔴 = needs review',
         },
         workspaceChatTooltip: {
-            part1: 'Submit expenses',
-            part2: ' and chat with',
-            part3: '\napprovers here!',
+            part1: 'Chat with ',
+            part2: 'approvers',
         },
         globalCreateTooltip: {
             part1: 'Create expenses',
             part2: ', start chatting,',
-            part3: '\nand more!',
+            part3: '\nand more.',
+            part4: ' Try it out!',
         },
         scanTestTooltip: {
             part1: 'Want to see how Scan works?',
