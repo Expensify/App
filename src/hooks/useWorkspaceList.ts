@@ -20,7 +20,7 @@ type WorkspaceListItem = {
 type UseWorkspaceListParams = {
     policies: OnyxCollection<Policy>;
     currentUserLogin: string | undefined;
-    isOffline: boolean;
+    shouldShowPendingDeletePolicy: boolean;
     selectedPolicyID: string | undefined;
     searchTerm: string;
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
@@ -42,7 +42,7 @@ function useWorkspaceList({
     currentUserLogin,
     selectedPolicyID,
     searchTerm,
-    isOffline,
+    shouldShowPendingDeletePolicy,
     isWorkspaceSwitcher = false,
     hasUnreadData,
     getIndicatorTypeForPolicy,
@@ -54,7 +54,13 @@ function useWorkspaceList({
         }
 
         return Object.values(policies)
-            .filter((policy) => !!policy && shouldShowPolicy(policy, !!isOffline, currentUserLogin) && !policy?.isJoinRequestPending && (additionalFilter ? additionalFilter(policy) : true))
+            .filter(
+                (policy) =>
+                    !!policy &&
+                    shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin) &&
+                    !policy?.isJoinRequestPending &&
+                    (additionalFilter ? additionalFilter(policy) : true),
+            )
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id,
@@ -77,7 +83,7 @@ function useWorkspaceList({
                         brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
                     }),
             }));
-    }, [policies, isOffline, currentUserLogin, additionalFilter, selectedPolicyID, getIndicatorTypeForPolicy, hasUnreadData, isWorkspaceSwitcher]);
+    }, [policies, shouldShowPendingDeletePolicy, currentUserLogin, additionalFilter, selectedPolicyID, getIndicatorTypeForPolicy, hasUnreadData, isWorkspaceSwitcher]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
