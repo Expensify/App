@@ -1,4 +1,3 @@
-import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -9,6 +8,7 @@ import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import Visibility from '@libs/Visibility';
 import {updateLastVisitedPath} from '@userActions/App';
 import * as Modal from '@userActions/Modal';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -123,7 +123,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                 }
 
                 // Get rid of the transition screen, if it is on the top of the stack
-                if (NativeModules.HybridAppModule && Navigation.getActiveRoute().includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+                if (CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
                     Navigation.goBack();
                 }
                 // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back

@@ -1,5 +1,4 @@
 import React from 'react';
-import {NativeModules} from 'react-native';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
@@ -11,6 +10,7 @@ import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
+import CONFIG from '@src/CONFIG';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
@@ -27,7 +27,7 @@ function PublicScreens() {
             <RootStack.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 options={defaultScreenOptions}
-                component={NativeModules.HybridAppModule ? SessionExpiredPage : SignInPage}
+                component={CONFIG.IS_HYBRID_APP ? SessionExpiredPage : SignInPage}
             />
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}

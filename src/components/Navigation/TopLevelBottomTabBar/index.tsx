@@ -4,7 +4,7 @@ import {InteractionManager, View} from 'react-native';
 import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import getIsBottomTabVisibleDirectly from './getIsBottomTabVisibleDirectly';
@@ -26,7 +26,7 @@ type TopLevelBottomTabBarProps = {
 function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {paddingBottom} = useStyledSafeAreaInsets();
+    const {paddingBottom} = useSafeAreaPaddings();
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>();
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);

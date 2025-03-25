@@ -1,8 +1,9 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app/src';
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
@@ -36,13 +37,14 @@ import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUt
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import {buildOldDotURL, openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {openInitialSettingsPage} from '@userActions/Wallet';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -246,10 +248,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.ExpensifyLogoNew,
-                    ...(NativeModules.HybridAppModule
+                    ...(CONFIG.IS_HYBRID_APP
                         ? {
                               action: () => {
-                                  NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                                  HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                                   setRootStatusBarEnabled(false);
                               },
                           }
@@ -313,9 +315,21 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
             const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
                 if (typeof link === 'function') {
-                    link?.()?.then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
+                    link?.()?.then((url) =>
+                        showContextMenu({
+                            type: CONST.CONTEXT_MENU_TYPES.LINK,
+                            event,
+                            selection: url,
+                            contextMenuAnchor: popoverAnchor.current,
+                        }),
+                    );
                 } else if (link) {
-                    ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current);
+                    showContextMenu({
+                        type: CONST.CONTEXT_MENU_TYPES.LINK,
+                        event,
+                        selection: link,
+                        contextMenuAnchor: popoverAnchor.current,
+                    });
                 }
             };
 
