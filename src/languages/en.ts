@@ -189,6 +189,7 @@ import type {
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryGLCodeParams,
+    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
@@ -4985,6 +4986,14 @@ const translations = {
             }
             return `updated the category "${categoryName}" by changing the Limit Type from ${oldValue} to ${newValue}`;
         },
+
+        updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `updated the category "${categoryName}" by changing Receipts from ${oldValue} to ${newValue}`;
+            }
+            return `updated the category ""A" by changing Receipts from ${oldValue} to ${newValue}`;
+        },
+
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `updated the name of the tag list "${oldName}" to be "${newName}"`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,

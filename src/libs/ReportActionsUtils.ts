@@ -18,7 +18,7 @@ import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {convertAmountToDisplayString, convertToDisplayString} from './CurrencyUtils';
+import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -1891,7 +1891,7 @@ function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
     });
 }
 
-function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
+function getWorkspaceCategoryUpdateMessage(action: ReportAction, policyID?: string): string {
     const {categoryName, oldValue, newName, oldName, updatedField, newValue, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
@@ -1945,11 +1945,66 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
                 categoryName,
             });
         }
+
         if (updatedField === 'expenseLimitType' && typeof newValue === 'string' && typeof oldValue === 'string') {
             return translateLocal('workspaceActions.updateCategoryExpenseLimitType', {
                 categoryName,
                 oldValue: oldValue ? translateLocal(`workspace.rules.categoryRules.expenseLimitTypes.${oldValue}` as TranslationPaths) : undefined,
                 newValue: translateLocal(`workspace.rules.categoryRules.expenseLimitTypes.${newValue}` as TranslationPaths),
+            });
+        }
+
+        // if (updatedField === 'maxAmountNoReceipt') {
+        //     const policy = getPolicy(policyID);
+        //     console.log(policy);
+        //     const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
+
+        //     return translateLocal('workspaceActions.updateCategoryMaxAmountNoReceipt', {
+        //         categoryName,
+        //         oldValue:
+        //             typeof oldValue === 'number' && oldValue === CONST.DISABLED_MAX_EXPENSE_VALUE
+        //                 ? translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.never`)
+        //                 : oldValue === 0
+        //                 ? translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.always`, {
+        //                       defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+        //                   })
+        //                 : translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
+        //                       defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+        //                   }),
+        //         newValue:
+        //             typeof newValue === 'number' && newValue === CONST.DISABLED_MAX_EXPENSE_VALUE
+        //                 ? translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.never`)
+        //                 : newValue === 0
+        //                 ? translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.always`, {
+        //                       defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+        //                   })
+        //                 : translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
+        //                       defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+        //                   }),
+        //     });
+        // }
+
+        if (updatedField === 'maxAmountNoReceipt' && typeof oldValue !== 'boolean' && typeof newValue !== 'boolean') {
+            const policy = getPolicy(policyID);
+
+            const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
+
+            const formatAmount = () => convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+            const getTranslation = (value?: number | string) => {
+                if (value === CONST.DISABLED_MAX_EXPENSE_VALUE) {
+                    return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.never');
+                }
+                if (value === 0) {
+                    return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.always');
+                }
+
+                return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.default', {defaultAmount: formatAmount()});
+            };
+
+            return translateLocal('workspaceActions.updateCategoryMaxAmountNoReceipt', {
+                categoryName,
+                oldValue: getTranslation(oldValue),
+                newValue: getTranslation(newValue),
             });
         }
     }
