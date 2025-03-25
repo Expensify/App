@@ -40,25 +40,19 @@ jest.mock('@actions/github', () => ({
     },
 }));
 
-const androidLink = 'https://expensify.app/ANDROID_LINK';
 const androidHybridLink = 'https://expensify.app/ANDROID_HYBRID_LINK';
-const iOSLink = 'https://expensify.app/IOS_LINK';
 const iOSHybridLink = 'https://expensify.app/IOS_HYBRID_LINK';
 const webLink = 'https://expensify.app/WEB_LINK';
 const desktopLink = 'https://expensify.app/DESKTOP_LINK';
 
-const androidQRCode = `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`;
 const androidHybridQRCode = `![Android Hybrid](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidHybridLink})`;
 const desktopQRCode = `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`;
-const iOSQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`;
 const iOSHybridQRCode = `![iOS Hybrid](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSHybridLink})`;
 const webQRCode = `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`;
 
 const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
-| ${androidLink}  | ${iOSLink}  |
-| ${androidQRCode}  | ${iOSQRCode}  |
 | Android Hybrid :robot::arrows_counterclockwise:  | iOS Hybrid :apple::arrows_counterclockwise: |
 | ${androidHybridLink}  | ${iOSHybridLink}  |
 | ${androidHybridQRCode}  | ${iOSHybridQRCode}  |
@@ -74,8 +68,6 @@ const message = `:test_tube::test_tube: Use the links below to test this adhoc b
 const onlyAndroidMessage = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
-| ${androidLink}  | N/A  |
-| ${androidQRCode}  | N/A  |
 | Android Hybrid :robot::arrows_counterclockwise:  | iOS Hybrid :apple::arrows_counterclockwise: |
 | N/A  | N/A  |
 | N/A  | N/A  |
@@ -101,13 +93,10 @@ describe('Post test build comments action tests', () => {
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('12');
         when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('ANDROID_HYBRID', {required: false}).mockReturnValue('success');
-        when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS_HYBRID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('DESKTOP', {required: false}).mockReturnValue('success');
-        when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue('https://expensify.app/ANDROID_LINK');
         when(core.getInput).calledWith('ANDROID_HYBRID_LINK').mockReturnValue(androidHybridLink);
-        when(core.getInput).calledWith('IOS_LINK').mockReturnValue('https://expensify.app/IOS_LINK');
         when(core.getInput).calledWith('IOS_HYBRID_LINK').mockReturnValue(iOSHybridLink);
         when(core.getInput).calledWith('WEB_LINK').mockReturnValue('https://expensify.app/WEB_LINK');
         when(core.getInput).calledWith('DESKTOP_LINK').mockReturnValue('https://expensify.app/DESKTOP_LINK');
@@ -139,9 +128,7 @@ describe('Post test build comments action tests', () => {
     test('Test GH action when input is not complete', async () => {
         when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.APP_REPO);
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('12');
-        when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('ANDROID_HYBRID', {required: false}).mockReturnValue('');
-        when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('IOS_HYBRID', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('');
         when(core.getInput).calledWith('DESKTOP', {required: false}).mockReturnValue('');
