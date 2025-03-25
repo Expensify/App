@@ -82,7 +82,6 @@ https://help.expensify.com/articles/expensify-classic/getting-started/Invite-Mem
 https://help.expensify.com/articles/expensify-classic/expensify-billing/Annual-Subscription,https://use.expensify.com/
 https://help.expensify.com/articles/expensify-classic/expensify-billing/Pay-Per-Use-Subscription,https://use.expensify.com/
 https://help.expensify.com/articles/expensify-classic/expensify-billing/Individual-Subscription,https://use.expensify.com/
-https://help.expensify.com/articles/expensify-classic/settings/Merge-Accounts,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Merge-accounts
 https://help.expensify.com/articles/expensify-classic/settings/Preferences,https://help.expensify.com/expensify-classic/hubs/settings/account-settings
 https://help.expensify.com/articles/expensify-classic/getting-started/support/Your-Expensify-Account-Manager,https://use.expensify.com/support
 https://help.expensify.com/articles/expensify-classic/settings/Copilot,https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/
@@ -170,7 +169,6 @@ https://help.expensify.com/articles/expensify-classic/manage-employees-and-repor
 https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Removing-Members,https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Removing-Members
 https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/User-Roles,https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/
 https://help.expensify.com/articles/expensify-classic/send-payments/Reimbursing-Reports,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Reimbursing-Reports
-https://help.expensify.com/articles/expensify-classic/workspace-and-domain-settings/SAML-SSO,https://help.expensify.com/articles/expensify-classic/settings/Enable-two-factor-authentication
 https://help.expensify.com/articles/expensify-classic/workspaces/Budgets,https://help.expensify.com/articles/expensify-classic/workspaces/Set-budgets
 https://help.expensify.com/articles/expensify-classic/workspaces/Categories,https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories
 https://help.expensify.com/articles/expensify-classic/expenses/Per-Diem-Expenses.html,https://help.expensify.com/articles/expensify-classic/workspaces/Enable-per-diem-expenses
@@ -200,7 +198,7 @@ https://help.expensify.com/articles/expensify-classic/settings/account-settings/
 https://help.expensify.com/articles/expensify-classic/settings/account-settings/Change-or-add-email-address,https://help.expensify.com/articles/expensify-classic/settings/Change-or-add-email-address
 https://help.expensify.com/articles/expensify-classic/settings/account-settings/Close-or-reopen-account,https://help.expensify.com/articles/expensify-classic/settings/Close-or-reopen-account
 https://help.expensify.com/articles/expensify-classic/settings/account-settings/Manage-devices,https://help.expensify.com/articles/expensify-classic/settings/Manage-devices
-https://help.expensify.com/articles/expensify-classic/settings/account-settings/Merge-accounts,https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts
+https://help.expensify.com/articles/expensify-classic/settings/account-settings/Merge-accounts,https://help.expensify.com/articles/expensify-classic/settings/Merge-Accounts
 https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-Notifications,https://help.expensify.com/articles/expensify-classic/settings/Set-Notifications
 https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-time-zone,https://help.expensify.com/articles/expensify-classic/settings/Set-Time-Zone
 https://help.expensify.com/articles/expensify-classic/travel/Coming-Soon,https://help.expensify.com/expensify-classic/hubs/travel/
@@ -376,7 +374,6 @@ https://community.expensify.com/discussion/4476/how-to-enable-scheduled-submit-f
 https://community.expensify.com/discussion/6018/deep-dive-day-1-with-the-expensify-card,https://help.expensify.com/articles/expensify-classic/expensify-card/Cardholder-Settings-and-Features
 https://community.expensify.com/discussion/5836/how-to-email-receipts-to-expensify,https://help.expensify.com/articles/expensify-classic/expenses/Add-an-expense#email-a-receipt
 https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Reports-Invoices-and-Bills
-https://community.expensify.com/discussion/7385/how-to-enable-two-factor-authentication-in-your-account,https://help.expensify.com/articles/expensify-classic/settings/Enable-two-factor-authentication
 https://community.expensify.com/discussion/4432/how-to-add-a-secondary-login/,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Change-or-add-email-address
 https://community.expensify.com/discussion/5539/deep-dive-what-is-a-copilot-what-are-the-different-types/,https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot
 https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Vacation-Delegate,https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Delegate-when-out-of-office
@@ -386,6 +383,7 @@ https://community.expensify.com/discussion/6530/how-to-set-your-time-zone-for-re
 https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-Notifications
 https://community.expensify.com/discussion/5793/how-to-connect-your-personal-card-to-import-expenses/,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Personal-Credit-Cards
 https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information,https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security
+https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information,https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security
 https://community.expensify.com/discussion/4641/how-to-add-a-u-s-deposit-account,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-US-Bank-Account
 https://community.expensify.com/discussion/4751/how-to-how-to-add-an-ach-withdrawal-account-us-only/,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account
 https://community.expensify.com/discussion/7428/how-to-pay-get-paid-for-invoices-using-paypal-me-and-expensify,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Third-Party-Payments
@@ -496,8 +494,6 @@ https://community.expensify.com/discussion/6827/what-s-happening-to-my-expensify
 https://community.expensify.com/discussion/6898/deep-dive-guide-to-billing,https://help.expensify.com/articles/expensify-classic/expensify-billing/Billing-Overview
 https://community.expensify.com/discussion/7231/how-to-export-invoices-to-netsuite,https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-to-NetSuite#export-invoices-to
 https://community.expensify.com/discussion/7335/faq-what-is-the-expensify-card-auto-reconciliation-process,https://help.expensify.com/articles/new-expensify/expenses-&-payments/Send-an-invoice
-https://community.expensify.com/discussion/7524/how-to-set-up-disable-2fa-for-your-domain,https://help.expensify.com/articles/expensify-classic/settings/Enable-two-factor-authentication
-https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues,https://help.expensify.com/articles/expensify-classic/settings/Enable-two-factor-authentication
 https://community.expensify.com/discussion/7862/introducing-expensify-cash-open-source-financial-group-chat-built-with-react-native,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Reports-Invoices-and-Bills
 https://community.expensify.com/discussion/7931/how-to-become-an-expensify-org-donor,https://www.expensify.org/donate
 https://community.expensify.com/discussion/8705/how-to-change-an-invoice-to-an-expense-report/,https://help.expensify.com/articles/expensify-classic/reports/Edit-a-report
@@ -670,8 +666,22 @@ https://help.expensify.com/articles/expensify-classic/reports/Require-review-for
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Get-reimbursed-faster-as-a-non-US-employee,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Third-Party-Payments,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments
 https://help.expensify.com/articles/expensify-classic/expensify-partner-program/Referral-Program,https://use.expensify.com/accountants-program
+https://help.expensify.com/articles/expensify-classic/workspace-and-domain-settings/SAML-SSO,https://help.expensify.com/articles/expensify-classic/settings/Two-Factor-Authentication
+https://community.expensify.com/discussion/7385/how-to-enable-two-factor-authentication-in-your-account,https://help.expensify.com/articles/expensify-classic/settings/Two-Factor-Authentication
+https://community.expensify.com/discussion/7524/how-to-set-up-disable-2fa-for-your-domain,https://help.expensify.com/articles/expensify-classic/settings/Two-Factor-Authentication
+https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues,https://help.expensify.com/articles/expensify-classic/settings/Two-Factor-Authentication
+https://help.expensify.com/articles/expensify-classic/settings/Enable-two-factor-authentication,https://help.expensify.com/articles/expensify-classic/settings/Two-Factor-Authentication
+https://help.expensify.com/articles/expensify-classic/settings/Set-Time-Zone,https://help.expensify.com/articles/expensify-classic/settings/Set-Timezone
+https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Disconnect-Bank-Account,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#Remove-a-Bank-Account
+https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Revoke-Access-to-Verified-Business-Bank-Account,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Share-Verified-Business-Bank-Account#Revoke-Access-to-a-Verified-Business-Bank-Account
+https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Act-as-a-copilot,https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot
+https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts,https://help.expensify.com/articles/expensify-classic/settings/Merge-Accounts
 https://help.expensify.com/articles/expensify-classic/reports/Track-report-history,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
 https://help.expensify.com/articles/expensify-classic/reports/Submit-or-retract-a-report,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
 https://help.expensify.com/articles/expensify-classic/reports/Edit-a-report,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
 https://help.expensify.com/articles/expensify-classic/reports/Report-statuses,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
 https://help.expensify.com/articles/expensify-classic/reports/Add-expenses-to-a-report,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
+https://help.expensify.com/expensify-classic/hubs/settings/account-settings,https://help.expensify.com/expensify-classic/hubs/settings/
+https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-Time-Zone,https://help.expensify.com/articles/expensify-classic/settings/Set-Time-Zone
+https://help.expensify.com/articles/expensify-classic/settings/Managing-Primary-and-Secondary-Logins-in-Expensify,https://help.expensify.com/articles/expensify-classic/settings/Contact-Methods
+https://help.expensify.com/articles/expensify-classic/workspaces/Personal-and-Corporate-Karma,https://help.expensify.com/expensify-classic/hubs/expensify-billing/Personal-and-Corporate-Karma
