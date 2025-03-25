@@ -1954,36 +1954,6 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policyID?: stri
             });
         }
 
-        // if (updatedField === 'maxAmountNoReceipt') {
-        //     const policy = getPolicy(policyID);
-        //     console.log(policy);
-        //     const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
-
-        //     return translateLocal('workspaceActions.updateCategoryMaxAmountNoReceipt', {
-        //         categoryName,
-        //         oldValue:
-        //             typeof oldValue === 'number' && oldValue === CONST.DISABLED_MAX_EXPENSE_VALUE
-        //                 ? translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.never`)
-        //                 : oldValue === 0
-        //                 ? translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.always`, {
-        //                       defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-        //                   })
-        //                 : translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
-        //                       defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-        //                   }),
-        //         newValue:
-        //             typeof newValue === 'number' && newValue === CONST.DISABLED_MAX_EXPENSE_VALUE
-        //                 ? translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.never`)
-        //                 : newValue === 0
-        //                 ? translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.always`, {
-        //                       defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-        //                   })
-        //                 : translateLocal(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
-        //                       defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-        //                   }),
-        //     });
-        // }
-
         if (updatedField === 'maxAmountNoReceipt' && typeof oldValue !== 'boolean' && typeof newValue !== 'boolean') {
             const policy = getPolicy(policyID);
 
