@@ -2,7 +2,7 @@
 import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import type {EReceiptOnyxProps, EReceiptProps} from '@components/EReceipt';
+import type {EReceiptProps} from '@components/EReceipt';
 import EReceipt from '@components/EReceipt';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
@@ -169,7 +169,7 @@ const story: Meta<typeof EReceipt> = {
     component: EReceipt,
 };
 
-function Template(props: Omit<EReceiptProps, keyof EReceiptOnyxProps>) {
+function Template(props: EReceiptProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <EReceipt {...props} />;
 }

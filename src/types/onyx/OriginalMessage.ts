@@ -547,10 +547,10 @@ type OriginalMessageReimbursementDequeued = {
 /** Model of `CHANGEPOLICY` report action */
 type OriginalMessageChangePolicy = {
     /** ID of the old policy */
-    fromPolicyID: string | undefined;
+    fromPolicy: string | undefined;
 
     /** ID of the new policy */
-    toPolicyID: string;
+    toPolicy: string;
 };
 
 /** Model of `moved` report action */
@@ -772,7 +772,6 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE]: OriginalMessageDemotedFromWorkspace;
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
-    [CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES]: never;
     [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: never;
     [CONST.REPORT.ACTIONS.TYPE.SHARE]: never;
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
