@@ -16,7 +16,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
+import {filterInactiveCards, getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -41,7 +41,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const {environmentURL} = useEnvironment();
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`, {selector: filterInactiveCards});
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
 
     const isEditing = assignCard?.isEditing;
