@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
-import type {ListRenderItemInfo, ViewToken} from 'react-native';
+import type {ListRenderItemInfo, ViewStyle, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
@@ -75,6 +75,22 @@ import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {MoneyRequestReportPreviewContentProps} from './types';
+
+function ReviewRequiredButton({style, formattedAmount}: {style?: ViewStyle | ViewStyle[]; formattedAmount?: string}) {
+    const {translate} = useLocalize();
+    const theme = useTheme();
+
+    return (
+        <Button
+            icon={Expensicons.DotIndicator}
+            iconFill={theme.danger}
+            iconHoverFill={theme.danger}
+            text={`${translate('common.review')}${formattedAmount ? ` ${formattedAmount}` : ''}`}
+            onPress={() => {}}
+            style={style}
+        />
+    );
+}
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
@@ -417,6 +433,7 @@ function MoneyRequestReportPreviewContent({
     // eslint-disable-next-line react-compiler/react-compiler
     const viewabilityConfig = useRef({itemVisiblePercentThreshold: 50}).current;
     const style = StyleUtils.getMoneyRequestReportPreviewStyle(transactions.length, shouldUseNarrowLayout);
+    const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: style.transaction.width} : {};
 
     return (
         <OfflineWithFeedback
@@ -517,7 +534,7 @@ function MoneyRequestReportPreviewContent({
                                                 src={Expensicons.DotIndicator}
                                                 fill={theme.danger}
                                             />
-                                            <Text style={[styles.textDanger, styles.fontSizeLabel, styles.textLineHeightNormal, styles.ml2]}>Here are RBR messages</Text>
+                                            <Text style={[styles.textDanger, styles.fontSizeLabel, styles.textLineHeightNormal, styles.ml2]}>{translate('violations.reviewRequired')}</Text>
                                         </View>
                                     )}
                                 </View>
@@ -550,7 +567,7 @@ function MoneyRequestReportPreviewContent({
                                         ))}
                                     </View>
                                 )}
-                                {shouldShowSettlementButton && (
+                                {shouldShowSettlementButton && !shouldShowRBR && (
                                     <AnimatedSettlementButton
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
@@ -562,7 +579,7 @@ function MoneyRequestReportPreviewContent({
                                         policyID={policyID}
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
-                                        wrapperStyle={!shouldUseNarrowLayout && {maxWidth: style.transaction.width}}
+                                        wrapperStyle={buttonMaxWidth}
                                         onPress={confirmPayment}
                                         onPaymentOptionsShow={onPaymentOptionsShow}
                                         onPaymentOptionsHide={onPaymentOptionsHide}
@@ -584,22 +601,29 @@ function MoneyRequestReportPreviewContent({
                                         isLoading={!isOffline && !canAllowSettlement}
                                     />
                                 )}
-                                {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
+                                {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && shouldShowRBR && (
                                     <ExportWithDropdownMenu
                                         policy={policy}
                                         report={iouReport}
                                         connectionName={connectedIntegration}
-                                        wrapperStyle={styles.flexReset}
+                                        wrapperStyle={[buttonMaxWidth, styles.flexReset]}
                                         dropdownAnchorAlignment={{
                                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                         }}
                                     />
                                 )}
+                                {!shouldShowSubmitButton && shouldShowRBR && (shouldShowSettlementButton || !!shouldShowExportIntegrationButton) && (
+                                    <ReviewRequiredButton
+                                        style={buttonMaxWidth}
+                                        formattedAmount={shouldShowSettlementButton ? getSettlementAmount() : undefined}
+                                    />
+                                )}
                                 {shouldShowSubmitButton && (
                                     <Button
                                         success={isWaitingForSubmissionFromCurrentUser}
                                         text={translate('common.submit')}
+                                        style={buttonMaxWidth}
                                         onPress={() => iouReport && submitReport(iouReport)}
                                         isDisabled={shouldDisableSubmitButton}
                                     />
