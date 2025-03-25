@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -31,7 +31,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -125,12 +125,17 @@ function WorkspacesListPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
+    const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING);
+
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.WORKSPACES>>();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    const isDeletingWorkspaceRef = useRef(false);
+
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
@@ -192,9 +197,11 @@ function WorkspacesListPage() {
                             setIsSupportalActionRestrictedModalOpen(true);
                             return;
                         }
+
+                        isDeletingWorkspaceRef.current = true;
                         setPolicyIDToDelete(item.policyID);
                         setPolicyNameToDelete(item.title);
-                        setIsDeleteModalOpen(true);
+                        calculateBillNewDot();
                     },
                     shouldCallAfterModalHide: true,
                 });
@@ -442,6 +449,18 @@ function WorkspacesListPage() {
     };
 
     useHandleBackButton(onBackButtonPress);
+
+    useEffect(() => {
+        if (isLoadingBill || !isDeletingWorkspaceRef.current) {
+            return;
+        }
+
+        if (!shouldBillWhenDowngrading) {
+            setIsDeleteModalOpen(true);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.getRoute(policyIDToDelete));
+        }
+    }, [isLoadingBill, shouldBillWhenDowngrading, policyIDToDelete]);
 
     if (isEmptyObject(workspaces)) {
         return (

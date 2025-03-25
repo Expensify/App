@@ -1,0 +1,121 @@
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {clearBillingReceiptDetailsErrors, payAndDowngrade} from '@src/libs/actions/Policy/Policy';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+
+type PayAndDowngradePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PAY_AND_DOWNGRADE>;
+type BillingItem = {
+    key: string;
+    value: string;
+    isTotal: boolean;
+};
+
+function PayAndDowngradePage({route}: PayAndDowngradePageProps) {
+    const styles = useThemeStyles();
+    const policyID = route.params?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+    const {translate} = useLocalize();
+
+    const [billingDetails] = useOnyx(ONYXKEYS.BILLING_RECEIPT_DETAILS);
+    const hasError = !!billingDetails?.errors;
+
+    const items: BillingItem[] = useMemo(() => {
+        if (!billingDetails) {
+            return [];
+        }
+        const results = [...billingDetails.receiptsWithoutDiscount, ...billingDetails.discounts, ...billingDetails.salesTax].map((item) => {
+            return {
+                key: item.description,
+                value: item.formattedAmount,
+                isTotal: false,
+            };
+        });
+
+        results.push({
+            key: translate('common.total'),
+            value: billingDetails.formattedSubtotal,
+            isTotal: true,
+        });
+        return results;
+    }, [billingDetails, translate]);
+
+    useEffect(() => {
+        clearBillingReceiptDetailsErrors();
+    }, []);
+
+    if (!billingDetails) {
+        return <FullPageNotFoundView />;
+    }
+
+    return (
+        <ScreenWrapper
+            shouldShowOfflineIndicator
+            testID="PayAndDowngradePage"
+            offlineIndicatorStyle={styles.mtAuto}
+        >
+            <HeaderWithBackButton title={translate('workspace.payAndDowngrade.title')} />
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mh5]}>
+                <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.payAndDowngrade.headline')}</Text>
+                <Text>
+                    {translate('workspace.payAndDowngrade.description1')} <Text style={[styles.textBold]}>{billingDetails.formattedSubtotal}</Text>
+                </Text>
+                <Text style={[styles.mb4]}>
+                    {translate('workspace.payAndDowngrade.description2', {
+                        date: billingDetails.billingMonth,
+                    })}
+                </Text>
+
+                <View style={[styles.borderedContentCard, styles.ph5, styles.mb4]}>
+                    {items.map((item) => (
+                        <View
+                            key={item.key}
+                            style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap8, styles.pv5, !item.isTotal ? styles.borderBottom : undefined]}
+                        >
+                            {!item.isTotal ? <RenderHTML html={item.key} /> : <Text style={styles.textBold}>{item.key}</Text>}
+                            <Text style={item.isTotal ? styles.textBold : undefined}>{item.value}</Text>
+                        </View>
+                    ))}
+                </View>
+                <Text style={[styles.textLabelSupportingNormal]}>{translate('workspace.payAndDowngrade.subscription')}</Text>
+            </ScrollView>
+            <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                {hasError && (
+                    <View style={[styles.mb3]}>
+                        <FormHelpMessage
+                            isError={hasError}
+                            message={translate('workspace.payAndDowngrade.genericFailureMessage')}
+                        />
+                    </View>
+                )}
+                <Button
+                    large
+                    danger
+                    text={translate('workspace.payAndDowngrade.title')}
+                    onPress={() => {
+                        payAndDowngrade();
+                    }}
+                    pressOnEnter
+                    isLoading={billingDetails.isLoading}
+                />
+            </FixedFooter>
+        </ScreenWrapper>
+    );
+}
+
+export default PayAndDowngradePage;
