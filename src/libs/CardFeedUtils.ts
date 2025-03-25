@@ -198,7 +198,7 @@ function getDomainCardFeedData(domainFeed: DomainFeedData, repeatingBanks: strin
 function filterOutDomainCards(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined) {
     const domainFeedData = getDomainFeedData(workspaceCardFeeds);
     return Object.entries(workspaceCardFeeds ?? {}).filter(([, workspaceFeed]) => {
-        const domainFeed = Object.values(workspaceFeed ?? {}).at(0) ?? {}
+        const domainFeed = Object.values(workspaceFeed ?? {}).at(0) ?? {};
         if (Object.keys(domainFeedData).includes(`${domainFeed.fundID}_${domainFeed.bank}`)) {
             return false;
         }
