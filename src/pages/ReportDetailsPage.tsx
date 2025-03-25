@@ -1063,18 +1063,18 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
                     <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <MenuItem
-                                    copyValue={base62ReportID}
-                                    descriptionTextStyle={[styles.textMicroSupporting]}
-                                    description={`${translate('common.reportID')}: ${base62ReportID}`}
-                                    interactive={false}
-                                />
-                                <MenuItem
-                                    copyValue={report.reportID}
-                                    descriptionTextStyle={[styles.textMicroSupporting]}
-                                    description={`${translate('common.longID')}: ${report.reportID}`}
-                                    interactive={false}
-                                />
+                            <MenuItem
+                                copyValue={base62ReportID}
+                                descriptionTextStyle={[styles.textMicroSupporting]}
+                                description={`${translate('common.reportID')}: ${base62ReportID}`}
+                                interactive={false}
+                            />
+                            <MenuItem
+                                copyValue={report.reportID}
+                                descriptionTextStyle={[styles.textMicroSupporting]}
+                                description={`${translate('common.longID')}: ${report.reportID}`}
+                                interactive={false}
+                            />
                         </View>
                     </FixedFooter>
                 </ScrollView>
