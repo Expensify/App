@@ -21,6 +21,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
+import {setActiveTransactionReportIDs} from './TransactionReportIDRepository';
 
 type MoneyRequestReportTransactionListProps = {
     report: OnyxTypes.Report;
@@ -105,18 +106,29 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
     }, [sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
-        (transaction: OnyxTypes.Transaction) => {
-            const backTo = Navigation.getActiveRoute();
-
-            const iouAction = getIOUActionForReportIDPure(reportActions, transaction.transactionID);
+        (activeTransaction: OnyxTypes.Transaction) => {
+            const iouAction = getIOUActionForReportIDPure(reportActions, activeTransaction.transactionID);
             const reportIDToNavigate = iouAction?.childReportID;
             if (!reportIDToNavigate) {
                 return;
             }
 
+            const backTo = Navigation.getActiveRoute();
+
+            // Single transaction report will open in RHP, and we need to find every other report ID for every sibling to `activeTransaction`
+            // we use this data to display prev/next arrows in RHP for navigating between transactions
+            const sortedSiblingTransactionReportIDs = sortedData.transactions
+                .map((transaction) => {
+                    const action = getIOUActionForReportIDPure(reportActions, transaction.transactionID);
+                    return action?.childReportID;
+                })
+                .filter((reportID): reportID is string => !!reportID);
+
+            setActiveTransactionReportIDs(sortedSiblingTransactionReportIDs);
+
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
         },
-        [reportActions],
+        [reportActions, sortedData.transactions],
     );
 
     const dateColumnSize = useMemo(() => {
