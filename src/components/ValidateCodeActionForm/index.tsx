@@ -11,10 +11,10 @@ function ValidateCodeActionForm({
     descriptionSecondary,
     validatePendingAction,
     validateError,
+
     handleSubmitForm,
     clearError,
     sendValidateCode,
-    hasMagicCodeBeenSent,
     isLoading,
     forwardedRef,
 }: ValidateCodeActionFormProps) {
@@ -47,13 +47,13 @@ function ValidateCodeActionForm({
             <ValidateCodeForm
                 isLoading={isLoading}
                 validatePendingAction={validatePendingAction}
+                validateCodeActionErrorField="validateLogin"
                 validateError={validateError}
                 handleSubmitForm={handleSubmitForm}
                 sendValidateCode={sendValidateCode}
                 clearError={clearError}
                 buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                 ref={forwardedRef}
-                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
             />
         </View>
     );

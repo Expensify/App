@@ -50,8 +50,9 @@ type ValidateCodeFormProps = {
     /** The field where any magic code erorr will be stored. e.g. if replacing a card and magic code fails, it'll be stored in:
      * {"errorFields": {"repplaceLostCard": {<timestamp>}}}
      * If replacing a virtual card, the errorField wil be 'reportVirtualCard', etc.
+     * These values are set in the backend, please reach out to an internal engineer if you're adding a validate code modal to a flow.
      */
-    validateCodeActionErrorField?: string;
+    validateCodeActionErrorField: string;
 
     /** The error of submitting  */
     validateError?: Errors;
@@ -78,7 +79,7 @@ type ValidateCodeFormProps = {
 function BaseValidateCodeForm({
     autoComplete = 'one-time-code',
     innerRef = () => {},
-    validateCodeActionErrorField = 'actionVerified',
+    validateCodeActionErrorField,
     validatePendingAction,
     validateError,
     handleSubmitForm,
