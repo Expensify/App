@@ -8,11 +8,13 @@ order: 1
 You must have a Xero account and an Expensify Collect or Control plan to use the Xero connection.
 {% include end-info.html %}
  
-Expensify’s integration with Xero supports syncing data between the two systems. Before you start connecting Expensify with Xero, there are a few things to note:
+Connecting Expensify to Xero allows you to seamlessly sync expenses and financial data between both platforms. Here’s what you need to get started:
 
-- You must be able to login to Xero as an administrator to initiate the connection.
-- A **Collect or Control Plan** in Expensify is required to integrate with Xero.
-- Enable **[Two-Factor Authentication](https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication)** in Expensify: Xero requires this additional layer of security to be enabled when a Workspace is connected.
+# Requirements to connect Expensify to Xero
+
+- You’ll need to log in to Xero as an administrator.
+- You must be on an Expensify **Collect** or **Control** plan.
+- Enable **[Two-Factor Authentication](https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication)** in Expensify - this is required by Xero when connecting a Workspace.
 
 # Step 1: Connect Expensify to Xero
 
