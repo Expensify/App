@@ -12,17 +12,17 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
-import {getLastPolicyPaymentMethod} from '@libs/actions/Search';
+import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {getActiveAdminWorkspaces, getPolicy} from '@libs/PolicyUtils';
 import {
     doesReportBelongToWorkspace,
+    isBusinessInvoiceRoom,
     isExpenseReport as isExpenseReportUtil,
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
-    isBusinessInvoiceRoom,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
@@ -91,6 +91,8 @@ function SettlementButton({
         selector: (paymentMethod) => getLastPolicyPaymentMethod(policyIDKey, paymentMethod, iouReport?.type as keyof LastPaymentMethodType),
     });
 
+    const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, iouReport?.type as keyof LastPaymentMethodType);
+
     const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -103,7 +105,7 @@ function SettlementButton({
     const isLastPaymentPolicy = !Object.values({...CONST.PAYMENT_METHODS, ...CONST.IOU.PAYMENT_TYPE}).includes(lastPaymentMethod as PaymentMethod);
     const lastPaymentPolicy = isLastPaymentPolicy ? getPolicy(lastPaymentMethod) : undefined;
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const bankAccount = Object.values(bankAccountList).at(0);
+    const bankAccount = bankAccountList[lastBankAccountID ?? ''];
     // whether the user has single policy and the expense isn't inside a workspace
     const hasSinglePolicy = !policy && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !policy && activeAdminPolicies.length > 1;
@@ -363,7 +365,7 @@ function SettlementButton({
     };
 
     const getSecondLineText = (): string | undefined => {
-        if (shouldUseShortForm || lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        if (shouldUseShortForm || lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || (shouldHidePaymentOptions && shouldShowApproveButton)) {
             return undefined;
         }
 
@@ -379,7 +381,7 @@ function SettlementButton({
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 return translate('iou.invoicePersonalBank', {lastFour: bankAccount?.accountData?.accountNumber?.slice(-4) ?? ''});
             }
-            
+
             return translate('common.wallet');
         }
 

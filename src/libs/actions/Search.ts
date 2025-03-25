@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
+import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {openReport} from './Report';
 
@@ -77,6 +78,14 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     }
 }
 
+function getLastPolicyBankAccountID(policyID: string | undefined, reportType: keyof LastPaymentMethodType = 'lastUsed'): number | undefined {
+    if (!policyID) {
+        return undefined;
+    }
+    const lastPolicyPaymentMethod = lastPaymentMethod?.[policyID];
+    return typeof lastPolicyPaymentMethod === 'string' ? undefined : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.bankAccountID;
+}
+
 function getLastPolicyPaymentMethod(
     policyID: string | undefined,
     lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
@@ -87,7 +96,7 @@ function getLastPolicyPaymentMethod(
     }
 
     const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID];
-    const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : lastPolicyPaymentMethod?.[reportType];
+    const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.name;
 
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }
@@ -438,4 +447,5 @@ export {
     submitMoneyRequestOnSearch,
     openSearchFiltersCardPage,
     getLastPolicyPaymentMethod,
+    getLastPolicyBankAccountID,
 };

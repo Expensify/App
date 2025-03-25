@@ -8107,7 +8107,12 @@ function getPayMoneyRequestParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {
-                [iouReport.policyID]: paymentMethodType,
+                [iouReport.policyID]: {
+                    iou: {
+                        name: paymentMethodType,
+                        bankAccountID: null,
+                    },
+                },
             },
         });
     }
