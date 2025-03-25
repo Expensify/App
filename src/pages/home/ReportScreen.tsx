@@ -729,7 +729,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {!!report && !isLoadingApp ? (
+                                {!report ? (
+                                    <ReportActionsSkeletonView />
+                                ) : (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -739,8 +741,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
-                                ) : (
-                                    <ReportActionsSkeletonView />
                                 )}
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
