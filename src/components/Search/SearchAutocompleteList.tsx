@@ -19,7 +19,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
+import memoize from '@libs/memoize';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
@@ -169,44 +170,44 @@ function SearchAutocompleteList(
     }, [translate, workspaceCardFeeds, userCardList]);
     const feedAutoCompleteList = useMemo(() => Object.entries(cardFeedNamesWithType).map(([cardFeedKey, cardFeedName]) => ({cardFeedKey, cardFeedName})), [cardFeedNamesWithType]);
 
-    const participantsAutocompleteList = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return [];
-        }
+    const getParticipantsAutocompleteList = useMemo(
+        () =>
+            memoize(() => {
+                if (!areOptionsInitialized) {
+                    return [];
+                }
 
-        const filteredOptions = getValidOptions(
-            {
-                reports: options.reports,
-                personalDetails: options.personalDetails,
-            },
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeSelfDM: true,
-                showChatPreviewLine: true,
-                shouldBoldTitleByDefault: false,
-            },
-        );
-
-        // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
-        const personalDetailsFromOptions = filteredOptions.personalDetails.map((option) => (option as SearchOption<PersonalDetails>).item);
-        const autocompleteOptions = Object.values(personalDetailsFromOptions)
-            .filter((details): details is NonNullable<PersonalDetails> => !!(details && details?.login))
-            .map((details) => {
-                return {
-                    name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
-                    accountID: details.accountID.toString(),
+                const currentUserRef = {
+                    current: undefined as OptionData | undefined,
                 };
-            });
-        const currentUser = filteredOptions.currentUserOption ? (filteredOptions.currentUserOption as SearchOption<PersonalDetails>).item : undefined;
-        if (currentUser) {
-            autocompleteOptions.push({
-                name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
-                accountID: currentUser.accountID?.toString(),
-            });
-        }
+                const filteredOptions = getValidPersonalDetailOptions(options.personalDetails, {
+                    loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
+                    shouldBoldTitleByDefault: false,
+                    currentUserRef,
+                });
 
-        return autocompleteOptions;
-    }, [areOptionsInitialized, options.personalDetails, options.reports]);
+                // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
+                const personalDetailsFromOptions = filteredOptions.map((option) => (option as SearchOption<PersonalDetails>).item);
+                const autocompleteOptions = Object.values(personalDetailsFromOptions)
+                    .filter((details): details is NonNullable<PersonalDetails> => !!details?.login)
+                    .map((details) => {
+                        return {
+                            name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
+                            accountID: details.accountID.toString(),
+                        };
+                    });
+                const currentUser = currentUserRef.current;
+                if (currentUser && currentUser.accountID) {
+                    autocompleteOptions.push({
+                        name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
+                        accountID: currentUser.accountID.toString(),
+                    });
+                }
+
+                return autocompleteOptions;
+            }),
+        [areOptionsInitialized, options.personalDetails],
+    );
 
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates, policy), [policy, taxRates]);
 
@@ -296,7 +297,7 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
-                const filteredParticipants = participantsAutocompleteList
+                const filteredParticipants = getParticipantsAutocompleteList()
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);
 
@@ -308,7 +309,7 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
-                const filteredParticipants = participantsAutocompleteList
+                const filteredParticipants = getParticipantsAutocompleteList()
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);
 
@@ -403,7 +404,7 @@ function SearchAutocompleteList(
         currencyAutocompleteList,
         recentCurrencyAutocompleteList,
         taxAutocompleteList,
-        participantsAutocompleteList,
+        getParticipantsAutocompleteList,
         searchOptions.recentReports,
         typeAutocompleteList,
         statusAutocompleteList,
@@ -531,6 +532,7 @@ function SearchAutocompleteList(
             initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
             shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
+            disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
         />
     );
 }

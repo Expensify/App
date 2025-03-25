@@ -24,13 +24,6 @@ type SharedProps<T> = {
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
     lottieWebViewStyles?: React.CSSProperties | undefined;
     minModalHeight?: number;
-    showsVerticalScrollIndicator?: boolean;
-
-    /** Whether to add bottom safe area padding to the view. */
-    addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
-    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
 type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {

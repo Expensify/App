@@ -430,7 +430,7 @@ function WorkspacesListPage() {
         <Button
             accessibilityLabel={translate('workspace.new.newWorkspace')}
             text={translate('workspace.new.newWorkspace')}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute())))}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.SETTINGS_WORKSPACES.route)))}
             icon={Expensicons.Plus}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
         />
@@ -471,7 +471,7 @@ function WorkspacesListPage() {
                                 subtitle={translate('workspace.emptyWorkspace.subtitle')}
                                 ctaText={translate('workspace.new.newWorkspace')}
                                 ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                                onCtaPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute())))}
+                                onCtaPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.SETTINGS_WORKSPACES.route)))}
                                 illustration={LottieAnimations.WorkspacePlanet}
                                 // We use this style to vertically center the illustration, as the original illustration is not centered
                                 illustrationStyle={styles.emptyWorkspaceIllustrationStyle}

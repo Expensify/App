@@ -215,7 +215,9 @@ function NewChatPage() {
             }
 
             selectionListRef?.current?.clearInputAfterSelect?.();
-            selectionListRef.current?.focusTextInput();
+            if (!canUseTouchScreen()) {
+                selectionListRef.current?.focusTextInput();
+            }
             setSelectedOptions(newSelectedOptions);
         },
         [selectedOptions, setSelectedOptions],

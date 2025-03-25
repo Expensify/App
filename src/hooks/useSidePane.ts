@@ -31,9 +31,14 @@ function useSidePane() {
 
     const [sidePaneNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [isAttachmentModalVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED});
+    const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
+        selector: (modal) =>
+            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT ||
+            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
+            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL,
+    });
     const isLanguageUnsupported = language !== CONST.LOCALES.EN;
-    const isPaneHidden = isSidePaneHidden(sidePaneNVP, isExtraLargeScreenWidth) || isLanguageUnsupported || isAttachmentModalVisible;
+    const isPaneHidden = isSidePaneHidden(sidePaneNVP, isExtraLargeScreenWidth) || isLanguageUnsupported || isModalCenteredVisible;
 
     const sidePaneWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;

@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,10 +26,7 @@ function EmptyStateComponent({
     headerStyles,
     headerContentStyles,
     lottieWebViewStyles,
-    showsVerticalScrollIndicator,
     minModalHeight = 400,
-    addBottomSafeAreaPadding = false,
-    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
@@ -86,13 +82,7 @@ function EmptyStateComponent({
     }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo, lottieWebViewStyles]);
 
     return (
-        <ScrollView
-            showsVerticalScrollIndicator={showsVerticalScrollIndicator}
-            contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}
-            style={styles.flex1}
-            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
-        >
+        <View style={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}>
             <View style={[styles.skeletonBackground, styles.overflowHidden]}>
                 <SkeletonComponent
                     gradientOpacityEnabled
@@ -127,7 +117,7 @@ function EmptyStateComponent({
                     </View>
                 </View>
             </View>
-        </ScrollView>
+        </View>
     );
 }
 

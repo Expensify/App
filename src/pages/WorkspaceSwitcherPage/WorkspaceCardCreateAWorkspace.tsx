@@ -7,7 +7,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
-function WorkspaceCardCreateAWorkspace() {
+type WorkspaceCardCreateAWorkspaceProps = {
+    /** Route to navigate to when returning from the Workspace Confirmation Page */
+    backTo: string;
+};
+
+function WorkspaceCardCreateAWorkspace({backTo}: WorkspaceCardCreateAWorkspaceProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -22,7 +27,7 @@ function WorkspaceCardCreateAWorkspace() {
         >
             <Button
                 onPress={() => {
-                    Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()));
+                    Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(backTo));
                 }}
                 text={translate('workspace.emptyWorkspace.createAWorkspaceCTA')}
                 style={styles.mt5}

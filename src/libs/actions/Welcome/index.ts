@@ -207,22 +207,18 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
     API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
 }
 
-function dismissProductTraining(elementName: string, isDismissedUsingCloseButton = false) {
+function dismissProductTraining(elementName: string) {
     const date = new Date();
-    const dismissedMethod = isDismissedUsingCloseButton ? 'x' : 'click';
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
             value: {
-                [elementName]: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                    dismissedMethod,
-                },
+                [elementName]: DateUtils.getDBTime(date.valueOf()),
             },
         },
     ];
-    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName, dismissedMethod}, {optimisticData});
+    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName}, {optimisticData});
 }
 
 export {

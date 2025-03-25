@@ -4806,6 +4806,7 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
@@ -4817,9 +4818,10 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
-                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                merchant: 'test merchant',
                 modifiedMerchant: undefined,
             };
 
@@ -4862,9 +4864,10 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
-                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                merchant: 'test merchant',
                 modifiedMerchant: undefined,
             };
 
@@ -4903,6 +4906,7 @@ describe('actions/IOU', () => {
                 reportID,
                 amount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,

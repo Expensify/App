@@ -16,10 +16,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import switchPolicyAfterInteractions from './switchPolicyAfterInteractions';
 import WorkspaceCardCreateAWorkspace from './WorkspaceCardCreateAWorkspace';
 
-const WorkspaceCardCreateAWorkspaceInstance = <WorkspaceCardCreateAWorkspace />;
+const WorkspaceCardCreateAWorkspaceInstance = <WorkspaceCardCreateAWorkspace backTo={ROUTES.WORKSPACE_SWITCHER} />;
 
 function WorkspaceSwitcherPage() {
     const {isOffline} = useNetwork();

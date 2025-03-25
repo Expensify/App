@@ -6,7 +6,6 @@ import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,7 +45,8 @@ function useOnboardingFlowRouter() {
             if (CONFIG.IS_HYBRID_APP && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
                 return;
             }
-            if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
+
+            if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
                 const defaultCannedQuery = buildCannedSearchQuery();
                 const query = defaultCannedQuery;
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));

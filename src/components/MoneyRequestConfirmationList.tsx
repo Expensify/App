@@ -174,6 +174,12 @@ type MoneyRequestConfirmationListProps = {
 
     /** Whether the expense is in the process of being confirmed */
     isConfirming?: boolean;
+
+    /** The PDF load error callback */
+    onPDFLoadError?: () => void;
+
+    /** The PDF password callback */
+    onPDFPassword?: () => void;
 };
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
@@ -212,6 +218,8 @@ function MoneyRequestConfirmationList({
     shouldPlaySound = true,
     isConfirmed,
     isConfirming,
+    onPDFLoadError,
+    onPDFPassword,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -1067,6 +1075,8 @@ function MoneyRequestConfirmationList({
             transaction={transaction}
             transactionID={transactionID}
             unit={unit}
+            onPDFLoadError={onPDFLoadError}
+            onPDFPassword={onPDFPassword}
         />
     );
 
