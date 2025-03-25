@@ -451,7 +451,7 @@ function MoneyRequestReportPreviewContent({
                                 <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
                                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
                                         <View style={[styles.flexRow, styles.flex1]}>
-                                            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flex1]}>
+                                            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flex1, {maxWidth: styles.wFitContent.width}]}>
                                                 <Text
                                                     style={[styles.lh20, styles.headerText]}
                                                     testID="MoneyRequestReportPreview-reportName"
@@ -477,7 +477,7 @@ function MoneyRequestReportPreviewContent({
                                                 </Animated.View>
                                             )}
                                         </View>
-                                        {!shouldUseNarrowLayout && (
+                                        {!shouldUseNarrowLayout && transactions.length > 2 && (
                                             <View style={[styles.flexRow, {alignItems: 'center'}]}>
                                                 <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
                                                 <PressableWithFeedback
@@ -537,7 +537,7 @@ function MoneyRequestReportPreviewContent({
                                         viewabilityConfig={viewabilityConfig}
                                     />
                                 </View>
-                                {shouldUseNarrowLayout && transactions.length > 2 && (
+                                {shouldUseNarrowLayout && transactions.length > 1 && (
                                     <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
                                         {transactions.slice(0, 11).map((item, index) => (
                                             <PressableWithFeedback
