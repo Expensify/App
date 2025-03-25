@@ -11,6 +11,9 @@ type ReportActionsListItemRendererProps = {
     /** All the data of the action item */
     reportAction: ReportAction;
 
+    /** Array of report actions for the report */
+    reportActions: ReportAction[];
+
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
 
@@ -38,7 +41,7 @@ type ReportActionsListItemRendererProps = {
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
 
-    /** Linked report action ID */
+    /** Report action ID that was referenced in the deeplink to report  */
     linkedReportActionID?: string;
 
     /** Whether we should display "Replies" divider */
@@ -53,6 +56,7 @@ type ReportActionsListItemRendererProps = {
 
 function ReportActionsListItemRenderer({
     reportAction,
+    reportActions = [],
     parentReportAction,
     index,
     report,
@@ -148,6 +152,7 @@ function ReportActionsListItemRenderer({
                 parentReportAction={parentReportAction}
                 reportID={report.reportID}
                 report={report}
+                reportActions={reportActions}
                 transactionThreadReport={transactionThreadReport}
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
@@ -164,6 +169,7 @@ function ReportActionsListItemRenderer({
             transactionThreadReport={transactionThreadReport}
             parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}
+            reportActions={reportActions}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}

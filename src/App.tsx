@@ -17,6 +17,7 @@ import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
+import NavigationBar from './components/NavigationBar';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import {ProductTrainingContextProvider} from './components/ProductTrainingContext';
@@ -118,6 +119,7 @@ function App({url, hybridAppSettings, timestamp}: AppProps) {
                                     <Expensify />
                                 </ColorSchemeWrapper>
                             </ErrorBoundary>
+                            <NavigationBar />
                         </ComposeProviders>
                     </GestureHandlerRootView>
                 </InitialURLContextProvider>
