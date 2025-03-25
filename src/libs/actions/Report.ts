@@ -4897,9 +4897,9 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
     const policyName = policy.name ?? '';
     const iouReportID = iouReport.reportID;
     const employeeAccountID = iouReport.ownerAccountID;
-    const chatReportId = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
+    const expenseChatReportId = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
 
-    if (!chatReportId) {
+    if (!expenseChatReportId) {
         return;
     }
 
@@ -4917,7 +4917,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
     // - update the chatReportID to point to the workspace chat if the policy has policy expense chat enabled
     const expenseReport = {
         ...iouReport,
-        chatReportID: policy.isPolicyExpenseChatEnabled ? chatReportId : undefined,
+        chatReportID: policy.isPolicyExpenseChatEnabled ? expenseChatReportId : undefined,
         policyID,
         policyName,
         parentReportID: iouReport.parentReportID,
@@ -4963,9 +4963,9 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
     });
 
     // We need to move the report preview action from the DM to the workspace chat.
-    const parentReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`];
+    const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`];
     const parentReportActionID = iouReport.parentReportActionID;
-    const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReport?.[parentReportActionID] : undefined;
+    const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReportActions?.[parentReportActionID] : undefined;
     const oldChatReportID = iouReport.chatReportID;
 
     if (reportPreview?.reportActionID) {
@@ -4983,26 +4983,26 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
         // Add the reportPreview action to workspace chat
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportId}`,
-            value: {[reportPreview.reportActionID]: reportPreview},
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
+            value: {[reportPreview.reportActionID]: {...reportPreview, created: DateUtils.getDBTime()}},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
             value: {[reportPreview.reportActionID]: null},
         });
     }
 
-    // Create the CHANGE_POLICY report action and add it to the DM chat which indicates to the user where the report has been moved
+    // Create the CHANGE_POLICY report action and add it to the expense report which indicates to the user where the report has been moved
     const changePolicyReportAction = buildOptimisticChangePolicyReportAction(iouReport.policyID, policyID, true);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportId}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
         value: {[changePolicyReportAction.reportActionID]: changePolicyReportAction},
     });
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportId}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
         value: {
             [changePolicyReportAction.reportActionID]: {
                 ...changePolicyReportAction,
@@ -5012,7 +5012,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportId}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
         value: {[changePolicyReportAction.reportActionID]: null},
     });
 
