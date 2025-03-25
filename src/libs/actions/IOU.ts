@@ -165,6 +165,7 @@ import {
     isOnHold,
     isPartialMerchant,
     isPending,
+    isPendingCardOrScanningTransaction,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
@@ -172,7 +173,7 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -194,6 +195,7 @@ import {buildOptimisticPolicyRecentlyUsedDestinations} from './Policy/PerDiem';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
 import {completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
+import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftTransaction} from './TransactionEdit';
 
@@ -380,6 +382,7 @@ type RequestMoneyInformation = {
     action?: IOUAction;
     reimbursible?: boolean;
     transactionParams: RequestMoneyTransactionParams;
+    isRetry?: boolean;
 };
 
 type MoneyRequestInformationParams = {
@@ -390,6 +393,7 @@ type MoneyRequestInformationParams = {
     moneyRequestReportID?: string;
     existingTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -425,6 +429,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     existingTransactionThreadReportID?: string;
     policyParams?: BasePolicyParams;
     optimisticParams: MoneyRequestOptimisticParams;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -483,6 +488,7 @@ type CreateTrackExpenseParams = {
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
     transactionParams: TrackExpenseTransactionParams;
+    isRetry?: boolean;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -541,6 +547,7 @@ type GetTrackExpenseInformationParams = {
     participantParams: GetTrackExpenseInformationParticipantParams;
     policyParams: BasePolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -550,6 +557,27 @@ Onyx.connect({
         allPersonalDetails = value ?? {};
     },
 });
+
+type StartSplitBilActionParams = {
+    participants: Participant[];
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    comment: string;
+    receipt: Receipt;
+    existingSplitChatReportID?: string;
+    billable?: boolean;
+    category: string | undefined;
+    tag: string | undefined;
+    currency: string;
+    taxCode: string;
+    taxAmount: number;
+};
+
+type ReplaceReceipt = {
+    transactionID: string;
+    file?: File;
+    source: string;
+};
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
@@ -678,6 +706,19 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
 });
+
+/**
+ * @private
+ * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
+ * It is a helper function used only in this file.
+ */
+function dismissModalAndOpenReportInInboxTab(reportID?: string) {
+    if (isSearchTopmostFullScreenRoute() || !reportID) {
+        Navigation.dismissModal();
+        return;
+    }
+    Navigation.dismissModalWithReport({reportID});
+}
 
 /**
  * Find the report preview action from given chat report and iou report
@@ -1055,10 +1096,28 @@ function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: st
 }
 
 /** Helper function to get the receipt error for expenses, or the generic error if there's no receipt */
-function getReceiptError(receipt: OnyxEntry<Receipt>, filename?: string, isScanRequest = true, errorKey?: number): Errors | ErrorFields {
+function getReceiptError(
+    receipt: OnyxEntry<Receipt>,
+    filename?: string,
+    isScanRequest = true,
+    errorKey?: number,
+    action?: IOUActionParams,
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt,
+): Errors | ErrorFields {
+    const formattedRetryParams = typeof retryParams === 'string' ? retryParams : JSON.stringify(retryParams);
+
     return isEmptyObject(receipt) || !isScanRequest
         ? getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage', errorKey)
-        : getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''}, errorKey);
+        : getMicroSecondOnyxErrorObject(
+              {
+                  error: CONST.IOU.RECEIPT_ERROR,
+                  source: receipt.source?.toString() ?? '',
+                  filename: filename ?? '',
+                  action: action ?? '',
+                  retryParams: formattedRetryParams,
+              },
+              errorKey,
+          );
 }
 
 /** Helper function to get optimistic fields violations onyx data */
@@ -1096,7 +1155,15 @@ function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<On
 
 /** Builds the Onyx data for an expense */
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
-    const {isNewChatReport, shouldCreateNewMoneyRequestReport, isOneOnOneSplit = false, existingTransactionThreadReportID, policyParams = {}, optimisticParams} = moneyRequestParams;
+    const {
+        isNewChatReport,
+        shouldCreateNewMoneyRequestReport,
+        isOneOnOneSplit = false,
+        existingTransactionThreadReportID,
+        policyParams = {},
+        optimisticParams,
+        retryParams,
+    } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
         chat,
@@ -1495,9 +1562,16 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                // Disabling this line since transaction.filename can be an empty string
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
+                errors: getReceiptError(
+                    transaction.receipt,
+                    // Disabling this line since transaction.filename can be an empty string
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    transaction.filename || transaction.receipt?.filename,
+                    isScanRequest,
+                    errorKey,
+                    CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                    retryParams,
+                ),
                 pendingFields: clearedPendingFields,
             },
         },
@@ -1508,9 +1582,16 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 ...(shouldCreateNewMoneyRequestReport
                     ? {
                           [iou.createdAction.reportActionID]: {
-                              // Disabling this line since transaction.filename can be an empty string
-                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
+                              errors: getReceiptError(
+                                  transaction.receipt,
+                                  // Disabling this line since transaction.filename can be an empty string
+                                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                  transaction.filename || transaction.receipt?.filename,
+                                  isScanRequest,
+                                  errorKey,
+                                  CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                                  retryParams,
+                              ),
                           },
                           [iou.action.reportActionID]: {
                               errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
@@ -1518,9 +1599,16 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                       }
                     : {
                           [iou.action.reportActionID]: {
-                              // Disabling this line since transaction.filename can be an empty string
-                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
+                              errors: getReceiptError(
+                                  transaction.receipt,
+                                  // Disabling this line since transaction.filename can be an empty string
+                                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                  transaction.filename || transaction.receipt?.filename,
+                                  isScanRequest,
+                                  errorKey,
+                                  CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                                  retryParams,
+                              ),
                           },
                       }),
             },
@@ -1980,6 +2068,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     shouldCreateNewMoneyRequestReport: boolean;
     existingTransactionThreadReportID?: string;
     actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
 };
 
 /** Builds the Onyx data for track expense */
@@ -1991,6 +2080,7 @@ function buildOnyxDataForTrackExpense({
     shouldCreateNewMoneyRequestReport,
     existingTransactionThreadReportID,
     actionableTrackExpenseWhisper,
+    retryParams,
 }: BuildOnyxDataForTrackExpenseParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
@@ -2062,9 +2152,9 @@ function buildOnyxDataForTrackExpense({
                 },
             });
             failureData.push({
-                onyxMethod: Onyx.METHOD.SET,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-                value: {[actionableTrackExpenseWhisper.reportActionID]: {} as ReportAction},
+                value: {[actionableTrackExpenseWhisper.reportActionID]: null},
             });
         }
     }
@@ -2258,9 +2348,16 @@ function buildOnyxDataForTrackExpense({
                     ...(shouldCreateNewMoneyRequestReport
                         ? {
                               [iouCreatedAction.reportActionID]: {
-                                  // Disabling this line since transaction.filename can be an empty string
-                                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                  errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
+                                  errors: getReceiptError(
+                                      transaction.receipt,
+                                      // Disabling this line since transaction.filename can be an empty string
+                                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                      transaction.filename || transaction.receipt?.filename,
+                                      isScanRequest,
+                                      undefined,
+                                      CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                                      retryParams,
+                                  ),
                               },
                               [iouAction.reportActionID]: {
                                   errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
@@ -2268,9 +2365,16 @@ function buildOnyxDataForTrackExpense({
                           }
                         : {
                               [iouAction.reportActionID]: {
-                                  // Disabling this line since transaction.filename can be an empty string
-                                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                  errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
+                                  errors: getReceiptError(
+                                      transaction.receipt,
+                                      // Disabling this line since transaction.filename can be an empty string
+                                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                      transaction.filename || transaction.receipt?.filename,
+                                      isScanRequest,
+                                      undefined,
+                                      CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                                      retryParams,
+                                  ),
                               },
                           }),
                 },
@@ -2282,9 +2386,16 @@ function buildOnyxDataForTrackExpense({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
                 [iouAction.reportActionID]: {
-                    // Disabling this line since transaction.filename can be an empty string
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
+                    errors: getReceiptError(
+                        transaction.receipt,
+                        // Disabling this line since transaction.filename can be an empty string
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        transaction.filename || transaction.receipt?.filename,
+                        isScanRequest,
+                        undefined,
+                        CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                        retryParams,
+                    ),
                 },
             },
         });
@@ -2316,9 +2427,16 @@ function buildOnyxDataForTrackExpense({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                // Disabling this line since transaction.filename can be an empty string
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
+                errors: getReceiptError(
+                    transaction.receipt,
+                    // Disabling this line since transaction.filename can be an empty string
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    transaction.filename || transaction.receipt?.filename,
+                    isScanRequest,
+                    undefined,
+                    CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                    retryParams,
+                ),
                 pendingFields: clearedPendingFields,
             },
         },
@@ -2744,7 +2862,16 @@ function getSendInvoiceInformation(
  * it creates optimistic versions of them and uses those instead
  */
 function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInformationParams): MoneyRequestInformation {
-    const {parentChatReport, transactionParams, participantParams, policyParams = {}, existingTransaction, existingTransactionID, moneyRequestReportID = ''} = moneyRequestInformation;
+    const {
+        parentChatReport,
+        transactionParams,
+        participantParams,
+        policyParams = {},
+        existingTransaction,
+        existingTransactionID,
+        moneyRequestReportID = '',
+        retryParams,
+    } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {attendees, amount, comment = '', currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction} = transactionParams;
@@ -2930,6 +3057,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             personalDetailListAction: optimisticPersonalDetailListAction,
             nextStep: optimisticNextStep,
         },
+        retryParams,
     });
 
     return {
@@ -3194,7 +3322,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * it creates optimistic versions of them and uses those instead
  */
 function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): TrackExpenseInformation | null {
-    const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams} = params;
+    const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams} = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {comment, amount, currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction} = transactionParams;
@@ -3363,6 +3491,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         policyParams: {policy, tagList: policyTagList, categories: policyCategories},
         shouldCreateNewMoneyRequestReport,
         actionableTrackExpenseWhisper,
+        retryParams,
     });
 
     return {
@@ -4590,6 +4719,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
+        policyName: createdWorkspaceParams?.policyName,
         description: transactionParams.comment,
     };
 
@@ -4640,6 +4770,18 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID}`]
             : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
 
+    const retryParams = {
+        ...requestMoneyInformation,
+        participantParams: {
+            ...requestMoneyInformation.participantParams,
+            participant: (({icons, ...rest}) => rest)(requestMoneyInformation.participantParams.participant),
+        },
+        transactionParams: {
+            ...requestMoneyInformation.transactionParams,
+            receipt: undefined,
+        },
+    };
+
     const {
         payerAccountID,
         payerEmail,
@@ -4661,6 +4803,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         moneyRequestReportID,
         existingTransactionID,
         existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
+        retryParams,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -4752,7 +4895,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     }
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    if (!requestMoneyInformation.isRetry) {
+        dismissModalAndOpenReportInInboxTab(activeReportID);
+    }
 
     const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
     if (trackReport?.key) {
@@ -4836,7 +4981,8 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    dismissModalAndOpenReportInInboxTab(activeReportID);
+
     if (activeReportID) {
         notifyNewAction(activeReportID, payeeAccountID);
     }
@@ -4903,7 +5049,7 @@ function sendInvoice(
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.dismissModal();
     } else {
-        Navigation.dismissModalWithReport(invoiceRoom);
+        Navigation.dismissModalWithReport({report: invoiceRoom});
     }
 
     notifyNewAction(invoiceRoom.reportID, receiver.accountID);
@@ -4946,6 +5092,36 @@ function trackExpense(params: CreateTrackExpenseParams) {
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
     const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
+
+    const retryParams: CreateTrackExpenseParams = {
+        report,
+        isDraftPolicy,
+        action,
+        participantParams: {
+            participant,
+            payeeAccountID,
+            payeeEmail,
+        },
+        transactionParams: {
+            amount,
+            currency,
+            created,
+            merchant,
+            comment,
+            receipt: undefined,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            validWaypoints,
+            gpsPoints,
+            actionableWhisperReportActionID,
+            linkedTrackedExpenseReportAction,
+            linkedTrackedExpenseReportID,
+            customUnitRateID,
+        },
+    };
 
     const {
         createdWorkspaceParams,
@@ -4992,6 +5168,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyCategories,
                 policyTagList,
             },
+            retryParams,
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport?.reportID;
 
@@ -5129,7 +5306,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    if (!params.isRetry) {
+        dismissModalAndOpenReportInInboxTab(activeReportID);
+    }
 
     if (action === CONST.IOU.ACTION.SHARE) {
         if (isSearchTopmostFullScreenRoute() && activeReportID) {
@@ -5640,6 +5819,7 @@ type SplitBillActionsParams = {
     splitPayerAccountIDs?: number[];
     taxCode?: string;
     taxAmount?: number;
+    isRetry?: boolean;
 };
 
 /**
@@ -5712,7 +5892,8 @@ function splitBill({
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : existingSplitChatReportID);
+    dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
+
     notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
@@ -5785,24 +5966,9 @@ function splitBillAndOpenReport({
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : splitData.chatReportID);
+    dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
     notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
-
-type StartSplitBilActionParams = {
-    participants: Participant[];
-    currentUserLogin: string;
-    currentUserAccountID: number;
-    comment: string;
-    receipt: Receipt;
-    existingSplitChatReportID?: string;
-    billable?: boolean;
-    category: string | undefined;
-    tag: string | undefined;
-    currency: string;
-    taxCode: string;
-    taxAmount: number;
-};
 
 /** Used exclusively for starting a split expense request that contains a receipt, the split request will be completed once the receipt is scanned
  *  or user enters details manually.
@@ -5953,13 +6119,28 @@ function startSplitBill({
         },
     ];
 
+    const retryParams = {
+        participants: participants.map(({icons, ...rest}) => rest),
+        currentUserLogin,
+        currentUserAccountID,
+        comment,
+        receipt: receiptObject,
+        existingSplitChatReportID,
+        billable,
+        category,
+        tag,
+        currency,
+        taxCode,
+        taxAmount,
+    };
+
     if (existingSplitChatReport) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
                 [splitIOUReportAction.reportActionID]: {
-                    errors: getReceiptError(receipt, filename),
+                    errors: getReceiptError(receipt, filename, undefined, undefined, CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL, retryParams),
                 },
             },
         });
@@ -5982,7 +6163,7 @@ function startSplitBill({
                         errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
                     },
                     [splitIOUReportAction.reportActionID]: {
-                        errors: getReceiptError(receipt, filename),
+                        errors: getReceiptError(receipt, filename, undefined, undefined, CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL, retryParams),
                     },
                 },
             },
@@ -6104,7 +6285,7 @@ function startSplitBill({
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
-    Navigation.dismissModalWithReport(splitChatReport);
+    Navigation.dismissModalWithReport({report: splitChatReport});
     notifyNewAction(splitChatReport.reportID, currentUserAccountID);
 }
 
@@ -6366,7 +6547,7 @@ function completeSplitBill(
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : chatReportID);
+    dismissModalAndOpenReportInInboxTab(chatReportID);
     notifyNewAction(chatReportID, sessionAccountID);
 }
 
@@ -6549,7 +6730,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+    dismissModalAndOpenReportInInboxTab(activeReportID);
     notifyNewAction(activeReportID, userAccountID);
 }
 
@@ -6805,7 +6986,7 @@ function getNavigationUrlAfterTrackExpenseDelete(
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, reportID: string, isSingleTransactionView = false) {
     const {
         shouldDeleteTransactionThread,
         shouldDeleteIOUReport,
@@ -6943,6 +7124,8 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
             },
         );
     }
+
+    clearAllRelatedReportActionErrors(reportID, reportAction);
 
     // First, update the reportActions to ensure related actions are not displayed.
     Onyx.update(reportActionsOnyxUpdates).then(() => {
@@ -8250,7 +8433,7 @@ function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number,
 
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : params.chatReportID);
+    dismissModalAndOpenReportInInboxTab(params.chatReportID);
     notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -8263,7 +8446,7 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
 
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
-    Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : params.chatReportID);
+    dismissModalAndOpenReportInInboxTab(params.chatReportID);
     notifyNewAction(params.chatReportID, managerID);
 }
 
@@ -8290,14 +8473,7 @@ function canApproveIOU(
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(iouReport?.reportID);
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = getReportTransactions(iouReport?.reportID);
-    const hasOnlyPendingCardOrScanningTransactions =
-        reportTransactions.length > 0 &&
-        reportTransactions.every(
-            (transaction) =>
-                (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
-                (isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction)) ||
-                (isScanRequestTransactionUtils(transaction) && isReceiptBeingScannedTransactionUtils(transaction)),
-        );
+    const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
     if (hasOnlyPendingCardOrScanningTransactions) {
         return false;
     }
@@ -9253,13 +9429,19 @@ function detachReceipt(transactionID: string | undefined) {
     API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
-function replaceReceipt(transactionID: string, file: File, source: string) {
+function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
+    if (!file) {
+        return;
+    }
+
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
         source,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
+
+    const retryParams = {transactionID, file: undefined, source};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -9271,6 +9453,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
                 pendingFields: {
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
+                errors: null,
             },
         },
     ];
@@ -9294,7 +9477,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
             value: {
                 receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
                 filename: transaction?.filename,
-                errors: getReceiptError(receiptOptimistic, file.name),
+                errors: getReceiptError(receiptOptimistic, file.name, undefined, undefined, CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams),
                 pendingFields: {
                     receipt: null,
                 },
@@ -10204,4 +10387,4 @@ export {
     submitPerDiemExpense,
     calculateDiffAmount,
 };
-export type {GPSPoint as GpsPoint, IOURequestType};
+export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};

@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-import handleKeyPress from '@libs/SearchInputOnKeyPress';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -108,7 +107,7 @@ function SearchAutocompleteInput(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const currencyAutocompleteList = Object.keys(currencyList ?? {});
+    const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currencyCode) => !currencyList?.[currencyCode]?.retired);
     const currencySharedValue = useSharedValue(currencyAutocompleteList);
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -226,7 +225,6 @@ function SearchAutocompleteInput(
                         }}
                         isLoading={!!isSearchingForReports}
                         ref={ref}
-                        onKeyPress={handleKeyPress(onSubmit)}
                         type="markdown"
                         multiline={false}
                         parser={parser}

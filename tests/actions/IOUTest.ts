@@ -4738,6 +4738,10 @@ describe('actions/IOU', () => {
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
+            if (expectedCommand === WRITE_COMMANDS.SHARE_TRACKED_EXPENSE) {
+                expect(params).toHaveProperty('policyName');
+            }
+
             // And the parameters should be supported by XMLHttpRequest
             Object.values(params as Record<string, unknown>).forEach((value) => {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
@@ -4802,6 +4806,7 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
@@ -4813,9 +4818,10 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
-                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                merchant: 'test merchant',
                 modifiedMerchant: undefined,
             };
 
@@ -4858,9 +4864,10 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
-                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                merchant: 'test merchant',
                 modifiedMerchant: undefined,
             };
 
@@ -4899,6 +4906,7 @@ describe('actions/IOU', () => {
                 reportID,
                 amount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,

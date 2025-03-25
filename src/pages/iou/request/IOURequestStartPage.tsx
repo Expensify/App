@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -112,12 +111,6 @@ function IOURequestStartPage({
 
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
-
-    if (!transaction?.transactionID) {
-        // The draft transaction is initialized only after the component is mounted,
-        // which will lead to briefly displaying the Not Found page without this loader.
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <AccessOrNotFoundWrapper
