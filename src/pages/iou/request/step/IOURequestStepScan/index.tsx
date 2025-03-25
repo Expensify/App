@@ -501,7 +501,7 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            replaceReceipt(transactionID, file as File, source);
+            replaceReceipt({transactionID, file: file as File, source});
             navigateBack();
         },
         [transactionID, navigateBack],
@@ -587,7 +587,7 @@ function IOURequestStepScan({
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
-                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
+                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP);
             },
         },
     );
