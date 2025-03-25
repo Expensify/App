@@ -138,7 +138,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 <ValidateCodeActionModal
                     handleSubmitForm={submit}
                     isLoading={issueNewCard?.isLoading}
-                    sendValidateCode={() => requestValidateCodeAction()}
+                    sendValidateCode={requestValidateCodeAction}
                     validateCodeActionErrorField="createAdminIssuedVirtualCard"
                     validateError={validateError}
                     clearError={() => clearIssueNewCardError(policyID)}

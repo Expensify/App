@@ -141,7 +141,6 @@ function ExpensifyCardPage({
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
     const primaryLogin = account?.primaryLogin ?? '';
-    const loginData = loginList?.[primaryLogin];
     const isSignedInAsdelegate = !!account?.delegatedAccess?.delegate || false;
 
     if (isNotFound) {
@@ -310,7 +309,6 @@ function ExpensifyCardPage({
                 sendValidateCode={() => requestValidateCodeAction()}
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isVisible={isValidateCodeActionModalVisible}
-                hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                 title={translate('cardPage.validateCardTitle')}
                 descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
             />

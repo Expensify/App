@@ -1,6 +1,5 @@
 import type React from 'react';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {PendingContactAction, ValidateMagicCodeAction} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ValidateCodeActionModalProps = {
@@ -29,7 +28,7 @@ type ValidateCodeActionModalProps = {
     validateError?: Errors;
 
     /** The errorField name of validateCodeAction.errorFields, e.g. "addLogin" to store magic code error when adding a new contact method */
-    validateCodeActionErrorField?: string | undefined;
+    validateCodeActionErrorField: string;
 
     /** Function is called when submitting form  */
     handleSubmitForm: (validateCode: string) => void;
