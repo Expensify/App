@@ -63,7 +63,6 @@ function ExpensifyCardPage({
     },
 }: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const styles = useThemeStyles();
