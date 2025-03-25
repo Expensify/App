@@ -46,9 +46,6 @@ type ValidateCodeFormProps = {
     /** Forwarded inner ref */
     innerRef?: ForwardedRef<ValidateCodeFormHandle>;
 
-    /** The state of magic code that being sent */
-    validateCodeAction?: ValidateMagicCodeAction | PendingContactAction;
-
     /** The pending action of magic code being sent
      * if not supplied, we will retrieve it from the validateCodeAction above: `validateCodeAction.pendingFields.validateCodeSent`
      */
@@ -86,7 +83,6 @@ function BaseValidateCodeForm({
     hasMagicCodeBeenSent,
     autoComplete = 'one-time-code',
     innerRef = () => {},
-    validateCodeAction,
     validateCodeActionErrorField = 'actionVerified',
     validatePendingAction,
     validateError,
@@ -111,6 +107,7 @@ function BaseValidateCodeForm({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const timerRef = useRef<NodeJS.Timeout>();
 

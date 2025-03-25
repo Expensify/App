@@ -21,7 +21,6 @@ function ValidateCodeActionModal({
     onClose,
     onModalHide,
     validateError,
-    validateCodeAction,
     validatePendingAction,
     validateCodeActionErrorField,
     handleSubmitForm,
@@ -99,7 +98,6 @@ function ValidateCodeActionModal({
                         {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
                         <ValidateCodeForm
                             isLoading={isLoading}
-                            validateCodeAction={validateCodeAction}
                             validatePendingAction={validatePendingAction}
                             validateCodeActionErrorField={validateCodeActionErrorField}
                             validateError={validateError}

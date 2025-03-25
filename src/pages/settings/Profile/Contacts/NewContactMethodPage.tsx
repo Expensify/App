@@ -168,7 +168,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     )}
                 </FormProvider>
                 <ValidateCodeActionModal
-                    validateCodeAction={pendingContactAction}
                     validateCodeActionErrorField="addedLogin"
                     validateError={validateLoginError}
                     handleSubmitForm={addNewContactMethod}
