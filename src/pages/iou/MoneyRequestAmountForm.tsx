@@ -19,7 +19,6 @@ import {convertToDisplayString, convertToFrontendAmountAsInteger, convertToFront
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {addLeadingZero} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
@@ -257,7 +256,6 @@ function MoneyRequestAmountForm(
             >
                 <MoneyRequestAmountInput
                     amount={amount}
-                    autoGrowExtraSpace={variables.w80}
                     currency={currency}
                     isCurrencyPressable={isCurrencyPressable}
                     onCurrencyButtonPress={onCurrencyButtonPress}

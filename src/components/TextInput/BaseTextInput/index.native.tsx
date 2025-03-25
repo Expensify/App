@@ -49,7 +49,6 @@ function BaseTextInput(
         autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
-        autoGrowExtraSpace = 0,
         autoGrowHeight = false,
         maxAutoGrowHeight,
         hideFocusedState = false,
