@@ -85,7 +85,7 @@ function ValidateCodeActionModal({
                     title={title}
                     onBackButtonPress={hide}
                     threeDotsMenuItems={threeDotsMenuItems}
-                    shouldShowThreeDotsButton={threeDotsMenuItems.length === 0}
+                    shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     shouldOverlayDots
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
                     onThreeDotsButtonPress={onThreeDotsButtonPress}
