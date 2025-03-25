@@ -259,18 +259,17 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     }, [report, personalDetails, shouldOpenRoomMembersPage]);
     const connectedIntegration = getConnectedIntegration(policy);
 
-    const caseID = useMemo((): CaseID => {
+    let caseID: CaseID;
+    if (isMoneyRequestReport || isInvoiceReport) {
         // 3. MoneyReportHeader
-        if (isMoneyRequestReport || isInvoiceReport) {
-            return CASES.MONEY_REPORT;
-        }
+        caseID = CASES.MONEY_REPORT;
+    } else if (isSingleTransactionView) {
         // 2. MoneyRequestHeader
-        if (isSingleTransactionView) {
-            return CASES.MONEY_REQUEST;
-        }
+        caseID = CASES.MONEY_REQUEST;
+    } else {
         // 1. HeaderView
-        return CASES.DEFAULT;
-    }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
+        caseID = CASES.DEFAULT;
+    }
 
     const transactionIDList = useMemo(() => {
         if (caseID !== CASES.MONEY_REPORT || !transactions) {
