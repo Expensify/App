@@ -1,5 +1,8 @@
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
+/**
+ * Billing item
+ */
 type BillingItem = {
     /** The description of the item */
     description: string;

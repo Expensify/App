@@ -2,6 +2,7 @@ import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -17,6 +18,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {clearBillingReceiptDetailsErrors, payAndDowngrade} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PayAndDowngradePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PAY_AND_DOWNGRADE>;
 type BillingItem = {
@@ -36,7 +38,7 @@ function PayAndDowngradePage({route}: PayAndDowngradePageProps) {
     const hasError = !!billingDetails?.errors;
 
     const items: BillingItem[] = useMemo(() => {
-        if (!billingDetails) {
+        if (isEmptyObject(billingDetails)) {
             return [];
         }
         const results = [...billingDetails.receiptsWithoutDiscount, ...billingDetails.discounts, ...billingDetails.salesTax].map((item) => {
@@ -59,61 +61,61 @@ function PayAndDowngradePage({route}: PayAndDowngradePageProps) {
         clearBillingReceiptDetailsErrors();
     }, []);
 
-    if (!billingDetails) {
-        return <FullPageNotFoundView />;
-    }
-
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator
             testID="PayAndDowngradePage"
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton title={translate('workspace.payAndDowngrade.title')} />
-            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mh5]}>
-                <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.payAndDowngrade.headline')}</Text>
-                <Text>
-                    {translate('workspace.payAndDowngrade.description1')} <Text style={[styles.textBold]}>{billingDetails.formattedSubtotal}</Text>
-                </Text>
-                <Text style={[styles.mb4]}>
-                    {translate('workspace.payAndDowngrade.description2', {
-                        date: billingDetails.billingMonth,
-                    })}
-                </Text>
+            <FullPageNotFoundView shouldShow={isEmptyObject(billingDetails)}>
+                <HeaderWithBackButton title={translate('workspace.payAndDowngrade.title')} />
+                <FullPageOfflineBlockingView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mh5]}>
+                        <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.payAndDowngrade.headline')}</Text>
+                        <Text>
+                            {translate('workspace.payAndDowngrade.description1')} <Text style={[styles.textBold]}>{billingDetails?.formattedSubtotal}</Text>
+                        </Text>
+                        <Text style={[styles.mb4]}>
+                            {translate('workspace.payAndDowngrade.description2', {
+                                date: billingDetails?.billingMonth ?? '',
+                            })}
+                        </Text>
 
-                <View style={[styles.borderedContentCard, styles.ph5, styles.mb4]}>
-                    {items.map((item) => (
-                        <View
-                            key={item.key}
-                            style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap8, styles.pv5, !item.isTotal ? styles.borderBottom : undefined]}
-                        >
-                            {!item.isTotal ? <RenderHTML html={item.key} /> : <Text style={styles.textBold}>{item.key}</Text>}
-                            <Text style={item.isTotal ? styles.textBold : undefined}>{item.value}</Text>
+                        <View style={[styles.borderedContentCard, styles.ph5, styles.mb4]}>
+                            {items.map((item) => (
+                                <View
+                                    key={item.key}
+                                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap8, styles.pv5, !item.isTotal ? styles.borderBottom : undefined]}
+                                >
+                                    {!item.isTotal ? <RenderHTML html={item.key} /> : <Text style={styles.textBold}>{item.key}</Text>}
+                                    <Text style={item.isTotal ? styles.textBold : undefined}>{item.value}</Text>
+                                </View>
+                            ))}
                         </View>
-                    ))}
-                </View>
-                <Text style={[styles.textLabelSupportingNormal]}>{translate('workspace.payAndDowngrade.subscription')}</Text>
-            </ScrollView>
-            <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                {hasError && (
-                    <View style={[styles.mb3]}>
-                        <FormHelpMessage
-                            isError={hasError}
-                            message={translate('workspace.payAndDowngrade.genericFailureMessage')}
+                        <Text style={[styles.textLabelSupportingNormal]}>{translate('workspace.payAndDowngrade.subscription')}</Text>
+                    </ScrollView>
+                    <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                        {hasError && (
+                            <View style={[styles.mb3]}>
+                                <FormHelpMessage
+                                    isError={hasError}
+                                    message={translate('workspace.payAndDowngrade.genericFailureMessage')}
+                                />
+                            </View>
+                        )}
+                        <Button
+                            large
+                            danger
+                            text={translate('workspace.payAndDowngrade.title')}
+                            onPress={() => {
+                                payAndDowngrade();
+                            }}
+                            pressOnEnter
+                            isLoading={billingDetails?.isLoading}
                         />
-                    </View>
-                )}
-                <Button
-                    large
-                    danger
-                    text={translate('workspace.payAndDowngrade.title')}
-                    onPress={() => {
-                        payAndDowngrade();
-                    }}
-                    pressOnEnter
-                    isLoading={billingDetails.isLoading}
-                />
-            </FixedFooter>
+                    </FixedFooter>
+                </FullPageOfflineBlockingView>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

@@ -451,7 +451,7 @@ function WorkspacesListPage() {
     useHandleBackButton(onBackButtonPress);
 
     useEffect(() => {
-        if (isLoadingBill || !isDeletingWorkspaceRef.current) {
+        if (!isDeletingWorkspaceRef.current || isLoadingBill) {
             return;
         }
 
