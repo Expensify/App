@@ -402,6 +402,8 @@ function MoneyRequestReportPreviewContent({
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     // eslint-disable-next-line react-compiler/react-compiler
+    const viewabilityConfig = useRef({itemVisiblePercentThreshold: 50}).current;
+    // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
         if (typeof newIndex === 'number') {
@@ -410,7 +412,7 @@ function MoneyRequestReportPreviewContent({
     }).current;
 
     const handleChange = (index: number) => {
-        if (index >= transactions.length - 1) {
+        if (index >= transactions.length || index < 0) {
             return;
         }
         carouselRef.current?.scrollToIndex({index, animated: true});
@@ -430,8 +432,6 @@ function MoneyRequestReportPreviewContent({
         return null;
     };
 
-    // eslint-disable-next-line react-compiler/react-compiler
-    const viewabilityConfig = useRef({itemVisiblePercentThreshold: 50}).current;
     const style = StyleUtils.getMoneyRequestReportPreviewStyle(transactions.length, shouldUseNarrowLayout);
     const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: style.transaction.width} : {};
 
@@ -449,7 +449,6 @@ function MoneyRequestReportPreviewContent({
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress
-                    // This is added to omit console error about nested buttons as its forbidden on web platform
                     style={[styles.flexRow, styles.justifyContentBetween, StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.reportContainerBorderRadius]}
                     role={getButtonRole(true)}
                     isNested
