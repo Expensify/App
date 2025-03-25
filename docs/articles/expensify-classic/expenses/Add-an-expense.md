@@ -152,7 +152,7 @@ Add your expenses to a report to submit them for approval and reimbursement.
 
 Expenses are flagged as duplicates only when both the date and amount of two (or more) expenses match exactly. If only the date or amount matches, the expenses will not be flagged as duplicates.
 
-To resolve duplicates, you can [merge]([https://help.expensify.com/articles/expensify-classic/expenses/Merge-expenses](https://help.expensify.com/articles/expensify-classic/expenses/Edit-expenses#merge-expenses)) the expenses.
+To resolve duplicates, you can [merge the expenses](https://help.expensify.com/articles/expensify-classic/expenses/Edit-expenses#merge-expenses).
 
 ---
 
