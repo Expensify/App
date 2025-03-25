@@ -18,10 +18,12 @@ type ReceiptEmptyStateProps = {
     disabled?: boolean;
 
     isThumbnail?: boolean;
+
+    isInMoneyRequestView?: boolean;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -40,6 +42,7 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
                 styles.justifyContentCenter,
                 styles.moneyRequestViewImage,
                 isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
+                isInMoneyRequestView && styles.expenseViewImage,
                 hasError && styles.borderColorDanger,
             ]}
         >
