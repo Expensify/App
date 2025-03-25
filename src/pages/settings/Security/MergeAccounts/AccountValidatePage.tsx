@@ -29,7 +29,7 @@ const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> |
     if (err.includes('403')) {
         return CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS;
     }
-    
+
     if (err.includes('401 Cannot merge accounts - 2FA enabled')) {
         return CONST.MERGE_ACCOUNT_RESULTS.ERR_2FA;
     }
