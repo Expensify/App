@@ -1154,6 +1154,10 @@ const translations = {
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
     },
+    share: {
+        shareToExpensify: 'Compartir para Expensify',
+        messageInputLabel: 'Mensaje',
+    },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
         label: 'Avisar sobre nuevos mensajes',
@@ -4503,8 +4507,6 @@ const translations = {
                 business: 'Empresas',
                 chooseInvoiceMethod: 'Elija un método de pago:',
                 addBankAccount: 'Añadir cuenta bancaria',
-                addDebitOrCreditCard: 'Agrega una tarjeta de débito o crédito',
-                addCorporateCard: 'Agrega una tarjeta corporativa',
                 payingAsIndividual: 'Pago individual',
                 payingAsBusiness: 'Pagar como una empresa',
             },
@@ -5299,8 +5301,9 @@ const translations = {
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
                 exportedToCSV: `exportó este informe a CSV`,
                 exportedToIntegration: {
-                    automaticOne: ({label}: ExportedToIntegrationParams) => `exportó automáticamente este informe a ${label} a través de la`,
-                    automaticTwo: 'configuración contable.',
+                    automatic: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}.`,
+                    automaticActionOne: ({label}: ExportedToIntegrationParams) => `exportó automáticamente este informe a ${label} a través de la`,
+                    automaticActionTwo: 'configuración contable.',
                     manual: ({label}: ExportedToIntegrationParams) => `marcó este informe como exportado manualmente a ${label}.`,
                     reimburseableLink: 'Ver los gastos por cuenta propia.',
                     nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
