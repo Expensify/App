@@ -1,8 +1,8 @@
 import {Str} from 'expensify-common';
 import React from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
-import type {StyleProp, TextStyle} from 'react-native';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
@@ -51,8 +51,8 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 fontSize: styles.formError.fontSize,
                 color: theme.link,
                 textDecorationLine: 'underline',
-                textDecorationColor: theme.link
-            }
+                textDecorationColor: theme.link,
+            },
         ];
     }
 

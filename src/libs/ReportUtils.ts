@@ -204,9 +204,9 @@ import {
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold as isOnHoldTransactionUtils,
+    isPartial,
     isPayAtEndExpense,
     isPending,
-    isPartial,
     isPerDiemRequest,
     isReceiptBeingScanned,
 } from './TransactionUtils';

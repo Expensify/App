@@ -8584,8 +8584,7 @@ function canSubmitReport(
     const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDList, report, policy, allViolations);
 
     const hasOnlyPendingCardOrScanFailTransactions =
-        transactions.length > 0 &&
-        transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || isPartial(t) || isReceiptBeingScannedTransactionUtils(t));
+        transactions.length > 0 && transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || isPartial(t) || isReceiptBeingScannedTransactionUtils(t));
 
     return (
         transactions.length > 0 &&

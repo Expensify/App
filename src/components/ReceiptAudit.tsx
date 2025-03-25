@@ -5,8 +5,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import Text from './Text';
 import RenderHTML from './RenderHTML';
+import Text from './Text';
 
 type ReceiptAuditProps = {
     /** List of audit notes */
