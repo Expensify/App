@@ -107,8 +107,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS]: {
-        backTo?: Routes;
-        forwardTo?: Routes;
+        email?: string;
     };
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE]: {
         login: string;

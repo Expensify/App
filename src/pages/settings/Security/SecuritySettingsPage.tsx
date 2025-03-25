@@ -120,7 +120,7 @@ function SecuritySettingsPage() {
             {
                 translationKey: 'mergeAccountsPage.mergeAccount',
                 icon: Expensicons.ArrowCollapse,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS)),
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route)),
             },
             {
                 translationKey: 'closeAccountPage.closeAccount',

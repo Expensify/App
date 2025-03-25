@@ -253,7 +253,7 @@ function MergeResultPage() {
                 title={translate('mergeAccountsPage.mergeAccount')}
                 shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
                 onBackButtonPress={() => {
-                    const route = mergeStepHadError ? ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(login) : ROUTES.SETTINGS_MERGE_ACCOUNTS;
+                    const route = mergeStepHadError ? ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(login) : ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute(login);
                     Navigation.goBack(route);
                 }}
                 shouldDisplayHelpButton={false}

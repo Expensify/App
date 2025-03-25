@@ -1,8 +1,10 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -25,6 +27,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MergeAccountDetailsForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import {useRoute} from '@react-navigation/native';
+import type SCREENS from '@src/SCREENS';
 
 const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
     if (err.includes('403')) {
@@ -50,8 +54,8 @@ function AccountDetailsPage() {
     const formRef = useRef<FormRef>(null);
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.getValidateCodeForAccountMerge});
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM_DRAFT);
-    const email = form?.[INPUT_IDS.PHONE_OR_EMAIL] ?? '';
+    const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS>>();
+    const [email, setEmail] = useState(params?.email ?? '');
 
     const validateCodeSent = getValidateCodeForAccountMerge?.validateCodeSent;
     const latestError = getLatestErrorMessage(getValidateCodeForAccountMerge);
@@ -138,7 +142,8 @@ function AccountDetailsPage() {
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt5]}
                         autoCorrect={false}
-                        shouldSaveDraft
+                        onChangeText={setEmail}
+                        value={email}
                     />
                     <InputWrapper
                         style={[styles.mt6]}
