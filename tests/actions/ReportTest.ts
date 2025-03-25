@@ -18,6 +18,8 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
@@ -25,6 +27,8 @@ import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
+
 
 const UTC = 'UTC';
 jest.mock('@src/libs/actions/Report', () => {
@@ -1484,5 +1488,34 @@ describe('actions/Report', () => {
         });
 
         expect(report?.lastMentionedTime).toBeUndefined();
+    });
+
+    describe('isConciergeChatReport', () => {
+        const accountID = 2;
+        const conciergeChatReport1 = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
+        const conciergeChatReport2 = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
+
+        beforeAll(async () => {
+            Onyx.init({keys: ONYXKEYS});
+            await waitForBatchedUpdates();
+        });
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('should not return archived Concierge chat report', async () => {
+            initOnyxDerivedValues();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport1.reportID}`, conciergeChatReport1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport2.reportID}`, conciergeChatReport2);
+
+            // Set First conciergeChatReport1 to archived state
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${conciergeChatReport1.reportID}`, {
+                private_isArchived: new Date().toString()
+            });
+            const derivedConciergeChatReportID = await OnyxUtils.get(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
+            expect(derivedConciergeChatReportID).toBe(conciergeChatReport2.reportID);
+        });
     });
 });
