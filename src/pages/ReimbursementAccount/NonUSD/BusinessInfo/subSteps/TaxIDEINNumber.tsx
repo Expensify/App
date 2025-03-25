@@ -6,7 +6,6 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -42,7 +41,6 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
             onSubmit={handleSubmit}
             inputId={TAX_ID_EIN_NUMBER}
             inputLabel={translate('businessInfoStep.taxIDEIN')}
-            inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
         />

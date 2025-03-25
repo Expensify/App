@@ -48,6 +48,7 @@ export default {
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
+    fontSizeXXSmall: 7,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),
