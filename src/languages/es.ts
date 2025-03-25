@@ -1048,10 +1048,10 @@ const translations = {
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
-            receiptFailureMessage: 'El recibo no se subió. ',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
-            saveFileMessage: 'Guarda el archivo ',
-            loseFileMessage: 'o descarta este error y piérdelo.',
+            receiptFailureMessage: 'Hubo un error al cargar tu recibo. Por favor, ',
+            tryAgainMessage: 'inténtalo de nuevo ',
+            saveFileMessage: ' guarda el recibo',
+            uploadLaterMessage: ' para cargarlo más tarde.',
             genericDeleteFailureMessage: 'Error inesperado al eliminar este gasto. Por favor, inténtalo más tarde.',
             genericEditFailureMessage: 'Error inesperado al editar este gasto. Por favor, inténtalo más tarde.',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos.',
@@ -1065,6 +1065,8 @@ const translations = {
             invalidSubrateLength: 'Debe haber al menos una subtasa.',
             invalidRate: 'Tasa no válida para este espacio de trabajo. Por favor, selecciona una tasa disponible en el espacio de trabajo.',
         },
+        dismissReceiptError: 'Descartar error',
+        dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar billetera',
         holdExpense: 'Retener gasto',
@@ -1152,6 +1154,10 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+    },
+    share: {
+        shareToExpensify: 'Compartir para Expensify',
+        messageInputLabel: 'Mensaje',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -4502,8 +4508,6 @@ const translations = {
                 business: 'Empresas',
                 chooseInvoiceMethod: 'Elija un método de pago:',
                 addBankAccount: 'Añadir cuenta bancaria',
-                addDebitOrCreditCard: 'Agrega una tarjeta de débito o crédito',
-                addCorporateCard: 'Agrega una tarjeta corporativa',
                 payingAsIndividual: 'Pago individual',
                 payingAsBusiness: 'Pagar como una empresa',
             },
@@ -6581,6 +6585,10 @@ const translations = {
         title: '¿Descartar cambios?',
         body: '¿Estás seguro de que quieres descartar los cambios que hiciste?',
         confirmText: 'Descartar cambios',
+    },
+    aiSales: {
+        talkWithSales: 'Habla con ventas',
+        hangUp: 'Colgar',
     },
 };
 
