@@ -1456,6 +1456,10 @@ const translations = {
             beforeEmail: 'No puedes fusionar ',
             afterEmail: ' en otras cuentas porque es el propietario de facturación de una cuenta facturada. Por favor, fusiona otras cuentas en esta en su lugar.',
         },
+        mergeFailureTooManyAttempts: {
+            heading: 'Inténtalo de nuevo más tarde',
+            description: 'Hubo demasiados intentos de fusionar cuentas. Por favor, inténtalo de nuevo más tarde.',
+        },
         mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
     },
     passwordPage: {

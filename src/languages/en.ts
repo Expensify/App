@@ -1457,6 +1457,10 @@ const translations = {
             beforeEmail: 'You can’t merge ',
             afterEmail: ' into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.',
         },
+        mergeFailureTooManyAttempts: {
+            heading: 'Try again later',
+            description: 'There were too many attempts to merge accounts. Please try again later.',
+        },
         mergeFailureGenericHeading: 'Can’t merge accounts',
     },
     passwordPage: {

@@ -27,6 +27,10 @@ import INPUT_IDS from '@src/types/form/MergeAccountDetailsForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
+    if (err.includes('403')) {
+        return CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS;
+    }
+
     if (err.includes('404')) {
         return CONST.MERGE_ACCOUNT_RESULTS.ERR_NO_EXIST;
     }

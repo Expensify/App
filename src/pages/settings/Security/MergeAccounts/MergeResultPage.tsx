@@ -206,6 +206,13 @@ function MergeResultPage() {
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: Illustrations.LockClosedOrange,
             },
+            [CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS]: {
+                heading: translate('mergeAccountsPage.mergeFailureTooManyAttempts.heading'),
+                description: translate('mergeAccountsPage.mergeFailureTooManyAttempts.description'),
+                buttonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                illustration: Illustrations.LockClosedOrange,
+            },
         };
     }, [login, translate, userEmailOrPhone, styles]);
 
