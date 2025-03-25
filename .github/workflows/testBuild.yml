@@ -179,17 +179,6 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v4
 
-      - name: Read JSONs with iOS paths
-        id: get_ios_path
-        if: ${{ needs.iOS.result == 'success' }}
-        run: |
-          content_ios="$(cat ./ios/ios_paths.json)"
-          content_ios="${content_ios//'%'/'%25'}"
-          content_ios="${content_ios//$'\n'/'%0A'}"
-          content_ios="${content_ios//$'\r'/'%0D'}"
-          ios_path=$(echo "$content_ios" | jq -r '.html_path')
-          echo "ios_path=$ios_path" >> "$GITHUB_OUTPUT"
-
       - name: Publish links to apps for download
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
