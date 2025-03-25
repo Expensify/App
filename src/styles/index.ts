@@ -5169,7 +5169,6 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             height: '100%',
             borderRadius: variables.componentBorderRadiusNormal,
-            backgroundColor: theme.highlightBG,
         },
 
         videoPlayerControlsContainer: {
