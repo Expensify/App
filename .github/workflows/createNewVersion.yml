@@ -104,7 +104,6 @@ jobs:
           ANDROID_MANIFEST_FILE="Android/AndroidManifest.xml"
           IOS_INFO_PLIST_FILE="iOS/Expensify/Expensify-Info.plist"
           IOS_SHARE_EXTENSION_PLIST_FILE="iOS/SmartScanExtension/Info.plist"
-          IOS_SHAREVIEW_EXTENSION_PLIST_FILE="iOS/ShareViewController/Info.plist"
           IOS_NOTIFICATION_EXTENSION_PLIST_FILE="iOS/NotificationServiceExtension/Info.plist"
           JS_CONFIG_FILE="app/config/config.json" 
           
@@ -117,7 +116,6 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FULL_APP_VERSION" $IOS_INFO_PLIST_FILE
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_APP_VERSION" $IOS_SHARE_EXTENSION_PLIST_FILE
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FULL_APP_VERSION" $IOS_SHARE_EXTENSION_PLIST_FILE
-          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FULL_APP_VERSION" $IOS_SHAREVIEW_EXTENSION_PLIST_FILE
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_APP_VERSION" $IOS_NOTIFICATION_EXTENSION_PLIST_FILE
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FULL_APP_VERSION" $IOS_NOTIFICATION_EXTENSION_PLIST_FILE
           
@@ -134,7 +132,6 @@ jobs:
             ./app/config/config.json \
             ./iOS/Expensify/Expensify-Info.plist\
             ./iOS/SmartScanExtension/Info.plist \
-            ./iOS/ShareViewController/Info.plist \
             ./iOS/NotificationServiceExtension/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
           git push origin main
@@ -146,7 +143,8 @@ jobs:
             ./package-lock.json \
             ./android/app/build.gradle \
             ./ios/NewExpensify/Info.plist \
-            ./ios/NotificationServiceExtension/Info.plist
+            ./ios/NotificationServiceExtension/Info.plist \
+            ./ios/ShareViewController/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
       - name: Update Mobile-Expensify submodule in E/App
