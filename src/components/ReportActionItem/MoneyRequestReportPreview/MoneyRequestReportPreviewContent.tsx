@@ -391,7 +391,6 @@ function MoneyRequestReportPreviewContent({
         }
     }).current;
 
-    // yet to be updated, doesn't handle a case when first element scrolled to the left (visible in 100%)
     const handleChange = (index: number) => {
         if (index >= transactions.length - 1) {
             return;
@@ -412,6 +411,9 @@ function MoneyRequestReportPreviewContent({
         }
         return null;
     };
+
+    // eslint-disable-next-line react-compiler/react-compiler
+    const viewabilityConfig = useRef({itemVisiblePercentThreshold: 50}).current;
 
     return (
         <OfflineWithFeedback
@@ -468,13 +470,13 @@ function MoneyRequestReportPreviewContent({
                                                     accessibilityRole="button"
                                                     accessible
                                                     accessibilityLabel="button"
-                                                    style={styles.carouselArrowButton}
-                                                    onPress={() => handleChange(currentIndex)}
+                                                    style={[styles.carouselArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                    onPress={() => handleChange(currentIndex - 1)}
                                                 >
                                                     <Icon
                                                         src={Expensicons.BackArrow}
                                                         small
-                                                        fill={colors.productLight700}
+                                                        fill={theme.icon}
                                                         isButtonIcon
                                                     />
                                                 </PressableWithFeedback>
@@ -482,13 +484,13 @@ function MoneyRequestReportPreviewContent({
                                                     accessibilityRole="button"
                                                     accessible
                                                     accessibilityLabel="button"
-                                                    style={styles.carouselArrowButton}
+                                                    style={[styles.carouselArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                     onPress={() => handleChange(currentIndex + 1)}
                                                 >
                                                     <Icon
                                                         src={Expensicons.ArrowRight}
                                                         small
-                                                        fill={colors.productLight700}
+                                                        fill={theme.icon}
                                                         isButtonIcon
                                                     />
                                                 </PressableWithFeedback>
@@ -518,6 +520,7 @@ function MoneyRequestReportPreviewContent({
                                         showsHorizontalScrollIndicator={false}
                                         renderItem={renderFlatlistItem}
                                         onViewableItemsChanged={onViewableItemsChanged}
+                                        viewabilityConfig={viewabilityConfig}
                                     />
                                 </View>
                                 {shouldUseNarrowLayout && transactions.length > 2 && (
@@ -527,7 +530,7 @@ function MoneyRequestReportPreviewContent({
                                                 accessibilityRole="button"
                                                 accessible
                                                 accessibilityLabel="button"
-                                                style={styles.carouselDots(index, currentIndex)}
+                                                style={[styles.carouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
                                                 onPress={() => carouselRef.current?.scrollToIndex({index, animated: true})}
                                             />
                                         ))}

@@ -5529,19 +5529,17 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
-        carouselDots: (thisDotIndex: number, currentIndex: number) => ({
+        carouselDots: {
             borderRadius: 50,
             width: 8,
             height: 8,
-            backgroundColor: thisDotIndex === currentIndex ? colors.productLight700 : colors.productLight400,
             alignItems: 'center',
             justifyContent: 'center',
-        }),
+        },
         carouselArrowButton: {
             borderRadius: 50,
             width: 28,
             height: 28,
-            backgroundColor: colors.productLight400,
             alignItems: 'center',
             justifyContent: 'center',
             marginLeft: 4,
