@@ -1,4 +1,4 @@
-import type {Errors} from "./OnyxCommon";
+import type {Errors} from './OnyxCommon';
 
 /** Model of validate user and get accessible policies */
 type ValidateUserAndGetAccessiblePolicies = {

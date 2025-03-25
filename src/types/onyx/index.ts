@@ -111,13 +111,13 @@ import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
+import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
-import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 
 export type {
     TryNewDot,
