@@ -1,10 +1,9 @@
+import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -19,16 +18,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage, getLatestErrorMessage} from '@libs/ErrorUtils';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
 import {requestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MergeAccountDetailsForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import {useRoute} from '@react-navigation/native';
-import type SCREENS from '@src/SCREENS';
 
 const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
     if (err.includes('403')) {
