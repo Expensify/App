@@ -36,7 +36,9 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
-    const [joinablePoliciesLoading] = useOnyx(ONYXKEYS.JOINABLE_POLICIES_LOADING);
+    const [validateUserAndGetAccessiblePolicies] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
+
+    const joinablePoliciesLoading = validateUserAndGetAccessiblePolicies?.loading;
 
     const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
 

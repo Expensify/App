@@ -117,6 +117,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 
 export type {
     TryNewDot,
@@ -257,4 +258,5 @@ export type {
     SidePane,
     LastPaymentMethodType,
     TalkToAISales,
+    ValidateUserAndGetAccessiblePolicies,
 };
