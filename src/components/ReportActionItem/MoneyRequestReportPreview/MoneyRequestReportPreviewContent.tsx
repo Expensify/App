@@ -412,7 +412,7 @@ function MoneyRequestReportPreviewContent({
     }).current;
 
     const handleChange = (index: number) => {
-        if (index >= transactions.length - 1 || index <=0) {
+        if (index >= transactions.length || index < 0) {
             return;
         }
         carouselRef.current?.scrollToIndex({index, animated: true});
