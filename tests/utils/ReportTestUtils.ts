@@ -111,6 +111,7 @@ function triggerListLayout(reportID?: string) {
                 ...LIST_SIZE,
             },
         },
+        persist: () => {},
     });
 
     fireEvent(within(report).getByTestId('report-actions-list'), 'onContentSizeChange', LIST_CONTENT_SIZE.width, LIST_CONTENT_SIZE.height);
