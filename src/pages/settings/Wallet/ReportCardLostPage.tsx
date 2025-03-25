@@ -75,7 +75,6 @@ function ReportCardLostPage({
 
     const physicalCard = cardList?.[cardID];
     const validateError = getLatestErrorMessageField(physicalCard);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const prevIsLoading = usePrevious(formData?.isLoading);
@@ -197,7 +196,6 @@ function ReportCardLostPage({
                         <ValidateCodeActionModal
                             handleSubmitForm={handleValidateCodeEntered}
                             sendValidateCode={sendValidateCode}
-                            validateCodeAction={validateCodeAction}
                             validateCodeActionErrorField="replaceLostCard"
                             validateError={validateError}
                             clearError={() => clearCardListErrors(physicalCard.cardID)}

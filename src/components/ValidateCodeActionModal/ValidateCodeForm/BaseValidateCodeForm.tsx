@@ -36,9 +36,6 @@ type ValidateCodeFormError = {
 };
 
 type ValidateCodeFormProps = {
-    /** If the magic code has been resent previously */
-    hasMagicCodeBeenSent?: boolean;
-
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete?: AutoCompleteVariant;
 
@@ -79,7 +76,6 @@ type ValidateCodeFormProps = {
 };
 
 function BaseValidateCodeForm({
-    hasMagicCodeBeenSent,
     autoComplete = 'one-time-code',
     innerRef = () => {},
     validateCodeActionErrorField = 'actionVerified',
@@ -107,6 +103,7 @@ function BaseValidateCodeForm({
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const hasMagicCodeBeenSent = useMemo(() => validateCodeAction?.validateCodeSent, [validateCodeAction?.validateCodeSent]);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const timerRef = useRef<NodeJS.Timeout>();
 

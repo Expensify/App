@@ -22,15 +22,13 @@ type ValidateCodeActionModalProps = {
     /** Function to be called when the modal is closed */
     onModalHide?: () => void;
 
-    /** The state of the magic code being sent */
-    validateCodeAction?: ValidateMagicCodeAction | PendingContactAction | undefined;
-
+    /** The pending action we're trying to validate */
     validatePendingAction?: PendingAction | undefined;
 
     /** The error of submitting, this hold any error sepcifc to the flow (e.g invalid reason when replacing a card) but NOT an incorrect magic code  */
     validateError?: Errors;
 
-    /** Where incorrect magic code error will be stored for each flow */
+    /** The errorField name of validateCodeAction.errorFields, e.g. "addLogin" to store magic code error when adding a new contact method */
     validateCodeActionErrorField?: string | undefined;
 
     /** Function is called when submitting form  */
@@ -44,9 +42,6 @@ type ValidateCodeActionModalProps = {
 
     /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
-
-    /** If the magic code has been resent previously */
-    hasMagicCodeBeenSent?: boolean;
 
     /** Whether the form is loading or not */
     isLoading?: boolean;

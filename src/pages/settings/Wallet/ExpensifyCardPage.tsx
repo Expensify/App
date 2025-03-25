@@ -94,7 +94,6 @@ function ExpensifyCardPage({
     const [cardsDetails, setCardsDetails] = useState<Record<number, ExpensifyCardDetails | null>>({});
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
     const openValidateCodeModal = (revealedCardID: number) => {
         setCurrentCardID(revealedCardID);
@@ -307,7 +306,6 @@ function ExpensifyCardPage({
             <ValidateCodeActionModal
                 handleSubmitForm={handleRevealDetails}
                 clearError={() => {}}
-                validateCodeAction={validateCodeAction}
                 validateCodeActionErrorField="revealExpensifyCardDetails"
                 sendValidateCode={() => requestValidateCodeAction()}
                 onClose={() => setIsValidateCodeActionModalVisible(false)}

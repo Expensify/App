@@ -50,7 +50,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
 
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
-    const hasMagicCodeBeenSent = !!validateCodeAction?.validateCodeSent;
 
     const [isValidateModalVisible, setIsValidateModalVisible] = useState(!isUserValidated);
 
@@ -174,8 +173,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                 descriptionPrimary={translate('contacts.featureRequiresValidate')}
                 descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
                 isVisible={isValidateModalVisible}
-                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                validateCodeAction={validateCodeAction}
                 validateCodeActionErrorField="validateLogin"
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                 sendValidateCode={() => requestValidateCodeAction()}

@@ -55,13 +55,11 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             clearError={clearError}
             onClose={onBackButtonPress}
-            validateCodeAction={validateCodeAction}
             validateCodeActionErrorField="addDelegate"
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
-            hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             handleSubmitForm={(validateCode) => addDelegate(login, role, validateCode)}
             descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />

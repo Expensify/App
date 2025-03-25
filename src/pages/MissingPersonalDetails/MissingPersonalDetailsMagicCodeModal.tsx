@@ -60,14 +60,12 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
         <ValidateCodeActionModal
             clearError={clearError}
             onClose={onBackButtonPress}
-            validateCodeAction={validateCodeAction}
             validateCodeActionErrorField="personalDetails"
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
             sendValidateCode={() => requestValidateCodeAction()}
-            hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             handleSubmitForm={handleSubmitForm}
             isLoading={privatePersonalDetails?.isLoading}
         />

@@ -186,7 +186,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                         setIsValidateCodeActionModalVisible(false);
                     }}
                     isVisible={isValidateCodeActionModalVisible}
-                    hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                     title={translate('delegate.makeSureItIsYou')}
                     sendValidateCode={() => requestValidateCodeAction()}
                     descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}

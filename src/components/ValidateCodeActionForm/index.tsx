@@ -1,11 +1,9 @@
 import React, {forwardRef, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionFormProps} from './type';
 
 function ValidateCodeActionForm({
@@ -21,8 +19,6 @@ function ValidateCodeActionForm({
     forwardedRef,
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
-
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
     const isUnmounted = useRef(false);
 
@@ -50,7 +46,6 @@ function ValidateCodeActionForm({
             {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
             <ValidateCodeForm
                 isLoading={isLoading}
-                validateCodeAction={validateCodeAction}
                 validatePendingAction={validatePendingAction}
                 validateError={validateError}
                 handleSubmitForm={handleSubmitForm}

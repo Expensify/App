@@ -29,7 +29,6 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     const isValidated = UserUtils.isCurrentUserValidated(loginList);
@@ -70,7 +69,6 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>
                 <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
                 <ValidateCodeForm
-                    validateCodeAction={validateCodeAction}
                     handleSubmitForm={(code) => {
                         Session.validateUserAndGetAccessiblePolicies(code);
                         return Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));

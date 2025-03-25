@@ -299,8 +299,6 @@ function VerifiedBankAccountFlowEntryPoint({
                 descriptionPrimary={translate('contacts.featureRequiresValidate')}
                 descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
                 isVisible={!!isValidateCodeActionModalVisible}
-                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                validateCodeAction={validateCodeAction}
                 validateCodeActionErrorField="validateLogin"
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                 sendValidateCode={() => requestValidateCodeAction()}

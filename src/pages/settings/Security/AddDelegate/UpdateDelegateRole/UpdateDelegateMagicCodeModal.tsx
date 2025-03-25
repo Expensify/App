@@ -48,14 +48,12 @@ function UpdateDelegateMagicCodeModal({login, role, isValidateCodeActionModalVis
         <ValidateCodeActionModal
             clearError={clearError}
             onClose={onBackButtonPress}
-            validateCodeAction={validateCodeAction}
             validateCodeActionErrorField="updateDelegateRole"
             isLoading={currentDelegate?.isLoading}
             validateError={updateDelegateErrors}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
-            hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             handleSubmitForm={(validateCode) => updateDelegateRole(login, role, validateCode)}
             descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />

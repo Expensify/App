@@ -26,7 +26,6 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const navigateForwardTo = route.params?.forwardTo;
@@ -90,8 +89,6 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             sendValidateCode={() => requestValidateCodeAction()}
             handleSubmitForm={handleSubmitForm}
             validateError={validateLoginError}
-            hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
-            validateCodeAction={validateCodeAction}
             validateCodeActionErrorField="validateLogin"
             isVisible={isValidateCodeActionModalVisible}
             title={translate('contacts.validateAccount')}

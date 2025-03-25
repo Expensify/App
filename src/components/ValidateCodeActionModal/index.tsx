@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
@@ -27,7 +29,6 @@ function ValidateCodeActionModal({
     clearError,
     footer,
     sendValidateCode,
-    hasMagicCodeBeenSent,
     isLoading,
     shouldHandleNavigationBack,
     disableAnimation,
@@ -39,6 +40,7 @@ function ValidateCodeActionModal({
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
     const hide = useCallback(() => {
         clearError();
@@ -47,13 +49,13 @@ function ValidateCodeActionModal({
     }, [onClose, clearError]);
 
     useEffect(() => {
-        if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent) {
+        if (!firstRenderRef.current || !isVisible || validateCodeAction?.validateCodeSent) {
             return;
         }
         firstRenderRef.current = false;
 
         sendValidateCode();
-        // We only want to send validate code on first render not on change of hasMagicCodeBeenSent, so we don't add it as a dependency.
+        // We only want to send validate code on first render not on change of validateCodeSent, so we don't add it as a dependency.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, sendValidateCode]);
@@ -106,7 +108,6 @@ function ValidateCodeActionModal({
                             clearError={clearError}
                             buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                             ref={validateCodeFormRef}
-                            hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         />
                     </View>
                 </ScrollView>
