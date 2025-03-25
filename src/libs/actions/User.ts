@@ -352,78 +352,6 @@ function addPendingContactMethod(contactMethod: string) {
 }
 
 /**
- * Validates the action to add secondary contact method
- */
-function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
-    console.log('saving');
-    return;
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                contactMethod,
-                errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
-                    actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: true},
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                validateCodeSent: true,
-                errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
-                    actionVerified: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                validateCodeSent: null,
-                errorFields: {
-                    actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
-                },
-                pendingFields: {
-                    actionVerified: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
-}
-
-/**
  * Adds a secondary login to a user's account
  */
 function addNewContactMethod(contactMethod: string, validateCode = '') {
@@ -1521,7 +1449,6 @@ export {
     updateDraftCustomStatus,
     clearDraftCustomStatus,
     requestRefund,
-    saveNewContactMethodAndRequestValidationCode,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,
     requestValidateCodeAction,

@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
+import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
@@ -45,7 +46,6 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
-import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
 type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
