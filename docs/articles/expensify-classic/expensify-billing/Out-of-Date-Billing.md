@@ -1,7 +1,9 @@
 ---
 title: Out-of-Date Billing
 description: How to resolve an out-of-date billing notification for your Expensify Workspace.
+keywords: [Expensify Classic, out-of-date billing, billing notification, retry billing]
 ---
+<div id="expensify-classic" markdown="1">
 
 **A notification about out-of-date billing appears when:**
 
@@ -15,7 +17,8 @@ description: How to resolve an out-of-date billing notification for your Expensi
 1. Hover over **Settings** and click **Workspaces**.
 2. Select the workspace with the `!` symbol.
 3. Locate the **Billing Owner** listed.
-4. Ask the Billing Owner to follow the next steps. If you need to take over billing, click **Take Over Billing**.
+4. Ask the Billing Owner to follow the next steps.
+5. If you're an Admin and need to take over billing, click **Take Over Billing** in the Workspace settings.
 
 ---
 
@@ -24,10 +27,11 @@ description: How to resolve an out-of-date billing notification for your Expensi
 **Note:** Only the **Billing Owner** can complete this step.
 
 1. Ensure the linked card or bank account has sufficient funds.
-2. Hover over **Settings** and click **Account**.
-3. Select the **Payments** tab.
-4. Choose one of the following:
+2. Hover over **Settings** and click **Account > Subscription**.
+3. Under **Payments**, choose one of the following:
    - Click **Retry Billing** if the previous payment failed due to insufficient funds.
    - Click **Add Payment Card** to enter a new payment method.
 
 Once the payment is processed, the out-of-date billing notification will disappear.
+
+</div>
