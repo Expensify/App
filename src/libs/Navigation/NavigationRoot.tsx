@@ -1,5 +1,5 @@
-import type {NavigationState} from '@react-navigation/native';
 import {CurrentRenderContext, DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -79,9 +79,11 @@ function parseAndLogRoute(state: NavigationState) {
 
     Navigation.setIsNavigationReady();
 
-    if (currentPath.includes('/settings')) {
-        console.log('currentPath', currentPath);
+    if (state.routes.at(-1)?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || state.routes.at(-1)?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
         savePathToSessionStorage(currentPath);
+        if (state.routes.at(-1)) {
+            sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_KEY, state.routes.at(-1)?.key);
+        }
     }
 
     // Fullstory Page navigation tracking
