@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
+import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -34,14 +35,8 @@ function SubscriptionPlan() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-
-    function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps): number {
-        if (!privateSubscription?.type) {
-            return 0;
-        }
-
-        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][privateSubscription.type];
-    }
+    const collectSubscriptionPrice = getSubscriptionPrice(CONST.POLICY.TYPE.TEAM, preferredCurrency, privateSubscription?.type);
+    const controlSubscriptionPrice = getSubscriptionPrice(CONST.POLICY.TYPE.CORPORATE, preferredCurrency, privateSubscription?.type);
 
     const plans = [
         {
@@ -58,8 +53,8 @@ function SubscriptionPlan() {
             ],
             src: Illustrations.Mailbox,
             description: translate(`subscription.yourPlan.collect.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
-                lower: convertToShortDisplayString(getSubscriptionPrice(CONST.POLICY.TYPE.TEAM), preferredCurrency),
-                upper: convertToShortDisplayString(getSubscriptionPrice(CONST.POLICY.TYPE.TEAM) * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
+                lower: convertToShortDisplayString(collectSubscriptionPrice, preferredCurrency),
+                upper: convertToShortDisplayString(collectSubscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
             }),
             isSelected: subscriptionPlan === CONST.POLICY.TYPE.TEAM,
         },
@@ -76,8 +71,8 @@ function SubscriptionPlan() {
             ],
             src: Illustrations.ShieldYellow,
             description: translate(`subscription.yourPlan.control.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
-                lower: convertToShortDisplayString(getSubscriptionPrice(CONST.POLICY.TYPE.CORPORATE), preferredCurrency),
-                upper: convertToShortDisplayString(getSubscriptionPrice(CONST.POLICY.TYPE.CORPORATE) * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
+                lower: convertToShortDisplayString(controlSubscriptionPrice, preferredCurrency),
+                upper: convertToShortDisplayString(controlSubscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
             }),
             isSelected: subscriptionPlan === CONST.POLICY.TYPE.CORPORATE,
         },

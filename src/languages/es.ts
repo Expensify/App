@@ -6320,6 +6320,7 @@ const translations = {
             annual: 'Suscripción anual',
             taxExempt: 'Solicitar estado de exención de impuestos',
             taxExemptEnabled: 'Exento de impuestos',
+            taxExemptStatus: 'Estado de exención de impuestos',
             payPerUse: 'Pago por uso',
             subscriptionSize: 'Tamaño de suscripción',
             headsUp:
@@ -6361,6 +6362,15 @@ const translations = {
             helpUsImprove: 'Ayúdanos a mejorar Expensify',
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Se renovará el ${date}.`,
+            pricingConfiguration: 'El precio depende de la configuración. Para obtener el precio más bajo, elige una suscripción anual y obtén la Tarjeta Expensify.',
+            learnMore: {
+                part1: 'Obtén más información en nuestra ',
+                pricingPage: 'página de precios',
+                part2: ' o chatea con nuestro equipo en tu ',
+                adminsRoom: 'sala #admins.',
+            },
+            estimatedPrice: 'Precio estimado',
+            changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
         },
         requestEarlyCancellation: {
             title: 'Solicitar cancelación anticipada',

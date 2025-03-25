@@ -2,6 +2,9 @@ import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
+import type {PersonalPolicyTypeExludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
+import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
@@ -538,6 +541,14 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
+function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {
+    if (!privateSubscriptionType || !plan) {
+        return 0;
+    }
+
+    return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][privateSubscriptionType];
+}
+
 export {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
@@ -557,4 +568,5 @@ export {
     shouldShowPreTrialBillingBanner,
     shouldShowDiscountBanner,
     getEarlyDiscountInfo,
+    getSubscriptionPrice,
 };

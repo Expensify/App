@@ -31,3 +31,4 @@ function usePreferredCurrency(): PreferredCurrency {
 }
 
 export default usePreferredCurrency;
+export type {PreferredCurrency};

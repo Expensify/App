@@ -5801,6 +5801,7 @@ const translations = {
             annual: 'Annual subscription',
             taxExempt: 'Request tax exempt status',
             taxExemptEnabled: 'Tax exempt',
+            taxExemptStatus: 'Tax exempt status',
             payPerUse: 'Pay-per-use',
             subscriptionSize: 'Subscription size',
             headsUp:
@@ -5842,6 +5843,15 @@ const translations = {
             helpUsImprove: 'Help us improve Expensify',
             whatsMainReason: "What's the main reason you're disabling auto-renew?",
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renews on ${date}.`,
+            pricingConfiguration: 'Pricing depends on configuration. For the lowest price, choose an annual subscription and get the Expensify Card.',
+            learnMore: {
+                part1: 'Learn more on our ',
+                pricingPage: 'pricing page',
+                part2: ' or chat with our team in your ',
+                adminsRoom: '#admins room.',
+            },
+            estimatedPrice: 'Estimated price',
+            changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
         },
         requestEarlyCancellation: {
             title: 'Request early cancellation',

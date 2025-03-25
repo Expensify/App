@@ -63,7 +63,6 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                     <CardSection />
                     <SubscriptionPlan />
                     <SubscriptionDetails />
-                    <SubscriptionSettings />
                 </View>
             </ScrollView>
         </ScreenWrapper>
