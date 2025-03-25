@@ -42,6 +42,8 @@ type ValidateCodeFormProps = {
     /** Forwarded inner ref */
     innerRef?: ForwardedRef<ValidateCodeFormHandle>;
 
+    hasMagicCodeBeenSent?: boolean;
+
     /** The pending action of magic code being sent
      * if not supplied, we will retrieve it from the validateCodeAction above: `validateCodeAction.pendingFields.validateCodeSent`
      */
@@ -79,6 +81,7 @@ type ValidateCodeFormProps = {
 function BaseValidateCodeForm({
     autoComplete = 'one-time-code',
     innerRef = () => {},
+    hasMagicCodeBeenSent,
     validateCodeActionErrorField,
     validatePendingAction,
     validateError,
@@ -104,7 +107,7 @@ function BaseValidateCodeForm({
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const hasMagicCodeBeenSent = useMemo(() => validateCodeAction?.validateCodeSent, [validateCodeAction?.validateCodeSent]);
+    const validateCodeSent = useMemo(() => hasMagicCodeBeenSent ?? validateCodeAction?.validateCodeSent, [hasMagicCodeBeenSent, validateCodeAction?.validateCodeSent]);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const timerRef = useRef<NodeJS.Timeout>();
 
@@ -153,11 +156,11 @@ function BaseValidateCodeForm({
     );
 
     useEffect(() => {
-        if (!hasMagicCodeBeenSent) {
+        if (!validateCodeSent) {
             return;
         }
         inputValidateCodeRef.current?.clear();
-    }, [hasMagicCodeBeenSent]);
+    }, [validateCodeSent]);
 
     useEffect(() => {
         if (timeRemaining > 0) {
@@ -274,7 +277,7 @@ function BaseValidateCodeForm({
                     </View>
                 )}
             </OfflineWithFeedback>
-            {!!hasMagicCodeBeenSent && (
+            {!!validateCodeSent && (
                 <DotIndicatorMessage
                     type="success"
                     style={[styles.mt6, styles.flex0]}
