@@ -2314,6 +2314,23 @@ function getAddedApprovaRulelMessage(reportAction: OnyxEntry<ReportAction>) {
     return getReportActionText(reportAction);
 }
 
+function getUpdatedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {field, oldApproverEmail, oldApproverName, newApproverEmail, newApproverName, name} =
+        getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE>) ?? {};
+
+    if (field && oldApproverEmail && oldApproverName && newApproverEmail && newApproverName && name) {
+        return translateLocal('workspaceActions.updateApprovalRule', {
+            field,
+            name,
+            newApproverEmail,
+            newApproverName,
+            oldApproverEmail,
+            oldApproverName,
+        });
+    }
+    return getReportActionText(reportAction);
+}
+
 function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
     const originalMessage = getOriginalMessage(reportAction);
     const submittersNames = getPersonalDetailsByIDs({
@@ -2477,6 +2494,7 @@ export {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getAddedApprovaRulelMessage,
+    getUpdatedApprovalRuleMessage,
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
     getReportAction,

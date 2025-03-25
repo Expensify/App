@@ -43,6 +43,7 @@ import {
     getReportActionMessageText,
     getSortedReportActions,
     getTagListNameUpdatedMessage,
+    getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdateRoomDescriptionMessage,
@@ -653,6 +654,8 @@ function getOptionData({
             result.alternateText = getUpdatedAuditRateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE) {
             result.alternateText = getAddedApprovaRulelMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE) {
+            result.alternateText = getUpdatedApprovalRuleMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {
             result.alternateText = getUpdatedManualApprovalThresholdMessage(lastAction);
         } else {

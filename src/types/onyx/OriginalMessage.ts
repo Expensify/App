@@ -426,6 +426,18 @@ type OriginalMessagePolicyChangeLog = {
     /** Account ID of the approver */
     approverAccountID?: string;
 
+    /** Email of the new approver */
+    newApproverEmail?: string;
+
+    /** Name of the new approver */
+    newApproverName?: string;
+
+    /** Email of the old approver */
+    oldApproverEmail?: string;
+
+    /** Name of the old approver */
+    oldApproverName?: string;
+
     /** Email of the approver */
     approverEmail?: string;
 
