@@ -26,6 +26,7 @@ jobs:
             echo "::error::💥 Invalid TARGET_BRANCH ${{ inputs.TARGET_BRANCH }}"
             exit 1
           fi
+
       - name: Checkout source branch
         uses: actions/checkout@v4
         with:
@@ -49,6 +50,7 @@ jobs:
           # Force-update the remote target branch.
           git push --force origin ${{ inputs.TARGET_BRANCH }}
           echo "::notice::New HEAD of Mobile-Expensify ${{ inputs.TARGET_BRANCH}}: $(git log -1 --pretty=format:"%h \"%s\" by %an")"
+
       - name: Update target branch in E/App
         run: |
           # Re-create the target branch from the source branch
@@ -56,6 +58,7 @@ jobs:
           # Force-update the remote target branch.
           git push --force origin ${{ inputs.TARGET_BRANCH }}
           echo "::notice::New HEAD of E/App ${{ inputs.TARGET_BRANCH}}: $(git log -1 --pretty=format:"%h \"%s\" by %an")"
+
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
