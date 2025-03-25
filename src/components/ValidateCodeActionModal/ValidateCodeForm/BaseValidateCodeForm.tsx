@@ -255,7 +255,7 @@ function BaseValidateCodeForm({
                 </Text>
             )}
             <OfflineWithFeedback
-                pendingAction={validatePendingAction ?? validateCodeAction?.pendingFields?.validateCodeSent}
+                pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => clearValidateCodeActionError(validateCodeActionErrorField)}
             >
@@ -286,7 +286,7 @@ function BaseValidateCodeForm({
             )}
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
-                pendingAction={validateCodeAction?.pendingAction}
+                pendingAction={validatePendingAction}
                 errors={canShowError ? finalValidateError : undefined}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => {
