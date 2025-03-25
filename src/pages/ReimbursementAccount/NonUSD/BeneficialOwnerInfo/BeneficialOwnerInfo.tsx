@@ -283,6 +283,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isUserOwner}
                     onSelectedValue={handleNextSubStep}
+                    isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                 />
             )}
 
@@ -292,6 +293,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={isAnyoneElseOwner}
                     onSelectedValue={handleNextSubStep}
+                    isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                 />
             )}
 
@@ -314,6 +316,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
                     description={translate('ownershipInfoStep.regulationsRequire')}
                     defaultValue={false}
                     onSelectedValue={handleNextSubStep}
+                    isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                 />
             )}
 

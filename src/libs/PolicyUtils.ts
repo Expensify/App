@@ -33,12 +33,13 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
-import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
@@ -208,7 +209,13 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnectionInProgress: boolean): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-    if (shouldShowEmployeeListError(policy) || shouldShowCustomUnitsError(policy) || shouldShowPolicyErrorFields(policy) || shouldShowSyncError(policy, isConnectionInProgress)) {
+    if (
+        shouldShowEmployeeListError(policy) ||
+        shouldShowCustomUnitsError(policy) ||
+        shouldShowPolicyErrorFields(policy) ||
+        shouldShowSyncError(policy, isConnectionInProgress) ||
+        shouldShowQBOReimbursableExportDestinationAccountError(policy)
+    ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;
@@ -1088,6 +1095,39 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: Work
 };
 
 /**
+ * Determines whether the report can be moved to the workspace.
+ */
+const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, oldPolicy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean => {
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isCurrentUserMember = !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
+    if (!isCurrentUserMember) {
+        return false;
+    }
+
+    // Submitters: workspaces where the submitter is a member of
+    const isCurrentUserSubmitter = report?.ownerAccountID === currentUserAccountID;
+    if (isCurrentUserSubmitter) {
+        return true;
+    }
+
+    // Approvers: workspaces where both the approver AND submitter are members of
+    const reportApproverAccountID = getSubmitToAccountID(oldPolicy, report);
+    const isCurrentUserApprover = currentUserAccountID === reportApproverAccountID;
+    if (isCurrentUserApprover) {
+        const reportSubmitterLogin = report?.ownerAccountID ? getLoginByAccountID(report?.ownerAccountID) : undefined;
+        const isReportSubmitterMember = !!reportSubmitterLogin && !!newPolicy?.employeeList?.[reportSubmitterLogin];
+        return isCurrentUserApprover && isReportSubmitterMember;
+    }
+
+    // Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
+    if (isPolicyOwner(newPolicy, currentUserAccountID) || isUserPolicyAdmin(newPolicy, currentUserLogin)) {
+        return true;
+    }
+
+    return false;
+};
+
+/**
  * Takes removes pendingFields and errorFields from a customUnit
  */
 function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
@@ -1211,6 +1251,14 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
     return (
         !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
+}
+
+function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
+    const groupPolicies = Object.values(policies ?? {}).filter((policy) => isPaidGroupPolicy(policy));
+    if (groupPolicies.length === 0) {
+        return false;
+    }
+    return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
 }
 
 function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null = allPolicies) {
@@ -1487,9 +1535,11 @@ export {
     getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
+    isWorkspaceEligibleForReportChange,
     getManagerAccountID,
     isPrefferedExporter,
     isAutoSyncEnabled,
+    areAllGroupPoliciesExpenseChatDisabled,
 };
 
 export type {MemberEmailsToAccountIDs};
