@@ -62,6 +62,14 @@ function canUseHelpSidePanel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.HELP_SIDE_PANEL) || canUseAllBetas(betas);
 }
 
+function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) || canUseAllBetas(betas);
+}
+
+function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -76,4 +84,6 @@ export default {
     canUseCustomRules,
     canUseTableReportView,
     canUseHelpSidePanel,
+    canUseTalkToAISales,
+    canUseProhibitedExpenses,
 };
