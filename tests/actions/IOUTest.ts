@@ -760,7 +760,7 @@ describe('actions/IOU', () => {
                 amount: 1000,
                 comment: {
                     comment: 'Existing transaction',
-                    attendees: [{email: 'text@expensify.com'}],
+                    attendees: [{email: 'text@expensify.com', displayName: 'Test User', avatarUrl: ''}],
                 },
                 created: DateUtils.getDBTime(),
                 currency: CONST.CURRENCY.USD,
@@ -1337,7 +1337,7 @@ describe('actions/IOU', () => {
                 amount: 1000,
                 comment: {
                     comment: 'This is an existing transaction',
-                    attendees: [{email: 'text@expensify.com'}],
+                    attendees: [{email: 'text@expensify.com', displayName: 'Test User', avatarUrl: ''}],
                 },
                 created: DateUtils.getDBTime(),
                 currency: '',

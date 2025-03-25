@@ -4898,6 +4898,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 createdReportActionIDForThread,
                 reimbursible,
                 description: parsedComment,
+                attendees: attendees ? JSON.stringify(attendees) : undefined,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);

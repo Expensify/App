@@ -22,7 +22,7 @@ export default function createRandomTransaction(index: number): Transaction {
                     name: randWord(),
                 },
             },
-            attendees: [{email: randWord()}],
+            attendees: [{email: randWord(), displayName: 'Test User', avatarUrl: ''}],
         },
         filename: randWord(),
         managedCard: randBoolean(),

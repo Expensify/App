@@ -74,7 +74,7 @@ function SubmitDetailsPage({
             gpsPoints,
             action: CONST.IOU.TYPE.CREATE,
             transactionParams: {
-                attendees: transaction.attendees,
+                attendees: transaction.comment?.attendees,
                 amount: transactionAmount,
                 currency: transaction.currency,
                 comment: trimmedComment,

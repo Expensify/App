@@ -16,10 +16,22 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as Report from '@userActions/Report';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {Section} from '@libs/OptionsListUtils';
+import {
+    filterAndOrderOptions,
+    formatSectionsFromSearchTerm,
+    getAttendeeOptions,
+    getEmptyOptions,
+    getHeaderMessage,
+    getParticipantsOption,
+    getPersonalDetailSearchTerms,
+    getPolicyExpenseReportOption,
+    isCurrentUser,
+    orderOptions,
+} from '@libs/OptionsListUtils';
+import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
+import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,18 +74,18 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const isPaidGroupPolicy = useMemo(() => PolicyUtils.isPaidGroupPolicy(policy), [policy]);
+    const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyFn(policy), [policy]);
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
     useEffect(() => {
-        Report.searchInServer(debouncedSearchTerm.trim());
+        searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            OptionsListUtils.getEmptyOptions();
+            getEmptyOptions();
         }
-        const optionList = OptionsListUtils.getAttendeeOptions(
+        const optionList = getAttendeeOptions(
             options.reports,
             options.personalDetails,
             betas,
@@ -85,7 +97,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             action,
         );
         if (isPaidGroupPolicy) {
-            const orderedOptions = OptionsListUtils.orderOptions(optionList, searchTerm, {
+            const orderedOptions = orderOptions(optionList, searchTerm, {
                 preferChatroomsOverThreads: true,
                 preferPolicyExpenseChat: !!action,
                 preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
@@ -123,7 +135,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 headerMessage: '',
             };
         }
-        const newOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
@@ -136,7 +148,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
      * Returns the sections needed for the OptionsSelector
      */
     const [sections, header] = useMemo(() => {
-        const newSections: OptionsListUtils.Section[] = [];
+        const newSections: Section[] = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
@@ -144,9 +156,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         const restOfRecents = [...chatOptions.recentReports].slice(5);
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
+        const formatResults = formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            attendees.map((attendee) => ({...attendee, reportID: attendee.reportID ?? '-1'})),
+            attendees.map((attendee) => ({...attendee, reportID: attendee.reportID ?? CONST.DEFAULT_NUMBER_ID.toString()})),
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
@@ -168,23 +180,23 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         if (
             chatOptions.userToInvite &&
-            !OptionsListUtils.isCurrentUser({...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? -1, status: chatOptions.userToInvite?.status ?? undefined})
+            !isCurrentUser({...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID, status: chatOptions.userToInvite?.status ?? undefined})
         ) {
             newSections.push({
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
         }
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(
+        const headerMessage = getHeaderMessage(
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
             debouncedSearchTerm.trim(),
-            attendees.some((attendee) => OptionsListUtils.getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            attendees.some((attendee) => getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
         return [newSections, headerMessage];
@@ -219,7 +231,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 newSelectedOptions = [
                     ...attendees,
                     {
-                        accountID: option.accountID ?? -1,
+                        accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         login: option.login || option.text,
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -300,7 +312,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
-            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onSelectRow={addAttendeeToSelection}
             shouldSingleExecuteRowSelect
             footerContent={footerContent}
