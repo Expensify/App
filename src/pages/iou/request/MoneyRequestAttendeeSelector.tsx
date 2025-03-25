@@ -10,6 +10,7 @@ import {usePersonalDetails, useSession} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import type {SectionListDataType} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,7 +18,6 @@ import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import type {Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
@@ -148,7 +148,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
      * Returns the sections needed for the OptionsSelector
      */
     const [sections, header] = useMemo(() => {
-        const newSections: Section[] = [];
+        const newSections: Array<SectionListDataType<Attendee>> = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
@@ -164,17 +164,17 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             personalDetails,
             true,
         );
-        newSections.push(formatResults.section);
+        newSections.push(formatResults.section as SectionListDataType<Attendee>);
 
         newSections.push({
             title: translate('common.recents'),
-            data: fiveRecents,
+            data: fiveRecents as Attendee[],
             shouldShow: fiveRecents.length > 0,
         });
 
         newSections.push({
             title: translate('common.contacts'),
-            data: contactsWithRestOfRecents,
+            data: contactsWithRestOfRecents as Attendee[],
             shouldShow: contactsWithRestOfRecents.length > 0,
         });
 
@@ -187,7 +187,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                }),
+                }) as Attendee[],
                 shouldShow: true,
             });
         }
