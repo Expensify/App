@@ -385,3 +385,4 @@ export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveC
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
 export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
+export type {default as CreateAppleDigitalWalletParams} from './CreateAppleDigitalWalletParams';
