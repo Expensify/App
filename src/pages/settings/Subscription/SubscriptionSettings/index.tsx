@@ -140,10 +140,6 @@ function SubscriptionSettings() {
         Subscription.updateSubscriptionAddNewUsersAutomatically(!privateSubscription?.addNewUsersAutomatically);
     };
 
-    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAYPERUSE) {
-        return null;
-    }
-
     const customTitleSecondSentenceStyles: StyleProp<TextStyle> = [styles.textNormal, {color: theme.success}];
     const customTitle = (
         <Text>
@@ -204,28 +200,34 @@ function SubscriptionSettings() {
                         {subscriptionSizeSection}
                     </OfflineWithFeedback>
                 )}
-                <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.autoRenew}>
-                    <View style={styles.mt5}>
-                        <ToggleSettingOptionRow
-                            title={translate('subscription.subscriptionSettings.autoRenew')}
-                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
-                            onToggle={handleAutoRenewToggle}
-                            isActive={privateSubscription?.autoRenew ?? false}
-                        />
-                        {!!autoRenewalDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>}
-                    </View>
-                </OfflineWithFeedback>
-                <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.addNewUsersAutomatically}>
-                    <View style={styles.mt3}>
-                        <ToggleSettingOptionRow
-                            customTitle={customTitle}
-                            switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
-                            onToggle={handleAutoIncreaseToggle}
-                            isActive={privateSubscription?.addNewUsersAutomatically ?? false}
-                        />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
-                    </View>
-                </OfflineWithFeedback>
+                {isAnnual ? (
+                    <>
+                        <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.autoRenew}>
+                            <View style={styles.mt5}>
+                                <ToggleSettingOptionRow
+                                    title={translate('subscription.subscriptionSettings.autoRenew')}
+                                    switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                                    onToggle={handleAutoRenewToggle}
+                                    isActive={privateSubscription?.autoRenew ?? false}
+                                />
+                                {!!autoRenewalDate && (
+                                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>
+                                )}
+                            </View>
+                        </OfflineWithFeedback>
+                        <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.addNewUsersAutomatically}>
+                            <View style={styles.mt3}>
+                                <ToggleSettingOptionRow
+                                    customTitle={customTitle}
+                                    switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                                    onToggle={handleAutoIncreaseToggle}
+                                    isActive={privateSubscription?.addNewUsersAutomatically ?? false}
+                                />
+                                <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.automaticallyIncrease')}</Text>
+                            </View>
+                        </OfflineWithFeedback>
+                    </>
+                ) : null}
                 <MenuItemWithTopDescription
                     description={privateTaxExempt ? translate('subscription.details.taxExemptStatus') : undefined}
                     shouldShowRightIcon
