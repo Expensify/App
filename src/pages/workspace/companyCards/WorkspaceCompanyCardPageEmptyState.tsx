@@ -71,7 +71,7 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
                 illustrationStyle={styles.emptyStateCardIllustration}
                 illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
                 titleStyles={styles.textHeadlineH1}
-                isButtonDisabled={workspaceAccountID > CONST.DEFAULT_NUMBER_ID}
+                isButtonDisabled={workspaceAccountID === CONST.DEFAULT_NUMBER_ID}
             />
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
