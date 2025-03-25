@@ -1808,7 +1808,7 @@ describe('ReportUtils', () => {
             ownerAccountID: currentUserAccountID,
         };
 
-        it('should return false since preventSelfApproval is disabled and the approver is not the owner of the expense report', () => {
+        it('should return true if preventSelfApproval is disabled and the approver is not the owner of the expense report', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(6),
                 preventSelfApproval: false,
@@ -1816,7 +1816,7 @@ describe('ReportUtils', () => {
             expect(isAllowedToApproveExpenseReport(expenseReport, 0, fakePolicy)).toBeTruthy();
         });
 
-        it('should return false since preventSelfApproval is enabled and the approver is not the owner of the expense report', () => {
+        it('should return true if preventSelfApproval is enabled and the approver is not the owner of the expense report', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(6),
                 preventSelfApproval: true,
@@ -1824,7 +1824,7 @@ describe('ReportUtils', () => {
             expect(isAllowedToApproveExpenseReport(expenseReport, 0, fakePolicy)).toBeTruthy();
         });
 
-        it('should return true since preventSelfApproval is disabled and the approver is the owner of the expense report', () => {
+        it('should return true if preventSelfApproval is disabled and the approver is the owner of the expense report', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(6),
                 preventSelfApproval: false,
@@ -1832,7 +1832,7 @@ describe('ReportUtils', () => {
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
         });
 
-        it('should return false since preventSelfApproval is enabled and the approver is the owner of the expense report', () => {
+        it('should return false if preventSelfApproval is enabled and the approver is the owner of the expense report', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(6),
                 preventSelfApproval: true,
