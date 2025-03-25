@@ -13,7 +13,6 @@ const PLIST_PATH = './ios/NewExpensify/Info.plist';
 const PLIST_PATH_NSE = './ios/NotificationServiceExtension/Info.plist';
 const PLIST_PATH_SHARE = './ios/ShareViewController/Info.plist';
 
-
 /**
  * Pad a number to be two digits (with leading zeros if necessary).
  */
