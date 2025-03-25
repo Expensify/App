@@ -5,6 +5,7 @@ on:
     inputs:
       REVIEWED_CODE:
         description: I reviewed this pull request and verified that it does not contain any malicious code.
+        type: boolean
         required: true
         default: false
       # Pull Request number from App repo for correct placement of ND app. If not specified defaults to main branch.
