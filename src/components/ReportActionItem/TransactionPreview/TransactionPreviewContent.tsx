@@ -174,6 +174,10 @@ function TransactionPreviewContent({
         ],
     );
 
+    const shouldAddGapToPreviewText = isBillSplit || shouldShowMerchantOrDescription || shouldShowCategoryOrTag;
+    const shouldAddMbn1ToPreviewText = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag;
+    const shouldWrapDisplayAmount = !(shouldShowMerchantOrDescription || isBillSplit);
+
     const transactionContent = (
         <View style={[styles.border, styles.reportContainerBorderRadius, containerStyles]}>
             <OfflineWithFeedback
@@ -188,7 +192,7 @@ function TransactionPreviewContent({
             >
                 <View
                     style={[
-                        isScanning || isWhisper ? [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius] : undefined,
+                        (isScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius],
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles, themeStyles] : {},
                     ]}
                 >
@@ -205,23 +209,23 @@ function TransactionPreviewContent({
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
-                                <View style={isBillSplit || shouldShowMerchantOrDescription || shouldShowCategoryOrTag ? styles.gap2 : {}}>
-                                    {shouldShowIOUHeader && (
-                                        <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
-                                            <UserInfoCellsWithArrow
-                                                shouldDisplayArrowIcon
-                                                participantFrom={from}
-                                                participantFromDisplayName={from.displayName ?? from.login ?? ''}
-                                                participantTo={to}
-                                                participantToDisplayName={to.displayName ?? to.login ?? ''}
-                                                avatarSize="mid-subscript"
-                                                infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
-                                                infoCellsAvatarStyle={styles.pr1}
-                                            />
-                                        </View>
-                                    )}
+                                {shouldShowIOUHeader && (
+                                    <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
+                                        <UserInfoCellsWithArrow
+                                            shouldDisplayArrowIcon
+                                            participantFrom={from}
+                                            participantFromDisplayName={from.displayName ?? from.login ?? ''}
+                                            participantTo={to}
+                                            participantToDisplayName={to.displayName ?? to.login ?? ''}
+                                            avatarSize="mid-subscript"
+                                            infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                                            infoCellsAvatarStyle={styles.pr1}
+                                        />
+                                    </View>
+                                )}
+                                <View style={shouldAddGapToPreviewText && styles.gap2}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{previewHeaderText}</Text>
+                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16, shouldAddMbn1ToPreviewText && styles.mbn1]}>{previewHeaderText}</Text>
                                         {isBillSplit && (
                                             <View style={styles.moneyRequestPreviewBoxAvatar}>
                                                 <MultipleAvatars
@@ -232,7 +236,7 @@ function TransactionPreviewContent({
                                                 />
                                             </View>
                                         )}
-                                        {!isBillSplit && !shouldShowMerchantOrDescription && (
+                                        {shouldWrapDisplayAmount && (
                                             <Text
                                                 fontSize={variables.fontSizeNormal}
                                                 style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
@@ -261,7 +265,7 @@ function TransactionPreviewContent({
                                                         {merchantOrDescription}
                                                     </Text>
                                                 )}
-                                                {(shouldShowMerchant || shouldShowDescription || isBillSplit) && (
+                                                {!shouldWrapDisplayAmount && (
                                                     <Text
                                                         fontSize={variables.fontSizeNormal}
                                                         style={[isDeleted && styles.lineThrough, styles.flexShrink0]}

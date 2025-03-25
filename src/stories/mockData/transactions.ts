@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 
 const amount = 1000;
 const currency = 'USD';
@@ -263,6 +264,13 @@ const action: ReportAction = {
     ],
 };
 
+const receiptErrors: ReceiptErrors = {
+    '1201421': {
+        source: 'fake',
+        filename: 'fake',
+    },
+};
+
 /* eslint-enable @typescript-eslint/naming-convention */
 
-export {personalDetails, iouReport, chatReport, transaction, violations, action};
+export {personalDetails, iouReport, chatReport, transaction, violations, action, receiptErrors};

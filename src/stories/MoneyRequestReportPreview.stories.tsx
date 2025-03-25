@@ -7,12 +7,14 @@ import type {MoneyRequestReportPreviewContentProps} from '@components/ReportActi
 import TransactionPreviewContent from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContent';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
+// eslint-disable-next-line no-restricted-imports
+import getMoneyRequestReportPreviewStyle from '@styles/utils/getMoneyRequestReportPreviewStyle';
+// eslint-disable-next-line no-restricted-imports
+import sizing from '@styles/utils/sizing';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
-import {action, chatReport, iouReport, personalDetails, transaction, violations} from './mockData/transactions';
-
-/* eslint-disable react/jsx-props-no-spreading */
+import {action, chatReport, iouReport, personalDetails, receiptErrors, transaction, violations} from './mockData/transactions';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -20,13 +22,15 @@ import {action, chatReport, iouReport, personalDetails, transaction, violations}
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 
-const mockTransactionsMedium = Array.from({length: 6}).map((item, index) => {
+const mockTransactionsMedium = Array.from({length: 2}).map((item, index) => {
     return {...transaction, transactionID: `${index}`};
 });
 
 const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
     return {...transaction, transactionID: `${index}`};
 });
+
+const style = getMoneyRequestReportPreviewStyle(0, false);
 
 const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
     <TransactionPreviewContent
@@ -37,7 +41,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         personalDetails={personalDetails}
         iouReport={iouReport}
         transaction={item}
-        violations={violations}
+        violations={item.errors ? violations : []}
         showContextMenu={() => undefined}
         offlineWithFeedbackOnClose={() => undefined}
         navigateToReviewFields={() => undefined}
@@ -48,7 +52,8 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         walletTermsErrors={undefined}
         routeName={SCREENS.TRANSACTION_DUPLICATE.REVIEW}
         shouldHideOnDelete={false}
-        containerStyles={{width: 303}}
+        wrapperStyles={style.transaction}
+        containerStyles={[sizing.h100]}
     />
 );
 
@@ -134,7 +139,9 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
             <ThemeStylesProvider>
                 <View style={{maxWidth: '100%'}}>
                     <MoneyRequestReportPreviewContent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
+                        containerStyles={[style.preview, props.containerStyles]}
                         transactions={transactions}
                     />
                 </View>
@@ -147,6 +154,7 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default: MoneyRequestReportPreviewStory = Template.bind({});
 const DarkTheme: MoneyRequestReportPreviewStory = Template.bind({});
+const OneTransaction: MoneyRequestReportPreviewStory = Template.bind({});
 const ManyTransactions: MoneyRequestReportPreviewStory = Template.bind({});
 const HasErrors: MoneyRequestReportPreviewStory = Template.bind({});
 const ButtonVisible: MoneyRequestReportPreviewStory = Template.bind({});
@@ -155,12 +163,21 @@ DarkTheme.parameters = {
     useLightTheme: false,
 };
 
+OneTransaction.args = {
+    transactions: [transaction],
+};
+
 ManyTransactions.parameters = {
     transactionsBig: true,
 };
 
-HasErrors.parameters = {};
+HasErrors.args = {
+    transactions: mockTransactionsMedium.map((t) => ({
+        ...t,
+        errors: receiptErrors,
+    })),
+};
 
 ButtonVisible.parameters = {};
 
-export {Default, DarkTheme, ManyTransactions, HasErrors, ButtonVisible};
+export {Default, DarkTheme, ManyTransactions, HasErrors, ButtonVisible, OneTransaction};

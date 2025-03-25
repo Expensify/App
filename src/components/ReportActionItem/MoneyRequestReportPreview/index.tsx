@@ -5,6 +5,9 @@ import TransactionPreview from '@components/ReportActionItem/TransactionPreview'
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -26,6 +29,9 @@ function MoneyRequestReportPreview({
     onPaymentOptionsShow,
     onPaymentOptionsHide,
 }: MoneyRequestReportPreviewProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
@@ -41,6 +47,7 @@ function MoneyRequestReportPreview({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
+    const style = StyleUtils.getMoneyRequestReportPreviewStyle(transactions.length, shouldUseNarrowLayout);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
@@ -54,14 +61,14 @@ function MoneyRequestReportPreview({
             isHovered={isHovered}
             iouReportID={iouReportID}
             onPreviewPressed={() => {}}
-            wrapperStyles={{width: 300}}
-            containerStyles={{height: '100%'}}
+            wrapperStyles={style.transaction}
+            containerStyles={[styles.h100, containerStyles]}
         />
     );
 
     return (
         <MoneyRequestReportPreviewContent
-            containerStyles={containerStyles}
+            containerStyles={[style.preview, containerStyles]}
             contextMenuAnchor={contextMenuAnchor}
             isHovered={isHovered}
             isWhisper={isWhisper}

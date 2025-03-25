@@ -764,7 +764,6 @@ function PureReportActionItem({
                     policyID={report?.policyID}
                     chatReportID={reportID}
                     action={action}
-                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     contextMenuAnchor={popoverAnchorRef.current}
                     isHovered={hovered}
                     isWhisper={isWhisper}

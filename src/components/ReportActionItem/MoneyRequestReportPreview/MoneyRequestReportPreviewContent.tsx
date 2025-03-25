@@ -19,6 +19,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
@@ -102,6 +103,7 @@ function MoneyRequestReportPreviewContent({
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -414,12 +416,14 @@ function MoneyRequestReportPreviewContent({
 
     // eslint-disable-next-line react-compiler/react-compiler
     const viewabilityConfig = useRef({itemVisiblePercentThreshold: 50}).current;
+    const style = StyleUtils.getMoneyRequestReportPreviewStyle(transactions.length, shouldUseNarrowLayout);
 
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
             shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
             needsOffscreenAlphaCompositing
+            style={styles.mt1}
         >
             <View style={[styles.chatItemMessage, containerStyles]}>
                 <PressableWithoutFeedback
@@ -429,43 +433,53 @@ function MoneyRequestReportPreviewContent({
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress
                     // This is added to omit console error about nested buttons as its forbidden on web platform
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, {maxWidth: 680}]}
+                    style={[styles.flexRow, styles.justifyContentBetween, StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.reportContainerBorderRadius]}
                     role={getButtonRole(true)}
                     isNested
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
-                    <View style={[styles.reportPreviewBox, isHovered || isScanning || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined, {maxWidth: 680}]}>
-                        <View style={[styles.expenseAndReportPreviewBoxBody, hasReceipts ? styles.mtn1 : {}]}>
-                            <View style={[shouldUseNarrowLayout ? styles.gap3 : styles.expenseAndReportPreviewTextButtonContainer]}>
-                                <View style={[styles.expenseAndReportPreviewTextContainer]}>
-                                    <View style={[styles.flexRow]}>
-                                        <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, previewMessageStyle]}>
-                                            <Text
-                                                style={[styles.lh20, styles.headerText]}
-                                                testID="MoneyRequestReportPreview-reportName"
-                                            >
-                                                {action.childReportName}
-                                            </Text>
-                                        </Animated.View>
-                                        {iouSettled && (
-                                            <Animated.View style={[styles.defaultCheckmarkWrapper, {transform: [{scale: checkMarkScale}]}]}>
-                                                <Icon
-                                                    src={Expensicons.Checkmark}
-                                                    fill={theme.iconSuccessFill}
-                                                />
+                    <View
+                        style={[
+                            StyleUtils.getBackgroundColorStyle(theme.cardBG),
+                            styles.reportContainerBorderRadius,
+                            styles.w100,
+                            (isHovered || isScanning || isWhisper) && styles.reportPreviewBoxHoverBorder,
+                        ]}
+                    >
+                        <View style={[style.p, hasReceipts && styles.mtn1]}>
+                            <View style={style.gap}>
+                                <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
+                                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
+                                        <View style={[styles.flexRow, styles.flex1]}>
+                                            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flex1]}>
+                                                <Text
+                                                    style={[styles.lh20, styles.headerText]}
+                                                    testID="MoneyRequestReportPreview-reportName"
+                                                    numberOfLines={1}
+                                                >
+                                                    {action.childReportName}
+                                                </Text>
                                             </Animated.View>
-                                        )}
-                                        {isApproved && (
-                                            <Animated.View style={thumbsUpStyle}>
-                                                <Icon
-                                                    src={Expensicons.ThumbsUp}
-                                                    fill={theme.icon}
-                                                />
-                                            </Animated.View>
-                                        )}
+                                            {iouSettled && (
+                                                <Animated.View style={[styles.defaultCheckmarkWrapper, {transform: [{scale: checkMarkScale}]}]}>
+                                                    <Icon
+                                                        src={Expensicons.Checkmark}
+                                                        fill={theme.iconSuccessFill}
+                                                    />
+                                                </Animated.View>
+                                            )}
+                                            {isApproved && (
+                                                <Animated.View style={thumbsUpStyle}>
+                                                    <Icon
+                                                        src={Expensicons.ThumbsUp}
+                                                        fill={theme.icon}
+                                                    />
+                                                </Animated.View>
+                                            )}
+                                        </View>
                                         {!shouldUseNarrowLayout && (
                                             <View style={[styles.flexRow, {alignItems: 'center'}]}>
-                                                <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, {marginRight: 4}]}>{supportText}</Text>
+                                                <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
                                                 <PressableWithFeedback
                                                     accessibilityRole="button"
                                                     accessible
@@ -516,7 +530,7 @@ function MoneyRequestReportPreviewContent({
                                         scrollEnabled
                                         keyExtractor={(item) => item.transactionID}
                                         contentContainerStyle={[styles.gap2]}
-                                        style={[styles.mhn4, styles.ph4]}
+                                        style={[style.mhn, style.ph]}
                                         showsHorizontalScrollIndicator={false}
                                         renderItem={renderFlatlistItem}
                                         onViewableItemsChanged={onViewableItemsChanged}
@@ -548,6 +562,7 @@ function MoneyRequestReportPreviewContent({
                                         policyID={policyID}
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
+                                        wrapperStyle={!shouldUseNarrowLayout && {maxWidth: style.transaction.width}}
                                         onPress={confirmPayment}
                                         onPaymentOptionsShow={onPaymentOptionsShow}
                                         onPaymentOptionsHide={onPaymentOptionsHide}
