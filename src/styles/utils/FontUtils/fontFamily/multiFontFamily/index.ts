@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 // otherwise few of them will appear as black and white
 const fontFamily: FontFamilyStyles = {
     SYSTEM: {
-        fontFamily: 'System, Custom Emoji Font',
+        fontFamily: 'System',
         fontStyle: 'normal',
         fontWeight: fontWeight.normal,
     },
@@ -51,7 +51,7 @@ const fontFamily: FontFamilyStyles = {
         fontWeight: fontWeight.normal,
     },
     EXP_NEUE_BOLD_ITALIC: {
-        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji ',
         fontStyle: 'italic',
         fontWeight: fontWeight.bold,
     },
