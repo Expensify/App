@@ -96,8 +96,10 @@ import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
+import type ShareTempFile from './ShareTempFile';
 import type SidePane from './SidePane';
 import type StripeCustomerID from './StripeCustomerID';
+import type TalkToAISales from './TalkToAISales';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -248,6 +250,7 @@ export type {
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
+    ShareTempFile,
     CorpayFields,
     CorpayFormField,
     JoinablePolicies,
@@ -255,4 +258,5 @@ export type {
     TravelProvisioning,
     SidePane,
     LastPaymentMethodType,
+    TalkToAISales,
 };
