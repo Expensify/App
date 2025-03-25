@@ -30,7 +30,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
-import TextWithCopy from '@components/TextWithCopy';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -1068,24 +1067,20 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         />
                     )}
 
-                    <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.pt5]}>
-                        <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <TextWithCopy
-                                    copyText={base62ReportID}
-                                    style={[styles.textMicroSupporting]}
-                                >
-                                    {translate('common.reportID')}: {base62ReportID}
-                                </TextWithCopy>
-                            </View>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <TextWithCopy
-                                    copyText={report.reportID}
-                                    style={[styles.textMicroSupporting]}
-                                >
-                                    {translate('common.longID')}: {report.reportID}
-                                </TextWithCopy>
-                            </View>
+                    <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <MenuItem
+                                    copyValue={base62ReportID}
+                                    descriptionTextStyle={[styles.textMicroSupporting]}
+                                    description={`${translate('common.reportID')}: ${base62ReportID}`}
+                                    interactive={false}
+                                />
+                                <MenuItem
+                                    copyValue={report.reportID}
+                                    descriptionTextStyle={[styles.textMicroSupporting]}
+                                    description={`${translate('common.longID')}: ${report.reportID}`}
+                                    interactive={false}
+                                />
                         </View>
                     </FixedFooter>
                 </ScrollView>
