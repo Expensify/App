@@ -36,7 +36,13 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled, canSendInvoice as canSendInvoicePolicyUtils, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {
+    areAllGroupPoliciesExpenseChatDisabled,
+    canSendInvoice as canSendInvoicePolicyUtils,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
+    isPaidGroupPolicy,
+    shouldShowPolicy,
+} from '@libs/PolicyUtils';
 import {canCreateRequest, generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getNavatticURL} from '@libs/TourUtils';
@@ -211,8 +217,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    const paidGroupPolicies = useMemo(() => Object.values((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {}).filter((policy) => isPaidGroupPolicy(policy)), [allPolicies]);
-    const groupPoliciesWithChatEnabled = useMemo(() => paidGroupPolicies.filter((policy) => policy?.isPolicyExpenseChatEnabled), [paidGroupPolicies]);
+    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
