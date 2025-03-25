@@ -10,7 +10,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {deleteReportField, updateReportField, updateReportName} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -27,8 +27,8 @@ import EditReportFieldText from './EditReportFieldText';
 type EditReportFieldPageProps = PlatformStackScreenProps<EditRequestNavigatorParamList, typeof SCREENS.EDIT_REQUEST.REPORT_FIELD>;
 
 function EditReportFieldPage({route}: EditReportFieldPageProps) {
-    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {backTo, reportID, policyID} = route.params;
     const fieldKey = getReportFieldKey(route.params.fieldID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -102,7 +102,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                 title={fieldName}
                 threeDotsMenuItems={menuItems}
                 shouldShowThreeDotsButton={!!menuItems?.length}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                threeDotsAnchorPosition={threeDotsAnchorPosition}
                 onBackButtonPress={goBack}
             />
 

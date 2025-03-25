@@ -55,6 +55,10 @@ function HeaderWithBackButton({
         vertical: 0,
         horizontal: 0,
     },
+    threeDotsAnchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    },
     threeDotsMenuItems = [],
     threeDotsMenuIcon,
     threeDotsMenuIconFill,
@@ -242,6 +246,7 @@ function HeaderWithBackButton({
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
                             shouldOverlay={shouldOverlayDots}
+                            anchorAlignment={threeDotsAnchorAlignment}
                             shouldSetModalVisibility={shouldSetModalVisibility}
                         />
                     )}

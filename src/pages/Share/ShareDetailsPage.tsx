@@ -6,8 +6,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -28,6 +30,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import KeyboardUtils from '@src/utils/keyboard';
 import {showErrorAlert} from './ShareRootPage';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
@@ -46,6 +49,7 @@ function ShareDetailsPage({
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails), [report, unknownUserDetails]);
+
     if (isEmptyObject(report)) {
         return <NotFoundPage />;
     }
@@ -96,85 +100,95 @@ function ShareDetailsPage({
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={canUseTouchScreen()}
-            testID={ShareDetailsPage.displayName}
+        <PressableWithoutFeedback
+            onPress={() => {
+                KeyboardUtils.dismiss();
+            }}
+            accessible={false}
         >
-            <View style={[styles.flex1, styles.flexColumn, styles.h100]}>
-                <HeaderWithBackButton
-                    title={translate('share.shareToExpensify')}
-                    shouldShowBackButton
-                />
-                {!!report && (
-                    <>
-                        <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
-                            <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
-                        </View>
-                        <UserListItem
-                            item={displayReport}
-                            isFocused={false}
-                            showTooltip={false}
-                            onSelectRow={() => {}}
-                            pressableStyle={[styles.flexRow]}
-                            shouldSyncFocus={false}
-                            isDisabled
-                        />
-                    </>
-                )}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom
+                shouldEnableKeyboardAvoidingView={false}
+                keyboardAvoidingViewBehavior="padding"
+                shouldEnableMinHeight={canUseTouchScreen()}
+                testID={ShareDetailsPage.displayName}
+            >
+                <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
+                    <HeaderWithBackButton
+                        title={translate('share.shareToExpensify')}
+                        shouldShowBackButton
+                    />
 
-                <View style={[styles.ph5, styles.flex1, styles.flexColumn]}>
-                    <View style={styles.pv5}>
-                        <ScrollView>
-                            <TextInput
-                                value={message}
-                                multiline
-                                onChangeText={setMessage}
-                                accessibilityLabel={translate('share.messageInputLabel')}
-                                label={translate('share.messageInputLabel')}
-                            />
-                        </ScrollView>
-                    </View>
-                    {shouldShowAttachment && (
-                        <>
-                            <View style={[styles.pt6, styles.pb2]}>
-                                <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
+                    {!!report && (
+                        <View>
+                            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                             </View>
-                            <SafeAreaView>
-                                <AttachmentModal
-                                    headerTitle={fileName}
-                                    source={currentAttachment?.content}
-                                    originalFileName={fileName}
-                                    fallbackSource={FallbackAvatar}
-                                >
-                                    {({show}) => (
-                                        <AttachmentPreview
-                                            source={currentAttachment?.content ?? ''}
-                                            aspectRatio={currentAttachment?.aspectRatio}
-                                            onPress={show}
-                                            onLoadError={() => {
-                                                showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                                            }}
-                                        />
-                                    )}
-                                </AttachmentModal>
-                            </SafeAreaView>
-                        </>
+                            <UserListItem
+                                item={displayReport}
+                                isFocused={false}
+                                showTooltip={false}
+                                onSelectRow={() => {
+                                    KeyboardUtils.dismiss();
+                                }}
+                                pressableStyle={[styles.flexRow]}
+                                shouldSyncFocus={false}
+                            />
+                        </View>
                     )}
-                </View>
 
-                <View style={[styles.flexGrow1, styles.flexColumn, styles.justifyContentEnd, styles.mh4, styles.mv3]}>
+                    <View style={[styles.ph5, styles.flex1, styles.flexColumn]}>
+                        <View style={styles.pv5}>
+                            <ScrollView>
+                                <TextInput
+                                    autoFocus={false}
+                                    value={message}
+                                    multiline
+                                    onChangeText={setMessage}
+                                    accessibilityLabel={translate('share.messageInputLabel')}
+                                    label={translate('share.messageInputLabel')}
+                                />
+                            </ScrollView>
+                        </View>
+                        {shouldShowAttachment && (
+                            <>
+                                <View style={[styles.pt6, styles.pb2]}>
+                                    <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
+                                </View>
+                                <SafeAreaView>
+                                    <AttachmentModal
+                                        headerTitle={fileName}
+                                        source={currentAttachment?.content}
+                                        originalFileName={fileName}
+                                        fallbackSource={FallbackAvatar}
+                                    >
+                                        {({show}) => (
+                                            <AttachmentPreview
+                                                source={currentAttachment?.content ?? ''}
+                                                aspectRatio={currentAttachment?.aspectRatio}
+                                                onPress={show}
+                                                onLoadError={() => {
+                                                    showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                                                }}
+                                            />
+                                        )}
+                                    </AttachmentModal>
+                                </SafeAreaView>
+                            </>
+                        )}
+                    </View>
+                </View>
+                <FixedFooter style={[styles.appBG, styles.pt2, styles.pb2]}>
                     <Button
                         success
                         large
                         text={translate('common.share')}
-                        style={styles.w100}
+                        style={[styles.w100]}
                         onPress={handleShare}
                     />
-                </View>
-            </View>
-        </ScreenWrapper>
+                </FixedFooter>
+            </ScreenWrapper>
+        </PressableWithoutFeedback>
     );
 }
 

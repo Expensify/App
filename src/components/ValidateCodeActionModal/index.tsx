@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +39,7 @@ function ValidateCodeActionModal({
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffset);
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
@@ -87,7 +87,7 @@ function ValidateCodeActionModal({
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     shouldOverlayDots
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     onThreeDotsButtonPress={onThreeDotsButtonPress}
                 />
 

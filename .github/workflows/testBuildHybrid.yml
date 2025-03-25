@@ -3,6 +3,11 @@ name: Build and deploy hybrid apps for testing
 on:
   workflow_dispatch:
     inputs:
+      REVIEWED_CODE:
+        description: I reviewed this pull request and verified that it does not contain any malicious code.
+        type: boolean
+        required: true
+        default: false
       # Pull Request number from App repo for correct placement of ND app. If not specified defaults to main branch.
       APP_PULL_REQUEST_NUMBER:
         description: App PR number. Defaults to main.
@@ -36,16 +41,15 @@ on:
         description: Should build Android app?
         type: boolean
         default: true
-    
+
     outputs:
       ANDROID_LINK:
         value: ${{ jobs.androidHybrid.outputs.S3_APK_PATH }}
       IOS_LINK:
         value: ${{ jobs.iosHybrid.outputs.IOS_PATH }}
-  
- 
+
 env:
-  # This variable is needed for fastlane to construct correct path, -hybrid suffix is needed to distinguish hybrid apps from standalone New Dot 
+  # This variable is needed for fastlane to construct correct path, -hybrid suffix is needed to distinguish hybrid apps from standalone New Dot
   PULL_REQUEST_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER || github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || inputs.APP_PR_NUMBER}}-hybrid
 
 jobs:
@@ -61,6 +65,12 @@ jobs:
         with:
           REQUIRE_APP_DEPLOYER: false
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+      - name: Validate that the user reviewed the pull request before running a test build
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.REVIEWED_CODE }}
+        run: |
+          echo "::error::🕵️‍♀️ Please carefully review the pull request before running a test build to ensure it does not contain any malicious code"
+          exit 1
 
       - name: Validate input
         if: github.event.inputs.DISPATCHED_MANUALLY
@@ -154,7 +164,7 @@ jobs:
     uses: ./.github/workflows/postBuildStartedComment.yml
     needs: [getNewDotRef, getOldDotPR, getOldDotRef]
     secrets: inherit
-    with: 
+    with:
       APP_PULL_REQUEST_NUMBER: ${{ inputs.APP_PULL_REQUEST_NUMBER }}
       HYBRIDAPP_PULL_REQUEST_NUMBER: ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }}
 
