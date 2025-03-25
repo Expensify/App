@@ -33,6 +33,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {translateLocal} from './Localize';
@@ -208,7 +209,13 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnectionInProgress: boolean): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-    if (shouldShowEmployeeListError(policy) || shouldShowCustomUnitsError(policy) || shouldShowPolicyErrorFields(policy) || shouldShowSyncError(policy, isConnectionInProgress)) {
+    if (
+        shouldShowEmployeeListError(policy) ||
+        shouldShowCustomUnitsError(policy) ||
+        shouldShowPolicyErrorFields(policy) ||
+        shouldShowSyncError(policy, isConnectionInProgress) ||
+        shouldShowQBOReimbursableExportDestinationAccountError(policy)
+    ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;

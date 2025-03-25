@@ -1429,6 +1429,24 @@ type ACHAccount = {
     reimburser: string;
 };
 
+/** Prohibited expense types */
+type ProhibitedExpenses = {
+    /** Whether the policy prohibits alcohol expenses */
+    alcohol?: boolean;
+
+    /** Whether the policy prohibits hotel incidental expenses */
+    hotelIncidentals?: boolean;
+
+    /** Whether the policy prohibits gambling expenses */
+    gambling?: boolean;
+
+    /** Whether the policy prohibits tobacco expenses */
+    tobacco?: boolean;
+
+    /** Whether the policy prohibits adult entertainment expenses */
+    adultEntertainment?: boolean;
+};
+
 /** Day of the month to schedule submission  */
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
@@ -1824,6 +1842,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the eReceipts are enabled */
         eReceipts?: boolean;
 
+        /** Settings for the Policy's prohibited expenses */
+        prohibitedExpenses?: ProhibitedExpenses;
+
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
@@ -1957,4 +1978,5 @@ export type {
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,
+    ProhibitedExpenses,
 };
