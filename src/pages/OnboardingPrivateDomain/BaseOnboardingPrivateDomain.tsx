@@ -12,10 +12,9 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
+import {resendValidateCode, validateUserAndGetAccessiblePolicies} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
-import * as UserUtils from '@libs/UserUtils';
-import * as Session from '@userActions/Session';
-import * as User from '@userActions/User';
+import {isCurrentUserValidated} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingPrivateDomainProps} from './types';
@@ -31,7 +30,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
 
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
-    const isValidated = UserUtils.isCurrentUserValidated(loginList);
+    const isValidated = isCurrentUserValidated(loginList);
 
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
 
@@ -42,7 +41,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         if (!credentials?.login) {
             return;
         }
-        User.resendValidateCode(credentials.login);
+        resendValidateCode(credentials.login);
     }, [credentials?.login]);
 
     useEffect(() => {
@@ -70,9 +69,10 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
                 <ValidateCodeForm
                     handleSubmitForm={(code) => {
-                        Session.validateUserAndGetAccessiblePolicies(code);
+                        validateUserAndGetAccessiblePolicies(code);
                         return Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
                     }}
+                    validateCodeActionErrorField="getAccessiblePolicies"
                     sendValidateCode={sendValidateCode}
                     clearError={() => {}}
                     hideSubmitButton
