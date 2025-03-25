@@ -63,10 +63,6 @@ function isChildOfTaskTitle(tnode: TNode): boolean {
     return isChildOfNode(tnode, (node) => node.domNode?.name !== undefined && node.domNode.name.toLowerCase() === 'task-title');
 }
 
-function isChildOfNextSteps(tnode: TNode): boolean {
-    return tnode?.parent?.domNode?.name === 'next-step';
-}
-
 /**
  * Check if the parent node has deleted style.
  */
@@ -75,4 +71,4 @@ function isDeletedNode(tnode: TNode): boolean {
     return 'textDecorationLine' in parentStyle && parentStyle.textDecorationLine === 'line-through';
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isCommentTag, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfNextSteps};
+export {computeEmbeddedMaxWidth, isChildOfComment, isCommentTag, isChildOfH1, isDeletedNode, isChildOfTaskTitle};
