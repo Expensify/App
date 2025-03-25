@@ -29,6 +29,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
+        [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: ROUTES.REQUIRE_TWO_FACTOR_AUTH,
 
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
@@ -143,6 +144,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PREFERENCES.THEME]: {
                             path: ROUTES.SETTINGS_THEME,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: {
+                            path: ROUTES.SETTINGS_PAYMENT_CURRENCY,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.CLOSE]: {
@@ -636,6 +641,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_TRANSACTION_START_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_TRANSACTION_START_DATE.route,
+                        },
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
                         },
@@ -950,6 +958,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_CUSTOM]: {
                             path: ROUTES.RULES_CUSTOM.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
+                            path: ROUTES.RULES_PROHIBITED_DEFAULT.route,
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
@@ -1405,6 +1416,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.DOMAIN_SELECTOR]: ROUTES.TRAVEL_DOMAIN_SELECTOR,
                         [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.route,
                         [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR,
+                        [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: ROUTES.TRAVEL_WORKSPACE_ADDRESS.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
@@ -1652,6 +1664,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
                     path: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                 },
+            },
+        },
+        [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: {
+            initialRouteName: SCREENS.SHARE.ROOT,
+            screens: {
+                [SCREENS.SHARE.ROOT]: {path: ROUTES.SHARE_ROOT},
+                [SCREENS.SHARE.SHARE_DETAILS]: {path: ROUTES.SHARE_DETAILS.route},
+                [SCREENS.SHARE.SUBMIT_DETAILS]: {path: ROUTES.SHARE_SUBMIT_DETAILS.route},
             },
         },
     },

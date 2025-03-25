@@ -31,9 +31,10 @@ import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransaction
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions, isSelectedManagerMcTest} from '@libs/OptionsListUtils';
+import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
@@ -139,7 +140,7 @@ type MoneyRequestConfirmationListProps = {
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Whether the expense is a distance expense */
-    isDistanceRequest?: boolean;
+    isDistanceRequest: boolean;
 
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
@@ -173,6 +174,12 @@ type MoneyRequestConfirmationListProps = {
 
     /** Whether the expense is in the process of being confirmed */
     isConfirming?: boolean;
+
+    /** The PDF load error callback */
+    onPDFLoadError?: () => void;
+
+    /** The PDF password callback */
+    onPDFPassword?: () => void;
 };
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
@@ -183,7 +190,7 @@ function MoneyRequestConfirmationList({
     onConfirm,
     iouType = CONST.IOU.TYPE.SUBMIT,
     iouAmount,
-    isDistanceRequest = false,
+    isDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
@@ -211,6 +218,8 @@ function MoneyRequestConfirmationList({
     shouldPlaySound = true,
     isConfirmed,
     isConfirming,
+    onPDFLoadError,
+    onPDFPassword,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -839,6 +848,11 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
+            if (getTag(transaction).length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
+                setFormError('iou.error.invalidTagLength');
+                return;
+            }
+
             if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
                 setFormError('iou.error.invalidSubrateLength');
                 return;
@@ -1061,6 +1075,8 @@ function MoneyRequestConfirmationList({
             transaction={transaction}
             transactionID={transactionID}
             unit={unit}
+            onPDFLoadError={onPDFLoadError}
+            onPDFPassword={onPDFPassword}
         />
     );
 
