@@ -70,12 +70,35 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
+        getRoute: ({
+            reportID,
+            reportActionID,
+            backTo,
+            moneyRequestReportActionID,
+            transactionID,
+        }: {
+            reportID: string | undefined;
+            reportActionID?: string;
+            backTo?: string;
+            moneyRequestReportActionID?: string;
+            transactionID?: string;
+        }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
             }
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
-            return getUrlWithBackToParam(baseRoute, backTo);
+
+            const queryParams = [];
+
+            // When we are opening a transaction thread but don't have the transaction report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
+            if (moneyRequestReportActionID && transactionID) {
+                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+                queryParams.push(`transactionID=${transactionID}`);
+            }
+
+            const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
+
+            return getUrlWithBackToParam(queryString, backTo);
         },
     },
     SEARCH_MONEY_REQUEST_REPORT: {
@@ -320,13 +343,26 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
-            const referrerParam = referrer ? `?referrer=${encodeURIComponent(referrer)}` : '';
-            return `${baseRoute}${referrerParam}` as const;
+
+            const queryParams: string[] = [];
+            if (referrer) {
+                queryParams.push(`referrer=${encodeURIComponent(referrer)}`);
+            }
+
+            // When we are opening a transaction thread but don't have the transaction report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
+            if (moneyRequestReportActionID && transactionID) {
+                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+                queryParams.push(`transactionID=${transactionID}`);
+            }
+
+            const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+
+            return `${baseRoute}${queryString}` as const;
         },
     },
     REPORT_AVATAR: {
@@ -1786,15 +1822,17 @@ const ROUTES = {
     MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
 
     TRANSACTION_RECEIPT: {
-        route: 'r/:reportID/transaction/:transactionID/receipt',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false) => {
+        route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false, action?: IOUAction, iouType?: IOUType) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
             }
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the TRANSACTION_RECEIPT route');
             }
-            return `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''}` as const;
+            return `r/${reportID}/transaction/${transactionID}/receipt${action ? `/${action}` : ''}${iouType ? `/${iouType}` : ''}?readonly=${readonly}${
+                isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''
+            }` as const;
         },
     },
 

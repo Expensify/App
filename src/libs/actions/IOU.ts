@@ -164,6 +164,7 @@ import {
     isOnHold,
     isPartial,
     isPending,
+    isPendingCardOrScanningTransaction,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
@@ -8477,14 +8478,7 @@ function canApproveIOU(
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(iouReport?.reportID);
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = getReportTransactions(iouReport?.reportID);
-    const hasOnlyPendingCardOrScanningTransactions =
-        reportTransactions.length > 0 &&
-        reportTransactions.every(
-            (transaction) =>
-                (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
-                isPartial(transaction) ||
-                (isScanRequestTransactionUtils(transaction) && isReceiptBeingScannedTransactionUtils(transaction)),
-        );
+    const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
     if (hasOnlyPendingCardOrScanningTransactions) {
         return false;
     }
@@ -9968,6 +9962,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     transactionID: string,
     reportID: string,
     receiptType: string | undefined,
+    onFailureCallback?: () => void,
 ) {
     if (!receiptFilename || !receiptPath) {
         return;
@@ -9976,6 +9971,10 @@ function navigateToStartStepIfScanFileCannotBeRead(
     const onFailure = () => {
         setMoneyRequestReceipt(transactionID, '', '', true);
         if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+            if (onFailureCallback) {
+                onFailureCallback();
+                return;
+            }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
             return;
         }
