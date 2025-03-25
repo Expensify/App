@@ -16,6 +16,7 @@ import type {
     CreateWorkspaceParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
+    MergeDuplicatesParams,
     PayInvoiceParams,
     PayMoneyRequestParams,
     ReplaceReceiptParams,
@@ -29,7 +30,6 @@ import type {
     StartSplitBillParams,
     SubmitReportParams,
     TrackExpenseParams,
-    MergeDuplicatesParams,
     UnapproveExpenseReportParams,
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
@@ -96,6 +96,7 @@ import {
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticResolvedDuplicatesReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
     buildOptimisticUnHoldReportAction,
@@ -142,7 +143,6 @@ import {
     isTrackExpenseReport,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
-    buildOptimisticResolvedDuplicatesReportAction,
 } from '@libs/ReportUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -10171,9 +10171,16 @@ function mergeDuplicates(params: MergeDuplicatesParams) {
         ...optimisticTransactionViolations,
         expenseReportOptimisticData,
         expenseReportActionsOptimisticData,
-        optimisticReportActionData
+        optimisticReportActionData,
     );
-    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, expenseReportFailureData, expenseReportActionsFailureData, failureReportActionData);
+    failureData.push(
+        failureTransactionData,
+        ...failureTransactionDuplicatesData,
+        ...failureTransactionViolations,
+        expenseReportFailureData,
+        expenseReportActionsFailureData,
+        failureReportActionData,
+    );
 
     API.write(WRITE_COMMANDS.MERGE_DUPLICATES, {...params, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, failureData});
 }
