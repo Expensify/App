@@ -127,13 +127,13 @@ function buildCardsData(
 function generateDomainFeedData(cardList: CardList | undefined): Record<string, DomainFeedData> {
     return Object.values(cardList ?? {}).reduce((domainFeedData, currentCard) => {
         // Cards in cardList can also be domain cards, we use them to compute domain feed
-        if (!currentCard?.domainName?.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard)) {
-            if (domainFeedData[currentCard.domainName]) {
-                domainFeedData[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
+        if (!currentCard?.domainName?.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard) && currentCard.fundID) {
+            if (domainFeedData[`${currentCard.fundID}_${currentCard.bank}`]) {
+                domainFeedData[`${currentCard.fundID}_${currentCard.bank}`].correspondingCardIDs.push(currentCard.cardID.toString());
             } else {
                 // if the cards belongs to the same domain, every card of it should have the same fundID
                 // eslint-disable-next-line no-param-reassign
-                domainFeedData[currentCard.domainName] = {
+                domainFeedData[`${currentCard.fundID}_${currentCard.bank}`] = {
                     fundID: currentCard.fundID,
                     domainName: currentCard.domainName,
                     bank: currentCard?.bank,
@@ -198,8 +198,8 @@ function getDomainCardFeedData(domainFeed: DomainFeedData, repeatingBanks: strin
 function filterOutDomainCards(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined) {
     const domainFeedData = getDomainFeedData(workspaceCardFeeds);
     return Object.entries(workspaceCardFeeds ?? {}).filter(([, workspaceFeed]) => {
-        const domainName = Object.values(workspaceFeed ?? {}).at(0)?.domainName ?? '';
-        if (Object.keys(domainFeedData).includes(domainName)) {
+        const domainFeed = Object.values(workspaceFeed ?? {}).at(0) ?? {}
+        if (Object.keys(domainFeedData).includes(`${domainFeed.fundID}_${domainFeed.bank}`)) {
             return false;
         }
         return !isEmptyObject(workspaceFeed);

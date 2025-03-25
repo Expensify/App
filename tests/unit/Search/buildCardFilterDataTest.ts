@@ -27,6 +27,7 @@ const workspaceCardFeeds = {
         '21593492': {
             accountID: 1,
             bank: 'vcf',
+            fundID: '18680694',
             cardID: 21593492,
             cardName: '480801XXXXXX9411',
             domainName: 'expensify-policy1.exfy',
@@ -35,6 +36,7 @@ const workspaceCardFeeds = {
         '21604933': {
             accountID: 1,
             bank: 'vcf',
+            fundID: '18680694',
             cardID: 21604933,
             cardName: '480801XXXXXX1601',
             domainName: 'expensify-policy1.exfy',
@@ -43,6 +45,7 @@ const workspaceCardFeeds = {
         '21638320': {
             accountID: 1,
             bank: 'vcf',
+            fundID: '18680694',
             cardID: 21638320,
             cardName: '480801XXXXXX2617',
             domainName: 'expensify-policy1.exfy',
@@ -51,6 +54,7 @@ const workspaceCardFeeds = {
         '21638598': {
             accountID: 1,
             bank: 'vcf',
+            fundID: '18680694',
             cardID: 21638598,
             cardName: '480801XXXXXX2111',
             domainName: 'expensify-policy1.exfy',
@@ -64,6 +68,7 @@ const workspaceCardFeeds = {
         '21588678': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755165',
             cardID: 21588678,
             cardName: '455594XXXXXX1138',
             domainName: 'expensify-policy2.exfy',
@@ -72,6 +77,7 @@ const workspaceCardFeeds = {
         '21588684': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755165',
             cardID: 21588684,
             cardName: '',
             domainName: 'expensify-policy2.exfy',
@@ -82,6 +88,7 @@ const workspaceCardFeeds = {
         '21589168': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755166',
             cardID: 21589168,
             cardName: '455594XXXXXX4163',
             domainName: 'expensify-policy3.exfy',
@@ -90,6 +97,7 @@ const workspaceCardFeeds = {
         '21589182': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755166',
             cardID: 21589182,
             cardName: '',
             domainName: 'expensify-policy3.exfy',
@@ -98,6 +106,7 @@ const workspaceCardFeeds = {
         '21589202': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755166',
             cardID: 21589202,
             cardName: '455594XXXXXX6232',
             domainName: 'expensify-policy3.exfy',
@@ -106,6 +115,7 @@ const workspaceCardFeeds = {
         '21638322': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755166',
             cardID: 21638322,
             cardName: '',
             domainName: 'expensify-policy3.exfy',
@@ -116,6 +126,7 @@ const workspaceCardFeeds = {
         '21589168': {
             accountID: 1,
             bank: 'Expensify Card',
+            fundID: '18755167',
             cardID: 21589168,
             cardName: '455594XXXXXX4163',
             domainName: 'heartlandhsc.com',
