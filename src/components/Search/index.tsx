@@ -27,6 +27,7 @@ import {
     getSections,
     getSortedSections,
     isReportActionListItemType,
+    isReportListItemType,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTransactionListItemType,
     shouldShowEmptyState,
@@ -318,7 +319,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [hash],
+        [canUseTableReportView, hash],
     );
 
     if (shouldShowLoadingState) {

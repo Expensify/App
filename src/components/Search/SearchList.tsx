@@ -21,7 +21,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {isMobileChrome} from '@libs/Browser';
@@ -94,7 +94,7 @@ function SearchList(
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const {isKeyboardShown} = useKeyboardState();
-    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+    const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -301,7 +301,6 @@ function SearchList(
                         isChecked={selectedItemsLength === data.length}
                         onPress={() => {
                             onAllCheckboxPress();
-                            listRef.current?.scrollToIndex({index: 0, animated: true});
                         }}
                     />
                     {SearchTableHeader ?? (
