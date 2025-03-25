@@ -187,6 +187,7 @@ import type {
     UntilTimeParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
+    UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryGLCodeParams,
     UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
@@ -4977,6 +4978,12 @@ const translations = {
                 return `updated the category "${categoryName}" by removing the Max Amount which was previously ${oldAmount}`;
             }
             return `updated the category "${categoryName}" by changing the Max Amount from ${oldAmount} to ${newAmount}`;
+        },
+        updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
+            if (!oldValue) {
+                return `updated the category "${categoryName}" by adding a Limit Type of ${newValue}`;
+            }
+            return `updated the category "${categoryName}" by changing the Limit Type from ${oldValue} to ${newValue}`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `updated the name of the tag list "${oldName}" to be "${newName}"`,

@@ -186,6 +186,7 @@ import type {
     UntilTimeParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
+    UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryGLCodeParams,
     UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
@@ -5030,6 +5031,13 @@ const translations = {
             }
             return `actualizó la categoría "${categoryName}" cambiando el Monto Máximo de ${oldAmount} a ${newAmount}`;
         },
+        updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
+            if (!oldValue) {
+                return `actualizó la categoría "${categoryName}" añadiendo un Tipo de Límite de ${newValue}`;
+            }
+            return `actualizó la categoría "${categoryName}" cambiando el Tipo de Límite de ${oldValue} a ${newValue}`;
+        },
+
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renombró la categoría "${oldName}" a "${newName}`,
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `actualizó el nombre de la lista de etiquetas de "${oldName}" a "${newName}"`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,

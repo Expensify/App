@@ -307,6 +307,8 @@ type UpdatedPolicyCategoryGLCodeParams = {categoryName: string; oldValue?: strin
 
 type UpdatedPolicyCategoryMaxExpenseAmountParams = {categoryName: string; oldAmount?: string; newAmount?: string};
 
+type UpdatedPolicyCategoryExpenseLimitTypeParams = {categoryName: string; oldValue?: string; newValue: string};
+
 type UpdatedPolicyTagParams = {tagListName: string; tagName: string; enabled?: boolean};
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
@@ -931,4 +933,5 @@ export type {
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryGLCodeParams,
     UpdatedPolicyCategoryMaxExpenseAmountParams,
+    UpdatedPolicyCategoryExpenseLimitTypeParams,
 };

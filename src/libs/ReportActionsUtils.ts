@@ -1945,6 +1945,13 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
                 categoryName,
             });
         }
+        if (updatedField === 'expenseLimitType' && typeof newValue === 'string' && typeof oldValue === 'string') {
+            return translateLocal('workspaceActions.updateCategoryExpenseLimitType', {
+                categoryName,
+                oldValue: oldValue ? translateLocal(`workspace.rules.categoryRules.expenseLimitTypes.${oldValue}` as TranslationPaths) : undefined,
+                newValue: translateLocal(`workspace.rules.categoryRules.expenseLimitTypes.${newValue}` as TranslationPaths),
+            });
+        }
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {
