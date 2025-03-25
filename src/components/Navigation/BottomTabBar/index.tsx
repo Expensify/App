@@ -19,6 +19,7 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -115,14 +116,14 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
      */
     const showSettingsPage = useCallback(() => {
         const LAST_VISITED_SETTINGS_PATH = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH) as Route | null;
-        console.log('path to which should we be directed ', LAST_VISITED_SETTINGS_PATH);
-        if (LAST_VISITED_SETTINGS_PATH !== null) {
-            Navigation.navigate(LAST_VISITED_SETTINGS_PATH);
-            return;
-        }
+        const LAST_VISITED_SETTINGS_PATH_KEY = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_KEY);
+        // if (LAST_VISITED_SETTINGS_PATH !== null) {
+        //     Navigation.navigate(LAST_VISITED_SETTINGS_PATH);
+        //     return;
+        // }
         const rootState = navigationRef.getRootState();
         const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
-
+        console.log(topmostFullScreenRoute);
         if (!topmostFullScreenRoute) {
             return;
         }
@@ -140,24 +141,49 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         }
 
         interceptAnonymousUser(() => {
-            const lastSettingsOrWorkspaceNavigatorRoute = rootState.routes.findLast(
+            let settingsState = null;
+            let settingsStateKey = null;
+            if (LAST_VISITED_SETTINGS_PATH !== null) {
+                settingsState = getStateFromPath(LAST_VISITED_SETTINGS_PATH);
+                settingsStateKey = LAST_VISITED_SETTINGS_PATH_KEY;
+                settingsState.key = settingsStateKey;
+            }
+            const lastSettingsOrWorkspaceNavigatorRoute = settingsState
+                ? settingsState.routes.findLast((settingsRoute) => settingsRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || settingsRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR)
+                : rootState.routes.findLast((rootRoute) => rootRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || rootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+            const settingsStateNavigationRoute = settingsState
+                ? settingsState.routes.findLast((settingsRoute) => settingsRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || settingsRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR)
+                : undefined;
+            const rootStateNavigatorRoute = rootState.routes.findLast(
                 (rootRoute) => rootRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || rootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
             );
-
             // If there is no settings or workspace navigator route, then we should open the settings navigator.
             if (!lastSettingsOrWorkspaceNavigatorRoute) {
+                console.log('gotcha!');
                 Navigation.navigate(ROUTES.SETTINGS);
                 return;
             }
-
+            console.log('is lastSettings settingsState', lastSettingsOrWorkspaceNavigatorRoute === settingsState?.routes.at(-1));
+            console.log('settingsState', settingsState);
+            console.log('settingsStateNavigationRoute', settingsStateNavigationRoute);
+            console.log('getPreservedNavigatorState(settingsState?.key)', getPreservedNavigatorState(settingsState?.key));
+            console.log('rootState', rootState);
+            console.log('rootStateNavigatorRoute', rootStateNavigatorRoute);
+            console.log('getPreservedNavigatorState(rootState.key)', getPreservedNavigatorState(rootState.key));
+            console.log('|-----------------------------------------------------------------------------------------------------------------------|');
             const state = lastSettingsOrWorkspaceNavigatorRoute.state ?? getPreservedNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key);
-
+            console.log(state === lastSettingsOrWorkspaceNavigatorRoute.state);
+            console.log(state);
+            console.log('lastSettingsOrWorkspaceNavigatorRoute', lastSettingsOrWorkspaceNavigatorRoute);
+            console.log('');
             // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
             if (lastSettingsOrWorkspaceNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                console.log('last navigator is workspace');
                 const params = state?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
-
+                console.log(params);
                 // Screens of this navigator should always have policyID
                 if (params.policyID) {
+                    console.log('params,policyID', params.policyID);
                     // This action will put settings split under the workspace split to make sure that we can swipe back to settings split.
                     navigationRef.dispatch({
                         type: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT,
@@ -165,18 +191,21 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                             policyID: params.policyID,
                         },
                     });
+                    console.log('after dispatch');
                 }
                 return;
             }
 
             // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
             if (state?.routes?.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES) {
+                console.log('second if');
                 Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
                 return;
             }
 
             // Otherwise we should simply open the settings navigator.
             Navigation.navigate(ROUTES.SETTINGS);
+            console.log('|-----------------------------------------------------------------------------------------------------------------------|');
         });
     }, [shouldUseNarrowLayout]);
 
