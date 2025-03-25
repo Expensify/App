@@ -122,6 +122,7 @@ import {
     getPendingChatMembers,
     getPolicyExpenseChat,
     getReportFieldKey,
+    getReportFieldsByPolicyID,
     getReportIDFromLink,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
@@ -129,6 +130,7 @@ import {
     getReportNotificationPreference,
     getReportViolations,
     getRouteFromLink,
+    getTitleReportField,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
     isExpenseReport,
@@ -137,6 +139,7 @@ import {
     isMoneyRequestReport,
     isSelfDM,
     isValidReportIDFromPath,
+    populateOptimisticReportFormula,
 } from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {getNavatticURL} from '@libs/TourUtils';
@@ -2438,25 +2441,18 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
-function buildNewReportOptimisticData(
-    policy: OnyxEntry<Policy>,
-    reportID: string,
-    reportActionID: string,
-    reportName: string,
-    creatorPersonalDetails: PersonalDetails,
-    reportPreviewReportActionID: string,
-) {
+function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: string, reportActionID: string, creatorPersonalDetails: PersonalDetails, reportPreviewReportActionID: string) {
     const {accountID, login} = creatorPersonalDetails;
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
     const timeOfCreation = DateUtils.getDBTime();
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
 
     const optimisticDataValue: OptimisticNewReport = {
         reportID,
         policyID: policy?.id,
         type: CONST.REPORT.TYPE.EXPENSE,
         ownerAccountID: accountID,
-        reportName,
         stateNum,
         statusNum,
         total: 0,
@@ -2465,6 +2461,9 @@ function buildNewReportOptimisticData(
         lastVisibleActionCreated: timeOfCreation,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
+
+    const optimisticReportName = populateOptimisticReportFormula(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, optimisticDataValue, policy);
+    optimisticDataValue.reportName = optimisticReportName;
 
     if (accountID) {
         optimisticDataValue.participants = {
@@ -2501,7 +2500,7 @@ function buildNewReportOptimisticData(
     const optimisticReportPreview = {
         action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-        childReportName: reportName,
+        childReportName: optimisticReportName,
         childReportID: reportID,
         childType: CONST.REPORT.TYPE.EXPENSE,
         created: timeOfCreation,
@@ -2572,7 +2571,7 @@ function buildNewReportOptimisticData(
         },
     ];
 
-    return {optimisticData, successData, failureData};
+    return {optimisticReportName, optimisticData, successData, failureData};
 }
 
 function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string) {
@@ -2581,21 +2580,17 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportName = `${creatorPersonalDetails.firstName || 'User'}'s report`;
-
-    const {optimisticData, successData, failureData} = buildNewReportOptimisticData(
+    const {optimisticReportName, optimisticData, successData, failureData} = buildNewReportOptimisticData(
         policy,
         optimisticReportID,
         reportActionID,
-        reportName,
         creatorPersonalDetails,
         reportPreviewReportActionID,
     );
 
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
-        {reportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, reportPreviewReportActionID},
+        {reportName: optimisticReportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, reportPreviewReportActionID},
         {optimisticData, successData, failureData},
     );
     return optimisticReportID;
