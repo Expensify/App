@@ -95,7 +95,6 @@ import {deleteMoneyRequest, deleteTrackExpense, getNavigationUrlAfterTrackExpens
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
-    clearReportFieldKeyErrors,
     downloadReportPDF,
     exportReportToPDF,
     getReportPrivateNote,
@@ -235,6 +234,18 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     }, [report, personalDetails, shouldOpenRoomMembersPage]);
     const connectedIntegration = getConnectedIntegration(policy);
 
+    let caseID: CaseID;
+    if (isMoneyRequestReport || isInvoiceReport) {
+        // 3. MoneyReportHeader
+        caseID = CASES.MONEY_REPORT;
+    } else if (isSingleTransactionView) {
+        // 2. MoneyRequestHeader
+        caseID = CASES.MONEY_REQUEST;
+    } else {
+        // 1. HeaderView
+        caseID = CASES.DEFAULT;
+    }
+
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
         const pendingMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
@@ -245,18 +256,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
-    const caseID = useMemo((): CaseID => {
-        // 3. MoneyReportHeader
-        if (isMoneyRequestReport || isInvoiceReport) {
-            return CASES.MONEY_REPORT;
-        }
-        // 2. MoneyRequestHeader
-        if (isSingleTransactionView) {
-            return CASES.MONEY_REQUEST;
-        }
-        // 1. HeaderView
-        return CASES.DEFAULT;
-    }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
     const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
 
     const requestParentReportAction = useMemo(() => {
@@ -757,16 +756,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const nameSectionTitleField = !!titleField && (
         <OfflineWithFeedback
-            pendingAction={report.pendingFields?.[fieldKey as keyof typeof report.pendingFields] ?? report.pendingFields?.reportName}
-            errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}
+            pendingAction={report.pendingFields?.reportName}
+            errors={report.errorFields?.reportName}
             errorRowStyles={styles.ph5}
             key={`menuItem-${fieldKey}`}
-            onClose={() => {
-                if (report.errorFields?.reportName) {
-                    clearPolicyRoomNameErrors(report.reportID);
-                }
-                clearReportFieldKeyErrors(report.reportID, fieldKey);
-            }}
+            onClose={() => clearPolicyRoomNameErrors(report.reportID)}
         >
             <View style={[styles.flex1]}>
                 <MenuItemWithTopDescription
