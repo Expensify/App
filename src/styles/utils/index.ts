@@ -276,7 +276,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 /**
  * Helper method to return workspace avatar color styles
  */
-function getDefaultWorkspaceAvatarColor(text: string | undefined = ''): ViewStyle {
+function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
     const colorHash = hashText(text.trim(), workspaceColorOptions.length);
     return workspaceColorOptions.at(colorHash) ?? {backgroundColor: colors.blue200, fill: colors.blue700};
 }
@@ -1620,6 +1620,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getReportTableColumnStyles: (columnName: string, isDateColumnWide = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
+            case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:
             case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;

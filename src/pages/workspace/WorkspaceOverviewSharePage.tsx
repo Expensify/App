@@ -22,7 +22,7 @@ import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar, getRoom} from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
-import {addTrailingForwardSlash as addTrailingForwardSlashUtil} from '@libs/Url';
+import {addTrailingForwardSlash} from '@libs/Url';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -41,15 +41,15 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const policyName = policy?.name ?? '';
     const policyID = policy?.id;
     const adminEmail = session?.email ?? '';
-    const urlWithTrailingSlash = addTrailingForwardSlashUtil(environmentURL);
+    const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
 
-    const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(policyID, adminEmail)}`;
+    const url = policyID ? `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(policyID, adminEmail)}` : '';
 
     const hasAvatar = !!policy?.avatarURL;
     const logo = hasAvatar ? (policy?.avatarURL as ImageSourcePropType) : undefined;
 
     const defaultWorkspaceAvatar = getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
-    const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyID);
+    const defaultWorkspaceAvatarColors = policyID ? StyleUtils.getDefaultWorkspaceAvatarColor(policyID) : StyleUtils.getDefaultWorkspaceAvatarColor('');
 
     const svgLogo = !hasAvatar ? defaultWorkspaceAvatar : undefined;
     const logoBackgroundColor = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
