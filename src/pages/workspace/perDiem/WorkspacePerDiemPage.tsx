@@ -14,6 +14,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -410,29 +411,31 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 )}
 
                 {!hasVisibleSubRates && !isLoading && (
-                    <EmptyStateComponent
-                        SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                        headerMedia={LottieAnimations.GenericEmptyState}
-                        title={translate('workspace.perDiem.emptyList.title')}
-                        subtitle={translate('workspace.perDiem.emptyList.subtitle')}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                        headerContentStyles={styles.emptyStateFolderWebStyles}
-                        buttons={[
-                            {
-                                buttonText: translate('spreadsheet.importSpreadsheet'),
-                                buttonAction: () => {
-                                    if (isOffline) {
-                                        setIsOfflineModalVisible(true);
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
+                    <ScrollView>
+                        <EmptyStateComponent
+                            SkeletonComponent={TableListItemSkeleton}
+                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                            headerMedia={LottieAnimations.GenericEmptyState}
+                            title={translate('workspace.perDiem.emptyList.title')}
+                            subtitle={translate('workspace.perDiem.emptyList.subtitle')}
+                            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                            headerContentStyles={styles.emptyStateFolderWebStyles}
+                            buttons={[
+                                {
+                                    buttonText: translate('spreadsheet.importSpreadsheet'),
+                                    buttonAction: () => {
+                                        if (isOffline) {
+                                            setIsOfflineModalVisible(true);
+                                            return;
+                                        }
+                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
+                                    },
+                                    success: true,
                                 },
-                                success: true,
-                            },
-                        ]}
-                    />
+                            ]}
+                        />
+                    </ScrollView>
                 )}
                 {hasVisibleSubRates && !isLoading && (
                     <SelectionListWithModal

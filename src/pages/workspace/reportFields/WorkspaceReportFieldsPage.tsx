@@ -9,10 +9,11 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {Plus, Trashcan} from '@components/Icon/Expensicons';
+import {Pencil} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -168,7 +169,7 @@ function WorkspaceReportFieldsPage({
 
         if (shouldUseNarrowLayout ? canSelectMultiple : selectedReportFields.length > 0) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: Trashcan,
                 text: translate(selectedReportFields.length === 1 ? 'workspace.reportFields.delete' : 'workspace.reportFields.deleteFields'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setDeleteReportFieldsConfirmModalVisible(true),
@@ -193,7 +194,7 @@ function WorkspaceReportFieldsPage({
                 <Button
                     success
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
-                    icon={Expensicons.Plus}
+                    icon={Plus}
                     text={translate('workspace.reportFields.addField')}
                     style={[shouldUseNarrowLayout && styles.flex1]}
                 />
@@ -245,7 +246,7 @@ function WorkspaceReportFieldsPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={!selectionModeHeader ? Illustrations.Pencil : undefined}
+                    icon={!selectionModeHeader ? Pencil : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.reportFields')}
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -280,16 +281,18 @@ function WorkspaceReportFieldsPage({
                     />
                 )}
                 {shouldShowEmptyState && (
-                    <EmptyStateComponent
-                        title={translate('workspace.reportFields.emptyReportFields.title')}
-                        subtitle={translate('workspace.reportFields.emptyReportFields.subtitle')}
-                        SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                        headerMedia={LottieAnimations.GenericEmptyState}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                        headerContentStyles={styles.emptyStateFolderWebStyles}
-                    />
+                    <ScrollView>
+                        <EmptyStateComponent
+                            title={translate('workspace.reportFields.emptyReportFields.title')}
+                            subtitle={translate('workspace.reportFields.emptyReportFields.subtitle')}
+                            SkeletonComponent={TableListItemSkeleton}
+                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                            headerMedia={LottieAnimations.GenericEmptyState}
+                            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                            headerContentStyles={styles.emptyStateFolderWebStyles}
+                        />
+                    </ScrollView>
                 )}
                 {!shouldShowEmptyState && !isLoading && (
                     <SelectionListWithModal
