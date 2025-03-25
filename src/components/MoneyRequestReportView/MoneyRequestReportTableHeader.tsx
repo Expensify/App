@@ -1,11 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {SortOrder} from '@components/Search/types';
+import type {SortOrder, TableColumnSize} from '@components/Search/types';
 import SortableTableHeader from '@components/SelectionList/SortableTableHeader';
 import type {SortableColumnName} from '@components/SelectionList/types';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -57,7 +55,7 @@ type SearchTableHeaderProps = {
     sortBy?: SortableColumnName;
     sortOrder?: SortOrder;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
-    dateColumnSize: 'normal' | 'wide';
+    dateColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
 };
 
@@ -66,10 +64,9 @@ const shouldShowColumn = () => true;
 
 function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     return (
-        <View style={[styles.pv3, StyleUtils.getPaddingLeft(variables.w28), StyleUtils.getPaddingRight(variables.w28)]}>
+        <View style={[styles.peopleRow, styles.listTableHeader]}>
             <SortableTableHeader
                 columns={columnConfig}
                 shouldShowColumn={shouldShowColumn}

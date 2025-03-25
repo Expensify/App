@@ -6339,6 +6339,10 @@ const CONST = {
         GROUP_BY: {
             REPORTS: 'reports',
         },
+        TABLE_COLUMN_SIZES: {
+            NORMAL: 'normal',
+            WIDE: 'wide',
+        },
         STATUS: {
             EXPENSE: {
                 ALL: 'all',

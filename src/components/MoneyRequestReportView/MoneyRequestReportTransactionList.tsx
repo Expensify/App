@@ -133,7 +133,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
 
     const dateColumnSize = useMemo(() => {
         const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
-        return shouldShowYearForSomeTransaction ? 'wide' : 'normal';
+        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     }, [transactions]);
 
     if (sortedData.transactions.length === 0) {
@@ -145,8 +145,10 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
         // item.isSelected && styles.activeComponentBG,
     ];
 
+    const listHorizontalPadding = styles.ph5;
+
     return (
-        <>
+        <View style={[styles.flex1]}>
             {!displayNarrowVersion && (
                 <MoneyRequestReportTableHeader
                     shouldShowSorting
@@ -162,7 +164,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
                     }}
                 />
             )}
-            <View style={[styles.pv2, styles.ph5]}>
+            <View style={[listHorizontalPadding, styles.gap2, styles.pb5, displayNarrowVersion && styles.pt5]}>
                 {sortedData.transactions.map((transaction) => {
                     return (
                         <PressableWithFeedback
@@ -186,22 +188,20 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
                             onMouseLeave={handleMouseLeave}
                             wrapperStyle={[]}
                         >
-                            <View style={[styles.mb2]}>
-                                <TransactionItemRow
-                                    transactionItem={transaction}
-                                    isSelected={false}
-                                    shouldShowTooltip
-                                    dateColumnSize={dateColumnSize}
-                                    shouldUseNarrowLayout={displayNarrowVersion}
-                                    shouldShowChatBubbleComponent
-                                />
-                            </View>
+                            <TransactionItemRow
+                                transactionItem={transaction}
+                                isSelected={false}
+                                shouldShowTooltip
+                                dateColumnSize={dateColumnSize}
+                                shouldUseNarrowLayout={displayNarrowVersion}
+                                shouldShowChatBubbleComponent
+                            />
                         </PressableWithFeedback>
                     );
                 })}
             </View>
             {shouldShowBreakdown && (
-                <View style={[styles.dFlex, styles.flexColumn, styles.alignItemsEnd, styles.ph5]}>
+                <View style={[styles.dFlex, styles.alignItemsEnd, listHorizontalPadding]}>
                     {[
                         {text: translate('cardTransactions.outOfPocket'), value: formattedOutOfPocketAmount},
                         {text: translate('cardTransactions.companySpend'), value: formattedCompanySpendAmount},
@@ -223,7 +223,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
                     ))}
                 </View>
             )}
-            <View style={[styles.dFlex, styles.flexRow, styles.ph5, styles.justifyContentBetween, styles.mb2]}>
+            <View style={[styles.dFlex, styles.flexRow, listHorizontalPadding, styles.justifyContentBetween, styles.mb2]}>
                 <Text style={[styles.textLabelSupporting]}>{translate('common.comments')}</Text>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
@@ -232,7 +232,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
                     </Text>
                 </View>
             </View>
-        </>
+        </View>
     );
 }
 

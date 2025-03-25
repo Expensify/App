@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {SortOrder} from '@components/Search/types';
+import type {SortOrder, TableColumnSize} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +21,7 @@ type SearchTableHeaderProps = {
     sortBy?: SortableColumnName;
     sortOrder?: SortOrder;
     shouldShowSorting: boolean;
-    dateColumnSize: 'normal' | 'wide';
+    dateColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
     shouldShowColumn: (columnName: SortableColumnName) => boolean;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
@@ -51,7 +51,7 @@ function SortableTableHeader({columns, sortBy, sortOrder, shouldShowColumn, date
                             textStyle={textStyle}
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
-                            containerStyle={[StyleUtils.getReportTableColumnStyles(columnName, dateColumnSize === 'wide')]}
+                            containerStyle={[StyleUtils.getReportTableColumnStyles(columnName, dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE)]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(columnName, order)}
                         />

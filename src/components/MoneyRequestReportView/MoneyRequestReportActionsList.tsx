@@ -168,7 +168,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
             hasNewestReportAction
         ) {
             setIsFloatingMessageCounterVisible(false);
-            // reportScrollManager.scrollToEnd();
+            reportScrollManager.scrollToEnd();
         }
 
         previousLastIndex.current = lastActionIndex;

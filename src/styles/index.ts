@@ -4869,6 +4869,11 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
+        listTableHeader: {
+            paddingVertical: 12,
+            paddingHorizontal: 32,
+        },
+
         cardItemSecondaryIconStyle: {
             position: 'absolute',
             bottom: -4,
