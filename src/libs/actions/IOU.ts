@@ -4802,8 +4802,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 moneyRequestReportID,
                 existingTransactionID,
                 existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
-            retryParams,
-    },
+                retryParams,
+            },
             false,
         );
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
