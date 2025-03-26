@@ -184,8 +184,8 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The transaction ID */
     transactionID: string | undefined;
 
-    /** Whether the component is rendered inside IOURequestStepConfirmation page */
-    isFromIOUStepConfirmationPage?: boolean;
+    /** Whether the receipt can be replaced */
+    isReceiptEditable?: boolean;
 
     /** The unit */
     unit: Unit | undefined;
@@ -245,7 +245,7 @@ function MoneyRequestConfirmationListFooter({
     unit,
     onPDFLoadError,
     onPDFPassword,
-    isFromIOUStepConfirmationPage = false,
+    isReceiptEditable = false,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -711,7 +711,7 @@ function MoneyRequestConfirmationListFooter({
                             }
 
                             Navigation.navigate(
-                                isFromIOUStepConfirmationPage && !isDistanceRequest && action === CONST.IOU.ACTION.CREATE
+                                isReceiptEditable
                                     ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
                                     : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
                             );
@@ -736,7 +736,7 @@ function MoneyRequestConfirmationListFooter({
                             }
 
                             Navigation.navigate(
-                                isFromIOUStepConfirmationPage && !isDistanceRequest && action === CONST.IOU.ACTION.CREATE
+                                isReceiptEditable
                                     ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
                                     : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
                             );
@@ -784,7 +784,7 @@ function MoneyRequestConfirmationListFooter({
             action,
             iouType,
             reportID,
-            isFromIOUStepConfirmationPage,
+            isReceiptEditable,
         ],
     );
 

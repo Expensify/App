@@ -939,7 +939,7 @@ function IOURequestStepConfirmation({
                         receiptFilename={receiptFilename}
                         iouType={iouType}
                         reportID={reportID}
-                        shouldDisplayReceipt
+                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={getIOURequestPolicyID(transaction, report)}
                         bankAccountRoute={getBankAccountRoute(report)}
@@ -953,7 +953,7 @@ function IOURequestStepConfirmation({
                         shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
-                        isFromIOUStepConfirmationPage
+                        isReceiptEditable
                     />
                 </View>
             </DragAndDropProvider>

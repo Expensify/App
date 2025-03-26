@@ -175,8 +175,8 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is in the process of being confirmed */
     isConfirming?: boolean;
 
-    /** Whether the component is rendered inside IOURequestStepConfirmation page */
-    isFromIOUStepConfirmationPage?: boolean;
+    /** Whether the receipt can be replaced */
+    isReceiptEditable?: boolean;
 
     /** The PDF load error callback */
     onPDFLoadError?: () => void;
@@ -200,7 +200,7 @@ function MoneyRequestConfirmationList({
     shouldShowSmartScanFields = true,
     isEditingSplitBill,
     iouCurrencyCode,
-    isFromIOUStepConfirmationPage,
+    isReceiptEditable,
     iouMerchant,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
@@ -1081,7 +1081,7 @@ function MoneyRequestConfirmationList({
             unit={unit}
             onPDFLoadError={onPDFLoadError}
             onPDFPassword={onPDFPassword}
-            isFromIOUStepConfirmationPage={isFromIOUStepConfirmationPage}
+            isReceiptEditable={isReceiptEditable}
         />
     );
 
