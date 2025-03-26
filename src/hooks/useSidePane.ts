@@ -43,8 +43,8 @@ function useSidePaneDisplayStatus() {
     // - side pane nvp is not set
     // - side pane is displayed currently
     // - language is unsupported
-    const shouldHideHelpButton = !sidePaneNVP || !isSidePaneFullyHidden || isLanguageUnsupported;
-    const shouldHideSidePaneBackdrop = isSidePaneFullyHidden || isExtraLargeScreenWidth || shouldUseNarrowLayout;
+    const shouldHideHelpButton = !sidePaneNVP || !shouldHideSidePane || isLanguageUnsupported;
+    const shouldHideSidePaneBackdrop = shouldHideSidePane || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 
     return {shouldHideSidePane, isSidePaneFullyHidden, shouldHideHelpButton, shouldHideSidePaneBackdrop, sidePaneNVP};
 }
