@@ -589,7 +589,8 @@ const styles = (theme: ThemeColors) =>
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            display: shouldDisplayTopLevelBottomTabBar ? 'flex' : 'none',
+            opacity: shouldDisplayTopLevelBottomTabBar ? 1 : 0,
+            pointerEvents: shouldDisplayTopLevelBottomTabBar ? 'auto' : 'none',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             paddingBottom: bottomSafeAreaOffset,
             bottom: 0,
@@ -3768,10 +3769,22 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
-        narrowSearchHeaderStyle: {
+        searchListHeaderContainerStyle: {
+            width: '100%',
+            flexDirection: 'row',
+            alignItems: 'center',
+            ...userSelect.userSelectNone,
+            paddingBottom: 12,
+            paddingHorizontal: 32,
             paddingTop: 12,
             backgroundColor: theme.appBG,
+            justifyContent: 'flex-start',
+        },
+
+        narrowSearchHeaderStyle: {
             flex: 1,
+            paddingTop: 12,
+            backgroundColor: theme.appBG,
         },
 
         narrowSearchRouterInactiveStyle: {
@@ -4557,6 +4570,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 16,
             margin: 20,
             overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: theme.border,
         },
 
         reportPreviewBox: {
@@ -4729,8 +4744,8 @@ const styles = (theme: ThemeColors) =>
             ...spacing.mh5,
             ...spacing.mv3,
             overflow: 'hidden',
-            borderWidth: 2,
-            borderColor: theme.cardBG,
+            borderWidth: 1,
+            borderColor: theme.border,
             borderRadius: variables.componentBorderRadiusLarge,
             height: 180,
             maxWidth: 360,
@@ -5167,7 +5182,6 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             height: '100%',
             borderRadius: variables.componentBorderRadiusNormal,
-            backgroundColor: theme.highlightBG,
         },
 
         videoPlayerControlsContainer: {
