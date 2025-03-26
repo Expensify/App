@@ -41,6 +41,8 @@ type Recap = {
 let currentAdminsReportID: number | null = null;
 let mediaStream: MediaStream | null = null;
 let currentTranscript = '';
+let audioQualityMonitor: { stop: () => void } | null = null;
+let audioMonitor: { stop: () => void } | null = null;
 
 const connections: WebRTCConnections = {
     openai: null,
@@ -194,19 +196,33 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
     let peerConnection: RTCPeerConnection;
     let rtcOffer: RTCSessionDescriptionInit;
     let dataChannel: RTCDataChannel;
-    let audioMonitor: { stop: () => void } | null = null;
 
     console.log('[WebRTC] Starting OpenAI connection...');
     
     // First, list available audio devices for debugging
     return listAudioDevices()
         .then(() => {
-            // Enhanced audio constraints for better quality
+            // Enhanced audio constraints for higher quality
             const audioConstraints = {
                 audio: {
+                    // Basic processing settings
                     echoCancellation: true,
                     noiseSuppression: true,
                     autoGainControl: true,
+                    
+                    // Higher quality audio settings
+                    sampleRate: 48000,         // Use 48kHz sampling for better quality
+                    sampleSize: 16,            // 16-bit audio
+                    channelCount: 1,           // Mono is usually more reliable for voice
+                    
+                    // Advanced settings (when available in browsers)
+                    latency: 0.01,             // Low latency audio
+                    googHighpassFilter: true,  // Remove low frequency noise
+                    googAudioMirroring: false, // No need for audio mirroring with voice
+                    
+                    // Opus codec preference (set in SDP)
+                    googEchoCancellation2: true,  // Enhanced echo cancellation
+                    googNoiseSuppression2: true,  // Enhanced noise suppression
                 }
             };
             
@@ -219,11 +235,21 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                         console.log('[WebRTC] Got user media stream');
                         mediaStream = stream;
                         
-                        // Setup audio monitoring
+                        // Setup audio monitoring - assign to module-level variable
                         audioMonitor = setupAudioLevelMonitoring(stream);
                         
                         const pc = new RTCPeerConnection({
-                            iceServers: [],
+                            iceServers: [
+                                // Adding STUN servers can help establish connection in challenging network environments
+                                { urls: 'stun:stun.l.google.com:19302' },
+                                { urls: 'stun:stun1.l.google.com:19302' },
+                            ],
+                            sdpSemantics: 'unified-plan',  // Modern WebRTC approach
+                            // Audio processing settings for the connection
+                            bundlePolicy: 'max-bundle',
+                            rtcpMuxPolicy: 'require',
+                            // Optional parameters for better quality
+                            iceTransportPolicy: 'all',
                         });
                         
                         console.log('[WebRTC] Created peer connection');
@@ -308,12 +334,49 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                             }
                         };
 
+                        // Set codec preferences if browser supports it
+                        try {
+                            const audioTransceiver = pc.addTransceiver('audio');
+                            if (audioTransceiver.setCodecPreferences) {
+                                const codecs = RTCRtpSender.getCapabilities('audio')?.codecs;
+                                if (codecs) {
+                                    // Prioritize Opus codec with high quality settings
+                                    const opusCodecs = codecs.filter(codec => 
+                                        codec.mimeType.toLowerCase() === 'audio/opus');
+                                    
+                                    if (opusCodecs.length > 0) {
+                                        // Put Opus codecs first for higher priority
+                                        const sortedCodecs = [...opusCodecs, ...codecs.filter(codec => 
+                                            codec.mimeType.toLowerCase() !== 'audio/opus')];
+                                        audioTransceiver.setCodecPreferences(sortedCodecs);
+                                        console.log('[WebRTC] Prioritized Opus codec for better audio quality');
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.log('[WebRTC] Codec preferences not supported in this browser');
+                        }
+
                         peerConnection = pc;
                         console.log('[WebRTC] Creating offer');
                         return peerConnection.createOffer();
                     })
                     .then((offer: RTCSessionDescriptionInit) => {
                         console.log('[WebRTC] Setting local description');
+                        
+                        // Modify SDP to increase audio quality
+                        if (offer.sdp) {
+                            // Set Opus to use maximum quality mode
+                            offer.sdp = offer.sdp.replace(/(a=fmtp:111.*)\r\n/g, '$1;maxaveragebitrate=128000;stereo=1;maxplaybackrate=48000\r\n');
+                            
+                            // Set audio bandwidth higher
+                            if (!offer.sdp.includes('b=AS:')) {
+                                offer.sdp = offer.sdp.replace(/(m=audio .*)\r\n/g, '$1\r\nb=AS:128\r\n');
+                            }
+                            
+                            console.log('[WebRTC] Enhanced SDP parameters for higher audio quality');
+                        }
+                        
                         peerConnection.setLocalDescription(offer);
                         rtcOffer = offer;
                     })
@@ -486,6 +549,12 @@ function handleFunctionCall(message: OpenAIRealtimeMessage) {
 function stopConnection() {
     console.log('[WebRTC] Stopping connection');
 
+    // Stop audio quality monitoring
+    if (audioQualityMonitor) {
+        audioQualityMonitor.stop();
+        audioQualityMonitor = null;
+    }
+
     // Stop audio monitoring if active
     if (audioMonitor) {
         audioMonitor.stop();
@@ -527,6 +596,47 @@ function stopConnection() {
     Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {isTalkingToAISales: false});
 
     // Remove microphone activity check cleanup
+}
+
+// Add this new function
+function monitorAudioQuality(peerConnection: RTCPeerConnection) {
+    // Check if the browser supports statistics
+    if (!peerConnection.getStats) {
+        console.log('[WebRTC] Stats API not supported in this browser');
+        return { stop: () => {} };
+    }
+
+    const statsInterval = setInterval(() => {
+        peerConnection.getStats().then((stats) => {
+            stats.forEach((report) => {
+                if (report.type === 'inbound-rtp' && report.kind === 'audio') {
+                    console.log('[WebRTC] Audio Quality Stats:', {
+                        packetsReceived: report.packetsReceived,
+                        packetsLost: report.packetsLost,
+                        jitter: report.jitter,
+                        codecName: report.codecId,
+                        audioLevel: report.audioLevel
+                    });
+                    
+                    // Calculate packet loss percentage
+                    if (report.packetsReceived > 0) {
+                        const lossRate = (report.packetsLost || 0) / 
+                            (report.packetsReceived + (report.packetsLost || 0));
+                        
+                        if (lossRate > 0.05) { // More than 5% packet loss
+                            console.warn(`[WebRTC] High audio packet loss: ${(lossRate * 100).toFixed(2)}%`);
+                        }
+                    }
+                }
+            });
+        });
+    }, 10000); // Check every 10 seconds
+    
+    return {
+        stop: () => {
+            clearInterval(statsInterval);
+        }
+    };
 }
 
 export {initializeOpenAIRealtime, stopConnection};
