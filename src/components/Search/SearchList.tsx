@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
@@ -62,6 +62,9 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
+
+    /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
+    onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 };
 
 function SearchList(
@@ -80,6 +83,7 @@ function SearchList(
         containerStyle,
         ListFooterComponent,
         shouldPreventDefaultFocusOnSelectRow,
+        onViewableItemsChanged,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -330,6 +334,7 @@ function SearchList(
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
                 removeClippedSubviews
+                onViewableItemsChanged={onViewableItemsChanged}
             />
             <Modal
                 isVisible={isModalVisible}
