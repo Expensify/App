@@ -173,7 +173,7 @@ function addAttachmentIDOnHtml(html: string, reportActionID: string | undefined)
     }
 
     let attachmentID = 0;
-    return html.replace(/<img|<video/g, (m) => m.concat(` ${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}"`));
+    return html.replace(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
