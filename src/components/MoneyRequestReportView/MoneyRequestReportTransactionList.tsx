@@ -31,6 +31,9 @@ type MoneyRequestReportTransactionListProps = {
 
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
+
+    /** Whether the report that these transactions belong to has any chat comments */
+    hasComments: boolean;
 };
 
 const sortableColumnNames = [
@@ -66,7 +69,7 @@ const areTransactionValuesEqual = (transactions: OnyxTypes.Transaction[], key: S
     return transactions.every((transaction) => transaction[getTransactionKey(transaction, key)] === firstValidTransaction[keyOfFirstValidTransaction]);
 };
 
-function MoneyRequestReportTransactionList({report, transactions, reportActions}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({report, transactions, reportActions, hasComments}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -75,7 +78,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
-    const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
+    // const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
+    const shouldShowBreakdown = true;
 
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
@@ -164,7 +168,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
                     }}
                 />
             )}
-            <View style={[listHorizontalPadding, styles.gap2, styles.pb5, displayNarrowVersion && styles.pt5]}>
+            <View style={[listHorizontalPadding, styles.gap2, styles.pb4, displayNarrowVersion && styles.pt4]}>
                 {sortedData.transactions.map((transaction) => {
                     return (
                         <PressableWithFeedback
@@ -201,12 +205,12 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
                 })}
             </View>
             {shouldShowBreakdown && (
-                <View style={[styles.dFlex, styles.alignItemsEnd, listHorizontalPadding]}>
+                <View style={[styles.dFlex, styles.alignItemsEnd, listHorizontalPadding, styles.gap2, styles.mb2]}>
                     {[
                         {text: translate('cardTransactions.outOfPocket'), value: formattedOutOfPocketAmount},
                         {text: translate('cardTransactions.companySpend'), value: formattedCompanySpendAmount},
                     ].map(({text, value}) => (
-                        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.mb1]}>
+                        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
                             <Text
                                 style={[styles.textLabelSupporting, styles.mr3]}
                                 numberOfLines={1}
@@ -224,8 +228,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
                 </View>
             )}
             <View style={[styles.dFlex, styles.flexRow, listHorizontalPadding, styles.justifyContentBetween, styles.mb2]}>
-                <Text style={[styles.textLabelSupporting]}>{translate('common.comments')}</Text>
-                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
+                <Text style={[styles.textLabelSupporting]}>{hasComments ? translate('common.comments') : ''}</Text>
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
                     <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold]}>
                         {convertToDisplayString(totalDisplaySpend, report?.currency)}

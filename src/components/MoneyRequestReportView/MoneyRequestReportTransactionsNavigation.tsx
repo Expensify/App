@@ -32,6 +32,10 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
 
     const backTo = Navigation.getActiveRoute();
 
+    if (reportIDsList.length < 2) {
+        return;
+    }
+
     const pressableStyle = [
         styles.ml1,
         styles.alignItemsCenter,

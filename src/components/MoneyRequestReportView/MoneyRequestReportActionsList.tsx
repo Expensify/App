@@ -341,6 +341,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
         }
     };
 
+    const reportHasComments = visibleReportActions.length > 0;
     const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         handleUnreadFloatingButton();
@@ -370,6 +371,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                             report={report}
                             transactions={transactions}
                             reportActions={reportActions}
+                            hasComments={reportHasComments}
                         />
                     }
                     keyboardShouldPersistTaps="handled"
