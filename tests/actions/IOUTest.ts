@@ -927,8 +927,6 @@ describe('actions/IOU', () => {
             let createdAction: OnyxEntry<ReportAction>;
             let iouAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
             let transactionID: string | undefined;
-            // let transactionThreadReport: OnyxEntry<Report>;
-            // let transactionThreadAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
                 report: {reportID: ''},
@@ -964,7 +962,6 @@ describe('actions/IOU', () => {
                                         expect(Object.values(iouReports).length).toBe(1);
                                         const chatReport = chatReports.at(0);
                                         chatReportID = chatReport?.reportID;
-                                        // transactionThreadReport = chatReports.at(1);
 
                                         const iouReport = iouReports.at(0);
                                         iouReportID = iouReport?.reportID;
