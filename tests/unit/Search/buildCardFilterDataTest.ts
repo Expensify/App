@@ -129,7 +129,7 @@ const workspaceCardFeeds = {
             fundID: '18755167',
             cardID: 21589168,
             cardName: '455594XXXXXX4163',
-            domainName: 'heartlandhsc.com',
+            domainName: 'mockDomain.com',
             lastFourPAN: '4163',
         },
         '21589182': {
@@ -137,7 +137,7 @@ const workspaceCardFeeds = {
             bank: 'Expensify Card',
             cardID: 21589182,
             cardName: '',
-            domainName: 'heartlandhsc.com',
+            domainName: 'mockDomain.com',
             lastFourPAN: '',
         },
     },
@@ -303,7 +303,7 @@ const cardListClosed = {
 };
 
 const domainFeedDataMock = {
-    'heartlandhsc.com': {domainName: 'heartlandhsc.com', bank: 'Expensify Card', correspondingCardIDs: ['21589168', '21589182']},
+    'mockDomain.com': {domainName: 'mockDomain.com', bank: 'Expensify Card', correspondingCardIDs: ['21589168', '21589182']},
 };
 
 const translateMock = jest.fn();
@@ -407,7 +407,7 @@ describe('buildCardFeedsData', () => {
             isCardFeed: true,
             correspondingCards: ['21589168', '21589182'],
         });
-        expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'heartlandhsc.com'});
+        expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'mockDomain.com'});
 
         // Check if domain card feed was built properly
         expect(result.unselected.at(1)).toMatchObject({
