@@ -1,8 +1,8 @@
 import {Howl} from 'howler';
 import type {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
 import config from './config';
 
