@@ -16,6 +16,7 @@ import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
@@ -145,7 +146,7 @@ type ListItem = {
     icons?: Icon[];
 
     /** Errors that this user may contain */
-    errors?: Errors;
+    errors?: Errors | ReceiptErrors;
 
     /** The type of action that's pending  */
     pendingAction?: PendingAction;
@@ -373,7 +374,8 @@ type ValidListItem =
     | typeof ChatListItem
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
-    | typeof TravelDomainListItem;
+    | typeof TravelDomainListItem
+    | typeof UnreportedExpenseListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */

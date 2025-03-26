@@ -810,6 +810,10 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.hoverComponentBG,
         },
 
+        hoveredComponentBG2: {
+            backgroundColor: 'black',
+        },
+
         activeComponentBG: {
             backgroundColor: theme.activeComponentBG,
         },
