@@ -30,7 +30,7 @@ const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
     return {...transaction, transactionID: `${index}`};
 });
 
-const style = getMoneyRequestReportPreviewStyle(0, false);
+const style = getMoneyRequestReportPreviewStyle(false);
 
 const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
     <TransactionPreviewContent
@@ -52,7 +52,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         walletTermsErrors={undefined}
         routeName={SCREENS.TRANSACTION_DUPLICATE.REVIEW}
         shouldHideOnDelete={false}
-        wrapperStyles={style.transaction}
+        wrapperStyles={style.transactionPreviewStyle}
         containerStyles={[sizing.h100]}
     />
 );
@@ -141,7 +141,7 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
                     <MoneyRequestReportPreviewContent
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
-                        containerStyles={[style.preview, props.containerStyles]}
+                        containerStyles={[style.componentStyle, props.containerStyles]}
                         transactions={transactions}
                     />
                 </View>

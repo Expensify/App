@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
-import type {ListRenderItemInfo, ViewStyle, ViewToken} from 'react-native';
+import type {ListRenderItemInfo, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
@@ -75,22 +75,6 @@ import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {MoneyRequestReportPreviewContentProps} from './types';
-
-function ReviewRequiredButton({style, formattedAmount}: {style?: ViewStyle | ViewStyle[]; formattedAmount?: string}) {
-    const {translate} = useLocalize();
-    const theme = useTheme();
-
-    return (
-        <Button
-            icon={Expensicons.DotIndicator}
-            iconFill={theme.danger}
-            iconHoverFill={theme.danger}
-            text={`${translate('common.review')}${formattedAmount ? ` ${formattedAmount}` : ''}`}
-            onPress={() => {}}
-            style={style}
-        />
-    );
-}
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
@@ -432,8 +416,9 @@ function MoneyRequestReportPreviewContent({
         return null;
     };
 
-    const style = StyleUtils.getMoneyRequestReportPreviewStyle(transactions.length, shouldUseNarrowLayout);
-    const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: style.transaction.width} : {};
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout);
+    // it should expand maximum to transaction width
+    const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
 
     return (
         <OfflineWithFeedback
@@ -462,8 +447,8 @@ function MoneyRequestReportPreviewContent({
                             (isHovered || isScanning || isWhisper) && styles.reportPreviewBoxHoverBorder,
                         ]}
                     >
-                        <View style={[style.p, hasReceipts && styles.mtn1]}>
-                            <View style={style.gap}>
+                        <View style={[reportPreviewStyles.wrapperStyle, hasReceipts && styles.mtn1]}>
+                            <View style={reportPreviewStyles.contentContainerStyle}>
                                 <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
                                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
                                         <View style={[styles.flexRow, styles.flex1]}>
@@ -546,7 +531,7 @@ function MoneyRequestReportPreviewContent({
                                         scrollEnabled
                                         keyExtractor={(item) => item.transactionID}
                                         contentContainerStyle={[styles.gap2]}
-                                        style={[style.mhn, style.ph]}
+                                        style={reportPreviewStyles.flatListStyle}
                                         showsHorizontalScrollIndicator={false}
                                         renderItem={renderFlatlistItem}
                                         onViewableItemsChanged={onViewableItemsChanged}
@@ -613,9 +598,13 @@ function MoneyRequestReportPreviewContent({
                                     />
                                 )}
                                 {!shouldShowSubmitButton && shouldShowRBR && (shouldShowSettlementButton || !!shouldShowExportIntegrationButton) && (
-                                    <ReviewRequiredButton
+                                    <Button
+                                        icon={Expensicons.DotIndicator}
+                                        iconFill={theme.danger}
+                                        iconHoverFill={theme.danger}
+                                        text={`${translate('common.review')}${shouldShowSettlementButton ? ` ${getSettlementAmount()}` : ''}`}
+                                        onPress={() => {}}
                                         style={buttonMaxWidth}
-                                        formattedAmount={shouldShowSettlementButton ? getSettlementAmount() : undefined}
                                     />
                                 )}
                                 {shouldShowSubmitButton && (

@@ -47,7 +47,7 @@ function MoneyRequestReportPreview({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
-    const style = StyleUtils.getMoneyRequestReportPreviewStyle(transactions.length, shouldUseNarrowLayout);
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
@@ -61,14 +61,14 @@ function MoneyRequestReportPreview({
             isHovered={isHovered}
             iouReportID={iouReportID}
             onPreviewPressed={() => {}}
-            wrapperStyles={style.transaction}
+            wrapperStyles={reportPreviewStyles.transactionPreviewStyle}
             containerStyles={[styles.h100, containerStyles]}
         />
     );
 
     return (
         <MoneyRequestReportPreviewContent
-            containerStyles={[style.preview, containerStyles]}
+            containerStyles={[reportPreviewStyles.componentStyle, containerStyles]}
             contextMenuAnchor={contextMenuAnchor}
             isHovered={isHovered}
             isWhisper={isWhisper}
