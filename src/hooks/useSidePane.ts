@@ -88,7 +88,6 @@ function useSidePane() {
             });
 
             // Focus the composer after closing the side pane
-            ReportActionComposeFocusManager.composerRef.current?.blur();
             focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
         },
         [isExtraLargeScreenWidth, sidePaneNVP],
