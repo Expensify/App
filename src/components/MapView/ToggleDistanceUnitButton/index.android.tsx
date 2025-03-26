@@ -1,3 +1,4 @@
 import PressableWithTouchEnd from '@components/Pressable/PressableWithTouchEnd';
 
-export default PressableWithTouchEnd;
+const ToggleDistanceUnitButton = PressableWithTouchEnd;
+export default ToggleDistanceUnitButton;

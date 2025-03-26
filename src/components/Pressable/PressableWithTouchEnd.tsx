@@ -1,5 +1,6 @@
 import React, {useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import CONST from '@src/CONST';
 import type PressableProps from './GenericPressable/types';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 
@@ -35,9 +36,9 @@ function PressableWithTouchEnd({onPress, children, ...rest}: PressableProps) {
     };
 
     const handleTouchEnd = () => {
-        // Only trigger onPress if this was a quick tap (less than 500ms),
+        // Only trigger onPress if this was a quick tap (less than PRESS_HOLD_DURATION_MS ms),
         // as anything longer should be considered a long press.
-        if (touchStartTime.current && Date.now() - touchStartTime.current < 500) {
+        if (touchStartTime.current && Date.now() - touchStartTime.current < CONST.PRESS_HOLD_DURATION_MS) {
             onPress?.();
         }
         touchStartTime.current = null;
