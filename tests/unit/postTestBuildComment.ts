@@ -45,7 +45,7 @@ const iOSLink = 'https://expensify.app/IOS_LINK';
 const webLink = 'https://expensify.app/WEB_LINK';
 const desktopLink = 'https://expensify.app/DESKTOP_LINK';
 
-const androidQRCode = `![Android(https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`;
+const androidQRCode = `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`;
 const desktopQRCode = `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`;
 const iOSQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`;
 const webQRCode = `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`;
