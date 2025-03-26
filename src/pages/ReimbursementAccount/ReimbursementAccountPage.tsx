@@ -36,6 +36,7 @@ import {
     setReimbursementAccountLoading,
     updateReimbursementAccountDraft,
 } from '@userActions/BankAccounts';
+import {isCurrencySupportedForDirectReimbursement} from '@userActions/Policy/Policy';
 import {clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,7 +75,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
-    const hasUnsupportedCurrency = !CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(policyCurrency as CurrencyType);
+    const hasUnsupportedCurrency = !isCurrencySupportedForDirectReimbursement(policyCurrency as CurrencyType);
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
 
@@ -242,7 +243,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     const continueNonUSDVBBASetup = () => {
         setShouldShowContinueSetupButton(false);
-        if (policyCurrency === CONST.CURRENCY.EUR && nonUSDCountryDraftValue !== '') {
+        if (policyCurrency === CONST.CURRENCY.EUR && nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
             setNonUSDBankAccountStep(corpayFields !== undefined ? CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO : CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
             return;
         }

@@ -250,6 +250,7 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
  * Checks if the currency is supported for direct reimbursement
  */
 function isCurrencySupportedForDirectReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>) {
+    // TODO https://github.com/Expensify/App/issues/50912 check if we want to enable it temporarily on dev and staging environments only
     return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
 }
 
