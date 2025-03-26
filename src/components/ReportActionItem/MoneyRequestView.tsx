@@ -1,7 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
+import mapValues from 'lodash/mapValues';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -22,6 +24,7 @@ import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {isReceiptError} from '@libs/ErrorUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getTagLists, hasDependentTags, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -157,8 +160,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
-    const formattedTransactionAmount = transactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const formattedPerAttendeeAmount = transactionAmount ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency) : '';
+    const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
+    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!transactionAmount) && transactionAmount !== undefined;
+    const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
+    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency) : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCardName(transaction);
@@ -231,7 +236,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
     const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
@@ -478,6 +482,35 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         );
     });
 
+    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
+
+    const dismissReceiptError = useCallback(() => {
+        if (!report?.reportID) {
+            return;
+        }
+        if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            if (chatReport?.reportID && getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
+                return;
+            }
+            if (parentReportAction) {
+                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, true);
+                return;
+            }
+        }
+        if (!transaction?.transactionID) {
+            if (!linkedTransactionID) {
+                return;
+            }
+            clearError(linkedTransactionID);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
+            return;
+        }
+        revert(transaction?.transactionID ?? linkedTransactionID, getLastModifiedExpense(report?.reportID));
+        clearError(transaction.transactionID);
+        clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
+    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -500,31 +533,17 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 return;
                             }
 
-                            if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                if (chatReport?.reportID && getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
-                                    navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
-                                    return;
-                                }
-                                if (parentReportAction) {
-                                    cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
-                                    return;
-                                }
+                            const errorEntries = Object.entries(errors ?? {});
+                            const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
+                            const hasReceiptError = Object.values(errorMessages).some((error) => isReceiptError(error));
+
+                            if (hasReceiptError) {
+                                setShowConfirmDismissReceiptError(true);
+                            } else {
+                                dismissReceiptError();
                             }
-                            if (!report?.reportID) {
-                                return;
-                            }
-                            if (!transaction?.transactionID) {
-                                if (!linkedTransactionID) {
-                                    return;
-                                }
-                                clearError(linkedTransactionID);
-                                clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
-                                return;
-                            }
-                            revert(transaction?.transactionID ?? linkedTransactionID, getLastModifiedExpense(report?.reportID));
-                            clearError(transaction.transactionID);
-                            clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
                         }}
+                        dismissError={dismissReceiptError}
                     >
                         {hasReceipt && (
                             <View style={styles.moneyRequestViewImage}>
@@ -782,6 +801,22 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     </View>
                 )}
             </>
+            <ConfirmModal
+                isVisible={showConfirmDismissReceiptError}
+                onConfirm={() => {
+                    dismissReceiptError();
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                onCancel={() => {
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                title={translate('iou.dismissReceiptError')}
+                prompt={translate('iou.dismissReceiptErrorConfirmation')}
+                confirmText={translate('common.dismiss')}
+                cancelText={translate('common.cancel')}
+                shouldShowCancelButton
+                danger
+            />
         </View>
     );
 }

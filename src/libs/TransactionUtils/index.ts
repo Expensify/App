@@ -177,6 +177,25 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     return CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
+/**
+ * Determines the expense type of a given transaction.
+ */
+function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.EXPENSE_TYPE> | undefined {
+    if (!transaction) {
+        return undefined;
+    }
+
+    if (isExpensifyCardTransaction(transaction)) {
+        if (isPending(transaction)) {
+            return CONST.IOU.EXPENSE_TYPE.PENDING_EXPENSIFY_CARD;
+        }
+
+        return CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD;
+    }
+
+    return getRequestType(transaction);
+}
+
 function isManualRequest(transaction: Transaction): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -184,6 +203,24 @@ function isManualRequest(transaction: Transaction): boolean {
     }
 
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    const merchant = getMerchant(transaction);
+
+    if (!merchant || isPartialMerchant(merchant)) {
+        return true;
+    }
+
+    if (isAmountMissing(transaction) && isScanRequest(transaction)) {
+        return true;
+    }
+
+    return false;
+}
+
+function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isReceiptBeingScanned(transaction));
 }
 
 /**
@@ -1481,6 +1518,7 @@ export {
     getUpdatedTransaction,
     getDescription,
     getRequestType,
+    getExpenseType,
     isManualRequest,
     isScanRequest,
     getAmount,
@@ -1560,6 +1598,8 @@ export {
     isBrokenConnectionViolation,
     checkIfShouldShowMarkAsCashButton,
     shouldShowRTERViolationMessage,
+    isPartialTransaction,
+    isPendingCardOrScanningTransaction,
 };
 
 export type {TransactionChanges};

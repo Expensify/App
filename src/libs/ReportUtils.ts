@@ -83,7 +83,15 @@ import Navigation, {navigationRef} from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import Permissions from './Permissions';
-import {getAccountIDsByLogins, getDisplayNameOrDefault, getEffectiveDisplayName, getLoginsByAccountIDs, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {
+    getAccountIDsByLogins,
+    getDisplayNameOrDefault,
+    getEffectiveDisplayName,
+    getLoginsByAccountIDs,
+    getPersonalDetailByEmail,
+    getPersonalDetailsByIDs,
+    getShortMentionIfFound,
+} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
 import {
     arePaymentsEnabled,
@@ -2047,6 +2055,38 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | SearchRepor
 }
 
 /**
+ * Determines the help pane report type based on the given report.
+ */
+function getHelpPaneReportType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.HELP_TYPE> | undefined {
+    if (!report) {
+        return undefined;
+    }
+
+    if (isConciergeChatReport(report)) {
+        return CONST.REPORT.HELP_TYPE.CHAT_CONCIERGE;
+    }
+
+    if (report?.chatType) {
+        return getChatType(report);
+    }
+
+    switch (report?.type) {
+        case CONST.REPORT.TYPE.EXPENSE:
+            return CONST.REPORT.HELP_TYPE.EXPENSE_REPORT;
+        case CONST.REPORT.TYPE.CHAT:
+            return CONST.REPORT.HELP_TYPE.CHAT;
+        case CONST.REPORT.TYPE.IOU:
+            return CONST.REPORT.HELP_TYPE.IOU;
+        case CONST.REPORT.TYPE.INVOICE:
+            return CONST.REPORT.HELP_TYPE.INVOICE;
+        case CONST.REPORT.TYPE.TASK:
+            return CONST.REPORT.HELP_TYPE.TASK;
+        default:
+            return undefined;
+    }
+}
+
+/**
  * Checks if a report contains only Non-Reimbursable transactions
  */
 function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): boolean {
@@ -3363,8 +3403,8 @@ function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<type
 /**
  * Given a report field, check if the field is for the report title.
  */
-function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>, shouldCheckType = true): boolean {
-    return (reportField?.type === 'formula' || !shouldCheckType) && reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
+function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): boolean {
+    return reportField?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
 }
 
 /**
@@ -3388,7 +3428,7 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     }
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
-    const isTitleField = isReportFieldOfTypeTitle(reportField, false);
+    const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(report?.policyID, {[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`]: policy});
     return isTitleField ? !reportField?.deletable : !isAdmin && (isReportSettled || isReportClosed);
 }
@@ -4305,7 +4345,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
         return text ?? '';
     }
 
-    const mentionReportRegex = /<mention-report reportID="(\d+)" *\/>/gi;
+    const mentionReportRegex = /<mention-report reportID="?(\d+)"?(?: *\/>|><\/mention-report>)/gi;
     const matches = html.matchAll(mentionReportRegex);
 
     const reportIDToName: Record<string, string> = {};
@@ -4316,11 +4356,16 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
         }
     }
 
-    const mentionUserRegex = /<mention-user accountID="(\d+)" *\/>/gi;
+    const mentionUserRegex = /(?:<mention-user accountID="?(\d+)"?(?: *\/>|><\/mention-user>))/gi;
     const accountIDToName: Record<string, string> = {};
     const accountIDs = Array.from(html.matchAll(mentionUserRegex), (mention) => Number(mention[1]));
     const logins = getLoginsByAccountIDs(accountIDs);
-    accountIDs.forEach((id, index) => (accountIDToName[id] = logins.at(index) ?? ''));
+    accountIDs.forEach((id, index) => {
+        const login = logins.at(index);
+        const user = allPersonalDetails?.[id];
+        const displayName = formatPhoneNumber(login ?? '') || getDisplayNameOrDefault(user);
+        accountIDToName[id] = getShortMentionIfFound(displayName, id.toString(), currentUserPersonalDetails, login) ?? '';
+    });
 
     const textMessage = Str.removeSMSDomain(Parser.htmlToText(html, {reportIDToName, accountIDToName}));
     parsedReportActionMessageCache[key] = textMessage;
@@ -4573,7 +4618,7 @@ function getReportNameInternal({
             return report?.reportName ?? '';
         }
         if (isCardIssuedAction(parentReportAction)) {
-            return getCardIssuedMessage({reportAction: parentReportAction, personalDetails});
+            return getCardIssuedMessage({reportAction: parentReportAction});
         }
         return reportActionMessage;
     }
@@ -4887,7 +4932,7 @@ function completeShortMention(text: string): string {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>): string {
+function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>, disabledRules?: string[]): string {
     let isGroupPolicyReport = false;
     if (parsingDetails?.reportID) {
         const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
@@ -4902,11 +4947,12 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAt
     }
 
     const textWithMention = completeShortMention(text);
+    const rules = disabledRules ?? [];
 
     return text.length <= CONST.MAX_MARKUP_LENGTH
         ? Parser.replace(textWithMention, {
               shouldEscapeText: parsingDetails?.shouldEscapeText,
-              disabledRules: isGroupPolicyReport ? [] : ['reportMentions'],
+              disabledRules: isGroupPolicyReport ? [...rules] : ['reportMentions', ...rules],
               extras: {mediaAttributeCache: mediaAttributes},
           })
         : lodashEscape(text);
@@ -5791,10 +5837,11 @@ function buildOptimisticMovedReportAction(fromPolicyID: string | undefined, toPo
  * Builds an optimistic CHANGEPOLICY report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
-function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string): ReportAction {
+function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string, automaticAction = false): ReportAction {
     const originalMessage = {
         fromPolicy: fromPolicyID,
         toPolicy: toPolicyID,
+        automaticAction,
     };
 
     const fromPolicy = getPolicy(fromPolicyID);
@@ -6531,7 +6578,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: changelog,
-                html: getParsedComment(changelog),
+                html: getParsedComment(changelog, undefined, undefined, title !== undefined ? [...CONST.TASK_TITLE_DISABLED_RULES] : undefined),
             },
         ],
         person: [
@@ -6876,7 +6923,7 @@ function buildOptimisticTaskReport(
 
     return {
         reportID: generateReportID(),
-        reportName: getParsedComment(title ?? ''),
+        reportName: getParsedComment(title ?? '', undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]),
         description: getParsedComment(description ?? '', {}, mediaAttributes),
         ownerAccountID,
         participants,
@@ -9716,6 +9763,7 @@ export {
     getIntegrationIcon,
     canBeExported,
     isExported,
+    getHelpPaneReportType,
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
