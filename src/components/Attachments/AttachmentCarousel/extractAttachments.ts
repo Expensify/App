@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import {getFileName, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-import {addAttachmentIDOnHtml, getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {getHtmlWithAttachmentID, getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
@@ -115,7 +115,7 @@ function extractAttachments(
         const decision = getReportActionMessage(action)?.moderationDecision?.decision;
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
         const html = getReportActionHtml(action).replaceAll('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
-        htmlParser.write(addAttachmentIDOnHtml(html, action.reportActionID));
+        htmlParser.write(getHtmlWithAttachmentID(html, action.reportActionID));
     });
     htmlParser.end();
 

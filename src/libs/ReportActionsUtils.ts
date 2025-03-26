@@ -163,11 +163,11 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
 }
 
 /**
- * This function will add attachment ID attribute on img and video attachments inside the passed html content
+ * This function will add attachment ID attribute on img and video HTML tags inside the passed html content
  * of a report action. This attachment id is the reportActionID concatenated with the order index that the attachment
  * appears inside the report action message so as to identify attachments with identical source inside a report action.
  */
-function addAttachmentIDOnHtml(html: string, reportActionID: string | undefined) {
+function getHtmlWithAttachmentID(html: string, reportActionID: string | undefined) {
     if (!reportActionID) {
         return html;
     }
@@ -2301,7 +2301,7 @@ export {
     extractLinksFromMessageHtml,
     formatLastMessageText,
     isReportActionUnread,
-    addAttachmentIDOnHtml,
+    getHtmlWithAttachmentID,
     getActionableMentionWhisperMessage,
     getAllReportActions,
     getCombinedReportActions,
