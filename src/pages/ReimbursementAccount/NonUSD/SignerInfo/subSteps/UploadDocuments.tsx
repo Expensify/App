@@ -18,6 +18,7 @@ import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/For
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import Button from '@components/Button';
 
 type UploadDocumentsProps = SubStepProps;
 
@@ -31,6 +32,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [downloadPressed, setDownloadPressed] = useState<boolean>(false);
 
     const currency = policy?.outputCurrency ?? '';
     const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
@@ -40,25 +42,22 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const addressProofInputID = `${SIGNER_PREFIX}_${ADDRESS_PROOF}` as const;
     const directorsProofInputID = `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}` as const;
     const codiceFiscaleInputID = `${SIGNER_PREFIX}_${CODICE_FISCALE}` as const;
-    const prdAndSfgInputID = `${SIGNER_PREFIX}_${PRD_AND_SFG}` as const;
 
     const defaultValues: Record<string, FileObject[]> = {
         [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? reimbursementAccountDraft?.[copyOfIDInputID] : [],
         [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? reimbursementAccountDraft?.[addressProofInputID] : [],
         [directorsProofInputID]: Array.isArray(reimbursementAccountDraft?.[directorsProofInputID]) ? reimbursementAccountDraft?.[directorsProofInputID] : [],
         [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? reimbursementAccountDraft?.[codiceFiscaleInputID] : [],
-        [prdAndSfgInputID]: Array.isArray(reimbursementAccountDraft?.[prdAndSfgInputID]) ? reimbursementAccountDraft?.[prdAndSfgInputID] : [],
     };
 
     const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[copyOfIDInputID]);
     const [uploadedProofsOfAddress, setUploadedProofOfAddress] = useState<FileObject[]>(defaultValues[addressProofInputID]);
     const [uploadedProofsOfDirectors, setUploadedProofsOfDirectors] = useState<FileObject[]>(defaultValues[directorsProofInputID]);
     const [uploadedCodiceFiscale, setUploadedCodiceFiscale] = useState<FileObject[]>(defaultValues[codiceFiscaleInputID]);
-    const [uploadedPRDandSFG, setUploadedPRDandSFG] = useState<FileObject[]>(defaultValues[prdAndSfgInputID]);
 
     const STEP_FIELDS = useMemo(
-        (): Array<FormOnyxKeys<'reimbursementAccount'>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID, prdAndSfgInputID],
-        [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID, prdAndSfgInputID],
+        (): Array<FormOnyxKeys<'reimbursementAccount'>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
+        [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
     );
 
     const validate = useCallback(
@@ -92,6 +91,11 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
         }
 
         setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
+    };
+
+    const handleDownloadPress = () => {
+        // TODO: perform file download
+        setDownloadPressed(true);
     };
 
     return (
@@ -210,22 +214,10 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
             {isDocumentNeededStatus.isPRDandFSGNeeded && (
                 <View>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
-                    <InputWrapper
-                        InputComponent={UploadFile}
-                        buttonText={translate('signerInfoStep.chooseFile')}
-                        uploadedFiles={uploadedPRDandSFG}
-                        onUpload={(files) => {
-                            handleSelectFile(files, uploadedPRDandSFG, `${SIGNER_PREFIX}_${PRD_AND_SFG}`, setUploadedPRDandSFG);
-                        }}
-                        onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedPRDandSFG, `${SIGNER_PREFIX}_${PRD_AND_SFG}`, setUploadedPRDandSFG);
-                        }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
-                        value={uploadedPRDandSFG}
-                        inputID={`${SIGNER_PREFIX}_${PRD_AND_SFG}`}
-                        setError={(error) => {
-                            setUploadError(error, `${SIGNER_PREFIX}_${PRD_AND_SFG}`);
-                        }}
+                    <Button
+                        large
+                        text={translate('common.download')}
+                        onPress={handleDownloadPress}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.PDSandFSGDescription')}</Text>
                 </View>
