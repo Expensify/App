@@ -343,7 +343,9 @@ function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): r
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED);
 }
 
-function isReimbursementDeQueuedOrCancelledAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED> {
+function isReimbursementDeQueuedOrCancelledAction(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED> {
     return isReimbursementDeQueuedAction(reportAction) || isReimbursementCancelledAction(reportAction);
 }
 
