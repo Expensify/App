@@ -24,7 +24,7 @@ import {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,
 } from '@libs/actions/IOU';
-import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
+import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode, setWorkspaceAutoReportingFrequency} from '@libs/actions/Policy/Policy';
 import {addComment, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
 import {subscribeToUserEvents} from '@libs/actions/User';
@@ -3666,7 +3666,9 @@ describe('actions/IOU', () => {
             let policy: OnyxEntry<Policy>;
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    const policyID = generatePolicyID();
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+                    setWorkspaceAutoReportingFrequency(policyID, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -3832,7 +3834,9 @@ describe('actions/IOU', () => {
             let policy: OnyxEntry<Policy>;
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    const policyID = generatePolicyID();
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+                    setWorkspaceAutoReportingFrequency(policyID, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
                     return waitForBatchedUpdates();
                 })
                 .then(
