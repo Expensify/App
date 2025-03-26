@@ -22,7 +22,7 @@ This view allows you to review all transactions made on the Expensify Card, grou
 
 ---
 
-# Export Transactions from a Specific Period
+# Export Card Transactions by Date
 
 You can export transactions from a specific date range to help with monthly reconciliations:
 
@@ -31,13 +31,13 @@ You can export transactions from a specific date range to help with monthly reco
 3. Click **Filters**.
 4. Apply the following filters: 
    - **Card**: select the applicable card feed. 
-   - **Posted date**: Set the appropriate date range (e.g., `posted<2025-02-28 and posted>2025-02-01`)
-3. Alternatively, you can enter this directly in the search bar (e.g., `type:expense status:all feed:"all in cards" posted<2025-02-28 posted>2025-02-01`)
-4. Once filtered, click the **Export** icon in the top-right corner to download the report as a spreadsheet.
+   - **Posted date**: Set the appropriate date range (e.g., `posted<2025-02-28 AND posted>2025-02-01`)
+5. Alternatively, you can enter this directly in the search bar (e.g., `type:expense status:all feed:"all in cards" posted<2025-02-28 posted>2025-02-01`)
+6. Once filtered, click the **Export** icon in the top-right corner to download the report as a spreadsheet.
 
 ---
 
-# Payment Reconciliation Tips
+# Reconcile Card Payments Manually
 
 To align exported card expenses with bank withdrawals:
 
