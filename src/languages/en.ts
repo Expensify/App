@@ -1056,10 +1056,10 @@ const translations = {
             genericHoldExpenseFailureMessage: 'Unexpected error holding this expense. Please try again later.',
             genericUnholdExpenseFailureMessage: 'Unexpected error taking this expense off hold. Please try again later.',
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
-            receiptFailureMessage: "The receipt didn't upload. ",
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
-            saveFileMessage: 'Download the file ',
-            loseFileMessage: 'or dismiss this error and lose it.',
+            receiptFailureMessage: 'There was an error uploading your receipt. Please ',
+            tryAgainMessage: 'try again ',
+            saveFileMessage: ' save the receipt',
+            uploadLaterMessage: ' to upload later.',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
             genericSmartscanFailureMessage: 'Transaction is missing fields.',
@@ -1073,6 +1073,8 @@ const translations = {
             invalidSubrateLength: 'There must be at least one subrate.',
             invalidRate: 'Rate not valid for this workspace. Please select an available rate from the workspace.',
         },
+        dismissReceiptError: 'Dismiss error',
+        dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
         hold: 'Hold',
@@ -1160,6 +1162,10 @@ const translations = {
         dates: 'Dates',
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
+    },
+    share: {
+        shareToExpensify: 'Share to Expensify',
+        messageInputLabel: 'Message',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -4464,8 +4470,6 @@ const translations = {
                 business: 'Business',
                 chooseInvoiceMethod: 'Choose a payment method below:',
                 addBankAccount: 'Add bank account',
-                addDebitOrCreditCard: 'Add debit or credit card',
-                addCorporateCard: 'Add corporate card',
                 payingAsIndividual: 'Paying as an individual',
                 payingAsBusiness: 'Paying as a business',
             },
@@ -5252,8 +5256,9 @@ const translations = {
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
                 exportedToCSV: `exported this report to CSV`,
                 exportedToIntegration: {
-                    automaticOne: ({label}: ExportedToIntegrationParams) => `automatically exported this report to ${label} via`,
-                    automaticTwo: 'accounting settings.',
+                    automatic: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}.`,
+                    automaticActionOne: ({label}: ExportedToIntegrationParams) => `automatically exported this report to ${label} via`,
+                    automaticActionTwo: 'accounting settings.',
                     manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
                     reimburseableLink: 'View out-of-pocket expenses.',
                     nonReimbursableLink: 'View company card expenses.',
@@ -6068,6 +6073,10 @@ const translations = {
         title: 'Discard changes?',
         body: 'Are you sure you want to discard the changes you made?',
         confirmText: 'Discard changes',
+    },
+    aiSales: {
+        talkWithSales: 'Talk with sales',
+        hangUp: 'Hang up',
     },
 };
 

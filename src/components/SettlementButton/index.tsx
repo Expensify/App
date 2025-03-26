@@ -234,11 +234,6 @@ function SettlementButton({
                             onSelected: () => Navigation.navigate(addBankAccountRoute),
                         },
                         {
-                            text: translate('workspace.invoices.paymentMethods.addDebitOrCreditCard'),
-                            icon: Expensicons.CreditCard,
-                            onSelected: () => Navigation.navigate(addDebitCardRoute),
-                        },
-                        {
                             text: translate('iou.payElsewhere', {formattedAmount: ''}),
                             icon: Expensicons.Cash,
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -263,11 +258,6 @@ function SettlementButton({
                         text: translate('workspace.invoices.paymentMethods.addBankAccount'),
                         icon: Expensicons.Bank,
                         onSelected: () => Navigation.navigate(addBankAccountRoute),
-                    },
-                    {
-                        text: translate('workspace.invoices.paymentMethods.addCorporateCard'),
-                        icon: Expensicons.CreditCard,
-                        onSelected: () => Navigation.navigate(addDebitCardRoute),
                     },
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
