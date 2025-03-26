@@ -161,6 +161,12 @@ const webViewStyles = (theme: ThemeColors) =>
                 textDecorationStyle: 'solid',
             },
 
+            strong: {
+                // We set fontFamily and fontWeight directly in order to avoid overriding fontStyle.
+                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+                fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+            },
+
             a: link(theme),
 
             ul: {
