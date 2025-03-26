@@ -1618,6 +1618,7 @@ type ReportsSplitNavigatorParamList = {
         referrer?: string;
         moneyRequestReportActionID?: string;
         transactionID?: string;
+        iouReportID?: string;
     };
 };
 

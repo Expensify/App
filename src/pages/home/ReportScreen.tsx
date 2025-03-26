@@ -40,6 +40,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
     getOneTransactionThreadReportID,
+    getReportAction,
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
@@ -47,11 +48,13 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {
+    buildTransactionThread,
     canEditReportAction,
     canUserPerformWriteAction,
     findLastAccessedReport,
     getParticipantsAccountIDsForDisplay,
     getReportOfflinePendingActionAndErrors,
+    getReportOrDraftReport,
     isChatThread,
     isConciergeChatReport,
     isGroupChat,
@@ -428,17 +431,19 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
-        const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
-        const transactionID: string | undefined = route.params?.transactionID;
+        const {moneyRequestReportActionID, transactionID, iouReportID} = route.params;
 
-        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the trasaction thread created yet
+        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
         if (moneyRequestReportActionID && transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID);
+            const iouReport = getReportOrDraftReport(iouReportID);
+            const iouAction = getReportAction(iouReportID, moneyRequestReportActionID);
+            const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport, undefined, reportIDFromRoute);
+            openReport(reportIDFromRoute, undefined, [currentUserEmail], optimisticTransactionThread, moneyRequestReportActionID);
             return;
         }
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [route.params?.moneyRequestReportActionID, route.params?.transactionID, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail]);
+    }, [route.params, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
