@@ -408,7 +408,7 @@ function MenuItem(
         iconRight = Expensicons.ArrowRight,
         furtherDetailsIcon,
         furtherDetails,
-        furtherDetailsNumberOfLines,
+        furtherDetailsNumberOfLines = 2,
         furtherDetailsStyle,
         furtherDetailsComponent,
         description,
