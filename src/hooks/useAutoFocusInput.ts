@@ -55,14 +55,14 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     );
 
     // Trigger focus when side pane transition ends
-    const {isSidePaneTransitionEnded, isPaneHidden} = useSidePane();
+    const {isSidePaneTransitionEnded, shouldHideSidePane} = useSidePane();
     useEffect(() => {
-        if (!isPaneHidden) {
+        if (!shouldHideSidePane) {
             return;
         }
 
         setIsScreenTransitionEnded(isSidePaneTransitionEnded);
-    }, [isSidePaneTransitionEnded, isPaneHidden]);
+    }, [isSidePaneTransitionEnded, shouldHideSidePane]);
 
     const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;
