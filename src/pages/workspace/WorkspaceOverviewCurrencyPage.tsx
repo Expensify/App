@@ -25,6 +25,7 @@ const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPageProps) {
     const {translate} = useLocalize();
 
+    // TODO https://github.com/Expensify/App/issues/50912 - check if BE is resetting non USD flow correctly when changing currency
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
             return;
@@ -32,7 +33,6 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
         clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: mapCurrencyToCountry(item.currencyCode)});
         updateGeneralSettings(policy.id, policy?.name ?? '', item.currencyCode);
-        // TODO reset non USD flow in here as well
         clearCorpayBankAccountFields();
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
