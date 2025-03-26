@@ -16,7 +16,7 @@ To view card transactions for a specific employee or for the entire company:
 2. Click **Filters** in the top-right corner.
 3. Click **Card** to filter cards:
    - Select a feed from **Card feeds** to view expenses from all cards in the feed. 
-   - Select a card from **Individual cards* to view expenses from that card. 
+   - Select a card from **Individual cards** to view expenses from that card. 
 
 This view allows you to review all transactions made on the Expensify Card, grouped by employee or feed.
 
