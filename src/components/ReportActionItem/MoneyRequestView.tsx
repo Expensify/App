@@ -60,7 +60,6 @@ import {
     hasRoute as hasRouteTransactionUtils,
     isCardTransaction as isCardTransactionTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
-    isPartial,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
