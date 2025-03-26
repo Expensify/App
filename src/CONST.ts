@@ -342,6 +342,7 @@ const EMAIL = {
     SVFG: 'svfg@expensify.com',
     EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
+    TEAM: 'team@expensify.com',
     MANAGER_MCTEST: 'manager_mctest@expensify.com',
 };
 
@@ -3522,6 +3523,7 @@ const CONST = {
         EMAIL.RECEIPTS,
         EMAIL.STUDENT_AMBASSADOR,
         EMAIL.SVFG,
+        EMAIL.TEAM,
         EMAIL.MANAGER_MCTEST,
     ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
