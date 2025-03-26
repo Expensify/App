@@ -2072,7 +2072,6 @@ function buildPolicyData(
         engagementChoice,
         currency: outputCurrency,
         file: clonedFile,
-        requiresCategory: true,
     };
 
     if (!introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
@@ -2233,7 +2232,6 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         customUnitRateID,
         currency: outputCurrency,
         file: clonedFile,
-        requiresCategory: true,
     };
 
     Onyx.update(optimisticData);

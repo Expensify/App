@@ -14,7 +14,6 @@ type CreateWorkspaceParams = {
     guidedSetupData?: string;
     currency: string;
     file?: File;
-    requiresCategory: boolean;
 };
 
 export default CreateWorkspaceParams;
