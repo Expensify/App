@@ -219,13 +219,14 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     }, [isInitialCreationFlow, nextStep, selectedApproverEmail, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
 
     const toggleApprover = useCallback(
-        debounce((approver: SelectionListApprover) => {
-            if (selectedApproverEmail === approver.login) {
-                setSelectedApproverEmail(undefined);
-                return;
-            }
-            setSelectedApproverEmail(approver.login);
-        }, 200),
+        (approver: SelectionListApprover) =>
+            debounce(() => {
+                if (selectedApproverEmail === approver.login) {
+                    setSelectedApproverEmail(undefined);
+                    return;
+                }
+                setSelectedApproverEmail(approver.login);
+            }, 200)(),
         [selectedApproverEmail],
     );
 
