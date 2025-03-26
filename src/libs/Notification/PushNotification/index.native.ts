@@ -67,6 +67,7 @@ const init: Init = () => {
     // so event.notification refers to the same thing as notification above ^
     Airship.addListener(EventType.NotificationResponse, (event) => pushNotificationEventCallback(EventType.NotificationResponse, event.pushPayload));
 
+    Log.info('[PushNotification] Configuring foreground push notifications');
     ForegroundNotifications.configureForegroundNotifications();
 };
 
@@ -100,19 +101,6 @@ const register: Register = (notificationID) => {
             Log.warn('[PushNotification] Failed to register for push notifications! Reason: ', error);
         });
 };
-
-/**
- * Deregister this device from push notifications.
- */
-const deregister: Deregister = () => {
-    Log.info('[PushNotification] Unsubscribing from push notifications.');
-    Airship.contact.reset();
-    Airship.removeAllListeners(EventType.PushReceived);
-    Airship.removeAllListeners(EventType.NotificationResponse);
-    ForegroundNotifications.disableForegroundNotifications();
-    ShortcutManager.removeAllDynamicShortcuts();
-};
-
 /**
  * Bind a callback to a push notification of a given type.
  * See https://github.com/Expensify/Web-Expensify/blob/main/lib/MobilePushNotifications.php for the various
@@ -154,6 +142,19 @@ const onSelected: OnSelected = (notificationType, callback) => {
  */
 const clearNotifications: ClearNotifications = () => {
     Airship.push.clearNotifications();
+};
+
+/**
+ * Deregister this device from push notifications.
+ */
+const deregister: Deregister = () => {
+    Log.info('[PushNotification] Unsubscribing from push notifications.');
+    Airship.contact.reset();
+    Airship.removeAllListeners(EventType.PushReceived);
+    Airship.removeAllListeners(EventType.NotificationResponse);
+    ForegroundNotifications.disableForegroundNotifications();
+    ShortcutManager.removeAllDynamicShortcuts();
+    clearNotifications();
 };
 
 const PushNotification: PushNotificationType = {

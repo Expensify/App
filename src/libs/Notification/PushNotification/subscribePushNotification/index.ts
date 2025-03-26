@@ -37,6 +37,33 @@ Onyx.connect({
     },
 });
 
+/**
+ * Register and deregister the user's private pushNotificationID with Airship when it is received (on sign in and sign
+ * out)
+ */
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+    callback: (notificationID) => {
+        if (notificationID) {
+            PushNotification.register(notificationID);
+        } else {
+            PushNotification.deregister();
+        }
+    },
+});
+
+export default function subscribeToPushNotifications() {
+    Log.info('[PushNotification] Subscribing handlers');
+    PushNotification.init();
+
+    // Subscribe handlers for different push notification types
+    PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, applyOnyxData);
+    PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, navigateToReport);
+
+    PushNotification.onReceived(PushNotification.TYPE.MONEY_REQUEST, applyOnyxData);
+    PushNotification.onSelected(PushNotification.TYPE.MONEY_REQUEST, navigateToReport);
+}
+
 function getLastUpdateIDAppliedToClient(): Promise<number> {
     return new Promise((resolve) => {
         Onyx.connect({
@@ -147,29 +174,3 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
 
     return Promise.resolve();
 }
-
-/**
- * Manage push notification subscriptions on sign-in/sign-out.
- *
- * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
- * push subscription when the session changes here.
- */
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
-    callback: (notificationID) => {
-        if (notificationID) {
-            PushNotification.register(notificationID);
-            PushNotification.init();
-
-            // Subscribe handlers for different push notification types
-            PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, applyOnyxData);
-            PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, navigateToReport);
-
-            PushNotification.onReceived(PushNotification.TYPE.MONEY_REQUEST, applyOnyxData);
-            PushNotification.onSelected(PushNotification.TYPE.MONEY_REQUEST, navigateToReport);
-        } else {
-            PushNotification.deregister();
-            PushNotification.clearNotifications();
-        }
-    },
-});

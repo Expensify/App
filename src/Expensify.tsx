@@ -32,7 +32,7 @@ import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
-import './libs/Notification/PushNotification/subscribePushNotification';
+import subscribeToPushNotifications from './libs/Notification/PushNotification/subscribePushNotification';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -242,6 +242,11 @@ function Expensify() {
         }
         disconnect();
     }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate]);
+
+    // Subscribe to mobile push notifications on app startup
+    useEffect(() => {
+        subscribeToPushNotifications();
+    }, []);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
