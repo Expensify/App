@@ -189,7 +189,7 @@ function VerifiedBankAccountFlowEntryPoint({
                 <Section
                     title={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.almostDone' : 'workspace.bankAccount.streamlinePayments')}
                     titleStyles={styles.textHeadline}
-                    subtitle={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.youreAlmostDone' : 'bankAccount.toGetStarted')}
+                    subtitle={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.youAreAlmostDone' : 'bankAccount.toGetStarted')}
                     subtitleStyles={styles.textSupporting}
                     subtitleMuted
                     illustration={LottieAnimations.FastMoney}

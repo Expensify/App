@@ -548,7 +548,7 @@ const translations = {
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
-        expensifyDoesntHaveAccessToCamera: "Expensify can't take photos without access to your camera. Tap settings to update permissions.",
+        expensifyDoesNotHaveAccessToCamera: "Expensify can't take photos without access to your camera. Tap settings to update permissions.",
         attachmentError: 'Attachment error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment. Please try again.',
         errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment. Please try another file.',
@@ -1255,6 +1255,7 @@ const translations = {
         newContactMethod: 'New contact method',
         goBackContactMethods: 'Go back to contact methods',
     },
+    // cspell:disable
     pronouns: {
         coCos: 'Co / Cos',
         eEyEmEir: 'E / Ey / Em / Eir',
@@ -1276,6 +1277,7 @@ const translations = {
         zeHirHirs: 'Ze / Hir',
         callMeByMyName: 'Call me by my name',
     },
+    // cspell:enable
     displayNamePage: {
         headerTitle: 'Display name',
         isShownOnProfile: 'Your display name is shown on your profile.',
@@ -1687,7 +1689,7 @@ const translations = {
         pleaseEnterLastFour: 'Please enter the last four digits of your card.',
         activatePhysicalCard: 'Activate physical card',
         error: {
-            thatDidntMatch: "That didn't match the last 4 digits on your card. Please try again.",
+            thatDidNotMatch: "That didn't match the last 4 digits on your card. Please try again.",
             throttled:
                 "You've incorrectly entered the last 4 digits of your Expensify Card too many times. If you're sure the numbers are correct, please reach out to Concierge to resolve. Otherwise, try again later.",
         },
@@ -2339,14 +2341,14 @@ const translations = {
         businessInfo: 'Company info',
         enterTheNameOfYourBusiness: "What's the name of your company?",
         businessName: 'Legal company name',
-        enterYourCompanysTaxIdNumber: "What's your company’s Tax ID number?",
+        enterYourCompanyTaxIdNumber: "What's your company’s Tax ID number?",
         taxIDNumber: 'Tax ID number',
         taxIDNumberPlaceholder: '9 digits',
-        enterYourCompanysWebsite: "What's your company’s website?",
+        enterYourCompanyWebsite: "What's your company’s website?",
         companyWebsite: 'Company website',
-        enterYourCompanysPhoneNumber: "What's your company’s phone number?",
-        enterYourCompanysAddress: "What's your company’s address?",
-        selectYourCompanysType: 'What type of company is it?',
+        enterYourCompanyPhoneNumber: "What's your company’s phone number?",
+        enterYourCompanyAddress: "What's your company’s address?",
+        selectYourCompanyType: 'What type of company is it?',
         companyType: 'Company type',
         incorporationType: {
             LLC: 'LLC',
@@ -2356,7 +2358,7 @@ const translations = {
             SOLE_PROPRIETORSHIP: 'Sole proprietorship',
             OTHER: 'Other',
         },
-        selectYourCompanysIncorporationDate: "What's your company’s incorporation date?",
+        selectYourCompanyIncorporationDate: "What's your company’s incorporation date?",
         incorporationDate: 'Incorporation date',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
         incorporationState: 'Incorporation state',
@@ -2619,7 +2621,7 @@ const translations = {
             header: 'Before we continue...',
             title: 'Terms & conditions',
             subtitle: 'Please agree to the Expensify Travel ',
-            termsconditions: 'terms & conditions',
+            termsConditions: 'terms & conditions',
             travelTermsAndConditions: 'terms & conditions',
             agree: 'I agree to the ',
             error: 'You must agree to the Expensify Travel terms & conditions to continue',
@@ -3640,8 +3642,8 @@ const translations = {
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
                     visa: 'We have global integrations with Visa, though eligibility varies by bank and card program.\n\nTo get started, simply:',
                     mastercard: 'We have global integrations with Mastercard, though eligibility varies by bank and card program.\n\nTo get started, simply:',
-                    vcf: `1. Visit [this help article](${CONST.COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP}) for detailed instructions on how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP}) to verify they support a commercial feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
-                    gl1025: `1. Visit [this help article](${CONST.COMPANY_CARDS_AMEX_COMMERICAL_CARD_HELP}) to find out if American Express can enable a commercial feed for your program.\n\n2. Once the feed is enabled, Amex will send you a production letter.\n\n3. *Once you have the feed information, continue to the next screen.*`,
+                    vcf: `1. Visit [this help article](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) for detailed instructions on how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) to verify they support a commercial feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                    gl1025: `1. Visit [this help article](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) to find out if American Express can enable a commercial feed for your program.\n\n2. Once the feed is enabled, Amex will send you a production letter.\n\n3. *Once you have the feed information, continue to the next screen.*`,
                     cdf: `1. Visit [this help article](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) for detailed instructions on how to set up your Mastercard Commercial Cards.\n\n 2. [Contact your bank](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) to verify they support a commercial feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
                     stripe: `1. Visit Stripe’s Dashboard, and go to [Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}).\n\n2. Under Product Integrations, click Enable next to Expensify.\n\n3. Once the feed is enabled, click Submit below and we’ll work on adding it.`,
                 },
@@ -4275,7 +4277,7 @@ const translations = {
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Are you sure you want to connect ${
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'this accounting integration'
-                }? This will remove any existing acounting connections.`,
+                }? This will remove any existing accounting connections.`,
             enterCredentials: 'Enter your credentials',
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
@@ -4539,7 +4541,7 @@ const translations = {
         },
         bankAccount: {
             continueWithSetup: 'Continue setup',
-            youreAlmostDone: "You're almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills.",
+            youAreAlmostDone: "You're almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills.",
             streamlinePayments: 'Streamline payments',
             connectBankAccountNote: "Note: Personal bank accounts can't be used for payments on workspaces.",
             oneMoreThing: 'One more thing!',
@@ -4930,7 +4932,7 @@ const translations = {
         submitAndClose: 'Submit and Close',
         submitAndApprove: 'Submit and Approve',
         advanced: 'ADVANCED',
-        dynamictExternal: 'DYNAMIC_EXTERNAL',
+        dynamicExternal: 'DYNAMIC_EXTERNAL',
         smartReport: 'SMARTREPORT',
         billcom: 'BILLCOM',
     },
@@ -5238,7 +5240,7 @@ const translations = {
         genericCreateReportFailureMessage: 'Unexpected error creating this chat. Please try again later.',
         genericAddCommentFailureMessage: 'Unexpected error posting the comment. Please try again later.',
         genericUpdateReportFieldFailureMessage: 'Unexpected error updating the field. Please try again later.',
-        genericUpdateReporNameEditFailureMessage: 'Unexpected error renaming the report. Please try again later.',
+        genericUpdateReportNameEditFailureMessage: 'Unexpected error renaming the report. Please try again later.',
         noActivityYet: 'No activity yet',
         actions: {
             type: {
@@ -5329,7 +5331,7 @@ const translations = {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat member display names',
         scrollToNewestMessages: 'Scroll to newest messages',
-        prestyledText: 'Prestyled text',
+        preStyledText: 'Pre styled text',
         viewAttachment: 'View attachment',
     },
     parentReportAction: {

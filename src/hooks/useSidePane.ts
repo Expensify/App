@@ -33,7 +33,7 @@ function useSidePane() {
     const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
         selector: (modal) =>
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT ||
+            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT ||
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL,
     });

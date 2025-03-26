@@ -543,7 +543,7 @@ const translations = {
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
-        expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a la cámara. Haz click en configuración para actualizar los permisos.',
+        expensifyDoesNotHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a la cámara. Haz click en configuración para actualizar los permisos.',
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Se ha producido un error al seleccionar un archivo adjunto. Por favor, inténtalo de nuevo.',
         errorWhileSelectingCorruptedAttachment: 'Se ha producido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
@@ -1688,7 +1688,7 @@ const translations = {
         pleaseEnterLastFour: 'Introduce los cuatro últimos dígitos de la tarjeta.',
         activatePhysicalCard: 'Activar tarjeta física',
         error: {
-            thatDidntMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
+            thatDidNotMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
             throttled:
                 'Has introducido incorrectamente los 4 últimos dígitos de tu tarjeta Expensify demasiadas veces. Si estás seguro de que los números son correctos, ponte en contacto con Conserjería para solucionarlo. De lo contrario, inténtalo de nuevo más tarde.',
         },
@@ -2361,7 +2361,7 @@ const translations = {
         businessInfo: 'Información de la empresa',
         enterTheNameOfYourBusiness: '¿Cuál es el nombre de tu empresa?',
         businessName: 'Nombre de la empresa',
-        enterYourCompanysTaxIdNumber: '¿Cuál es el número de identificación fiscal?',
+        enterYourCompanyTaxIdNumber: '¿Cuál es el número de identificación fiscal?',
         taxIDNumber: 'Número de identificación fiscal',
         taxIDNumberPlaceholder: '9 dígitos',
         enterYourCompanysWebsite: '¿Cuál es la página web de tu empresa?',
@@ -2642,7 +2642,7 @@ const translations = {
             header: 'Antes de continuar...',
             title: 'Términos y condiciones de Expensify Travel',
             subtitle: 'Por favor, acepta los ',
-            termsconditions: 'términos y condiciones',
+            termsConditions: 'términos y condiciones',
             travelTermsAndConditions: 'términos y condiciones',
             agree: 'Acepto los ',
             error: 'Debes aceptar los términos y condiciones de Expensify Travel para continuar',
@@ -3679,8 +3679,8 @@ const translations = {
                         'Tenemos una integración directa con el emisor de su tarjeta y podemos importar los datos de sus transacciones a Expensify de forma rápida y precisa.\n\nPara empezar, simplemente:',
                     visa: 'Contamos con integraciones globales con Visa, aunque la elegibilidad varía según el banco y el programa de la tarjeta.\n\nTPara empezar, simplemente:',
                     mastercard: 'Contamos con integraciones globales con Mastercard, aunque la elegibilidad varía según el banco y el programa de la tarjeta.\n\nPara empezar, simplemente:',
-                    vcf: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP}) para obtener instrucciones detalladas sobre cómo configurar sus tarjetas comerciales Visa.\n\n2. [Póngase en contacto con su banco](${CONST.COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP}) para comprobar que admiten un feed personalizado para su programa, y pídales que lo activen.\n\n3. *Una vez que el feed esté habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
-                    gl1025: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_AMEX_COMMERICAL_CARD_HELP}) para saber si American Express puede habilitar un feed personalizado para su programa.\n\n2. Una vez activada la alimentación, Amex le enviará una carta de producción.\n\n3. *Una vez que tenga la información de alimentación, continúe con la siguiente pantalla.*`,
+                    vcf: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) para obtener instrucciones detalladas sobre cómo configurar sus tarjetas comerciales Visa.\n\n2. [Póngase en contacto con su banco](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) para comprobar que admiten un feed personalizado para su programa, y pídales que lo activen.\n\n3. *Una vez que el feed esté habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
+                    gl1025: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) para saber si American Express puede habilitar un feed personalizado para su programa.\n\n2. Una vez activada la alimentación, Amex le enviará una carta de producción.\n\n3. *Una vez que tenga la información de alimentación, continúe con la siguiente pantalla.*`,
                     cdf: `1. Visite [este artículo de ayuda](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) para obtener instrucciones detalladas sobre cómo configurar sus tarjetas comerciales Mastercard.\n\n 2. [Póngase en contacto con su banco](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) para verificar que admiten un feed personalizado para su programa, y pídales que lo habiliten.\n\n3. *Una vez que el feed esté habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
                     stripe: `1. Visita el Panel de Stripe y ve a [Configuraciones](${CONST.COMPANY_CARDS_STRIPE_HELP}).\n\n2. En Integraciones de Productos, haz clic en Habilitar junto a Expensify.\n\n3. Una vez que la fuente esté habilitada, haz clic en Enviar abajo y comenzaremos a añadirla.`,
                 },
@@ -4585,7 +4585,7 @@ const translations = {
         },
         bankAccount: {
             continueWithSetup: 'Continuar con la configuración',
-            youreAlmostDone: 'Casi has acabado de configurar tu cuenta bancaria, que te permitirá emitir tarjetas corporativas, reembolsar gastos y cobrar pagar facturas.',
+            youAreAlmostDone: 'Casi has acabado de configurar tu cuenta bancaria, que te permitirá emitir tarjetas corporativas, reembolsar gastos y cobrar pagar facturas.',
             streamlinePayments: 'Optimiza pagos',
             connectBankAccountNote: 'Nota: No se pueden usar cuentas bancarias personales para realizar pagos en los espacios de trabajo.',
             oneMoreThing: '¡Una cosa más!',
@@ -4981,7 +4981,7 @@ const translations = {
         submitAndClose: 'Enviar y Cerrar',
         submitAndApprove: 'Enviar y Aprobar',
         advanced: 'AVANZADO',
-        dynamictExternal: 'DINÁMICO_EXTERNO',
+        dynamicExternal: 'DINÁMICO_EXTERNO',
         smartReport: 'INFORME_INTELIGENTE',
         billcom: 'BILLCOM',
     },
@@ -5292,7 +5292,7 @@ const translations = {
         genericCreateReportFailureMessage: 'Error inesperado al crear el chat. Por favor, inténtalo más tarde.',
         genericAddCommentFailureMessage: 'Error inesperado al añadir el comentario. Por favor, inténtalo más tarde.',
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
-        genericUpdateReporNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
+        genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
         actions: {
             type: {
