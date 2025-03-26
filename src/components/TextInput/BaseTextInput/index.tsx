@@ -58,7 +58,6 @@ function BaseTextInput(
         maxLength = undefined,
         hint = '',
         onInputChange = () => {},
-        shouldDelayFocus = false,
         multiline = false,
         shouldInterceptSwipe = false,
         autoCorrect = true,
@@ -111,22 +110,6 @@ function BaseTextInput(
     const didScrollToEndRef = useRef(false);
 
     useHtmlPaste(input as MutableRefObject<TextInput | null>, undefined, isMarkdownEnabled);
-
-    // AutoFocus which only works on mount:
-    useEffect(() => {
-        // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!autoFocus || !input.current) {
-            return;
-        }
-
-        if (shouldDelayFocus) {
-            const focusTimeout = setTimeout(() => input?.current?.focus(), CONST.ANIMATED_TRANSITION);
-            return () => clearTimeout(focusTimeout);
-        }
-        input.current.focus();
-        // We only want this to run on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
@@ -393,6 +376,7 @@ function BaseTextInput(
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                autoFocus={autoFocus}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
