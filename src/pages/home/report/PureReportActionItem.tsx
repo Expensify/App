@@ -759,11 +759,10 @@ function PureReportActionItem({
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                 />
             );
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-            // eslint-disable-next-line no-nested-ternary
-            children = isClosedExpenseReportWithNoExpenses ? (
-                <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />
-            ) : canUseTableReportView ? (
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
+            children = <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && canUseTableReportView) {
+            children = (
                 <MoneyRequestReportPreview
                     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                     iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
@@ -777,7 +776,9 @@ function PureReportActionItem({
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                 />
-            ) : (
+            );
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+            children = (
                 <ReportPreview
                     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                     iouReportID={getIOUReportIDFromReportActionPreview(action) as string}

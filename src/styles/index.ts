@@ -5552,7 +5552,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
         },
-        carouselArrowButton: {
+        reportPreviewArrowButton: {
             borderRadius: 50,
             width: 28,
             height: 28,

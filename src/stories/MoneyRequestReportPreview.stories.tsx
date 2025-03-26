@@ -110,8 +110,7 @@ export default {
         },
         /** Whether the corresponding report action item is hovered */
         isHovered: {
-            options: [true, false, undefined],
-            control: {type: 'radio'},
+            control: {type: 'boolean'},
         },
     },
     args: {
@@ -157,7 +156,6 @@ const DarkTheme: MoneyRequestReportPreviewStory = Template.bind({});
 const OneTransaction: MoneyRequestReportPreviewStory = Template.bind({});
 const ManyTransactions: MoneyRequestReportPreviewStory = Template.bind({});
 const HasErrors: MoneyRequestReportPreviewStory = Template.bind({});
-const ButtonVisible: MoneyRequestReportPreviewStory = Template.bind({});
 
 DarkTheme.parameters = {
     useLightTheme: false,
@@ -178,6 +176,4 @@ HasErrors.args = {
     })),
 };
 
-ButtonVisible.parameters = {};
-
-export {Default, DarkTheme, ManyTransactions, HasErrors, ButtonVisible, OneTransaction};
+export {Default, DarkTheme, ManyTransactions, HasErrors, OneTransaction};

@@ -408,7 +408,9 @@ function MoneyRequestReportPreviewContent({
         if (itemInfo.index > 9) {
             return (
                 <View style={[styles.flex1, styles.p5, styles.justifyContentCenter]}>
-                    <Text style={{color: colors.blue600}}>+{transactions.length - 10} more</Text>
+                    <Text style={{color: colors.blue600}}>
+                        +{transactions.length - 10} {translate('common.more').toLowerCase()}
+                    </Text>
                 </View>
             );
         }
@@ -483,7 +485,7 @@ function MoneyRequestReportPreviewContent({
                                                     accessibilityRole="button"
                                                     accessible
                                                     accessibilityLabel="button"
-                                                    style={[styles.carouselArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                    style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                     onPress={() => handleChange(currentIndex - 1)}
                                                 >
                                                     <Icon
@@ -497,7 +499,7 @@ function MoneyRequestReportPreviewContent({
                                                     accessibilityRole="button"
                                                     accessible
                                                     accessibilityLabel="button"
-                                                    style={[styles.carouselArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                    style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                     onPress={() => handleChange(currentIndex + 1)}
                                                 >
                                                     <Icon
@@ -543,7 +545,7 @@ function MoneyRequestReportPreviewContent({
                                                 accessibilityRole="button"
                                                 accessible
                                                 accessibilityLabel="button"
-                                                style={[styles.carouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
+                                                style={[styles.reportPreviewCarouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
                                                 onPress={() => carouselRef.current?.scrollToIndex({index, animated: true})}
                                             />
                                         ))}
