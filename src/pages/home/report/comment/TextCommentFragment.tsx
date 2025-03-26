@@ -12,7 +12,7 @@ import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import Performance from '@libs/Performance';
-import {addAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
+import {addAttachmentIDOnHtml, getTextFromHtml} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -87,7 +87,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
-        htmlWithTag = addAttachmentID(htmlWithTag, reportActionID);
+        htmlWithTag = addAttachmentIDOnHtml(htmlWithTag, reportActionID);
 
         return (
             <RenderCommentHTML

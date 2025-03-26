@@ -32,7 +32,7 @@ type AttachmentCarouselPagerProps = {
     /** The attachments to be rendered in the pager. */
     items: Attachment[];
 
-    /** The id of the currently active attachment. */
+    /** The id or source (URL) of the currently active attachment. */
     activeAttachmentID: AttachmentSource;
 
     /** The index of the initial page to be rendered. */

@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import {getFileName, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-import {addAttachmentID, getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {addAttachmentIDOnHtml, getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
@@ -39,7 +39,7 @@ function extractAttachments(
 
                 const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${source}`);
                 attachments.unshift({
-                    attachmentID: attribs['data-attachment-id'],
+                    attachmentID: attribs[CONST.ATTACHMENT_ID_ATTRIBUTE],
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
                     file: {name: fileName},
@@ -72,7 +72,7 @@ function extractAttachments(
                 // we ensure correct order of attachments even across actions with multiple attachments.
                 attachments.unshift({
                     reportActionID: attribs['data-id'],
-                    attachmentID: attribs['data-attachment-id'],
+                    attachmentID: attribs[CONST.ATTACHMENT_ID_ATTRIBUTE],
                     source,
                     previewSource,
                     isAuthTokenRequired: !!expensifySource,
@@ -115,7 +115,7 @@ function extractAttachments(
         const decision = getReportActionMessage(action)?.moderationDecision?.decision;
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
         const html = getReportActionHtml(action).replaceAll('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
-        htmlParser.write(addAttachmentID(html, action.reportActionID));
+        htmlParser.write(addAttachmentIDOnHtml(html, action.reportActionID));
     });
     htmlParser.end();
 

@@ -27,7 +27,7 @@ function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownlo
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | string>(attachmentID ?? source);
+    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(attachmentID ?? source);
     const compareImage = useCallback((attachment: Attachment) => (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source), [attachmentID, source]);
 
     useEffect(() => {

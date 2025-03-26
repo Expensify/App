@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addAttachmentID} from '@libs/ReportActionsUtils';
+import {addAttachmentIDOnHtml} from '@libs/ReportActionsUtils';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import RenderCommentHTML from './RenderCommentHTML';
 
@@ -15,7 +15,7 @@ type AttachmentCommentFragmentProps = {
 
 function AttachmentCommentFragment({addExtraMargin, html, source, styleAsDeleted, reportActionID}: AttachmentCommentFragmentProps) {
     const styles = useThemeStyles();
-    const htmlContent = addAttachmentID(styleAsDeleted ? `<del>${html}</del>` : html, reportActionID);
+    const htmlContent = addAttachmentIDOnHtml(styleAsDeleted ? `<del>${html}</del>` : html, reportActionID);
 
     return (
         <View style={addExtraMargin ? styles.mt2 : {}}>

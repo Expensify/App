@@ -25,7 +25,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
     const isDeleted = isDeletedNode(tnode);
-    const attachmentID = htmlAttribs['data-attachment-id'];
+    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
 
     return (
         <ShowContextMenuContext.Consumer>

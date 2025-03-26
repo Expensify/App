@@ -162,13 +162,18 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     return isLegacyDeletedComment || !!message.at(0)?.deleted;
 }
 
-function addAttachmentID(html: string, reportActionID: string | undefined) {
+/**
+ * This function will add attachment ID attribute on img and video attachments inside the passed html content
+ * of a report action. This attachment id is the reportActionID concatenated with the order index that the attachment
+ * appears inside the report action message so as to identify attachments with identical source inside a report action.
+ */
+function addAttachmentIDOnHtml(html: string, reportActionID: string | undefined) {
     if (!reportActionID) {
         return html;
     }
 
     let attachmentID = 0;
-    return html.replace(/<img|<video/g, (m) => m.concat(` data-attachment-id="${reportActionID}_${++attachmentID}"`));
+    return html.replace(/<img|<video/g, (m) => m.concat(` ${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}"`));
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
@@ -2296,7 +2301,7 @@ export {
     extractLinksFromMessageHtml,
     formatLastMessageText,
     isReportActionUnread,
-    addAttachmentID,
+    addAttachmentIDOnHtml,
     getActionableMentionWhisperMessage,
     getAllReportActions,
     getCombinedReportActions,

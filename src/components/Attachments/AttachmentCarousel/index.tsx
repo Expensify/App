@@ -72,7 +72,7 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
     );
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
-    const [activeAttachmentID, setActiveAttachmentID] = useState<string | AttachmentSource | null>(attachmentID ?? source);
+    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | null>(attachmentID ?? source);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
