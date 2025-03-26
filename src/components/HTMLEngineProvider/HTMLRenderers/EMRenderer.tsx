@@ -10,7 +10,12 @@ function EMRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
 
     return 'data' in tnode ? (
-        <Text style={[styles.webViewStyles.baseFontStyle, styles.webViewStyles.tagStyles.em, isChildOfTaskTitle && styles.taskTitleMenuItemItalic]}>{tnode.data}</Text>
+        <Text
+            style={[styles.webViewStyles.baseFontStyle, styles.webViewStyles.tagStyles.em, isChildOfTaskTitle && styles.taskTitleMenuItemItalic]}
+            testID="em"
+        >
+            {tnode.data}
+        </Text>
     ) : (
         <TNodeChildrenRenderer
             tnode={tnode}
@@ -19,6 +24,7 @@ function EMRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
                     <Text
                         style={[styles.webViewStyles.baseFontStyle, styles.strong, isChildOfTaskTitle && styles.taskTitleMenuItem]}
                         key={props.key}
+                        testID="em"
                     >
                         {props.childElement}
                     </Text>
