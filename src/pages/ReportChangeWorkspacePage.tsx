@@ -11,11 +11,11 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
-import {changeReportPolicy, moveIOUReportToPolicy} from '@libs/actions/Report';
+import {changeReportPolicy, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyMember, isWorkspaceEligibleForReportChange} from '@libs/PolicyUtils';
+import {getPolicy, isPolicyAdmin, isPolicyMember, isWorkspaceEligibleForReportChange} from '@libs/PolicyUtils';
 import {isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,7 +45,9 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 return;
             }
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-            if (isIOUReport(reportID) && isPolicyMember(currentUserLogin, policyID)) {
+            if (isIOUReport(reportID) && isPolicyAdmin(getPolicy(policyID))) {
+                moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID);
+            } else if (isIOUReport(reportID) && isPolicyMember(currentUserLogin, policyID)) {
                 moveIOUReportToPolicy(reportID, policyID);
             } else {
                 changeReportPolicy(reportID, policyID);

@@ -5084,10 +5084,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
  * @param reportID - The ID of the IOU report to move
  * @param policyID - The ID of the policy to move the report to
  */
-function moveIOUReportToPolicyAndInviteSubmitter(
-    reportID: string,
-    policyID: string,
-) {
+function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: string) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policy = getPolicy(policyID);
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
@@ -5105,8 +5102,8 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     // Generate new variables for the policy
     const policyName = policy.name ?? '';
     const iouReportID = iouReport.reportID;
-    const employeeAccountID = iouReport.ownerAccountID;
-    const expenseChatReportID = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
+    const ownerAccountID = iouReport.ownerAccountID;
+    const expenseChatReportID = getPolicyExpenseChat(ownerAccountID, policyID)?.reportID;
 
     if (!expenseChatReportID) {
         return;
@@ -5678,6 +5675,7 @@ export {
     saveReportDraft,
     prepareOnboardingOnyxData,
     moveIOUReportToPolicy,
+    moveIOUReportToPolicyAndInviteSubmitter,
     dismissChangePolicyModal,
     changeReportPolicy,
 };

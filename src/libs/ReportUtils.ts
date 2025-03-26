@@ -9471,7 +9471,6 @@ export {
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedReportAction,
-    buildOptimisticMovePolicyAndInviteSubmitterReportAction,
     buildOptimisticChangePolicyReportAction,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
