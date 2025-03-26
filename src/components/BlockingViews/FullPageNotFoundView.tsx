@@ -83,10 +83,7 @@ function FullPageNotFoundView({
     if (shouldShow) {
         StatsCounter('FullPageNotFoundView');
         return (
-            <ForceFullScreenView
-                shouldForceFullScreen={shouldForceFullScreen}
-                testID="fullpage-not-found"
-            >
+            <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
                 <HeaderWithBackButton
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}
@@ -108,6 +105,7 @@ function FullPageNotFoundView({
                         subtitleStyle={subtitleStyle}
                         addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                         addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
+                        testID={FullPageNotFoundView.displayName}
                     />
                 </View>
             </ForceFullScreenView>
