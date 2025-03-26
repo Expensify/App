@@ -275,8 +275,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         lodashSet(commentJSON, 'customUnit', customUnit);
     }
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
     return {
         ...(!isEmptyObject(pendingFields) ? {pendingFields} : {}),
         transactionID,
