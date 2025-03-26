@@ -244,6 +244,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 onBackButtonPress={onBackButtonPress}
+                shouldEnableDetailPageNavigation
             >
                 {!shouldUseNarrowLayout && (
                     <View style={[styles.flexRow, styles.gap2]}>

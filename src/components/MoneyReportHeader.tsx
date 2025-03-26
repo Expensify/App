@@ -31,6 +31,7 @@ import {
     hasUpdatedTotal,
     isAllowedToApproveExpenseReport,
     isArchivedReportWithID,
+    isExported as isExportedUtils,
     isInvoiceReport,
     isReportOwner,
     navigateToDetailsPage,
@@ -133,6 +134,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(requestParentReportAction) && getOriginalMessage(requestParentReportAction)?.IOUTransactionID}`);
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
+
+    const isExported = isExportedUtils(reportActions);
+    const [markAsExportedModalVisible, setMarkAsExportedModalVisible] = useState(false);
 
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isCancelPaymentModalVisible, setIsCancelPaymentModalVisible] = useState(false);
@@ -261,6 +265,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         markAsCashAction(iouTransactionID, reportID);
     }, [requestParentReportAction, transactionThreadReport?.reportID]);
+
+    const confirmManualExport = useCallback(() => {
+        if (!connectedIntegration || !moneyRequestReport) {
+            throw new Error('Missing data');
+        }
+
+        markAsManuallyExported(moneyRequestReport.reportID, connectedIntegration);
+    }, [connectedIntegration, moneyRequestReport]);
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
         <Icon
@@ -489,11 +501,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.CheckCircle,
             value: CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED,
             onSelected: () => {
-                if (!connectedIntegration || !moneyRequestReport) {
-                    throw new Error('Missing data');
+                if (isExported) {
+                    setMarkAsExportedModalVisible(true);
+                    return;
                 }
-
-                markAsManuallyExported(moneyRequestReport.reportID, connectedIntegration);
+                confirmManualExport();
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.HOLD]: {
@@ -544,6 +556,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
+                shouldEnableDetailPageNavigation
             >
                 {!shouldUseNarrowLayout && (
                     <View style={[styles.flexRow, styles.gap2]}>
@@ -663,6 +676,18 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 cancelText={translate('common.cancel')}
                 danger
                 shouldEnableNewFocusManagement
+            />
+            <ConfirmModal
+                title={translate('workspace.exportAgainModal.title')}
+                onConfirm={() => {
+                    confirmManualExport();
+                }}
+                onCancel={() => setMarkAsExportedModalVisible(false)}
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                prompt={translate('workspace.exportAgainModal.description', {connectionName: connectedIntegration!, reportName: moneyRequestReport?.reportName ?? ''})}
+                confirmText={translate('workspace.exportAgainModal.confirmText')}
+                cancelText={translate('workspace.exportAgainModal.cancelText')}
+                isVisible={markAsExportedModalVisible}
             />
         </View>
     );
