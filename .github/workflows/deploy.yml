@@ -56,7 +56,7 @@ jobs:
     needs: prep
     secrets: inherit
 
-  android_hybrid:
+  android:
     name: Build and deploy Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
@@ -284,7 +284,7 @@ jobs:
           name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-build-artifact' || 'desktop-staging-build-artifact' }}
           path: ./desktop-build/NewExpensify.dmg
 
-  iOS_hybrid:
+  iOS:
     name: Build and deploy iOS HybridApp
     needs: prep
     runs-on: macos-15-xlarge
@@ -523,7 +523,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [android_hybrid, desktop, iOS_hybrid, web]
+    needs: [android, desktop, iOS, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -538,15 +538,15 @@ jobs:
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [android_hybrid, desktop, iOS_hybrid, web]
+    needs: [android, desktop, iOS, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
         id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          if [ "${{ needs.iOS_hybrid.result }}" == "success" ] || \
-            [ "${{ needs.android_hybrid.result }}" == "success" ] || \
+          if [ "${{ needs.iOS.result }}" == "success" ] || \
+            [ "${{ needs.android.result }}" == "success" ] || \
             [ "${{ needs.desktop.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
@@ -558,8 +558,8 @@ jobs:
         id: checkDeploymentSuccessOnAllPlatforms
         run: |
           isAllPlatformsDeployed="false"
-          if [ "${{ needs.iOS_hybrid.result }}" == "success" ] && \
-            [ "${{ needs.android_hybrid.result }}" == "success" ] && \
+          if [ "${{ needs.iOS.result }}" == "success" ] && \
+            [ "${{ needs.android.result }}" == "success" ] && \
             [ "${{ needs.desktop.result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
@@ -707,7 +707,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, android_hybrid, desktop, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         uses: 8398a7/action-slack@v3
@@ -761,11 +761,11 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, android_hybrid, desktop, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
-      android_hybrid: ${{ needs.android_hybrid.result }}
-      ios_hybrid: ${{ needs.iOS_hybrid.result }}
+      android: ${{ needs.android.result }}
+      ios: ${{ needs.iOS.result }}
       web: ${{ needs.web.result }}
       desktop: ${{ needs.desktop.result }}
