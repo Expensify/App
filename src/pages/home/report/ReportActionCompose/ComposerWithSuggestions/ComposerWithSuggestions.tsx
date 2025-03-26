@@ -241,7 +241,7 @@ function ComposerWithSuggestions(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
-    const {isSidePaneFullyHidden} = useSidePaneDisplayStatus();
+    const {isSidePaneHiddenOrLargeScreen} = useSidePaneDisplayStatus();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -567,14 +567,14 @@ function ComposerWithSuggestions(
     const setUpComposeFocusManager = useCallback(
         (shouldTakeOverFocus = false) => {
             ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
-                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePaneFullyHidden) {
+                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePaneHiddenOrLargeScreen) {
                     return;
                 }
 
                 focus(true);
             }, shouldTakeOverFocus);
         },
-        [focus, isFocused, isSidePaneFullyHidden],
+        [focus, isFocused, isSidePaneHiddenOrLargeScreen],
     );
 
     /**
@@ -595,7 +595,7 @@ function ComposerWithSuggestions(
             }
 
             // Do not focus the composer if the side pane is visible
-            if (!isSidePaneFullyHidden) {
+            if (!isSidePaneHiddenOrLargeScreen) {
                 return;
             }
 
@@ -610,7 +610,7 @@ function ComposerWithSuggestions(
 
             focus();
         },
-        [checkComposerVisibility, focus, isSidePaneFullyHidden],
+        [checkComposerVisibility, focus, isSidePaneHiddenOrLargeScreen],
     );
 
     const blur = useCallback(() => {
@@ -649,7 +649,7 @@ function ComposerWithSuggestions(
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
         };
-    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager, isSidePaneFullyHidden]);
+    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager, isSidePaneHiddenOrLargeScreen]);
 
     const prevIsModalVisible = usePrevious(modal?.isVisible);
     const prevIsFocused = usePrevious(isFocused);
@@ -668,7 +668,7 @@ function ComposerWithSuggestions(
         }
 
         // Do not focus the composer if the side pane is visible
-        if (!isSidePaneFullyHidden) {
+        if (!isSidePaneHiddenOrLargeScreen) {
             return;
         }
 
@@ -684,7 +684,7 @@ function ComposerWithSuggestions(
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePaneFullyHidden]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePaneHiddenOrLargeScreen]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit

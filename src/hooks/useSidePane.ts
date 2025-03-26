@@ -29,15 +29,12 @@ function useSidePaneDisplayStatus() {
     const isLanguageUnsupported = language !== CONST.LOCALES.EN;
     const isSidePaneVisible = isExtraLargeScreenWidth ? sidePaneNVP?.open : sidePaneNVP?.openNarrowScreen;
 
-    // The side pane is completely hidden when:
+    // The side pane is hidden when:
     // - NVP is not set or it is false
     // - language is unsupported
-    const isSidePaneFullyHidden = !isSidePaneVisible || isLanguageUnsupported;
-
-    // The side pane is collapsed when:
-    // - side pane is completely hidden
-    // - centered modal is visible
-    const shouldHideSidePane = isSidePaneFullyHidden || isModalCenteredVisible;
+    // - modal centered is visible
+    const shouldHideSidePane = !isSidePaneVisible || isLanguageUnsupported || isModalCenteredVisible;
+    const isSidePaneHiddenOrLargeScreen = !isSidePaneVisible || isLanguageUnsupported || isExtraLargeScreenWidth;
 
     // The help button is hidden when:
     // - side pane nvp is not set
@@ -46,7 +43,7 @@ function useSidePaneDisplayStatus() {
     const shouldHideHelpButton = !sidePaneNVP || !shouldHideSidePane || isLanguageUnsupported;
     const shouldHideSidePaneBackdrop = shouldHideSidePane || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 
-    return {shouldHideSidePane, isSidePaneFullyHidden, shouldHideHelpButton, shouldHideSidePaneBackdrop, sidePaneNVP};
+    return {shouldHideSidePane, isSidePaneHiddenOrLargeScreen, shouldHideHelpButton, shouldHideSidePaneBackdrop, sidePaneNVP};
 }
 
 /**
