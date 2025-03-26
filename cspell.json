@@ -451,5 +451,12 @@
         "tests/unit/currencyList.json",
         "src/CONST.ts"
     ],
-    "useGitignore": true
+    "ignoreRegExpList": ["@assets/.*"],
+    "useGitignore": true,
+    "overrides": [
+        {
+            "filename": "src/languages/es.ts",
+            "language": "es"
+        }
+    ]
 }
