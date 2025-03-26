@@ -684,13 +684,7 @@ describe('OptionsListUtils', () => {
         expect(options.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
 
         return waitForBatchedUpdates()
-            .then(() =>
-                Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {
-                        timestamp: DateUtils.getDBTime(new Date().valueOf()),
-                    },
-                }),
-            )
+            .then(() => Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: new Date() as unknown as string}))
             .then(() => {
                 // Manager McTest shouldn't be included to recipients when the user has already submitted an expense
                 const optionsWhenUserAlreadySubmittedExpense = getValidOptions(
