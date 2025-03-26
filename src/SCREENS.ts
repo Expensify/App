@@ -681,6 +681,11 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
+    SHARE: {
+        ROOT: 'Share_Root',
+        SHARE_DETAILS: 'Share_Details',
+        SUBMIT_DETAILS: 'Submit_Details',
+    },
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
