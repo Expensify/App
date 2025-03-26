@@ -71,7 +71,6 @@ type FormAlertWithSubmitButtonProps = {
      * This is needed for buttons that allow content to display under them.
      */
     shouldBlendOpacity?: boolean;
-
 };
 
 function FormAlertWithSubmitButton({

@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import type {
     AuthenticatePusherParams,
     BeginAppleSignInParams,
@@ -1379,10 +1380,20 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
             Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, response?.message ?? '');
             return;
         }
+
+        return SequentialQueue.waitForIdle().then(() => {
+
+        // Update authToken in Onyx and in our local variables so that API requests will use the new authToken 
+        updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken); 
+        
+        NetworkStore.setAuthToken(response?.authToken ?? null); 
+        }).then(() => {
         if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && onboarding?.shouldRedirectToClassicAfterMerge) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
             return;
         }
+
+        
 
         const isVsb = onboarding && 'signupQualifier' in onboarding && onboarding.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
@@ -1392,6 +1403,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+        })
     });
 }
 

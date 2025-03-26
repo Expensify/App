@@ -163,7 +163,7 @@ function FormWrapper({
                     disablePressOnEnter={disablePressOnEnter}
                     enterKeyEventListenerPriority={1}
                     shouldBlendOpacity={shouldSubmitButtonStickToBottom}
-                    shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}              
+                    shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 />
             ),
         [
