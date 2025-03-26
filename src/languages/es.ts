@@ -2581,7 +2581,6 @@ const translations = {
         jobTitle: 'Título profesional',
         whatsYourDOB: '¿Cual es tu fecha de nacimiento?',
         uploadID: 'Subir documento de identidad y prueba de domicilio',
-        id: 'Identificación (licencia de conducir o pasaporte)',
         personalAddress: 'Prueba de domicilio personal (por ejemplo, factura de servicios públicos)',
         letsDoubleCheck: 'Vamos a verificar que todo esté correcto.',
         legalName: 'Nombre legal',
@@ -2594,6 +2593,7 @@ const translations = {
         chooseFile: 'Seleccionar archivo',
         weAreWaiting: 'Estamos esperando que otros verifiquen sus identidades como directores o altos funcionarios de la empresa.',
         // TODO: translate it:
+        id: "Copy of ID",
         occupation: 'Occupation',
         whatsYourOccupation: "What's your occupation?",
         proofOfDirectors: 'Proof of director(s)',
