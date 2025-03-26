@@ -1,7 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
-import {TableColumnSize} from '@components/Search/types';
+import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
+import type {TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,6 +26,7 @@ function TransactionItemRow({
     shouldShowTooltip,
     dateColumnSize,
     shouldShowChatBubbleComponent = false,
+    reportID,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
@@ -31,9 +34,11 @@ function TransactionItemRow({
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
     shouldShowChatBubbleComponent?: boolean;
+    reportID: string;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {selectedTransactions, toggleTransaction, isTransactionSelected} = useMoneyRequestReportContext(reportID);
 
     const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
@@ -47,6 +52,15 @@ function TransactionItemRow({
                     {(hovered) => (
                         <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3]}>
                             <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
+                                <View style={[styles.mr3, styles.justifyContentCenter]}>
+                                    <Checkbox
+                                        onPress={() => {
+                                            toggleTransaction(transactionItem);
+                                        }}
+                                        accessibilityLabel="checkbox"
+                                        isChecked={isTransactionSelected(transactionItem)}
+                                    />
+                                </View>
                                 <View style={[styles.mr3]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
@@ -109,6 +123,15 @@ function TransactionItemRow({
                     {(hovered) => (
                         <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p3, styles.expenseWidgetRadius, styles.gap2]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                                <View style={[styles.mr3]}>
+                                    <Checkbox
+                                        onPress={() => {
+                                            toggleTransaction(transactionItem);
+                                        }}
+                                        accessibilityLabel="checkbox"
+                                        isChecked={selectedTransactions.map((t) => t.transactionID).includes(transactionItem.transactionID)}
+                                    />
+                                </View>
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}

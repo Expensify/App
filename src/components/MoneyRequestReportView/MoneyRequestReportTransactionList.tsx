@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
+import Checkbox from '@components/Checkbox';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
@@ -10,6 +11,7 @@ import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getIOUActionForReportIDPure} from '@libs/ReportActionsUtils';
@@ -17,9 +19,11 @@ import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import {setActiveTransactionReportIDs} from './TransactionReportIDRepository';
 
@@ -68,7 +72,9 @@ const areTransactionValuesEqual = (transactions: OnyxTypes.Transaction[], key: S
 
 function MoneyRequestReportTransactionList({report, transactions, reportActions}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
 
@@ -79,6 +85,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
 
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
+
+    const {selectedTransactions, setSelectedTransactions} = useMoneyRequestReportContext(report.reportID);
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
@@ -150,19 +158,34 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
     return (
         <View style={[styles.flex1]}>
             {!displayNarrowVersion && (
-                <MoneyRequestReportTableHeader
-                    shouldShowSorting
-                    sortBy={sortBy}
-                    sortOrder={sortOrder}
-                    dateColumnSize={dateColumnSize}
-                    onSortPress={(selectedSortBy, selectedSortOrder) => {
-                        if (!isSortableColumnName(selectedSortBy)) {
-                            return;
-                        }
+                <View style={[styles.dFlex, styles.flexRow, styles.ph5]}>
+                    <View style={[styles.p2, StyleUtils.getPaddingLeft(variables.w12)]}>
+                        <Checkbox
+                            onPress={() => {
+                                if (selectedTransactions.length === transactions.length) {
+                                    setSelectedTransactions([]);
+                                } else {
+                                    setSelectedTransactions(transactions);
+                                }
+                            }}
+                            accessibilityLabel="checkbox"
+                            isChecked={selectedTransactions.length === transactions.length}
+                        />
+                    </View>
+                    <MoneyRequestReportTableHeader
+                        shouldShowSorting
+                        sortBy={sortBy}
+                        sortOrder={sortOrder}
+                        dateColumnSize={dateColumnSize}
+                        onSortPress={(selectedSortBy, selectedSortOrder) => {
+                            if (!isSortableColumnName(selectedSortBy)) {
+                                return;
+                            }
 
-                        setSortedData((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
-                    }}
-                />
+                            setSortedData((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
+                        }}
+                    />
+                </View>
             )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb5, displayNarrowVersion && styles.pt5]}>
                 {sortedData.transactions.map((transaction) => {
@@ -188,14 +211,17 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions}
                             onMouseLeave={handleMouseLeave}
                             wrapperStyle={[]}
                         >
-                            <TransactionItemRow
-                                transactionItem={transaction}
-                                isSelected={false}
-                                shouldShowTooltip
-                                dateColumnSize={dateColumnSize}
-                                shouldUseNarrowLayout={displayNarrowVersion}
-                                shouldShowChatBubbleComponent
-                            />
+                            <View style={[styles.mb2]}>
+                                <TransactionItemRow
+                                    transactionItem={transaction}
+                                    isSelected={false}
+                                    shouldShowTooltip
+                                    dateColumnSize={dateColumnSize}
+                                    shouldUseNarrowLayout={displayNarrowVersion}
+                                    shouldShowChatBubbleComponent
+                                    reportID={report.reportID}
+                                />
+                            </View>
                         </PressableWithFeedback>
                     );
                 })}
