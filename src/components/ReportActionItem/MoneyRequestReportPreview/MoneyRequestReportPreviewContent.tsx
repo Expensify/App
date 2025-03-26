@@ -115,7 +115,7 @@ function MoneyRequestReportPreviewContent({
             hasOnlyTransactionsWithPendingRoutes: hasOnlyTransactionsWithPendingRoutesReportUtils(iouReportID),
             hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),
         }),
-        // When transactions get updated these status may have changed, so that is a case where we also want to run this.
+        // When transactions get updated these values may have changed, so that is a case where we also want to recompute them
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [transactions, iouReportID, action],
     );
