@@ -543,6 +543,8 @@ type HybridAppSettings = {
     encryptedAuthToken: string;
     nudgeMigrationTimestamp?: string;
     oldDotOriginalAccountEmail?: string;
+    requiresTwoFactorAuth: boolean;
+    needsTwoFactorAuthSetup: boolean;
 };
 
 function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
@@ -559,6 +561,8 @@ function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
         isSingleNewDotEntry,
         primaryLogin,
         oldDotOriginalAccountEmail,
+        requiresTwoFactorAuth,
+        needsTwoFactorAuthSetup,
     } = JSON.parse(hybridAppSettings) as HybridAppSettings;
 
     const clearOnyxForNewAccount = () => {
@@ -603,7 +607,7 @@ function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
                     classicRedirect: {completedHybridAppOnboarding},
                     nudgeMigration: nudgeMigrationTimestamp ? {timestamp: new Date(nudgeMigrationTimestamp)} : undefined,
                 },
-            }).then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin})),
+            }).then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin, requiresTwoFactorAuth, needsTwoFactorAuthSetup})),
         )
         .then(() => {
             if (clearOnyxOnStart) {
