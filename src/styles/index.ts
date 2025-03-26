@@ -181,11 +181,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 flexShrink: 1,
             },
 
-            strong: {
-                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
-                fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
-            },
-
             blockquote: {
                 borderLeftColor: theme.border,
                 borderLeftWidth: 4,

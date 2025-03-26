@@ -46,9 +46,9 @@ function TaskView({report}: TaskViewProps) {
         setTaskReport(report);
     }, [report]);
 
-    const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName)
+    const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName);
     const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
-    const taskTitle = `<task-title>${convertToLTR(titleWithoutImage)}</task-title>`;
+    const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
 
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false);
 
