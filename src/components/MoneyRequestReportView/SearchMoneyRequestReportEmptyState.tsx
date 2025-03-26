@@ -27,4 +27,6 @@ function SearchMoneyRequestReportEmptyState() {
     );
 }
 
+SearchMoneyRequestReportEmptyState.displayName = 'SearchMoneyRequestReportEmptyState';
+
 export default SearchMoneyRequestReportEmptyState;
