@@ -1,0 +1,97 @@
+import {fireEvent, render, screen} from '@testing-library/react-native';
+import React from 'react';
+import type PressableProps from '@components/Pressable/GenericPressable/types';
+import PressableWithTouchEnd from '@components/Pressable/PressableWithTouchEnd';
+import Text from '@components/Text';
+import CONST from '@src/CONST';
+
+let mockTime = 1;
+const onPressMock = jest.fn();
+describe('PressableWithTouchEnd', () => {
+    const renderButton = (props: PressableProps) =>
+        render(
+            <PressableWithTouchEnd
+                testID="pressable"
+                accessibilityLabel="fake-button"
+                accessibilityRole={CONST.ROLE.BUTTON}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            >
+                <Text>Click me</Text>
+            </PressableWithTouchEnd>,
+        );
+    beforeEach(() => {
+        jest.clearAllMocks();
+        Date.now = jest.fn(() => mockTime);
+    });
+
+    test('should trigger onPress when tapped quickly', () => {
+        // Given the component is rendered
+        renderButton({onPress: onPressMock, accessibilityLabel: 'PressableWithTouchEnd'});
+        const pressable = screen.getByTestId('pressable');
+
+        // When touch starts on the button
+        fireEvent(pressable, 'touchStart', {
+            nativeEvent: {
+                pageX: 100,
+                pageY: 100,
+            },
+        });
+
+        // When touch end on the button
+        fireEvent(pressable, 'touchEnd');
+
+        // Then onPress should be called once
+        expect(onPressMock).toHaveBeenCalledTimes(1);
+    });
+
+    test('should not trigger onPress when dragged', () => {
+        // Given the component is rendered
+        renderButton({onPress: onPressMock, accessibilityLabel: 'PressableWithTouchEnd'});
+        const pressable = screen.getByTestId('pressable');
+
+        // When touch start on the button
+        fireEvent(pressable, 'touchStart', {
+            nativeEvent: {
+                pageX: 100,
+                pageY: 100,
+            },
+        });
+
+        // When the touch moves beyond the threshold (dragging)
+        fireEvent(pressable, 'touchMove', {
+            nativeEvent: {
+                pageX: 110,
+                pageY: 110,
+            },
+        });
+
+        // When touch end on the button
+        fireEvent(pressable, 'touchEnd');
+
+        // Then onPress should not be called
+        expect(onPressMock).not.toHaveBeenCalled();
+    });
+
+    test('should not trigger onPress when touch duration is too long', () => {
+        // Given the component is rendered
+        renderButton({onPress: onPressMock, accessibilityLabel: 'PressableWithTouchEnd'});
+        const pressable = screen.getByTestId('pressable');
+
+        // When touch start on the button
+        fireEvent(pressable, 'touchStart', {
+            nativeEvent: {
+                pageX: 100,
+                pageY: 100,
+            },
+        });
+
+        mockTime = CONST.PRESS_HOLD_DURATION_MS * 2;
+
+        // When touch end on the button
+        fireEvent(pressable, 'touchEnd');
+
+        // Then onPress should not be called
+        expect(onPressMock).not.toHaveBeenCalled();
+    });
+});
