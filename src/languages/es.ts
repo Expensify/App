@@ -2596,11 +2596,11 @@ const translations = {
         // TODO: translate it:
         occupation: 'Occupation',
         whatsYourOccupation: "What's your occupation?",
-        proofOfDirectors: 'Proof of directors',
+        proofOfDirectors: 'Proof of director(s)',
         codiceFiscale: 'Codice fiscale',
         FSDandPDS: 'FSD and PDS',
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a signer or director of the business entity.',
-        proofOfDirectorsDescription: 'Please provide a proof of being director or senior officer. (Needs to be verified).',
+        proofOfDirectorsDescription: 'Examples: Oncorp Corporate Profile or Business Registration.',
         FSDandPDSDescription: 'Please provide FSD and PDS documents (Needs to be verified).',
         regulationRequiresUsToCollectAtLeastOneDirector: 'Regulations requires us to collect information about at least one director of the company.',
         directors: 'Directors',
