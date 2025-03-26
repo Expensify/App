@@ -624,9 +624,7 @@ function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseRe
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
-    if (employee?.submitsTo === employeeLogin && policy?.preventSelfApproval) {
-        return getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
-    }
+
     if (!employee && !defaultApprover) {
         return -1;
     }
