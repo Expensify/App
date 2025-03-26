@@ -12,29 +12,27 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import Navigation from '@libs/Navigation/Navigation';
 import {clearBillingReceiptDetailsErrors, payAndDowngrade} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type PayAndDowngradePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PAY_AND_DOWNGRADE>;
 type BillingItem = {
     key: string;
     value: string;
     isTotal: boolean;
 };
 
-function PayAndDowngradePage({route}: PayAndDowngradePageProps) {
+function PayAndDowngradePage() {
     const styles = useThemeStyles();
-    const policyID = route.params?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const {translate} = useLocalize();
 
     const [billingDetails] = useOnyx(ONYXKEYS.BILLING_RECEIPT_DETAILS);
+    const prevIsLoading = usePrevious(billingDetails?.isLoading);
+
     const hasError = !!billingDetails?.errors;
 
     const items: BillingItem[] = useMemo(() => {
@@ -58,6 +56,13 @@ function PayAndDowngradePage({route}: PayAndDowngradePageProps) {
     }, [billingDetails, translate]);
 
     useEffect(() => {
+        if (billingDetails?.isLoading || !prevIsLoading || billingDetails?.errors) {
+            return;
+        }
+        Navigation.dismissModal();
+    }, [billingDetails?.isLoading, prevIsLoading, billingDetails?.errors]);
+
+    useEffect(() => {
         clearBillingReceiptDetailsErrors();
     }, []);
 
@@ -70,22 +75,22 @@ function PayAndDowngradePage({route}: PayAndDowngradePageProps) {
             <FullPageNotFoundView shouldShow={isEmptyObject(billingDetails)}>
                 <HeaderWithBackButton title={translate('workspace.payAndDowngrade.title')} />
                 <FullPageOfflineBlockingView>
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mh5]}>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pt3]}>
                         <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.payAndDowngrade.headline')}</Text>
                         <Text>
                             {translate('workspace.payAndDowngrade.description1')} <Text style={[styles.textBold]}>{billingDetails?.formattedSubtotal}</Text>
                         </Text>
-                        <Text style={[styles.mb4]}>
+                        <Text style={[styles.mb5]}>
                             {translate('workspace.payAndDowngrade.description2', {
                                 date: billingDetails?.billingMonth ?? '',
                             })}
                         </Text>
 
-                        <View style={[styles.borderedContentCard, styles.ph5, styles.mb4]}>
+                        <View style={[styles.borderedContentCard, styles.ph5, styles.pv2, styles.mb5]}>
                             {items.map((item) => (
                                 <View
                                     key={item.key}
-                                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap8, styles.pv5, !item.isTotal ? styles.borderBottom : undefined]}
+                                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap8, styles.pv3, !item.isTotal ? styles.borderBottom : undefined]}
                                 >
                                     {!item.isTotal ? <RenderHTML html={item.key} /> : <Text style={styles.textBold}>{item.key}</Text>}
                                     <Text style={item.isTotal ? styles.textBold : undefined}>{item.value}</Text>
@@ -107,9 +112,7 @@ function PayAndDowngradePage({route}: PayAndDowngradePageProps) {
                             large
                             danger
                             text={translate('workspace.payAndDowngrade.title')}
-                            onPress={() => {
-                                payAndDowngrade();
-                            }}
+                            onPress={payAndDowngrade}
                             pressOnEnter
                             isLoading={billingDetails?.isLoading}
                         />

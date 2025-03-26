@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -27,6 +27,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +43,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -125,8 +127,6 @@ function WorkspacesListPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
-    const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING);
 
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.WORKSPACES>>();
@@ -134,7 +134,7 @@ function WorkspacesListPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
-    const isDeletingWorkspaceRef = useRef(false);
+    const {isDeletingPaidWorkspaceRef} = usePayAndDowngrade(setIsDeleteModalOpen);
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
@@ -198,10 +198,16 @@ function WorkspacesListPage() {
                             return;
                         }
 
-                        isDeletingWorkspaceRef.current = true;
                         setPolicyIDToDelete(item.policyID);
                         setPolicyNameToDelete(item.title);
-                        calculateBillNewDot();
+
+                        if (shouldCalculateBillNewDot()) {
+                            isDeletingPaidWorkspaceRef.current = true;
+                            calculateBillNewDot();
+                            return;
+                        }
+
+                        setIsDeleteModalOpen(true);
                     },
                     shouldCallAfterModalHide: true,
                 });
@@ -449,18 +455,6 @@ function WorkspacesListPage() {
     };
 
     useHandleBackButton(onBackButtonPress);
-
-    useEffect(() => {
-        if (!isDeletingWorkspaceRef.current || isLoadingBill) {
-            return;
-        }
-
-        if (!shouldBillWhenDowngrading) {
-            setIsDeleteModalOpen(true);
-        } else {
-            Navigation.navigate(ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.getRoute(policyIDToDelete));
-        }
-    }, [isLoadingBill, shouldBillWhenDowngrading, policyIDToDelete]);
 
     if (isEmptyObject(workspaces)) {
         return (
