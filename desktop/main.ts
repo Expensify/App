@@ -19,8 +19,6 @@ import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueu
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
-console.log('[dev] main');
-
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
 const port = process.env.PORT ?? 8082;
