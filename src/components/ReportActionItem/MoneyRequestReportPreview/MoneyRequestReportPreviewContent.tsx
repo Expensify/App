@@ -18,6 +18,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -25,7 +26,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import HapticFeedback from '@libs/HapticFeedback';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
@@ -136,13 +136,10 @@ function MoneyRequestReportPreviewContent({
         [transactions, iouReportID, action],
     );
 
-    const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
-    const [isApprovedAnimationRunning, setIsApprovedAnimationRunning] = useState(false);
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const carouselRef = useRef<FlatList<Transaction> | null>(null);
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -219,19 +216,6 @@ function MoneyRequestReportPreviewContent({
 
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    const stopAnimation = useCallback(() => {
-        setIsPaidAnimationRunning(false);
-        setIsApprovedAnimationRunning(false);
-    }, []);
-    const startAnimation = useCallback(() => {
-        setIsPaidAnimationRunning(true);
-        HapticFeedback.longPress();
-    }, []);
-    const startApprovedAnimation = useCallback(() => {
-        setIsApprovedAnimationRunning(true);
-        HapticFeedback.longPress();
-    }, []);
-
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
             if (!type) {
@@ -244,8 +228,7 @@ function MoneyRequestReportPreviewContent({
             } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
                 setIsHoldMenuVisible(true);
             } else if (chatReport && iouReport) {
-                setIsPaidAnimationRunning(true);
-                HapticFeedback.longPress();
+                startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
                     payInvoice(type, chatReport, iouReport, payAsBusiness);
                 } else {
@@ -253,7 +236,7 @@ function MoneyRequestReportPreviewContent({
                 }
             }
         },
-        [chatReport, iouReport, isDelegateAccessRestricted],
+        [chatReport, iouReport, isDelegateAccessRestricted, startAnimation],
     );
 
     const confirmApproval = () => {
@@ -263,8 +246,7 @@ function MoneyRequestReportPreviewContent({
         } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            setIsApprovedAnimationRunning(true);
-            HapticFeedback.longPress();
+            startApprovedAnimation();
             approveMoneyRequest(iouReport, true);
         }
     };
@@ -401,8 +383,13 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBSUP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
-    const viewabilityConfig = useRef({itemVisiblePercentThreshold: 50}).current;
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const carouselRef = useRef<FlatList<Transaction> | null>(null);
+ 
+    const viewabilityConfig = useMemo(() => {
+        return {itemVisiblePercentThreshold: 50};
+    }, []);
+
     // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
