@@ -79,8 +79,8 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
             return false;
         case 'DEPLOY_VERSION':
             return version;
-        case 'IOS_HYBRID':
-        case 'ANDROID_HYBRID':
+        case 'IOS':
+        case 'ANDROID':
         case 'DESKTOP':
         case 'WEB':
             return 'success';
@@ -194,8 +194,8 @@ platform | result
 ---|---
 🖥 desktop 🖥|success ✅
 🕸 web 🕸|success ✅
-🤖 android HybridApp 🤖|success ✅
-🍎 iOS HybridApp 🍎|success ✅`,
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅`,
                 issue_number: PR.issue_number,
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
@@ -224,8 +224,8 @@ platform | result
 ---|---
 🖥 desktop 🖥|success ✅
 🕸 web 🕸|success ✅
-🤖 android HybridApp 🤖|success ✅
-🍎 iOS HybridApp 🍎|success ✅`,
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅`,
                 issue_number: PRList[i + 1].issue_number,
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
@@ -286,8 +286,8 @@ platform | result
 ---|---
 🖥 desktop 🖥|success ✅
 🕸 web 🕸|success ✅
-🤖 android HybridApp 🤖|success ✅
-🍎 iOS HybridApp 🍎|success ✅
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅
 
 @Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.`,
             issue_number: 3,
@@ -298,10 +298,10 @@ platform | result
 
     it('comments on pull requests correctly when one platform fails', async () => {
         mockGetInput.mockImplementation((key: string) => {
-            if (key === 'ANDROID_HYBRID') {
+            if (key === 'ANDROID') {
                 return 'skipped';
             }
-            if (key === 'IOS_HYBRID') {
+            if (key === 'IOS') {
                 return 'failed';
             }
             if (key === 'DESKTOP') {
@@ -323,8 +323,8 @@ platform | result
 ---|---
 🖥 desktop 🖥|cancelled 🔪
 🕸 web 🕸|success ✅
-🤖 android HybridApp 🤖|skipped 🚫
-🍎 iOS HybridApp 🍎|failed ❌`,
+🤖 android 🤖|skipped 🚫
+🍎 iOS 🍎|failed ❌`,
                 issue_number: PR.issue_number,
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,

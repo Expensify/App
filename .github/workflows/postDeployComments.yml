@@ -110,9 +110,9 @@ jobs:
           IS_PRODUCTION_DEPLOY: ${{ inputs.env == 'production' }}
           DEPLOY_VERSION: ${{ inputs.version }}
           GITHUB_TOKEN: ${{ github.token }}
-          ANDROID_HYBRID: ${{ inputs.android_hybrid }}
+          ANDROID: ${{ inputs.android }}
           DESKTOP: ${{ inputs.desktop }}
-          IOS_HYBRID: ${{ inputs.ios_hybrid }}
+          IOS: ${{ inputs.ios }}
           WEB: ${{ inputs.web }}
           DATE: ${{ inputs.date }}
           NOTE: ${{ inputs.note }}

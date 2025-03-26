@@ -50,9 +50,9 @@ async function run() {
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true}) as boolean;
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
-    const androidHybridResult = getDeployTableMessage(core.getInput('ANDROID_HYBRID', {required: true}) as PlatformResult);
+    const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}) as PlatformResult);
     const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}) as PlatformResult);
-    const iOSHybridResult = getDeployTableMessage(core.getInput('IOS_HYBRID', {required: true}) as PlatformResult);
+    const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}) as PlatformResult);
     const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}) as PlatformResult);
 
     const date = core.getInput('DATE');
@@ -67,7 +67,7 @@ async function run() {
         message += `🚀`;
         message += `\n\nplatform | result\n---|---\n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🕸 web 🕸|${webResult}`;
-        message += `\n🤖 android HybridApp 🤖|${androidHybridResult}\n🍎 iOS HybridApp 🍎|${iOSHybridResult}`;
+        message += `\n🤖 android 🤖|${androidResult}\n🍎 iOS 🍎|${iOSResult}`;
 
         if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
             // eslint-disable-next-line max-len
