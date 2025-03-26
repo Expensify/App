@@ -680,7 +680,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     // When opening an unread report, it is very likely that the message we will open to is not the latest, which is the
     // only one we will have in cache.
-    const isLoadingUnreadReportNoCache = isUnread(report, transactionThreadReport) && reportMetadata.isLoadingInitialReportActions && reportActions.length <= 1;
+    const isInitiallyLoadingReport = isUnread(report, transactionThreadReport) && reportMetadata.isLoadingInitialReportActions;
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
@@ -735,7 +735,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {!!report && !isLoadingApp && !isLoadingUnreadReportNoCache ? (
+                                {!!report && !isLoadingApp && !isInitiallyLoadingReport ? (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
