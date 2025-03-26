@@ -50,6 +50,6 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     isDelegateAccessRestricted: boolean;
 };
 
-type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps & MoneyRequestReportPreviewProps & {renderItem: ListRenderItem<Transaction> | null | undefined};
+type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps & MoneyRequestReportPreviewProps & {renderItem: ListRenderItem<Transaction>};
 
 export type {MoneyRequestReportPreviewContentProps, MoneyRequestReportPreviewProps};

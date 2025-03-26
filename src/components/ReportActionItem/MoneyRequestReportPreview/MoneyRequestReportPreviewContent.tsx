@@ -385,7 +385,6 @@ function MoneyRequestReportPreviewContent({
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const carouselRef = useRef<FlatList<Transaction> | null>(null);
- 
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 50};
     }, []);
@@ -413,10 +412,7 @@ function MoneyRequestReportPreviewContent({
                 </View>
             );
         }
-        if (renderItem) {
-            return renderItem(itemInfo);
-        }
-        return null;
+        return renderItem(itemInfo);
     };
 
     const style = StyleUtils.getMoneyRequestReportPreviewStyle(transactions.length, shouldUseNarrowLayout);
