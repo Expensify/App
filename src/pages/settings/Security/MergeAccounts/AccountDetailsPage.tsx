@@ -30,7 +30,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MergeAccountDetailsForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
+const getValidateCodeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
     if (err.includes('403')) {
         return CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS;
     }
@@ -59,7 +59,7 @@ function AccountDetailsPage() {
 
     const validateCodeSent = getValidateCodeForAccountMerge?.validateCodeSent;
     const latestError = getLatestErrorMessage(getValidateCodeForAccountMerge);
-    const errorKey = getErrorKey(latestError);
+    const errorKey = getValidateCodeErrorKey(latestError);
     const genericError = !errorKey ? latestError : undefined;
 
     const styles = useThemeStyles();

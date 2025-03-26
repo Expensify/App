@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
+const getMergeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
     if (err.includes('403')) {
         return CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS;
     }
@@ -65,7 +65,7 @@ function AccountValidatePage() {
     const accountMerged = mergeWithValidateCode?.accountMerged;
 
     const latestError = getLatestErrorMessage(mergeWithValidateCode);
-    const errorKey = getErrorKey(latestError);
+    const errorKey = getMergeErrorKey(latestError);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
