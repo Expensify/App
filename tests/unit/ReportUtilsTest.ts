@@ -1802,53 +1802,42 @@ describe('ReportUtils', () => {
     });
 
     describe('isAllowedToApproveExpenseReport', () => {
-        it('should return true if the rule feature is disabled even preventSelfApproval is true', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(6),
-                areRulesEnabled: false,
-                preventSelfApproval: true,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
+        const expenseReport: Report = {
+            ...createRandomReport(6),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+        };
 
-            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
-        });
-        it('should return false if preventSelfApproval is true and the manager is the owner of the expense report', () => {
+        it('should return true if preventSelfApproval is disabled and the approver is not the owner of the expense report', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(6),
-                areRulesEnabled: true,
-                preventSelfApproval: true,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
-
-            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
-        });
-        it('should return true if preventSelfApproval is false', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(6),
-                areRulesEnabled: true,
                 preventSelfApproval: false,
             };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, 0, fakePolicy)).toBeTruthy();
+        });
 
+        it('should return true if preventSelfApproval is enabled and the approver is not the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: true,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, 0, fakePolicy)).toBeTruthy();
+        });
+
+        it('should return true if preventSelfApproval is disabled and the approver is the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: false,
+            };
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
+        });
+
+        it('should return false if preventSelfApproval is enabled and the approver is the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: true,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
         });
     });
 
