@@ -5545,7 +5545,7 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
-        carouselDots: {
+        reportPreviewCarouselDots: {
             borderRadius: 50,
             width: 8,
             height: 8,
