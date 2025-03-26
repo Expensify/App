@@ -809,6 +809,14 @@ function isPosted(transaction: Transaction): boolean {
     return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
 }
 
+/**
+ * The transaction is considered scanning if it is a partial transaction, has a receipt, and the receipt is being scanned.
+ * Note that this does not include receipts that are being scanned in the background for auditing / smart scan everything, because there should be no indication to the user that the receipt is being scanned.
+ */
+function isScanning(transaction: OnyxEntry<Transaction>): boolean {
+    return isPartialTransaction(transaction) && hasReceipt(transaction) && isReceiptBeingScanned(transaction);
+}
+
 function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
@@ -1605,6 +1613,7 @@ export {
     shouldShowRTERViolationMessage,
     isPartialTransaction,
     isPendingCardOrScanningTransaction,
+    isScanning,
 };
 
 export type {TransactionChanges};
