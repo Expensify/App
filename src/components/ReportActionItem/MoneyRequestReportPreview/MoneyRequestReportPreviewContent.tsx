@@ -620,7 +620,7 @@ function MoneyRequestReportPreviewContent({
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
             />
 
-            {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
+            {isHoldMenuVisible && !!iouReport && !!requestType && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
                     requestType={requestType}
