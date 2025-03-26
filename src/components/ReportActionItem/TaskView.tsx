@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAvatarsForAccountIDs, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
@@ -45,7 +46,9 @@ function TaskView({report}: TaskViewProps) {
         setTaskReport(report);
     }, [report]);
 
-    const taskTitle = `<task-title>${StringUtils.removePreCodeBlock(report?.reportName)}</task-title>`;
+    const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName)
+    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
+    const taskTitle = `<task-title>${convertToLTR(titleWithoutImage)}</task-title>`;
 
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false);
 

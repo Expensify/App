@@ -72,8 +72,6 @@ jobs:
         with:
           OP_VAULT: ${{ vars.OP_VAULT }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
-          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
           SETUP_AS_APP: false
 
       - name: Generate new E/App version
@@ -83,16 +81,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
           SEMVER_LEVEL: ${{ inputs.SEMVER_LEVEL }}
 
-      - name: Update Mobile-Expensify submodule with the latest state of the Mobile-Expensify main branch
-        run: |
-          cd Mobile-Expensify
-          git fetch --depth=1 origin main
-          git checkout main
-          git reset --hard origin/main
-
       - name: Generate HybridApp version
+        working-directory: Mobile-Expensify
         run: |
-          cd Mobile-Expensify
+          # Checkout main branch in Mobile-Expensify submodule.
+          # This is IMPORTANT so that when we make changes, we aren't in a detached head state, and when we later push those changes to main, it works!
+          git checkout main
 
           # Generate all flavors of the version
           SHORT_APP_VERSION=$(echo "$NEW_VERSION" | awk -F'-' '{print $1}')
