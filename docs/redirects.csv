@@ -383,6 +383,7 @@ https://community.expensify.com/discussion/6530/how-to-set-your-time-zone-for-re
 https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-Notifications
 https://community.expensify.com/discussion/5793/how-to-connect-your-personal-card-to-import-expenses/,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Personal-Credit-Cards
 https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information,https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security
+https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information,https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security
 https://community.expensify.com/discussion/4641/how-to-add-a-u-s-deposit-account,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-US-Bank-Account
 https://community.expensify.com/discussion/4751/how-to-how-to-add-an-ach-withdrawal-account-us-only/,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account
 https://community.expensify.com/discussion/7428/how-to-pay-get-paid-for-invoices-using-paypal-me-and-expensify,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Third-Party-Payments
@@ -424,7 +425,7 @@ https://community.expensify.com/discussion/4832/how-to-enable-saml-sso,https://h
 https://community.expensify.com/discussion/4476/how-to-enable-scheduled-submit-for-a-group-policy/,https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports
 https://community.expensify.com/discussion/4524/how-to-set-up-the-uber-integration/,https://help.expensify.com/articles/expensify-classic/connections/Uber
 https://community.expensify.com/discussion/4828/how-to-match-your-company-cards-statement-to-expensify/p1,https://help.expensify.com/articles/expensify-classic/expensify-card/Admin-Card-Settings-and-Features#reconciling-expenses-and-settlements
-https://community.expensify.com/discussion/4842/how-to-split-expenses-on-the-web-and-mobile-app,https://help.expensify.com/articles/expensify-classic/expenses/Split-an-expense
+https://community.expensify.com/discussion/4842/how-to-split-expenses-on-the-web-and-mobile-app,https://help.expensify.com/articles/expensify-classic/expenses/Edit-expenses#split-an-expense
 https://community.expensify.com/discussion/4948/faq-why-didnt-my-ereceipt-generate/,https://help.expensify.com/articles/expensify-classic/workspaces/Expense-Settings#ereceipts
 https://community.expensify.com/discussion/5145/how-to-connect-to-sage-intacct-role-based-permissions-expense-reports/,https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Connect-To-Sage-Intacct
 https://community.expensify.com/discussion/5366/troubleshooting-credit-card-issues-in-expensify/,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Troubleshooting
@@ -684,3 +685,8 @@ https://help.expensify.com/expensify-classic/hubs/settings/account-settings,http
 https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-Time-Zone,https://help.expensify.com/articles/expensify-classic/settings/Set-Time-Zone
 https://help.expensify.com/articles/expensify-classic/settings/Managing-Primary-and-Secondary-Logins-in-Expensify,https://help.expensify.com/articles/expensify-classic/settings/Contact-Methods
 https://help.expensify.com/articles/expensify-classic/workspaces/Personal-and-Corporate-Karma,https://help.expensify.com/expensify-classic/hubs/expensify-billing/Personal-and-Corporate-Karma
+https://help.expensify.com/articles/expensify-classic/expenses/Merge-expenses,https://help.expensify.com/articles/expensify-classic/expenses/Edit-expenses#merge-expenses
+https://help.expensify.com/articles/expensify-classic/expenses/Split-an-expense,https://help.expensify.com/articles/expensify-classic/expenses/Edit-expenses#split-an-expense
+https://help.expensify.com/articles/expensify-classic/expenses/Add-expenses-to-a-report,https://help.expensify.com/articles/expensify-classic/expenses/Add-an-expense#add-expenses-to-a-report
+https://community.expensify.com/discussion/4780/how-to-export-to-individual-gl-accounts/,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Manage-Company-Cards#exporting-to-individual-general-ledger-accounts
+https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Configure-Company-Card-Settings/,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Manage-Company-Cards
