@@ -194,21 +194,21 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: android-hybrid-apk-artifact
+          name: android-apk-artifact
           path: Expensify.apk
 
       - name: Upload Android build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: android-hybrid-build-artifact
+          name: android-build-artifact
           path: ${{ env.aabPath }}
 
       - name: Upload Android sourcemap artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: android-hybrid-sourcemap-artifact
+          name: android-sourcemap-artifact
           path: /home/runner/work/App/App/Mobile-Expensify/Android/build/generated/sourcemaps/react/release/index.android.bundle.map
 
       - name: Set current App version in Env
@@ -409,14 +409,14 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: ios-hybrid-build-artifact
+          name: ios-build-artifact
           path: ${{ env.ipaPath }}
 
       - name: Upload iOS sourcemap artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: ios-hybrid-sourcemap-artifact
+          name: ios-sourcemap-artifact
           path: /Users/runner/work/App/App/Mobile-Expensify/main.jsbundle.map
 
       - name: Warn deployers if iOS production deploy failed
@@ -597,15 +597,15 @@ jobs:
       - name: Upload artifacts to GitHub Release
         continue-on-error: true
         run: |
-          # Release asset name should follow the template: [platform]-[hybrid, staging, production or blank]-[sourcemap or blank].[file extension]
+          # Release asset name should follow the template: [platform]-[staging, production or blank]-[sourcemap or blank].[file extension]
           files=(
-            "./android-hybrid-build-artifact/Expensify-release.aab#android-hybrid.aab"
-            "./android-hybrid-apk-artifact/Expensify.apk#android-hybrid.apk"
-            "./android-hybrid-sourcemap-artifact/index.android.bundle.map#android-hybrid-sourcemap.js.map"
+            "./android-build-artifact/Expensify-release.aab#android.aab"
+            "./android-apk-artifact/Expensify.apk#android.apk"
+            "./android-sourcemap-artifact/index.android.bundle.map#android-sourcemap.js.map"
             "./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap.js.map"
             "./desktop-staging-build-artifact/NewExpensify.dmg#desktop-staging.dmg"
-            "./ios-hybrid-build-artifact/Expensify.ipa#ios-hybrid.ipa"
-            "./ios-hybrid-sourcemap-artifact/main.jsbundle.map#ios-hybrid-sourcemap.js.map"
+            "./ios-build-artifact/Expensify.ipa#ios.ipa"
+            "./ios-sourcemap-artifact/main.jsbundle.map#ios-sourcemap.js.map"
             "./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap.js.map"
             "./web-staging-build-tar-gz-artifact/webBuild.tar.gz#web-staging.tar.gz"
             "./web-staging-build-zip-artifact/webBuild.zip#web-staging.zip"
@@ -665,7 +665,7 @@ jobs:
       - name: Upload artifacts to GitHub Release
         continue-on-error: true
         run: |
-          # Release asset name should follow the template: [platform]-[hybrid, staging, production or blank]-[sourcemap or blank].[file extension]
+          # Release asset name should follow the template: [platform]-[staging, production or blank]-[sourcemap or blank].[file extension]
           files=(
             "./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-production-sourcemap.js.map"
             "./desktop-build-artifact/NewExpensify.dmg#desktop-production.dmg"
