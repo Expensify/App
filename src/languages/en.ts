@@ -979,6 +979,10 @@ const translations = {
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
         settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
+        settleInvoicePersonal: ({formattedAmount, last4Digits}: BusinessBankAccountParams) =>
+            formattedAmount ? `Paid ${formattedAmount} with personal account ${last4Digits}` : `Paid with personal account`,
+        settleInvoiceBusiness: ({formattedAmount, last4Digits}: BusinessBankAccountParams) =>
+            formattedAmount ? `Paid ${formattedAmount} with business account ${last4Digits}` : `Paid with business account`,
         payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
             formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`,
         businessBankAccount: ({formattedAmount, last4Digits}: BusinessBankAccountParams) => `Paid ${formattedAmount} with bank account ${last4Digits}.`,

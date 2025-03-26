@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
@@ -88,13 +89,10 @@ function SettlementButton({
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : iouReport?.policyID ?? CONST.POLICY.ID_FAKE;
     const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
-        selector: (paymentMethod) => getLastPolicyPaymentMethod(policyIDKey, paymentMethod, iouReport?.type as keyof LastPaymentMethodType),
+        selector: (paymentMethod) => getLastPolicyPaymentMethod(policyIDKey, paymentMethod, Str.recapitalize(iouReport?.type ?? '') as keyof LastPaymentMethodType),
     });
-
-    const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, iouReport?.type as keyof LastPaymentMethodType);
-
+    const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, Str.recapitalize(iouReport?.type ?? '') as keyof LastPaymentMethodType);
     const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
-
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const currentUserAccountID = getCurrentUserAccountID().toString();
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserAccountID).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -316,7 +314,17 @@ function SettlementButton({
             }
             return;
         }
-        onPress(iouPaymentType, false);
+        if (isInvoiceReport && lastBankAccountID) {
+            onPress(
+                iouPaymentType,
+                isBusinessInvoiceRoom(chatReport),
+                lastBankAccountID,
+                isBusinessInvoiceRoom(chatReport) ? CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                policyIDKey,
+            );
+        } else {
+            onPress(iouPaymentType, false);
+        }
     };
 
     const selectPaymentMethod = (event: KYCFlowEvent, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, usedPolicy?: Policy) => {
@@ -364,11 +372,11 @@ function SettlementButton({
         }
 
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            if (isBusinessInvoiceRoom(chatReport)) {
+            if (isBusinessInvoiceRoom(chatReport) && bankAccount) {
                 return translate('iou.invoiceBussinessBank', {lastFour: bankAccount?.accountData?.accountNumber?.slice(-4) ?? ''});
             }
 
-            if (isIndividualInvoiceRoomUtil(chatReport)) {
+            if (isIndividualInvoiceRoomUtil(chatReport) && bankAccount) {
                 return translate('iou.invoicePersonalBank', {lastFour: bankAccount?.accountData?.accountNumber?.slice(-4) ?? ''});
             }
 

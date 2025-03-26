@@ -1,17 +1,15 @@
-
+import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type { ValueOf } from 'type-fest';
-
 
 /**
  * PaymentInformation object
  */
 type PaymentInformation = {
     /** The name of the  */
-    name: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>
+    name: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
     /** The bank account id of the last payment method */
     bankAccountID?: number;
-}
+};
 
 /**
  * The new lastPaymentMethod object

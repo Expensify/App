@@ -8137,6 +8137,7 @@ function getPayMoneyRequestParams(
     paymentMethodType: PaymentMethodType,
     full: boolean,
     payAsBusiness?: boolean,
+    bankAccountID?: number,
 ): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     const activePolicy = getPolicy(activePolicyID);
@@ -8197,6 +8198,8 @@ function getPayMoneyRequestParams(
         paymentType: paymentMethodType,
         iouReportID: iouReport?.reportID,
         isSettlingUp: true,
+        payAsBusiness,
+        bankAccountID,
     });
 
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
@@ -8270,17 +8273,17 @@ function getPayMoneyRequestParams(
     );
 
     if (iouReport?.policyID) {
+        const optimisticLastPaymentMethod = {
+            [iouReport.policyID]: {
+                lastUsed: paymentMethodType,
+                ...(isInvoiceReport ? {Invoice: {name: paymentMethodType, bankAccountID}} : {}),
+            },
+        };
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-            value: {
-                [iouReport.policyID]: {
-                    iou: {
-                        name: paymentMethodType,
-                        bankAccountID: null,
-                    },
-                },
-            },
+            value: optimisticLastPaymentMethod,
         });
     }
 
@@ -9310,7 +9313,7 @@ function payInvoice(
             ownerEmail,
             policyName,
         },
-    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness);
+    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness, methodID);
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected);
