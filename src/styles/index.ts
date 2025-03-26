@@ -4747,12 +4747,11 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderColor: theme.border,
             borderRadius: variables.componentBorderRadiusLarge,
-            height: 200,
+            height: 180,
             maxWidth: '100%',
         },
 
         expenseViewImage: {
-            height: 180,
             maxWidth: 360,
         },
 
