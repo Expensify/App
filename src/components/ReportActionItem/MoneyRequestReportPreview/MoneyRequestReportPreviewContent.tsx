@@ -314,7 +314,6 @@ function MoneyRequestReportPreviewContent({
      * There is an edge case when there is only one distance expense with a pending route and amount = 0.
        In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
-
     const {supportText} = useMemo(() => {
         if (numberOfRequests === 1) {
             return {
