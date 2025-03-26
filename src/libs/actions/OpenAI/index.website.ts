@@ -446,13 +446,12 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
     }
 }
 
-// Update initializeOpenAIRealtime to remove UI feedback
+
 function initializeOpenAIRealtime(adminsReportID: number) {
     console.log('[WebRTC] Initializing OpenAI realtime with adminsReportID:', adminsReportID);
     currentAdminsReportID = adminsReportID;
     currentTranscript = ''; // Reset transcript
 
-    // Set initial state - remove UI-related properties
     Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {
         isLoading: true,
     });
@@ -502,7 +501,6 @@ function initializeOpenAIRealtime(adminsReportID: number) {
             });
         });
 
-    // Remove microphone activity check
 }
 
 function handleFunctionCall(message: OpenAIRealtimeMessage) {
@@ -589,8 +587,6 @@ function stopConnection() {
     console.log('[WebRTC] Connection fully closed');
     
     Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {isTalkingToAISales: false});
-
-    // Remove microphone activity check cleanup
 }
 
 // Add this new function
