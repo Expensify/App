@@ -350,6 +350,9 @@ function ScreenWrapper(
         return isOfflineIndicatorTranslucent ? styles.navigationBarBG : styles.appBG;
     }, [bottomContent, isOffline, isOfflineIndicatorTranslucent, isSoftKeyNavigation, styles.appBG, styles.navigationBarBG]);
 
+    /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
+    const hasMobileOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? true : !includeSafeAreaPaddingBottom;
+
     /**
      * This style includes the bottom safe area padding for the mobile offline indicator.
      * If the device has soft keys, the mobile offline indicator will stick to the navigation bar (bottom of the screen)
@@ -359,7 +362,7 @@ function ScreenWrapper(
      * If the device does not have soft keys, the bottom safe area padding is applied as `paddingBottom`.
      */
     const mobileOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding ? true : !includeSafeAreaPaddingBottom,
+        addBottomSafeAreaPadding: hasMobileOfflineIndicatorBottomSafeAreaPadding,
         styleProperty: isSoftKeyNavigation ? 'bottom' : 'paddingBottom',
     });
 
@@ -389,8 +392,8 @@ function ScreenWrapper(
     const displayMobileOfflineIndicator = isSmallScreenWidth && shouldShowOfflineIndicator;
     const displayWidescreenOfflineIndicator = !shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen;
 
-    /** If we currently show the offline indicator and it sticks to the bottom, we need to offset the bottom safe area padding in the KeyboardAvoidingView. */
-    const shouldOffsetMobileOfflineIndicator = displayMobileOfflineIndicator && displayStickyMobileOfflineIndicator && isOffline;
+    /** If we currently show the offline indicator and it has bottom safe area padding, we need to offset the bottom safe area padding in the KeyboardAvoidingView. */
+    const shouldOffsetMobileOfflineIndicator = displayMobileOfflineIndicator && hasMobileOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
     /** Whether the mobile offline indicator or the content in general should be offset by the bottom safe area padding. */
     const shouldOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPadding || shouldOffsetMobileOfflineIndicator;
