@@ -18,10 +18,20 @@ type WebRTCConnections = {
     openai: ConnectionResult | null;
 };
 
+type OpenAITranscriptDelta = {
+    type: string;
+    delta: {
+        text: string;
+    };
+};
+
 type OpenAIRealtimeMessage = {
     name: string;
     arguments: string;
     type: string;
+    delta?: {
+        text: string;
+    };
 };
 
 type Recap = {
@@ -30,13 +40,18 @@ type Recap = {
 
 let currentAdminsReportID: number | null = null;
 let mediaStream: MediaStream | null = null;
+let currentTranscript = '';
 
 const connections: WebRTCConnections = {
     openai: null,
 };
 
-// Global variable to store the audio monitor reference
-let audioMonitor: { stop: () => void } | null = null;
+// Add a debug configuration object at the top of the file
+const WEBRTC_DEBUG = {
+    verbose: true, // Set to true in development for verbose logging
+    audioLevels: true, // Set to true to log microphone levels
+    silenceWarningInterval: 10000, // Only warn about silence every 10 seconds
+};
 
 function getEmphemeralToken(): Promise<string> {
     const onyxData: OnyxData = {
@@ -83,7 +98,7 @@ function connectUsingSDP(ephemeralToken: string, rtcOffer: RTCSessionDescription
     });
 }
 
-// Add audio level monitoring function to detect microphone issues
+// Simplify the audio level monitoring function to only log issues
 function setupAudioLevelMonitoring(stream: MediaStream) {
     console.log('[WebRTC] Setting up audio level monitoring');
     
@@ -100,7 +115,9 @@ function setupAudioLevelMonitoring(stream: MediaStream) {
         
         let silenceCounter = 0;
         const maxSilenceCount = 5;
+        let lastWarnTime = 0;
         
+        // Remove the per-frame logging completely
         const checkAudioLevel = () => {
             if (!stream.active) {
                 console.log('[WebRTC] Audio stream no longer active, stopping monitoring');
@@ -118,13 +135,22 @@ function setupAudioLevelMonitoring(stream: MediaStream) {
             
             if (average < 5) {
                 silenceCounter++;
-                if (silenceCounter >= maxSilenceCount) {
+                
+                // Only warn periodically instead of spamming the console
+                const now = Date.now();
+                if (silenceCounter >= maxSilenceCount && (now - lastWarnTime > WEBRTC_DEBUG.silenceWarningInterval)) {
                     console.warn('[WebRTC] Possible microphone issue - low audio levels detected');
-                    silenceCounter = 0; // Reset to avoid spamming logs
+                    lastWarnTime = now;
+                    // Removed UI feedback via Onyx
                 }
             } else {
                 silenceCounter = 0;
-                console.log(`[WebRTC] Microphone level: ${average.toFixed(2)}`);
+                
+                // Only log audio levels when debug is enabled
+                if (WEBRTC_DEBUG.audioLevels && (Date.now() - lastWarnTime > 3000)) {
+                    console.log(`[WebRTC] Microphone level: ${average.toFixed(2)}`);
+                    lastWarnTime = Date.now();
+                }
             }
             
             // Continue monitoring
@@ -202,9 +228,14 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                         
                         console.log('[WebRTC] Created peer connection');
                         
-                        // Log connection state changes
+                        // Only log significant connection state changes
                         pc.onconnectionstatechange = () => {
                             console.log(`[WebRTC] Connection state changed: ${pc.connectionState}`);
+                            
+                            // Update connection state in Onyx
+                            Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {
+                                connectionState: pc.connectionState
+                            });
                         };
                         
                         // Log signaling state changes
@@ -248,11 +279,11 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                             }
                         };
 
-                        // Add ICE candidate logging
+                        // Add ICE candidate logging only in verbose mode
                         pc.onicecandidate = (event) => {
-                            if (event.candidate) {
+                            if (event.candidate && WEBRTC_DEBUG.verbose) {
                                 console.log('[WebRTC] New ICE candidate:', event.candidate.candidate);
-                            } else {
+                            } else if (!event.candidate) {
                                 console.log('[WebRTC] ICE candidate gathering complete');
                             }
                         };
@@ -320,6 +351,18 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
         });
 }
 
+// Simplified transcript handling - just collect it for debugging
+function handleTranscriptDelta(text: string) {
+    // Append to the current transcript
+    currentTranscript += text;
+    
+    // Log transcript updates infrequently to avoid spamming
+    if (WEBRTC_DEBUG.verbose) {
+        console.log(`[WebRTC] Transcript update: "${text}"`);
+    }
+}
+
+// Update message handling to handle transcript deltas without UI updates
 function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
     console.log('[WebRTC] Handling message type:', message.type);
     
@@ -328,22 +371,32 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
             console.log('[WebRTC] Function call received:', message.name);
             handleFunctionCall(message);
             break;
+        case 'response.audio_transcript.delta':
+            // Handle transcript delta messages
+            if (message.delta?.text) {
+                handleTranscriptDelta(message.delta.text);
+            }
+            break;
         case 'error':
             console.error('[WebRTC] OpenAI error', message);
             break;
         default:
-            console.log(`[WebRTC] Unhandled message type: ${message.type}`);
+            // Reduce the noise by only logging unhandled message types in verbose mode
+            if (WEBRTC_DEBUG.verbose) {
+                console.log(`[WebRTC] Unhandled message type: ${message.type}`);
+            }
     }
 }
 
+// Update initializeOpenAIRealtime to remove UI feedback
 function initializeOpenAIRealtime(adminsReportID: number) {
     console.log('[WebRTC] Initializing OpenAI realtime with adminsReportID:', adminsReportID);
     currentAdminsReportID = adminsReportID;
+    currentTranscript = ''; // Reset transcript
 
-    // Set initial state
+    // Set initial state - remove UI-related properties
     Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {
         isLoading: true,
-        connectionError: null,
     });
 
     connectToOpenAIRealtime()
@@ -388,9 +441,10 @@ function initializeOpenAIRealtime(adminsReportID: number) {
             stopConnection();
             Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {
                 isLoading: false,
-                connectionError: 'Failed to establish connection. Please check your microphone permissions.',
             });
         });
+
+    // Remove microphone activity check
 }
 
 function handleFunctionCall(message: OpenAIRealtimeMessage) {
@@ -428,7 +482,7 @@ function handleFunctionCall(message: OpenAIRealtimeMessage) {
     }
 }
 
-// Update the stopConnection function to clean up resources properly
+// Update the stopConnection function to remove UI feedback cleanup
 function stopConnection() {
     console.log('[WebRTC] Stopping connection');
 
@@ -471,6 +525,8 @@ function stopConnection() {
     console.log('[WebRTC] Connection fully closed');
     
     Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {isTalkingToAISales: false});
+
+    // Remove microphone activity check cleanup
 }
 
 export {initializeOpenAIRealtime, stopConnection};
