@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import {isMobile} from '@libs/Browser';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
+import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getTopmostReportsSplitNavigator from '@libs/Navigation/helpers/getTopmostReportsSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
@@ -48,7 +48,7 @@ function BaseSidebarScreen() {
         }
 
         // Switching workspace to global should only be performed from the currently opened sidebar screen
-        const topmostReportSplitState = topmostReportSplit?.state ?? getPreservedSplitNavigatorState(topmostReportSplit?.key);
+        const topmostReportSplitState = topmostReportSplit?.state ?? getPreservedNavigatorState(topmostReportSplit?.key);
         const isCurrentSidebar = topmostReportSplitState?.routes.some((route) => currentRoute.key === route.key);
 
         if (!isCurrentSidebar) {
@@ -73,7 +73,7 @@ function BaseSidebarScreen() {
                         breadcrumbLabel={translate('common.inbox')}
                         activeWorkspaceID={activeWorkspaceID}
                         shouldDisplaySearch={shouldUseNarrowLayout}
-                        shouldDisplaySidePane={shouldUseNarrowLayout}
+                        shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData insets={insets} />

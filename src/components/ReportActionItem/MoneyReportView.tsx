@@ -101,7 +101,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         const fieldValue = reportField.value ?? reportField.defaultValue;
         const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || reportField.disabledOptions.some((option) => !option);
 
-        return isReportFieldOfTypeTitle(reportField) || (isReportFieldOfTypeTitle(reportField, false) && !reportField?.deletable) || (!fieldValue && !hasEnableOption);
+        return isReportFieldOfTypeTitle(reportField) || (!fieldValue && !hasEnableOption);
     };
 
     const shouldShowReportField =
@@ -112,18 +112,18 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
 
     const renderThreadDivider = useMemo(
         () =>
-            shouldHideThreadDividerLine && !isCombinedReport ? (
+            shouldHideThreadDividerLine ? (
                 <UnreadActionIndicator
                     reportActionID={report?.reportID}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 />
             ) : (
                 <SpacerView
-                    shouldShow={!shouldHideThreadDividerLine}
-                    style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
+                    shouldShow
+                    style={styles.reportHorizontalRule}
                 />
             ),
-        [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule, isCombinedReport],
+        [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
     );
 
     return (

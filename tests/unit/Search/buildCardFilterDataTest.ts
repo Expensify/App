@@ -2,9 +2,9 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {buildCardFeedsData, buildCardsData} from '@libs/CardFeedUtils';
 // eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {buildCardFeedsData, buildCardsData} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import type {CardList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 

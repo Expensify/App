@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
@@ -14,45 +13,39 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {
+    dismissSuccessfulTransferBalancePage,
+    resetWalletTransferData,
+    saveWalletTransferAccountTypeAndID,
+    saveWalletTransferMethodType,
+    transferWalletBalance,
+} from '@libs/actions/PaymentMethods';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PaymentUtils from '@libs/PaymentUtils';
+import {calculateWalletTransferBalanceFee, formatPaymentMethods, hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import variables from '@styles/variables';
-import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccountList, FundList, UserWallet, WalletTransfer} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type TransferBalancePageOnyxProps = {
-    /** User's wallet information */
-    userWallet: OnyxEntry<UserWallet>;
-
-    /** List of bank accounts */
-    bankAccountList: OnyxEntry<BankAccountList>;
-
-    /** List of user's card objects */
-    fundList: OnyxEntry<FundList>;
-
-    /** Wallet balance transfer props */
-    walletTransfer: OnyxEntry<WalletTransfer>;
-};
-
-type TransferBalancePageProps = TransferBalancePageOnyxProps;
-
 const TRANSFER_TIER_NAMES: string[] = [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM];
 
-function TransferBalancePage({bankAccountList, fundList, userWallet, walletTransfer}: TransferBalancePageProps) {
+function TransferBalancePage() {
     const styles = useThemeStyles();
     const {numberFormat, translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {paddingBottom} = useStyledSafeAreaInsets();
+    const {paddingBottom} = useSafeAreaPaddings();
+
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
@@ -61,7 +54,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
             title: translate('transferAmountPage.instant'),
             description: translate('transferAmountPage.instantSummary', {
                 rate: numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-                minAmount: CurrencyUtils.convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
+                minAmount: convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
             }),
             icon: Expensicons.Bolt,
             type: CONST.PAYMENT_METHODS.DEBIT_CARD,
@@ -79,7 +72,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
      * Get the selected/default payment method account for wallet transfer
      */
     function getSelectedPaymentMethodAccount(): PaymentMethod | undefined {
-        const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
+        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
 
         const defaultAccount = paymentMethods.find((method) => method.isDefault);
         const selectedAccount = paymentMethods.find(
@@ -89,15 +82,15 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
     }
 
     function navigateToChooseTransferAccount(filterPaymentMethodType: FilterMethodPaymentType) {
-        PaymentMethods.saveWalletTransferMethodType(filterPaymentMethodType);
+        saveWalletTransferMethodType(filterPaymentMethodType);
 
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
-        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
+        const combinedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
 
         const filteredMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
             const account = filteredMethods.at(0);
-            PaymentMethods.saveWalletTransferAccountTypeAndID(filterPaymentMethodType ?? '', account?.methodID?.toString() ?? '-1');
+            saveWalletTransferAccountTypeAndID(filterPaymentMethodType, account?.methodID?.toString());
             return;
         }
 
@@ -106,14 +99,14 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
 
     useEffect(() => {
         // Reset to the default account when the page is opened
-        PaymentMethods.resetWalletTransferData();
+        resetWalletTransferData();
 
         const selectedAccount = getSelectedPaymentMethodAccount();
         if (!selectedAccount) {
             return;
         }
 
-        PaymentMethods.saveWalletTransferAccountTypeAndID(selectedAccount?.accountType ?? '', selectedAccount?.methodID?.toString() ?? '-1');
+        saveWalletTransferAccountTypeAndID(selectedAccount?.accountType, selectedAccount?.methodID?.toString());
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want this effect to run on initial render
     }, []);
 
@@ -122,7 +115,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
             <ScreenWrapper testID={TransferBalancePage.displayName}>
                 <HeaderWithBackButton
                     title={translate('common.transferBalance')}
-                    onBackButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
+                    onBackButtonPress={dismissSuccessfulTransferBalancePage}
                 />
                 <ConfirmationPage
                     heading={translate('transferAmountPage.transferSuccess')}
@@ -133,7 +126,8 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                     }
                     shouldShowButton
                     buttonText={translate('common.done')}
-                    onButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
+                    onButtonPress={dismissSuccessfulTransferBalancePage}
+                    containerStyle={styles.flex1}
                 />
             </ScreenWrapper>
         );
@@ -143,13 +137,13 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
     const selectedPaymentType =
         selectedAccount && selectedAccount.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
 
-    const calculatedFee = PaymentUtils.calculateWalletTransferBalanceFee(userWallet?.currentBalance ?? 0, selectedPaymentType);
+    const calculatedFee = calculateWalletTransferBalanceFee(userWallet?.currentBalance ?? 0, selectedPaymentType);
     const transferAmount = userWallet?.currentBalance ?? 0 - calculatedFee;
     const isTransferable = transferAmount > 0;
     const isButtonDisabled = !isTransferable || !selectedAccount;
-    const errorMessage = ErrorUtils.getLatestErrorMessage(walletTransfer);
+    const errorMessage = getLatestErrorMessage(walletTransfer);
 
-    const shouldShowTransferView = PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.includes(userWallet?.tierName ?? '');
+    const shouldShowTransferView = hasExpensifyPaymentMethod(paymentCardList, bankAccountList ?? {}) && TRANSFER_TIER_NAMES.includes(userWallet?.tierName ?? '');
 
     return (
         <ScreenWrapper testID={TransferBalancePage.displayName}>
@@ -206,16 +200,16 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                     )}
                     <View style={styles.ph5}>
                         <Text style={[styles.mt5, styles.mb3, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.fee')}</Text>
-                        <Text style={[styles.justifyContentStart]}>{CurrencyUtils.convertToDisplayString(calculatedFee)}</Text>
+                        <Text style={[styles.justifyContentStart]}>{convertToDisplayString(calculatedFee)}</Text>
                     </View>
                 </ScrollView>
                 <View>
                     <FormAlertWithSubmitButton
                         buttonText={translate('transferAmountPage.transfer', {
-                            amount: isTransferable ? CurrencyUtils.convertToDisplayString(transferAmount) : '',
+                            amount: isTransferable ? convertToDisplayString(transferAmount) : '',
                         })}
                         isLoading={walletTransfer?.loading}
-                        onSubmit={() => selectedAccount && PaymentMethods.transferWalletBalance(selectedAccount)}
+                        onSubmit={() => selectedAccount && transferWalletBalance(selectedAccount)}
                         isDisabled={isButtonDisabled || isOffline}
                         message={errorMessage}
                         isAlertVisible={!isEmptyObject(errorMessage)}
@@ -229,17 +223,4 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
 
 TransferBalancePage.displayName = 'TransferBalancePage';
 
-export default withOnyx<TransferBalancePageProps, TransferBalancePageOnyxProps>({
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-    walletTransfer: {
-        key: ONYXKEYS.WALLET_TRANSFER,
-    },
-    bankAccountList: {
-        key: ONYXKEYS.BANK_ACCOUNT_LIST,
-    },
-    fundList: {
-        key: ONYXKEYS.FUND_LIST,
-    },
-})(TransferBalancePage);
+export default TransferBalancePage;

@@ -19,7 +19,7 @@ on:
       - 'ios/project.pbxproj'
   pull_request_target:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches: [main]
     paths:
       - '**.kt'
       - '**.java'
@@ -52,7 +52,7 @@ jobs:
       - name: Comment on forks
         run: |
           gh pr comment ${{github.event.pull_request.html_url }} --body \
-          ":warning: This PR is possibly changing native code, it may cause problems with HybridApp. Please run an AdHoc build to verify that HybridApp will not break. :warning:"
+          ":warning: This PR is possibly changing native code and/or updating libraries, it may cause problems with HybridApp. Please check if any patch updates are required in the HybridApp repo and run an AdHoc build to verify that HybridApp will not break. Ask Contributor Plus for help if you are not sure how to handle this. :warning:"
         env:
           GITHUB_TOKEN: ${{ github.token }}
   verify_android:

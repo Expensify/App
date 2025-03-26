@@ -1,5 +1,4 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import SidePane from '@components/SidePane';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -38,8 +37,6 @@ const useRootNavigatorScreenOptions = () => {
                 presentation: Presentation.TRANSPARENT_MODAL,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, shouldAnimateSidePane: true}),
             },
-            // @ts-expect-error SidePane is a custom screen option that was added in a patch (when we migrate to react-navigation v7 we can use screenLayout instead)
-            sidePane: SidePane,
         },
         basicModalNavigator: {
             presentation: Presentation.TRANSPARENT_MODAL,
@@ -81,9 +78,7 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                },
+                cardStyle: StyleUtils.getNavigationModalCardStyle(),
             },
         },
         fullScreen: {
@@ -91,6 +86,9 @@ const useRootNavigatorScreenOptions = () => {
             // We need to turn off animation for the full screen to avoid delay when closing screens.
             animation: Animations.NONE,
             web: {
+                cardStyle: {
+                    height: '100%',
+                },
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePane: true}),
             },
         },
