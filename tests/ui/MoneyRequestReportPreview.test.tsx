@@ -26,16 +26,12 @@ import {
     transaction as mockTransaction,
     violations as mockViolations,
 } from '@src/stories/mockData/transactions';
-import type {Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native');
-
-// Set up a global fetch mock for API requests in tests.
-TestHelper.setupApp();
-TestHelper.setupGlobalFetchMock();
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -49,6 +45,12 @@ jest.mock('@react-native-community/geolocation', () => ({
     setRNConfiguration: jest.fn(),
 }));
 
+jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () =>
+    jest.fn((): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] => {
+        return [mockChatReport, [mockTransaction, {...mockTransaction, transactionID: `${Number(mockTransaction.transactionID) + 1}`}], {violations: mockViolations}];
+    }),
+);
+
 const getIOUActionForReportID = (reportID: string | undefined, transactionID: string | undefined) => {
     if (!reportID || !transactionID) {
         return undefined;
@@ -56,11 +58,8 @@ const getIOUActionForReportID = (reportID: string | undefined, transactionID: st
     return {...mockAction, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
 };
 
-jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () =>
-    jest.fn((): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] => {
-        return [mockChatReport, [mockTransaction, {...mockTransaction, transactionID: `${Number(mockTransaction.transactionID) + 1}`}], {violations: mockViolations}];
-    }),
-);
+const hasViolations = (reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean) =>
+    (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
 
 const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = null}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
@@ -88,6 +87,36 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
     );
 };
 
+const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
+    const created = getFormattedCreated(transaction);
+    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const isTransactionMadeWithCard = isCardTransaction(transaction);
+    const cashOrCard = isTransactionMadeWithCard ? translateLocal('iou.card') : translateLocal('iou.cash');
+    const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
+    const transactionDisplayAmount = convertToDisplayString(transaction.amount, transaction.currency);
+    return {transactionHeaderText, transactionDisplayAmount};
+};
+
+const mockSecondTransaction: Transaction = {
+    ...mockTransaction,
+    amount: mockTransaction.amount * 2,
+    transactionID: `${Number(mockTransaction.transactionID) + 1}`,
+};
+
+const mockOnyxTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, Transaction> = {
+    [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: mockTransaction,
+    [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockSecondTransaction.transactionID}`]: mockSecondTransaction,
+};
+
+const mockOnyxViolations: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`, TransactionViolations> = {
+    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`]: mockViolations,
+};
+
+const arrayOfTransactions = Object.values(mockOnyxTransactions);
+
+TestHelper.setupApp();
+TestHelper.setupGlobalFetchMock();
+
 describe('MoneyRequestReportPreview', () => {
     beforeAll(async () => {
         Onyx.init({
@@ -95,6 +124,7 @@ describe('MoneyRequestReportPreview', () => {
         });
         jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
         jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(getIOUActionForReportID);
+        jest.spyOn(ReportUtils, 'hasViolations').mockImplementation(hasViolations);
         await TestHelper.signInWithTestUser();
     });
 
@@ -103,44 +133,31 @@ describe('MoneyRequestReportPreview', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    it('renders all elements correctly', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, mockTransaction);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${Number(mockTransaction.transactionID) + 1}`, {
-            ...mockTransaction,
-            amount: mockTransaction.amount * 2,
-            transactionID: `${Number(mockTransaction.transactionID) + 1}`,
-        });
-        const {unmount} = renderPage({});
+    it('renders transaction details and associated report name correctly', async () => {
+        renderPage({});
         await waitForBatchedUpdatesWithAct();
-        const created = getFormattedCreated(mockTransaction);
-        const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        const isTransactionMadeWithCard = isCardTransaction(mockTransaction);
-        const cashOrCard = isTransactionMadeWithCard ? translateLocal('iou.card') : translateLocal('iou.cash');
-        const previewText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
-        expect(screen.getByText(convertToDisplayString(mockTransaction.amount, mockTransaction.currency))).toBeOnTheScreen();
-        expect(screen.getByText(convertToDisplayString(mockTransaction.amount * 2, mockTransaction.currency))).toBeOnTheScreen();
-        expect(screen.getAllByText(mockTransaction.merchant)).toHaveLength(2);
-        expect(screen.getAllByText(previewText)).toHaveLength(2);
-        if (mockAction.childReportName) {
-            expect(screen.getByText(mockAction.childReportName)).toBeOnTheScreen();
+        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
+        const {childReportName: moneyRequestReportPreviewName = ''} = mockAction;
+        for (const transaction of arrayOfTransactions) {
+            const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
+
+            expect(screen.getByText(moneyRequestReportPreviewName)).toBeOnTheScreen();
+            expect(screen.getByText(transactionDisplayAmount)).toBeOnTheScreen();
+            expect(screen.getAllByText(transactionHeaderText)).toHaveLength(arrayOfTransactions.length);
+            expect(screen.getAllByText(transaction.merchant)).toHaveLength(arrayOfTransactions.length);
         }
-        unmount();
     });
 
     it('renders RBR for both transaction and report if there are violations', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, mockTransaction);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`, mockViolations);
-        jest.spyOn(ReportUtils, 'hasViolations').mockReturnValue(true);
-        const {unmount} = renderPage({});
+        renderPage({});
         await waitForBatchedUpdatesWithAct();
+        await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
         expect(screen.getAllByText(translateLocal('violations.reviewRequired'))).toHaveLength(2);
-        unmount();
     });
 
     it('renders a skeleton if the transaction is empty', async () => {
-        const {unmount} = renderPage({});
+        renderPage({});
         await waitForBatchedUpdatesWithAct();
         expect(screen.getAllByTestId(MoneyRequestSkeletonView.displayName)).toHaveLength(2);
-        unmount();
     });
 });
