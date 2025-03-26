@@ -1,32 +1,53 @@
-import React from 'react';
-import {isMobileChrome} from '@libs/Browser';
-import Clipboard from '@libs/Clipboard';
+import React, {useRef} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import CONST from '@src/CONST';
+import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import Text from './Text';
 import type {TextProps} from './Text';
 
 type TextWithCopyProps = TextProps & {
     /** The value to copy when the text component is pressed */
-    copyText: string;
+    copyValue: string;
 };
 
 /**
  * A text component that copies the text to the clipboard when pressed.
- * This is different from the `CopyTextToClipboard` component in that
+ * This is different from the `copyValueToClipboard` component in that
  * here the copy functionality is incorporated into the text itself.
+ * Long press this text to toggle the context menu containing the copy option.
  */
-function TextWithCopy({children, copyText, ...rest}: TextWithCopyProps) {
+function TextWithCopy({children, copyValue, ...rest}: TextWithCopyProps) {
+    const popoverAnchor = useRef<View>(null);
+
+    const toggleCopyContextMenu = (event: GestureResponderEvent | MouseEvent) => {
+        if (!copyValue) {
+            return;
+        }
+        showContextMenu({
+            type: CONST.CONTEXT_MENU_TYPES.TEXT,
+            event,
+            selection: copyValue,
+            contextMenuAnchor: popoverAnchor.current,
+        });
+    };
+
     return (
-        <Text
-            onPress={() => {
-                Clipboard.setString(copyText);
-            }}
-            // Disable to prevent Chrome's Touch to Search popup showing up when text is selected
-            selectable={!isMobileChrome()}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
+        <PressableWithSecondaryInteraction
+            ref={popoverAnchor}
+            onSecondaryInteraction={toggleCopyContextMenu}
+            accessibilityLabel={copyValue}
+            accessible
         >
-            {children}
-        </Text>
+            <Text
+                selectable={false}
+                numberOfLines={1}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...rest}
+            >
+                {children}
+            </Text>
+        </PressableWithSecondaryInteraction>
     );
 }
 
