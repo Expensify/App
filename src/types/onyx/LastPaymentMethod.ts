@@ -18,13 +18,13 @@ type PaymentInformation = {
  */
 type LastPaymentMethodType = {
     /** The default last payment method */
-    lastUsed: string | PaymentInformation;
+    lastUsed: string;
     /** The lastPaymentMethod of an IOU */
-    iou: string | PaymentInformation;
+    Iou: string;
     /** The lastPaymentMethod of an Expense */
-    expense: string | PaymentInformation;
+    Expense: string;
     /** The lastPaymentMethod of an Invoice */
-    invoice: string | PaymentInformation;
+    Invoice: string | PaymentInformation;
 };
 
 /** Record of last payment methods, indexed by policy id */
