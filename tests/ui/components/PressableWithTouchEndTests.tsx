@@ -5,7 +5,6 @@ import PressableWithTouchEnd from '@components/Pressable/PressableWithTouchEnd';
 import Text from '@components/Text';
 import CONST from '@src/CONST';
 
-let mockTime = 1;
 const onPressMock = jest.fn();
 describe('PressableWithTouchEnd', () => {
     const renderButton = (props: PressableProps) =>
@@ -22,7 +21,6 @@ describe('PressableWithTouchEnd', () => {
         );
     beforeEach(() => {
         jest.clearAllMocks();
-        Date.now = jest.fn(() => mockTime);
     });
 
     test('should trigger onPress when tapped quickly', () => {
@@ -65,28 +63,6 @@ describe('PressableWithTouchEnd', () => {
                 pageY: 110,
             },
         });
-
-        // When touch end on the button
-        fireEvent(pressable, 'touchEnd');
-
-        // Then onPress should not be called
-        expect(onPressMock).not.toHaveBeenCalled();
-    });
-
-    test('should not trigger onPress when touch duration is too long', () => {
-        // Given the component is rendered
-        renderButton({onPress: onPressMock, accessibilityLabel: 'PressableWithTouchEnd'});
-        const pressable = screen.getByTestId('pressable');
-
-        // When touch start on the button
-        fireEvent(pressable, 'touchStart', {
-            nativeEvent: {
-                pageX: 100,
-                pageY: 100,
-            },
-        });
-
-        mockTime = CONST.PRESS_HOLD_DURATION_MS * 2;
 
         // When touch end on the button
         fireEvent(pressable, 'touchEnd');
