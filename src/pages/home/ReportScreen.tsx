@@ -319,7 +319,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         Navigation.goBack(undefined, {shouldPopToTop: true});
-    }, [isInNarrowPaneModal]);
+    }, [isInNarrowPaneModal, route?.params?.backTo]);
 
     let headerView = (
         <HeaderView
