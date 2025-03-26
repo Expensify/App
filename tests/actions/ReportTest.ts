@@ -317,7 +317,7 @@ describe('actions/Report', () => {
 
                 // When the user manually marks a message as "unread"
                 jest.advanceTimersByTime(10);
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
+                Report.markCommentAsUnread(REPORT_ID, reportActions['1']);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -443,13 +443,13 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report, undefined)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
+                Report.markCommentAsUnread(REPORT_ID, reportActions[400]);
                 return waitForBatchedUpdates();
             })
             .then(() => {
                 // Then we should expect the report to be to be unread
                 expect(ReportUtils.isUnread(report, undefined)).toBe(true);
-                expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
+                expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActions[400].created, 1));
 
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
                 Report.deleteReportComment(REPORT_ID, {...reportActions[400]});

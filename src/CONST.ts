@@ -363,7 +363,7 @@ const CONST = {
         BILLABLE: 'billable',
         NON_BILLABLE: 'nonBillable',
     },
-
+    TASK_TITLE_DISABLED_RULES: ['image'],
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
     ANDROID_PACKAGE_NAME,
@@ -1869,6 +1869,7 @@ const CONST = {
         XVND8: 'video/x-vnd.on2.vp8',
         XVND9: 'video/x-vnd.on2.vp9',
         AV01: 'video/av01',
+        VIDEO: 'video/*',
         TXT: 'txt',
     },
 
@@ -6808,6 +6809,7 @@ const CONST = {
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
+        HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
     },
 
     DEBUG: {
