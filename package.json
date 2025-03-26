@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.1.17-0",
+  "version": "9.1.19-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -79,6 +79,7 @@
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
     "@expensify/react-native-background-task": "file:./modules/background-task",
+    "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
     "@expensify/react-native-live-markdown": "0.1.244",
     "@expo/metro-runtime": "^4.0.1",
     "@firebase/app": "^0.10.10",
@@ -191,12 +192,13 @@
     "react-native-view-shot": "4.0.0",
     "react-native-vision-camera": "^4.6.1",
     "react-native-web": "0.19.13",
+    "react-native-webrtc": "^124.0.5",
+    "react-native-webrtc-web-shim": "^1.0.7",
     "react-native-webview": "13.13.1",
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
-    "react-window": "^1.8.9",
-    "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app"
+    "react-window": "^1.8.9"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
