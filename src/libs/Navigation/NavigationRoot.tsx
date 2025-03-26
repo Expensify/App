@@ -5,7 +5,6 @@ import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCurrentReportID from '@hooks/useCurrentReportID';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
@@ -20,7 +19,6 @@ import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -101,8 +99,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     });
     const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
 
-    const previousAuthenticated = usePrevious(authenticated);
-
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
         if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL) && lastVisitedPath && isOnboardingCompleted && authenticated) {
@@ -169,36 +165,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         Navigation.setShouldPopAllStateOnUP(!shouldUseNarrowLayout);
     }, [shouldUseNarrowLayout]);
-
-    useEffect(() => {
-        // Since the NAVIGATORS.REPORTS_SPLIT_NAVIGATOR url is "/" and it has to be used as an URL for SignInPage,
-        // this navigator should be the only one in the navigation state after logout.
-        const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
-        if (!hasUserLoggedOut || !navigationRef.isReady()) {
-            return;
-        }
-
-        const rootState = navigationRef.getRootState();
-        const lastRoute = rootState.routes.at(-1);
-        if (!lastRoute) {
-            return;
-        }
-
-        // REPORTS_SPLIT_NAVIGATOR will persist after user logout, because it is used both for logged-in and logged-out users
-        // That's why for ReportsSplit we need to explicitly clear params when resetting navigation state,
-        // However in case other routes (related to login/logout) appear in nav state, then we want to preserve params for those
-        const isReportSplitNavigatorMounted = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
-        navigationRef.reset({
-            ...rootState,
-            index: 0,
-            routes: [
-                {
-                    ...lastRoute,
-                    params: isReportSplitNavigatorMounted ? undefined : lastRoute.params,
-                },
-            ],
-        });
-    }, [authenticated, previousAuthenticated]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {

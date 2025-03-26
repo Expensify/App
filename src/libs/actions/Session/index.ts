@@ -52,6 +52,7 @@ import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -846,7 +847,15 @@ function clearSignInData() {
  */
 function resetNavigationState() {
     Navigation.isNavigationReady().then(() => {
-        navigationRef.resetRoot(navigationRef.getRootState());
+        navigationRef.resetRoot({
+            index: 0,
+            routes: [
+                {
+                    name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                    params: undefined,
+                },
+            ],
+        });
         Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     });
 }

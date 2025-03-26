@@ -1,5 +1,6 @@
 import React from 'react';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import SessionExpiredPage from '@pages/ErrorPage/SessionExpiredPage';
@@ -23,10 +24,13 @@ function PublicScreens() {
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     return (
         <RootStack.Navigator screenOptions={defaultScreenOptions}>
-            {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR. */}
+            {/*
+             * The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR.
+             * Animation should be set to Animations.NONE because after logging out the navigation state is reset and an animation is triggered which causes a slight flickering.
+             */}
             <RootStack.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                options={defaultScreenOptions}
+                options={{...defaultScreenOptions, animation: Animations.NONE}}
                 component={CONFIG.IS_HYBRID_APP ? SessionExpiredPage : SignInPage}
             />
             <RootStack.Screen
