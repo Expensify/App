@@ -184,6 +184,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The transaction ID */
     transactionID: string | undefined;
 
+    /** Whether the component is rendered inside IOURequestStepConfirmation page */
+    isFromIOUStepConfirmationPage?: boolean;
+
     /** The unit */
     unit: Unit | undefined;
 
@@ -242,6 +245,7 @@ function MoneyRequestConfirmationListFooter({
     unit,
     onPDFLoadError,
     onPDFPassword,
+    isFromIOUStepConfirmationPage = false,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -706,7 +710,11 @@ function MoneyRequestConfirmationListFooter({
                                 return;
                             }
 
-                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType));
+                            Navigation.navigate(
+                                isFromIOUStepConfirmationPage && !isDistanceRequest
+                                    ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
+                                    : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
+                            );
                         }}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
@@ -727,7 +735,11 @@ function MoneyRequestConfirmationListFooter({
                                 return;
                             }
 
-                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType));
+                            Navigation.navigate(
+                                isFromIOUStepConfirmationPage && !isDistanceRequest
+                                    ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
+                                    : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
+                            );
                         }}
                         disabled={!shouldDisplayReceipt || isThumbnail}
                         accessibilityRole={CONST.ROLE.BUTTON}
@@ -772,6 +784,7 @@ function MoneyRequestConfirmationListFooter({
             action,
             iouType,
             reportID,
+            isFromIOUStepConfirmationPage,
         ],
     );
 

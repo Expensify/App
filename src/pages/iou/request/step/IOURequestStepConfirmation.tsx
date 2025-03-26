@@ -953,6 +953,7 @@ function IOURequestStepConfirmation({
                         shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
+                        isFromIOUStepConfirmationPage
                     />
                 </View>
             </DragAndDropProvider>
