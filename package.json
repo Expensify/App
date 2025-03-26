@@ -79,6 +79,7 @@
   "dependencies": {
     "@dotlottie/react-player": "^1.6.3",
     "@expensify/react-native-background-task": "file:./modules/background-task",
+    "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
     "@expensify/react-native-live-markdown": "0.1.244",
     "@expo/metro-runtime": "^4.0.0",
     "@firebase/app": "^0.10.10",
@@ -196,8 +197,7 @@
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
-    "react-window": "^1.8.9",
-    "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app"
+    "react-window": "^1.8.9"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
@@ -252,7 +252,6 @@
     "@trivago/prettier-plugin-sort-imports": "^4.2.0",
     "@types/base-64": "^1.0.2",
     "@types/canvas-size": "^1.2.2",
-    "contacts-nitro-module": "./modules/ContactsNitroModule",
     "@types/concurrently": "^7.0.0",
     "@types/howler": "^2.2.12",
     "@types/jest": "^29.5.2",
@@ -309,6 +308,7 @@
     "eslint-plugin-storybook": "^0.8.0",
     "eslint-plugin-testing-library": "^6.2.2",
     "eslint-plugin-you-dont-need-lodash-underscore": "^6.14.0",
+    "expensify-native-utils": "./modules/ExpensifyNativeUtils",
     "googleapis": "^144.0.0",
     "html-webpack-plugin": "^5.5.0",
     "http-server": "^14.1.1",
@@ -321,6 +321,7 @@
     "jest-when": "^3.5.2",
     "link": "^2.1.1",
     "memfs": "^4.6.0",
+    "nitro-codegen": "0.25.2",
     "onchange": "^7.1.0",
     "openai": "^4.47.2",
     "patch-package": "^8.0.0",
@@ -352,8 +353,7 @@
     "webpack-cli": "^5.0.4",
     "webpack-dev-server": "^5.0.4",
     "webpack-merge": "^5.8.0",
-    "xlsx": "file:vendor/xlsx-0.20.3.tgz",
-    "nitro-codegen": "0.25.2"
+    "xlsx": "file:vendor/xlsx-0.20.3.tgz"
   },
   "overrides": {
     "react-native": "0.76.3",
