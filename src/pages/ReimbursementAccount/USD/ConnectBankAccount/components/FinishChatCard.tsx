@@ -1,13 +1,10 @@
 import React from 'react';
 import Button from '@components/Button';
-import {ChatBubble, RotateLeft} from '@components/Icon/Expensicons';
 import {ConciergeBubble} from '@components/Icon/Illustrations';
-import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {requestResetBankAccount} from '@userActions/BankAccounts';
@@ -29,7 +26,6 @@ type FinishChatCardProps = {
 function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBankAccountStep}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
@@ -45,20 +41,16 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
                 <Button
-                    iconStyles={[styles.customMarginButtonWithMenuItem]}
+                    text={translate('workspace.bankAccount.noLetsStartOver')}
+                    onPress={requestResetBankAccount}
+                    style={styles.mb3}
+                    large
+                />
+                <Button
                     text={translate('connectBankAccountStep.letsChatCTA')}
                     onPress={handleNavigateToConciergeChat}
-                    icon={ChatBubble}
-                    shouldShowRightIcon
+                    large
                     success
-                    innerStyles={[styles.pr2, styles.pl4, styles.h13]}
-                />
-                <MenuItem
-                    title={translate('workspace.bankAccount.noLetsStartOver')}
-                    icon={RotateLeft}
-                    onPress={requestResetBankAccount}
-                    shouldShowRightIcon
-                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                 />
             </Section>
             {!requiresTwoFactorAuth && <Enable2FACard policyID={policyID} />}
