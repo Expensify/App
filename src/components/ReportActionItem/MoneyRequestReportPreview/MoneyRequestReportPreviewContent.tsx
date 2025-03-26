@@ -18,6 +18,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -25,7 +26,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import HapticFeedback from '@libs/HapticFeedback';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
@@ -120,13 +120,10 @@ function MoneyRequestReportPreviewContent({
         [transactions, iouReportID, action],
     );
 
-    const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
-    const [isApprovedAnimationRunning, setIsApprovedAnimationRunning] = useState(false);
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const carouselRef = useRef<FlatList<Transaction> | null>(null);
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -203,19 +200,6 @@ function MoneyRequestReportPreviewContent({
 
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    const stopAnimation = useCallback(() => {
-        setIsPaidAnimationRunning(false);
-        setIsApprovedAnimationRunning(false);
-    }, []);
-    const startAnimation = useCallback(() => {
-        setIsPaidAnimationRunning(true);
-        HapticFeedback.longPress();
-    }, []);
-    const startApprovedAnimation = useCallback(() => {
-        setIsApprovedAnimationRunning(true);
-        HapticFeedback.longPress();
-    }, []);
-
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
             if (!type) {
@@ -228,8 +212,7 @@ function MoneyRequestReportPreviewContent({
             } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
                 setIsHoldMenuVisible(true);
             } else if (chatReport && iouReport) {
-                setIsPaidAnimationRunning(true);
-                HapticFeedback.longPress();
+                startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
                     payInvoice(type, chatReport, iouReport, payAsBusiness);
                 } else {
@@ -237,7 +220,7 @@ function MoneyRequestReportPreviewContent({
                 }
             }
         },
-        [chatReport, iouReport, isDelegateAccessRestricted],
+        [chatReport, iouReport, isDelegateAccessRestricted, startAnimation],
     );
 
     const confirmApproval = () => {
@@ -247,8 +230,7 @@ function MoneyRequestReportPreviewContent({
         } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            setIsApprovedAnimationRunning(true);
-            HapticFeedback.longPress();
+            startApprovedAnimation();
             approveMoneyRequest(iouReport, true);
         }
     };
@@ -385,8 +367,12 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBSUP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
-    const viewabilityConfig = useRef({itemVisiblePercentThreshold: 50}).current;
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const carouselRef = useRef<FlatList<Transaction> | null>(null);
+    const viewabilityConfig = useMemo(() => {
+        return {itemVisiblePercentThreshold: 50};
+    }, []);
+
     // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
@@ -406,14 +392,13 @@ function MoneyRequestReportPreviewContent({
         if (itemInfo.index > 9) {
             return (
                 <View style={[styles.flex1, styles.p5, styles.justifyContentCenter]}>
-                    <Text style={{color: colors.blue600}}>+{transactions.length - 10} more</Text>
+                    <Text style={{color: colors.blue600}}>
+                        +{transactions.length - 10} {translate('common.more').toLowerCase()}
+                    </Text>
                 </View>
             );
         }
-        if (renderItem) {
-            return renderItem(itemInfo);
-        }
-        return null;
+        return renderItem(itemInfo);
     };
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout);
@@ -485,7 +470,7 @@ function MoneyRequestReportPreviewContent({
                                                     accessibilityRole="button"
                                                     accessible
                                                     accessibilityLabel="button"
-                                                    style={[styles.carouselArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                    style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                     onPress={() => handleChange(currentIndex - 1)}
                                                 >
                                                     <Icon
@@ -499,7 +484,7 @@ function MoneyRequestReportPreviewContent({
                                                     accessibilityRole="button"
                                                     accessible
                                                     accessibilityLabel="button"
-                                                    style={[styles.carouselArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                    style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                     onPress={() => handleChange(currentIndex + 1)}
                                                 >
                                                     <Icon
@@ -545,7 +530,7 @@ function MoneyRequestReportPreviewContent({
                                                 accessibilityRole="button"
                                                 accessible
                                                 accessibilityLabel="button"
-                                                style={[styles.carouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
+                                                style={[styles.reportPreviewCarouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
                                                 onPress={() => carouselRef.current?.scrollToIndex({index, animated: true})}
                                             />
                                         ))}
@@ -626,7 +611,7 @@ function MoneyRequestReportPreviewContent({
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
             />
 
-            {isHoldMenuVisible && !!iouReport && requestType !== undefined && (
+            {isHoldMenuVisible && !!iouReport && !!requestType && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
                     requestType={requestType}

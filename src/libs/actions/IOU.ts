@@ -165,6 +165,7 @@ import {
     isOnHold,
     isPartialMerchant,
     isPending,
+    isPendingCardOrScanningTransaction,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
@@ -8478,14 +8479,7 @@ function canApproveIOU(
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(iouReport?.reportID);
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = getReportTransactions(iouReport?.reportID);
-    const hasOnlyPendingCardOrScanningTransactions =
-        reportTransactions.length > 0 &&
-        reportTransactions.every(
-            (transaction) =>
-                (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
-                (isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction)) ||
-                (isScanRequestTransactionUtils(transaction) && isReceiptBeingScannedTransactionUtils(transaction)),
-        );
+    const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
     if (hasOnlyPendingCardOrScanningTransactions) {
         return false;
     }
