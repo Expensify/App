@@ -711,7 +711,7 @@ function MoneyRequestConfirmationListFooter({
                             }
 
                             Navigation.navigate(
-                                isFromIOUStepConfirmationPage && !isDistanceRequest
+                                isFromIOUStepConfirmationPage && !isDistanceRequest && action === CONST.IOU.ACTION.CREATE
                                     ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
                                     : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
                             );
@@ -736,7 +736,7 @@ function MoneyRequestConfirmationListFooter({
                             }
 
                             Navigation.navigate(
-                                isFromIOUStepConfirmationPage && !isDistanceRequest
+                                isFromIOUStepConfirmationPage && !isDistanceRequest && action === CONST.IOU.ACTION.CREATE
                                     ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
                                     : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
                             );
