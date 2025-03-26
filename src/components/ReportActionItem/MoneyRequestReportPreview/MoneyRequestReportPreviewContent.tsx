@@ -401,7 +401,8 @@ function MoneyRequestReportPreviewContent({
     };
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout);
-    // it should expand maximum to transaction width
+
+    // The button should expand up to transaction width
     const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
 
     return (
