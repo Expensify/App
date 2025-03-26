@@ -203,7 +203,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                             setUploadError(error, `${SIGNER_PREFIX}_${CODICE_FISCALE}`);
                         }}
                     />
-                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.codiceFiscaleDescription')}</Text>
+                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.codiceFiscaleDescription')}</Text>
                     {isDocumentNeededStatus.isPRDandFSGNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
                 </View>
             )}
