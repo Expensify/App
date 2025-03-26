@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import BaseListItem from '@components/SelectionList/BaseListItem';
-import type {ListItem, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
+import type {ListItem, ListItemProps, SectionListDataType, SelectionListHandle} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
@@ -14,7 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {Section} from '@libs/OptionsListUtils';
 import navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {getAllTransactions} from '@userActions/Transaction';
 import type SCREENS from '@src/SCREENS';
@@ -23,7 +22,16 @@ import NewChatSelectorPage from './NewChatSelectorPage';
 
 const emptyStylesArray: ViewStyle[] = [];
 
-function unreportedExpenseListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, canSelectMultiple, onFocus, shouldSyncFocus, onSelectRow}: UserListItemProps<TItem>) {
+function unreportedExpenseListItem<TItem extends ListItem & Transaction>({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    canSelectMultiple,
+    onFocus,
+    shouldSyncFocus,
+    onSelectRow,
+}: ListItemProps<TItem>) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const styles = useThemeStyles();
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -64,6 +72,7 @@ function unreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                     shouldUseNarrowLayout
                     isSelected={isSelected}
                     containerStyles={emptyStylesArray}
+                    shouldShowTooltip={false}
                 />
                 <View style={[styles.pb3, styles.justifyContentCenter, styles.alignItemsCenter, styles.expenseWidgetSelectCircle, styles.mln2, styles.pr2]}>
                     <SelectCircle isChecked={isSelected} />
@@ -85,13 +94,9 @@ type AddUnreportedExpensesParamList = {
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const styles = useThemeStyles();
-    const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
-    const containerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement].filter((element) => !!element) as HTMLElement[];
-    }, [headerWithBackBtnContainerElement]);
     const selectionListRef = useRef<SelectionListHandle>(null);
-    const unreportedExpensesList = Object.values(getAllTransactions()).filter((item) => item.reportID === '0');
-    const sections: Section[] = [
+    const unreportedExpensesList: Transaction[] = Object.values(getAllTransactions()).filter((item) => item.reportID === '0');
+    const sections: Array<SectionListDataType<Transaction & ListItem>> = [
         {
             shouldShow: true,
             data: unreportedExpensesList,
@@ -118,12 +123,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 onSelectRow={(item) => {
                     if (seectedIds.has(item.transactionID)) {
                         seectedIds.delete(item.transactionID);
-                        console.log('usuwanie');
                     } else {
                         seectedIds.add(item.transactionID);
-                        console.log('dodawanie');
                     }
-                    console.log(item.transactionID);
                 }}
                 shouldShowTextInput={false}
                 canSelectMultiple

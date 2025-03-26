@@ -481,7 +481,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const menuItems = [
         ...expenseMenuItems,
-        ...(canUseTableReportView
+        ...(true
             ? [
                   {
                       icon: Expensicons.Document,
