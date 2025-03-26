@@ -4089,7 +4089,7 @@ function getReportPreviewMessage(
         });
     }
 
-    let linkedTransaction;
+    let linkedTransaction: OnyxEntry<Transaction>;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
         linkedTransaction = getLinkedTransaction(iouReportAction);
     }
