@@ -289,18 +289,19 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
     }, [getScrollOffset, route, isWebOrDesktop]);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (shouldShowEmptyLHN) {
-            Log.info('Whohoo! All caught up. Was rendered', false, {
-                reportsCount: Object.keys(reports ?? {}).length,
-                reportActionsCount: Object.keys(reportActions ?? {}).length,
-                policyCount: Object.keys(policy ?? {}).length,
-                personalDetailsCount: Object.keys(personalDetails ?? {}).length,
-                route,
-                reportsIDsFromUseReportsCount: data.length,
-            });
+        if (!shouldShowEmptyLHN) {
+            return;
         }
+
+        Log.info('Whohoo! All caught up. Was rendered', false, {
+            reportsCount: Object.keys(reports ?? {}).length,
+            reportActionsCount: Object.keys(reportActions ?? {}).length,
+            policyCount: Object.keys(policy ?? {}).length,
+            personalDetailsCount: Object.keys(personalDetails ?? {}).length,
+            route,
+            reportsIDsFromUseReportsCount: data.length,
+        });
     }, [data, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
 
     return (
