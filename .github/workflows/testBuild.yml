@@ -19,12 +19,12 @@ on:
         description: Should build desktop app?
         type: boolean
         default: true
-      IOS_HYBRID:
-        description: Should build iOS hybrid app?
+      IOS:
+        description: Should build iOS app?
         type: boolean
         default: true
-      ANDROID_HYBRID:
-        description: Should build android hybrid app?
+      ANDROID:
+        description: Should build android app?
         type: boolean
         default: true
 
@@ -162,8 +162,8 @@ jobs:
     with:
       APP_PR_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
       APP_REF: ${{ needs.prep.outputs.REF }}
-      IOS_HYBRID: ${{ inputs.IOS_HYBRID }}
-      ANDROID_HYBRID: ${{ inputs.ANDROID_HYBRID }}
+      IOS: ${{ inputs.IOS }}
+      ANDROID: ${{ inputs.ANDROID }}
 
   postGithubComment:
     runs-on: ubuntu-latest
@@ -184,11 +184,11 @@ jobs:
         with:
           PR_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
-          ANDROID_HYBRID: ${{ needs.buildHybridApps.result }}
+          ANDROID: ${{ needs.buildHybridApps.result }}
           DESKTOP: ${{ needs.desktop.result }}
-          IOS_HYBRID: ${{ needs.buildHybridApps.result }}
+          IOS: ${{ needs.buildHybridApps.result }}
           WEB: ${{ needs.web.result }}
-          ANDROID_HYBRID_LINK: ${{ needs.buildHybridApps.outputs.ANDROID_LINK }}
+          ANDROID_LINK: ${{ needs.buildHybridApps.outputs.ANDROID_LINK }}
           DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ github.event.inputs.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
-          IOS_HYBRID_LINK: ${{ needs.buildHybridApps.outputs.IOS_LINK }}
+          IOS_LINK: ${{ needs.buildHybridApps.outputs.IOS_LINK }}
           WEB_LINK: https://${{ github.event.inputs.PULL_REQUEST_NUMBER }}.pr-testing.expensify.com
