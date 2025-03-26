@@ -6,7 +6,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePane from '@hooks/useSidePane';
+import {useSidePaneDisplayStatus} from '@hooks/useSidePane';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {triggerSidePane} from '@libs/actions/SidePane';
@@ -21,7 +21,7 @@ function HelpButton({style}: HelpButtonProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
-    const {sidePane, shouldHideHelpButton} = useSidePane();
+    const {sidePaneNVP, shouldHideHelpButton} = useSidePaneDisplayStatus();
 
     if (shouldHideHelpButton) {
         return null;
@@ -35,8 +35,8 @@ function HelpButton({style}: HelpButtonProps) {
                 onPress={() => {
                     KeyboardUtils.dismiss();
                     triggerSidePane({
-                        isOpen: isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen,
-                        isOpenNarrowScreen: isExtraLargeScreenWidth ? undefined : !sidePane?.openNarrowScreen,
+                        isOpen: isExtraLargeScreenWidth ? !sidePaneNVP?.open : !sidePaneNVP?.openNarrowScreen,
+                        isOpenNarrowScreen: isExtraLargeScreenWidth ? undefined : !sidePaneNVP?.openNarrowScreen,
                     });
                 }}
             >
