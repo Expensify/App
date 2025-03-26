@@ -143,7 +143,6 @@ function setupAudioLevelMonitoring(stream: MediaStream) {
                 if (silenceCounter >= maxSilenceCount && (now - lastWarnTime > WEBRTC_DEBUG.silenceWarningInterval)) {
                     console.warn('[WebRTC] Possible microphone issue - low audio levels detected');
                     lastWarnTime = now;
-                    // Removed UI feedback via Onyx
                 }
             } else {
                 silenceCounter = 0;
@@ -239,11 +238,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                         audioMonitor = setupAudioLevelMonitoring(stream);
                         
                         const pc = new RTCPeerConnection({
-                            iceServers: [
-                                // Adding STUN servers can help establish connection in challenging network environments
-                                { urls: 'stun:stun.l.google.com:19302' },
-                                { urls: 'stun:stun1.l.google.com:19302' },
-                            ],
+                            iceServers: [],
                             sdpSemantics: 'unified-plan',  // Modern WebRTC approach
                             // Audio processing settings for the connection
                             bundlePolicy: 'max-bundle',
