@@ -333,7 +333,6 @@ function MoneyRequestReportPreviewContent({
      * Manual export
      */
     const connectedIntegration = getConnectedIntegration(policy);
-
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(iouReport);
 
     useEffect(() => {
