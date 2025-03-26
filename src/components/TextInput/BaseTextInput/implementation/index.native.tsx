@@ -46,7 +46,6 @@ function BaseTextInput(
         containerStyles,
         inputStyle,
         forceActiveLabel = false,
-        autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
         autoGrowExtraSpace = 0,
@@ -339,7 +338,6 @@ function BaseTextInput(
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
-                                autoFocus={autoFocus}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
