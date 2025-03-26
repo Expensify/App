@@ -11,11 +11,11 @@ on:
         description: The environment that was deployed (staging or prod)
         required: true
         type: string
-      android_hybrid:
+      android:
         description: Android HybridApp deploy status
         required: true
         type: string
-      ios_hybrid:
+      ios:
         description: iOS HybridApp deploy status
         required: true
         type: string
@@ -40,7 +40,7 @@ on:
         options:
           - staging
           - production
-      android_hybrid:
+      android:
         description: Android HybridApp deploy status
         required: true
         type: choice
@@ -49,7 +49,7 @@ on:
           - failure
           - cancelled
           - skipped
-      ios_hybrid:
+      ios:
         description: iOS HybridApp deploy status
         required: true
         type: choice

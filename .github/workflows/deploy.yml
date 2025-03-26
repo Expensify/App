@@ -284,7 +284,7 @@ jobs:
           name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-build-artifact' || 'desktop-staging-build-artifact' }}
           path: ./desktop-build/NewExpensify.dmg
 
-  iOS:
+  ios:
     name: Build and deploy iOS HybridApp
     needs: prep
     runs-on: macos-15-xlarge
@@ -523,7 +523,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [android, desktop, iOS, web]
+    needs: [android, desktop, ios, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -538,7 +538,7 @@ jobs:
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [android, desktop, iOS, web]
+    needs: [android, desktop, ios, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
@@ -707,7 +707,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         uses: 8398a7/action-slack@v3
@@ -761,11 +761,11 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, android, desktop, iOS, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
       android: ${{ needs.android.result }}
-      ios: ${{ needs.iOS.result }}
+      ios: ${{ needs.ios.result }}
       web: ${{ needs.web.result }}
       desktop: ${{ needs.desktop.result }}
