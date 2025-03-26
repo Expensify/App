@@ -1,13 +1,15 @@
+import type {IOSEncryptPayload} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePersonalDetailsForWalletParams, VerifyIdentityParams} from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import pkg from '../../../package.json';
 import {clearErrors} from './FormActions';
 
 type WalletQuestionAnswer = {
@@ -271,6 +273,28 @@ function clearPhysicalCardError(cardID?: string) {
     });
 }
 
+function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificate: string[]): IOSEncryptPayload {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-api-in-views
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_APPLE_WALLET, {
+        platform: 'ios',
+        appVersion: pkg.version,
+        certificates: certificate,
+        nonce,
+        nonceSignature,
+    })
+        .then((data: IOSEncryptPayload) => {
+            return {
+                encryptedPassData: data.encryptedPassData,
+                activationData: data.activationData,
+                ephemeralPublicKey: data.ephemeralPublicKey,
+            };
+        })
+        .catch((e) => {
+            console.log('api error: ', e);
+            return {} as IOSEncryptPayload;
+        });
+}
+
 export {
     openOnfidoFlow,
     openInitialSettingsPage,
@@ -285,4 +309,5 @@ export {
     setKYCWallSource,
     resetWalletAdditionalDetailsDraft,
     clearPhysicalCardError,
+    issuerEncryptPayloadCallback,
 };
