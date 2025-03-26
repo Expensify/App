@@ -174,7 +174,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
                     completeOnboarding({
                         engagementChoice: onboardingPurposeSelected,
-                        data: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                        onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                         adminsChatReportID: onboardingAdminsChatReportID,
                         onboardingPolicyID,
                         companySize: onboardingCompanySize,

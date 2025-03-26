@@ -9238,7 +9238,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
 
     completeOnboarding({
         engagementChoice: onboardingPurpose,
-        data: CONST.ONBOARDING_MESSAGES[onboardingPurpose],
+        onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurpose],
         firstName: personalDetails?.firstName,
         lastName: personalDetails?.lastName,
         adminsChatReportID,

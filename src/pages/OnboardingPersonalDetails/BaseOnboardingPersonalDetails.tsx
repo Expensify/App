@@ -60,7 +60,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             completeOnboardingReport({
                 engagementChoice: onboardingPurposeSelected,
-                data: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                 firstName,
                 lastName,
                 adminsChatReportID: onboardingAdminsChatReportID,

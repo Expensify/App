@@ -101,7 +101,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     if (onboardingPurposeSelected) {
                         completeOnboarding({
                             engagementChoice: onboardingPurposeSelected,
-                            data: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                            onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                             adminsChatReportID,
                             onboardingPolicyID,
                             companySize: onboardingCompanySize,

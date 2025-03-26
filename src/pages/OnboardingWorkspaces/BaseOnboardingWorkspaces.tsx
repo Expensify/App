@@ -51,7 +51,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
             joinAccessiblePolicy(policyID);
             completeOnboarding({
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-                data: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+                onboardingMessage: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
                 firstName: onboardingPersonalDetails?.firstName,
                 lastName: onboardingPersonalDetails?.lastName,
             });
