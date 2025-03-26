@@ -80,7 +80,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
@@ -311,7 +311,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [report]);
 
     const onBackButtonPress = useCallback(() => {
-        if (isInNarrowPaneModal) {
+        const backTo = route?.params?.backTo as string;
+        if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
             Navigation.dismissModal();
             return;
         }

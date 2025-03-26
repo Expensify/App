@@ -14,6 +14,7 @@ import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWri
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
@@ -136,7 +137,13 @@ function ReportActionItemParentAction({
                                     ? () => {
                                           const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWriteAction);
                                           if (isInNarrowPaneModal) {
-                                              Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: ancestor.report.reportID, reportActionID: ancestor.reportAction.reportActionID}));
+                                              Navigation.navigate(
+                                                  ROUTES.SEARCH_REPORT.getRoute({
+                                                      reportID: ancestor.report.reportID,
+                                                      reportActionID: ancestor.reportAction.reportActionID,
+                                                      backTo: SCREENS.SEARCH.REPORT_RHP,
+                                                  }),
+                                              );
                                               return;
                                           }
                                           // Pop the thread report screen before navigating to the chat report.
