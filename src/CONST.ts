@@ -1871,6 +1871,7 @@ const CONST = {
         XVND8: 'video/x-vnd.on2.vp8',
         XVND9: 'video/x-vnd.on2.vp9',
         AV01: 'video/av01',
+        VIDEO: 'video/*',
         TXT: 'txt',
     },
 
@@ -6810,6 +6811,7 @@ const CONST = {
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
+        HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
     },
 
     DEBUG: {
