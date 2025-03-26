@@ -45,8 +45,6 @@ function SMSDeliveryFailurePage() {
 
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
-    const isReset = account?.smsDeliveryFailureStatus?.isReset;
-
     const errorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
     const shouldShowError = !!errorText;
 
@@ -57,7 +55,7 @@ function SMSDeliveryFailurePage() {
         Keyboard.dismiss();
     }, [isKeyboardShown]);
 
-    if (hasSMSDeliveryFailure && isReset) {
+    if (hasSMSDeliveryFailure) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
@@ -87,7 +85,7 @@ function SMSDeliveryFailurePage() {
         );
     }
 
-    if (!hasSMSDeliveryFailure && isReset) {
+    if (!hasSMSDeliveryFailure) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
