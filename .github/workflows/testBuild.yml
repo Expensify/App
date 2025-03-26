@@ -6,6 +6,11 @@ on:
       PULL_REQUEST_NUMBER:
         description: Pull Request number for correct placement of apps
         required: true
+      REVIEWED_CODE:
+        description: I reviewed this pull request and verified that it does not contain any malicious code.
+        type: boolean
+        required: true
+        default: false
       WEB:
         description: Should build web app?
         type: boolean
@@ -19,15 +24,15 @@ on:
         type: boolean
         default: true
       IOS_HYBRID:
-        description: Should build iOS hybrid app? 
+        description: Should build iOS hybrid app?
         type: boolean
         default: true
       ANDROID:
-        description: Should build android app? 
+        description: Should build android app?
         type: boolean
         default: true
       ANDROID_HYBRID:
-        description: Should build android hybrid app? 
+        description: Should build android hybrid app?
         type: boolean
         default: true
 
@@ -49,6 +54,12 @@ jobs:
         with:
           REQUIRE_APP_DEPLOYER: false
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+      - name: Validate that the user reviewed the pull request before running a test build
+        if: ${{ !inputs.REVIEWED_CODE }}
+        run: |
+          echo "::error::🕵️‍♀️ Please carefully review the pull request before running a test build to ensure it does not contain any malicious code"
+          exit 1
 
       - name: Check if pull request number is correct
         if: ${{ github.event_name == 'workflow_dispatch' }}
