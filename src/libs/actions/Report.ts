@@ -2528,6 +2528,15 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
             value: {[reportActionID]: optimisticReportPreview},
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: {
+                action: CONST.QUICK_ACTIONS.CREATE_REPORT,
+                chatReportID: parentReport?.reportID,
+                isFirstQuickAction: isEmptyObject(quickAction),
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -2540,6 +2549,11 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportActionID]: {errorFields: {create: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: quickAction ?? null,
         },
     ];
 
@@ -2572,12 +2586,12 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
     return {optimisticData, successData, failureData};
 }
 
-function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string) {
+function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string, shouldForceReplaceScreen = false) {
     const policy = getPolicy(policyID);
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportName = `${creatorPersonalDetails.firstName || 'User'}'s report`;
+    const reportName = `${creatorPersonalDetails.firstName || 'User'}'s aaaaa`;
 
     const {optimisticData, successData, failureData} = buildNewReportOptimisticData(policy, optimisticReportID, reportActionID, reportName, creatorPersonalDetails);
 
@@ -2586,6 +2600,7 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
         {reportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID},
         {optimisticData, successData, failureData},
     );
+    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}), {forceReplace: shouldForceReplaceScreen});
     return optimisticReportID;
 }
 

@@ -110,6 +110,8 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
             return getIconForAction(CONST.IOU.TYPE.TRACK);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return Expensicons.ReceiptScan;
+        case CONST.QUICK_ACTIONS.CREATE_REPORT:
+            return Expensicons.Document;
         default:
             return Expensicons.MoneyCircle;
     }
@@ -160,6 +162,8 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
+        case CONST.QUICK_ACTIONS.CREATE_REPORT:
+            return 'quickAction.createReport';
         default:
             return '' as TranslationPaths;
     }
@@ -191,6 +195,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
@@ -383,6 +388,25 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             shouldTeleportPortalToModalLayer: true,
         };
 
+        if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
+            const onSelected = () => {
+                interceptAnonymousUser(() => {
+                    createNewReport(currentUserPersonalDetails, quickActionPolicy?.id);
+                });
+            };
+
+            return [
+                {
+                    ...baseQuickAction,
+                    icon: getQuickActionIcon(quickAction?.action),
+                    text: quickActionTitle,
+                    description: quickActionPolicy?.name ?? '',
+                    onSelected,
+                    shouldShowSubscriptRightAvatar: true,
+                },
+            ];
+        }
+
         if (quickAction?.action) {
             const iouType = getIouType(quickAction?.action);
             if (!!iouType && !canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
@@ -440,9 +464,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         quickActionAvatars,
         quickAction,
         policyChatForActivePolicy,
-        quickActionReport,
-        quickActionPolicy,
         quickActionTitle,
+        quickActionPolicy,
+        currentUserPersonalDetails,
+        quickActionReport,
         hideQABSubtitle,
         isValidReport,
         selectOption,
@@ -450,7 +475,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
     const canModifyTask = canModifyTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
@@ -492,14 +517,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
                               // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
                               if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                  const createdReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
-                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                  createNewReport(currentUserPersonalDetails, activePolicyID);
                                   return;
                               }
 
                               if (groupPoliciesWithChatEnabled.length === 1) {
-                                  const createdReportID = createNewReport(currentUserPersonalDetails, groupPoliciesWithChatEnabled.at(0)?.id);
-                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                  createNewReport(currentUserPersonalDetails, groupPoliciesWithChatEnabled.at(0)?.id);
                                   return;
                               }
 
