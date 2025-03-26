@@ -209,7 +209,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
             )}
             {isDocumentNeededStatus.isPRDandFSGNeeded && (
                 <View>
-                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.FSDandPDS')}</Text>
+                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
                     <InputWrapper
                         InputComponent={UploadFile}
                         buttonText={translate('signerInfoStep.chooseFile')}
@@ -227,7 +227,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                             setUploadError(error, `${SIGNER_PREFIX}_${PRD_AND_SFG}`);
                         }}
                     />
-                    <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.FSDandPDSDescription')}</Text>
+                    <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.PDSandFSGDescription')}</Text>
                 </View>
             )}
             <WhyLink containerStyles={[styles.mt6]} />
