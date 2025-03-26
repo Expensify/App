@@ -174,8 +174,8 @@ function TransactionPreviewContent({
         ],
     );
 
-    const shouldAddGapToPreviewText = isBillSplit || shouldShowMerchantOrDescription || shouldShowCategoryOrTag;
-    const shouldAddMbn1ToPreviewText = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag;
+    const previewTextViewGap = (isBillSplit || shouldShowMerchantOrDescription || shouldShowCategoryOrTag) && styles.gap2;
+    const previewTextMargin = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag && styles.mbn1;
     const shouldWrapDisplayAmount = !(shouldShowMerchantOrDescription || isBillSplit);
 
     const transactionContent = (
@@ -223,9 +223,9 @@ function TransactionPreviewContent({
                                         />
                                     </View>
                                 )}
-                                <View style={shouldAddGapToPreviewText && styles.gap2}>
+                                <View style={previewTextViewGap}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16, shouldAddMbn1ToPreviewText && styles.mbn1]}>{previewHeaderText}</Text>
+                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16, previewTextMargin]}>{previewHeaderText}</Text>
                                         {isBillSplit && (
                                             <View style={styles.moneyRequestPreviewBoxAvatar}>
                                                 <MultipleAvatars
