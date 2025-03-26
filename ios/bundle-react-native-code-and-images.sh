@@ -15,12 +15,14 @@ if [[ "$CONFIGURATION" = *Debug* ]]; then
 fi
 if [[ -z "$ENTRY_FILE" ]]; then
   # Set the entry JS file using the bundler's entry resolution.
-  export ENTRY_FILE="$("$NODE_BINARY" -e "require('expo/scripts/resolveAppEntry')" "$PROJECT_ROOT" ios relative | tail -n 1)"
+  ENTRY_FILE="$("$NODE_BINARY" -e "require('expo/scripts/resolveAppEntry')" "$PROJECT_ROOT" ios relative | tail -n 1)"
+  export ENTRY_FILE
 fi
 
 if [[ -z "$CLI_PATH" ]]; then
   export CONFIG_CMD="dummy-workaround-value"
-  export CLI_PATH="$("$NODE_BINARY" --print "require('path').dirname(require.resolve('@rnef/cli/package.json')) + '/dist/src/bin.js'")"
+  CLI_PATH="$("$NODE_BINARY" --print "require('path').dirname(require.resolve('@rnef/cli/package.json')) + '/dist/src/bin.js'")"
+  export CLI_PATH
 fi
 if [[ -z "$BUNDLE_COMMAND" ]]; then
   # Default Expo CLI command for bundling
