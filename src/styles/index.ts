@@ -4748,7 +4748,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             borderRadius: variables.componentBorderRadiusLarge,
             height: 200,
-            maxWidth: 400,
+            maxWidth: '100%',
         },
 
         expenseViewImage: {
