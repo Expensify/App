@@ -827,7 +827,7 @@ if (someCondition) {
   - Ask an Expensify engineer with a dev environment to check the column name if needed.
 
 #### Example
-Check out [ConvertTrackedExpenseToRequestParams](https://github.com/Expensify/App/blob/b3ac1398b65d9c030919e643f731910f88657864/src/libs/actions/IOU.ts#L4511-L4541)
+Check out [ConvertTrackedExpenseToRequestParams](https://github.com/Expensify/App/blob/b3ac1398b65d9c030919e643f731910f88657864/src/libs/actions/IOU.ts#L4510-L4540)
 
 ## Object / Array Methods
 
