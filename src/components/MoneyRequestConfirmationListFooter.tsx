@@ -186,6 +186,12 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The unit */
     unit: Unit | undefined;
+
+    /** The PDF load error callback */
+    onPDFLoadError?: () => void;
+
+    /** The PDF password callback */
+    onPDFPassword?: () => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -234,6 +240,8 @@ function MoneyRequestConfirmationListFooter({
     transaction,
     transactionID,
     unit,
+    onPDFLoadError,
+    onPDFPassword,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -698,7 +706,7 @@ function MoneyRequestConfirmationListFooter({
                                 return;
                             }
 
-                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID));
+                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType));
                         }}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
@@ -708,6 +716,8 @@ function MoneyRequestConfirmationListFooter({
                         <PDFThumbnail
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             previewSourceURL={resolvedReceiptImage as string}
+                            onLoadError={onPDFLoadError}
+                            onPassword={onPDFPassword}
                         />
                     </PressableWithoutFocus>
                 ) : (
@@ -717,7 +727,7 @@ function MoneyRequestConfirmationListFooter({
                                 return;
                             }
 
-                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID));
+                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType));
                         }}
                         disabled={!shouldDisplayReceipt || isThumbnail}
                         accessibilityRole={CONST.ROLE.BUTTON}
@@ -751,13 +761,17 @@ function MoneyRequestConfirmationListFooter({
             translate,
             shouldDisplayReceipt,
             resolvedReceiptImage,
+            onPDFLoadError,
+            onPDFPassword,
             isThumbnail,
             resolvedThumbnail,
             receiptThumbnail,
             fileExtension,
             isDistanceRequest,
-            reportID,
             transactionID,
+            action,
+            iouType,
+            reportID,
         ],
     );
 
