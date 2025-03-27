@@ -51,6 +51,9 @@ type TransactionPreviewProps = {
 
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
+
+    /** In the case where we have access to the transactionID in the parent */
+    transactionID?: string;
 };
 
 type TransactionPreviewContentProps = {

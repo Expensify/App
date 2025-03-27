@@ -63,6 +63,7 @@ function MoneyRequestReportPreview({
             onPreviewPressed={() => {}}
             wrapperStyles={reportPreviewStyles.transactionPreviewStyle}
             containerStyles={[styles.h100, containerStyles]}
+            transactionID={item.transactionID}
         />
     );
 
