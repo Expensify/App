@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -6,7 +6,7 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isExpenseReport} from '@libs/ReportUtils';
-import * as IOU from '@userActions/IOU';
+import {setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -27,7 +27,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {translate} = useLocalize();
     const {transactionID, backTo} = route.params;
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [searchValue, setSearchValue] = useState('');
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
@@ -53,8 +52,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             }));
     }, [allReports]);
 
-    const shouldShowSearch = reportOptions.length > 8;
-
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
@@ -68,7 +65,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             selected: false,
         });
 
-        IOU.setMoneyRequestParticipants(transactionID, newParticipants);
+        setMoneyRequestParticipants(transactionID, newParticipants);
         navigateBack();
     };
 
@@ -82,8 +79,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         >
             <SelectionList
                 sections={[{data: reportOptions}]}
-                textInputValue={searchValue}
-                textInputLabel={shouldShowSearch ? translate('common.search') : undefined}
                 onSelectRow={selectReport}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
