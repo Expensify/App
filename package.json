@@ -81,7 +81,7 @@
     "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
     "@expensify/react-native-live-markdown": "0.1.244",
-    "@expensify/react-native-wallet": "file:../react-native-wallet/expensify-react-native-wallet-0.1.0.tgz",
+    "@expensify/react-native-wallet": "file:expensify-react-native-wallet.tgz",
     "@expo/metro-runtime": "^4.0.1",
     "@firebase/app": "^0.10.10",
     "@firebase/performance": "^0.6.8",

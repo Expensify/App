@@ -9,8 +9,6 @@ export default function handleAddCardToWallet(card: Card, cardHolderName: string
         lastDigits: card.lastFourPAN,
         cardDescription: card.nameValuePairs?.cardTitle,
         cardHolderName,
-        cardHolderTitle: 'Mr',
-        cardDescriptionComment: 'description',
     } as IOSCardData;
 
     addCardToAppleWallet(data, issuerEncryptPayloadCallback)
