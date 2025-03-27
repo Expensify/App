@@ -32,6 +32,8 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
     const updateHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
+
+    // Push the front-end data like optimisticData, successData, failureData, finallyData of write requests to another queue to apply them after the responses are updated in onyx
     const updateOptimisticHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxOptimisticUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
