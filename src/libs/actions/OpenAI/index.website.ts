@@ -22,6 +22,25 @@ type OpenAIRealtimeMessage = {
     name: string;
     arguments: string;
     type: string;
+    delta?: {
+        text?: string;
+    };
+    content?: {
+        text?: string;
+    };
+    responseId?: string;
+    itemId?: string;
+    eventId?: string;
+    response_id?: string;
+    item_id?: string;
+    output_index?: number;
+    content_index?: number;
+    transcript?: string;
+    part?: {
+        type: string;
+        text?: string;
+        transcript?: string;
+    };
 };
 
 type Recap = {
@@ -186,9 +205,11 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                     iceServers: [
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' },
                     ],
                     // OpenAI realtime optimizations
-                    sdpSemantics: 'unified-plan',
                     bundlePolicy: 'max-bundle',
                     rtcpMuxPolicy: 'require',
                     iceCandidatePoolSize: 2,
@@ -240,8 +261,51 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                     logDebug('DATA', 'Data channel closed');
                 };
                 
-                dc.onmessage = (event) => {
-                    logDebug('DATA', 'Data channel message received', event.data.substring(0, 100) + '...');
+                dc.onmessage = (event: MessageEvent) => {
+                    try {
+                        const rawData = event.data as string;
+                        // Log full message for debugging
+                        logDebug('RAW', `Raw data: ${rawData.substring(0, 150)}${rawData.length > 150 ? '...' : ''}`);
+                        
+                        // Parse message data
+                        const messageData = JSON.parse(rawData);
+                        
+                        // Create a properly typed message object that maps all possible field structures
+                        const message: OpenAIRealtimeMessage = {
+                            // Common fields
+                            name: messageData.name,
+                            arguments: messageData.arguments,
+                            type: messageData.type,
+                            
+                            // Fields for delta updates
+                            delta: messageData.delta,
+                            
+                            // Fields for content parts
+                            content: messageData.content,
+                            part: messageData.part,
+                            
+                            // Various IDs in camelCase for our interface
+                            responseId: messageData.response_id,
+                            itemId: messageData.item_id,
+                            eventId: messageData.event_id,
+                            
+                            // Keep original snake_case fields that might be used directly
+                            response_id: messageData.response_id,
+                            item_id: messageData.item_id,
+                            output_index: messageData.output_index,
+                            content_index: messageData.content_index,
+                            
+                            // Transcript for conversation items
+                            transcript: messageData.transcript
+                        };
+                        
+                        handleOpenAIMessage(message);
+                    } catch (error) {
+                        logDebug('ERROR', 'Failed to parse message', {
+                            error,
+                            data: typeof event.data === 'string' ? event.data.substring(0, 100) + '...' : 'non-string data',
+                        });
+                    }
                 };
                 
                 dc.onerror = (error) => {
@@ -334,21 +398,93 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
     });
 }
 
+let accumulatedTranscript = '';
+let accumulatedContent = '';
+
 function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
-    logDebug('MESSAGE', `Received message type: ${message.type}`, {
-        name: message.name,
-        argumentsLength: message.arguments ? message.arguments.length : 0,
-    });
+    // Log message type for debugging
+    logDebug('MESSAGE', `Received message type: ${message.type}`);
     
+    // Process specific message types for debugging
     switch (message.type) {
         case 'response.function_call_arguments.done':
             handleFunctionCall(message);
             break;
-        case 'error':
-            logDebug('ERROR', 'OpenAI error message', message);
+            
+        case 'input_audio_buffer.speech_started':
+            // Reset the accumulated transcript when a new speech segment starts
+            accumulatedTranscript = '';
+            logDebug('SPEECH', '👂 User speech detected by OpenAI');
             break;
+            
+        case 'input_audio_buffer.speech_stopped':
+            logDebug('SPEECH', '🛑 User speech ended');
+            break;
+            
+        case 'conversation.item.input_audio_transcription.completed':
+            // This event provides the complete transcript of what the user said
+            if (message.transcript) {
+                logDebug('USER_SAID', `🗣️ "${message.transcript}"`);
+                accumulatedTranscript = message.transcript;
+            }
+            break;
+            
+        case 'output_audio_buffer.started':
+            // Reset the accumulated content when OpenAI starts speaking
+            accumulatedContent = '';
+            logDebug('OUTPUT', '🔊 OpenAI started speaking');
+            break;
+            
+        case 'output_audio_buffer.stopped':
+            logDebug('OUTPUT', '🔇 OpenAI stopped speaking');
+            if (accumulatedContent) {
+                logDebug('AI_RESPONSE', `💬 "${accumulatedContent}"`);
+            }
+            break;
+            
+        case 'response.audio_transcript.delta':
+            // This shows what the AI is about to say (the transcript of its audio)
+            if (message.delta?.text) {
+                accumulatedContent += message.delta.text;
+                logDebug('AI_TRANSCRIPT', `Delta: "${message.delta.text}"`);
+            }
+            break;
+            
+        case 'response.text.delta':
+            // This is the AI's text response (may be sent together with audio)
+            if (message.delta?.text) {
+                accumulatedContent += message.delta.text;
+                logDebug('AI_TEXT', `Delta: "${message.delta.text}"`);
+            }
+            break;
+            
+        case 'response.content_part.added':
+            // Content part was added to the response
+            if (message.part?.type === 'text' && message.part.text) {
+                logDebug('CONTENT', `New content part: "${message.part.text}"`);
+            }
+            break;
+            
+        case 'response.audio.done':
+            logDebug('AUDIO', '✓ OpenAI finished processing audio response');
+            break;
+            
+        case 'response.audio_transcript.done':
+            logDebug('TRANSCRIPT', '✓ Full transcript completed');
+            break;
+
+        case 'response.done':
+            // Log the complete response including all output
+            logDebug('COMPLETE', '✅ Response completed');
+            break;
+            
+        case 'error':
+            logDebug('ERROR', '❌ OpenAI error message', message);
+            break;
+            
         default:
-            logDebug('MESSAGE', 'Unhandled message type', message);
+            // Less verbose logging for other message types
+            break;
     }
 }
 
@@ -380,7 +516,42 @@ function initializeOpenAIRealtime(adminsReportID: number) {
 
             connections.openai.dataChannel.onmessage = (event: MessageEvent) => {
                 try {
-                    const message: OpenAIRealtimeMessage = JSON.parse(event.data as string) as OpenAIRealtimeMessage;
+                    const rawData = event.data as string;
+                    // Log full message for debugging
+                    logDebug('RAW', `Raw data: ${rawData.substring(0, 150)}${rawData.length > 150 ? '...' : ''}`);
+                    
+                    // Parse message data
+                    const messageData = JSON.parse(rawData);
+                    
+                    // Create a properly typed message object that maps all possible field structures
+                    const message: OpenAIRealtimeMessage = {
+                        // Common fields
+                        name: messageData.name,
+                        arguments: messageData.arguments,
+                        type: messageData.type,
+                        
+                        // Fields for delta updates
+                        delta: messageData.delta,
+                        
+                        // Fields for content parts
+                        content: messageData.content,
+                        part: messageData.part,
+                        
+                        // Various IDs in camelCase for our interface
+                        responseId: messageData.response_id,
+                        itemId: messageData.item_id,
+                        eventId: messageData.event_id,
+                        
+                        // Keep original snake_case fields that might be used directly
+                        response_id: messageData.response_id,
+                        item_id: messageData.item_id,
+                        output_index: messageData.output_index,
+                        content_index: messageData.content_index,
+                        
+                        // Transcript for conversation items
+                        transcript: messageData.transcript
+                    };
+                    
                     handleOpenAIMessage(message);
                 } catch (error) {
                     logDebug('ERROR', 'Failed to parse message', {
