@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Alert, AppState, View} from 'react-native';
+import RNFS from 'react-native-fs';
 import type {FileObject} from '@components/AttachmentModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -39,33 +40,47 @@ function ShareRootPage() {
     const [isFileScannable, setIsFileScannable] = useState(false);
     const receiptFileFormats = Object.values(CONST.RECEIPT_ALLOWED_FILE_TYPES) as string[];
     const shareFileMimetypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
+    const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (!errorTitle || !errorMessage) {
+            return;
+        }
+
+        showErrorAlert(errorTitle, errorMessage);
+    }, [errorTitle, errorMessage]);
 
     const handleProcessFiles = useCallback(() => {
         ShareActionHandler.processFiles((processedFiles) => {
             const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
             if (!tempFile?.mimeType || !shareFileMimetypes.includes(tempFile?.mimeType)) {
-                showErrorAlert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+                setErrorTitle(translate('attachmentPicker.wrongFileType'));
+                setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
                 return;
+            }
+
+            if (tempFile?.mimeType && tempFile?.mimeType !== 'txt') {
+                RNFS.stat(tempFile?.content).then((fileStat) => {
+                    if (fileStat.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                        setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
+                        setErrorMessage(translate('attachmentPicker.sizeExceeded'));
+                    }
+
+                    if (fileStat.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                        setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
+                        setErrorMessage(translate('attachmentPicker.sizeNotMet'));
+                    }
+                });
             }
 
             const fileRegexp = /image\/.*/;
             if (fileRegexp.test(tempFile?.mimeType)) {
                 const fileObject: FileObject = {name: tempFile.id, uri: tempFile?.content, type: tempFile?.mimeType};
-                validateImageForCorruption(fileObject)
-                    .then(() => {
-                        if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                            showErrorAlert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
-                        }
-
-                        if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                            showErrorAlert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-                        }
-
-                        return true;
-                    })
-                    .catch(() => {
-                        showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                    });
+                validateImageForCorruption(fileObject).catch(() => {
+                    setErrorTitle(translate('attachmentPicker.attachmentError'));
+                    setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                });
             }
 
             const {fileExtension} = splitExtensionFromFileName(tempFile?.content);
