@@ -1161,12 +1161,6 @@ function PureReportActionItem({
         return null;
     }
 
-    // The REIMBURSED report action type is only supported in OldDot so we need to hide them in NewDot since the
-    // information they display is already provided by other actions.
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSED) {
-        return null;
-    }
-
     const hasErrors = !isEmptyObject(action.errors);
     const whisperedTo = getWhisperedTo(action);
     const isMultipleParticipant = whisperedTo.length > 1;
