@@ -432,20 +432,12 @@ function MoneyRequestReportPreviewContent({
                                 (isHovered || isScanning || isWhisper) && styles.reportPreviewBoxHoverBorder,
                             ]}
                         >
-                            <View style={[reportPreviewStyles.wrapperStyle, hasReceipts && styles.mtn1]}>
-                                <View style={reportPreviewStyles.contentContainerStyle}>
+                            <View style={[reportPreviewStyles.wrapperStyle]}>
+                                <View style={[reportPreviewStyles.contentContainerStyle]}>
                                     <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
                                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
-                                            <View style={[styles.flexRow, styles.flex1]}>
-                                                <Animated.View
-                                                    style={[
-                                                        styles.flexRow,
-                                                        styles.alignItemsCenter,
-                                                        previewMessageStyle,
-                                                        styles.flexShrink1,
-                                                        {maxWidth: reportPreviewStyles.transactionPreviewStyle.width},
-                                                    ]}
-                                                >
+                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
+                                                <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                     <Text
                                                         style={[styles.lh20, styles.headerText]}
                                                         testID="MoneyRequestReportPreview-reportName"
@@ -519,11 +511,14 @@ function MoneyRequestReportPreviewContent({
                                     </View>
                                     <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
                                         <FlatList
+                                            snapToAlignment="start"
+                                            decelerationRate="fast"
+                                            snapToInterval={reportPreviewStyles.transactionPreviewStyle.width + styles.gap2.gap}
                                             horizontal
                                             data={transactions.slice(0, 11)}
                                             ref={carouselRef}
                                             nestedScrollEnabled
-                                            scrollEnabled
+                                            scrollEnabled={transactions.length > 1}
                                             keyExtractor={(item) => item.transactionID}
                                             contentContainerStyle={[styles.gap2]}
                                             style={reportPreviewStyles.flatListStyle}

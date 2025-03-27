@@ -11,12 +11,12 @@ const componentsSpacing = {
 
 const mobileStyle = {
     transactionPreviewStyle: {width: 256},
-    componentStyle: [{maxWidth: '100%'}, sizing.wFitContent],
+    componentStyle: [sizing.mw100, {width: 'min-content'}],
 };
 
 const desktopStyle = {
     transactionPreviewStyle: {width: 303},
-    componentStyle: [{maxWidth: 'min(680px, 100%)'}, sizing.wFitContent],
+    componentStyle: [{maxWidth: 'min(680px, 100%)'}, {width: 'min-content'}],
 };
 
 const getMoneyRequestReportPreviewStyle = (shouldUseNarrowLayout: boolean) => ({...componentsSpacing, ...(shouldUseNarrowLayout ? mobileStyle : desktopStyle)});
