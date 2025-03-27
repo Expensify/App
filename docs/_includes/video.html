@@ -1,0 +1,26 @@
+<div class="video-container">
+    <video
+        class="custom-video"
+        src="{{ include.src }}"
+        controls
+        loop
+        preload="auto"
+        {%
+        if
+        include.poster
+        %}
+        poster="{{ site.url }}/{{ include.poster }}"
+        {%
+        endif
+        %}
+    >
+        Your browser does not support the video tag.
+    </video>
+    <div class="play-button-wrapper">
+        <span
+            class="play-button"
+            role="button"
+            aria-label="Click to play"
+        ></span>
+    </div>
+</div>
