@@ -34,7 +34,6 @@ import {
     payMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
-import isSearchTopmostFullScreenNavigator from '@libs/Navigation/helpers/isSearchTopmostFullScreenNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -458,7 +457,6 @@ function SearchPage({route}: SearchPageProps) {
                                 queryJSON={queryJSON}
                                 currentSearchResults={currentSearchResults}
                                 lastNonEmptySearchResults={lastNonEmptySearchResults}
-                                isSearchScreenFocused={isSearchTopmostFullScreenNavigator()}
                             />
                         </ScreenWrapper>
                     </View>

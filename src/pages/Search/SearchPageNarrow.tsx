@@ -23,7 +23,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import isSearchTopmostFullScreenNavigator from '@libs/Navigation/helpers/isSearchTopmostFullScreenNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
@@ -199,7 +198,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}
                             contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentContainerStyles : undefined}
-                            isSearchScreenFocused={isSearchTopmostFullScreenNavigator()}
                         />
                     </View>
                 )}
