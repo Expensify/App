@@ -92,6 +92,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
+    const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
 
     /**
      * Attempt to set this contact method as user's "Default contact method"
@@ -167,10 +168,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     useEffect(() => {
-        if (loginData?.validatedDate) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (loginData?.validatedDate || prevPendingDeletedLogin) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
     }, [contactMethod, loginData?.validatedDate]);
 
     const getThreeDotsMenuItems = useCallback(() => {

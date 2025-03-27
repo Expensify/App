@@ -1,9 +1,8 @@
 import type {RouteProp} from '@react-navigation/native';
 import {findFocusedRoute, useNavigation} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo, useRef} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
-import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
+import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
@@ -34,6 +33,7 @@ import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -57,6 +57,7 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import createRootStackNavigator from './createRootStackNavigator';
 import {reportsSplitsWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
+import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
@@ -180,7 +181,7 @@ const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
 const modalScreenListeners = {
     focus: () => {
-        Modal.setModalVisibility(true);
+        Modal.setModalVisibility(true, CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
     },
     blur: () => {
         Modal.setModalVisibility(false);
@@ -216,8 +217,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {toggleSearch} = useSearchRouterContext();
 
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -239,6 +242,20 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             NavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
         };
     }, [theme]);
+
+    useEffect(() => {
+        if (!account?.needsTwoFactorAuthSetup || !!account.requiresTwoFactorAuth || shouldShowRequire2FAPage) {
+            return;
+        }
+        setShouldShowRequire2FAPage(true);
+    }, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, shouldShowRequire2FAPage]);
+
+    useEffect(() => {
+        if (!shouldShowRequire2FAPage) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
+    }, [shouldShowRequire2FAPage]);
 
     useEffect(() => {
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
@@ -537,7 +554,20 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.rightModalNavigator}
                     component={RightModalNavigator}
-                    listeners={modalScreenListenersWithCancelSearch}
+                    listeners={{
+                        ...modalScreenListenersWithCancelSearch,
+                        beforeRemove: () => {
+                            modalScreenListenersWithCancelSearch.beforeRemove();
+
+                            // When a 2FA RHP page is closed, if the 2FA require page is visible and the user has now enabled the 2FA, then remove the 2FA require page from the navigator.
+                            const routeParams = navigation.getState()?.routes?.at(-1)?.params;
+                            const screen = routeParams && 'screen' in routeParams ? routeParams.screen : '';
+                            if (!shouldShowRequire2FAPage || !account?.requiresTwoFactorAuth || screen !== SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH) {
+                                return;
+                            }
+                            setShouldShowRequire2FAPage(false);
+                        },
+                    }}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
@@ -549,6 +579,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={DesktopSignInRedirectPage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.SHARE_MODAL_NAVIGATOR}
+                    options={rootNavigatorScreenOptions.fullScreen}
+                    component={ShareModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
@@ -584,6 +620,13 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         }}
                     />
                 )}
+                {shouldShowRequire2FAPage && (
+                    <RootStack.Screen
+                        name={SCREENS.REQUIRE_TWO_FACTOR_AUTH}
+                        options={{...rootNavigatorScreenOptions.fullScreen, gestureEnabled: false}}
+                        component={RequireTwoFactorAuthenticationPage}
+                    />
+                )}
                 <RootStack.Screen
                     name={SCREENS.WORKSPACE_JOIN_USER}
                     options={{
@@ -613,7 +656,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
             </RootStack.Navigator>
             <SearchRouterModal />
-            <ActiveGuidesEventListener />
         </ComposeProviders>
     );
 }

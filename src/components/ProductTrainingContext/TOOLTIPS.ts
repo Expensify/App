@@ -6,9 +6,6 @@ import type {TranslationPaths} from '@src/languages/types';
 const {
     CONCIERGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
-    WORKSPACE_CHAT_CREATE,
-    QUICK_ACTION_BUTTON,
-    SEARCH_FILTER_BUTTON_TOOLTIP,
     BOTTOM_NAV_INBOX_TOOLTIP,
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
@@ -41,7 +38,9 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(CONCIERGE_LHN_GBR),
         name: CONCIERGE_LHN_GBR,
         priority: 1300,
-        shouldShow: ({shouldUseNarrowLayout}) => !!shouldUseNarrowLayout,
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
+        shouldShow: () => false,
     },
     [RENAME_SAVED_SEARCH]: {
         content: [
@@ -62,37 +61,6 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(GLOBAL_CREATE_TOOLTIP),
         name: GLOBAL_CREATE_TOOLTIP,
         priority: 1200,
-        shouldShow: () => true,
-    },
-    [QUICK_ACTION_BUTTON]: {
-        content: [
-            {text: 'productTrainingTooltip.quickActionButton.part1', isBold: true},
-            {text: 'productTrainingTooltip.quickActionButton.part2', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(QUICK_ACTION_BUTTON),
-        name: QUICK_ACTION_BUTTON,
-        priority: 1150,
-        shouldShow: () => true,
-    },
-    [WORKSPACE_CHAT_CREATE]: {
-        content: [
-            {text: 'productTrainingTooltip.workspaceChatCreate.part1', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatCreate.part2', isBold: true},
-            {text: 'productTrainingTooltip.workspaceChatCreate.part3', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(WORKSPACE_CHAT_CREATE),
-        name: WORKSPACE_CHAT_CREATE,
-        priority: 1100,
-        shouldShow: () => true,
-    },
-    [SEARCH_FILTER_BUTTON_TOOLTIP]: {
-        content: [
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part2', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(SEARCH_FILTER_BUTTON_TOOLTIP),
-        name: SEARCH_FILTER_BUTTON_TOOLTIP,
-        priority: 1000,
         shouldShow: () => true,
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {

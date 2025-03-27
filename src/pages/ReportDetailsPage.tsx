@@ -111,7 +111,6 @@ import {
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
-    clearReportFieldKeyErrors,
     downloadReportPDF,
     exportReportToCSV,
     exportReportToPDF,
@@ -171,6 +170,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
 
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`) ?? null;
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`);
+    const isDownloadingPDF = download?.isDownloading ?? false;
+
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`, {
         selector: (actions) => (report?.parentReportActionID ? actions?.[report.parentReportActionID] : undefined),
     });
@@ -260,12 +262,24 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     }, [report, personalDetails, shouldOpenRoomMembersPage]);
     const connectedIntegration = getConnectedIntegration(policy);
 
+    let caseID: CaseID;
+    if (isMoneyRequestReport || isInvoiceReport) {
+        // 3. MoneyReportHeader
+        caseID = CASES.MONEY_REPORT;
+    } else if (isSingleTransactionView) {
+        // 2. MoneyRequestHeader
+        caseID = CASES.MONEY_REQUEST;
+    } else {
+        // 1. HeaderView
+        caseID = CASES.DEFAULT;
+    }
+
     const transactionIDList = useMemo(() => {
-        if (!isMoneyRequestReport || !transactions) {
+        if (caseID !== CASES.MONEY_REPORT || !transactions) {
             return [];
         }
         return transactions.map((transaction) => transaction.transactionID);
-    }, [isMoneyRequestReport, transactions]);
+    }, [caseID, transactions]);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
@@ -277,18 +291,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
-    const caseID = useMemo((): CaseID => {
-        // 3. MoneyReportHeader
-        if (isMoneyRequestReport || isInvoiceReport) {
-            return CASES.MONEY_REPORT;
-        }
-        // 2. MoneyRequestHeader
-        if (isSingleTransactionView) {
-            return CASES.MONEY_REQUEST;
-        }
-        // 1. HeaderView
-        return CASES.DEFAULT;
-    }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
     const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
 
     const requestParentReportAction = useMemo(() => {
@@ -546,7 +548,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (isMoneyRequestReport) {
+        if (caseID === CASES.MONEY_REPORT) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_CSV,
                 translationKey: 'common.downloadAsCSV',
@@ -691,6 +693,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isOffline,
         transactionIDList,
         unapproveExpenseReportOrShowModal,
+        caseID,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -877,6 +880,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
+                    furtherDetailsNumberOfLines={isPolicyExpenseChat ? 0 : undefined}
+                    furtherDetailsStyle={isPolicyExpenseChat ? styles.textAlignCenter : undefined}
                     onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
                     numberOfLinesTitle={isThread ? 2 : 0}
                     shouldBreakWord
@@ -905,16 +910,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const nameSectionTitleField = !!titleField && (
         <OfflineWithFeedback
-            pendingAction={report.pendingFields?.[fieldKey as keyof typeof report.pendingFields] ?? report.pendingFields?.reportName}
-            errors={report.errorFields?.[fieldKey] ?? report.errorFields?.reportName}
+            pendingAction={report.pendingFields?.reportName}
+            errors={report.errorFields?.reportName}
             errorRowStyles={styles.ph5}
             key={`menuItem-${fieldKey}`}
-            onClose={() => {
-                if (report.errorFields?.reportName) {
-                    clearPolicyRoomNameErrors(report.reportID);
-                }
-                clearReportFieldKeyErrors(report.reportID, fieldKey);
-            }}
+            onClose={() => clearPolicyRoomNameErrors(report.reportID)}
         >
             <View style={[styles.flex1]}>
                 <MenuItemWithTopDescription
@@ -1165,6 +1165,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         </View>
                         {!!reportPDFFilename && reportPDFFilename !== 'error' && (
                             <Button
+                                isLoading={isDownloadingPDF}
                                 style={[styles.mt3, styles.noSelect]}
                                 onPress={() => downloadReportPDF(reportPDFFilename ?? '', reportName)}
                                 text={translate('common.download')}

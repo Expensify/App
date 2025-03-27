@@ -5,6 +5,7 @@ import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
     DeleteMembersFromWorkspaceParams,
+    OpenPolicyMemberProfilePageParams,
     OpenWorkspaceMembersPageParams,
     RequestWorkspaceOwnerChangeParams,
     UpdateWorkspaceMembersRoleParams,
@@ -202,7 +203,7 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function updateImportSpreadsheetData(membersLength: number): OnyxData {
+function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData {
     const onyxData: OnyxData = {
         successData: [
             {
@@ -212,7 +213,7 @@ function updateImportSpreadsheetData(membersLength: number): OnyxData {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
                         title: translateLocal('spreadsheet.importSuccessfulTitle'),
-                        prompt: translateLocal('spreadsheet.importMembersSuccessfulDescription', {members: membersLength}),
+                        prompt: translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: addedMembersLength, updated: updatedMembersLength}),
                     },
                 },
             },
@@ -948,7 +949,22 @@ type PolicyMember = {
 };
 
 function importPolicyMembers(policyID: string, members: PolicyMember[]) {
-    const onyxData = updateImportSpreadsheetData(members.length);
+    const policy = getPolicy(policyID);
+    const {added, updated} = members.reduce(
+        (acc, curr) => {
+            const employee = policy?.employeeList?.[curr.email];
+            if (employee) {
+                if (curr.role !== employee.role) {
+                    acc.updated++;
+                }
+            } else {
+                acc.added++;
+            }
+            return acc;
+        },
+        {added: 0, updated: 0},
+    );
+    const onyxData = updateImportSpreadsheetData(added, updated);
 
     const parameters = {
         policyID,
@@ -1056,6 +1072,15 @@ function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]
     };
 
     API.read(READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE, params);
+}
+
+function openPolicyMemberProfilePage(policyID: string, accountID: number) {
+    const params: OpenPolicyMemberProfilePageParams = {
+        policyID,
+        accountID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, params);
 }
 
 function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
@@ -1223,6 +1248,7 @@ export {
     importPolicyMembers,
     downloadMembersCSV,
     clearInviteDraft,
+    openPolicyMemberProfilePage,
 };
 
 export type {NewCustomUnit};

@@ -22,6 +22,7 @@ import {
     getIconsForParticipants,
     getInvoiceChatByParticipants,
     getMostRecentlyVisitedReport,
+    getPolicyExpenseChat,
     getQuickActionDetails,
     getReportIDFromLink,
     getReportName,
@@ -1801,53 +1802,42 @@ describe('ReportUtils', () => {
     });
 
     describe('isAllowedToApproveExpenseReport', () => {
-        it('should return true if the rule feature is disabled even preventSelfApproval is true', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(6),
-                areRulesEnabled: false,
-                preventSelfApproval: true,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
+        const expenseReport: Report = {
+            ...createRandomReport(6),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+        };
 
-            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
-        });
-        it('should return false if preventSelfApproval is true and the manager is the owner of the expense report', () => {
+        it('should return true if preventSelfApproval is disabled and the approver is not the owner of the expense report', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(6),
-                areRulesEnabled: true,
-                preventSelfApproval: true,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
-
-            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
-        });
-        it('should return true if preventSelfApproval is false', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(6),
-                areRulesEnabled: true,
                 preventSelfApproval: false,
             };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, 0, fakePolicy)).toBeTruthy();
+        });
 
+        it('should return true if preventSelfApproval is enabled and the approver is not the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: true,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, 0, fakePolicy)).toBeTruthy();
+        });
+
+        it('should return true if preventSelfApproval is disabled and the approver is the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: false,
+            };
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
+        });
+
+        it('should return false if preventSelfApproval is enabled and the approver is the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: true,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
         });
     });
 
@@ -1916,6 +1906,33 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction).then(() => {
                 expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
             });
+        });
+    });
+
+    describe('getPolicyExpenseChat', () => {
+        it('should return the correct policy expense chat when we have a task report is the child of this report', async () => {
+            const policyExpenseChat: Report = {
+                ...createRandomReport(11),
+                ownerAccountID: 1,
+                policyID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const taskReport: Report = {
+                ...createRandomReport(10),
+                ownerAccountID: 1,
+                policyID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID: policyExpenseChat.reportID,
+                parentReportActionID: '1',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+
+            expect(getPolicyExpenseChat(1, '1')?.reportID).toBe(policyExpenseChat.reportID);
         });
     });
 

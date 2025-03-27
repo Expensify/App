@@ -16,7 +16,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -116,7 +115,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemWrapperStyle,
         shouldIgnoreFocus = false,
         scrollEventThrottle,
-        contentContainerStyle: contentContainerStyleProp,
+        contentContainerStyle,
         shouldHighlightSelectedItem = false,
         shouldKeepFocusedItemAtTopOfViewableArea = false,
         shouldDebounceScrolling = false,
@@ -129,6 +128,7 @@ function BaseSelectionList<TItem extends ListItem>(
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
+        addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -368,7 +368,7 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     useEffect(() => {
-        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex) {
+        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || textInputValue) {
             return;
         }
         setFocusedIndex(selectedItemIndex);
@@ -796,7 +796,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
         shouldStopPropagation,
         shouldPreventDefault,
-        isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
+        isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused && focusedIndex >= 0,
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */
@@ -830,13 +830,6 @@ function BaseSelectionList<TItem extends ListItem>(
         () => (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle,
         [footerContent, includeSafeAreaPaddingBottom, isKeyboardShown, safeAreaPaddingBottomStyle],
     );
-
-    // If the default confirm button is visible and it is bottom-sticky,
-    // we need to add additional padding bottom to the content container.
-    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: false, // Bottom safe area padding is already applied in the SectionList
-        style: contentContainerStyleProp,
-    });
 
     const shouldHideContentBottomSafeAreaPadding = showConfirmButton || !!footerContent;
 
@@ -900,6 +893,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
                         addBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addBottomSafeAreaPadding}
+                        addOfflineIndicatorBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addOfflineIndicatorBottomSafeAreaPadding}
                         contentContainerStyle={contentContainerStyle}
                         CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRendererComponent : undefined}
                     />
@@ -910,6 +904,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 <FixedFooter
                     style={styles.mtAuto}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                 >
                     <Button
                         success={!shouldUseDefaultTheme}
@@ -927,6 +922,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 <FixedFooter
                     style={styles.mtAuto}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                 >
                     {footerContent}
                 </FixedFooter>
