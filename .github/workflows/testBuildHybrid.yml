@@ -33,11 +33,11 @@ on:
         description: Git ref to checkout in App
         type: string
         required: true
-      IOS_HYBRID:
+      IOS:
         description: Should build iOS app?
         type: boolean
         default: true
-      ANDROID_HYBRID:
+      ANDROID:
         description: Should build Android app?
         type: boolean
         default: true
@@ -170,7 +170,7 @@ jobs:
 
   androidHybrid:
     name: Build Android HybridApp
-    if: ${{ github.event.inputs.DISPATCHED_MANUALLY || inputs.ANDROID_HYBRID }}
+    if: ${{ github.event.inputs.DISPATCHED_MANUALLY || inputs.ANDROID }}
     needs: [getNewDotRef, getOldDotPR, getOldDotRef]
     runs-on: ubuntu-latest-xl
     outputs:
@@ -286,7 +286,7 @@ jobs:
 
   iosHybrid:
     name: Build and deploy iOS for testing
-    if: ${{ github.event.inputs.DISPATCHED_MANUALLY || inputs.IOS_HYBRID }}
+    if: ${{ github.event.inputs.DISPATCHED_MANUALLY || inputs.IOS }}
     needs: [getNewDotRef, getOldDotPR, getOldDotRef]
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer

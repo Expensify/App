@@ -17,16 +17,10 @@ inputs:
     ANDROID:
         description: "Android job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
-    ANDROID_HYBRID:
-        description: "Android job result ('success', 'failure', 'cancelled', or 'skipped')"
-        required: true
     DESKTOP:
         description: "Desktop job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
     IOS:
-        description: "iOS job result ('success', 'failure', 'cancelled', or 'skipped')"
-        required: true
-    IOS_HYBRID:
         description: "iOS job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
     WEB:
