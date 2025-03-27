@@ -203,7 +203,7 @@ class NotificationService: UANotificationServiceExtension {
       speakableGroupName = INSpeakableString(spokenPhrase: notificationData.roomName ?? "")
       
       // To add the group name subtitle there must be multiple recipients set. However, we do not have
-      // data on the participatns in the room/group chat so we just add a placeholder here. This shouldn't
+      // data on the participants in the room/group chat so we just add a placeholder here. This shouldn't
       // appear anywhere in the UI
       let placeholderPerson = INPerson(personHandle: INPersonHandle(value: "placeholder", type: .unknown),
                                        nameComponents: nil,

@@ -27,7 +27,7 @@ To create new Report Fields:
 1. Click Settings in the bottom left menu
 2. Click Workspaces from the left-hand menu
 3. Select the Workspace you want to create Report Fields on
-4. Click Report Fields on the lefthand menu (if you do not see this option, enable Report Fields by following the Enable Report Fields process above this)
+4. Click Report Fields on the left hand menu (if you do not see this option, enable Report Fields by following the Enable Report Fields process above this)
 5. Click “Add Field” in the top right corner
 6. Click “Name” and add a name your your Report Field
 7. Click “Type” to select the Report Field type; you will have the following options:
@@ -43,7 +43,7 @@ To edit or delete existing report fields  Report Fields:
 1. Click Settings in the bottom left menu
 2. Click Workspaces from the left-hand menu
 3. Select the Workspace you want to edit Report Fields on
-4. Click Report Fields on the lefthand menu 
+4. Click Report Fields on the left hand menu 
 5. Click the Report Field you wish to edit or delete
 6. Make the required edits in the right-hand panel, or select “Delete”
 

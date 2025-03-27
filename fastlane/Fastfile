@@ -679,7 +679,7 @@ platform :ios do
         # We do not need any additional compliance
         export_compliance_compliance_required: false,
 
-        # We do not use any encrpytion
+        # We do not use any encryption
         export_compliance_encryption_updated: false,
         export_compliance_app_type: nil,
         export_compliance_uses_encryption: false,

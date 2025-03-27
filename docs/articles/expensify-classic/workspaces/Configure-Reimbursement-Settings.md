@@ -9,7 +9,7 @@ Expensify offers flexible reimbursement options to help businesses quickly and e
 
 There are a few ways to reimburse employees in Expensify. The option that's best suited for you and your business will depend on a few different factors:
 - **Direct Reimbursement**: For companies with a business bank account in the US that reimburse employees within the US.
-- **Indirect Reimbursement**: This option is available to all members, and connecting a bank account to Expensify is not required. Indirect reimbursReimbursementes that all reports are reimbursed outside of Expensify.
+- **Indirect Reimbursement**: This option is available to all members, and connecting a bank account to Expensify is not required. Indirect Reimbursements that all reports are reimbursed outside of Expensify.
 - **Global Reimbursement**: If your company bank account is in the US, Canada, the UK, Europe, or Australia, you can reimburse employees directly in nearly any country worldwide.
 
 ---
