@@ -55,6 +55,19 @@ const WEBRTC_DEBUG = {
     silenceWarningInterval: 10000, // Only warn about silence every 10 seconds
 };
 
+// Add this flag at the top level
+let useCompatibilityMode = false;
+
+// Add this function to toggle compatibility mode
+function enableCompatibilityMode(enable = true) {
+    useCompatibilityMode = enable;
+    console.log(`[WebRTC] Compatibility mode ${enable ? 'enabled' : 'disabled'}`);
+    return `WebRTC compatibility mode ${enable ? 'enabled' : 'disabled'}`;
+}
+
+// Expose this to the console
+window.enableWebRTCCompatibilityMode = enableCompatibilityMode;
+
 function getEmphemeralToken(): Promise<string> {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -192,221 +205,250 @@ async function listAudioDevices() {
 }
 
 function connectToOpenAIRealtime(): Promise<ConnectionResult> {
+    let connectionPhase = 'starting'; // Track where we are in the connection process
     let peerConnection: RTCPeerConnection;
     let rtcOffer: RTCSessionDescriptionInit;
     let dataChannel: RTCDataChannel;
 
     console.log('[WebRTC] Starting OpenAI connection...');
     
-    // First, list available audio devices for debugging
-    return listAudioDevices()
-        .then(() => {
-            // Enhanced audio constraints for higher quality
-            const audioConstraints = {
-                audio: {
-                    // Basic processing settings
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true,
-                    
-                    // Higher quality audio settings
-                    sampleRate: 48000,         // Use 48kHz sampling for better quality
-                    sampleSize: 16,            // 16-bit audio
-                    channelCount: 1,           // Mono is usually more reliable for voice
-                    
-                    // Advanced settings (when available in browsers)
-                    latency: 0.01,             // Low latency audio
-                    googHighpassFilter: true,  // Remove low frequency noise
-                    googAudioMirroring: false, // No need for audio mirroring with voice
-                    
-                    // Opus codec preference (set in SDP)
-                    googEchoCancellation2: true,  // Enhanced echo cancellation
-                    googNoiseSuppression2: true,  // Enhanced noise suppression
+    return new Promise<ConnectionResult>((resolve, reject) => {
+        // Step 1: Check if getUserMedia is supported
+        if (!mediaDevices || !mediaDevices.getUserMedia) {
+            console.error('[WebRTC] getUserMedia not supported');
+            reject(new Error('getUserMedia not supported in this browser'));
+            return;
+        }
+        
+        connectionPhase = 'requesting_media';
+        console.log('[WebRTC] Requesting user media');
+        
+        // First, enumerate devices to check for available microphones
+        mediaDevices.enumerateDevices()
+            .then(devices => {
+                const audioInputs = devices.filter(device => device.kind === 'audioinput');
+                console.log('[WebRTC] Available audio inputs:', audioInputs.length);
+                
+                if (audioInputs.length === 0) {
+                    throw new Error('No audio input devices found');
                 }
-            };
-            
-            console.log('[WebRTC] Requesting user media with constraints:', audioConstraints);
-            
-            return new Promise<ConnectionResult>((resolve, reject) => {
-                mediaDevices
-                    .getUserMedia(audioConstraints)
-                    .then((stream: MediaStream) => {
-                        console.log('[WebRTC] Got user media stream');
-                        mediaStream = stream;
+                
+                // Log the labels of available devices (requires permission)
+                audioInputs.forEach((device, index) => {
+                    console.log(`[WebRTC] Audio device ${index}: ${device.label || 'Label not available (no permission)'}`);
+                });
+                
+                // Use simpler constraints when in compatibility mode
+                const audioConstraints = {
+                    audio: useCompatibilityMode ? true : {
+                        // Your enhanced settings here
+                    }
+                };
+                
+                return mediaDevices.getUserMedia(audioConstraints);
+            })
+            .then((stream: MediaStream) => {
+                connectionPhase = 'media_obtained';
+                console.log('[WebRTC] Got user media stream');
+                
+                const audioTracks = stream.getAudioTracks();
+                console.log(`[WebRTC] Audio tracks obtained: ${audioTracks.length}`);
+                
+                if (audioTracks.length === 0) {
+                    throw new Error('No audio tracks in media stream');
+                }
+                
+                // Log the settings of the audio track
+                const settings = audioTracks[0].getSettings();
+                console.log('[WebRTC] Audio track settings:', settings);
+                
+                mediaStream = stream;
+                
+                // Setup audio monitoring
+                audioMonitor = setupAudioLevelMonitoring(stream);
+                
+                // Create peer connection
+                connectionPhase = 'creating_peer_connection';
+                console.log('[WebRTC] Creating peer connection');
+                
+                try {
+                    // Use simpler peer connection config in compatibility mode
+                    const pcConfig = useCompatibilityMode ? {
+                        iceServers: []
+                    } : {
+                        // Your enhanced settings here
+                    };
+                    
+                    peerConnection = new RTCPeerConnection(pcConfig);
+                    
+                    // Detailed connection event logging
+                    peerConnection.onconnectionstatechange = () => {
+                        console.log(`[WebRTC] Connection state changed: ${peerConnection.connectionState}`);
+                    };
+                    
+                    peerConnection.onsignalingstatechange = () => {
+                        console.log(`[WebRTC] Signaling state changed: ${peerConnection.signalingState}`);
+                    };
+                    
+                    peerConnection.onicegatheringstatechange = () => {
+                        console.log(`[WebRTC] ICE gathering state: ${peerConnection.iceGatheringState}`);
+                    };
+                    
+                    peerConnection.oniceconnectionstatechange = () => {
+                        console.log(`[WebRTC] ICE connection state: ${peerConnection.iceConnectionState}`);
                         
-                        // Setup audio monitoring - assign to module-level variable
-                        audioMonitor = setupAudioLevelMonitoring(stream);
-                        
-                        const pc = new RTCPeerConnection({
-                            iceServers: [],
-                            sdpSemantics: 'unified-plan',  // Modern WebRTC approach
-                            // Audio processing settings for the connection
-                            bundlePolicy: 'max-bundle',
-                            rtcpMuxPolicy: 'require',
-                            // Optional parameters for better quality
-                            iceTransportPolicy: 'all',
-                        });
-                        
-                        console.log('[WebRTC] Created peer connection');
-                        
-                        // Only log significant connection state changes
-                        pc.onconnectionstatechange = () => {
-                            console.log(`[WebRTC] Connection state changed: ${pc.connectionState}`);
-                            
-                            // Update connection state in Onyx
-                            Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {
-                                connectionState: pc.connectionState
-                            });
-                        };
-                        
-                        // Log signaling state changes
-                        pc.onsignalingstatechange = () => {
-                            console.log(`[WebRTC] Signaling state changed: ${pc.signalingState}`);
-                        };
-
-                        const audioTrack = stream.getAudioTracks().at(0);
-                        if (!audioTrack) {
-                            const error = new Error('Failed to get audio track');
-                            console.error('[WebRTC] Error:', error);
-                            reject(error);
+                        if (peerConnection.iceConnectionState === 'failed') {
+                            console.error('[WebRTC] ICE connection failed');
+                            reject(new Error('ICE connection failed - likely a network NAT/firewall issue'));
+                            stopConnection();
+                        }
+                    };
+                    
+                    peerConnection.onicecandidateerror = (event) => {
+                        console.error(`[WebRTC] ICE candidate error: ${event.errorText} (code: ${event.errorCode})`);
+                    };
+                } catch (e) {
+                    console.error('[WebRTC] Error creating peer connection:', e);
+                    throw new Error(`Failed to create peer connection: ${e.message}`);
+                }
+                
+                // Add tracks and create data channel
+                try {
+                    const audioTrack = stream.getAudioTracks()[0];
+                    peerConnection.addTrack(audioTrack);
+                    console.log('[WebRTC] Added audio track to peer connection');
+                    
+                    connectionPhase = 'creating_data_channel';
+                    dataChannel = peerConnection.createDataChannel('openai-control');
+                    console.log('[WebRTC] Created data channel');
+                    
+                    dataChannel.onopen = () => {
+                        console.log('[WebRTC] Data channel opened');
+                    };
+                    
+                    dataChannel.onerror = (error) => {
+                        console.error('[WebRTC] Data channel error:', error);
+                        // Don't reject here, as this might happen after connection success
+                    };
+                } catch (e) {
+                    console.error('[WebRTC] Error setting up tracks/data channel:', e);
+                    throw new Error(`Failed to setup tracks or data channel: ${e.message}`);
+                }
+                
+                // Setup track event handler
+                peerConnection.ontrack = (event) => {
+                    console.log('[WebRTC] Track received:', event.track.kind);
+                    if (event.track.kind === 'audio') {
+                        const audioStream = event.streams[0];
+                        if (!audioStream) {
+                            console.error('[WebRTC] Failed to get stream from track event');
                             return;
                         }
-
-                        pc.addTrack(audioTrack);
-                        console.log('[WebRTC] Added audio track to peer connection');
-
-                        const dc = pc.createDataChannel('openai-control');
-                        console.log('[WebRTC] Created data channel');
-                        
-                        dc.onopen = () => {
-                            console.log('[WebRTC] Data channel opened');
-                        };
-                        
-                        dc.onerror = (error) => {
-                            console.error('[WebRTC] Data channel error:', error);
-                            reject(new Error(`Data channel error`));
-                        };
-                        
-                        dataChannel = dc;
-
-                        // Enhanced ICE connection state logging
-                        pc.oniceconnectionstatechange = () => {
-                            console.log(`[WebRTC] ICE connection state changed: ${pc.iceConnectionState}`);
-                            
-                            if (pc.iceConnectionState === 'failed') {
-                                console.error('[WebRTC] ICE connection failed');
-                                reject(new Error('ICE connection failed'));
-                                stopConnection();
-                            }
-                        };
-
-                        // Add ICE candidate logging only in verbose mode
-                        pc.onicecandidate = (event) => {
-                            if (event.candidate && WEBRTC_DEBUG.verbose) {
-                                console.log('[WebRTC] New ICE candidate:', event.candidate.candidate);
-                            } else if (!event.candidate) {
-                                console.log('[WebRTC] ICE candidate gathering complete');
-                            }
-                        };
-                        
-                        pc.onicegatheringstatechange = () => {
-                            console.log(`[WebRTC] ICE gathering state: ${pc.iceGatheringState}`);
-                        };
-
-                        // Enhanced track handling
-                        pc.ontrack = (event) => {
-                            console.log('[WebRTC] Track received:', event.track.kind);
-                            if (event.track.kind === 'audio') {
-                                const audioStream = event.streams.at(0);
-                                if (!audioStream) {
-                                    console.error('[WebRTC] Failed to get stream from track event');
-                                    reject(new Error('Failed to get stream'));
-                                    stopConnection();
-                                    return;
-                                }
-                                console.log('[WebRTC] Playing audio stream');
-                                playStreamSound(audioStream);
-                            }
-                        };
-
-                        // Set codec preferences if browser supports it
-                        try {
-                            const audioTransceiver = pc.addTransceiver('audio');
-                            if (audioTransceiver.setCodecPreferences) {
-                                const codecs = RTCRtpSender.getCapabilities('audio')?.codecs;
-                                if (codecs) {
-                                    // Prioritize Opus codec with high quality settings
-                                    const opusCodecs = codecs.filter(codec => 
-                                        codec.mimeType.toLowerCase() === 'audio/opus');
-                                    
-                                    if (opusCodecs.length > 0) {
-                                        // Put Opus codecs first for higher priority
-                                        const sortedCodecs = [...opusCodecs, ...codecs.filter(codec => 
-                                            codec.mimeType.toLowerCase() !== 'audio/opus')];
-                                        audioTransceiver.setCodecPreferences(sortedCodecs);
-                                        console.log('[WebRTC] Prioritized Opus codec for better audio quality');
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            console.log('[WebRTC] Codec preferences not supported in this browser');
-                        }
-
-                        peerConnection = pc;
-                        console.log('[WebRTC] Creating offer');
-                        return peerConnection.createOffer();
-                    })
-                    .then((offer: RTCSessionDescriptionInit) => {
-                        console.log('[WebRTC] Setting local description');
-                        
-                        // Modify SDP to increase audio quality
-                        if (offer.sdp) {
-                            // Set Opus to use maximum quality mode
-                            offer.sdp = offer.sdp.replace(/(a=fmtp:111.*)\r\n/g, '$1;maxaveragebitrate=128000;stereo=1;maxplaybackrate=48000\r\n');
-                            
-                            // Set audio bandwidth higher
-                            if (!offer.sdp.includes('b=AS:')) {
-                                offer.sdp = offer.sdp.replace(/(m=audio .*)\r\n/g, '$1\r\nb=AS:128\r\n');
-                            }
-                            
-                            console.log('[WebRTC] Enhanced SDP parameters for higher audio quality');
-                        }
-                        
-                        peerConnection.setLocalDescription(offer);
-                        rtcOffer = offer;
-                    })
+                        console.log('[WebRTC] Playing audio stream');
+                        playStreamSound(audioStream);
+                    }
+                };
+                
+                // Create offer
+                connectionPhase = 'creating_offer';
+                console.log('[WebRTC] Creating offer');
+                return peerConnection.createOffer();
+            })
+            .then((offer: RTCSessionDescriptionInit) => {
+                console.log('[WebRTC] Setting local description');
+                connectionPhase = 'setting_local_description';
+                
+                // Skip SDP modifications in compatibility mode
+                if (!useCompatibilityMode && offer.sdp) {
+                    // Your SDP modifications here
+                }
+                
+                return peerConnection.setLocalDescription(offer)
                     .then(() => {
-                        console.log('[WebRTC] Getting ephemeral token');
-                        return getEmphemeralToken();
-                    })
-                    .then((ephemeralToken: string) => {
-                        console.log('[WebRTC] Connecting with SDP');
-                        return connectUsingSDP(ephemeralToken, rtcOffer);
-                    })
-                    .then((response: Response) => {
-                        console.log('[WebRTC] SDP response status:', response.status);
-                        if (!response.ok) {
-                            throw new Error(`Failed to connect to OpenAI Realtime: ${response.status}`);
-                        }
-                        return response.text();
-                    })
-                    .then((answer: string) => {
-                        console.log('[WebRTC] Setting remote description');
-                        peerConnection.setRemoteDescription(new RTCSessionDescription({type: 'answer', sdp: answer})).then(() => {
-                            console.log('[WebRTC] Connection established successfully');
-                            resolve({peerConnection, dataChannel});
-                        });
-                    })
-                    .catch((error: Error) => {
-                        console.error('[WebRTC] Connection error:', error);
-                        if (audioMonitor) {
-                            audioMonitor.stop();
-                        }
-                        stopConnection();
-                        reject(error);
+                        rtcOffer = offer;
+                        console.log('[WebRTC] Local description set successfully');
                     });
+            })
+            .then(() => {
+                console.log('[WebRTC] Getting ephemeral token');
+                connectionPhase = 'getting_token';
+                return getEmphemeralToken();
+            })
+            .then((ephemeralToken: string) => {
+                if (!ephemeralToken) {
+                    throw new Error('Failed to get ephemeral token');
+                }
+                
+                console.log('[WebRTC] Connecting with SDP');
+                connectionPhase = 'connecting_sdp';
+                
+                // Log the SDP being sent (this is helpful for WebRTC debugging)
+                console.log('[WebRTC] SDP Offer (shortened):', 
+                    rtcOffer.sdp ? rtcOffer.sdp.substring(0, 100) + '...' : 'No SDP');
+                
+                return connectUsingSDP(ephemeralToken, rtcOffer);
+            })
+            .then((response: Response) => {
+                console.log('[WebRTC] SDP response status:', response.status);
+                connectionPhase = 'sdp_response_received';
+                
+                if (!response.ok) {
+                    // Log detailed response error
+                    console.error(`[WebRTC] Failed to connect to OpenAI Realtime: ${response.status} ${response.statusText}`);
+                    
+                    // Try to get the response body for more details
+                    return response.text().then(text => {
+                        console.error('[WebRTC] Error response body:', text);
+                        throw new Error(`Server rejected connection: ${response.status} ${response.statusText}`);
+                    });
+                }
+                
+                return response.text();
+            })
+            .then((answer: string) => {
+                console.log('[WebRTC] Setting remote description');
+                connectionPhase = 'setting_remote_description';
+                
+                if (!answer || answer.length < 10) {
+                    throw new Error('Empty or invalid SDP answer received from server');
+                }
+                
+                // Log the SDP answer received (shortened for brevity)
+                console.log('[WebRTC] SDP Answer (shortened):', answer.substring(0, 100) + '...');
+                
+                return peerConnection.setRemoteDescription(new RTCSessionDescription({
+                    type: 'answer', 
+                    sdp: answer
+                }));
+            })
+            .then(() => {
+                console.log('[WebRTC] Connection established successfully');
+                connectionPhase = 'connection_established';
+                resolve({peerConnection, dataChannel});
+            })
+            .catch((error: Error) => {
+                console.error(`[WebRTC] Connection failed during ${connectionPhase} phase:`, error);
+                
+                // Collect detailed diagnostic information
+                const diagnosticInfo = {
+                    error: error.message,
+                    phase: connectionPhase,
+                    userAgent: navigator.userAgent,
+                    time: new Date().toISOString(),
+                    peerConnectionState: peerConnection ? {
+                        connectionState: peerConnection.connectionState,
+                        iceConnectionState: peerConnection.iceConnectionState,
+                        signalingState: peerConnection.signalingState,
+                        iceGatheringState: peerConnection.iceGatheringState
+                    } : 'Not created'
+                };
+                
+                console.error('[WebRTC] Diagnostic information:', diagnosticInfo);
+                
+                stopConnection();
+                reject(error);
             });
-        });
+    });
 }
 
 // Simplified transcript handling - just collect it for debugging
@@ -629,5 +671,104 @@ function monitorAudioQuality(peerConnection: RTCPeerConnection) {
         }
     };
 }
+
+// Add this function to collect debug information
+function collectDebugInfo() {
+    const debugInfo = {
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        connection: navigator.connection ? {
+            effectiveType: navigator.connection.effectiveType,
+            downlink: navigator.connection.downlink,
+            rtt: navigator.connection.rtt
+        } : 'Not available',
+        webRTC: {
+            connectionState: connections.openai?.peerConnection.connectionState || 'Not connected',
+            iceConnectionState: connections.openai?.peerConnection.iceConnectionState || 'Not connected',
+            signalingState: connections.openai?.peerConnection.signalingState || 'Not connected',
+            iceGatheringState: connections.openai?.peerConnection.iceGatheringState || 'Not connected',
+            dataChannelState: connections.openai?.dataChannel.readyState || 'Not connected'
+        },
+        audioTracks: mediaStream ? mediaStream.getAudioTracks().map(track => ({
+            label: track.label,
+            enabled: track.enabled,
+            muted: track.muted,
+            readyState: track.readyState
+        })) : 'No media stream'
+    };
+    
+    console.log('[WebRTC] Debug info:', debugInfo);
+    return debugInfo;
+}
+
+// Add a button or command that users can trigger to collect debug info
+function exportDebugInfo() {
+    const debugInfo = collectDebugInfo();
+    
+    // Create a downloadable file with the debug info
+    const blob = new Blob([JSON.stringify(debugInfo, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    // Create download link
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `webrtc-debug-${new Date().toISOString()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    return 'Debug info exported';
+}
+
+// Expose this function to the console for easy access
+window.exportWebRTCDebug = exportDebugInfo;
+
+// Add this function to test basic connectivity
+async function testOpenAIConnectivity() {
+    console.log('[WebRTC] Testing connectivity to OpenAI services...');
+    
+    try {
+        // Test if we can reach OpenAI API (not the realtime endpoint)
+        const apiResponse = await fetch('https://api.openai.com/v1/models', {
+            method: 'GET',
+            mode: 'no-cors' // Just checking connectivity, not actual API response
+        });
+        console.log('[WebRTC] OpenAI API connectivity check complete');
+        
+        // Test basic WebRTC device access
+        const devicePermissions = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        console.log('[WebRTC] Microphone permission status:', devicePermissions.state);
+        
+        // Test WebRTC support
+        const rtcSupport = {
+            RTCPeerConnection: !!window.RTCPeerConnection,
+            getUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+            mediaDevices: !!navigator.mediaDevices,
+            AudioContext: !!(window.AudioContext || window.webkitAudioContext)
+        };
+        console.log('[WebRTC] WebRTC support check:', rtcSupport);
+        
+        return {
+            openaiConnectivity: true,
+            microphonePermission: devicePermissions.state,
+            webrtcSupport: rtcSupport,
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+        };
+    } catch (error) {
+        console.error('[WebRTC] Connectivity test failed:', error);
+        return {
+            openaiConnectivity: false,
+            error: error.message,
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+        };
+    }
+}
+
+// Expose this to the console for easy testing
+window.testOpenAIConnectivity = testOpenAIConnectivity;
 
 export {initializeOpenAIRealtime, stopConnection};
