@@ -199,7 +199,7 @@ import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID
 import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
 import {completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
-import {getAllTransactions, getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
+import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftTransaction} from './TransactionEdit';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
