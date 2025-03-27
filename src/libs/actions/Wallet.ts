@@ -273,7 +273,7 @@ function clearPhysicalCardError(cardID?: string) {
     });
 }
 
-function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificate: string[]): IOSEncryptPayload {
+function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificate: string[]): Promise<IOSEncryptPayload> {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-api-in-views
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_APPLE_WALLET, {
         platform: 'ios',
@@ -282,14 +282,16 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
         nonce,
         nonceSignature,
     })
-        .then((data: IOSEncryptPayload) => {
+        .then((response) => {
+            const data = response as unknown as IOSEncryptPayload;
             return {
                 encryptedPassData: data.encryptedPassData,
                 activationData: data.activationData,
                 ephemeralPublicKey: data.ephemeralPublicKey,
-            };
+            } as IOSEncryptPayload;
         })
         .catch((e) => {
+            // eslint-disable-next-line no-console
             console.log('api error: ', e);
             return {} as IOSEncryptPayload;
         });
