@@ -173,12 +173,12 @@ If you're unfamiliar with github branches, PRs and confused how to add images an
 2. Import the video in an article. You can do that by pasting the below snippet.
 3. Replace `src` with the public URL for the video. **It should be cloudfront.net url**, and not a github link.
 
-Without thumbnail
+Without a custom thumbnail
 ```
 {% include video.html src="https://d2k5nsl2zxldvw.cloudfront.net/videos/help/demo-travel.mp4" %}
 ```
 
-Optional: Add a thumbnail for the video. Replace `your-image.png` with a **16x9 aspect ratio image** from the `assets/images` directory.
+Optional: Add a custom thumbnail for the video. Replace `your-image.png` with a **16x9 aspect ratio image** from the `assets/images` directory.
 ```
 {% include video.html thumbnail="assets/images/your-image.png" src="https://d2k5nsl2zxldvw.cloudfront.net/videos/help/demo-travel.mp4" %}
 ```
