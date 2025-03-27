@@ -5112,14 +5112,14 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     const ownerAccountID = iouReport.ownerAccountID;
 
     // Create an optimistic policy expense chat for the submitter who's not a policy member
-    let optimisticExpenseChatReportID: string | undefined;
-    let optimisticExpenseChatCreatedReportActionID: string | undefined;
+    let optimisticPolicyExpenseChatReportID: string | undefined;
+    let optimisticPolicyExpenseChatCreatedReportActionID: string | undefined;
 
     if (ownerAccountID) {
         const employeeEmail = allPersonalDetails?.[ownerAccountID]?.login ?? '';
         const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: ownerAccountID}, true);
-        optimisticExpenseChatReportID = employeeWorkspaceChat.reportCreationData[employeeEmail]?.reportID;
-        optimisticExpenseChatCreatedReportActionID = employeeWorkspaceChat.reportCreationData[employeeEmail]?.reportActionID;
+        optimisticPolicyExpenseChatReportID = employeeWorkspaceChat.reportCreationData[employeeEmail]?.reportID;
+        optimisticPolicyExpenseChatCreatedReportActionID = employeeWorkspaceChat.reportCreationData[employeeEmail]?.reportActionID;
     }
 
     const optimisticData: OnyxUpdate[] = [];
@@ -5134,7 +5134,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     // - update the chatReportID to point to the workspace chat if the policy has policy expense chat enabled
     const expenseReport = {
         ...iouReport,
-        chatReportID: policy.isPolicyExpenseChatEnabled ? optimisticExpenseChatReportID : undefined,
+        chatReportID: policy.isPolicyExpenseChatEnabled ? optimisticPolicyExpenseChatReportID : undefined,
         policyID,
         policyName,
         parentReportID: iouReport.parentReportID,
@@ -5200,12 +5200,12 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
         // Add the reportPreview action to workspace chat
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticPolicyExpenseChatReportID}`,
             value: {[reportPreview.reportActionID]: {...reportPreview, created: DateUtils.getDBTime()}},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticPolicyExpenseChatReportID}`,
             value: {[reportPreview.reportActionID]: null},
         });
     }
@@ -5214,12 +5214,12 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     const changePolicyReportAction = buildOptimisticChangePolicyReportAction(iouReport.policyID, policyID, true);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticPolicyExpenseChatCreatedReportActionID}`,
         value: {[changePolicyReportAction.reportActionID]: changePolicyReportAction},
     });
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticPolicyExpenseChatCreatedReportActionID}`,
         value: {
             [changePolicyReportAction.reportActionID]: {
                 ...changePolicyReportAction,
@@ -5229,7 +5229,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticPolicyExpenseChatCreatedReportActionID}`,
         value: {[changePolicyReportAction.reportActionID]: null},
     });
 
@@ -5332,8 +5332,8 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     const parameters: MoveIOUReportToPolicyAndInviteSubmitterParams = {
         iouReportID,
         policyID,
-        policyExpenseChatReportID: optimisticExpenseChatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
-        policyExpenseCreatedReportActionID: optimisticExpenseChatCreatedReportActionID ?? String(CONST.DEFAULT_NUMBER_ID),
+        policyExpenseChatReportID: optimisticPolicyExpenseChatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        policyExpenseCreatedReportActionID: optimisticPolicyExpenseChatCreatedReportActionID ?? String(CONST.DEFAULT_NUMBER_ID),
         changePolicyReportActionID: changePolicyReportAction.reportActionID,
     };
 
