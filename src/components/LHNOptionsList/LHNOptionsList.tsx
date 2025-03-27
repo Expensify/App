@@ -292,7 +292,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (shouldShowEmptyLHN) {
-            Log.info('Whohoo! All caught up. Was rendered', false, {
+            Log.info('Woohoo! All caught up. Was rendered', false, {
                 reportsCount: Object.keys(reports ?? {}).length,
                 reportActionsCount: Object.keys(reportActions ?? {}).length,
                 policyCount: Object.keys(policy ?? {}).length,
