@@ -15,10 +15,13 @@ type ReceiptEmptyStateProps = {
     /** Callback to be called on onPress */
     onPress?: () => void;
 
+    /** Whether the receipt action is disabled */
     disabled?: boolean;
 
+    /** Whether the receipt is a thumbnail */
     isThumbnail?: boolean;
 
+    /** Whether the receipt is in the money request view */
     isInMoneyRequestView?: boolean;
 };
 
