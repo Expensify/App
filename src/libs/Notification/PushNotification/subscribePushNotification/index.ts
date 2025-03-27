@@ -167,6 +167,9 @@ Onyx.connect({
 
             PushNotification.onReceived(PushNotification.TYPE.MONEY_REQUEST, applyOnyxData);
             PushNotification.onSelected(PushNotification.TYPE.MONEY_REQUEST, navigateToReport);
+
+            PushNotification.onReceived(PushNotification.TYPE.REPORT_ACTION, applyOnyxData);
+            PushNotification.onSelected(PushNotification.TYPE.REPORT_ACTION, navigateToReport);
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();

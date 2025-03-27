@@ -119,6 +119,7 @@ import {
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     isArchivedReport,
     isArchivedReportWithID,
+    isClosedReport as isClosedReportUtil,
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
@@ -165,6 +166,7 @@ import {
     isOnHold,
     isPartialMerchant,
     isPending,
+    isPendingCardOrScanningTransaction,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
@@ -8478,20 +8480,15 @@ function canApproveIOU(
     const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(iouReport?.reportID);
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = getReportTransactions(iouReport?.reportID);
-    const hasOnlyPendingCardOrScanningTransactions =
-        reportTransactions.length > 0 &&
-        reportTransactions.every(
-            (transaction) =>
-                (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
-                (isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction)) ||
-                (isScanRequestTransactionUtils(transaction) && isReceiptBeingScannedTransactionUtils(transaction)),
-        );
+    const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
     if (hasOnlyPendingCardOrScanningTransactions) {
         return false;
     }
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport?.reportID, reportTransactions);
-
-    return reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isPayAtEndExpenseReport;
+    const isClosedReport = isClosedReportUtil(iouReport);
+    return (
+        reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isPayAtEndExpenseReport && !isClosedReport
+    );
 }
 
 function canUnapproveIOU(iouReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
@@ -9183,7 +9180,6 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingChildRequest: true,
                 iouReportID: expenseReport.reportID,
             },
         });

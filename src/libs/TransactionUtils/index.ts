@@ -205,6 +205,24 @@ function isManualRequest(transaction: Transaction): boolean {
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
+function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    const merchant = getMerchant(transaction);
+
+    if (!merchant || isPartialMerchant(merchant)) {
+        return true;
+    }
+
+    if (isAmountMissing(transaction) && isScanRequest(transaction)) {
+        return true;
+    }
+
+    return false;
+}
+
+function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isReceiptBeingScanned(transaction));
+}
+
 /**
  * Optimistically generate a transaction.
  *
@@ -1580,6 +1598,8 @@ export {
     isBrokenConnectionViolation,
     checkIfShouldShowMarkAsCashButton,
     shouldShowRTERViolationMessage,
+    isPartialTransaction,
+    isPendingCardOrScanningTransaction,
 };
 
 export type {TransactionChanges};
