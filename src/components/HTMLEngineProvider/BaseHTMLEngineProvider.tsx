@@ -108,7 +108,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.isemojisonly === undefined) {
-                        return styles.blockquote;
+                        return HTMLEngineUtils.isChildOfTaskTitle(tnode as TNode) ? {} : styles.blockquote;
                     }
                     return HTMLEngineUtils.isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
