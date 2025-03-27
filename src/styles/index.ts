@@ -3740,8 +3740,9 @@ const styles = (theme: ThemeColors) =>
 
         searchInputStyle: {
             color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightSmall,
         },
 
         searchRouterTextInputContainer: {
