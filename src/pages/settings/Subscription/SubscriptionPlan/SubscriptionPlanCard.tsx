@@ -23,9 +23,9 @@ type SubscriptionPlanCardProps = {
     // TODO: add comments
     subscriptionPlan: PersonalPolicyTypeExludedProps | null;
     isFromComparisonModal?: boolean;
-    index?: number;
 };
-function SubscriptionPlanCard({subscriptionPlan, index = 0, isFromComparisonModal = false}: SubscriptionPlanCardProps) {
+
+function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false}: SubscriptionPlanCardProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

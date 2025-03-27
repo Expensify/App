@@ -29,8 +29,7 @@ import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
 import {navigateToConciergeChat} from '@userActions/Report';
-import * as Subscription from '@userActions/Subscription';
-import {requestTaxExempt} from '@userActions/Subscription';
+import {clearUpdateSubscriptionSizeError, requestTaxExempt, updateSubscriptionAddNewUsersAutomatically, updateSubscriptionAutoRenew, updateSubscriptionType} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import type {SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,7 +78,7 @@ function SubscriptionSettings() {
             return;
         }
 
-        Subscription.updateSubscriptionType(option);
+        updateSubscriptionType(option);
     };
 
     const onSubscriptionSizePress = () => {
@@ -98,7 +97,7 @@ function SubscriptionSettings() {
                     pendingAction={privateSubscription?.pendingFields?.userCount}
                     errors={privateSubscription?.errorFields?.userCount}
                     onClose={() => {
-                        Subscription.clearUpdateSubscriptionSizeError();
+                        clearUpdateSubscriptionSizeError();
                     }}
                 >
                     <MenuItemWithTopDescription
@@ -122,13 +121,13 @@ function SubscriptionSettings() {
             return;
         }
         if (!privateSubscription?.autoRenew) {
-            Subscription.updateSubscriptionAutoRenew(true);
+            updateSubscriptionAutoRenew(true);
             return;
         }
         if (account?.hasPurchases) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY);
         } else {
-            Subscription.updateSubscriptionAutoRenew(false);
+            updateSubscriptionAutoRenew(false);
         }
     };
 
@@ -137,7 +136,7 @@ function SubscriptionSettings() {
             setIsNoDelegateAccessMenuVisible(true);
             return;
         }
-        Subscription.updateSubscriptionAddNewUsersAutomatically(!privateSubscription?.addNewUsersAutomatically);
+        updateSubscriptionAddNewUsersAutomatically(!privateSubscription?.addNewUsersAutomatically);
     };
 
     const customTitleSecondSentenceStyles: StyleProp<TextStyle> = [styles.textNormal, {color: theme.success}];
