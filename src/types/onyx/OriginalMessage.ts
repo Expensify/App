@@ -37,7 +37,7 @@ type OriginalMessageIOU = {
     /** ID of the expense report */
     expenseReportID?: string;
 
-    /** How much was transactioned */
+    /** How much was transaction */
     amount: number;
 
     /** Was the action created automatically, not by a human */
@@ -46,7 +46,7 @@ type OriginalMessageIOU = {
     /** Optional comment */
     comment?: string;
 
-    /** Currency of the transactioned money */
+    /** Currency of the transaction money */
     currency: string;
 
     /** When was the `IOU` last modified */
@@ -363,10 +363,10 @@ type OriginalMessagePolicyChangeLog = {
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
 
-    /** New desciption */
+    /** New description */
     newDescription?: string;
 
-    /** Old desciption */
+    /** Old description */
     oldDescription?: string;
 
     /** Report field type */
@@ -544,7 +544,7 @@ type OriginalMessageReimbursementDequeued = {
     currency: string;
 };
 
-/** Model of `CHANGEPOLICY` report action */
+/** Model of `CHANGE_POLICY` report action */
 type OriginalMessageChangePolicy = {
     /** ID of the old policy */
     fromPolicy: string | undefined;
@@ -693,7 +693,7 @@ type OriginalMessageDemotedFromWorkspace = {
 type OriginalMessageAddPaymentCard = Record<string, never>;
 
 /**
- * Original message for INTEGRATIONSYNCFAILED actions
+ * Original message for INTEGRATION_SYNC_FAILED actions
  */
 type OriginalMessageIntegrationSyncFailed = {
     /** The user friendly connection name */

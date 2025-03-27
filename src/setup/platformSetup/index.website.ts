@@ -36,7 +36,7 @@ function webUpdate() {
  */
 const webUpdater = (): PlatformSpecificUpdater => ({
     init: () => {
-        // We want to check for updates and refresh the page if necessary when the app is backgrounded.
+        // We want to check for updates and refresh the page if necessary when the app is background.
         // That way, it will auto-update silently when they minimize the page,
         // and we don't bug the user any more than necessary :)
         window.addEventListener('visibilitychange', () => {

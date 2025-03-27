@@ -26,7 +26,7 @@ function Template(props: MenuItemProps) {
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default: MenuItemStory = Template.bind({});
 Default.args = {
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
     iconWidth: variables.iconSizeExtraLarge,
@@ -34,7 +34,7 @@ Default.args = {
 
 const Description: MenuItemStory = Template.bind({});
 Description.args = {
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     description: 'Account ending in 1111',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
@@ -43,7 +43,7 @@ Description.args = {
 
 const RightIcon: MenuItemStory = Template.bind({});
 RightIcon.args = {
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
     iconWidth: variables.iconSizeExtraLarge,
@@ -52,7 +52,7 @@ RightIcon.args = {
 
 const RightIconAndDescription: MenuItemStory = Template.bind({});
 RightIconAndDescription.args = {
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     description: 'Account ending in 1111',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
@@ -63,7 +63,7 @@ RightIconAndDescription.args = {
 const RightIconAndDescriptionWithLabel: MenuItemStory = Template.bind({});
 RightIconAndDescriptionWithLabel.args = {
     label: 'Account number',
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     description: 'Account ending in 1111',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
@@ -73,7 +73,7 @@ RightIconAndDescriptionWithLabel.args = {
 
 const Selected: MenuItemStory = Template.bind({});
 Selected.args = {
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     description: 'Account ending in 1111',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
@@ -84,7 +84,7 @@ Selected.args = {
 
 const BadgeText: MenuItemStory = Template.bind({});
 BadgeText.args = {
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
     iconWidth: variables.iconSizeExtraLarge,
@@ -94,7 +94,7 @@ BadgeText.args = {
 
 const Focused: MenuItemStory = Template.bind({});
 Focused.args = {
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
     iconWidth: variables.iconSizeExtraLarge,
@@ -104,7 +104,7 @@ Focused.args = {
 
 const Disabled: MenuItemStory = Template.bind({});
 Disabled.args = {
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
     iconWidth: variables.iconSizeExtraLarge,
@@ -114,7 +114,7 @@ Disabled.args = {
 
 const BrickRoadIndicatorInfo: MenuItemStory = Template.bind({});
 BrickRoadIndicatorInfo.args = {
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
     iconWidth: variables.iconSizeExtraLarge,
@@ -124,7 +124,7 @@ BrickRoadIndicatorInfo.args = {
 
 const BrickRoadIndicatorFailure: MenuItemStory = Template.bind({});
 BrickRoadIndicatorFailure.args = {
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
     iconWidth: variables.iconSizeExtraLarge,
@@ -134,7 +134,7 @@ BrickRoadIndicatorFailure.args = {
 
 const ErrorMessage: MenuItemStory = Template.bind({});
 ErrorMessage.args = {
-    title: 'Alberta Bobbeth Charleson',
+    title: 'Alberta Bobby Charleston',
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
     iconWidth: variables.iconSizeExtraLarge,

@@ -431,7 +431,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
         const transactionID: string | undefined = route.params?.transactionID;
 
-        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the trasaction thread created yet
+        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
         if (moneyRequestReportActionID && transactionID && currentUserEmail) {
             openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID);
@@ -650,13 +650,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // we want to do this destinguish between normal navigation and delete behavior
+        // we want to do this distinguish between normal navigation and delete behavior
         if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
             setIsNavigatingToDeletedAction(true);
             return;
         }
 
-        // Clear params when Action gets deleted while heighlighted
+        // Clear params when Action gets deleted while highlighted
         if (!isNavigatingToDeletedAction && prevIsLinkedActionDeleted === false) {
             Navigation.setParams({reportActionID: ''});
         }

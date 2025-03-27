@@ -111,7 +111,7 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
     );
 }
 
-function MultiConnectionSelectorPageeWrapper(props: MultiConnectionSelectorPageProps) {
+function MultiConnectionSelectorPageWrapper(props: MultiConnectionSelectorPageProps) {
     return (
         <AccountingContextProvider policy={props.policy}>
             <MultiConnectionSelectorPage
@@ -124,4 +124,4 @@ function MultiConnectionSelectorPageeWrapper(props: MultiConnectionSelectorPageP
 
 MultiConnectionSelectorPage.displayName = 'MultiConnectionSelectorPage';
 
-export default withPolicyConnections(MultiConnectionSelectorPageeWrapper);
+export default withPolicyConnections(MultiConnectionSelectorPageWrapper);

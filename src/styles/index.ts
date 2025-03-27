@@ -188,7 +188,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 marginTop: 4,
                 marginBottom: 4,
 
-                // Overwrite default HTML margin for blockquotes
+                // Overwrite default HTML margin for blockquote
                 marginLeft: 0,
             },
 
@@ -1045,7 +1045,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderBottomWidth: 2,
             borderColor: theme.borderLighter,
-            // Adding browser specefic style to bring consistency between Safari and other platforms.
+            // Adding browser specific style to bring consistency between Safari and other platforms.
             // Applying the Webkit styles only to browsers as it is not available in native.
             ...(getBrowser()
                 ? {
@@ -1861,11 +1861,6 @@ const styles = (theme: ThemeColors) =>
                 horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWidth : variables.sideBarWidth) + 18,
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
-
-        createMenuPositionRightSidepane: {
-            right: 18,
-            bottom: 75,
-        },
 
         createMenuContainer: {
             width: variables.sideBarWidth - 40,

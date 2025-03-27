@@ -42,7 +42,7 @@ function TypeBusiness({onNext, isEditing}: SubStepProps) {
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('businessInfoStep.selectYourCompanysType')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('businessInfoStep.selectYourCompanyType')}</Text>
             <InputWrapper
                 InputComponent={BusinessTypePicker}
                 inputID={COMPANY_INCORPORATION_TYPE_KEY}

@@ -103,7 +103,7 @@ function LegalNamePage() {
                             <InputWrapper
                                 InputComponent={TextInput}
                                 inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                                name="lfname"
+                                name={INPUT_IDS.LEGAL_FIRST_NAME}
                                 label={translate('privatePersonalDetails.legalFirstName')}
                                 aria-label={translate('privatePersonalDetails.legalFirstName')}
                                 role={CONST.ROLE.PRESENTATION}
@@ -116,7 +116,7 @@ function LegalNamePage() {
                             <InputWrapper
                                 InputComponent={TextInput}
                                 inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                                name="llname"
+                                name={INPUT_IDS.LEGAL_LAST_NAME}
                                 label={translate('privatePersonalDetails.legalLastName')}
                                 aria-label={translate('privatePersonalDetails.legalLastName')}
                                 role={CONST.ROLE.PRESENTATION}

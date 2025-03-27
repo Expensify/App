@@ -30,13 +30,13 @@ const personalDetails: PersonalDetailsList = {
         accountID: 22222222,
         avatar: '@assets/images/avatars/user/default-avatar_2.svg',
         firstName: 'Ted',
-        lastName: 'Kowalski',
+        lastName: 'Kawasaki',
         status: {
             clearAfter: '',
             emojiCode: '🚲',
             text: '0% cycling in Canary islands',
         },
-        displayName: 'Ted Kowalski',
+        displayName: 'Ted Kawasaki',
         login: 'tedkowalski@mail.com',
         pronouns: '__predefined_heHimHis',
         timezone: {

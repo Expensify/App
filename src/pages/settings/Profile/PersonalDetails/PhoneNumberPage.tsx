@@ -104,7 +104,7 @@ function PhoneNumberPage() {
                                 InputComponent={TextInput}
                                 ref={inputCallbackRef}
                                 inputID={INPUT_IDS.PHONE_NUMBER}
-                                name="lfname"
+                                name={INPUT_IDS.PHONE_NUMBER}
                                 label={translate('common.phoneNumber')}
                                 aria-label={translate('common.phoneNumber')}
                                 role={CONST.ROLE.PRESENTATION}

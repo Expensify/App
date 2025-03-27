@@ -259,7 +259,7 @@ const SCREENS = {
         TAG: 'Transaction_Duplicate_Tag',
         DESCRIPTION: 'Transaction_Duplicate_Description',
         TAX_CODE: 'Transaction_Duplicate_Tax_Code',
-        REIMBURSABLE: 'Transaction_Duplicate_Reimburable',
+        REIMBURSABLE: 'Transaction_Duplicate_Reimbursable',
         BILLABLE: 'Transaction_Duplicate_Billable',
         CONFIRMATION: 'Transaction_Duplicate_Confirmation',
     },

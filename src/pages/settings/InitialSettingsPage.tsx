@@ -141,7 +141,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     );
 
     /**
-     * Retuns a list of menu items data for account section
+     * Returns a list of menu items data for account section
      * @returns object with translationKey, style and items for the account section
      */
     const accountMenuItemsData: Menu = useMemo(() => {

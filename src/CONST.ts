@@ -2683,11 +2683,11 @@ const CONST = {
         AMOUNT_MAX_LENGTH: 8,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
         RECEIPT_STATE: {
-            SCAN_READY: 'SCAN_READY',
+            SCAN_READY: 'SCANREADY',
             OPEN: 'OPEN',
             SCANNING: 'SCANNING',
-            SCAN_COMPLETE: 'SCAN_COMPLETE',
-            SCAN_FAILED: 'SCAN_FAILED',
+            SCAN_COMPLETE: 'SCANCOMPLETE',
+            SCAN_FAILED: 'SCANFAILED',
         },
         FILE_TYPES: {
             HTML: 'html',

@@ -165,7 +165,7 @@ type RequestConflictResolver = {
     persistWhenOngoing?: boolean;
 
     /**
-     * A boolean flag to mark a request as rollbacked, if set to true it means the request failed and was added back into the queue.
+     * A boolean flag to mark a request as rollback, if set to true it means the request failed and was added back into the queue.
      */
     isRollback?: boolean;
 };
