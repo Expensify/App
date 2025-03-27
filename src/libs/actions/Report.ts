@@ -78,6 +78,7 @@ import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoo
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
+import {buildNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -2447,7 +2448,6 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
     const timeOfCreation = DateUtils.getDBTime();
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
-
     const optimisticDataValue: OptimisticNewReport = {
         reportID,
         policyID: policy?.id,
@@ -2460,6 +2460,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         participants: {},
         lastVisibleActionCreated: timeOfCreation,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        parentReportID: parentReport?.reportID,
     };
 
     const optimisticReportName = populateOptimisticReportFormula(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, optimisticDataValue, policy);
@@ -2514,6 +2515,8 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
+    const optimisticNextStep = buildNextStep(optimisticDataValue, CONST.REPORT.STATUS_NUM.OPEN);
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -2529,6 +2532,11 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
             value: {[reportPreviewReportActionID]: optimisticReportPreview},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+            value: optimisticNextStep,
         },
     ];
 
