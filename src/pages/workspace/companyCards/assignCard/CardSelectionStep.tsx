@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {BrokenMagnifyingGlass} from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
@@ -12,11 +12,12 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
+import {filterInactiveCards, getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,14 +33,15 @@ type CardSelectionStepProps = {
 };
 
 function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {environmentURL} = useEnvironment();
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`, {selector: filterInactiveCards});
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
 
     const isEditing = assignCard?.isEditing;
@@ -90,7 +92,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
-                src={getCardFeedIcon(feed)}
+                src={getCardFeedIcon(feed, illustrations)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -112,7 +114,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             {!cardListOptions.length ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
                     <Icon
-                        src={Illustrations.BrokenMagnifyingGlass}
+                        src={BrokenMagnifyingGlass}
                         width={116}
                         height={168}
                     />
@@ -132,6 +134,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 <>
                     <SelectionList
                         sections={[{data: searchedListOptions}]}
+                        headerMessage={searchedListOptions.length ? undefined : translate('common.noResultsFound')}
                         shouldShowTextInput={cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
                         textInputLabel={translate('common.search')}
                         textInputValue={searchText}
@@ -157,6 +160,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                             </View>
                         }
                         shouldShowTextInputAfterHeader
+                        shouldShowHeaderMessageAfterHeader
                         includeSafeAreaPaddingBottom={false}
                         shouldShowListEmptyContent={false}
                         shouldUpdateFocusedIndex
@@ -165,7 +169,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                         buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                         onSubmit={submit}
                         isAlertVisible={shouldShowError}
-                        containerStyles={styles.ph5}
+                        containerStyles={[styles.ph5, !shouldShowError && styles.mt5]}
                         message={translate('common.error.pleaseSelectOne')}
                         buttonStyles={styles.mb5}
                     />

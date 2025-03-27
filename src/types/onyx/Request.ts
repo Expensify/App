@@ -63,6 +63,9 @@ type RequestData = {
      * More info https://github.com/Expensify/App/issues/51761
      */
     initiatedOffline?: boolean;
+
+    /** The unique ID of the request */
+    requestID?: number;
 };
 
 /**

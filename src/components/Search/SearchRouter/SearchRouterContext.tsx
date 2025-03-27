@@ -1,6 +1,6 @@
 import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import isSearchTopmostCentralPane from '@navigation/isSearchTopmostCentralPane';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import * as Modal from '@userActions/Modal';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -49,7 +49,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         // So we need a function that is based on ref to correctly open/close it
         // When user is on `/search` page we focus the Input instead of showing router
         const toggleSearch = () => {
-            const isUserOnSearchPage = isSearchTopmostCentralPane();
+            const isUserOnSearchPage = isSearchTopmostFullScreenRoute();
 
             if (isUserOnSearchPage && searchPageInputRef.current) {
                 if (searchPageInputRef.current.isFocused()) {

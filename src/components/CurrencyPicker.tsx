@@ -32,14 +32,14 @@ type CurrencyPickerProps = {
     /** List of currencies to exclude from the list */
     excludeCurrencies?: string[];
 
-    /** Is the MenuItem interactive */
-    interactive?: boolean;
+    /** Is the MenuItem disabled */
+    disabled?: boolean;
 
     /** Should show the full page offline view (whenever the user is offline) */
     shouldShowFullPageOfflineView?: boolean;
 };
 
-function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, interactive, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
+function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, disabled = false, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const styles = useThemeStyles();
@@ -64,7 +64,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                 onPress={() => setIsPickerVisible(true)}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
-                interactive={interactive}
+                disabled={disabled}
             />
             <Modal
                 type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -72,14 +72,18 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                 onClose={hidePickerModal}
                 onModalHide={hidePickerModal}
                 hideModalContentWhileAnimating
+                shouldEnableNewFocusManagement
                 useNativeDriver
                 onBackdropPress={Navigation.dismissModal}
+                shouldUseModalPaddingStyle={false}
+                shouldHandleNavigationBack
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
-                    includePaddingTop={false}
+                    includePaddingTop
                     includeSafeAreaPaddingBottom
                     testID={CurrencyPicker.displayName}
+                    shouldEnableMaxHeight
                 >
                     <HeaderWithBackButton
                         title={label}

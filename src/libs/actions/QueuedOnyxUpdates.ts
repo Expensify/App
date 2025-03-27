@@ -32,6 +32,7 @@ function flushQueue(): Promise<void> {
             ONYXKEYS.NVP_PREFERRED_LOCALE,
             ONYXKEYS.SESSION,
             ONYXKEYS.IS_LOADING_APP,
+            ONYXKEYS.HAS_LOADED_APP,
             ONYXKEYS.CREDENTIALS,
             ONYXKEYS.IS_SIDEBAR_LOADED,
             ONYXKEYS.ACCOUNT,

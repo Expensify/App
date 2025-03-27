@@ -7,17 +7,19 @@ import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteNonReimbursableExpensesExportDestination, updateNetSuiteReimbursableExpensesExportDestination} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import {exportExpensesDestinationSettingName} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>;
@@ -26,11 +28,12 @@ type MenuListItem = ListItem & {
 function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
-    const config = policy?.connections?.netsuite.options.config;
+    const policyID = policy?.id;
+    const config = policy?.connections?.netsuite?.options.config;
 
-    const route = useRoute();
-    const params = route.params as ExpenseRouteParams;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT>>();
+    const params = route.params;
+    const backTo = params.backTo;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
     const currentSettingName = exportExpensesDestinationSettingName(isReimbursable);
@@ -43,18 +46,22 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
         isSelected: currentDestination === dateType,
     }));
 
+    const goBack = useCallback(() => {
+        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
+    }, [backTo, policyID, params.expenseType]);
+
     const selectDestination = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== currentDestination) {
+            if (row.value !== currentDestination && policyID) {
                 if (isReimbursable) {
-                    Connections.updateNetSuiteReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
+                    updateNetSuiteReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
                 } else {
-                    Connections.updateNetSuiteNonReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
+                    updateNetSuiteNonReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
                 }
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
+            goBack();
         },
-        [currentDestination, isReimbursable, params.expenseType, policyID],
+        [currentDestination, isReimbursable, policyID, goBack],
     );
 
     return (
@@ -68,12 +75,12 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType))}
+            onBackButtonPress={goBack}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             pendingAction={settingsPendingAction([currentSettingName], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, currentSettingName)}
+            errors={getLatestErrorField(config, currentSettingName)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, currentSettingName)}
+            onClose={() => clearNetSuiteErrorField(policyID, currentSettingName)}
         />
     );
 }

@@ -53,7 +53,7 @@ function NSQSDatePage({policy}: WithPolicyProps) {
     return (
         <SelectionScreen<Option>
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NSQSDatePage.displayName}
             headerContent={headerContent}

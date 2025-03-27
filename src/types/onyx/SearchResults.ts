@@ -8,6 +8,7 @@ import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from './OnyxCommon';
 import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
+import type {PolicyEmployeeList} from './PolicyEmployee';
 import type {InvoiceReceiver, Participants} from './Report';
 import type ReportActionName from './ReportActionName';
 import type ReportNameValuePairs from './ReportNameValuePairs';
@@ -173,6 +174,9 @@ type SearchReport = {
 
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat?: boolean;
+
+    /** The policy name to use for an archived report */
+    oldPolicyName?: string;
 };
 
 /** Model of report action search result */
@@ -251,7 +255,7 @@ type SearchPolicy = {
     role: ValueOf<typeof CONST.POLICY.ROLE>;
 
     /** The employee list of the policy */
-    employeeList?: Record<string, Record<string, string>>;
+    employeeList?: PolicyEmployeeList;
 
     /** Detailed settings for the autoReimbursement */
     autoReimbursement?: {

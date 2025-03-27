@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {Linking, NativeModules, View} from 'react-native';
+import {Linking, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -18,6 +18,7 @@ import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actio
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,7 +29,7 @@ type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
@@ -45,7 +46,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
             cleanupTravelProvisioningSession();
 
             // TravelDot is a standalone white-labeled implementation of Spotnana so it has to be opened in a new tab
-            Linking.openURL(buildTravelDotURL(travelProvisioning.spotnanaToken));
+            Linking.openURL(buildTravelDotURL(travelProvisioning.spotnanaToken, travelProvisioning.isTestAccount ?? false));
         }
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
@@ -80,7 +81,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
             shouldEnableMaxHeight
             testID={TravelTerms.displayName}
         >
-            <FullPageNotFoundView shouldShow={!canUseSpotnanaTravel && !NativeModules.HybridAppModule}>
+            <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && (!canUseSpotnanaTravel || isBlockedFromSpotnanaTravel)}>
                 <HeaderWithBackButton
                     title={translate('travel.termsAndConditions.header')}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -91,11 +92,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
                         <Text style={styles.mt4}>
                             {`${translate('travel.termsAndConditions.subtitle')}`}
                             <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.termsconditions')}.`}</TextLink>
-                        </Text>
-                        <Text style={styles.mt6}>
-                            {`${translate('travel.termsAndConditions.helpDocIntro')}`}
-                            <TextLink href="https://use.expensify.com/esignagreement">{`${translate('travel.termsAndConditions.helpDoc')} `}</TextLink>
-                            {`${translate('travel.termsAndConditions.helpDocOutro')}`}
                         </Text>
                         <CheckboxWithLabel
                             style={styles.mt6}

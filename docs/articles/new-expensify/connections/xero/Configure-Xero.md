@@ -2,8 +2,19 @@
 title: Configure Xero
 description: How to configure your settings for Xero
 ---
- 
-To configure your Xero settings, complete the steps below.
+
+# Best Practices Using Xero
+
+Using Expensify with Xero brings a seamless, efficient approach to managing expenses. With automatic syncing, expense reports flow directly into Xero, reducing manual entry and errors while giving real-time visibility into spending. This integration speeds up approvals, simplifies reimbursements, and provides clear insights for smarter budgeting and compliance. Together, Expensify and Xero make expense management faster, more accurate, and stress-free.
+
+# Accessing the Xero Configuration Settings
+
+Xero is connected at the workspace level, and each workspace can have a unique configuration that dictates how the connection functions. To access the connection settings:
+
+1. Click your profile image or icon in the bottom left menu.
+2. Scroll down and click **Workspaces** in the left menu.
+3. Select the workspace you want to access settings for.
+4. Click **Accounting** in the left menu.
 
 # Step 1: Configure import settings
 

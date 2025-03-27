@@ -72,6 +72,7 @@ function BaseTextInput(
         contentWidth,
         loadingSpinnerStyle,
         uncontrolled,
+        placeholderTextColor,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -347,7 +348,7 @@ function BaseTextInput(
                                 autoFocus={autoFocus && !shouldDelayFocus}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
-                                placeholderTextColor={theme.placeholderText}
+                                placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
                                     styles.flex1,
@@ -479,7 +480,8 @@ function BaseTextInput(
                         if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
                             return;
                         }
-                        setTextInputWidth(e.nativeEvent.layout.width);
+                        // Add +2 to width so that cursor is not cut off / covered at the end of text content
+                        setTextInputWidth(e.nativeEvent.layout.width + 2);
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
                 >

@@ -9,7 +9,7 @@ import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBrowser, isMobile} from '@libs/Browser';
-import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
+import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 

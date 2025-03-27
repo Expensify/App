@@ -39,6 +39,9 @@ type ConfirmationPageProps = {
 
     /** Additional style for the description */
     descriptionStyle?: TextStyle;
+
+    /** Additional style for the container */
+    containerStyle?: ViewStyle;
 };
 
 function ConfirmationPage({
@@ -51,12 +54,13 @@ function ConfirmationPage({
     headingStyle,
     illustrationStyle,
     descriptionStyle,
+    containerStyle,
 }: ConfirmationPageProps) {
     const styles = useThemeStyles();
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     return (
-        <>
+        <View style={containerStyle}>
             <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
                 {isLottie ? (
                     <Lottie
@@ -89,7 +93,7 @@ function ConfirmationPage({
                     />
                 </FixedFooter>
             )}
-        </>
+        </View>
     );
 }
 

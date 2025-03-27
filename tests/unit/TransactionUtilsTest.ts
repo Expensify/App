@@ -1,5 +1,9 @@
+import Onyx from 'react-native-onyx';
+import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Policy, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
@@ -25,7 +29,56 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     return {...baseValues, ...values};
 }
 
+const CURRENT_USER_ID = 1;
+const SECOND_USER_ID = 2;
+const FAKE_OPEN_REPORT_ID = 'FAKE_OPEN_REPORT_ID';
+const FAKE_OPEN_REPORT_SECOND_USER_ID = 'FAKE_OPEN_REPORT_SECOND_USER_ID';
+const FAKE_PROCESSING_REPORT_ID = 'FAKE_PROCESSING_REPORT_ID';
+const FAKE_APPROVED_REPORT_ID = 'FAKE_APPROVED_REPORT_ID';
+const openReport = {
+    reportID: FAKE_OPEN_REPORT_ID,
+    ownerAccountID: CURRENT_USER_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+};
+const processingReport = {
+    reportID: FAKE_PROCESSING_REPORT_ID,
+    ownerAccountID: CURRENT_USER_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+};
+const approvedReport = {
+    reportID: FAKE_APPROVED_REPORT_ID,
+    ownerAccountID: SECOND_USER_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+};
+const secondUserOpenReport = {
+    reportID: FAKE_OPEN_REPORT_SECOND_USER_ID,
+    ownerAccountID: SECOND_USER_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+};
+const reportCollectionDataSet: ReportCollectionDataSet = {
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`]: openReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_PROCESSING_REPORT_ID}`]: processingReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_APPROVED_REPORT_ID}`]: approvedReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_SECOND_USER_ID}`]: secondUserOpenReport,
+};
+
 describe('TransactionUtils', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID},
+                ...reportCollectionDataSet,
+            },
+        });
+    });
+
     describe('getCreated', () => {
         describe('when the transaction property "modifiedCreated" has value', () => {
             const transaction = generateTransaction({
@@ -239,6 +292,116 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.category).toBe(category);
             expect(updatedTransaction.taxCode).toBe(taxCode);
             expect(updatedTransaction.taxAmount).toBe(5);
+        });
+    });
+
+    describe('shouldShowRTERViolationMessage', () => {
+        it('should return true if transaction is receipt being scanned', () => {
+            const transaction = generateTransaction({
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANREADY,
+                },
+            });
+            expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
+        });
+    });
+
+    describe('calculateTaxAmount', () => {
+        it('returns 0 for undefined percentage', () => {
+            const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns 0 for empty percentage', () => {
+            const result = TransactionUtils.calculateTaxAmount('', 10000, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns 0 for zero percentage', () => {
+            const result = TransactionUtils.calculateTaxAmount('0%', 10000, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns 0 for zero amount', () => {
+            const result = TransactionUtils.calculateTaxAmount('10%', 0, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns correct tax amount for valid percentage and amount', () => {
+            const result = TransactionUtils.calculateTaxAmount('10%', 10000, 'USD');
+            expect(result).toBe(9.09);
+        });
+    });
+
+    describe('shouldShowBrokenConnectionViolation', () => {
+        it('should return false when no broken connection violations are found for the provided transaction', () => {
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, undefined, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(false);
+        });
+
+        it('should return true when a broken connection violation exists for one transaction and the user is the policy member', () => {
+            const policy = {role: CONST.POLICY.ROLE.USER} as Policy;
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return true when a broken connection violation exists for any of the provided transactions and the user is the policy member', () => {
+            const policy = {role: CONST.POLICY.ROLE.USER} as Policy;
+            const transaction1 = generateTransaction();
+            const transaction2 = generateTransaction();
+            const transactionIDs = [transaction1.transactionID, transaction2.transactionID];
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.RTER,
+                        data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION},
+                    },
+                ],
+            };
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, undefined, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return true when a broken connection violation exists and the user is the policy admin and the expense submitter', () => {
+            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const report = processingReport;
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return true when a broken connection violation exists, the user is the policy admin and the expense report is in the open state', () => {
+            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const report = secondUserOpenReport;
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return true when a broken connection violation exists, the user is the policy admin, the expense report is in the processing state and instant submit is enabled', () => {
+            const policy = {role: CONST.POLICY.ROLE.ADMIN, autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT} as Policy;
+            const report = processingReport;
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return false when a broken connection violation exists, the user is the policy admin but the expense report is in the approved state', () => {
+            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const report = approvedReport;
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(false);
         });
     });
 });

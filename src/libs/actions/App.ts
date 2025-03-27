@@ -16,7 +16,6 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import {getMostRecentReportActionLastModified} from '@libs/ReportActionsUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -27,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
-import {getAll, save} from './PersistedRequests';
+import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {isAnonymousUser} from './Session';
@@ -103,6 +102,14 @@ Onyx.connect({
     key: ONYXKEYS.USER,
     callback: (value) => {
         preservedShouldUseStagingServer = value?.shouldUseStagingServer;
+    },
+});
+
+let hasLoadedApp: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.HAS_LOADED_APP,
+    callback: (value) => {
+        hasLoadedApp = value;
     },
 });
 
@@ -239,7 +246,13 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
                 value: true,
             },
         ],
-        successData: [],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.HAS_LOADED_APP,
+                value: true,
+            },
+        ],
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -291,18 +304,13 @@ function openApp() {
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
 function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
+    if (!hasLoadedApp) {
+        openApp();
+        return;
+    }
     console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params: ReconnectAppParams = policyParams;
-
-        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
-        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
-        //
-        // - Look through the local report actions and reports to find the most recently modified report action or report.
-        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-        params.mostRecentReportActionLastModified = getMostRecentReportActionLastModified();
-        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
         // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
         // Otherwise, a full set of app data will be returned.
@@ -326,15 +334,6 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
     return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params: ReconnectAppParams = {...policyParams};
-
-        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
-        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
-        //
-        // - Look through the local report actions and reports to find the most recently modified report action or report.
-        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-        params.mostRecentReportActionLastModified = getMostRecentReportActionLastModified();
-        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
         // It is SUPER BAD FORM to return promises from action methods.
         // DO NOT FOLLOW THIS PATTERN!!!!!
@@ -393,6 +392,7 @@ function endSignOnTransition() {
  * @param [policyID] Optional, Policy id.
  * @param [currency] Optional, selected currency for the workspace
  * @param [file], avatar file for workspace
+ * @param [routeToNavigateAfterCreate], Optional, route to navigate after creating a workspace
  */
 function createWorkspaceWithPolicyDraftAndNavigateToIt(
     policyOwnerEmail = '',
@@ -403,18 +403,19 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
     policyID = '',
     currency?: string,
     file?: File,
+    routeToNavigateAfterCreate?: Route,
 ) {
     const policyIDWithDefault = policyID || generatePolicyID();
     createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
-
     Navigation.isNavigationReady()
         .then(() => {
             if (transitionFromOldDot) {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
             }
+            const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
             savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file);
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo));
+            Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
         })
         .then(endSignOnTransition);
 }
@@ -570,38 +571,42 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const isStateImported = isUsingImportedState;
     const shouldUseStagingServer = preservedShouldUseStagingServer;
     const sequentialQueue = getAll();
-    Onyx.clear(KEYS_TO_PRESERVE).then(() => {
-        // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
-        if (isStateImported) {
-            setShouldForceOffline(false);
-        }
 
-        if (shouldNavigateToHomepage) {
-            Navigation.navigate(ROUTES.HOME);
-        }
-
-        if (preservedUserSession) {
-            Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
-            Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
-        }
-
-        if (shouldUseStagingServer) {
-            Onyx.set(ONYXKEYS.USER, {shouldUseStagingServer});
-        }
-
-        // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
-        // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
-        // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
-        openApp().then(() => {
-            if (!sequentialQueue || isStateImported) {
-                return;
+    rollbackOngoingRequest();
+    Onyx.clear(KEYS_TO_PRESERVE)
+        .then(() => {
+            // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
+            if (isStateImported) {
+                setShouldForceOffline(false);
             }
 
-            sequentialQueue.forEach((request) => {
-                save(request);
+            if (shouldNavigateToHomepage) {
+                Navigation.navigate(ROUTES.HOME);
+            }
+
+            if (preservedUserSession) {
+                Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
+                Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
+            }
+
+            if (shouldUseStagingServer) {
+                Onyx.set(ONYXKEYS.USER, {shouldUseStagingServer});
+            }
+        })
+        .then(() => {
+            // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
+            // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
+            // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
+            openApp().then(() => {
+                if (!sequentialQueue || isStateImported) {
+                    return;
+                }
+
+                sequentialQueue.forEach((request) => {
+                    save(request);
+                });
             });
         });
-    });
     clearSoundAssetsCache();
 }
 

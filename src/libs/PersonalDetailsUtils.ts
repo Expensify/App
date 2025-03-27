@@ -7,9 +7,10 @@ import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePers
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
-import * as Localize from './Localize';
-import * as UserUtils from './UserUtils';
+import {formatPhoneNumber} from './LocalePhoneNumber';
+import {translateLocal} from './Localize';
+import {areEmailsFromSamePrivateDomain} from './LoginUtils';
+import {generateAccountID} from './UserUtils';
 
 type FirstAndLastName = {
     firstName: string;
@@ -42,8 +43,20 @@ Onyx.connect({
         if (!value) {
             return;
         }
-        hiddenTranslation = Localize.translateLocal('common.hidden');
-        youTranslation = Localize.translateLocal('common.you').toLowerCase();
+        hiddenTranslation = translateLocal('common.hidden');
+        youTranslation = translateLocal('common.you').toLowerCase();
+    },
+});
+
+let defaultCountry = '';
+
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        defaultCountry = value;
     },
 });
 
@@ -118,7 +131,7 @@ function getPersonalDetailsByIDs({
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {
                     ...detail,
-                    displayName: Localize.translateLocal('common.you'),
+                    displayName: translateLocal('common.you'),
                 };
             }
 
@@ -143,12 +156,22 @@ function getAccountIDsByLogins(logins: string[]): number[] {
         const currentDetail = personalDetails.find((detail) => detail?.login === login?.toLowerCase());
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-            foundAccountIDs.push(UserUtils.generateAccountID(login));
+            foundAccountIDs.push(generateAccountID(login));
         } else {
             foundAccountIDs.push(Number(currentDetail.accountID));
         }
         return foundAccountIDs;
     }, []);
+}
+
+/**
+ * Given an accountID, find the associated personal detail and return related login.
+ *
+ * @param accountID User accountID
+ * @returns Login according to passed accountID
+ */
+function getLoginByAccountID(accountID: number): string | undefined {
+    return allPersonalDetails?.[accountID]?.login;
 }
 
 /**
@@ -159,9 +182,9 @@ function getAccountIDsByLogins(logins: string[]): number[] {
  */
 function getLoginsByAccountIDs(accountIDs: number[]): string[] {
     return accountIDs.reduce((foundLogins: string[], accountID) => {
-        const currentDetail: Partial<PersonalDetails> = allPersonalDetails?.[accountID] ?? {};
-        if (currentDetail.login) {
-            foundLogins.push(currentDetail.login);
+        const currentLogin = getLoginByAccountID(accountID);
+        if (currentLogin) {
+            foundLogins.push(currentLogin);
         }
         return foundLogins;
     }, []);
@@ -197,7 +220,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
         personalDetailsNew[accountID] = {
             login,
             accountID,
-            displayName: LocalePhoneNumber.formatPhoneNumber(login),
+            displayName: formatPhoneNumber(login),
             isOptimisticPersonalDetail: true,
         };
 
@@ -294,7 +317,7 @@ function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDe
  */
 function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | undefined {
     if (personalDetail) {
-        return LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
+        return formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
     }
 
     return undefined;
@@ -306,7 +329,7 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
 function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
-    const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
+    const userLogin = formatPhoneNumber(login);
 
     if (!passedPersonalDetails) {
         return userLogin;
@@ -370,6 +393,26 @@ function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'display
     return email;
 }
 
+const getShortMentionIfFound = (displayText: string, userAccountID: string, currentUserPersonalDetails: OnyxEntry<PersonalDetails>, userLogin = '') => {
+    // If the userAccountID does not exist, this is an email-based mention so the displayText must be an email.
+    // If the userAccountID exists but userLogin is different from displayText, this means the displayText is either user display name, Hidden, or phone number, in which case we should return it as is.
+    if (userAccountID && userLogin !== displayText) {
+        return displayText;
+    }
+
+    // If the emails are not in the same private domain, we also return the displayText
+    if (!areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails?.login ?? '')) {
+        return displayText;
+    }
+
+    // Otherwise, the emails must be of the same private domain, so we should remove the domain part
+    return displayText.split('@').at(0);
+};
+
+function getDefaultCountry() {
+    return defaultCountry;
+}
+
 export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
@@ -388,4 +431,7 @@ export {
     getNewAccountIDsAndLogins,
     getPersonalDetailsLength,
     getUserNameByEmail,
+    getShortMentionIfFound,
+    getDefaultCountry,
+    getLoginByAccountID,
 };

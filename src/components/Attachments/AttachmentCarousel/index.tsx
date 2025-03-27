@@ -16,7 +16,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -63,7 +63,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     const pagerRef = useRef<GestureType>(null);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const canUseTouchScreen = canUseTouchScreenUtil();
 
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
     const cellWidth = useMemo(
@@ -90,6 +90,8 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         let newAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
             newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, report});
+        } else if (type === CONST.ATTACHMENT_TYPE.ONBOARDING) {
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.ONBOARDING, {parentReportAction, reportActions: reportActions ?? undefined, report});
         } else {
             newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined, report});
         }
@@ -230,10 +232,11 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                     isFocused={activeSource === item.source}
                     onPress={canUseTouchScreen ? handleTap : undefined}
                     isModalHovered={shouldShowArrows}
+                    reportID={report.reportID}
                 />
             </View>
         ),
-        [activeSource, canUseTouchScreen, cellWidth, handleTap, shouldShowArrows, styles.h100],
+        [activeSource, canUseTouchScreen, cellWidth, handleTap, report.reportID, shouldShowArrows, styles.h100],
     );
     /** Pan gesture handing swiping through attachments on touch screen devices */
     const pan = useMemo(

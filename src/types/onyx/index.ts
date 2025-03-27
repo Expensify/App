@@ -35,7 +35,7 @@ import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
 import type JoinablePolicies from './JoinablePolicies';
 import type LastExportMethod from './LastExportMethod';
-import type LastPaymentMethod from './LastPaymentMethod';
+import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
@@ -95,7 +95,10 @@ import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
+import type ShareTempFile from './ShareTempFile';
+import type SidePane from './SidePane';
 import type StripeCustomerID from './StripeCustomerID';
+import type TalkToAISales from './TalkToAISales';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -245,9 +248,13 @@ export type {
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
+    ShareTempFile,
     CorpayFields,
     CorpayFormField,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
+    SidePane,
+    LastPaymentMethodType,
+    TalkToAISales,
 };

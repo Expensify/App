@@ -173,7 +173,7 @@ Additionally, if you want to discuss an idea with the open source community with
 
 ### Submit your pull request for final review
 14. When you are ready to submit your pull request for final review, make sure the following checks pass:
-	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/App/blob/main/contributingGuides/CLA.md) by following the CLA bot instructions that will be posted on your PR
+	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/App/blob/main/CLA.md) by following the CLA bot instructions that will be posted on your PR
 	2. Tests - All tests must pass before a merge of a pull request
 	3. Lint - All code must pass lint checks before a merge of a pull request
 15. Please never force push when a PR review has already started (because this messes with the PR review history)

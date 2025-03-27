@@ -4,10 +4,12 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import createResponsiveStackNavigator from '@navigation/AppNavigator/createResponsiveStackNavigator';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {waitForIdle} from '@libs/Network/SequentialQueue';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceUpgradePage from '@pages/workspace/upgrade/WorkspaceUpgradePage';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
@@ -18,18 +20,18 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 TestHelper.setupGlobalFetchMock();
 
-const RootStack = createResponsiveStackNavigator<SettingsNavigatorParamList>();
+const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.UPGRADE, initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.UPGRADE]) => {
     return render(
         <NavigationContainer>
-            <RootStack.Navigator initialRouteName={initialRouteName}>
-                <RootStack.Screen
+            <Stack.Navigator initialRouteName={initialRouteName}>
+                <Stack.Screen
                     name={SCREENS.WORKSPACE.UPGRADE}
                     component={WorkspaceUpgradePage}
                     initialParams={initialParams}
                 />
-            </RootStack.Navigator>
+            </Stack.Navigator>
         </NavigationContainer>,
     );
 };
@@ -42,7 +44,7 @@ describe('WorkspaceUpgrade', () => {
     });
 
     afterEach(async () => {
-        await SequentialQueue.waitForIdle();
+        await waitForIdle();
         await act(async () => {
             await Onyx.clear();
         });
@@ -72,5 +74,49 @@ describe('WorkspaceUpgrade', () => {
 
         // Then "Set policy rules enabled" API request should be made
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, 1);
+    });
+
+    it("should show the upgrade corporate plan price is in the user's local currency", async () => {
+        // Team policy which the user can upgrade to corporate
+        const policy = LHNTestUtils.getFakePolicy();
+
+        // Given that a policy is initialized in Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+        // Render the WorkspaceUpgradePage without initializing user's preferred currency
+        renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
+
+        // Expect the price to be in USD, as the user's preferred currency is not initialized
+        expect(
+            screen.getByText(
+                `${convertToShortDisplayString(
+                    CONST.SUBSCRIPTION_PRICES[CONST.PAYMENT_CARD_CURRENCY.USD][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+                    CONST.PAYMENT_CARD_CURRENCY.USD,
+                )}`,
+            ),
+        ).toBeTruthy();
+
+        // Iterate through all payment card currencies
+        for (const currency of Object.values(CONST.PAYMENT_CARD_CURRENCY)) {
+            // Format the price in the user's preferred currency
+            const price = `${convertToShortDisplayString(CONST.SUBSCRIPTION_PRICES[currency][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL], currency)}`;
+
+            // Initialized the user's preferred currency to another payment card currency
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {'-1': {localCurrencyCode: currency}});
+
+            // Render the WorkspaceUpgradePage without a feature to render GenericFeaturesView
+            renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
+
+            expect(screen.getByText(price)).toBeTruthy();
+
+            // Render the WorkspaceUpgradePage with rules as a feature to render UpgradeIntro
+            const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: 'rules'});
+
+            expect(screen.getByText(price)).toBeTruthy();
+
+            unmount();
+        }
+
+        await waitForBatchedUpdates();
     });
 });

@@ -13,6 +13,7 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReportName,
+    isAdminRoom as isAdminRoomReportUtils,
     isArchivedNonExpenseReport,
     isChatRoom as isChatRoomReportUtils,
     isConciergeChatReport,
@@ -53,6 +54,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isSelfDM = isSelfDMReportUtils(report);
     const isInvoiceRoom = isInvoiceRoomReportUtils(report);
     const isSystemChat = isSystemChatReportUtils(report);
+    const isAdminRoom = isAdminRoomReportUtils(report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true);
     const isMultipleParticipant = participantAccountIDs.length > 1;
@@ -78,7 +80,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
             moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
             moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
             moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)) &&
-        !isPolicyExpenseChat;
+        !isPolicyExpenseChat &&
+        !isAdminRoom;
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -150,7 +153,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         </Text>
                     ))}
                 {isChatRoom &&
-                    (!isInvoiceRoom || isArchivedRoom) &&
+                    ((!isInvoiceRoom && !isAdminRoom) || isArchivedRoom) &&
                     (welcomeMessage?.messageHtml ? (
                         <View style={styles.renderHTML}>
                             <RenderHTML html={welcomeMessage.messageHtml} />
@@ -170,6 +173,14 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                             {welcomeMessage.phrase2 !== undefined && <Text>{welcomeMessage.phrase2}</Text>}
                         </Text>
                     ))}
+                {isChatRoom && isAdminRoom && !isArchivedRoom && (
+                    <Text>
+                        <Text>{welcomeMessage.phrase1}</Text>
+                        {welcomeMessage.phrase2 !== undefined && <Text style={styles.textStrong}>{welcomeMessage.phrase2}</Text>}
+                        {welcomeMessage.phrase3 !== undefined && <Text>{welcomeMessage.phrase3}</Text>}
+                        {welcomeMessage.phrase4 !== undefined && <Text>{welcomeMessage.phrase4}</Text>}
+                    </Text>
+                )}
                 {isSelfDM && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>

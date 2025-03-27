@@ -43,7 +43,14 @@ function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
                     const data = firstChild && 'data' in firstChild ? firstChild.data : null;
 
                     if (typeof data === 'string') {
-                        return <Text style={(styles.textLabelSupporting, styles.textStrong)}>{data}</Text>;
+                        return (
+                            <Text
+                                key={data}
+                                style={(styles.textLabelSupporting, styles.textStrong)}
+                            >
+                                {data}
+                            </Text>
+                        );
                     }
                     return props.childElement;
                 }}

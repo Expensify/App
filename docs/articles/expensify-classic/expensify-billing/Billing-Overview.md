@@ -1,86 +1,60 @@
 ---
-title: Billing Overview
-description: Learn about Expensify billing, including active member charges, annual subscription savings, and pay-per-use options. Discover how the Expensify Card can reduce costs and maximize value.
+title: Billing and Subscriptions
+description: Expensify Billing Overview
+keywords: [Expensify Classic, billing, subscription, monthly payment, payment card, billing history]
+---
+<div id="expensify-classic" markdown="1">
+
+At the beginning of each month, the workspace's Billing Owner is billed for the previous month’s activity. 
+Your Expensify bill is determined by the following: 
+- The number of active members in your workspace
+- Whether you have a Collect or Control plan
+- Whether you’re on pay-per-use or an annual subscription
+- Whether you’re using the Expensify Visa® Commercial Card
+
+An active member is any member who creates, submits, approves, reimburses, or exports a report in Expensify in a given month. This includes members taking action as Copilots and automatic actions by Concierge.
+
+Your billing receipts can be viewed under **Settings > Account > Subscription**. We recommend appointing a single billing owner for each Group Workspace.
+
 ---
 
-Expensify’s billing is based on monthly member activity. You’ll be charged for the previous month’s usage at the beginning of each month. Your bill depends on:  
-- Plan type: Annual subscription or pay-per-use.  
-- Expensify Visa® Commercial Card usage: Discounts are available based on your card spending.
+# Save Money on Your Expensify Bill
+
+## Annual Subscription + Expensify Card
+
+Save the most money on Expensify by pairing an annual subscription with the Expensify Visa® Commercial Card. Then, if at least 50% of your total settled US spend in a given month is on the Expensify Card, you’ll pay the best possible price for Expensify:
+
+- **Collect Plan:** $5 per active member per month 
+- **Control Plan:** $9 per active member per month
+
+**You also get cash back!** Earn 1% cash back on all Expensify Card purchases or 2% if card spending reaches $250,000 or more monthly (for US purchases only). Cash back first applies to your Expensify bill, with any remainder deposited directly into your bank account.
+
+Use Expensify’s [savings calculator](https://use.expensify.com/resource-center/tools/savings-calculator) to see your potential savings with the Expensify Card. 
+
+## Annual Subscription vs Pay-per-use
+
+**Annual Subscription**
+
+You get a 50% discount with an annual subscription:
+
+- **Collect Plan:** $10 per active member per month 
+- **Control Plan:** $18 per active member per month
+  
+If your active members exceed your subscription size, additional members are billed at the pay-per-use rate for that month. You can increase your subscription size at any time (extending your annual term) but can only reduce it once your current subscription period ends.
+
+**Pay-per-use**
+
+Rates for pay-per-use plans are applied at full price:
+
+- **Collect plan:** $20 per active member per month
+- **Control plan:** $36 per active member per month
 
 ---
-# How Billing Works
-- Billing occurs on the first of each month for the previous month’s usage.
-- Only Group Workspace owners are billed.  
-- View billing receipts in:  
-  Settings > Account > Payments > Billing History.
 
-**Tip: Designate one billing owner for all Group Workspaces to streamline billing management.**
+# Transfer Ownership of Billing
 
----
-## What is an Active Member?
-An active member is anyone who performs any of these actions in Expensify during a month:
-- Chats  
-- Creates, submits, approves, reimburses, or exports a report  
-- Uses the Copilot feature to take an action in another user's account
+If another member needs to own the billing on a given workspace, they must first be a Workspace Admin. Then, from their account, the Admin will head to **Settings > Workspaces > [Workspace Name] > Members > [Current Workspace Owner] > Transfer Ownership**.
 
----
-# Annual Subscription
+From there, the new billing owner will add a payment card and be charged for the member activity on the workspace on the first of the month. 
 
-## Key Benefits:
-- Save 50% per active member compared to pay-per-use billing.  
-  - Collect plan: $10 per member (vs. $20).  
-  - Control plan: $18 per member (vs. $36).  
-- Set your monthly active member count upfront and pay a fixed rate.
-
-## How It Works:
-- You’ll be billed for the number of members set in your subscription.  
-- Extra active members beyond your subscription size are charged at the pay-per-use rate.
-
-**Example:**
-- Plan: Control  
-- Subscription size: 10 members  
-  - Cost: $18/member x 10 members = $180/month
-- Scenario: 12 active members in one month  
-  - Cost for additional two members: $36/member = $72  
-  - Total bill: $252
-
-**Adjustments:**
-- You can increase your subscription size by extending your subscription period.  
-- Reductions are only allowed after your current subscription ends.  
----
-# Pay-Per-Use Billing
-- Charges apply at full rates with no discounts.  
-  - Collect plan: $20 per active member.  
-  - Control plan: $36 per active member.
-
----
-# How the Expensify Card Reduces Your Bill
-
-## Bundling Benefits:
-- Combine an Expensify Card with an annual subscription for the lowest price per member.  
-- Spending at least 50% of your total settled US spend on Expensify Cards earns a further 50% discount.
-
-## Discount Breakdown:
-- Collect plan: $5/member.  
-- Control plan: $9/member.
-
-## Additional Savings:
-- Earn 1% cash back on Expensify Card purchases.  
-  - 2% cash back if total card spend exceeds $250k (US purchases only).  
-  - Cashback is first applied to your bill, reducing costs further. Any surplus is deposited into your bank account.
-
-## Savings Calculator
-Use our [savings calculator](https://use.expensify.com/price-savings-calculator) to estimate potential savings and earnings with the Expensify Card. Enter your details to see the results!
-
----
-# FAQ
-
-## What if less than 50% of the spend is on Expensify Cards?
-Discounts are applied on a sliding scale based on your Expensify Card spend percentage.  
-
-**Example:**
-- Annual subscription discount: 50%  
-- Expensify Card spend (US purchases): 20% of total spend  
-- Expensify Card discount: 20%
-- Total savings: 70% discount on the per-member price for that month.
-
+</div>

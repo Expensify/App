@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {FileObject} from '@components/AttachmentModal';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 
@@ -13,6 +14,10 @@ type BeneficialOwnerValues = {
     state: string;
     zipCode: string;
     country: string;
+    proofOfOwnership: FileObject[];
+    copyOfID: FileObject[];
+    addressProof: FileObject[];
+    codiceFisacle: FileObject[];
 };
 
 function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>): BeneficialOwnerValues {
@@ -28,6 +33,10 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
             state: '',
             zipCode: '',
             country: '',
+            proofOfOwnership: [],
+            copyOfID: [],
+            addressProof: [],
+            codiceFisacle: [],
         };
     }
     const beneficialOwnerPrefix = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
@@ -44,6 +53,10 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
         state: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.STATE}`,
         zipCode: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.ZIP_CODE}`,
         country: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.COUNTRY}`,
+        proofOfOwnership: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.PROOF_OF_OWNERSHIP}`,
+        copyOfID: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.COPY_OF_ID}`,
+        addressProof: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.ADDRESS_PROOF}`,
+        codiceFisacle: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.CODICE_FISCALE}`,
     } as const;
 
     return {
@@ -57,7 +70,11 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
         state: reimbursementAccountDraft[INPUT_KEYS.state] ?? '',
         zipCode: reimbursementAccountDraft[INPUT_KEYS.zipCode] ?? '',
         country: reimbursementAccountDraft[INPUT_KEYS.country] ?? '',
-    };
+        proofOfOwnership: reimbursementAccountDraft[INPUT_KEYS.proofOfOwnership] ?? [],
+        copyOfID: reimbursementAccountDraft[INPUT_KEYS.copyOfID] ?? [],
+        addressProof: reimbursementAccountDraft[INPUT_KEYS.addressProof] ?? [],
+        codiceFisacle: reimbursementAccountDraft[INPUT_KEYS.codiceFisacle] ?? [],
+    } as BeneficialOwnerValues;
 }
 
 export default getValuesForOwner;

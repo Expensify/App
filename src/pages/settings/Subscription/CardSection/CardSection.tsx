@@ -58,12 +58,12 @@ function CardSection() {
     const requestRefund = useCallback(() => {
         requestRefundByUser();
         setIsRequestRefundModalVisible(false);
-        Navigation.resetToHome();
+        Navigation.goBackToHome();
     }, []);
 
     const viewPurchases = useCallback(() => {
         const query = buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
-        Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() => CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));

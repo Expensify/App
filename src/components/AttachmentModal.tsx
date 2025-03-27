@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -133,6 +133,8 @@ type AttachmentModalProps = {
 
     canEditReceipt?: boolean;
 
+    canDeleteReceipt?: boolean;
+
     shouldDisableSendButton?: boolean;
 
     attachmentLink?: string;
@@ -157,6 +159,7 @@ function AttachmentModal({
     children,
     fallbackSource,
     canEditReceipt = false,
+    canDeleteReceipt = false,
     onModalClose = () => {},
     isLoading = false,
     shouldShowNotFoundPage = false,
@@ -291,8 +294,8 @@ function AttachmentModal({
     const deleteAndCloseModal = useCallback(() => {
         detachReceipt(transaction?.transactionID);
         setIsDeleteReceiptConfirmModalVisible(false);
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
-    }, [transaction, report]);
+        Navigation.goBack();
+    }, [transaction]);
 
     const isValidFile = useCallback(
         (fileObject: FileObject) =>
@@ -432,9 +435,11 @@ function AttachmentModal({
                 text: translate('common.replace'),
                 onSelected: () => {
                     closeModal(true);
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
-                    );
+                    InteractionManager.runAfterInteractions(() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
+                    });
                 },
             });
         }
@@ -447,7 +452,7 @@ function AttachmentModal({
         }
 
         const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
-        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canEditReceipt && !hasMissingSmartscanFields(transaction)) {
+        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canDeleteReceipt && !hasMissingSmartscanFields(transaction)) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),
@@ -532,6 +537,7 @@ function AttachmentModal({
                         threeDotsMenuItems={threeDotsMenuItems}
                         shouldOverlayDots
                         subTitleLink={currentAttachmentLink ?? ''}
+                        shouldDisplayHelpButton={false}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {isLoading && <FullScreenLoadingIndicator />}
@@ -572,7 +578,7 @@ function AttachmentModal({
                                             onToggleKeyboard={setIsConfirmButtonDisabled}
                                             onPDFLoadError={() => {
                                                 isPDFLoadError.current = true;
-                                                setIsModalOpen(false);
+                                                closeModal();
                                             }}
                                             isWorkspaceAvatar={isWorkspaceAvatar}
                                             maybeIcon={maybeIcon}

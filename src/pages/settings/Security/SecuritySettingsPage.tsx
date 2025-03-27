@@ -1,5 +1,5 @@
 import debounce from 'lodash/debounce';
-import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
@@ -27,14 +27,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {clearDelegateErrorsByField, removeDelegate} from '@libs/actions/Delegate';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate} from '@libs/actions/Delegate';
+import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {AnchorPosition} from '@styles/index';
-import * as Modal from '@userActions/Modal';
+import {close as modalClose} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -115,7 +115,7 @@ function SecuritySettingsPage() {
             {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: Expensicons.Shield,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute())),
+                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())),
             },
             {
                 translationKey: 'closeAccountPage.closeAccount',
@@ -142,7 +142,7 @@ function SecuritySettingsPage() {
                 .map(({email, role, pendingAction, pendingFields}) => {
                     const personalDetail = getPersonalDetailByEmail(email);
                     const addDelegateErrors = errorFields?.addDelegate?.[email];
-                    const error = ErrorUtils.getLatestError(addDelegateErrors);
+                    const error = getLatestError(addDelegateErrors);
 
                     const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
                         if (isEmptyObject(pendingAction)) {
@@ -213,7 +213,7 @@ function SecuritySettingsPage() {
             icon: Expensicons.Pencil,
             onPress: () => {
                 if (isActingAsDelegate) {
-                    Modal.close(() => setIsNoDelegateAccessMenuVisible(true));
+                    modalClose(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
@@ -227,10 +227,10 @@ function SecuritySettingsPage() {
             icon: Expensicons.Trashcan,
             onPress: () => {
                 if (isActingAsDelegate) {
-                    Modal.close(() => setIsNoDelegateAccessMenuVisible(true));
+                    modalClose(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
                 }
-                Modal.close(() => {
+                modalClose(() => {
                     setShouldShowDelegatePopoverMenu(false);
                     setShouldShowRemoveDelegateModal(true);
                     setSelectedEmail(undefined);
@@ -238,6 +238,10 @@ function SecuritySettingsPage() {
             },
         },
     ];
+
+    useEffect(() => {
+        openSecuritySettingsPage();
+    }, []);
 
     return (
         <ScreenWrapper

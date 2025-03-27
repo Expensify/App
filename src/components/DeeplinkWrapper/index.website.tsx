@@ -1,9 +1,9 @@
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
 import {isMobile} from '@libs/Browser';
+import shouldPreventDeeplinkPrompt from '@libs/Navigation/helpers/shouldPreventDeeplinkPrompt';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import shouldPreventDeeplinkPrompt from '@libs/Navigation/shouldPreventDeeplinkPrompt';
 import {beginDeepLinkRedirect, beginDeepLinkRedirectAfterTransition} from '@userActions/App';
 import {getInternalNewExpensifyPath} from '@userActions/Link';
 import {isAnonymousUser} from '@userActions/Session';

@@ -11,6 +11,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
+import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import {translateLocal} from '@libs/Localize';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -53,6 +54,16 @@ function getAccountingIntegrationData(
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
+    const hasPoliciesConnectedToSageIntacct = !!getAdminPoliciesConnectedToSageIntacct().length;
+    const getBackToAfterWorkspaceUpgradeRouteForIntacct = () => {
+        if (integrationToDisconnect) {
+            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        if (hasPoliciesConnectedToSageIntacct) {
+            return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID);
+        }
+        return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID);
+    };
 
     const getBackToAfterWorkspaceUpgradeRouteForQBD = () => {
         if (integrationToDisconnect) {
@@ -109,6 +120,8 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
                     ...(qboConfig?.collectionAccountID ? [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID] : []),
                 ],
+                pendingFields: {...qboConfig?.pendingFields, ...policy?.connections?.quickbooksOnline?.config?.pendingFields},
+                errorFields: {...qboConfig?.errorFields, ...policy?.connections?.quickbooksOnline?.config?.errorFields},
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
@@ -225,9 +238,9 @@ function getAccountingIntegrationData(
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT.getRoute(policyID)),
                 subscribedImportSettings: [CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS],
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID)),
-                subscribedExportSettings: [CONST.NSQS_CONFIG.EXPORTER, CONST.NSQS_CONFIG.EXPORT_DATE],
+                subscribedExportSettings: [CONST.NSQS_CONFIG.EXPORTER, CONST.NSQS_CONFIG.EXPORT_DATE, CONST.NSQS_CONFIG.PAYMENT_ACCOUNT],
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.getRoute(policyID)),
-                subscribedAdvancedSettings: [CONST.NSQS_CONFIG.AUTO_SYNC, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT],
+                subscribedAdvancedSettings: [CONST.NSQS_CONFIG.AUTO_SYNC],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.NSQS)),
                 pendingFields: policy?.connections?.netsuiteQuickStart?.config?.pendingFields,
                 errorFields: policy?.connections?.netsuiteQuickStart?.config?.errorFields,
@@ -272,9 +285,7 @@ function getAccountingIntegrationData(
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias,
-                    backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
-                        ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
-                        : ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID),
+                    backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForIntacct(),
                 },
                 pendingFields: policy?.connections?.intacct?.config?.pendingFields,
                 errorFields: policy?.connections?.intacct?.config?.errorFields,

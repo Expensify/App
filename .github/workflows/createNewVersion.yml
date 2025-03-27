@@ -32,27 +32,18 @@ on:
       OP_SERVICE_ACCOUNT_TOKEN:
         description: 1Password service account token
         required: true
+      OS_BOTIFY_APP_ID:
+        description: App ID for OSBotify GitHub App
+        required: true
+      OS_BOTIFY_PRIVATE_KEY:
+        description: Private key for OSBotify GitHub App
+        required: true
 
 jobs:
-  validateActor:
-    runs-on: ubuntu-latest
-    outputs:
-      HAS_WRITE_ACCESS: ${{ contains(fromJSON('["write", "admin"]'), steps.getUserPermissions.outputs.PERMISSION) }}
-    steps:
-      - name: Get user permissions
-        id: getUserPermissions
-        run: echo "PERMISSION=$(gh api /repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission | jq -r '.permission')" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
   createNewVersion:
     runs-on: macos-latest
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.HAS_WRITE_ACCESS) }}
-
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
-
     steps:
       - name: Run turnstyle
         uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
@@ -70,11 +61,18 @@ jobs:
           # This is a workaround to allow pushes to a protected branch
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
+      - name: Validate actor
+        uses: ./.github/actions/composite/validateActor
+        with:
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
       - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         id: setupGitForOSBotify
         with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SETUP_AS_APP: false
 
       - name: Generate new E/App version
         id: bumpVersion
@@ -83,16 +81,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
           SEMVER_LEVEL: ${{ inputs.SEMVER_LEVEL }}
 
-      - name: Update Mobile-Expensify submodule with the latest state of the Mobile-Expensify main branch
-        run: |
-          cd Mobile-Expensify
-          git fetch --depth=1 origin main
-          git checkout main
-          git reset --hard origin/main
-
       - name: Generate HybridApp version
+        working-directory: Mobile-Expensify
         run: |
-          cd Mobile-Expensify
+          # Checkout main branch in Mobile-Expensify submodule.
+          # This is IMPORTANT so that when we make changes, we aren't in a detached head state, and when we later push those changes to main, it works!
+          git checkout main
 
           # Generate all flavors of the version
           SHORT_APP_VERSION=$(echo "$NEW_VERSION" | awk -F'-' '{print $1}')
@@ -143,7 +137,6 @@ jobs:
             ./package-lock.json \
             ./android/app/build.gradle \
             ./ios/NewExpensify/Info.plist \
-            ./ios/NewExpensifyTests/Info.plist \
             ./ios/NotificationServiceExtension/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 

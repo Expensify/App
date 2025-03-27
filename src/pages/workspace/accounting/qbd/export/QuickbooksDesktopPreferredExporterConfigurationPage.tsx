@@ -6,10 +6,9 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {getAdminEmployees} from '@libs/PolicyUtils';
+import {updateQuickbooksDesktopPreferredExporter} from '@libs/actions/connections/QuickbooksDesktop';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -29,7 +28,7 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const currentExporter = qbdConfig?.export?.exporter;
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const data: CardListItem[] = useMemo(
         () =>
             exporters?.reduce<CardListItem[]>((options, exporter) => {
@@ -38,7 +37,7 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
                 }
 
                 // Don't show guides if the current user is not a guide themselves or an Expensify employee
-                if (PolicyUtils.isExpensifyTeam(exporter.email) && !PolicyUtils.isExpensifyTeam(policy?.owner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+                if (isExpensifyTeam(exporter.email) && !isExpensifyTeam(policy?.owner) && !isExpensifyTeam(currentUserLogin)) {
                     return options;
                 }
                 options.push({
@@ -56,10 +55,13 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
-            if (row.value !== currentExporter) {
-                QuickbooksDesktop.updateQuickbooksDesktopPreferredExporter(policyID, row.value, currentExporter);
+            if (!policyID) {
+                return;
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID));
+            if (row.value !== currentExporter) {
+                updateQuickbooksDesktopPreferredExporter(policyID, row.value, currentExporter);
+            }
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID));
         },
         [currentExporter, policyID],
     );
@@ -83,16 +85,26 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={headerContent}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID));
+            }}
             onSelectRow={selectExporter}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER], qbdConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER)}
+            pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER], qbdConfig?.pendingFields)}
+            errors={getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER)}
+            onClose={() => {
+                if (!policyID) {
+                    return;
+                }
+                clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER);
+            }}
         />
     );
 }

@@ -24,6 +24,7 @@ function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOption
         (): PlatformStackNavigationOptions => ({
             ...hideKeyboardOnSwipe,
             headerShown: false,
+            animationTypeForReplace: 'pop',
             native: {
                 contentStyle: styles.navigationScreenCardStyle,
             },

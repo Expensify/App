@@ -89,8 +89,17 @@ type TransactionViolationData = {
     /** Type of the RTER violation */
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
 
+    /** A generic message to display to the user */
+    message?: string;
+
+    /** Backend-defined override for the violation's target field */
+    field?: string;
+
     /** Message to display to the user */
     tooltip?: string;
+
+    /** What prohibitive expense rule did they break? */
+    prohibitedExpenseRule?: string;
 };
 
 /** Model of a transaction violation */

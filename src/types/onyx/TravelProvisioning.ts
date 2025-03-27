@@ -5,6 +5,9 @@ type TravelProvisioning = {
     /** Token for accessing Spotnana after successful provisioning */
     spotnanaToken?: string;
 
+    /** Whether the account is set for testing Travel and should use the sandbox environment */
+    isTestAccount?: boolean;
+
     /** Specific error thrown while provisioning travel */
     error?: string;
 

@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -20,6 +21,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -107,6 +109,13 @@ function ReportFieldsListValuesPage({
         [policyID, reportFieldID],
     );
 
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedValues({});
+        },
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
+
     const listValuesSections = useMemo(() => {
         const data = listValues
             .map<ValueListItem>((value, index) => ({
@@ -181,7 +190,7 @@ function ReportFieldsListValuesPage({
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('statusPage.status')}
+                rightHeaderText={translate('common.enabled')}
             />
         );
     };
@@ -319,15 +328,17 @@ function ReportFieldsListValuesPage({
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
                 {shouldShowEmptyState && (
-                    <EmptyStateComponent
-                        title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
-                        subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
-                        SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                        headerMedia={Illustrations.FolderWithPapers}
-                        headerStyles={styles.emptyFolderDarkBG}
-                        headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
-                    />
+                    <ScrollView>
+                        <EmptyStateComponent
+                            title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
+                            subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
+                            SkeletonComponent={TableListItemSkeleton}
+                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                            headerMedia={Illustrations.FolderWithPapers}
+                            headerStyles={styles.emptyFolderDarkBG}
+                            headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
+                        />
+                    </ScrollView>
                 )}
                 {!shouldShowEmptyState && (
                     <SelectionListWithModal

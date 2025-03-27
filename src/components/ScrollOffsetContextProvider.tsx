@@ -1,13 +1,12 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
+import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationPartialRoute, State} from '@libs/Navigation/types';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {PriorityMode} from '@src/types/onyx';
 
 type ScrollOffsetContextValue = {
     /** Save scroll offset of flashlist on given screen */
@@ -16,16 +15,17 @@ type ScrollOffsetContextValue = {
     /** Get scroll offset value for given screen */
     getScrollOffset: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
 
+    /** Save scroll index of flashlist on given screen */
+    saveScrollIndex: (route: PlatformStackRouteProp<ParamListBase>, scrollIndex: number) => void;
+
+    /** Get scroll index value for given screen */
+    getScrollIndex: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
+
     /** Clean scroll offsets of screen that aren't anymore in the state */
     cleanStaleScrollOffsets: (state: State) => void;
 };
 
-type ScrollOffsetContextProviderOnyxProps = {
-    /** The chat priority mode */
-    priorityMode: PriorityMode;
-};
-
-type ScrollOffsetContextProviderProps = ScrollOffsetContextProviderOnyxProps & {
+type ScrollOffsetContextProviderProps = {
     /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
@@ -33,6 +33,8 @@ type ScrollOffsetContextProviderProps = ScrollOffsetContextProviderOnyxProps & {
 const defaultValue: ScrollOffsetContextValue = {
     saveScrollOffset: () => {},
     getScrollOffset: () => undefined,
+    saveScrollIndex: () => {},
+    getScrollIndex: () => undefined,
     cleanStaleScrollOffsets: () => {},
 };
 
@@ -46,7 +48,8 @@ function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartial
     return `${route.name}-global`;
 }
 
-function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetContextProviderProps) {
+function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProps) {
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const scrollOffsetsRef = useRef<Record<string, number>>({});
     const previousPriorityMode = usePrevious(priorityMode);
 
@@ -75,16 +78,24 @@ function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetConte
     }, []);
 
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback((state) => {
-        const bottomTabNavigator = state.routes.find((route) => route.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR);
-        if (bottomTabNavigator?.state && 'routes' in bottomTabNavigator.state) {
-            const bottomTabNavigatorRoutes = bottomTabNavigator.state.routes;
-            const scrollOffsetkeysOfExistingScreens = bottomTabNavigatorRoutes.map((route) => getKey(route));
-            for (const key of Object.keys(scrollOffsetsRef.current)) {
-                if (!scrollOffsetkeysOfExistingScreens.includes(key)) {
-                    delete scrollOffsetsRef.current[key];
-                }
+        const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
+        const scrollOffsetkeysOfExistingScreens = sidebarRoutes.map((route) => getKey(route));
+        for (const key of Object.keys(scrollOffsetsRef.current)) {
+            if (!scrollOffsetkeysOfExistingScreens.includes(key)) {
+                delete scrollOffsetsRef.current[key];
             }
         }
+    }, []);
+
+    const saveScrollIndex: ScrollOffsetContextValue['saveScrollIndex'] = useCallback((route, scrollIndex) => {
+        scrollOffsetsRef.current[getKey(route)] = scrollIndex;
+    }, []);
+
+    const getScrollIndex: ScrollOffsetContextValue['getScrollIndex'] = useCallback((route) => {
+        if (!scrollOffsetsRef.current) {
+            return;
+        }
+        return scrollOffsetsRef.current[getKey(route)];
     }, []);
 
     const contextValue = useMemo(
@@ -92,18 +103,16 @@ function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetConte
             saveScrollOffset,
             getScrollOffset,
             cleanStaleScrollOffsets,
+            saveScrollIndex,
+            getScrollIndex,
         }),
-        [saveScrollOffset, getScrollOffset, cleanStaleScrollOffsets],
+        [saveScrollOffset, getScrollOffset, cleanStaleScrollOffsets, saveScrollIndex, getScrollIndex],
     );
 
     return <ScrollOffsetContext.Provider value={contextValue}>{children}</ScrollOffsetContext.Provider>;
 }
 
-export default withOnyx<ScrollOffsetContextProviderProps, ScrollOffsetContextProviderOnyxProps>({
-    priorityMode: {
-        key: ONYXKEYS.NVP_PRIORITY_MODE,
-    },
-})(ScrollOffsetContextProvider);
+export default ScrollOffsetContextProvider;
 
 export {ScrollOffsetContext};
 

@@ -151,6 +151,7 @@ function ReportListItem<TItem extends ListItem>({
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
+            shouldShowBlueBorderOnFocus
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
@@ -195,7 +196,7 @@ function ReportListItem<TItem extends ListItem>({
                         </View>
                     </View>
                     {isLargeScreenWidth && (
-                        <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
+                        <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
                             <ActionCell
                                 action={reportItem.action}
                                 goToItem={handleOnButtonPress}

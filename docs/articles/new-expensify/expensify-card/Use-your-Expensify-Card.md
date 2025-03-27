@@ -57,6 +57,16 @@ You can report and submit Expensify Card expenses just like any other expenses, 
 SmartScanned receipts should automatically attach to the related Expensify Card expense. Expensify also automatically generates an IRS-compliant eReceipt for every transaction as long as the expense isn’t lodging-related. If your organization doesn’t require itemized receipts, you can rely on eReceipts instead.
 {% include end-info.html %}
 
+## How do I deactivate my card and request a replacement?
+
+If your Expensify card was lost or stolen, please deactivate your card immediately! ​To deactivate your card and request a new one, please follow these steps:
+
+1. Tap your profile image in the bottom menu.
+2. Tap Wallet.
+3. Select your Expensify Card.
+4. Click Report physical card loss or damage
+5. Follow the prompts to request a new card.
+
 {% include faq-end.md %}
 
 </div>

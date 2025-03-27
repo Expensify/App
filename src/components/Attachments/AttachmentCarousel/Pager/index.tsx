@@ -52,10 +52,13 @@ type AttachmentCarouselPagerProps = {
 
     /** Sets the visibility of the arrows. */
     setShouldShowArrows: (show?: SetStateAction<boolean>) => void;
+
+    /** The reportID related to the attachment */
+    reportID?: string;
 };
 
 function AttachmentCarouselPager(
-    {items, activeSource, initialPage, setShouldShowArrows, onPageSelected, onClose}: AttachmentCarouselPagerProps,
+    {items, activeSource, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
@@ -127,6 +130,7 @@ function AttachmentCarouselPager(
             <CarouselItem
                 item={item}
                 isFocused={index === activePageIndex && activeSource === item.source}
+                reportID={reportID}
             />
         </View>
     ));

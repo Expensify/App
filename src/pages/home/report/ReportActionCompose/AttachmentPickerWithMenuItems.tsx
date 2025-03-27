@@ -43,6 +43,9 @@ type AttachmentPickerWithMenuItemsProps = {
     /** Callback to open the file in the modal */
     displayFileInModal: (url: FileObject) => void;
 
+    /** Whether or not the full size composer is available */
+    isFullComposerAvailable: boolean;
+
     /** Whether or not the composer is full size */
     isComposerFullSize: boolean;
 
@@ -96,6 +99,7 @@ function AttachmentPickerWithMenuItems({
     report,
     reportParticipantIDs,
     displayFileInModal,
+    isFullComposerAvailable,
     isComposerFullSize,
     reportID,
     isBlockedFromConcierge,
@@ -290,55 +294,65 @@ function AttachmentPickerWithMenuItems({
                                         </PressableWithFeedback>
                                     </Tooltip>
                                 </View>
-                                <View style={expandCollapseButtonContainerStyles}>
-                                    {isComposerFullSize ? (
-                                        <Tooltip text={translate('reportActionCompose.collapse')}>
-                                            <PressableWithFeedback
-                                                onPress={(e) => {
-                                                    e?.preventDefault();
-                                                    raiseIsScrollLikelyLayoutTriggered();
-                                                    setIsComposerFullSize(reportID, false);
-                                                }}
-                                                // Keep focus on the composer when Collapse button is clicked.
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                style={styles.composerSizeButton}
-                                                disabled={isBlockedFromConcierge || disabled}
-                                                role={CONST.ROLE.BUTTON}
-                                                accessibilityLabel={translate('reportActionCompose.collapse')}
+                                {(isFullComposerAvailable || isComposerFullSize) && (
+                                    <View style={expandCollapseButtonContainerStyles}>
+                                        {isComposerFullSize ? (
+                                            <Tooltip
+                                                text={translate('reportActionCompose.collapse')}
+                                                key="composer-collapse"
                                             >
-                                                <Icon
-                                                    fill={theme.icon}
-                                                    src={Expensicons.Collapse}
-                                                />
-                                            </PressableWithFeedback>
-                                        </Tooltip>
-                                    ) : (
-                                        <Tooltip text={translate('reportActionCompose.expand')}>
-                                            <PressableWithFeedback
-                                                onPress={(e) => {
-                                                    e?.preventDefault();
-                                                    raiseIsScrollLikelyLayoutTriggered();
-                                                    setIsComposerFullSize(reportID, true);
-                                                }}
-                                                // Keep focus on the composer when Expand button is clicked.
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                style={styles.composerSizeButton}
-                                                disabled={isBlockedFromConcierge || disabled}
-                                                role={CONST.ROLE.BUTTON}
-                                                accessibilityLabel={translate('reportActionCompose.expand')}
+                                                <PressableWithFeedback
+                                                    onPress={(e) => {
+                                                        e?.preventDefault();
+                                                        raiseIsScrollLikelyLayoutTriggered();
+                                                        setIsComposerFullSize(reportID, false);
+                                                    }}
+                                                    // Keep focus on the composer when Collapse button is clicked.
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    style={styles.composerSizeButton}
+                                                    disabled={isBlockedFromConcierge || disabled}
+                                                    role={CONST.ROLE.BUTTON}
+                                                    accessibilityLabel={translate('reportActionCompose.collapse')}
+                                                >
+                                                    <Icon
+                                                        fill={theme.icon}
+                                                        src={Expensicons.Collapse}
+                                                    />
+                                                </PressableWithFeedback>
+                                            </Tooltip>
+                                        ) : (
+                                            <Tooltip
+                                                text={translate('reportActionCompose.expand')}
+                                                key="composer-expand"
                                             >
-                                                <Icon
-                                                    fill={theme.icon}
-                                                    src={Expensicons.Expand}
-                                                />
-                                            </PressableWithFeedback>
-                                        </Tooltip>
-                                    )}
-                                </View>
+                                                <PressableWithFeedback
+                                                    onPress={(e) => {
+                                                        e?.preventDefault();
+                                                        raiseIsScrollLikelyLayoutTriggered();
+                                                        setIsComposerFullSize(reportID, true);
+                                                    }}
+                                                    // Keep focus on the composer when Expand button is clicked.
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    style={styles.composerSizeButton}
+                                                    disabled={isBlockedFromConcierge || disabled}
+                                                    role={CONST.ROLE.BUTTON}
+                                                    accessibilityLabel={translate('reportActionCompose.expand')}
+                                                >
+                                                    <Icon
+                                                        fill={theme.icon}
+                                                        src={Expensicons.Expand}
+                                                    />
+                                                </PressableWithFeedback>
+                                            </Tooltip>
+                                        )}
+                                    </View>
+                                )}
                             </View>
                         </View>
                         <PopoverMenu
-                            animationInTiming={CONST.ANIMATION_IN_TIMING}
+                            animationInTiming={menuItems.length * 50}
+                            // The menu should close 2/3 of the time it took to open
+                            animationOutTiming={menuItems.length * 50 * 0.66}
                             isVisible={isMenuVisible && isFocused}
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {
@@ -363,6 +377,7 @@ function AttachmentPickerWithMenuItems({
                             menuItems={menuItems}
                             withoutOverlay
                             anchorRef={actionButtonRef}
+                            shouldUseNewModal
                         />
                         <DelegateNoAccessModal
                             isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}

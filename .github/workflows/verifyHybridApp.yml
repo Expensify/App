@@ -17,6 +17,26 @@ on:
       - 'android/AndroidManifest.xml'
       - 'ios/Podfile.lock'
       - 'ios/project.pbxproj'
+  pull_request_target:
+    types: [opened, synchronize]
+    branches: [main]
+    paths:
+      - '**.kt'
+      - '**.java'
+      - '**.swift'
+      - '**.mm'
+      - '**.h'
+      - '**.cpp'
+      - 'package.json'
+      - 'patches/**'
+      - 'android/build.gradle'
+      - 'android/AndroidManifest.xml'
+      - 'ios/Podfile.lock'
+      - 'ios/project.pbxproj'
+
+permissions:
+  pull-requests: write
+  contents: read
 
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-verify-main
@@ -26,20 +46,20 @@ jobs:
   comment_on_fork:
     name: Comment on all PRs that are forks
     # Only run on pull requests that *are* a fork
-    if: ${{ github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event.pull_request.head.repo.fork && github.event_name == 'pull_request_target' }}
     runs-on: ubuntu-latest
     steps:
       - name: Comment on forks
         run: |
           gh pr comment ${{github.event.pull_request.html_url }} --body \
-          ":warning: This PR is possibly changing native code, it may cause problems with HybridApp. Please run an AdHoc build to verify that HybridApp will not break. :warning:"
+          ":warning: This PR is possibly changing native code and/or updating libraries, it may cause problems with HybridApp. Please check if any patch updates are required in the HybridApp repo and run an AdHoc build to verify that HybridApp will not break. Ask Contributor Plus for help if you are not sure how to handle this. :warning:"
         env:
           GITHUB_TOKEN: ${{ github.token }}
   verify_android:
     name: Verify Android HybridApp builds on main
     runs-on: ubuntu-latest-xl
     # Only run on pull requests that are *not* on a fork
-    if: ${{ !github.event.pull_request.head.repo.fork }}
+    if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,7 +100,7 @@ jobs:
     name: Verify iOS HybridApp builds on main
     runs-on: macos-15-xlarge
     # Only run on pull requests that are *not* on a fork
-    if: ${{ !github.event.pull_request.head.repo.fork }}
+    if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -54,11 +54,6 @@ platforms:
         icon: /assets/images/hand-card.svg
         description: Explore the perks and benefits of the Expensify Card.
 
-      - href: travel
-        title: Travel
-        icon: /assets/images/plane.svg
-        description: Manage all your corporate travel needs with Expensify Travel.
-
       - href: copilots-and-delegates
         title: Copilots & Delegates
         icon: /assets/images/envelope-receipt.svg
