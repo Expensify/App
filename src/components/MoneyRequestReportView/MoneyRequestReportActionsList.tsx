@@ -13,6 +13,7 @@ import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
 import {
     getFirstVisibleReportActionID,
     getMostRecentIOURequestActionID,
@@ -67,11 +68,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function isChatOnlyReportAction(action: OnyxTypes.ReportAction) {
-    return action.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU && action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED;
-}
-
-function getTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Transaction>, reportID: string) {
+function selectTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Transaction>, reportID: string) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         return transaction?.reportID === reportID;
     });
@@ -98,7 +95,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => getTransactionsForReportID(allTransactions, reportID),
+        selector: (allTransactions): OnyxTypes.Transaction[] => selectTransactionsForReportID(allTransactions, reportID),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
@@ -111,10 +108,10 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
-            const isChatAction = isChatOnlyReportAction(reportAction);
+            const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction);
 
             return (
-                isChatAction &&
+                isActionVisibleOnMoneyReport &&
                 (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
                 shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction)
             );
