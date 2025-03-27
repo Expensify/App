@@ -383,7 +383,7 @@ let isCollectingAIResponse = false;
 
 function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
     // Don't log every message type, only important ones
-    logDebug('MESSAGE', 'Handling OpenAI message', message);
+    //logDebug('MESSAGE', 'Handling OpenAI message', message);
     
     switch (message.type) {
         case 'session.created':
@@ -412,6 +412,12 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
             logDebug('OUTPUT', '🔇 OpenAI stopped speaking');
             break;
             
+        case 'response.audio_transcript.done':
+            if (message.transcript) {
+                logDebug('AI_TRANSCRIPT', `💬 AI said: "${message.transcript}"`);
+            }
+            break;
+            
         // Skip logging for delta messages
         case 'response.audio_transcript.delta':
             break;
@@ -420,7 +426,12 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
             logDebug('ERROR', '❌ OpenAI error message', message);
             break;
             
-        // Don't log anything for all other message types
+        default:
+            // For messages we're not explicitly handling, check if they have a transcript field
+            if (message.transcript) {
+                logDebug('OTHER_TRANSCRIPT', `📝 Transcript found in ${message.type}: "${message.transcript}"`);
+            }
+            break;
     }
 }
 
