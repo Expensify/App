@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -63,18 +64,21 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         goBack();
     }, [report.reportID, report.description, description, goBack]);
 
-    const validate = useCallback((): Errors => {
-        const errors: Errors = {};
-        const descriptionLength = description.trim().length;
-        if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-            errors.reportDescription = translate('common.error.characterLimitExceedCounter', {
-                length: descriptionLength,
-                limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH,
-            });
-        }
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>): Errors => {
+            const errors: Errors = {};
+            const descriptionLength = values[INPUT_IDS.REPORT_DESCRIPTION].trim().length;
+            if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
+                errors.reportDescription = translate('common.error.characterLimitExceedCounter', {
+                    length: descriptionLength,
+                    limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH,
+                });
+            }
 
-        return errors;
-    }, [description, translate]);
+            return errors;
+        },
+        [translate],
+    );
 
     useFocusEffect(
         useCallback(() => {

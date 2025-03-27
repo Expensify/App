@@ -18,12 +18,12 @@ import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import {shouldUseTransactionDraft as shouldUseTransactionDraftIOUUtils} from '@libs/IOUUtils';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidAddress} from '@libs/ValidationUtils';
-import {removeWaypoint, saveWaypoint as saveWaypointAction} from '@userActions/Transaction';
+import {removeWaypoint, saveWaypoint} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,6 +36,24 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
+// Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+// that the google autocomplete component expects for it's "predefined places" feature.
+function recentWaypointsSelector(waypoints: OnyxTypes.RecentWaypoint[] = []) {
+    return waypoints
+        .slice(0, CONST.RECENT_WAYPOINTS_NUMBER)
+        .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
+        .map((waypoint) => ({
+            name: waypoint.name,
+            description: waypoint.address ?? '',
+            geometry: {
+                location: {
+                    lat: waypoint.lat ?? 0,
+                    lng: waypoint.lng ?? 0,
+                },
+            },
+        }));
+}
+
 type IOURequestStepWaypointProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
     transaction: OnyxEntry<Transaction>;
 };
@@ -47,7 +65,7 @@ function IOURequestStepWaypoint({
     transaction,
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
@@ -79,6 +97,9 @@ function IOURequestStepWaypoint({
     const waypointCount = Object.keys(allWaypoints).length;
     const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
     const shouldUseTransactionDraft = shouldUseTransactionDraftIOUUtils(action);
+
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector});
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -121,13 +142,13 @@ function IOURequestStepWaypoint({
         return errors;
     };
 
-    const saveWaypoint = (waypoint: FormOnyxValues<'waypointForm'>) => saveWaypointAction(transactionID, pageIndex, waypoint, shouldUseTransactionDraft);
+    const save = (waypoint: FormOnyxValues<'waypointForm'>) => saveWaypoint(transactionID, pageIndex, waypoint, shouldUseTransactionDraft(action));
 
     const submit = (values: FormOnyxValues<'waypointForm'>) => {
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft);
+            removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action));
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -140,7 +161,7 @@ function IOURequestStepWaypoint({
                 lng: values.lng ?? 0,
                 keyForList: `${(values.name ?? 'waypoint') as string}_${Date.now()}`,
             };
-            saveWaypoint(waypoint);
+            save(waypoint);
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
@@ -148,7 +169,7 @@ function IOURequestStepWaypoint({
     };
 
     const deleteStopAndHideModal = () => {
-        removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft);
+        removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action));
         setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
         setIsDeleteStopModalOpen(false);
         goBack();
@@ -163,7 +184,7 @@ function IOURequestStepWaypoint({
             keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 
-        saveWaypointAction(transactionID, pageIndex, waypoint, shouldUseTransactionDraft);
+        saveWaypoint(transactionID, pageIndex, waypoint, shouldUseTransactionDraft(action));
         goBack();
     };
 
@@ -181,7 +202,7 @@ function IOURequestStepWaypoint({
                     onBackButtonPress={goBack}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
