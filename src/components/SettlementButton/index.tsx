@@ -314,12 +314,17 @@ function SettlementButton({
             }
             return;
         }
-        if (isInvoiceReport && lastBankAccountID) {
+        if (isInvoiceReport) {
+            const isBusinessInvoice = isBusinessInvoiceRoom(chatReport);
+            if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                onPress(iouPaymentType, isBusinessInvoice);
+                return;
+            }
             onPress(
                 iouPaymentType,
-                isBusinessInvoiceRoom(chatReport),
+                isBusinessInvoice,
                 lastBankAccountID,
-                isBusinessInvoiceRoom(chatReport) ? CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                isBusinessInvoice ? CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT : CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 policyIDKey,
             );
         } else {
