@@ -33,7 +33,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
     const updateHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
 
-    // Push the front-end data like optimisticData, successData, failureData, finallyData of write requests to another queue to apply them after the responses are updated in onyx
+    // Push the front-end data like optimisticData, successData, failureData, finallyData of write requests to another queue to apply them after the responses are updated in onyx. This ensures that data like `isLoading` is only applied after the API response is written to local storage.
     const updateOptimisticHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxOptimisticUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
