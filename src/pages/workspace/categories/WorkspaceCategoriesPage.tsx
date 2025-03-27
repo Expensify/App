@@ -13,6 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -32,7 +33,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -63,9 +64,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {translate} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
@@ -421,7 +422,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldShowThreeDotsButton
                     style={styles.headerBarDesktopHeight}
                     threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
@@ -446,16 +447,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
 
                 {!hasVisibleCategories && !isLoading && (
-                    <EmptyStateComponent
-                        SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                        headerMedia={LottieAnimations.GenericEmptyState}
-                        title={translate('workspace.categories.emptyCategories.title')}
-                        subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                        headerContentStyles={styles.emptyStateFolderWebStyles}
-                    />
+                    <ScrollView>
+                        <EmptyStateComponent
+                            SkeletonComponent={TableListItemSkeleton}
+                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                            headerMedia={LottieAnimations.GenericEmptyState}
+                            title={translate('workspace.categories.emptyCategories.title')}
+                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                            headerContentStyles={styles.emptyStateFolderWebStyles}
+                        />
+                    </ScrollView>
                 )}
                 {hasVisibleCategories && !isLoading && (
                     <SelectionListWithModal
