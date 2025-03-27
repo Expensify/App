@@ -1,6 +1,6 @@
-import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import { useOnyx } from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,15 +11,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePane from '@hooks/useSidePane';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {parseFSAttributes} from '@libs/Fullstory';
-import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
+import { parseFSAttributes } from '@libs/Fullstory';
+import { hasCompletedGuidedSetupFlowSelector } from '@libs/onboardingSelectors';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {ProductTrainingTooltipName} from './TOOLTIPS';
+import type { ProductTrainingTooltipName } from './TOOLTIPS';
 import TOOLTIPS from './TOOLTIPS';
 
 type ProductTrainingContextType = {
@@ -42,12 +42,12 @@ type ProductTrainingContextConfig = {
 
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
     shouldRenderTooltip: () => false,
-    registerTooltip: () => {},
-    unregisterTooltip: () => {},
+    registerTooltip: () => { },
+    unregisterTooltip: () => { },
 });
 
-function ProductTrainingContextProvider({children}: ChildrenProps) {
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
+function ProductTrainingContextProvider({ children }: ChildrenProps) {
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, { initialValue: true });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [isOnboardingCompleted = true, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -55,7 +55,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     });
 
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const { shouldUseNarrowLayout } = useResponsiveLayout();
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -179,14 +179,14 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const context = useContext(ProductTrainingContext);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldHideToolTip} = useSidePane();
-    const {translate} = useLocalize();
+    const { shouldHideToolTip } = useSidePane();
+    const { translate } = useLocalize();
 
     if (!context) {
         throw new Error('useProductTourContext must be used within a ProductTourProvider');
     }
 
-    const {shouldRenderTooltip, registerTooltip, unregisterTooltip} = context;
+    const { shouldRenderTooltip, registerTooltip, unregisterTooltip } = context;
 
     useEffect(() => {
         if (shouldShow) {
@@ -246,7 +246,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         medium
                     />
                     <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
-                        {tooltip.content.map(({text, isBold}) => {
+                        {tooltip.content.map(({ text, isBold }) => {
                             const translatedText = translate(text);
                             return (
                                 <Text
@@ -263,6 +263,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             onPress={() => {
                                 hideTooltip(true);
                             }}
+                            style={[styles.touchableButtonImage]}
                             accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                             role={CONST.ROLE.BUTTON}
                         >
@@ -311,6 +312,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.ph2,
         styles.gap2,
         styles.textBold,
+        styles.touchableButtonImage,
         theme.tooltipHighlightText,
         theme.icon,
         translate,
@@ -330,4 +332,4 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     };
 };
 
-export {ProductTrainingContextProvider, useProductTrainingContext};
+export { ProductTrainingContextProvider, useProductTrainingContext };
