@@ -17,6 +17,7 @@ function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TP
 
         return null;
     }, [tnode.attributes, styles, styleProp]);
+    console.log("EmojiRenderer ", tnode);
     return (
         <EmojiWithTooltip
             style={[style, styles.cursorDefault, styles.emojiDefaultStyles]}

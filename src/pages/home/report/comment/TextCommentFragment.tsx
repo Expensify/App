@@ -46,6 +46,7 @@ type TextCommentFragmentProps = {
 };
 
 function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
+    console.log("fragment ", fragment);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {html = ''} = fragment ?? {};
@@ -67,6 +68,8 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
+    console.log("containsOnlyEmojis ", containsOnlyEmojis);
+    console.log("shouldRenderAsText ", shouldRenderAsText(html, text ?? ''));
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
@@ -92,6 +95,9 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
             />
         );
     }
+    const regex = /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u;
+    const isCustomEmoji = regex.test(text);
+    const customEmojiFontFamily = isCustomEmoji ? {fontFamily: 'An Emoji Family'} : undefined;
 
     return (
         <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
@@ -119,6 +125,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                         styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
                         !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
+                        customEmojiFontFamily,
                     ]}
                 >
                     {convertToLTR(message ?? '')}

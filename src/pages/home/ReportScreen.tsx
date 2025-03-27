@@ -693,7 +693,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         setIsLinkingToMessage(!!reportActionIDFromRoute);
         return null;
     }
-
+    console.log("reportActions ", reportActions);
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>

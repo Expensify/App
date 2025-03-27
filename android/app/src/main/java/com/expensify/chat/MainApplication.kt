@@ -54,10 +54,10 @@ class MainApplication : MultiDexApplication(), ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+    ReactFontManager.getInstance().addCustomFont(this, "An Emoji Family", R.font.an_emoji_family)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify New Kansas", R.font.expensify_new_kansas)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify Neue", R.font.expensify_neue)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify Mono", R.font.expensify_mono)
-
         RNPerformance.getInstance().mark("appCreationStart", false);
 
         if (isOnfidoProcess()) {
