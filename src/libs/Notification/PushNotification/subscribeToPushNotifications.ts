@@ -17,9 +17,6 @@ import type {ReportActionPushNotificationData} from './NotificationType';
 
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
- *
- * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
- * push subscription when the session changes here.
  */
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
