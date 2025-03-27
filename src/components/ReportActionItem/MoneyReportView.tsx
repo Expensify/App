@@ -34,6 +34,7 @@ import {
 } from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -95,7 +96,19 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
     const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
-    const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && (isPaidGroupPolicyExpenseReport || isInvoiceReport) && (!isCombinedReport || !isOnlyTitleFieldEnabled);
+
+    const shouldHideSingleReportField = (reportField: PolicyReportField) => {
+        const fieldValue = reportField.value ?? reportField.defaultValue;
+        const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || reportField.disabledOptions.some((option) => !option);
+
+        return isReportFieldOfTypeTitle(reportField) || (!fieldValue && !hasEnableOption);
+    };
+
+    const shouldShowReportField =
+        !isClosedExpenseReportWithNoExpenses &&
+        (isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
+        (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
+        !sortedPolicyReportFields.every(shouldHideSingleReportField);
 
     const renderThreadDivider = useMemo(
         () =>
@@ -123,7 +136,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                             policy?.areReportFieldsEnabled &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
-                                if (isReportFieldOfTypeTitle(reportField)) {
+                                if (shouldHideSingleReportField(reportField)) {
                                     return null;
                                 }
 
