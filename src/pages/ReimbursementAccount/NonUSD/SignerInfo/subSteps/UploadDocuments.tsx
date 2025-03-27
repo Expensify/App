@@ -212,10 +212,10 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                 </View>
             )}
             {isDocumentNeededStatus.isPRDandFSGNeeded && (
-                <View>
+                <View style={styles.alignItemsStart}>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
                     <Button
-                        large
+                        medium
                         text={translate('common.download')}
                         onPress={handleDownloadPress}
                     />
