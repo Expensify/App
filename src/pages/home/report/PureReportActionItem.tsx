@@ -1126,7 +1126,7 @@ function PureReportActionItem({
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
-        if (isEmptyHTML(content)) {
+        if (canUseTableReportView && isEmptyHTML(content)) {
             return content;
         }
 
