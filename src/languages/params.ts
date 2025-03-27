@@ -472,6 +472,8 @@ type CardInfoParams = {name: string; expiration: string; currency: string};
 
 type YourPlanPriceParams = {lower: string; upper: string};
 
+type YourPlanPriceValueParams = {price: string};
+
 type SubscriptionSizeParams = {size: number};
 
 type SubscriptionCommitmentParams = {size: number; date: string};
@@ -894,5 +896,6 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     PolicyExpenseChatNameParams,
+    YourPlanPriceValueParams,
     NeedCategoryForExportToIntegrationParams,
 };
