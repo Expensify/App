@@ -1,4 +1,4 @@
-import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
+import {differenceInDays, differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -71,6 +71,17 @@ let billingStatus: OnyxEntry<BillingStatus>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
     callback: (value) => (billingStatus = value),
+});
+
+let isNewSubscription: OnyxEntry<boolean>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_DATE,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        isNewSubscription = differenceInDays(value, CONST.SUBSCRIPTION.NEW_PRICING_START_DATE) >= 0;
+    },
 });
 
 let ownerBillingGraceEndPeriod: OnyxEntry<number>;
@@ -544,6 +555,10 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
 function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {
     if (!privateSubscriptionType || !plan) {
         return 0;
+    }
+
+    if (privateSubscriptionType === CONST.SUBSCRIPTION.TYPE.PAYPERUSE && isNewSubscription) {
+        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.TYPE.PAYPERUSE_2025];
     }
 
     return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][privateSubscriptionType];
