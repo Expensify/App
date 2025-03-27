@@ -552,6 +552,20 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 }
 
 /**
+ * Get the last actor last name from last actor details.
+ */
+function getLastActorLastName(lastActorDetails: Partial<PersonalDetails> | null) {
+    if (!lastActorDetails) {
+        return '';
+    }
+
+    return lastActorDetails.accountID !== currentUserAccountID
+        ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+          lastActorDetails.lastName || ''
+        : '';
+}
+
+/**
  * Update alternate text for the option when applicable
  */
 function getAlternateText(option: OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
@@ -702,7 +716,30 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             true,
             lastReportAction,
         );
+
         lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
+
+        // If lastMessageTextFromReport is empty, try to extract the message from the lastReportAction instead
+        if (!lastMessageTextFromReport) {
+            const lastReportActionMessage = getReportActionMessageText(lastReportAction);
+            lastMessageTextFromReport = lastReportActionMessage;
+
+            // Get the actor's display name instead of using email
+            const actorAccountID = lastReportAction?.actorAccountID;
+            const actorDetails = actorAccountID ? allPersonalDetails?.[actorAccountID] : null;
+
+            if (actorDetails) {
+                const actorDisplayName = getLastActorDisplayName(actorDetails);
+                const actorLastName = getLastActorLastName(actorDetails);
+
+                const actorName = actorLastName ? `${actorDisplayName} ${actorLastName}` : actorDisplayName;
+
+                // Format the message with the display name if available
+                if (actorDisplayName && actorDetails.login) {
+                    lastMessageTextFromReport = lastMessageTextFromReport.replace(actorDetails.login, actorName);
+                }
+            }
+        }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
     } else if (isReimbursementDeQueuedAction(lastReportAction)) {
