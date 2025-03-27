@@ -325,7 +325,7 @@ type BuildOptimisticIOUReportActionParams = {
     created?: string;
     linkedExpenseReportAction?: OnyxEntry<ReportAction>;
     payAsBusiness?: boolean;
-    bankAccountID?: number;
+    bankAccountID?: number | undefined;
 };
 
 type OptimisticIOUReportAction = Pick<

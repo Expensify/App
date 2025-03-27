@@ -82,7 +82,7 @@ type Message = {
     deleted?: string;
 
     /** The bank account id that was used to pay the invoice */
-    bankAccountID?: number;
+    bankAccountID?: number | undefined;
 
     /** Whether the invoice was paid with business account or not */
     payAsBusiness?: boolean;
