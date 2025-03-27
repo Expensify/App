@@ -2807,9 +2807,12 @@ const translations = {
                     secondPart: 'para tu revisión.',
                 },
             },
+            connectTo: ({connectionName}: ConnectionNameParams) => `Conéctate a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Crear una nueva conexión',
             reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
+            existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
+                `Como ya te has conectado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} antes, puedes optar por reutilizar una conexión existente o crear una nueva.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `No se puede conectar a ${connectionName} debido a un error de autenticación.`,
