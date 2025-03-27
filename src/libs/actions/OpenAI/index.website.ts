@@ -517,11 +517,10 @@ function initializeOpenAIRealtime(adminsReportID: number) {
                 logDebug('SESSION', 'Configuring session with user audio transcription');
                 connections.openai.dataChannel.send(JSON.stringify(sessionConfig));
 
-                // Make the initial message more standardized for consistent behavior
                 const initialUserMessage = {
                     type: 'response.create',
                     response: {
-                        instructions: 'You are a helpful AI assistant. Greet the user briefly with "Hello! I\'m your AI assistant. How can I help you today?" and wait for their response. Keep responses very brief and to the point.',
+                        conversation: "none",
                         modalities: ['text', 'audio'],
                     },
                 };
