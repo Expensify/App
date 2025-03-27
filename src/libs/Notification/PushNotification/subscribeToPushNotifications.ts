@@ -15,6 +15,35 @@ import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import PushNotification from '.';
 
+/**
+ * Manage push notification subscriptions on sign-in/sign-out.
+ *
+ * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
+ * push subscription when the session changes here.
+ */
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+    callback: (notificationID) => {
+        if (notificationID) {
+            PushNotification.register(notificationID);
+            PushNotification.init();
+
+            // Subscribe handlers for different push notification types
+            PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, applyOnyxData);
+            PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, navigateToReport);
+
+            PushNotification.onReceived(PushNotification.TYPE.MONEY_REQUEST, applyOnyxData);
+            PushNotification.onSelected(PushNotification.TYPE.MONEY_REQUEST, navigateToReport);
+
+            PushNotification.onReceived(PushNotification.TYPE.REPORT_ACTION, applyOnyxData);
+            PushNotification.onSelected(PushNotification.TYPE.REPORT_ACTION, navigateToReport);
+        } else {
+            PushNotification.deregister();
+            PushNotification.clearNotifications();
+        }
+    },
+});
+
 let lastVisitedPath: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.LAST_VISITED_PATH,
@@ -36,15 +65,6 @@ Onyx.connect({
         isSingleNewDotEntry = value;
     },
 });
-
-function getLastUpdateIDAppliedToClient(): Promise<number> {
-    return new Promise((resolve) => {
-        Onyx.connect({
-            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-            callback: (value) => resolve(value ?? CONST.DEFAULT_NUMBER_ID),
-        });
-    });
-}
 
 function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: ReportActionPushNotificationData): Promise<void> {
     Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
@@ -148,31 +168,11 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     return Promise.resolve();
 }
 
-/**
- * Manage push notification subscriptions on sign-in/sign-out.
- *
- * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
- * push subscription when the session changes here.
- */
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
-    callback: (notificationID) => {
-        if (notificationID) {
-            PushNotification.register(notificationID);
-            PushNotification.init();
-
-            // Subscribe handlers for different push notification types
-            PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, applyOnyxData);
-            PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, navigateToReport);
-
-            PushNotification.onReceived(PushNotification.TYPE.MONEY_REQUEST, applyOnyxData);
-            PushNotification.onSelected(PushNotification.TYPE.MONEY_REQUEST, navigateToReport);
-
-            PushNotification.onReceived(PushNotification.TYPE.REPORT_ACTION, applyOnyxData);
-            PushNotification.onSelected(PushNotification.TYPE.REPORT_ACTION, navigateToReport);
-        } else {
-            PushNotification.deregister();
-            PushNotification.clearNotifications();
-        }
-    },
-});
+function getLastUpdateIDAppliedToClient(): Promise<number> {
+    return new Promise((resolve) => {
+        Onyx.connect({
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+            callback: (value) => resolve(value ?? CONST.DEFAULT_NUMBER_ID),
+        });
+    });
+}
