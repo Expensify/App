@@ -354,7 +354,7 @@ window.addEventListener('DOMContentLoaded', function () {
     const containers = document.querySelectorAll('.video-container');
 
     containers.forEach((container) => {
-        const video = container.querySelector('.custom-video');
+        const video = container.querySelector('.video-player');
         const playWrapper = container.querySelector('.play-button-wrapper');
 
         const playButton = playWrapper.querySelector('.play-button');
