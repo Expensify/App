@@ -158,7 +158,7 @@ jobs:
         run: pip3 install cloudflare==2.19.0
 
       - name: Purge Cloudflare cache
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["ad-hoc-expensify-cash/web/${{ env.PULL_REQUEST_NUMBER }}"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["ad-hoc-expensify-cash"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
