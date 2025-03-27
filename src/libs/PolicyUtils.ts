@@ -624,7 +624,6 @@ function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseRe
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
-
     if (!employee && !defaultApprover) {
         return -1;
     }
