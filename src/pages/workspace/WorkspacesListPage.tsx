@@ -134,7 +134,7 @@ function WorkspacesListPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
-    const {setIsDelingPaidWorkspace} = usePayAndDowngrade(setIsDeleteModalOpen);
+    const {setIsDeletingPaidWorkspace} = usePayAndDowngrade(setIsDeleteModalOpen);
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
@@ -202,7 +202,7 @@ function WorkspacesListPage() {
                         setPolicyNameToDelete(item.title);
 
                         if (shouldCalculateBillNewDot()) {
-                            setIsDelingPaidWorkspace(true);
+                            setIsDeletingPaidWorkspace(true);
                             calculateBillNewDot();
                             return;
                         }
@@ -294,7 +294,7 @@ function WorkspacesListPage() {
             session?.email,
             activePolicyID,
             isSupportalAction,
-            setIsDelingPaidWorkspace,
+            setIsDeletingPaidWorkspace,
         ],
     );
 

@@ -9,7 +9,7 @@ function usePayAndDowngrade(setIsDeleteModalOpen: (value: boolean) => void) {
     const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING);
     const isDeletingPaidWorkspaceRef = useRef(false);
 
-    const setIsDelingPaidWorkspace = (value: boolean) => {
+    const setIsDeletingPaidWorkspace = (value: boolean) => {
         isDeletingPaidWorkspaceRef.current = value;
     };
 
@@ -27,7 +27,7 @@ function usePayAndDowngrade(setIsDeleteModalOpen: (value: boolean) => void) {
         isDeletingPaidWorkspaceRef.current = false;
     }, [isLoadingBill, shouldBillWhenDowngrading, setIsDeleteModalOpen]);
 
-    return {setIsDelingPaidWorkspace};
+    return {setIsDeletingPaidWorkspace};
 }
 
 export default usePayAndDowngrade;

@@ -164,7 +164,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    const {setIsDelingPaidWorkspace} = usePayAndDowngrade(setIsDeleteModalOpen);
+    const {setIsDeletingPaidWorkspace} = usePayAndDowngrade(setIsDeleteModalOpen);
 
     const confirmDeleteAndHideModal = useCallback(() => {
         if (!policy?.id || !policyName) {
@@ -183,13 +183,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot()) {
-            setIsDelingPaidWorkspace(true);
+            setIsDeletingPaidWorkspace(true);
             calculateBillNewDot();
             return;
         }
 
         setIsDeleteModalOpen(true);
-    }, [setIsDelingPaidWorkspace]);
+    }, [setIsDeletingPaidWorkspace]);
 
     return (
         <WorkspacePageWithSections
