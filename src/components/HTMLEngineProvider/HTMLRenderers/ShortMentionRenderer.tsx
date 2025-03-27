@@ -1,6 +1,8 @@
 import React from 'react';
+import type {TextStyle} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+import Text from '@components/Text';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import CONST from '@src/CONST';
 import MentionHereRenderer from './MentionHereRenderer';
@@ -21,7 +23,11 @@ function ShortMentionRenderer(props: CustomRendererProps<TText | TPhrasing>) {
         return <MentionUserRenderer {...props} />;
     }
 
-    return <TNodeChildrenRenderer tnode={props.tnode} />;
+    return (
+        <Text style={props.style as TextStyle}>
+            <TNodeChildrenRenderer tnode={props.tnode} />
+        </Text>
+    );
 }
 
 ShortMentionRenderer.displayName = 'ShortMentionRenderer';
