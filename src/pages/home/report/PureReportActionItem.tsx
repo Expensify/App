@@ -319,6 +319,12 @@ type PureReportActionItemProps = {
     reportAutomaticallyForwardedMessage?: string;
 };
 
+// This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
+// If the child was rendered using RenderHTML and an empty html string, it has an empty prop called html
+// If we render an empty component/fragment, this does not apply
+const emptyHTML = <RenderHTML html="" />;
+const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean => typeof html === 'string' && html.length === 0;
+
 /**
  * This is a pure version of ReportActionItem, used in ReportActionList and Search result chat list items.
  * Since the search result has a separate Onyx key under the 'snapshot_' prefix, we should not connect this component with Onyx.
@@ -748,6 +754,11 @@ function PureReportActionItem({
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
+
+            // Table Report View does not display these components as separate messages
+            if (canUseTableReportView) {
+                children = emptyHTML;
+            }
         } else if (isTripPreview(action)) {
             children = (
                 <TripRoomPreview
@@ -1054,7 +1065,7 @@ function PureReportActionItem({
                 .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
         const draftMessageRightAlign = draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {};
 
-        return (
+        const itemContent = (
             <>
                 {children}
                 {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
@@ -1100,6 +1111,8 @@ function PureReportActionItem({
                 )}
             </>
         );
+
+        return isEmptyHTML(children) ? emptyHTML : itemContent;
     };
 
     /**
@@ -1112,6 +1125,10 @@ function PureReportActionItem({
 
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
+
+        if (isEmptyHTML(content)) {
+            return content;
+        }
 
         if (draftMessage !== undefined) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
