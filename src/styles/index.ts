@@ -3480,13 +3480,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.ml4,
         },
 
-        blockquote: {
-            borderLeftColor: theme.border,
-            borderLeftWidth: 4,
-            paddingLeft: 12,
-            marginVertical: 4,
-        },
-
         noSelect: {
             boxShadow: 'none',
             // After https://github.com/facebook/react-native/pull/46284 RN accepts only 3 options and undefined
