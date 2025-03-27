@@ -241,7 +241,13 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 // Use simpler constraints when in compatibility mode
                 const audioConstraints = {
                     audio: useCompatibilityMode ? true : {
-                        // Your enhanced settings here
+                        // Enhanced audio settings for better quality
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                        sampleRate: 48000,         // Use 48kHz sampling for better quality
+                        sampleSize: 16,            // 16-bit audio
+                        channelCount: 1,           // Mono is usually more reliable for voice
                     }
                 };
                 
@@ -276,7 +282,12 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                     const pcConfig = useCompatibilityMode ? {
                         iceServers: []
                     } : {
-                        // Your enhanced settings here
+                        // Enhanced connection settings
+                        iceServers: [],
+                        sdpSemantics: 'unified-plan',
+                        bundlePolicy: 'max-bundle',
+                        rtcpMuxPolicy: 'require',
+                        iceTransportPolicy: 'all',
                     };
                     
                     peerConnection = new RTCPeerConnection(pcConfig);
@@ -360,7 +371,16 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 
                 // Skip SDP modifications in compatibility mode
                 if (!useCompatibilityMode && offer.sdp) {
-                    // Your SDP modifications here
+                    // Modify SDP to increase audio quality
+                    offer.sdp = offer.sdp.replace(/(a=fmtp:111.*)\r\n/g, 
+                        '$1;maxaveragebitrate=128000;maxplaybackrate=48000\r\n');
+                    
+                    // Set audio bandwidth higher
+                    if (!offer.sdp.includes('b=AS:')) {
+                        offer.sdp = offer.sdp.replace(/(m=audio .*)\r\n/g, '$1\r\nb=AS:128\r\n');
+                    }
+                    
+                    console.log('[WebRTC] Enhanced SDP parameters for higher audio quality');
                 }
                 
                 return peerConnection.setLocalDescription(offer)
