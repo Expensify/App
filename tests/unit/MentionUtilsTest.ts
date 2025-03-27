@@ -10,13 +10,14 @@ describe('MentionUtils', () => {
             const mentionDetails = getReportMentionDetails(
                 '',
                 {policyID: '1'} as Report,
-                {1: {reportID, reportName: '#hello', policyID: '1', chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}},
+                {[reportID]: {reportID, reportName: '#hello', policyID: '1', chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}},
                 {data: '#hello'} as TText,
             );
             expect(mentionDetails?.reportID).toBe(reportID);
         });
         it('should return undefined report ID when the report is not a room', () => {
-            const mentionDetails = getReportMentionDetails('', {policyID: '1'} as Report, {1: {reportID: '1', reportName: '#hello', policyID: '1'}}, {data: '#hello'} as TText);
+            const reportID = '1';
+            const mentionDetails = getReportMentionDetails('', {policyID: '1'} as Report, {[reportID]: {reportID, reportName: '#hello', policyID: '1'}}, {data: '#hello'} as TText);
             expect(mentionDetails?.reportID).toBeUndefined();
         });
     });

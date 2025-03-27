@@ -1,9 +1,9 @@
 import isEmpty from 'lodash/isEmpty';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {TPhrasing, TText} from 'react-native-render-html';
+import type {TPhrasing, TText} from 'react-native-render-html';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isChatRoom} from './ReportUtils';
 
@@ -35,4 +35,5 @@ const getReportMentionDetails = (htmlAttributeReportID: string, currentReport: O
     return {reportID, mentionDisplayText};
 };
 
+// eslint-disable-next-line import/prefer-default-export
 export {getReportMentionDetails};
