@@ -264,47 +264,26 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 dc.onmessage = (event: MessageEvent) => {
                     try {
                         const rawData = event.data as string;
-                        // Log full message for debugging
-                        logDebug('RAW', `Raw data: ${rawData.substring(0, 150)}${rawData.length > 150 ? '...' : ''}`);
+                        // Don't log every raw message
                         
                         // Parse message data
                         const messageData = JSON.parse(rawData);
                         
-                        // Create a properly typed message object that maps all possible field structures
-                        const message: OpenAIRealtimeMessage = {
-                            // Common fields
-                            name: messageData.name,
-                            arguments: messageData.arguments,
-                            type: messageData.type,
-                            
-                            // Fields for delta updates
-                            delta: messageData.delta,
-                            
-                            // Fields for content parts
-                            content: messageData.content,
-                            part: messageData.part,
-                            
-                            // Various IDs in camelCase for our interface
-                            responseId: messageData.response_id,
-                            itemId: messageData.item_id,
-                            eventId: messageData.event_id,
-                            
-                            // Keep original snake_case fields that might be used directly
-                            response_id: messageData.response_id,
-                            item_id: messageData.item_id,
-                            output_index: messageData.output_index,
-                            content_index: messageData.content_index,
-                            
-                            // Transcript for conversation items
-                            transcript: messageData.transcript
-                        };
+                        // If this is a message type we're interested in, log it completely
+                        if (messageData.type === 'response.output_item.done' || 
+                            messageData.type === 'response.done' || 
+                            messageData.type === 'conversation.item.created') {
+                            // Log the full object structure for debugging
+                            console.log(`[FULL ${messageData.type}]`, messageData);
+                        }
+
+                        console.log(`[FULL ${messageData.type}]`, messageData);
                         
-                        handleOpenAIMessage(message);
+                        
+                        
+                        handleOpenAIMessage(messageData);
                     } catch (error) {
-                        logDebug('ERROR', 'Failed to parse message', {
-                            error,
-                            data: typeof event.data === 'string' ? event.data.substring(0, 100) + '...' : 'non-string data',
-                        });
+                        logDebug('ERROR', 'Failed to parse message', error);
                     }
                 };
                 
@@ -400,20 +379,23 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
 
 let accumulatedTranscript = '';
 let accumulatedContent = '';
+let isCollectingAIResponse = false;
 
 function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
-    // Log message type for debugging
-    logDebug('MESSAGE', `Received message type: ${message.type}`);
+    // Don't log every message type, only important ones
+    logDebug('MESSAGE', 'Handling OpenAI message', message);
     
-    // Process specific message types for debugging
     switch (message.type) {
+        case 'session.created':
+            // Only log this for setup confirmation
+            logDebug('SESSION', 'OpenAI session created');
+            break;
+            
         case 'response.function_call_arguments.done':
             handleFunctionCall(message);
             break;
             
         case 'input_audio_buffer.speech_started':
-            // Reset the accumulated transcript when a new speech segment starts
-            accumulatedTranscript = '';
             logDebug('SPEECH', '👂 User speech detected by OpenAI');
             break;
             
@@ -421,70 +403,24 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
             logDebug('SPEECH', '🛑 User speech ended');
             break;
             
-        case 'conversation.item.input_audio_transcription.completed':
-            // This event provides the complete transcript of what the user said
-            if (message.transcript) {
-                logDebug('USER_SAID', `🗣️ "${message.transcript}"`);
-                accumulatedTranscript = message.transcript;
-            }
-            break;
-            
+        // Log audio buffer state changes - these are useful for understanding when AI is speaking
         case 'output_audio_buffer.started':
-            // Reset the accumulated content when OpenAI starts speaking
-            accumulatedContent = '';
             logDebug('OUTPUT', '🔊 OpenAI started speaking');
             break;
             
         case 'output_audio_buffer.stopped':
             logDebug('OUTPUT', '🔇 OpenAI stopped speaking');
-            if (accumulatedContent) {
-                logDebug('AI_RESPONSE', `💬 "${accumulatedContent}"`);
-            }
             break;
             
+        // Skip logging for delta messages
         case 'response.audio_transcript.delta':
-            // This shows what the AI is about to say (the transcript of its audio)
-            if (message.delta?.text) {
-                accumulatedContent += message.delta.text;
-                logDebug('AI_TRANSCRIPT', `Delta: "${message.delta.text}"`);
-            }
-            break;
-            
-        case 'response.text.delta':
-            // This is the AI's text response (may be sent together with audio)
-            if (message.delta?.text) {
-                accumulatedContent += message.delta.text;
-                logDebug('AI_TEXT', `Delta: "${message.delta.text}"`);
-            }
-            break;
-            
-        case 'response.content_part.added':
-            // Content part was added to the response
-            if (message.part?.type === 'text' && message.part.text) {
-                logDebug('CONTENT', `New content part: "${message.part.text}"`);
-            }
-            break;
-            
-        case 'response.audio.done':
-            logDebug('AUDIO', '✓ OpenAI finished processing audio response');
-            break;
-            
-        case 'response.audio_transcript.done':
-            logDebug('TRANSCRIPT', '✓ Full transcript completed');
             break;
 
-        case 'response.done':
-            // Log the complete response including all output
-            logDebug('COMPLETE', '✅ Response completed');
-            break;
-            
         case 'error':
             logDebug('ERROR', '❌ OpenAI error message', message);
             break;
             
-        default:
-            // Less verbose logging for other message types
-            break;
+        // Don't log anything for all other message types
     }
 }
 
@@ -504,24 +440,33 @@ function initializeOpenAIRealtime(adminsReportID: number) {
                 }
 
                 logDebug('DATA', 'Sending initial greeting message');
+                // Make the initial message more standardized for consistent behavior
                 const initialUserMessage = {
                     type: 'response.create',
                     response: {
-                        instructions: 'Greet the user.',
+                        instructions: 'You are a helpful AI assistant. Greet the user briefly with "Hello! I\'m your AI assistant. How can I help you today?" and wait for their response. Keep responses very brief and to the point.',
+                        modalities: ['text', 'audio'],
                     },
                 };
 
+                console.log('[SENDING MESSAGE]', JSON.stringify(initialUserMessage));
                 connections.openai.dataChannel.send(JSON.stringify(initialUserMessage));
             };
 
             connections.openai.dataChannel.onmessage = (event: MessageEvent) => {
                 try {
                     const rawData = event.data as string;
-                    // Log full message for debugging
-                    logDebug('RAW', `Raw data: ${rawData.substring(0, 150)}${rawData.length > 150 ? '...' : ''}`);
                     
                     // Parse message data
                     const messageData = JSON.parse(rawData);
+                    
+                    // If this is a message type we're interested in, log it completely
+                    if (messageData.type === 'response.output_item.done' || 
+                        messageData.type === 'response.done' || 
+                        messageData.type === 'conversation.item.created') {
+                        // Log the full object structure for debugging
+                        console.log(`[FULL ${messageData.type}]`, messageData);
+                    }
                     
                     // Create a properly typed message object that maps all possible field structures
                     const message: OpenAIRealtimeMessage = {
@@ -554,10 +499,7 @@ function initializeOpenAIRealtime(adminsReportID: number) {
                     
                     handleOpenAIMessage(message);
                 } catch (error) {
-                    logDebug('ERROR', 'Failed to parse message', {
-                        error,
-                        data: typeof event.data === 'string' ? event.data.substring(0, 100) + '...' : 'non-string data',
-                    });
+                    logDebug('ERROR', 'Failed to parse message', error);
                 }
             };
         })
