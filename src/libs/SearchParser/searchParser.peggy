@@ -133,9 +133,9 @@ key "key"
     )
 
 filterKey
-= k:key {
-  nameOperator = (k === "from" || k === "to");
-  return k;
+  = k:key {
+      nameOperator = (k === "from" || k === "to");
+      return k;
 }
 
 defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)

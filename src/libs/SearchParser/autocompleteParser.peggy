@@ -73,9 +73,9 @@ autocompleteKey "key"
     )
 
 filterKey
-= k:autocompleteKey {
-  nameOperator = (k === "from" || k === "to");
-  return k;
+  = k:autocompleteKey {
+      nameOperator = (k === "from" || k === "to");
+      return k;
 }
 
 identifier

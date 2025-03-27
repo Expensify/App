@@ -328,8 +328,8 @@ function peg$parse(input, options) {
     };
   var peg$f3 = function() { autocomplete = null; };
   var peg$f4 = function(k) {
-  nameOperator = (k === "from" || k === "to");
-  return k;
+      nameOperator = (k === "from" || k === "to");
+      return k;
 };
   var peg$f5 = function(parts, empty) {
       const ends = location();

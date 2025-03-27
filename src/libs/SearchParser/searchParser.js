@@ -354,8 +354,8 @@ function peg$parse(input, options) {
       return buildFilter(op, field, values);
     };
   var peg$f5 = function(k) {
-  nameOperator = (k === "from" || k === "to");
-  return k;
+      nameOperator = (k === "from" || k === "to");
+      return k;
 };
   var peg$f6 = function(parts, empty) {
       const value = parts.flat().filter(Boolean).map((word) => {
