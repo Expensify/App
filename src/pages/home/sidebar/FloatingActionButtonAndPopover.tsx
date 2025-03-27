@@ -272,6 +272,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length === 0;
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
+    const quickActionSubtitle = useMemo(() => {
+        if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
+            return quickActionPolicy?.name;
+        }
+        return !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '';
+    }, [hideQABSubtitle, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
+
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
             if (shouldRestrictAction && quickActionReport?.policyID && shouldRestrictUserBillableActions(quickActionReport.policyID)) {
@@ -388,25 +395,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             shouldTeleportPortalToModalLayer: true,
         };
 
-        if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-            const onSelected = () => {
-                interceptAnonymousUser(() => {
-                    createNewReport(currentUserPersonalDetails, quickActionPolicy?.id);
-                });
-            };
-
-            return [
-                {
-                    ...baseQuickAction,
-                    icon: getQuickActionIcon(quickAction?.action),
-                    text: quickActionTitle,
-                    description: quickActionPolicy?.name ?? '',
-                    onSelected,
-                    shouldShowSubscriptRightAvatar: true,
-                },
-            ];
-        }
-
         if (quickAction?.action) {
             const iouType = getIouType(quickAction?.action);
             if (!!iouType && !canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
@@ -417,7 +405,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             }
             const onSelected = () => {
                 interceptAnonymousUser(() => {
-                    navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
+                    navigateToQuickAction(isValidReport, quickAction, currentUserPersonalDetails, quickActionPolicy?.id, selectOption);
                 });
             };
             return [
@@ -425,7 +413,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     ...baseQuickAction,
                     icon: getQuickActionIcon(quickAction?.action),
                     text: quickActionTitle,
-                    description: !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
+                    description: quickActionSubtitle,
                     onSelected,
                     shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
                 },
@@ -465,10 +453,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         quickAction,
         policyChatForActivePolicy,
         quickActionTitle,
-        quickActionPolicy,
+        quickActionSubtitle,
         currentUserPersonalDetails,
+        quickActionPolicy,
         quickActionReport,
-        hideQABSubtitle,
         isValidReport,
         selectOption,
     ]);

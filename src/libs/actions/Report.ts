@@ -2591,13 +2591,13 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportName = `${creatorPersonalDetails.firstName || 'User'}'s aaaaa`;
+    const reportName = `${creatorPersonalDetails.firstName || 'User'}'s report`;
 
     const {optimisticData, successData, failureData} = buildNewReportOptimisticData(policy, optimisticReportID, reportActionID, reportName, creatorPersonalDetails);
 
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
-        {reportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID},
+        {reportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, shouldUpdateQAB: true},
         {optimisticData, successData, failureData},
     );
     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}), {forceReplace: shouldForceReplaceScreen});

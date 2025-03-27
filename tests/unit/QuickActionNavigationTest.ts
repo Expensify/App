@@ -14,7 +14,7 @@ describe('IOU Utils', () => {
 
         it('should be navigated to Manual Submit Expense', () => {
             // When the quick action is REQUEST_MANUAL
-            navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.REQUEST_MANUAL}, (onSelected: () => void) => {
+            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.REQUEST_MANUAL, chatReportID: reportID}, {accountID: 1234}, undefined, (onSelected: () => void) => {
                 onSelected();
             });
             // Then we should start manual submit request flow
@@ -23,7 +23,7 @@ describe('IOU Utils', () => {
 
         it('should be navigated to Scan receipt Split Expense', () => {
             // When the quick action is SPLIT_SCAN
-            navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.SPLIT_SCAN}, (onSelected: () => void) => {
+            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.SPLIT_SCAN, chatReportID: reportID}, {accountID: 1234}, undefined, (onSelected: () => void) => {
                 onSelected();
             });
             // Then we should start scan split request flow
@@ -32,7 +32,7 @@ describe('IOU Utils', () => {
 
         it('should be navigated to Track distance Expense', () => {
             // When the quick action is TRACK_DISTANCE
-            navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.TRACK_DISTANCE}, (onSelected: () => void) => {
+            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.TRACK_DISTANCE, chatReportID: reportID}, {accountID: 1234}, undefined, (onSelected: () => void) => {
                 onSelected();
             });
             // Then we should start distance track request flow
@@ -41,7 +41,7 @@ describe('IOU Utils', () => {
 
         it('should be navigated to Per Diem Expense', () => {
             // When the quick action is PER_DIEM
-            navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.PER_DIEM}, (onSelected: () => void) => {
+            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.PER_DIEM, chatReportID: reportID}, {accountID: 1234}, undefined, (onSelected: () => void) => {
                 onSelected();
             });
             // Then we should start per diem request flow

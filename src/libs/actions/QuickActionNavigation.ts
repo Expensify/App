@@ -1,9 +1,11 @@
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import type {IOURequestType} from './IOU';
 import {startMoneyRequest} from './IOU';
+import {createNewReport} from './Report';
 import {startOutCreateTaskQuickAction} from './Task';
 
 function getQuickActionRequestType(action: QuickActionName | undefined): IOURequestType | undefined {
@@ -25,7 +27,14 @@ function getQuickActionRequestType(action: QuickActionName | undefined): IOURequ
     return requestType;
 }
 
-function navigateToQuickAction(isValidReport: boolean, quickActionReportID: string, quickAction: QuickAction, selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void) {
+function navigateToQuickAction(
+    isValidReport: boolean,
+    quickAction: QuickAction,
+    currentUserPersonalDetails: PersonalDetails,
+    policyID: string | undefined,
+    selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void,
+) {
+    const quickActionReportID = `${quickAction?.chatReportID ?? CONST.DEFAULT_NUMBER_ID}`;
     const reportID = isValidReport ? quickActionReportID : generateReportID();
     const requestType = getQuickActionRequestType(quickAction?.action);
 
@@ -46,11 +55,14 @@ function navigateToQuickAction(isValidReport: boolean, quickActionReportID: stri
             return;
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             selectOption(() => startOutCreateTaskQuickAction(isValidReport ? reportID : '', quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID), false);
-            break;
+            return;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
+            return;
+        case CONST.QUICK_ACTIONS.CREATE_REPORT:
+            selectOption(() => createNewReport(currentUserPersonalDetails, policyID), true);
             break;
         default:
     }
