@@ -22,12 +22,12 @@ type ValidateCodeActionModalProps = {
     onModalHide?: () => void;
 
     /** The pending action we're trying to validate */
-    validatePendingAction?: PendingAction | undefined;
+    validatePendingAction?: PendingAction;
 
-    /** The error of submitting, this hold any error sepcifc to the flow (e.g invalid reason when replacing a card) but NOT an incorrect magic code  */
+    /** The error of submitting, this hold any error specific to the flow (e.g invalid reason when replacing a card) but NOT an incorrect magic code  */
     validateError?: Errors;
 
-    /** The errorField name of validateCodeAction.errorFields, e.g. "addLogin" to store magic code error when adding a new contact method */
+    /** The errorField name of validateCodeAction.errorFields, e.g. "addLogin" to store the magic code error when adding a new contact method */
     validateCodeActionErrorField: string;
 
     /** Function is called when submitting form  */

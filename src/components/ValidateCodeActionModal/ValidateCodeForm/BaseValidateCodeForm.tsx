@@ -47,9 +47,9 @@ type ValidateCodeFormProps = {
     /** The pending action of magic code being sent
      * if not supplied, we will retrieve it from the validateCodeAction above: `validateCodeAction.pendingFields.validateCodeSent`
      */
-    validatePendingAction?: PendingAction | undefined;
+    validatePendingAction?: PendingAction;
 
-    /** The field where any magic code erorr will be stored. e.g. if replacing a card and magic code fails, it'll be stored in:
+    /** The field where any magic code error will be stored. e.g. if replacing a card and magic code fails, it'll be stored in:
      * {"errorFields": {"repplaceLostCard": {<timestamp>}}}
      * If replacing a virtual card, the errorField wil be 'reportVirtualCard', etc.
      * These values are set in the backend, please reach out to an internal engineer if you're adding a validate code modal to a flow.
