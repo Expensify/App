@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Hoverable from '@components/Hoverable';
-import {TableColumnSize} from '@components/Search/types';
+import type {TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';

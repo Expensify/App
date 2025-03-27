@@ -3781,8 +3781,6 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             ...userSelect.userSelectNone,
             paddingBottom: 12,
-            paddingHorizontal: 32,
-            paddingTop: 12,
             backgroundColor: theme.appBG,
             justifyContent: 'flex-start',
         },
