@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import type {TextProps} from 'react-native';
-import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TNode, TRenderEngineProvider} from 'react-native-render-html';
+import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
+import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import FontUtils from '@styles/utils/FontUtils';
@@ -135,6 +136,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.onlyEmojisText,
             styles.onlyEmojisTextLineHeight,
             styles.taskTitleMenuItem,
+            styles.taskTitleMenuItemItalic,
+            styles.em,
+            styles.strong,
+            styles.h1,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
