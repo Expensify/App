@@ -14,18 +14,53 @@ type KeyboardStateContextValue = {
     keyboardHeight: number;
 
     isKeyboardAnimatingRef: MutableRefObject<boolean>;
+
+    /** Whether the keyboard is about to show */
+    isKeyboardWillShow: boolean;
+
+    /** Whether the keyboard is about to hide */
+    isKeyboardWillHide: boolean;
 };
 
 const KeyboardStateContext = createContext<KeyboardStateContextValue>({
     isKeyboardShown: false,
     keyboardHeight: 0,
     isKeyboardAnimatingRef: {current: false},
+    isKeyboardWillShow: false,
+    isKeyboardWillHide: false,
 });
 
 function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     const {bottom} = useSafeAreaInsets();
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const isKeyboardAnimatingRef = useRef(false);
+    const [isKeyboardWillShow, setIsKeyboardWillShow] = useState(false);
+    const [isKeyboardWillHide, setIsKeyboardWillHide] = useState(false);
+    useEffect(() => {
+        const keyboardDidShowListener = KeyboardEvents.addListener('keyboardDidShow', (e) => {
+            setKeyboardHeight(getKeyboardHeight(e.height, bottom));
+            setIsKeyboardWillShow(false);
+        });
+        const keyboardDidHideListener = KeyboardEvents.addListener('keyboardDidHide', () => {
+            setKeyboardHeight(0);
+            setIsKeyboardWillHide(false);
+        });
+        const keyboardWillShowListener = KeyboardEvents.addListener('keyboardWillShow', () => {
+            setIsKeyboardWillShow(true);
+            setIsKeyboardWillHide(false);
+        });
+        const keyboardWillHideListener = KeyboardEvents.addListener('keyboardWillHide', () => {
+            setIsKeyboardWillHide(true);
+            setIsKeyboardWillShow(false);
+        });
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+            keyboardWillShowListener.remove();
+            keyboardWillHideListener.remove();
+        };
+    }, [bottom]);
 
     useEffect(() => {
         const keyboardDidShowListener = KeyboardEvents.addListener('keyboardDidShow', (e) => {
@@ -66,8 +101,10 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
             keyboardHeight,
             isKeyboardShown: keyboardHeight !== 0,
             isKeyboardAnimatingRef,
+            isKeyboardWillHide,
+            isKeyboardWillShow,
         }),
-        [keyboardHeight],
+        [keyboardHeight, isKeyboardWillHide, isKeyboardWillShow],
     );
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
