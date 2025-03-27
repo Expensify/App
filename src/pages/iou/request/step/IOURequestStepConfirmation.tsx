@@ -19,7 +19,7 @@ import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isLocalFile as isLocalFileFileUtils, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
@@ -29,7 +29,7 @@ import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {generateReportID, getBankAccountRoute} from '@libs/ReportUtils';
+import {generateReportID, getBankAccountRoute, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
@@ -97,7 +97,7 @@ function IOURequestStepConfirmation({
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
@@ -125,6 +125,7 @@ function IOURequestStepConfirmation({
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+    const isTestTransaction = transaction?.participants?.some((participant) => isSelectedManagerMcTest(participant.login));
     const payeePersonalDetails = useMemo(() => {
         if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
             return personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1];
@@ -141,7 +142,7 @@ function IOURequestStepConfirmation({
         };
     }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
 
-    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile;
+    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 
@@ -200,9 +201,21 @@ function IOURequestStepConfirmation({
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
-        if (!!isLoadingTransaction || (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)))) {
+        // Exit early if the transaction is still loading
+        if (isLoadingTransaction) {
             return;
         }
+
+        // Check if the transaction belongs to the current report
+        const isCurrentReportID = transaction?.isFromGlobalCreate
+            ? transaction?.participants?.at(0)?.reportID === reportID || (!transaction?.participants?.at(0)?.reportID && transaction?.reportID === reportID)
+            : transaction?.reportID === reportID;
+
+        // Exit if the transaction already exists and is associated with the current report
+        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && (isCurrentReportID || isMovingTransactionFromTrackExpense)) {
+            return;
+        }
+
         startMoneyRequest(
             CONST.IOU.TYPE.CREATE,
             // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
@@ -210,7 +223,7 @@ function IOURequestStepConfirmation({
             generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction]);
+    }, [isLoadingTransaction, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
         if (!transaction?.category) {
@@ -338,11 +351,12 @@ function IOURequestStepConfirmation({
         const onSuccess = (file: File) => {
             const receipt: Receipt = file;
             receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+
             setReceiptFile(receipt);
         };
 
         navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
-    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt]);
+    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt, report, transaction, participants]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: GpsPoint) => {
@@ -693,7 +707,13 @@ function IOURequestStepConfirmation({
 
             if (receiptFile && !!transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-                if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
+                if (
+                    transaction.amount === 0 &&
+                    !isSharingTrackExpense &&
+                    !isCategorizingTrackExpense &&
+                    locationPermissionGranted &&
+                    !selectedParticipants.some((participant) => isSelectedManagerMcTest(participant.login))
+                ) {
                     if (userLocation) {
                         requestMoney(selectedParticipants, trimmedComment, receiptFile, {
                             lat: userLocation.latitude,
@@ -854,7 +874,7 @@ function IOURequestStepConfirmation({
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                        threeDotsAnchorPosition={threeDotsAnchorPosition}
                         threeDotsMenuItems={[
                             {
                                 icon: Expensicons.Receipt,

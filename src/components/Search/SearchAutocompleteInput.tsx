@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-import handleKeyPress from '@libs/SearchInputOnKeyPress';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -108,7 +107,7 @@ function SearchAutocompleteInput(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const currencyAutocompleteList = Object.keys(currencyList ?? {});
+    const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currencyCode) => !currencyList?.[currencyCode]?.retired);
     const currencySharedValue = useSharedValue(currencyAutocompleteList);
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -164,7 +163,7 @@ function SearchAutocompleteInput(
             'worklet';
 
             tagSharedValue.set(tagAutocompleteList);
-        });
+        })();
     }, [tagSharedValue, tagAutocompleteList]);
 
     const parser = useCallback(
@@ -174,14 +173,6 @@ function SearchAutocompleteInput(
             return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
         },
         [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
-    );
-
-    const additionalMarkdownStyle = useMemo(
-        () => ({
-            mentionHere: styles.br1,
-            mentionUser: styles.br1,
-        }),
-        [styles.br1],
     );
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
@@ -216,7 +207,6 @@ function SearchAutocompleteInput(
                         enterKeyHint="search"
                         accessibilityLabel={translate('search.searchPlaceholder')}
                         disabled={disabled}
-                        markdownStyle={additionalMarkdownStyle}
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
@@ -235,7 +225,6 @@ function SearchAutocompleteInput(
                         }}
                         isLoading={!!isSearchingForReports}
                         ref={ref}
-                        onKeyPress={handleKeyPress(onSubmit)}
                         type="markdown"
                         multiline={false}
                         parser={parser}
