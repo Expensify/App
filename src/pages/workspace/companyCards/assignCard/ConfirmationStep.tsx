@@ -63,7 +63,11 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             return;
         }
         assignWorkspaceCompanyCard(policyID, data);
-        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        }
     };
 
     const editStep = (step: AssignCardStep) => {

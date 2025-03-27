@@ -32,6 +32,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
         firstAssigneeEmail.current = issueNewCard?.data?.assigneeEmail;
     }
     const shouldUseBackToParam = !firstAssigneeEmail.current || firstAssigneeEmail.current === issueNewCard?.data?.assigneeEmail;
+    /* eslint-enable react-compiler/react-compiler */
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
     useEffect(() => {
@@ -54,6 +55,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                 return (
                     <ConfirmationStep
                         policyID={policyID}
+                        // eslint-disable-next-line react-compiler/react-compiler
                         backTo={shouldUseBackToParam ? backTo : undefined}
                     />
                 );
@@ -78,6 +80,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     }
 
     return (
+        /* eslint-disable react-compiler/react-compiler */
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
