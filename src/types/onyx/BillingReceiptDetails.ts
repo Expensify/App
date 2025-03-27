@@ -34,7 +34,7 @@ type BillingReceiptDetails = {
     discounts: BillingItem[];
 
     /** A list of sales tax items */
-    salesTax: BillingItem[];
+    salesTax: BillingItem;
 
     /** The billing month, formatted as "Month YYYY" */
     billingMonth: string;

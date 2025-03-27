@@ -39,7 +39,7 @@ function PayAndDowngradePage() {
         if (isEmptyObject(billingDetails)) {
             return [];
         }
-        const results = [...billingDetails.receiptsWithoutDiscount, ...billingDetails.discounts, ...billingDetails.salesTax].map((item) => {
+        const results = [...billingDetails.receiptsWithoutDiscount, ...billingDetails.discounts].map((item) => {
             return {
                 key: item.description,
                 value: item.formattedAmount,
