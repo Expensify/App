@@ -15,6 +15,7 @@ import {changeReportPolicy, moveIOUReportToPolicy, moveIOUReportToPolicyAndInvit
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin, isPolicyMember, isWorkspaceEligibleForReportChange} from '@libs/PolicyUtils';
 import {isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,7 +46,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 return;
             }
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-            if (isIOUReport(reportID) && isPolicyAdmin(getPolicy(policyID))) {
+            if (isIOUReport(reportID) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
                 moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID);
             } else if (isIOUReport(reportID) && isPolicyMember(currentUserLogin, policyID)) {
                 moveIOUReportToPolicy(reportID, policyID);
@@ -53,7 +54,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 changeReportPolicy(reportID, policyID);
             }
         },
-        [currentUserLogin, reportID],
+        [currentUserLogin, report, reportID],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({

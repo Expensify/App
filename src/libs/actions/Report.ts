@@ -5110,10 +5110,16 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     const policyName = policy.name ?? '';
     const iouReportID = iouReport.reportID;
     const ownerAccountID = iouReport.ownerAccountID;
-    const expenseChatReportID = getPolicyExpenseChat(ownerAccountID, policyID)?.reportID;
 
-    if (!expenseChatReportID) {
-        return;
+    // Create an optimistic policy expense chat for the submitter who's not a policy member
+    let optimisticExpenseChatReportID: string | undefined;
+    let optimisticExpenseChatCreatedReportActionID: string | undefined;
+
+    if (ownerAccountID) {
+        const employeeEmail = allPersonalDetails?.[ownerAccountID]?.login ?? '';
+        const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: ownerAccountID}, true);
+        optimisticExpenseChatReportID = employeeWorkspaceChat.reportCreationData[employeeEmail]?.reportID;
+        optimisticExpenseChatCreatedReportActionID = employeeWorkspaceChat.reportCreationData[employeeEmail]?.reportActionID;
     }
 
     const optimisticData: OnyxUpdate[] = [];
@@ -5128,7 +5134,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     // - update the chatReportID to point to the workspace chat if the policy has policy expense chat enabled
     const expenseReport = {
         ...iouReport,
-        chatReportID: policy.isPolicyExpenseChatEnabled ? expenseChatReportID : undefined,
+        chatReportID: policy.isPolicyExpenseChatEnabled ? optimisticExpenseChatReportID : undefined,
         policyID,
         policyName,
         parentReportID: iouReport.parentReportID,
@@ -5194,12 +5200,12 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
         // Add the reportPreview action to workspace chat
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
             value: {[reportPreview.reportActionID]: {...reportPreview, created: DateUtils.getDBTime()}},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
             value: {[reportPreview.reportActionID]: null},
         });
     }
@@ -5208,12 +5214,12 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     const changePolicyReportAction = buildOptimisticChangePolicyReportAction(iouReport.policyID, policyID, true);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
         value: {[changePolicyReportAction.reportActionID]: changePolicyReportAction},
     });
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
         value: {
             [changePolicyReportAction.reportActionID]: {
                 ...changePolicyReportAction,
@@ -5223,7 +5229,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseChatReportID}`,
         value: {[changePolicyReportAction.reportActionID]: null},
     });
 
@@ -5326,8 +5332,8 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     const parameters: MoveIOUReportToPolicyAndInviteSubmitterParams = {
         iouReportID,
         policyID,
-        policyExpenseChatReportID: expenseChatReportID,
-        policyExpenseCreatedReportActionID: expenseReport.parentReportActionID ?? String(CONST.DEFAULT_NUMBER_ID),
+        policyExpenseChatReportID: optimisticExpenseChatReportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        policyExpenseCreatedReportActionID: optimisticExpenseChatCreatedReportActionID ?? String(CONST.DEFAULT_NUMBER_ID),
         changePolicyReportActionID: changePolicyReportAction.reportActionID,
     };
 
