@@ -10,6 +10,7 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
+import type {DerivedValueContext} from './types';
 
 /**
  * Initialize all Onyx derived values, store them in Onyx, and setup listeners to update them when dependencies change.
@@ -23,11 +24,11 @@ function init() {
         OnyxUtils.get(key).then((storedDerivedValue) => {
             let derivedValue = storedDerivedValue;
             if (derivedValue) {
-                Log.info(`Derived value ${derivedValue} for ${key} restored from disk`);
+                Log.info(`Derived value for ${key} restored from disk`);
             } else {
                 OnyxUtils.tupleGet(dependencies).then((values) => {
+                    derivedValue = compute(values, {currentValue: derivedValue});
                     dependencyValues = values;
-                    derivedValue = compute(values, derivedValue);
                     Onyx.set(key, derivedValue ?? null);
                 });
             }
@@ -36,13 +37,23 @@ function init() {
                 dependencyValues[i] = value;
             };
 
-            const recomputeDerivedValue = () => {
-                const newDerivedValue = compute(dependencyValues, derivedValue);
-                if (newDerivedValue !== derivedValue) {
-                    Log.info(`[OnyxDerived] value for key ${key} changed, updating it in Onyx`, false, {old: derivedValue ?? null, new: newDerivedValue ?? null});
-                    derivedValue = newDerivedValue;
-                    Onyx.set(key, derivedValue ?? null);
+            const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown) => {
+                const context: DerivedValueContext<typeof key, typeof dependencies> = {
+                    currentValue: derivedValue,
+                    sourceValues: undefined,
+                };
+
+                // If we got a source key and value, add it to the sourceValues object
+                if (sourceKey && sourceValue !== undefined) {
+                    context.sourceValues = {
+                        [sourceKey]: sourceValue,
+                    };
                 }
+
+                const newDerivedValue = compute(dependencyValues, context);
+                Log.info(`[OnyxDerived] updating value for ${key} in Onyx`, false, {old: derivedValue ?? null, new: newDerivedValue ?? null});
+                derivedValue = newDerivedValue;
+                Onyx.set(key, derivedValue ?? null);
             };
 
             for (let i = 0; i < dependencies.length; i++) {
@@ -52,10 +63,10 @@ function init() {
                     Onyx.connect({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
-                        callback: (value) => {
-                            Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
+                        callback: (value, collectionKey, sourceValue) => {
+                            Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(i, value);
-                            recomputeDerivedValue();
+                            recomputeDerivedValue(dependencyOnyxKey, sourceValue);
                         },
                     });
                 } else {
@@ -64,7 +75,7 @@ function init() {
                         callback: (value) => {
                             Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(i, value);
-                            recomputeDerivedValue();
+                            recomputeDerivedValue(dependencyOnyxKey);
                         },
                     });
                 }
