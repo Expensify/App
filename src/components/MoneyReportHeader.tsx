@@ -681,6 +681,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 title={translate('workspace.exportAgainModal.title')}
                 onConfirm={() => {
                     confirmManualExport();
+                    setMarkAsExportedModalVisible(false);
                 }}
                 onCancel={() => setMarkAsExportedModalVisible(false)}
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
