@@ -94,6 +94,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             shouldDisplayRBR={!shouldShowCheckBox}
+            testID={item.text}
         >
             {(hovered?: boolean) => (
                 <EducationalTooltip
