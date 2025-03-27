@@ -212,7 +212,7 @@ type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
 
 type RoomNameReservedErrorParams = {reservedName: string};
 
-type RenamedRoomActionParams = {oldName: string; newName: string};
+type RenamedRoomActionParams = {oldName: string; newName: string; actorName?: string};
 
 type RoomRenamedToParams = {newName: string};
 
