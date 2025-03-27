@@ -1,7 +1,7 @@
 ---
-title: Subscription-Management.md
+title: Manage Your Expensify Subscription
 description: Learn how to manage your subscription, update billing details, cancel early, or delete a workspace in New Expensify.
-keywords: [subscription, billing, payment card, cancel subscription, delete workspace, remove workspace, subscription settings]
+keywords: [New Expensify, subscription, billing, payment card, cancel subscription, delete workspace, remove workspace, subscription settings]
 ---
 <div id="new-expensify" markdown="1">
 
