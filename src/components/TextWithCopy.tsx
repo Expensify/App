@@ -1,5 +1,6 @@
 import React, {useRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
@@ -19,6 +20,7 @@ type TextWithCopyProps = TextProps & {
  */
 function TextWithCopy({children, copyValue, ...rest}: TextWithCopyProps) {
     const popoverAnchor = useRef<View>(null);
+    const styles = useThemeStyles();
 
     const toggleCopyContextMenu = (event: GestureResponderEvent | MouseEvent) => {
         if (!copyValue) {
@@ -38,6 +40,7 @@ function TextWithCopy({children, copyValue, ...rest}: TextWithCopyProps) {
             onSecondaryInteraction={toggleCopyContextMenu}
             accessibilityLabel={copyValue}
             accessible
+            style={styles.cursorDefault}
         >
             <Text
                 selectable={false}
