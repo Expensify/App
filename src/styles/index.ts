@@ -4754,6 +4754,10 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
             height: 180,
+            maxWidth: '100%',
+        },
+
+        expenseViewImage: {
             maxWidth: 360,
         },
 
