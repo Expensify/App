@@ -1,5 +1,5 @@
 import isEqual from 'lodash/isEqual';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import usePrevious from '@hooks/usePrevious';
@@ -71,6 +71,14 @@ function PopoverWithMeasuredContent({
     const prevIsVisible = usePrevious(isVisible);
 
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
+
+    useEffect(() => {
+        if (isVisible) {
+            return;
+        }
+
+        setIsContentMeasured(false);
+    }, [isVisible]);
 
     if (!prevIsVisible && isVisible && shouldEnableNewFocusManagement) {
         ComposerFocusManager.saveFocusState(modalId);
