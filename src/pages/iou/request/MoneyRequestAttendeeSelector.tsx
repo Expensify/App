@@ -86,7 +86,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         );
         if (isPaidGroupPolicy) {
             const orderedOptions = OptionsListUtils.orderOptions(optionList, searchTerm, {
-                preferChatroomsOverThreads: true,
+                preferChatRoomsOverThreads: true,
                 preferPolicyExpenseChat: !!action,
                 preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
             });

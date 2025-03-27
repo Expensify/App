@@ -167,7 +167,7 @@ type RequestConflictResolver = {
     /**
      * A boolean flag to mark a request as rollbacked, if set to true it means the request failed and was added back into the queue.
      */
-    isRollbacked?: boolean;
+    isRollback?: boolean;
 };
 
 /** Model of requests sent to the API */

@@ -3689,7 +3689,7 @@ function getUpdateMoneyRequestParams(
     // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
     const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
     // If calculatedDiffAmount is null it means we cannot calculate the new iou report total from front-end due to currency differences.
-    const isTotalIndeterministic = calculatedDiffAmount === null;
+    const isTotalUndetermined = calculatedDiffAmount === null;
     const diff = calculatedDiffAmount ?? 0;
 
     let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
@@ -3728,7 +3728,7 @@ function getUpdateMoneyRequestParams(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: {...updatedMoneyRequestReport, ...(isTotalIndeterministic && {pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}})},
+            value: {...updatedMoneyRequestReport, ...(isTotalUndetermined && {pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}})},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3748,7 +3748,7 @@ function getUpdateMoneyRequestParams(
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-        value: {pendingAction: null, ...(isTotalIndeterministic && {pendingFields: {total: null}})},
+        value: {pendingAction: null, ...(isTotalUndetermined && {pendingFields: {total: null}})},
     });
 
     // Optimistically modify the transaction and the transaction thread
@@ -3879,7 +3879,7 @@ function getUpdateMoneyRequestParams(
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: {...iouReport, ...(isTotalIndeterministic && {pendingFields: {total: null}})},
+            value: {...iouReport, ...(isTotalUndetermined && {pendingFields: {total: null}})},
         });
     }
 
@@ -9588,7 +9588,7 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
     const splitShares: SplitShares = accountIDs.reduce((acc: SplitShares, accountID): SplitShares => {
         // We want to replace the contents of splitShares to contain only `newAccountIDs` entries
         // In the case of going back to the participants page and removing a participant
-        // a simple merge will have the previous participant still present in the splitshares object
+        // a simple merge will have the previous participant still present in the splitShares object
         // So we manually set their entry to null
         if (!newAccountIDs.includes(accountID) && accountID !== userAccountID) {
             acc[accountID] = null;
@@ -9915,7 +9915,7 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
         },
     ];
 
-    // If we are unholding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+    // If we are un-holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
     if (searchHash) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,

@@ -32,13 +32,13 @@ type TooltipData = {
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [CONCIERGE_LHN_GBR]: {
         content: [
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
+            {text: 'productTrainingTooltip.conciergeLHNGbr.part1', isBold: false},
+            {text: 'productTrainingTooltip.conciergeLHNGbr.part2', isBold: true},
         ],
         onHideTooltip: () => dismissProductTraining(CONCIERGE_LHN_GBR),
         name: CONCIERGE_LHN_GBR,
         priority: 1300,
-        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         shouldShow: () => false,
     },

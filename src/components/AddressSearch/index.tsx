@@ -186,7 +186,7 @@ function AddressSearch(
             // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
             // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
             // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
-            // Salagatan, Upssala, Sweden).
+            // Salagatan, Uppsala, Sweden).
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
 

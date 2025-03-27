@@ -900,8 +900,8 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
 }
 
-function checkIfShouldShowMarkAsCashButton(hasRTERVPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
-    if (hasRTERVPendingViolation) {
+function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
+    if (hasRTERPendingViolation) {
         return true;
     }
     return (

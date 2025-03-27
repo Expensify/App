@@ -169,7 +169,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
 
-    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`) ?? null;
+    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`) ?? null;
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`);
     const isDownloadingPDF = download?.isDownloading ?? false;
 

@@ -119,7 +119,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
 
         // If we find a new message, we probably want to remove it and not perform any request given that the server
         // doesn't know about it yet.
-        if (addNewMessage.has(request.command) && !request.isRollbacked) {
+        if (addNewMessage.has(request.command) && !request.isRollback) {
             addCommentFound = true;
             commentCouldBeThread[reportActionID] = commentIndicesToDelete.length;
         }

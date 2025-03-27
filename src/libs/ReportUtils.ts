@@ -3763,7 +3763,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
  *
  * - It was written by the current user
  * - It's an ADD_COMMENT that is not an attachment
- * - It's an expense where conditions for editability are defined in canEditMoneyRequest method
+ * - It's an expense where conditions for edibility are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
 function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -5834,7 +5834,7 @@ function buildOptimisticMovedReportAction(fromPolicyID: string | undefined, toPo
 }
 
 /**
- * Builds an optimistic CHANGEPOLICY report action with a randomly generated reportActionID.
+ * Builds an optimistic CHANGE_POLICY report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
 function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string, automaticAction = false): ReportAction {
@@ -5973,7 +5973,7 @@ function buildOptimisticReportPreview(
 }
 
 /**
- * Builds an optimistic ACTIONABLETRACKEXPENSEWHISPER action with a randomly generated reportActionID.
+ * Builds an optimistic ACTIONABLE_TRACK_EXPENSE_WHISPER action with a randomly generated reportActionID.
  */
 function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOUReportAction, transactionID: string): ReportAction {
     const currentTime = DateUtils.getDBTime();
@@ -7496,8 +7496,7 @@ function reasonForReportToBeInOptionList({
  * for reports or the reports shown in the LHN).
  *
  * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
- * filter out the majority of reports before filtering out very spimport { accounts } from '../languages/en';
-ecific minority of reports.
+ * filter out the majority of reports before filtering out very specific minority of reports.
  */
 function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
     return reasonForReportToBeInOptionList(params) !== null;
@@ -9174,7 +9173,7 @@ function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData,
         return (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
     }
 
-    // Onboarding guides are assigned to signups with emails that do not contain a '+' and select the "Manage my team's expenses" intent.
+    // Onboarding guides are assigned to sign ups with emails that do not contain a '+' and select the "Manage my team's expenses" intent.
     // Guides and onboarding tasks are posted to the #admins room to facilitate the onboarding process.
     return onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !currentUserEmail?.includes('+')
         ? isAdminRoom(optionOrReport)
@@ -9328,7 +9327,7 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 
     // Push rule approvers to approvalChain list before submitsTo/forwardsTo approvers
     ruleApprovers.forEach((ruleApprover) => {
-        // Don't push submiiter to approve as a rule approver
+        // Don't push submitter to approve as a rule approver
         if (fullApprovalChain.includes(ruleApprover) || ruleApprover === submitterEmail) {
             return;
         }
@@ -9441,8 +9440,8 @@ function isSelectedManagerMcTest(email: string | null | undefined): boolean {
  */
 function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const persionalDetails = allPersonalDetails?.[managerID];
-    return isSelectedManagerMcTest(persionalDetails?.login);
+    const personalDetails = allPersonalDetails?.[managerID];
+    return isSelectedManagerMcTest(personalDetails?.login);
 }
 
 export {

@@ -97,7 +97,7 @@ Onyx.connect({
 
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
-        Log.warn('openPolicyTasgPage invalid params', {policyID});
+        Log.warn('openPolicyTagsPage invalid params', {policyID});
         return;
     }
 

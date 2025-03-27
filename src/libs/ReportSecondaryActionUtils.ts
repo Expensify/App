@@ -10,7 +10,7 @@ import {
     hasAccountingConnections,
     hasNoPolicyOtherThanPersonalType,
     isAutoSyncEnabled,
-    isPrefferedExporter,
+    isPreferredExporter,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
 import {
@@ -192,7 +192,7 @@ function isMarkAsExportedAction(report: Report, policy: Policy): boolean {
         return true;
     }
 
-    const isExporter = isPrefferedExporter(policy);
+    const isExporter = isPreferredExporter(policy);
 
     if (isExporter && isReportFinished && hasAccountingConnection && !syncEnabled) {
         return true;

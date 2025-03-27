@@ -15,7 +15,7 @@ type ScrollOffsetContextValue = {
     /** Get scroll offset value for given screen */
     getScrollOffset: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
 
-    /** Save scroll index of flashlist on given screen */
+    /** Save scroll index of flash list on given screen */
     saveScrollIndex: (route: PlatformStackRouteProp<ParamListBase>, scrollIndex: number) => void;
 
     /** Get scroll index value for given screen */

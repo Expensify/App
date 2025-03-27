@@ -119,13 +119,13 @@ type OptionsListProps = {
     /** Custom content to display in the floating footer */
     renderFooterContent?: JSX.Element;
 
-    /** Whether to show a button pill instead of a standard tickbox */
+    /** Whether to show a button pill instead of a standard check box */
     shouldShowMultipleOptionSelectorAsButton?: boolean;
 
     /** Text for button pill */
     multipleOptionSelectorButtonText?: string;
 
-    /** Callback to fire when the multiple selector (tickbox or button) is clicked */
+    /** Callback to fire when the multiple selector (check box or button) is clicked */
     onAddToSelection?: () => void;
 
     /** Safe area style */

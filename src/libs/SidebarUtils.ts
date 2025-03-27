@@ -34,7 +34,7 @@ import {
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogEmployeeLeftMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
-    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
     getReportAction,
@@ -605,7 +605,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
             result.alternateText = getWorkspaceUpdateFieldMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
-            result.alternateText = getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(lastAction);
+            result.alternateText = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
             result.alternateText = getPolicyChangeLogMaxExpenseAmountMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {

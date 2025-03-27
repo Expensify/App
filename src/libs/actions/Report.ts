@@ -4845,7 +4845,7 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${reportID}`,
             value: null,
         },
     ];
@@ -4853,7 +4853,7 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${reportID}`,
             value: 'error',
         },
     ];
@@ -5204,7 +5204,7 @@ function changeReportPolicy(reportID: string, policyID: string) {
         });
     }
 
-    // 3. Optimistically create a new REPORTPREVIEW reportAction with the newReportPreviewActionID
+    // 3. Optimistically create a new REPORT_PREVIEW reportAction with the newReportPreviewActionID
     // and set it as a parent of the moved report
     const policyExpenseChat = getPolicyExpenseChat(currentUserAccountID, policyID);
     const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, reportToMove);
@@ -5256,7 +5256,7 @@ function changeReportPolicy(reportID: string, policyID: string) {
         });
     }
 
-    // 4. Optimistically create a CHANGEPOLICY reportAction on the report using the reportActionID
+    // 4. Optimistically create a CHANGE_POLICY reportAction on the report using the reportActionID
     const optimisticMovedReportAction = buildOptimisticChangePolicyReportAction(reportToMove.policyID, policyID);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,

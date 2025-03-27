@@ -215,7 +215,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
 
-    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to theirself, we need to show the optimistic next step
+    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);

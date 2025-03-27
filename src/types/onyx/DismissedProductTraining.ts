@@ -19,10 +19,10 @@ type DismissedProductTraining = {
      */
     [CONST.MIGRATED_USER_WELCOME_MODAL]: string;
 
-    // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+    // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
     // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
     /**
-     * When user dismisses the conciergeLHNGBR product training tooltip, we store the timestamp here.
+     * When user dismisses the conciergeLHNGbr product training tooltip, we store the timestamp here.
      */
     [CONCIERGE_LHN_GBR]: string;
 
@@ -57,7 +57,7 @@ type DismissedProductTraining = {
     [SCAN_TEST_TOOLTIP_MANAGER]: string;
 
     /**
-     * When user dismisses the test manager on confirmantion page product training tooltip, we store the timestamp here.
+     * When user dismisses the test manager on confirmation page product training tooltip, we store the timestamp here.
      */
     [SCAN_TEST_CONFIRMATION]: string;
 

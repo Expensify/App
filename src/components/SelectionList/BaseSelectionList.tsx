@@ -171,7 +171,7 @@ function BaseSelectionList<TItem extends ListItem>(
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
      * - `disabledOptionsIndexes`: Contains the indexes of all the unselectable and disabled items in the list
-     * - `disabledArrowKeyOptionsIndexes`: Contains the indexes of item that is not navigatable by the arrow key. The list is separated from disabledOptionsIndexes because unselectable item is still navigatable by the arrow key.
+     * - `disabledArrowKeyOptionsIndexes`: Contains the indexes of item that is not navigable by the arrow key. The list is separated from disabledOptionsIndexes because unselectable item is still navigable by the arrow key.
      * - `itemLayouts`: Contains the layout information for each item, header and footer in the list,
      * so we can calculate the position of any given item when scrolling programmatically
      */

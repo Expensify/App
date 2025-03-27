@@ -6027,9 +6027,9 @@ const translations = {
         },
     },
     productTrainingTooltip: {
-        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
+        conciergeLHNGbr: {
             part1: 'Get started',
             part2: ' here!',
         },

@@ -1139,7 +1139,7 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
-        UNREPORTED_REPORTID: '0',
+        UNREPORTED_REPORT_ID: '0',
         SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1231,7 +1231,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASK_COMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
-                TRIPPREVIEW: 'TRIPPREVIEW',
+                TRIP_PREVIEW: 'TRIP_PREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
@@ -6914,7 +6914,7 @@ const CONST = {
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
         // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
+        CONCIERGE_LHN_GBR: 'conciergeLHNGbr',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
         BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',

@@ -226,8 +226,8 @@ function isCreatedTaskReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !!getOriginalMessage(reportAction)?.taskReportID;
 }
 
-function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW);
+function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW);
 }
 
 function isActionOfType<T extends ReportActionName[]>(
@@ -1705,7 +1705,7 @@ function getExportIntegrationMessageHTML(reportAction: OnyxEntry<ReportAction>):
 }
 
 function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportAction>): Array<{text: string; url: string}> {
-    if (reportAction?.actionName !== 'EXPORTINTEGRATION') {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         throw Error(`received wrong action type. actionName: ${reportAction?.actionName}`);
     }
 
@@ -2087,7 +2087,7 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(action: ReportAction): string {
+function getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action: ReportAction): string {
     const {oldMaxExpenseAmountNoReceipt, newMaxExpenseAmountNoReceipt, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
 
@@ -2402,7 +2402,7 @@ export {
     getWorkspaceNameUpdatedMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
-    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,

@@ -39,7 +39,7 @@ type MoneyRequestActionProps = {
     /** The ID of the current report */
     reportID: string | undefined;
 
-    /** Is this IOUACTION the most recent? */
+    /** Is this IOU action the most recent? */
     isMostRecentIOUReportAction: boolean;
 
     /** Popover context menu anchor, used for showing context menu */

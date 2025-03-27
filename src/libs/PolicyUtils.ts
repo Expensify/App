@@ -1376,7 +1376,7 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
-function isPrefferedExporter(policy: Policy) {
+function isPreferredExporter(policy: Policy) {
     const user = getCurrentUserEmail();
     const exporters = [
         policy.connections?.intacct?.config?.export?.exporter,
@@ -1542,7 +1542,7 @@ export {
     getDescriptionForPolicyDomainCard,
     isWorkspaceEligibleForReportChange,
     getManagerAccountID,
-    isPrefferedExporter,
+    isPreferredExporter,
     isAutoSyncEnabled,
     areAllGroupPoliciesExpenseChatDisabled,
 };
