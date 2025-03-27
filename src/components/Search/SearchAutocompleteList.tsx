@@ -73,6 +73,8 @@ type SearchAutocompleteListProps = {
 
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
     shouldSubscribeToArrowKeyEvents?: boolean;
+
+    onHighlightFirstItem?: () => void;
 };
 
 const defaultListOptions = {
@@ -132,6 +134,7 @@ function SearchAutocompleteList(
         setTextQuery,
         updateAutocompleteSubstitutions,
         shouldSubscribeToArrowKeyEvents,
+        onHighlightFirstItem,
     }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -516,6 +519,24 @@ function SearchAutocompleteList(
         },
         [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
     );
+
+    useEffect(() => {
+        const referenceText = sections?.at(1)?.data?.[0]?.text?.toLowerCase() ?? '';
+        const normalizedTargetText = autocompleteQueryValue.toLowerCase().trim();
+
+        let isHighlightFirstItem = false;
+
+        if (normalizedTargetText === 'invite') {
+            isHighlightFirstItem = true;
+        } else if (normalizedTargetText.length >= 2 && !/[^a-zA-Z0-9]$/.test(normalizedTargetText)) {
+            const regex = new RegExp(`\\b${normalizedTargetText}\\b`, 'i');
+            isHighlightFirstItem = regex.test(referenceText);
+        }
+
+        if (isHighlightFirstItem) {
+            onHighlightFirstItem?.();
+        }
+    }, [autocompleteQueryValue, onHighlightFirstItem, ref, sections]);
 
     return (
         <SelectionList<OptionData | SearchQueryItem>
