@@ -6,6 +6,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -48,6 +49,9 @@ function CalendarPicker({
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected,
 }: CalendarPickerProps) {
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale, translate} = useLocalize();
@@ -142,10 +146,12 @@ function CalendarPicker({
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
 
+    const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
+
     return (
-        <View>
+        <View style={[themeStyles.pb4]}>
             <View
-                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph4, themeStyles.pr1]}
+                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph5]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <PressableWithFeedback
@@ -169,7 +175,7 @@ function CalendarPicker({
                     </Text>
                     <ArrowIcon />
                 </PressableWithFeedback>
-                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentEnd]}>
+                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentEnd, themeStyles.mrn2]}>
                     <Text
                         style={themeStyles.sidebarLinkTextBold}
                         testID="currentMonthText"
@@ -202,7 +208,7 @@ function CalendarPicker({
                     </PressableWithFeedback>
                 </View>
             </View>
-            <View style={themeStyles.flexRow}>
+            <View style={[themeStyles.flexRow, webOnlyMarginStyle]}>
                 {daysOfWeek.map((dayOfWeek) => (
                     <View
                         key={dayOfWeek}
@@ -213,52 +219,54 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            {calendarDaysMatrix?.map((week) => (
-                <View
-                    key={`week-${week.toString()}`}
-                    style={themeStyles.flexRow}
-                >
-                    {week.map((day, index) => {
-                        const currentDate = new Date(currentYearView, currentMonthView, day);
-                        const isBeforeMinDate = currentDate < startOfDay(new Date(minDate));
-                        const isAfterMaxDate = currentDate > startOfDay(new Date(maxDate));
-                        const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                        const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
-                        const handleOnPress = () => {
-                            if (!day || isDisabled) {
-                                return;
-                            }
+            <View style={webOnlyMarginStyle}>
+                {calendarDaysMatrix?.map((week) => (
+                    <View
+                        key={`week-${week.toString()}`}
+                        style={[themeStyles.flexRow]}
+                    >
+                        {week.map((day, index) => {
+                            const currentDate = new Date(currentYearView, currentMonthView, day);
+                            const isBeforeMinDate = currentDate < startOfDay(new Date(minDate));
+                            const isAfterMaxDate = currentDate > startOfDay(new Date(maxDate));
+                            const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
+                            const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
+                            const handleOnPress = () => {
+                                if (!day || isDisabled) {
+                                    return;
+                                }
 
-                            onDayPressed(day);
-                        };
-                        const key = `${index}_day-${day}`;
-                        return (
-                            <PressableWithoutFeedback
-                                key={key}
-                                disabled={isDisabled}
-                                onPress={handleOnPress}
-                                style={themeStyles.calendarDayRoot}
-                                accessibilityLabel={day?.toString() ?? ''}
-                                tabIndex={day ? 0 : -1}
-                                accessible={!!day}
-                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                            >
-                                {({hovered, pressed}) => (
-                                    <View
-                                        style={[
-                                            themeStyles.calendarDayContainer,
-                                            isSelected ? themeStyles.buttonDefaultBG : {},
-                                            !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
-                                        ]}
-                                    >
-                                        <Text style={isDisabled ? themeStyles.buttonOpacityDisabled : {}}>{day}</Text>
-                                    </View>
-                                )}
-                            </PressableWithoutFeedback>
-                        );
-                    })}
-                </View>
-            ))}
+                                onDayPressed(day);
+                            };
+                            const key = `${index}_day-${day}`;
+                            return (
+                                <PressableWithoutFeedback
+                                    key={key}
+                                    disabled={isDisabled}
+                                    onPress={handleOnPress}
+                                    style={themeStyles.calendarDayRoot}
+                                    accessibilityLabel={day?.toString() ?? ''}
+                                    tabIndex={day ? 0 : -1}
+                                    accessible={!!day}
+                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                >
+                                    {({hovered, pressed}) => (
+                                        <View
+                                            style={[
+                                                themeStyles.calendarDayContainer,
+                                                isSelected ? themeStyles.buttonDefaultBG : {},
+                                                !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
+                                            ]}
+                                        >
+                                            <Text style={isDisabled ? themeStyles.buttonOpacityDisabled : {}}>{day}</Text>
+                                        </View>
+                                    )}
+                                </PressableWithoutFeedback>
+                            );
+                        })}
+                    </View>
+                ))}
+            </View>
             <YearPickerModal
                 isVisible={isYearPickerVisible}
                 years={years}
