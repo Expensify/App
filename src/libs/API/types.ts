@@ -461,6 +461,7 @@ const WRITE_COMMANDS = {
     GET_CORPAY_BANK_ACCOUNT_FIELDS: 'GetCorpayBankAccountFields',
     BANK_ACCOUNT_CREATE_CORPAY: 'BankAccount_CreateCorpay',
     UPDATE_WORKSPACE_CUSTOM_UNIT: 'UpdateWorkspaceCustomUnit',
+    GET_ACCESSIBLE_POLICIES: 'GetAccessibleDomainPolicies',
     VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'ValidateUserAndGetAccessiblePolicies',
     DISMISS_PRODUCT_TRAINING: 'DismissProductTraining',
     RESET_SMS_DELIVERY_FAILURE_STATUS: 'ResetSMSDeliveryFailureStatus',
@@ -709,6 +710,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEARCH]: Parameters.SearchParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX]: Parameters.SetPolicyCategoryTaxParams;
     [WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
+    [WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES]: null;
     [WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES]: Parameters.ValidateUserAndGetAccessiblePoliciesParams;
     [WRITE_COMMANDS.ACCEPT_JOIN_REQUEST]: Parameters.AcceptJoinRequestParams;
     [WRITE_COMMANDS.DECLINE_JOIN_REQUEST]: Parameters.DeclineJoinRequestParams;

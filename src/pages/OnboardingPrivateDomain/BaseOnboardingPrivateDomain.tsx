@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isCurrentUserValidated} from '@libs/UserUtils';
-import {clearValidateUserAndGetAccessiblePoliciesErrors, validateUserAndGetAccessiblePolicies} from '@userActions/Session';
+import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -31,7 +31,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const [validateUserAndGetJoinablePolicies] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
+    const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.GET_ACCESSIBLE_POLICIES);
 
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
@@ -75,15 +75,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 <ValidateCodeForm
                     validateCodeAction={validateCodeAction}
                     handleSubmitForm={(code) => {
-                        validateUserAndGetAccessiblePolicies(code);
+                        getAccessiblePolicies(code);
                     }}
                     sendValidateCode={() => {
                         sendValidateCode();
                         setHasMagicCodeBeenSent(true);
                     }}
-                    clearError={() => clearValidateUserAndGetAccessiblePoliciesErrors()}
+                    clearError={() => clearGetAccessiblePoliciesErrors()}
                     hideSubmitButton
-                    validateError={validateUserAndGetJoinablePolicies?.errors}
+                    validateError={getAccessiblePoliciesAction?.errors}
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                 />
                 <View style={[styles.flex2, styles.justifyContentEnd]}>

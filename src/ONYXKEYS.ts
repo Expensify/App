@@ -111,7 +111,7 @@ const ONYXKEYS = {
     JOINABLE_POLICIES: 'joinablePolicies',
 
     /* Contains meta data for the call to the API to get the joinable policies */
-    VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'validateUserAndGetAccessiblePolicies',
+    GET_ACCESSIBLE_POLICIES: 'getAccessiblePolicies',
 
     /** Information about the current session (authToken, accountID, email, loading, error) */
     SESSION: 'session',
@@ -974,7 +974,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
     [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
     [ONYXKEYS.JOINABLE_POLICIES]: OnyxTypes.JoinablePolicies;
-    [ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES]: OnyxTypes.ValidateUserAndGetAccessiblePolicies;
+    [ONYXKEYS.GET_ACCESSIBLE_POLICIES]: OnyxTypes.GetAccessiblePolicies;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;

@@ -1229,52 +1229,6 @@ const canAnonymousUserAccessRoute = (route: string) => {
 };
 
 /**
- * Validates user account and returns a list of accessible policies.
- */
-function validateUserAndGetAccessiblePolicies(validateCode: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
-            value: {
-                loading: true,
-                errors: null,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
-            value: {
-                loading: false,
-                errors: null,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
-            value: {
-                loading: false,
-            },
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode}, {optimisticData, successData, failureData});
-}
-
-/**
- * Clear the errors from the validate user and get accessible policies request
- */
-function clearValidateUserAndGetAccessiblePoliciesErrors() {
-    Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {errors: null});
-}
-
-/**
  * To reset SMS delivery failure
  */
 function resetSMSDeliveryFailureStatus(login: string) {
@@ -1359,8 +1313,6 @@ export {
     hasStashedSession,
     signUpUser,
     signInAfterTransitionFromOldDot,
-    validateUserAndGetAccessiblePolicies,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
-    clearValidateUserAndGetAccessiblePoliciesErrors,
 };

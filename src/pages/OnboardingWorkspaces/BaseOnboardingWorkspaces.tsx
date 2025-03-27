@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
+import {getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -35,10 +36,10 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
-    const [validateUserAndGetAccessiblePolicies] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
-
-    const joinablePoliciesLoading = validateUserAndGetAccessiblePolicies?.loading;
+    const [joinablePolicies, joinablePoliciesStatus] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
+    const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.GET_ACCESSIBLE_POLICIES);
+    const fetchedPolicies = useRef(false);
+    const joinablePoliciesLoading = getAccessiblePoliciesAction?.loading;
 
     const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
 
@@ -48,6 +49,8 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
 
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+
+    const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
     const handleJoinWorkspace = useCallback(
         (policy: JoinablePolicy) => {
@@ -104,12 +107,12 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
     useEffect(() => {
-        if (joinablePoliciesLoading === true || joinablePoliciesLoading === undefined || !joinablePolicies || Object.keys(joinablePolicies).length > 0) {
+        if (!(isValidated && !joinablePoliciesLoading && joinablePoliciesStatus.status === 'loaded' && !joinablePoliciesLength) || fetchedPolicies.current) {
             return;
         }
-
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
-    }, [joinablePoliciesLoading, joinablePolicies, route.params?.backTo]);
+        getAccessiblePolicies();
+        fetchedPolicies.current = true;
+    }, [joinablePoliciesStatus.status, isValidated, joinablePoliciesLoading, joinablePoliciesLength]);
 
     const handleBackButtonPress = useCallback(() => {
         if (isValidated) {

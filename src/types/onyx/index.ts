@@ -29,6 +29,7 @@ import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GetAccessiblePolicies from './GetAccessiblePolicies';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
@@ -111,7 +112,6 @@ import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
-import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
@@ -258,5 +258,5 @@ export type {
     SidePane,
     LastPaymentMethodType,
     TalkToAISales,
-    ValidateUserAndGetAccessiblePolicies,
+    GetAccessiblePolicies,
 };

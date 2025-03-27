@@ -1,7 +1,7 @@
 import type {Errors} from './OnyxCommon';
 
-/** Model of validate user and get accessible policies */
-type ValidateUserAndGetAccessiblePolicies = {
+/** Model of Get accessible policies */
+type GetAccessiblePolicies = {
     /** Whether the data is being fetched */
     loading: boolean;
 
@@ -9,4 +9,4 @@ type ValidateUserAndGetAccessiblePolicies = {
     errors: Errors;
 };
 
-export default ValidateUserAndGetAccessiblePolicies;
+export default GetAccessiblePolicies;
