@@ -1,9 +1,9 @@
 {
-  "name": "contacts-nitro-module",
+  "name": "expensify-nitro-utils",
   "version": "0.0.1",
   "main": "src/index",
   "react-native": "src/index",
-  "description": "React Native Contacts Module with Nitro optimization",
+  "description": "React Native Utils Module with Nitro optimization",
   "source": "src/index",
   "files": [
     "src",

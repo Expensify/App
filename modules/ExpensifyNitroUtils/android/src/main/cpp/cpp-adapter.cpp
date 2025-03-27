@@ -1,6 +1,6 @@
 #include <jni.h>
-#include "ContactsModuleOnLoad.hpp"
+#include "UtilsModuleOnLoad.hpp"
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
-  return margelo::nitro::contacts::initialize(vm);
+  return margelo::nitro::utils::initialize(vm);
 }
