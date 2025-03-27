@@ -389,6 +389,22 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
         case 'session.created':
             // Only log this for setup confirmation
             logDebug('SESSION', 'OpenAI session created');
+            
+            // Configure session to enable user audio transcription
+            if (connections.openai && connections.openai.dataChannel) {
+                const sessionUpdateConfig = {
+                    type: 'session.update',
+                    session: {
+                        modalities: ['text', 'audio'],
+                        input_audio_transcription: {
+                            model: 'whisper-1'
+                        }
+                    }
+                };
+                
+                logDebug('SESSION', 'Sending session.update to enable user transcription');
+                connections.openai.dataChannel.send(JSON.stringify(sessionUpdateConfig));
+            }
             break;
             
         case 'response.function_call_arguments.done':
@@ -403,6 +419,16 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
             logDebug('SPEECH', '🛑 User speech ended');
             break;
             
+        // This is the specific event type for user transcripts!
+        case 'conversation.item.input_audio_transcription.completed':
+            if (message.transcript) {
+                logDebug('USER_TRANSCRIPT', `🗣️ User said: "${message.transcript}"`);
+            } else {
+                logDebug('USER_TRANSCRIPT', '⚠️ User transcript is empty even though transcription completed');
+                console.log('[USER TRANSCRIPT EVENT]', message);
+            }
+            break;
+        
         // Log audio buffer state changes - these are useful for understanding when AI is speaking
         case 'output_audio_buffer.started':
             logDebug('OUTPUT', '🔊 OpenAI started speaking');
@@ -450,7 +476,22 @@ function initializeOpenAIRealtime(adminsReportID: number) {
                     return;
                 }
 
-                logDebug('DATA', 'Sending initial greeting message');
+                logDebug('DATA', 'Sending initial configuration and greeting message');
+                
+                // Configure session for user audio transcription
+                const sessionConfig = {
+                    type: 'session.update',
+                    session: {
+                        modalities: ['text', 'audio'],
+                        input_audio_transcription: {
+                            model: 'whisper-1'
+                        }
+                    }
+                };
+                
+                logDebug('SESSION', 'Configuring session with user audio transcription');
+                connections.openai.dataChannel.send(JSON.stringify(sessionConfig));
+
                 // Make the initial message more standardized for consistent behavior
                 const initialUserMessage = {
                     type: 'response.create',
