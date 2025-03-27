@@ -1245,6 +1245,12 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        outlinedButton: {
+            backgroundColor: 'transparent',
+            borderColor: theme.border,
+            borderWidth: 1,
+        },
+
         optionRowAmountInput: {
             textAlign: 'right',
         },

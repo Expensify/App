@@ -1,6 +1,13 @@
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Text from '@components/Text';
 import useIsNewSubscription from '@hooks/useIsNewSubscription';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import {getCurrentUserAccountID} from '@userActions/Report';
@@ -17,6 +24,9 @@ type SubscriptionPlanCardActionButtonProps = {
 };
 
 function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected}: SubscriptionPlanCardActionButtonProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const isNewSubscription = useIsNewSubscription();
     const currentUserAccountID = getCurrentUserAccountID();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -52,33 +62,61 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         }
     };
 
+    const currentPlanLabel = (
+        <View style={[styles.button, styles.buttonContainer, styles.outlinedButton, styles.mh5]}>
+            <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.thisIsYourCurrentPlan')}</Text>
+        </View>
+    );
+
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
-        // collect
         if (isFromComparisonModal) {
             if (isSelected) {
-                // returns the disabled button saying "This is your current plan"
-            } else {
-                // returns button "Downgrade to collect"
+                return currentPlanLabel;
             }
-        } else if (isNewSubscription) {
-            // returns "Add members" button
-        } else {
-            // returns "Subscription settings" menu item
+            return (
+                <Button
+                    text={translate('subscription.yourPlan.downgrade')}
+                    style={styles.ph5}
+                    onPress={() => handlePlanPress(CONST.POLICY.TYPE.TEAM)}
+                />
+            );
+        }
+        if (isNewSubscription) {
+            return (
+                <Button
+                    text={translate('subscription.yourPlan.addMembers')}
+                    style={styles.ph5}
+                    icon={Expensicons.UserPlus}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID))}
+                />
+            );
         }
     }
 
     if (subscriptionPlan === CONST.POLICY.TYPE.CORPORATE) {
-        // control
         if (isFromComparisonModal) {
             if (isSelected) {
-                // returns the disabled button saying "This is your current plan"
-            } else {
-                // returns button "Upgrade to control"
+                return currentPlanLabel;
             }
-        } else {
-            // returns "Subscription settings" menu item
+            return (
+                <Button
+                    success
+                    style={styles.ph5}
+                    text={translate('subscription.yourPlan.upgrade')}
+                    onPress={() => handlePlanPress(CONST.POLICY.TYPE.CORPORATE)}
+                />
+            );
         }
     }
+
+    return (
+        <MenuItemWithTopDescription
+            description={translate('subscription.subscriptionSettings.title')}
+            shouldShowRightIcon
+            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
+            title=""
+        />
+    );
 }
 
 export default SubscriptionPlanCardActionButton;
