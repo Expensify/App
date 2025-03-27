@@ -41,7 +41,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
             shouldBeBlocked={!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesRandomReportAuditPage.displayName}
             >
@@ -58,6 +58,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

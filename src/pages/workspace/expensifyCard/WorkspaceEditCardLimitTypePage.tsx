@@ -166,7 +166,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                     title={translate('workspace.card.issueNewCard.limitType')}
                     onBackButtonPress={goBack}
                 />
-                <FullPageOfflineBlockingView>
+                <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                     <SelectionList
                         ListItem={RadioListItem}
                         onSelectRow={({value}) => setTypeSelected(value)}

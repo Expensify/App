@@ -78,7 +78,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={handleBackButtonPress}
-            shouldIncludeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldLoadForEmptyConnection={isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE])}
             shouldBeBlocked={shouldPageBeBlocked}
         >

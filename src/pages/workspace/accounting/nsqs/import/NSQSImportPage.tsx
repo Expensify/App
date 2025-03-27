@@ -31,6 +31,7 @@ function NSQSImportPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5, styles.gap6]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.nsqs.import.expenseCategories')}

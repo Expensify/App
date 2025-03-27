@@ -340,7 +340,7 @@ function PolicyDistanceRatesPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={PolicyDistanceRatesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -372,6 +372,7 @@ function PolicyDistanceRatesPage({
                 )}
                 {Object.values(customUnitRates).length > 0 && (
                     <SelectionListWithModal
+                        addBottomSafeAreaPadding
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}

@@ -72,10 +72,13 @@ function WorkspaceCreateTaxPage({
         >
             <ScreenWrapper
                 testID={WorkspaceCreateTaxPage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
             >
-                <FullPageNotFoundView shouldShow={PolicyUtils.hasAccountingConnections(policy)}>
+                <FullPageNotFoundView
+                    shouldShow={PolicyUtils.hasAccountingConnections(policy)}
+                    addBottomSafeAreaPadding
+                >
                     <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
                         <HeaderWithBackButton title={translate('workspace.taxes.addRate')} />
                         <FormProvider
@@ -87,6 +90,7 @@ function WorkspaceCreateTaxPage({
                             enabledWhenOffline
                             shouldValidateOnBlur={false}
                             disablePressOnEnter={!!modal?.isVisible}
+                            addBottomSafeAreaPadding
                         >
                             <View style={styles.mhn5}>
                                 <InputWrapper

@@ -68,7 +68,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceTaxCodePage.displayName}
             >
@@ -84,6 +84,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                     onSubmit={setTaxCode}
                     enabledWhenOffline
                     validate={validate}
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

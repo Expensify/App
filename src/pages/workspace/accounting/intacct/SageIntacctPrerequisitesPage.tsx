@@ -76,6 +76,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
 
     return (
         <ScreenWrapper
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={SageIntacctPrerequisitesPage.displayName}
@@ -96,7 +97,10 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                     shouldUseSingleExecution
                 />
 
-                <FixedFooter style={[styles.mtAuto]}>
+                <FixedFooter
+                    style={[styles.mtAuto]}
+                    addBottomSafeAreaPadding
+                >
                     <Button
                         success
                         text={translate('common.next')}

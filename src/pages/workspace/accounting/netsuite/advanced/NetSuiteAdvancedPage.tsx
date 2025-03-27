@@ -264,7 +264,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            shouldIncludeSafeAreaPaddingBottom
             displayName={NetSuiteAdvancedPage.displayName}
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={config?.subsidiary ?? ''}
@@ -274,6 +273,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {menuItems
                 .filter((item) => !item?.shouldHide)

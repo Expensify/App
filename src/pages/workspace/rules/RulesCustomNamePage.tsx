@@ -63,7 +63,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
             shouldBeBlocked={!policy?.shouldShowCustomReportTitleOption}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesCustomNamePage.displayName}
             >
@@ -93,6 +93,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={TextInput}

@@ -48,6 +48,7 @@ function NSQSExportPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.EXPORTER], nsqsConfig?.pendingFields)}>
                 <MenuItemWithTopDescription

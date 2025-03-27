@@ -73,7 +73,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldIncludeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldBeBlocked={!config?.customFormIDOptions?.enabled}
             shouldUseScrollView={false}
         >

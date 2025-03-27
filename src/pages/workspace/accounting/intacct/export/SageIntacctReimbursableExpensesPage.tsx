@@ -122,6 +122,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {menuItems
                 .filter((item) => !item.shouldHide)

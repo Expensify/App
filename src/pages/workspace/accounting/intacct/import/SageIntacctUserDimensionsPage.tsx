@@ -38,9 +38,9 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            shouldIncludeSafeAreaPaddingBottom
             shouldUseScrollView={false}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID))}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {userDimensions?.length === 0 ? (
                 <View style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentCenter]}>

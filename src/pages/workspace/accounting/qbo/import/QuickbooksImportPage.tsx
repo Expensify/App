@@ -82,6 +82,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {sections.map((section) => (
                 <OfflineWithFeedback
