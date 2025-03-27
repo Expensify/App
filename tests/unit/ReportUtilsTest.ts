@@ -56,6 +56,7 @@ jest.mock('@libs/Permissions');
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
 const currentUserAccountID = 5;
+// cspell:disable
 const participantsPersonalDetails: PersonalDetailsList = {
     '1': {
         accountID: 1,
@@ -88,6 +89,7 @@ const participantsPersonalDetails: PersonalDetailsList = {
         pronouns: 'She/her',
     },
 };
+// cspell:enable
 
 const employeeList: PolicyEmployeeList = {
     'owner@test.com': {
@@ -208,10 +210,10 @@ const rules = {
 };
 
 const employeeAccountID = 2;
-const categoryapprover1Email = 'categoryapprover1@test.com';
-const categoryapprover2Email = 'categoryapprover2@test.com';
-const tagapprover1Email = 'tagapprover1@test.com';
-const tagapprover2Email = 'tagapprover2@test.com';
+const categoryApprover1Email = 'categoryapprover1@test.com';
+const categoryApprover2Email = 'categoryapprover2@test.com';
+const tagApprover1Email = 'tagapprover1@test.com';
+const tagApprover2Email = 'tagapprover2@test.com';
 
 const policy: Policy = {
     id: '1',
@@ -275,6 +277,7 @@ describe('ReportUtils', () => {
     });
 
     describe('getDisplayNamesWithTooltips', () => {
+        // cspell:disable
         test('withSingleParticipantReport', () => {
             const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false);
             expect(participants).toHaveLength(5);
@@ -292,8 +295,10 @@ describe('ReportUtils', () => {
             expect(participants.at(4)?.accountID).toBe(1);
             expect(participants.at(4)?.pronouns).toBeUndefined();
         });
+        // cspell:enable
     });
 
+    // cspell:disable
     describe('getReportName', () => {
         describe('1:1 DM', () => {
             test('with displayName', () => {
@@ -518,6 +523,7 @@ describe('ReportUtils', () => {
             });
         });
     });
+    // cspell:enable
 
     describe('requiresAttentionFromCurrentUser', () => {
         afterEach(async () => {
@@ -1112,10 +1118,10 @@ describe('ReportUtils', () => {
         ];
 
         const reportActions: ReportAction[] = [
-            {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: 'MARKEDREIMBURSED'},
-            {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: 'MARKEDREIMBURSED'},
-            {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: 'MARKEDREIMBURSED'},
-            {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: 'MARKEDREIMBURSED'},
+            {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
+            {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
+            {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
+            {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED},
         ];
 
         beforeAll(() => {
@@ -1351,6 +1357,7 @@ describe('ReportUtils', () => {
 
             it('Should use correct display name for participants', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+                // cspell:disable-next-line
                 expect(getGroupChatName(fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
@@ -2093,7 +2100,7 @@ describe('ReportUtils', () => {
                             [transaction3.transactionID]: transaction3,
                             [transaction4.transactionID]: transaction4,
                         }).then(() => {
-                            const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
+                            const result = [categoryApprover2Email, categoryApprover1Email, tagApprover2Email, tagApprover1Email, 'admin@test.com'];
                             expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                         });
                     });

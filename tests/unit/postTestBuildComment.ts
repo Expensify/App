@@ -47,7 +47,7 @@ const desktopLink = 'https://expensify.app/DESKTOP_LINK';
 
 const androidQRCode = `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`;
 const desktopQRCode = `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`;
-const iOSQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`;
+const iOSQrCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`;
 const webQRCode = `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`;
 
 const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
@@ -55,7 +55,7 @@ const message = `:test_tube::test_tube: Use the links below to test this adhoc b
 | ------------- | ------------- |
 | Android :robot::arrows_counterclockwise:  | iOS :apple::arrows_counterclockwise: |
 | ${androidLink}  | ${iOSLink}  |
-| ${androidQRCode}  | ${iOSQRCode}  |
+| ${androidQRCode}  | ${iOSQrCode}  |
 | Desktop :computer: | Web :spider_web: |
 | ${desktopLink}  | ${webLink}  |
 | ${desktopQRCode}  | ${webQRCode}  |

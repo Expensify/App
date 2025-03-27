@@ -9,7 +9,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 jest.mock('@libs/ReportUtils', () => {
     return {
         parseReportRouteParams: jest.fn(() => ({})),
-        // The `getReportName` method is quite complex, and we don't need to test it, we just want to test the logic around generating subsitutionsMap
+        // The `getReportName` method is quite complex, and we don't need to test it, we just want to test the logic around generating substitutionsMap
         getReportName(report: OnyxTypes.Report) {
             return report.reportName;
         },

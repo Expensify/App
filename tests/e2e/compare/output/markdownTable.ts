@@ -1,4 +1,4 @@
-// copied from https://raw.githubusercontent.com/wooorm/markdown-table/main/index.js, turned into cmjs
+// copied from https://raw.githubusercontent.com/wooorm/markdown-table/main/index.js, turned into cjs
 
 type MarkdownTableOptions = {
     /**

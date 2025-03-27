@@ -776,7 +776,7 @@ describe('actions/PolicyTax', () => {
                 );
         });
 
-        it('Delete tax that is not foreignTaxDefault but API return an error, then recover the delated tax', () => {
+        it('Delete tax that is not foreignTaxDefault but API return an error, then recover the deleted tax', () => {
             const foreignTaxDefault = fakePolicy?.taxRates?.foreignTaxDefault;
             const taxID = 'id_TAX_RATE_1';
 
