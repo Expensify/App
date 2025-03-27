@@ -1,8 +1,9 @@
 ---
 title: Expensify Partner Support
 description: Learn about Expensify's Partner Support program, including training, dedicated partner managers, and real-time chat support.
-keywords: [ExpensifyApproved, partner support, training, partner manager, onboarding, concierge]
+keywords: [Expensify Classic, ExpensifyApproved, partner support, training, partner manager, onboarding, concierge]
 ---
+<div id="expensify-classic" markdown="1">
 
 As an **ExpensifyApproved! Partner**, your firm gains access to exclusive support services designed to enhance your experience and help your clients succeed. This guide outlines the key support resources available to you.
 
@@ -80,3 +81,5 @@ To be assigned a **Partner Manager**, you must complete the **ExpensifyApproved!
 ---
 
 Expensify's Partner Support ensures you and your clients receive elevated support in Expensify. If you need further guidance, reach out via `Support` in your Expensify account or connect directly with your Partner Manager!
+
+</div>

@@ -13,6 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
+import {filterInactiveCards} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -35,7 +36,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [searchText, setSearchText] = useState('');
 
-    const [allBankCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`);
+    const [allBankCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`, {selector: filterInactiveCards});
     const card = allBankCards?.[cardID];
     const connectedIntegration = getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card, Navigation.getActiveRoute());

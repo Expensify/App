@@ -37,6 +37,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Report from '@src/types/onyx/Report';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import KeyboardUtils from '@src/utils/keyboard';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
@@ -73,10 +74,9 @@ function getContextualSearchQuery(item: SearchQueryItem) {
 type SearchRouterProps = {
     onRouterClose: () => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
-    isSearchRouterDisplayed?: boolean;
 };
 
-function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
+function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, ref: React.Ref<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
@@ -113,10 +113,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return undefined;
             }
 
-            if (!isSearchRouterDisplayed) {
-                return undefined;
-            }
-
             const reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
             if (!reportForContextualSearch) {
                 return undefined;
@@ -149,7 +145,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 {
                     data: [
                         {
-                            text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
+                            text: StringUtils.lineBreaksToSpaces(`${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`),
                             singleIcon: Expensicons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
                             autocompleteID,
@@ -163,7 +159,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed],
+        [contextualReportID, styles.activeComponentBG, textInputValue, translate],
     );
 
     const searchQueryItem = textInputValue
@@ -274,11 +270,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
             } else {
                 onRouterClose();
-                if (item?.reportID) {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
-                } else if ('login' in item) {
-                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
-                }
+
+                KeyboardUtils.dismiss().then(() => {
+                    if (item?.reportID) {
+                        Navigation.navigateToReportWithPolicyCheck({reportID: item?.reportID});
+                    } else if ('login' in item) {
+                        navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                    }
+                });
             }
         },
         [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
@@ -313,6 +312,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 <HeaderWithBackButton
                     title={translate('common.search')}
                     onBackButtonPress={() => onRouterClose()}
+                    shouldDisplayHelpButton={false}
                 />
             )}
             {isRecentSearchesDataLoaded && (
