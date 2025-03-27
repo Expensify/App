@@ -45,6 +45,7 @@ import {
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestReceipt,
+    setMoneyRequestReimbursable,
     splitBill,
     splitBillAndOpenReport,
     startMoneyRequest,
@@ -382,6 +383,7 @@ function IOURequestStepConfirmation({
                 },
                 gpsPoints,
                 action,
+                reimbursable: transaction.reimbursable ?? policy?.defaultReimbursable,
                 transactionParams: {
                     amount: transaction.amount,
                     attendees: transaction.attendees,
@@ -808,6 +810,13 @@ function IOURequestStepConfirmation({
         [transactionID],
     );
 
+    const setReimbursable = useCallback(
+        (reimbursable: boolean) => {
+            setMoneyRequestReimbursable(transactionID, reimbursable);
+        },
+        [transactionID],
+    );
+
     // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.
     // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
     const isLoading = !!transaction?.originalCurrency;
@@ -953,6 +962,8 @@ function IOURequestStepConfirmation({
                         shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
+                        iouIsReimbursable={transaction?.reimbursable ?? policy?.defaultReimbursable}
+                        onToggleReimbursable={setReimbursable}
                     />
                 </View>
             </DragAndDropProvider>

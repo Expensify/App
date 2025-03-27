@@ -380,7 +380,7 @@ type RequestMoneyInformation = {
     policyParams?: BasePolicyParams;
     gpsPoints?: GPSPoint;
     action?: IOUAction;
-    reimbursible?: boolean;
+    reimbursable?: boolean;
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
 };
@@ -907,6 +907,10 @@ function setMoneyRequestTag(transactionID: string, tag: string) {
 
 function setMoneyRequestBillable(transactionID: string, billable: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
+}
+
+function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolean) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reimbursable});
 }
 
 function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = []) {
@@ -4489,6 +4493,7 @@ type ConvertTrackedWorkspaceParams = {
     receipt: Receipt | undefined;
     waypoints?: string;
     customUnitRateID?: string;
+    reimbursable?: boolean;
 };
 
 type AddTrackedExpenseToPolicyParam = {
@@ -4736,7 +4741,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
  * Submit expense to another user
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
-    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible} = requestMoneyInformation;
+    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursable} = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
     transactionParams.comment = parsedComment;
@@ -4830,6 +4835,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                           policyID: chatReport.policyID,
                           waypoints: sanitizedWaypoints,
                           customUnitRateID,
+                          reimbursable
                       }
                     : undefined;
             convertTrackedExpenseToRequest({
@@ -4892,7 +4898,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID,
                 createdReportActionIDForThread,
-                reimbursible,
+                reimbursable,
                 description: parsedComment,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
@@ -10397,5 +10403,6 @@ export {
     canSubmitReport,
     submitPerDiemExpense,
     calculateDiffAmount,
+    setMoneyRequestReimbursable,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};
