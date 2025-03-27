@@ -443,6 +443,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSmall,
         },
 
+        textSupportingNormal: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+        },
+
         textExtraSmallSupporting: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -3736,13 +3742,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeNormalHeight,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             flex: 1,
-        },
-
-        searchInputStyle: {
-            color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
         },
 
         searchRouterTextInputContainer: {

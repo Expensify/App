@@ -80,13 +80,13 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
             <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
                 <Text
                     numberOfLines={1}
-                    style={[styles.searchInputStyle, styles.lh16]}
+                    style={[styles.textMicroSupporting, styles.lh16]}
                 >
                     {translate('common.name')}
                 </Text>
                 <Text
                     numberOfLines={1}
-                    style={[styles.searchInputStyle, styles.lh16]}
+                    style={[styles.textMicroSupporting, styles.lh16]}
                 >
                     {translate('workspace.expensifyCard.lastFour')}
                 </Text>
