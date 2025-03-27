@@ -1,5 +1,5 @@
-type getAccessiblePoliciesParams = {
+type ValidateUserAndGetAccessiblePoliciesParams = {
     validateCode: string;
 };
 
-export default getAccessiblePoliciesParams;
+export default ValidateUserAndGetAccessiblePoliciesParams;
