@@ -178,7 +178,7 @@ Without thumbnail
 {% include video.html src="https://d2k5nsl2zxldvw.cloudfront.net/videos/help/demo-travel.mp4" %}
 ```
 
-Optional: Add a thumbnail for the video. Replace `your-image.png` with a **16x9 aspect ratio image** in `assets/images` directory.
+Optional: Add a thumbnail for the video. Replace `your-image.png` with a **16x9 aspect ratio image** from the `assets/images` directory.
 ```
 {% include video.html thumbnail="assets/images/your-image.png" src="https://d2k5nsl2zxldvw.cloudfront.net/videos/help/demo-travel.mp4" %}
 ```
