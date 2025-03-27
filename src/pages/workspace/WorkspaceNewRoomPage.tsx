@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -107,8 +107,12 @@ function WorkspaceNewRoomPage() {
             description: parsedDescription,
         });
 
-        setNewRoomReportID(policyReport.reportID);
-        addPolicyReport(policyReport);
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                setNewRoomReportID(policyReport.reportID);
+                addPolicyReport(policyReport);
+            });
+        });
     };
 
     useEffect(() => {
