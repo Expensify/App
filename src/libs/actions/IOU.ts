@@ -4835,7 +4835,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                           policyID: chatReport.policyID,
                           waypoints: sanitizedWaypoints,
                           customUnitRateID,
-                          reimbursable
+                          reimbursable,
                       }
                     : undefined;
             convertTrackedExpenseToRequest({
