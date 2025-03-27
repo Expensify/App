@@ -168,6 +168,22 @@ The sections of the article will be filled and nested automatically in the LHN, 
 
 If you're unfamiliar with github branches, PRs and confused how to add images and article in the same PR, head to this [slack thread 🧵](https://expensify.slack.com/archives/C02QSAC6BJ8/p1699632298177679?thread_ts=1699576284.768909&cid=C02QSAC6BJ8) in `#expensifyhelp`.
 
+## Add videos
+1. Upload your video to Web-Static via a pull request in the `videos/help/` directory.
+2. Import the video in an article. You can do that by pasting the below snippet.
+3. Replace `src` with the public URL for the video. **It should be cloudfront.net url**, and not a github link.
+4. Optional: add a thumbnail. `thumbnail` with an image `assets/images/your-image.png`. **Make sure that this image is 16x9 aspect ratio**.
+
+Without thumbnail
+```
+{% include video.html src="https://d2k5nsl2zxldvw.cloudfront.net/videos/help/demo-travel.mp4" %}
+```
+
+Optional: With a thumbnail
+```
+{% include video.html thumbnail="assets/images/your-image.png" src="https://d2k5nsl2zxldvw.cloudfront.net/videos/help/demo-travel.mp4" %}
+```
+
 ## Add meta-description tags for SEO
 
 At the top of template file we're going to find a few variables that will help us to define the meta-description of the article for SEO:
