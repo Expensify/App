@@ -2785,9 +2785,12 @@ const translations = {
                     secondPart: 'room for your review.',
                 },
             },
+            connectTo: ({connectionName}: ConnectionNameParams) => `Connect to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Create new connection',
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
+            existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
+                `Since you've connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} before, you can choose to reuse an existing connection or create a new one.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Last synced ${formattedDate}`,
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `Can’t connect to ${connectionName} due to an authentication error.`,
             learnMore: 'Learn more.',
