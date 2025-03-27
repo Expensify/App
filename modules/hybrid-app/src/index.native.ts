@@ -14,6 +14,9 @@ const HybridAppModule: HybridAppModuleType = {
     switchAccount({newDotCurrentAccountEmail, authToken, policyID, accountID}) {
         ReactNativeHybridApp.switchAccount(newDotCurrentAccountEmail, authToken, policyID, accountID);
     },
+    sendAuthToken({authToken}) {
+        ReactNativeHybridApp.sendAuthToken(authToken);
+    },
 };
 
 export default HybridAppModule;
