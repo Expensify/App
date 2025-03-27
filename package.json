@@ -310,7 +310,7 @@
     "eslint-plugin-storybook": "^0.8.0",
     "eslint-plugin-testing-library": "^6.2.2",
     "eslint-plugin-you-dont-need-lodash-underscore": "^6.14.0",
-    "expensify-native-utils": "./modules/ExpensifyNativeUtils",
+    "expensify-nitro-utils": "./modules/ExpensifyNitroUtils",
     "googleapis": "^144.0.0",
     "html-webpack-plugin": "^5.5.0",
     "http-server": "^14.1.1",
@@ -401,6 +401,6 @@
     "npm": "10.8.2"
   },
   "workspaces": [
-    "modules/ContactsNitroModule"
+    "modules/ExpensifyNitroUtils"
   ]
 }

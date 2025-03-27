@@ -22,8 +22,8 @@
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"],
-            "expensify-native-utils": ["modules/ExpensifyNativeUtils"],
-            "expensify-native-utils/*": ["modules/ExpensifyNativeUtils/*"],
+            "expensify-nitro-utils": ["modules/ExpensifyNitroUtils"],
+            "expensify-nitro-utils/*": ["modules/ExpensifyNitroUtils/*"],
             "*": ["node_modules/*"]
         }
     },
@@ -45,8 +45,8 @@
         "modules/index.ts",
         "**/*.nitro/*.ts",
         "**/*.nitro/*.tsx",
-        "modules/ExpensifyNativeUtils/lib/**/*",
-        "modules/ExpensifyNativeUtils/lib/*.d.ts"
+        "modules/ExpensifyNitroUtils/lib/**/*",
+        "modules/ExpensifyNitroUtils/lib/*.d.ts"
     ],
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*", "node_modules", "lib"]
 }

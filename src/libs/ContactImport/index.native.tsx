@@ -1,5 +1,5 @@
-import {ContactsNitroModule} from 'expensify-native-utils';
-import type {Contact} from 'expensify-native-utils';
+import {ContactsNitroModule} from 'expensify-nitro-utils';
+import type {Contact} from 'expensify-nitro-utils';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 import {requestContactPermission} from '@libs/ContactPermission';
