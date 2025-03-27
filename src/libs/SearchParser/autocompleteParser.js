@@ -387,10 +387,10 @@ function peg$parse(input, options) {
   var peg$f37 = function() { return "lte"; };
   var peg$f38 = function() { return "lt"; };
   var peg$f39 = function(o) {
-    if (nameOperator) {
-      expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found 
-    }
-    return o;
+      if (nameOperator) {
+        expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
+      }
+      return o;
   };
   var peg$f40 = function(chars) { return chars.join("").trim(); };
   var peg$f41 = function() { return "and"; };

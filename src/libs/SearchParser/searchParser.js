@@ -403,10 +403,10 @@ function peg$parse(input, options) {
   var peg$f38 = function() { return "lte"; };
   var peg$f39 = function() { return "lt"; };
   var peg$f40 = function(o) {
-    if (nameOperator) {
-      expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found 
-    }
-    return o;
+      if (nameOperator) {
+        expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
+      }
+      return o;
   };
   var peg$f41 = function(chars) { return chars.join("").trim(); };
   var peg$f42 = function() { return "and"; };

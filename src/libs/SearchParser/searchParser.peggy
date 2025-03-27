@@ -119,10 +119,10 @@ key "key"
       / currency
       / tag
       / category
-      / to 
+      / to
       / taxRate
       / cardID
-      / from 
+      / from
       / expenseType
       / submitted
       / approved

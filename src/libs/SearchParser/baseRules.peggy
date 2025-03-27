@@ -11,7 +11,7 @@
 // Per-parse initializer
 { 
   let nameOperator = false;
-  let expectingNestedQuote = false; 
+  let expectingNestedQuote = false;
 }
 
 // rules to match re-defined search syntax keys.
@@ -65,10 +65,10 @@ operator "operator"
 
 filterOperator
   = o:operator {
-    if (nameOperator) {
-      expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found 
-    }
-    return o;
+      if (nameOperator) {
+        expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
+      }
+      return o;
   }
 
 alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
@@ -79,7 +79,7 @@ _ "whitespace" = [ \t\r\n\xA0]* //handle no-breaking space
 
 // Base quotedString rule (conditional, based on parser state)
 quotedString
-  = &{ return expectingNestedQuote; } nestedQuotedString 
+  = &{ return expectingNestedQuote; } nestedQuotedString
   / simpleQuotedString
 
 simpleQuotedString "quote"
@@ -89,7 +89,7 @@ simpleQuotedString "quote"
 
 nestedQuotedString "quote"
   = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”")    // Opening quote
-    inner:([^"”“\r\n] 
+    inner:([^"”“\r\n]
     / (!closingQuote "“" {return "“"}) / (!closingQuote "”" {return "”"}) / (!closingQuote "\"" {return "\""} )
     )*                                              // Allow anything inside, but exclude true closing quotes
     end:closingQuote                                // Detect the actual closing quote
