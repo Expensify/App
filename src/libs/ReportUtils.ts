@@ -1865,10 +1865,9 @@ function isArchivedReportWithID(reportOrID?: string | SearchReport) {
 /**
  * Whether the provided report is a closed report
  */
-function isClosedReport(report: OnyxEntry<Report> | SearchReport): boolean {
+function isClosedReport(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 }
-
 /**
  * Whether the provided report is the admin's room
  */
@@ -4933,7 +4932,7 @@ function completeShortMention(text: string): string {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>): string {
+function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAttributes?: Record<string, string>, disabledRules?: string[]): string {
     let isGroupPolicyReport = false;
     if (parsingDetails?.reportID) {
         const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
@@ -4948,11 +4947,12 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails, mediaAt
     }
 
     const textWithMention = completeShortMention(text);
+    const rules = disabledRules ?? [];
 
     return text.length <= CONST.MAX_MARKUP_LENGTH
         ? Parser.replace(textWithMention, {
               shouldEscapeText: parsingDetails?.shouldEscapeText,
-              disabledRules: isGroupPolicyReport ? [] : ['reportMentions'],
+              disabledRules: isGroupPolicyReport ? [...rules] : ['reportMentions', ...rules],
               extras: {mediaAttributeCache: mediaAttributes},
           })
         : lodashEscape(text);
@@ -6578,7 +6578,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: changelog,
-                html: getParsedComment(changelog),
+                html: getParsedComment(changelog, undefined, undefined, title !== undefined ? [...CONST.TASK_TITLE_DISABLED_RULES] : undefined),
             },
         ],
         person: [
@@ -6923,7 +6923,7 @@ function buildOptimisticTaskReport(
 
     return {
         reportID: generateReportID(),
-        reportName: getParsedComment(title ?? ''),
+        reportName: getParsedComment(title ?? '', undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]),
         description: getParsedComment(description ?? '', {}, mediaAttributes),
         ownerAccountID,
         participants,
@@ -8848,9 +8848,6 @@ function isReportOwner(report: OnyxInputOrEntry<Report>): boolean {
 
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy> | SearchPolicy): boolean {
     const policy = reportPolicy ?? getPolicy(report?.policyID);
-    if (!policy?.areRulesEnabled) {
-        return true;
-    }
     const isOwner = (approverAccountID ?? currentUserAccountID) === report?.ownerAccountID;
     return !(policy?.preventSelfApproval && isOwner);
 }

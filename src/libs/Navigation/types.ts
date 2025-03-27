@@ -1866,8 +1866,6 @@ type AuthScreensParamList = SharedScreensParamList & {
         transactionID: string;
         readonly?: string;
         isFromReviewDuplicates?: string;
-        action?: IOUAction;
-        iouType?: IOUType;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
