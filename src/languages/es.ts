@@ -1119,7 +1119,7 @@ const translations = {
         unapproveReport: 'Anular la aprobación del informe',
         headsUp: 'Atención!',
         unapproveWithIntegrationWarning: ({accountingIntegration}: UnapproveWithIntegrationWarningParams) =>
-            `Este informe ya se ha exportado a ${accountingIntegration}. Los cambios realizados en este informe en Expensify pueden provocar discrepancias en los datos y problemas de conciliación de la tarjeta Expensify. ¿Está seguro de que desea anular la aprobación de este informe?`,
+            `Este informe ya se ha exportado a ${accountingIntegration}. Modificarlo puede provocar discrepancias en los datos. ¿Está seguro de que desea anular la aprobación de este informe?`,
         reimbursable: 'reembolsable',
         nonReimbursable: 'no reembolsable',
         bookingPending: 'Esta reserva está pendiente',
