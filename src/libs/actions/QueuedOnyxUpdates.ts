@@ -26,7 +26,7 @@ function queueOnyxUpdates(updates: OnyxUpdate[]): Promise<void> {
 }
 
 /**
- * @param updates Onyx updates to queue for later
+ * @param queues optimistic onyx updates to be applied later when flushing the queue
  */
 function queueOnyxOptimisticUpdates(updates: OnyxUpdate[]): Promise<void> {
     queuedOnyxOptimisticUpdates = queuedOnyxOptimisticUpdates.concat(updates);
