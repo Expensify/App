@@ -156,6 +156,12 @@ const webViewStyles = (theme: ThemeColors) =>
                 fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
             },
 
+            strong: {
+                // We set fontFamily and fontWeight directly in order to avoid overriding fontStyle.
+                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+                fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+            },
+
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
@@ -4572,8 +4578,6 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 16,
             margin: 20,
             overflow: 'hidden',
-            borderWidth: 1,
-            borderColor: theme.border,
         },
 
         reportPreviewBox: {
@@ -4746,10 +4750,14 @@ const styles = (theme: ThemeColors) =>
             ...spacing.mh5,
             ...spacing.mv3,
             overflow: 'hidden',
-            borderWidth: 1,
-            borderColor: theme.border,
+            borderWidth: 2,
+            borderColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
             height: 180,
+            maxWidth: '100%',
+        },
+
+        expenseViewImage: {
             maxWidth: 360,
         },
 
