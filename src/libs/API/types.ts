@@ -948,6 +948,8 @@ type WriteCommandParameters = {
 
     // Change report policy
     [WRITE_COMMANDS.CHANGE_REPORT_POLICY]: Parameters.ChangeReportPolicyParams;
+    // @depracated use WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY
+    [WRITE_COMMANDS.MOVE_IOU_TO_EXISTING_WORKSPACE]: Parameters.MoveIOUReportToExistingPolicyParams;
 };
 
 const READ_COMMANDS = {
