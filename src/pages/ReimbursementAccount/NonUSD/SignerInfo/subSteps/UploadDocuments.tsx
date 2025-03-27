@@ -18,11 +18,10 @@ import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/For
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import Button from '@components/Button';
 
 type UploadDocumentsProps = SubStepProps;
 
-const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE, PRD_AND_SFG, SIGNER_PREFIX} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE, SIGNER_PREFIX} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
 function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const {translate} = useLocalize();
@@ -32,7 +31,6 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [downloadPressed, setDownloadPressed] = useState<boolean>(false);
 
     const currency = policy?.outputCurrency ?? '';
     const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
@@ -91,11 +89,6 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
         }
 
         setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
-    };
-
-    const handleDownloadPress = () => {
-        // TODO: perform file download
-        setDownloadPressed(true);
     };
 
     return (
@@ -209,17 +202,6 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.codiceFiscaleDescription')}</Text>
                     {isDocumentNeededStatus.isPRDandFSGNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
-                </View>
-            )}
-            {isDocumentNeededStatus.isPRDandFSGNeeded && (
-                <View style={styles.alignItemsStart}>
-                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
-                    <Button
-                        medium
-                        text={translate('common.download')}
-                        onPress={handleDownloadPress}
-                    />
-                    <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.PDSandFSGDescription')}</Text>
                 </View>
             )}
             <WhyLink containerStyles={[styles.mt6]} />
