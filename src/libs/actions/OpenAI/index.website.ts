@@ -88,8 +88,8 @@ function startAudioLevelMonitoring(stream: MediaStream) {
             
             // Calculate audio level (simple average)
             let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) {
-                sum += dataArray[i];
+            for (const value of dataArray) {
+                sum += value;
             }
             const average = sum / dataArray.length;
             
@@ -108,10 +108,12 @@ function startAudioLevelMonitoring(stream: MediaStream) {
 }
 
 function stopAudioLevelMonitoring() {
-    if (audioLevelCheckInterval) {
-        clearInterval(audioLevelCheckInterval);
-        audioLevelCheckInterval = null;
+    if (!audioLevelCheckInterval) {
+        return;
     }
+    
+    clearInterval(audioLevelCheckInterval);
+    audioLevelCheckInterval = null;
 }
 
 function getEmphemeralToken(): Promise<string> {
@@ -194,7 +196,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 mediaStream = stream;
                 logDebug('MEDIA', 'Media stream obtained', {
                     audioTracks: stream.getAudioTracks().length,
-                    trackSettings: stream.getAudioTracks()[0]?.getSettings()
+                    trackSettings: stream.getAudioTracks().at(0)?.getSettings()
                 });
                 
                 // Start monitoring audio levels
@@ -212,7 +214,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                     // OpenAI realtime optimizations
                     bundlePolicy: 'max-bundle',
                     rtcpMuxPolicy: 'require',
-                    iceCandidatePoolSize: 2,
+                    iceCandidatePoolSize: 4,
                 });
 
                 // Debug WebRTC connection states
@@ -276,10 +278,6 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                             // Log the full object structure for debugging
                             console.log(`[FULL ${messageData.type}]`, messageData);
                         }
-
-                        console.log(`[FULL ${messageData.type}]`, messageData);
-                        
-                        
                         
                         handleOpenAIMessage(messageData);
                     } catch (error) {
@@ -288,7 +286,9 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 };
                 
                 dc.onerror = (error) => {
-                    logDebug('ERROR', `Data channel error: ${error.message || 'Unknown error'}`);
+                    // Cast to unknown first as suggested by linter
+                    const errorMessage = ((error as unknown) as { message?: string }).message || 'Unknown error';
+                    logDebug('ERROR', `Data channel error: ${errorMessage}`);
                     reject(new Error(`Data channel error`));
                 };
                 
@@ -309,7 +309,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                     logDebug('MEDIA', 'Remote track received', {
                         kind: event.track.kind,
                         id: event.track.id,
-                        streamId: event.streams[0]?.id || 'No stream ID',
+                        streamId: event.streams.at(0)?.id || 'No stream ID',
                     });
                     
                     if (event.track.kind === 'audio') {
@@ -330,7 +330,6 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 return peerConnection.createOffer({
                     offerToReceiveAudio: true,
                     offerToReceiveVideo: false,
-                    voiceActivityDetection: true,
                 });
             })
             .then((offer: RTCSessionDescriptionInit) => {
@@ -366,8 +365,34 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 
                 return peerConnection.setRemoteDescription(new RTCSessionDescription({type: 'answer', sdp: answer})).then(() => {
                     logDebug('CONNECTION', 'WebRTC connection established successfully');
-                    resolve({peerConnection, dataChannel});
+                    
+                    // Add connection timeout handling
+                    return new Promise<ConnectionResult>((resolveConnection, rejectConnection) => {
+                        const connectionTimeout = setTimeout(() => {
+                            rejectConnection(new Error(`Connection timeout. Current state: ${peerConnection.connectionState}`));
+                            stopConnection();
+                        }, 10000);
+                        
+                        const checkConnection = () => {
+                            if (peerConnection.connectionState === 'connected') {
+                                clearTimeout(connectionTimeout);
+                                logDebug('CONNECTION', 'Peer connection fully established!');
+                                resolveConnection({peerConnection, dataChannel});
+                            }
+                        };
+                        
+                        // Check immediate state
+                        checkConnection();
+                        
+                        // If not immediately connected, listen for state change
+                        if (peerConnection.connectionState !== 'connected') {
+                            peerConnection.addEventListener('connectionstatechange', checkConnection);
+                        }
+                    });
                 });
+            })
+            .then((connection) => {
+                resolve(connection);
             })
             .catch((error: Error) => {
                 logDebug('ERROR', `Connection failed: ${error.message}`, error);
