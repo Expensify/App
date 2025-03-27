@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
-import PushNotification from '..';
+import PushNotification from '.';
 
 let lastVisitedPath: string | undefined;
 Onyx.connect({
