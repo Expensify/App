@@ -17,7 +17,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -36,21 +35,6 @@ jest.mock('@components/FormAlertWithSubmitButton', () => 'FormAlertWithSubmitBut
 
 // Create a stack navigator for the settings pages.
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
-
-const mockPolicyEmployees: PolicyEmployeeList = {
-    'testaccount+1@gmail.com': {
-        role: 'Approver',
-        email: 'testaccount+1@gmail.com',
-    },
-    'testaccount+2@gmail.com': {
-        role: 'Employee',
-        email: 'testaccount+2@gmail.com',
-    },
-    'testaccount+3@gmail.com': {
-        role: 'Manager',
-        email: 'testaccount+3@gmail.com',
-    },
-};
 
 // Renders the AssignCardFeedPage inside a navigation container with necessary providers.
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]) => {
@@ -108,10 +92,7 @@ describe('AssignCardFeedPage', () => {
 
         // Add mock policy and mock the assign card details
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
-                ...policy,
-                employeeList: mockPolicyEmployees,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                 data: {
@@ -174,10 +155,7 @@ describe('AssignCardFeedPage', () => {
 
         // Add mock policy and mock the assign card details
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
-                ...policy,
-                employeeList: mockPolicyEmployees,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
                 data: {
