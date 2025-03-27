@@ -24,7 +24,7 @@ import {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,
 } from '@libs/actions/IOU';
-import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode, setWorkspaceAutoReportingFrequency} from '@libs/actions/Policy/Policy';
+import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {addComment, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
 import {subscribeToUserEvents} from '@libs/actions/User';
