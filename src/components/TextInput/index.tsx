@@ -59,7 +59,6 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             autoFocus={isAutoFocusEnabled}
-            shouldDelayFocus={isAutoFocusEnabled}
             ref={(element) => {
                 textInputRef.current = element as HTMLFormElement;
 
