@@ -3481,7 +3481,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PLIST_PATH_TEST = exports.PLIST_PATH = exports.BUILD_GRADLE_PATH = exports.generateAndroidVersionCode = exports.updateAndroidVersion = exports.updateiOSVersion = void 0;
+exports.PLIST_PATH = exports.BUILD_GRADLE_PATH = exports.generateAndroidVersionCode = exports.updateAndroidVersion = exports.updateiOSVersion = void 0;
 const child_process_1 = __nccwpck_require__(2081);
 const fs_1 = __nccwpck_require__(7147);
 const path_1 = __importDefault(__nccwpck_require__(1017));
@@ -3494,8 +3494,6 @@ const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test' ? path_1.default.resol
 exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
 const PLIST_PATH = './ios/NewExpensify/Info.plist';
 exports.PLIST_PATH = PLIST_PATH;
-const PLIST_PATH_TEST = './ios/NewExpensifyTests/Info.plist';
-exports.PLIST_PATH_TEST = PLIST_PATH_TEST;
 const PLIST_PATH_NSE = './ios/NotificationServiceExtension/Info.plist';
 /**
  * Pad a number to be two digits (with leading zeros if necessary).
@@ -3541,10 +3539,8 @@ function updateiOSVersion(version) {
     console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
     // Update Plists
     (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`);
-    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`);
     (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_NSE}`);
     (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`);
-    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`);
     (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_NSE}`);
     // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
     return cfVersion;
