@@ -7,6 +7,7 @@ import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import getLastVisitedWorkspaceScreen from '@libs/Navigation/helpers/getLastVisitedWorkspace';
 import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, SwitchPolicyIdActionType} from './types';
 
 const MODAL_ROUTES_TO_DISMISS: string[] = [
@@ -40,11 +41,10 @@ function handleOpenWorkspaceSplitAction(
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
     const actionToPushSettingsSplitNavigator = StackActions.push(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {
-        screen: SCREENS.SETTINGS.WORKSPACES,
-    });
+        screen: SCREENS.SETTINGS.WORKSPACES,});            
 
     const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
-        screen: SCREENS.WORKSPACE.INITIAL,
+        screen: getLastVisitedWorkspaceScreen(),
         params: {
             policyID: action.payload.policyID,
         },
@@ -72,7 +72,6 @@ function handleOpenWorkspaceSplitAction(
         // To make it feel like bottom tab navigator.
         workspaceSplitsWithoutEnteringAnimation.add(lastFullScreenRoute.key);
     }
-
     return stateWithWorkspaceSplitNavigator;
 }
 
