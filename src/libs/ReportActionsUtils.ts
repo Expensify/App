@@ -34,7 +34,7 @@ import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtil
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {isOnHoldByTransactionID} from './TransactionUtils';
-import {getReportFieldAlternativeTextTranslationKey} from './WorkspaceReportFieldUtils';
+import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;
@@ -2129,7 +2129,7 @@ function getWorkspaceReportFieldAddMessage(action: ReportAction): string {
     if (fieldName && fieldType) {
         return translateLocal('workspaceActions.addedReportField', {
             fieldName,
-            fieldType: translateLocal(getReportFieldAlternativeTextTranslationKey(fieldType as PolicyReportFieldType)),
+            fieldType: translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(),
         });
     }
 
@@ -2187,7 +2187,7 @@ function getWorkspaceReportFieldDeleteMessage(action: ReportAction): string {
     if (fieldType && fieldName) {
         return translateLocal('workspaceActions.deleteReportField', {
             fieldName,
-            fieldType: translateLocal(getReportFieldAlternativeTextTranslationKey(fieldType as PolicyReportFieldType)),
+            fieldType: translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(),
         });
     }
 
