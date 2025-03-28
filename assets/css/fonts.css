@@ -75,8 +75,15 @@
 
 @font-face {
     font-family: Custom Emoji Font;
-    src: url('/fonts/CustomEmojiFont.ttf');
+    src: url('/fonts/CustomEmojiFont.ttf') format('truetype');
 }
+
+@supports (font: -apple-system-body) {
+    @font-face {
+      font-family: 'Custom Emoji Font';
+      src: url('/fonts/CustomEmojiFontSafari.ttf') format('truetype');
+    }
+  }
 
 * {
     -webkit-font-smoothing: antialiased;

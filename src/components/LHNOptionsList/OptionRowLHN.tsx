@@ -12,6 +12,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import RenderHTML from '@components/RenderHTML';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -24,6 +25,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
+import {containsCustomEmoji as containsCustomEmojiUtils} from '@libs/EmojiUtils';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -39,6 +41,7 @@ import {
     isThread,
     requiresAttentionFromCurrentUser,
 } from '@libs/ReportUtils';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
@@ -48,9 +51,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
-import { containsCustomEmoji as containsCustomEmojiUtils } from '@libs/EmojiUtils';
-import RenderHTML from '@components/RenderHTML';
-import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 
 function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
@@ -314,12 +314,12 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 </Text>
                                             )}
                                             {optionItem.alternateText && alternateTextContainsCustomEmoji && (
-                                                <TextWithEmojiFragment
-                                                    message={optionItem.alternateText}
-                                                    style={[alternateTextStyle, styles.mh0]}
-                                                    // numberOfLines={1}
-                                                    // accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
-                                                />
+                                                <Text numberOfLines={1}>
+                                                    <TextWithEmojiFragment
+                                                        message={optionItem.alternateText}
+                                                        style={[alternateTextStyle, styles.mh0]}
+                                                    />
+                                                </Text>
                                             )}
                                         </View>
                                         {optionItem?.descriptiveText ? (
