@@ -51,7 +51,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack(backTo, {shouldPopToTop: true})}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.CreditCardsNew}
