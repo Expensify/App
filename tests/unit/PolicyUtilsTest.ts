@@ -349,6 +349,34 @@ describe('PolicyUtils', () => {
                 });
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryapprover1AccountID);
             });
+            it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    employeeList,
+                    rules,
+                    preventSelfApproval: true,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0),
+                    ownerAccountID: categoryapprover1AccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const transaction: Transaction = {
+                    ...createRandomTransaction(0),
+                    category: 'cat1',
+                    reportID: expenseReport.reportID,
+                    tag: '',
+                };
+
+                await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
+                    [transaction.transactionID]: transaction,
+                });
+                expect(getSubmitToAccountID(policy, expenseReport)).toBe(adminAccountID);
+            });
             it('should return the category approver of the first transaction sorted by created if we have many transaction categories match with the category approver rule', async () => {
                 const policy: Policy = {
                     ...createRandomPolicy(0),
