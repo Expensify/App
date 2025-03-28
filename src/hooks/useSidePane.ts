@@ -79,7 +79,7 @@ function useSidePane() {
                 useNativeDriver: true,
             }),
         ]).start(() => setIsSidePaneTransitionEnded(true));
-    }, [shouldHideSidePane, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth, isExtraLargeScreenWidth]);
+    }, [shouldHideSidePane, shouldApplySidePaneOffset, sidePaneWidth]);
 
     const openSidePane = useCallback(() => {
         if (!sidePaneNVP) {
