@@ -119,6 +119,13 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                errors: null,
+            },
+        },
     ];
 
     const finallyData: OnyxUpdate[] = [
@@ -143,6 +150,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                     status: queryJSON?.status,
                     type: queryJSON?.type,
                 },
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
