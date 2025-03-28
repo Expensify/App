@@ -58,14 +58,14 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            completeOnboardingReport(
-                onboardingPurposeSelected,
-                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+            completeOnboardingReport({
+                engagementChoice: onboardingPurposeSelected,
+                onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                 firstName,
                 lastName,
-                onboardingAdminsChatReportID ?? undefined,
+                adminsChatReportID: onboardingAdminsChatReportID,
                 onboardingPolicyID,
-            );
+            });
 
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
