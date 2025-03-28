@@ -110,6 +110,18 @@ function BaseTextInput(
 
     useHtmlPaste(input as MutableRefObject<TextInput | null>, undefined, isMarkdownEnabled);
 
+    // AutoFocus which only works on mount:
+    useEffect(() => {
+        // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
+        if (!inputProps.autoFocus || !input.current) {
+            return;
+        }
+
+        input.current.focus();
+        // We only want this to run on mount
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
+
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
             labelScale.set(withSpring(scale, {overshootClamping: false}));
