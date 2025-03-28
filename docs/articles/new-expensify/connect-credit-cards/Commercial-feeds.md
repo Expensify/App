@@ -9,9 +9,7 @@ Commercial feeds are the most reliable way to import company card expenses. They
 The easiest way to confirm your eligibility for a commercial feed is to ask your bank directly.
 
 # Prerequisites for Enabling a Commercial Feed 
-If you haven't already, you need to create a workspace before setting up a commercial feed. Go to **Settings > Workspaces > New workspace** to create one.
-
-Additionally, you’ll need to enable company cards on your workspace by navigating to **Settings > Workspaces > [your workspace] > More features**, and toggling on **Company cards**. Note that upgrading to the Control plan is required to access this feature.
+If you haven't already, you need to create a workspace before setting up a commercial feed. Go to **Settings > Workspaces > New workspace** to create one. You can add one commercial or [direct feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Direct-feeds) on the Collect plan. Upgrading to the Control plan allows you to add unlimited company cards. 
 
 # How to Set Up a Mastercard Commercial Feed 
 Your bank must access Mastercard's SmartData portal to complete the process. Expensify is a registered vendor in the portal, so no additional Mastercard forms are required. Your bank may, however, have its own forms.
@@ -19,7 +17,7 @@ Your bank must access Mastercard's SmartData portal to complete the process. Exp
 ## Steps to Add a Mastercard Commercial Feed:
 1. Contact your banking relationship manager and request that your CDF (Common Data File) feed be sent directly to Expensify in the Mastercard SmartData Portal (file type: CDF version 3 Release 11.01). Specify the earliest transaction date you need in the feed.
 2. The bank will initiate feed delivery by selecting Expensify in Mastercard's portal and will email you the distribution ID.
-3. While waiting for your bank, ensure your Control workspace in Expensify is set up.
+3. While waiting for your bank, ensure your workspace in Expensify is set up.
 4. Submit the distribution ID in Expensify by navigating to **Settings > Workspaces > [your workspace] > Company cards > Add cards**, selecting your bank (choose "Other" if not listed), and then selecting **Mastercard Commercial Cards**.
 5. Once submitted, Expensify will connect the feed and notify you when it’s enabled.
    
@@ -27,7 +25,7 @@ Your bank must access Mastercard's SmartData portal to complete the process. Exp
 ## Steps to Add a Visa Commercial Feed:
 1. Contact your banking relationship manager and request that your VCF (Variant Call Format) feed be sent directly to Expensify. Share this with your bank: "There’s a checkbox in your Visa Subscription Management portal that can be selected to enable the feed, eliminating the need for a test file."
 2. Request the feed filename or raw file information, including the Processor ID, Financial Institution (bank) ID, and Company ID.
-3. While waiting for your bank, ensure your Control workspace in Expensify is set up.
+3. While waiting for your bank, ensure your workspace in Expensify is set up.
 4. Submit the required IDs in Expensify by navigating to **Settings > Workspaces > [your workspace] > Company cards > Add cards**, selecting your bank (choose "Other" if not listed), and then selecting **Visa Commercial Cards**.
 5. Once submitted, Expensify will connect the feed and notify you when it’s enabled.
 
@@ -56,7 +54,7 @@ No information required
 
 ## Steps to Add an American Express Corporate Feed:
 1. Send the completed forms to **electronictransmissionsteam@aexp.com** and request they send your corporate card feed to Expensify. You should receive a confirmation email within a few days.
-2. While waiting, ensure your Control workspace in Expensify is set up.
+2. While waiting, ensure your workspace in Expensify is set up.
 3. Amex will send a Production Letter with delivery file name information (e.g., `R123456_B123456789_GL1025_001_$DATE$$TIME$_$SEQ$`).
 4. Submit the delivery file name in Expensify by navigating to **Settings > Workspaces > [your workspace] > Company cards > Add cards > American Express > American Express Corporate Cards**.
 5. Once submitted, Expensify will connect the feed and notify you when it’s enabled.
@@ -105,7 +103,7 @@ Once a card is assigned, you can manage its settings by navigating to **Settings
 Cards appear for assignment if they’re active and have at least one recent transaction. If a card meeting these criteria doesn’t appear, contact your account manager or message concierge@expensify.com.
 
 ## Is there an extra fee for using commercial feeds? 
-No, commercial feed setup is included in the Control plan.
+No, the Collect plan includes one commercial feed. You can add additional commercial feeds by upgrading to the Control plan.
 
 ## What’s the difference between a direct feed and commercial feed? 
 Direct feeds use login credentials for quick setup, but can require re-authenticating from time to time. Commercial feeds require bank involvement for setup but offer the most reliable connection.

@@ -48,7 +48,7 @@ To enable eReceipts:
 # FAQ
 
 ## Are company cards limited to a certain plan?
-Yes, company cards are limited to the Control plan. However, the [Expensify Card](https://use.expensify.com/company-credit-card) is available on both the Collect and Control plans.
+You can add one [commercial](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds) or [direct feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Direct-feeds) on the Collect plan. Upgrading to the Control plan allows you to add unlimited company cards. The [Expensify Card](https://use.expensify.com/company-credit-card) is also always available on both the Collect and Control plans.
 
 ## When do card transactions import into Expensify?
 Card transactions start importing after a card is assigned. Expensify imports transactions as soon as they post, typically within 1-3 business days. Pending transactions will not appear in your account.
