@@ -1179,6 +1179,14 @@ function isInvoiceReport(report: OnyxInputOrEntry<Report> | SearchReport): boole
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
+function isInvoiceReportByReportID(reportID: string | undefined): boolean {
+    if (!reportID) {
+        return false;
+    }
+
+    return isInvoiceReport(getReport(reportID, allReports));
+}
+
 function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
     if (!invoiceRoomID) {
         return false;
@@ -9797,6 +9805,8 @@ export {
     buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    getInvoiceReportName,
+    isInvoiceReportByReportID,
 };
 
 export type {
