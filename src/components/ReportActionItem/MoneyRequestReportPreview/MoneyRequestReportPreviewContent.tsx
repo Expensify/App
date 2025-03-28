@@ -395,7 +395,7 @@ function MoneyRequestReportPreviewContent({
         if (index >= transactions.length || index < 0) {
             return;
         }
-        carouselRef.current?.scrollToIndex({index, animated: true});
+        carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2*styles.gap2.gap});
     };
 
     const onTextLayoutChange = (e: LayoutChangeEvent) => {
@@ -571,7 +571,7 @@ function MoneyRequestReportPreviewContent({
                                                     accessible
                                                     accessibilityLabel="button"
                                                     style={[styles.reportPreviewCarouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
-                                                    onPress={() => carouselRef.current?.scrollToIndex({index, animated: true})}
+                                                    onPress={() => handleChange(index)}
                                                 />
                                             ))}
                                         </View>
