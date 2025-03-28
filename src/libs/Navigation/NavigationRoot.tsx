@@ -1,4 +1,4 @@
-import {CurrentRenderContext, DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -28,6 +28,7 @@ import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
+import {savePathToSessionStorage} from './helpers/getLastVisitedWorkspace';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
@@ -44,13 +45,6 @@ type NavigationRootProps = {
     /** Fired when react-navigation is ready */
     onReady: () => void;
 };
-
-/**
- * Save currentUrl to sessionStorage
- */
-function savePathToSessionStorage(path: string) {
-    sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH, path);
-}
 
 /**
  * Intercept navigation state changes and log it
@@ -81,9 +75,6 @@ function parseAndLogRoute(state: NavigationState) {
 
     if (state.routes.at(-1)?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || state.routes.at(-1)?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
         savePathToSessionStorage(currentPath);
-        if (state.routes.at(-1)) {
-            sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_KEY, state.routes.at(-1)?.key);
-        }
     }
 
     // Fullstory Page navigation tracking
@@ -230,8 +221,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
         cleanPreservedNavigatorStates(state);
-
-        // console.log('state', state);
     };
 
     return (
