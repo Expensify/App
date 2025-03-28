@@ -10,15 +10,15 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
+import {hasAccountingConnections} from '@libs/PolicyUtils';
+import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {renameReportFieldsListValue} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -41,12 +41,7 @@ function ReportFieldsEditValuePage({
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
-            WorkspaceReportFieldUtils.validateReportFieldListValueName(
-                values[INPUT_IDS.NEW_VALUE_NAME].trim(),
-                currentValueName,
-                formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
-                INPUT_IDS.NEW_VALUE_NAME,
-            ),
+            validateReportFieldListValueName(values[INPUT_IDS.NEW_VALUE_NAME].trim(), currentValueName, formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.NEW_VALUE_NAME),
         [currentValueName, formDraft],
     );
 
@@ -54,7 +49,7 @@ function ReportFieldsEditValuePage({
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             const valueName = values[INPUT_IDS.NEW_VALUE_NAME]?.trim();
             if (currentValueName !== valueName) {
-                ReportField.renameReportFieldsListValue(valueIndex, valueName);
+                renameReportFieldsListValue(valueIndex, valueName);
             }
             Keyboard.dismiss();
             Navigation.goBack();
@@ -67,7 +62,7 @@ function ReportFieldsEditValuePage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
-            shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
+            shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
@@ -89,7 +84,6 @@ function ReportFieldsEditValuePage({
                 >
                     <InputWrapper
                         InputComponent={TextInput}
-                        maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                         defaultValue={currentValueName}
                         label={translate('common.value')}
                         accessibilityLabel={translate('common.value')}
