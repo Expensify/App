@@ -2032,7 +2032,7 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
     if (
         action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG &&
         tagListName &&
-        typeof oldValue === 'string' &&
+        (typeof oldValue === 'string' || typeof oldValue === 'undefined') &&
         typeof newValue === 'string' &&
         tagName &&
         updatedField
