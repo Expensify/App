@@ -6434,6 +6434,14 @@ const CONST = {
         GROUP_BY: {
             REPORTS: 'reports',
         },
+        BILLABLE: {
+            YES: 'yes',
+            NO: 'no',
+        },
+        REIMBURSABLE: {
+            YES: 'yes',
+            NO: 'no',
+        },
         STATUS: {
             EXPENSE: {
                 ALL: 'all',

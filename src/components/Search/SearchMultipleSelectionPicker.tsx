@@ -32,21 +32,24 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
 
-    const sortOptionsWithEmptyValue = (a: SearchMultipleSelectionPickerItem, b: SearchMultipleSelectionPickerItem) => {
-        // If we want to prevent the default sort behavior, then we should show all items in the order that they were passed
-        if (disableSort) {
-            return 0;
-        }
+    const sortOptionsWithEmptyValue = useCallback(
+        (a: SearchMultipleSelectionPickerItem, b: SearchMultipleSelectionPickerItem) => {
+            // If we want to prevent the default sort behavior, then we should show all items in the order that they were passed
+            if (disableSort) {
+                return 0;
+            }
 
-        // Always show `No category` and `No tag` as the first option
-        if (a.value === CONST.SEARCH.EMPTY_VALUE) {
-            return -1;
-        }
-        if (b.value === CONST.SEARCH.EMPTY_VALUE) {
-            return 1;
-        }
-        return localeCompare(a.name, b.name);
-    };
+            // Always show `No category` and `No tag` as the first option
+            if (a.value === CONST.SEARCH.EMPTY_VALUE) {
+                return -1;
+            }
+            if (b.value === CONST.SEARCH.EMPTY_VALUE) {
+                return 1;
+            }
+            return localeCompare(a.name, b.name);
+        },
+        [disableSort],
+    );
 
     useEffect(() => {
         setSelectedItems(initiallySelectedItems ?? []);
@@ -114,7 +117,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                   ],
             noResultsFound: isEmpty,
         };
-    }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
+    }, [items, selectedItems, disableSort, pickerTitle, debouncedSearchTerm, sortOptionsWithEmptyValue]);
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {

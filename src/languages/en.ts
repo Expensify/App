@@ -5130,6 +5130,8 @@ const translations = {
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
+            billable: 'Billable',
+            reimbursable: 'Reimbursable',
         },
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses',

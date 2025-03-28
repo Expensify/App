@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
@@ -18,19 +19,25 @@ function SearchFiltersBillablePage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const updateBillableFilter = useCallback((value: string[]) => {
-        SearchActions.updateAdvancedFilters({billable: value});
-        Navigation.goBack();
-    }, []);
+    const initiallySelectedItems = useMemo(() => {
+        return searchAdvancedFiltersForm?.billable
+            ?.filter((billable) => Object.values(CONST.SEARCH.BILLABLE).includes(billable as ValueOf<typeof CONST.SEARCH.BILLABLE>))
+            .map((billable) => {
+                const billableValueName = translate(`common.${billable as ValueOf<typeof CONST.SEARCH.BILLABLE>}`);
+                return {name: billableValueName, value: billable};
+            });
+    }, [searchAdvancedFiltersForm, translate]);
 
-    const options = CONST.BILLABLE_OPTIONS.map((option) => ({
-        name: option,
-        value: option,
-    }));
+    const allBillableTypes = Object.values(CONST.SEARCH.BILLABLE);
 
-    const selectedItems = useMemo(() => {
-        return options.filter((option) => searchAdvancedFiltersForm?.billable?.includes(option.value));
-    }, [searchAdvancedFiltersForm, options]);
+    const billableItems = useMemo(() => {
+        return allBillableTypes.map((billable) => {
+            const billableValueName = translate(`common.${billable}`);
+            return {name: billableValueName, value: billable};
+        });
+    }, [allBillableTypes, translate]);
+
+    const updateBillableTypeFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({billable: values}), []);
 
     return (
         <ScreenWrapper
@@ -41,7 +48,7 @@ function SearchFiltersBillablePage() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('search.expenseType')}
+                title={translate('search.filters.billable')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
@@ -49,9 +56,9 @@ function SearchFiltersBillablePage() {
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
                     disableSort
-                    items={options}
-                    initiallySelectedItems={selectedItems}
-                    onSaveSelection={updateBillableFilter}
+                    items={billableItems}
+                    initiallySelectedItems={initiallySelectedItems}
+                    onSaveSelection={updateBillableTypeFilter}
                     shouldShowTextInput={false}
                 />
             </View>
