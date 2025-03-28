@@ -241,6 +241,7 @@ export default {
     menuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
+    transactionPreviewSkeletonHeight: 66,
 
     distanceScrollEventThrottle: 16,
 

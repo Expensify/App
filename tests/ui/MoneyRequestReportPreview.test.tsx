@@ -5,12 +5,12 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import OnyxProvider from '@components/OnyxProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
+import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
@@ -158,6 +158,6 @@ describe('MoneyRequestReportPreview', () => {
     it('renders a skeleton if the transaction is empty', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getAllByTestId(MoneyRequestSkeletonView.displayName)).toHaveLength(2);
+        expect(screen.getAllByTestId(TransactionPreviewSkeletonView.displayName)).toHaveLength(2);
     });
 });
