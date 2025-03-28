@@ -225,7 +225,7 @@ function MergeResultPage() {
                 illustration: Illustrations.LockClosedOrange,
             },
         };
-    }, [login, translate, userEmailOrPhone, styles]);
+    }, [setRootStatusBarEnabled, login, translate, userEmailOrPhone, styles]);
 
     const {
         heading,
