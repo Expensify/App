@@ -24,7 +24,6 @@ type SharedProps<T> = {
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
     lottieWebViewStyles?: React.CSSProperties | undefined;
     minModalHeight?: number;
-    showsVerticalScrollIndicator?: boolean;
 };
 
 type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {

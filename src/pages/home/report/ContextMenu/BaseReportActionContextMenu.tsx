@@ -18,8 +18,8 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
-import {getPolicy, getWorkspaceAccountID, isPolicyAdmin as PolicyUtilsIsPolicyAdmin} from '@libs/PolicyUtils';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
+import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
+import {getLinkedTransactionID, getOneTransactionThreadReportID, getReportAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getSourceIDFromReportAction,
@@ -146,9 +146,6 @@ function BaseReportActionContextMenu({
     const [user] = useOnyx(ONYXKEYS.USER);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policyID = report?.policyID;
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
         if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1' || !reportActionID) {
@@ -285,43 +282,37 @@ function BaseReportActionContextMenu({
     useRestoreInputFocus(isVisible);
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
-        showContextMenu(
-            CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+        showContextMenu({
+            type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
-            anchorRef?.current as ViewType | RNText | null,
-            reportID,
-            reportAction?.reportActionID,
-            originalReportID,
-            draftMessage,
-            checkIfContextMenuActive,
-            () => {
-                checkIfContextMenuActive?.();
-                setShouldKeepOpen(false);
+            contextMenuAnchor: anchorRef?.current as ViewType | RNText | null,
+            report: {
+                reportID,
+                originalReportID,
+                isArchivedRoom: isArchivedNonExpenseReportWithID(originalReportID),
+                isChronos: chatIncludesChronosWithID(originalReportID),
             },
-            isArchivedNonExpenseReportWithID(originalReportID),
-            chatIncludesChronosWithID(originalReportID),
-            undefined,
-            undefined,
-            filteredContextMenuActions,
-            true,
-            () => {},
-            true,
-            isThreadReportParentAction,
-        );
+            reportAction: {
+                reportActionID: reportAction?.reportActionID,
+                draftMessage,
+                isThreadReportParentAction,
+            },
+            callbacks: {
+                onShow: checkIfContextMenuActive,
+                onHide: () => {
+                    checkIfContextMenuActive?.();
+                    setShouldKeepOpen(false);
+                },
+            },
+            disabledOptions: filteredContextMenuActions,
+            shouldCloseOnTarget: true,
+            isOverflowMenu: true,
+        });
     };
 
-    const cardIssuedActionOriginalMessage = isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-    )
-        ? getOriginalMessage(reportAction)
-        : undefined;
-    const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    const isPolicyAdmin = PolicyUtilsIsPolicyAdmin(getPolicy(policyID));
-    const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    const card = getExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
     return (
         (isVisible || shouldKeepOpen) && (
@@ -357,7 +348,7 @@ function BaseReportActionContextMenu({
                             textTranslateKey === 'reportActionContextMenu.editAction' ||
                             textTranslateKey === 'reportActionContextMenu.deleteAction' ||
                             textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
-                        const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: reportAction}) : translate(textTranslateKey));
+                        const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
                         const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyToClipboard' && transaction && {transaction};
                         const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
 

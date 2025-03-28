@@ -11,6 +11,7 @@ import type {AuthScreensParamList, ReportsSplitNavigatorParamList} from '@libs/N
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
@@ -30,6 +31,9 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
 
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
+        if (currentURL && new URL(currentURL).pathname.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+            return undefined;
+        }
         const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
         if (reportIdFromPath) {
             return reportIdFromPath;

@@ -1,6 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -8,6 +9,7 @@ import type {FeatureListItem} from '@components/FeatureList';
 import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
+import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -23,12 +25,13 @@ import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
+import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
@@ -55,7 +58,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const [modalVisible, setModalVisible] = useState(false);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies).length === 0;
+        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
 
     const tripViewChildren = useMemo(() => {
@@ -230,21 +233,25 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
 
     return (
         <>
-            <EmptyStateComponent
-                SkeletonComponent={SearchRowSkeleton}
+            <ScrollView
                 showsVerticalScrollIndicator={false}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={content.headerMedia}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
-                title={content.title}
-                titleStyles={content.titleStyles}
-                subtitle={content.subtitle}
-                buttons={content.buttons}
-                headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
-                lottieWebViewStyles={content.lottieWebViewStyles}
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
             >
-                {content.children}
-            </EmptyStateComponent>
+                <EmptyStateComponent
+                    SkeletonComponent={SearchRowSkeleton}
+                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                    headerMedia={content.headerMedia}
+                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
+                    title={content.title}
+                    titleStyles={content.titleStyles}
+                    subtitle={content.subtitle}
+                    buttons={content.buttons}
+                    headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
+                    lottieWebViewStyles={content.lottieWebViewStyles}
+                >
+                    {content.children}
+                </EmptyStateComponent>
+            </ScrollView>
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}
