@@ -72,6 +72,12 @@ type ValidateCodeFormProps = {
 
     /** Whether the form is loading or not */
     isLoading?: boolean;
+
+    /** Whether to show skip button */
+    shouldShowSkipButton?: boolean;
+
+    /** Function to call when skip button is pressed */
+    handleSkipButtonPress?: () => void;
 };
 
 function BaseValidateCodeForm({
@@ -87,6 +93,8 @@ function BaseValidateCodeForm({
     buttonStyles,
     hideSubmitButton,
     isLoading,
+    shouldShowSkipButton = false,
+    handleSkipButtonPress,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -273,14 +281,23 @@ function BaseValidateCodeForm({
                     messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
                 />
             )}
+
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
                 errors={canShowError ? validateError : undefined}
-                errorRowStyles={[styles.mt2]}
+                errorRowStyles={[styles.mt2, styles.textWrap]}
                 onClose={() => clearError()}
                 style={buttonStyles}
             >
+                {shouldShowSkipButton && (
+                    <Button
+                        text={translate('common.skip')}
+                        onPress={handleSkipButtonPress}
+                        success={false}
+                        large
+                    />
+                )}
                 {!hideSubmitButton && (
                     <Button
                         isDisabled={isOffline}

@@ -28,14 +28,17 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
@@ -46,6 +49,7 @@ import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContex
 import {KEYS_TO_PRESERVE, openApp, reconnectApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
+import {openOldDotLink} from '@userActions/Link';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
@@ -56,6 +60,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Onboarding} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
@@ -111,6 +116,12 @@ let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val ?? null),
+});
+
+let onboarding: Onboarding | undefined;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (val) => (onboarding = val),
 });
 
 function isSupportAuthToken(): boolean {
@@ -1279,6 +1290,144 @@ function isUserOnPrivateDomain() {
     return false;
 }
 
+function AddWorkEmail(workEmail: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                onboardingWorkEmail: workEmail,
+                isLoading: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: null,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                onboardingWorkEmail: workEmail,
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: null,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                onboardingWorkEmail: null,
+                isLoading: false,
+            },
+        },
+
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: 'onboarding.error',
+        },
+    ];
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.write(
+        WRITE_COMMANDS.ADD_WORK_EMAIL,
+        {workEmail},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
+}
+
+function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: {
+                errorMessage: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: {
+                errorMessage: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: 'onboarding.error',
+        },
+    ];
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN,
+        {workEmail, validateCode, accountID},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    ).then((response) => {
+        if (response?.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
+            // If the error other than invalid code, we show a blocking screen
+            if (response?.message === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR) {
+                Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'));
+            } else {
+                Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
+            }
+            return;
+        }
+
+        return SequentialQueue.waitForIdle()
+            .then(() => {
+                if (response?.authToken && response?.encryptedAuthToken) {
+                    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
+                    updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
+
+                    NetworkStore.setAuthToken(response?.authToken ?? null);
+                }
+            })
+            .then(() => {
+                if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && onboarding?.shouldRedirectToClassicAfterMerge) {
+                    openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                    return;
+                }
+
+                const isVsb = onboarding && 'signupQualifier' in onboarding && onboarding.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+
+                if (isVsb) {
+                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+                    return;
+                }
+
+                Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+            });
+    });
+}
+
 /**
  * To reset SMS delivery failure
  */
@@ -1366,6 +1515,8 @@ export {
     signInAfterTransitionFromOldDot,
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
+    AddWorkEmail,
+    MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
 };
