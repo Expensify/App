@@ -9449,8 +9449,8 @@ function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
     return isSelectedManagerMcTest(persionalDetails?.login);
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}): string {
-    const report = getReport(action?.reportID ?? '', allReports);
+function getChatListItemReportName(action: ReportAction & {reportID: string; reportName?: string}): string {
+    const report = getReport(action.reportID, allReports);
 
     if (isInvoiceReport(report)) {
         return getInvoiceReportName(report);
