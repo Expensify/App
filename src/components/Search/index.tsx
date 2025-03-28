@@ -20,7 +20,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {generateReportID} from '@libs/ReportUtils';
+import {canDeleteCardTransactionByLiabilityType, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getListItem,
@@ -108,7 +108,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
-            canDelete: item.canDelete,
+            canDelete: canDeleteCardTransactionByLiabilityType(item.transactionID, item.canDelete),
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
@@ -238,7 +238,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     isHeld: isOnHold(transaction),
                     canUnhold: transaction.canUnhold,
                     isSelected: selectedTransactions[transaction.transactionID].isSelected,
-                    canDelete: transaction.canDelete,
+                    canDelete: canDeleteCardTransactionByLiabilityType(transaction.transactionID, transaction.canDelete),
                     reportID: transaction.reportID,
                     policyID: transaction.policyID,
                     amount: transaction.modifiedAmount ?? transaction.amount,
@@ -259,7 +259,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         isHeld: isOnHold(transaction),
                         canUnhold: transaction.canUnhold,
                         isSelected: selectedTransactions[transaction.transactionID].isSelected,
-                        canDelete: transaction.canDelete,
+                        canDelete: canDeleteCardTransactionByLiabilityType(transaction.transactionID, transaction.canDelete),
                         reportID: transaction.reportID,
                         policyID: transaction.policyID,
                         amount: transaction.modifiedAmount ?? transaction.amount,
