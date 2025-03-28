@@ -1,0 +1,74 @@
+diff --git a/node_modules/react-native-screens/android/build.gradle b/node_modules/react-native-screens/android/build.gradle
+index 9b4a263..eea3659 100644
+--- a/node_modules/react-native-screens/android/build.gradle
++++ b/node_modules/react-native-screens/android/build.gradle
+@@ -34,6 +34,42 @@ def isNewArchitectureEnabled() {
+     return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
+ }
+ 
++def resolveReactNativeDirectory() {
++    def userDefinedRnDirPath = safeAppExtGet("REACT_NATIVE_NODE_MODULES_DIR", null)
++    if (userDefinedRnDirPath != null) {
++        return file(userDefinedRnDirPath)
++    }
++
++    File standardRnDirFile = file("$rootDir/../node_modules/react-native/")
++    if (standardRnDirFile.exists()) {
++        return standardRnDirFile
++    }
++
++    // This is legacy code, I'm not sure why it works in certain scenarios but it was reported that one of our
++    // projects needs this.
++    File legacyRnDirFile = file("$projectDir/../node_modules/react-native/")
++    if (legacyRnDirFile.exists()) {
++        return legacyRnDirFile
++    }
++
++    // We're in non standard setup, e.g. monorepo - try to use node resolver to locate the react-native package.
++    String maybeRnPackagePath = ["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()
++
++    File nodeResolverRnDirFile = null
++    // file() constructor fails in case string is null or blank
++    if (maybeRnPackagePath != null && !maybeRnPackagePath.isBlank()) {
++        File maybeRnPackageFile = file(maybeRnPackagePath)
++        if (maybeRnPackageFile.exists()) {
++            nodeResolverRnDirFile = maybeRnPackageFile.parentFile
++            return nodeResolverRnDirFile
++        }
++    }
++
++    throw new Exception("[RNScreens] Failed to resolve react-native directory. " +
++            "Attempted locations: ${standardRnDirFile}, ${legacyRnDirFile} and ${nodeResolverRnDirFile}. " +
++            "You should set project extension property (in `app/build.gradle`) `REACT_NATIVE_NODE_MODULES_DIR` with path to react-native.")
++}
++
+ // spotless is only accessible within react-native-screens repo
+ if (isRunningInContextOfScreensRepo()) {
+     apply from: 'spotless.gradle'
+@@ -147,25 +183,7 @@ android {
+ 
+ repositories {
+     maven {
+-        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+-
+-        // First look for the standard location of react-native, as in RN Hello World template
+-        // https://github.com/facebook/react-native/blob/1e8f3b11027fe0a7514b4fc97d0798d3c64bc895/local-cli/templates/HelloWorld/android/build.gradle#L21
+-        // TODO(kkafar): Note, that in latest template app https://github.com/react-native-community/template/blob/0f4745b7a9d84232aeedec2def8d75ab9b050d11/template/android/build.gradle
+-        // this is not specified at all.
+-        File standardRnAndroidDirLocation = file("$rootDir/../node_modules/react-native/android")
+-        if (standardRnAndroidDirLocation.exists()) {
+-            url standardRnAndroidDirLocation
+-        } else {
+-            // We're in non standard setup - try to use node resolver to locate the react-native package.
+-            File reactNativePackage = file(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim())
+-            def rnAndroidDirLocation = "$reactNativePackage.parentFile/android"
+-            if (reactNativePackage.exists()) {
+-                url rnAndroidDirLocation
+-            } else {
+-                println "[RNScreens] Failed to resolve react-native directory. Attempted locations: ${standardRnAndroidDirLocation}, ${rnAndroidDirLocation}"
+-            }
+-        }
++        url "${resolveReactNativeDirectory()}/android"
+     }
+ 
+     mavenCentral()
