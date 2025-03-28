@@ -395,7 +395,7 @@ function MoneyRequestReportPreviewContent({
         if (index >= transactions.length || index < 0) {
             return;
         }
-        carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2*styles.gap2.gap});
+        carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
     };
 
     const onTextLayoutChange = (e: LayoutChangeEvent) => {
