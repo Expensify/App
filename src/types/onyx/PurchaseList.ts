@@ -39,8 +39,19 @@ type Message = {
     /** Billable amount before free trial discount */
     billableAmountBeforeFreeTrialDiscount: number;
 
-    /** List of billable policies */
-    billablePolicies: string[];
+    /** Record of billable policies with their details */
+    billablePolicies: Record<string, {
+        /** List of actors in the policy */
+        actorList: string;
+        /** Approved spend amounts by currency */
+        approvedSpend: Record<string, number>;
+        /** Whether the policy is corporate */
+        corporate: boolean;
+        /** Expensify card spend by currency */
+        expensifyCardSpend: Record<string, number>;
+        /** Type of the policy */
+        type: string;
+    }>;
 
     /** Billing type */
     billingType: string;
