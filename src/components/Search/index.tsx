@@ -58,7 +58,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [stri
         item.keyForList,
         {
             isSelected: true,
-            canDelete: item.canDelete,
+            canDelete: canDeleteCardTransactionByLiabilityType(item.transactionID, item.canDelete),
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
