@@ -149,7 +149,6 @@ import {
     isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
     isClosedAction,
-    isCreatedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
