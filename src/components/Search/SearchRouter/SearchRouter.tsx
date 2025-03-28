@@ -239,10 +239,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
-            if (!isSearchRouterDisplayed) {
-                return;
-            }
-
             if (isSearchQueryItem(item)) {
                 if (!item.searchQuery) {
                     return;
@@ -285,7 +281,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
             }
         },
-        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue, isSearchRouterDisplayed],
+        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
     );
 
     const updateAutocompleteSubstitutions = useCallback(
@@ -327,10 +323,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         isFullWidth={shouldUseNarrowLayout}
                         onSearchQueryChange={onSearchQueryChange}
                         onSubmit={() => {
-                            if (!isSearchRouterDisplayed) {
-                                return;
-                            }
-
                             const focusedOption = listRef.current?.getFocusedOption();
 
                             if (!focusedOption) {
