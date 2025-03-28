@@ -20,9 +20,13 @@ import SubscriptionPlanCardActionButton from './SubscriptionPlanCardActionButton
 type PersonalPolicyTypeExludedProps = Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>;
 
 type SubscriptionPlanCardProps = {
-    // TODO: add comments
+    /** Subscription plan to display */
     subscriptionPlan: PersonalPolicyTypeExludedProps | null;
+
+    /** Whether the plan card was rendered inside the comparison modal */
     isFromComparisonModal?: boolean;
+
+    /** Closes comparison modal */
     closeComparisonModal?: () => void;
 };
 

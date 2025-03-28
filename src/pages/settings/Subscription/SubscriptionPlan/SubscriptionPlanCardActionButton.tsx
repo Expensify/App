@@ -17,10 +17,16 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalPolicyTypeExludedProps} from './SubscriptionPlanCard';
 
 type SubscriptionPlanCardActionButtonProps = {
-    // TODO: add comments
+    /** Subscription plan to display */
     subscriptionPlan: PersonalPolicyTypeExludedProps | null;
+
+    /** Whether the plan card was rendered inside the comparison modal */
     isFromComparisonModal: boolean;
+
+    /** Whether the plan is currently used */
     isSelected: boolean;
+
+    /** Closes comparison modal */
     closeComparisonModal?: () => void;
 };
 

@@ -581,7 +581,7 @@ function getSubscriptionPlanInfo(
     privateSubscriptionType: SubscriptionType | undefined,
     preferredCurrency: PreferredCurrency,
 ): SubscriptionPlanInfo {
-    const price = getSubscriptionPrice(CONST.POLICY.TYPE.TEAM, preferredCurrency, privateSubscriptionType);
+    const price = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType);
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
         return {
