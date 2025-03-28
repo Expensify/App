@@ -7,11 +7,12 @@ import type {
     MeasureInWindowOnSuccessCallback,
     NativeSyntheticEvent,
     TextInput,
+    TextInputContentSizeChangeEventData,
     TextInputFocusEventData,
     TextInputKeyPressEventData,
     TextInputScrollEventData,
 } from 'react-native';
-import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
+import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -86,6 +87,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
 
     /** Whether the composer is full size */
     isComposerFullSize: boolean;
+
+    /** Function to set whether the full composer is available */
+    setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
 
     /** Whether the menu is visible */
     isMenuVisible: boolean;
@@ -206,6 +210,7 @@ function ComposerWithSuggestions(
 
         // Composer
         isComposerFullSize,
+        setIsFullComposerAvailable,
         isMenuVisible,
         inputPlaceholder,
         displayFileInModal,
@@ -753,11 +758,23 @@ function ComposerWithSuggestions(
     );
 
     const isTouchEndedRef = useRef(false);
+    const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
+
+    const updateIsFullComposerAvailable = useCallback(
+        (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+            const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
+            const inputHeight = e.nativeEvent.contentSize.height;
+            const totalHeight = inputHeight + paddingTopAndBottom;
+            const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
+            setIsFullComposerAvailable?.(isFullComposerAvailable);
+        },
+        [setIsFullComposerAvailable, containerComposeStyles],
+    );
 
     return (
         <>
             <View
-                style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}
+                style={[containerComposeStyles, styles.textInputComposeBorder]}
                 onTouchEndCapture={() => {
                     isTouchEndedRef.current = true;
                 }}
@@ -790,6 +807,7 @@ function ComposerWithSuggestions(
                     selection={selection}
                     onSelectionChange={onSelectionChange}
                     isComposerFullSize={isComposerFullSize}
+                    onContentSizeChange={updateIsFullComposerAvailable}
                     value={value}
                     testID="composer"
                     shouldCalculateCaretPosition

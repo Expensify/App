@@ -13,9 +13,11 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getBankAccountRoute, getPolicyExpenseChat, getTransactionDetails, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {
+    getMoneyRequestParticipantsFromReport,
     requestMoney,
     resetSplitShares,
     sendMoneyElsewhere,
@@ -185,7 +187,7 @@ function IOURequestStepAmount({
         // to the confirm step.
         // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
         if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
-            const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
+            const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
@@ -241,28 +243,30 @@ function IOURequestStepAmount({
                     return;
                 }
             }
-            setMoneyRequestParticipantsFromReport(transactionID, report);
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
                 setSplitShares(transaction, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, participantAccountIDs);
             }
-            navigateToConfirmationPage();
+            setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+                navigateToConfirmationPage();
+            });
             return;
         }
 
         // If there was no reportID, then that means the user started this flow from the global + menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-        if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled) {
+        if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
-            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat);
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                    transactionID,
-                    activePolicyExpenseChat?.reportID,
-                ),
-            );
+            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                        CONST.IOU.ACTION.CREATE,
+                        iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                        transactionID,
+                        activePolicyExpenseChat?.reportID,
+                    ),
+                );
+            });
         } else {
             navigateToParticipantPage();
         }

@@ -30,7 +30,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import NetworkConnection from '@libs/NetworkConnection';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
@@ -41,7 +40,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -916,7 +914,6 @@ function subscribeToPusherPong() {
 
         // When any PONG event comes in, reset this flag so that checkforLatePongReplies will resume looking for missed PONGs
         pongHasBeenMissed = false;
-        NetworkConnection.setOfflineStatus(false, 'PONG event was recieved from the server so assuming that means the client is back online');
     });
 }
 
@@ -939,9 +936,6 @@ function pingPusher() {
     // Then we can calculate the latency between the client and the server (or if the server never replies)
     const pingID = NumberUtils.rand64();
     const pingTimestamp = Date.now();
-
-    // Reset this flag so that checkforLatePongReplies will resume looking for missed PONGs (in the case we are coming back online after being offline for a bit)
-    pongHasBeenMissed = false;
 
     // In local development, there can end up being multiple intervals running because when JS code is replaced with hot module replacement, the old interval is not cleared
     // and keeps running. This little bit of logic will attempt to keep multiple pings from happening.
@@ -977,7 +971,6 @@ function checkforLatePongReplies() {
         // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
         lastPingSentTimestamp = Date.now();
         pongHasBeenMissed = true;
-        NetworkConnection.setOfflineStatus(true, 'PONG event was not received from the server in time so assuming that means the client is offline');
     } else {
         Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
     }
@@ -986,11 +979,6 @@ function checkforLatePongReplies() {
 let pingPusherIntervalID: ReturnType<typeof setInterval>;
 let checkforLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
 function initializePusherPingPong() {
-    // Skip doing the ping pong during tests so that the network isn't knocked offline, forcing tests to timeout
-    if (process.env.NODE_ENV === 'test') {
-        return;
-    }
-
     // Only run the ping pong from the leader client
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info("[Pusher PINGPONG] Not starting PING PONG because this instance isn't the leader client");
@@ -1512,13 +1500,6 @@ function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
 
-function subscribeToActiveGuides() {
-    const pusherChannelName = `${CONST.PUSHER.PRESENCE_ACTIVE_GUIDES}${CONFIG.PUSHER.SUFFIX}`;
-    Pusher.subscribe(pusherChannelName).catch(() => {
-        Log.hmmm('[User] Failed to initially subscribe to Pusher channel', {pusherChannelName});
-    });
-}
-
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
 }
@@ -1560,7 +1541,6 @@ export {
     requestValidateCodeAction,
     addPendingContactMethod,
     clearValidateCodeActionError,
-    subscribeToActiveGuides,
     setIsDebugModeEnabled,
     resetValidateActionCodeSent,
 };

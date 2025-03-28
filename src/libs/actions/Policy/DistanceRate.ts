@@ -15,9 +15,10 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getDistanceRateCustomUnit, goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -59,6 +60,29 @@ Onyx.connect({
         }
 
         allPolicies[key] = val;
+    },
+});
+
+let allTransactions: NonNullable<OnyxCollection<Transaction>> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allTransactions = {};
+            return;
+        }
+
+        allTransactions = value;
+    },
+});
+
+let transactionViolations: OnyxCollection<TransactionViolation[]>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        transactionViolations = value;
     },
 });
 
@@ -163,7 +187,9 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData, {
+        checkAndFixConflictingRequest: (persistedRequests) => resolveEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, persistedRequests, parameters),
+    });
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -549,6 +575,36 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
             },
         },
     ];
+
+    const transactions = Object.values(allTransactions ?? {}).filter((transaction) => transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID);
+    const optimisticTransactionsViolations: OnyxUpdate[] = [];
+
+    transactions.forEach((transaction) => {
+        const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`] ?? [];
+        if (currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)) {
+            return;
+        }
+        optimisticTransactionsViolations.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
+            value: [
+                ...currentTransactionViolations,
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    showInReview: true,
+                },
+            ],
+        });
+    });
+
+    const failureTransactionsViolations: OnyxUpdate[] = transactions.map((transaction) => {
+        const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
+        return {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, value: currentTransactionViolations};
+    });
+
+    optimisticData.push(...optimisticTransactionsViolations);
+    failureData.push(...failureTransactionsViolations);
 
     const params: DeletePolicyDistanceRatesParams = {
         policyID,

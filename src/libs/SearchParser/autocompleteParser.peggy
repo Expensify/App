@@ -66,6 +66,8 @@ autocompleteKey "key"
       / type
       / status
       / cardID
+      / feed
+      / groupBy
     )
 
 identifier

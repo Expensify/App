@@ -23,11 +23,10 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
-import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, maskCardNumber} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, isExpensifyCardFullySetUp, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -40,8 +39,14 @@ import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionMo
 import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import variables from '@styles/variables';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
-import {openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
-import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, removeMembers, requestWorkspaceOwnerChange, updateWorkspaceMembersRole} from '@userActions/Policy/Member';
+import {
+    clearWorkspaceOwnerChangeFlow,
+    isApprover as isApproverUserAction,
+    openPolicyMemberProfilePage,
+    removeMembers,
+    requestWorkspaceOwnerChange,
+    updateWorkspaceMembersRole,
+} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,7 +64,7 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
@@ -86,8 +91,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
     const ownerDetails = useMemo(() => personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails), [personalDetails, policy?.ownerAccountID]);
     const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
-    const hasMultipleFeeds = Object.values(getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
+    const hasMultipleFeeds = Object.keys(getCompanyFeeds(cardFeeds, false, true)).length > 0;
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
 
     const policyApproverEmail = policy?.approver;
@@ -102,8 +106,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     );
 
     useEffect(() => {
-        openPolicyCompanyCardsPage(policyID, workspaceAccountID);
-    }, [policyID, workspaceAccountID]);
+        openPolicyMemberProfilePage(policyID, accountID);
+    }, [policyID, accountID]);
 
     const memberCards = useMemo(() => {
         if (!workspaceCards) {
@@ -263,7 +267,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
-    const shouldShowCardsSection = (!!paymentBankAccountID && !!policy?.areExpensifyCardsEnabled) || hasMultipleFeeds;
+    const shouldShowCardsSection = isExpensifyCardFullySetUp(policy, cardSettings) || hasMultipleFeeds;
 
     return (
         <AccessOrNotFoundWrapper

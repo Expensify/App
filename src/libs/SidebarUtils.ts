@@ -12,6 +12,7 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {getExpensifyCardFromReportAction} from './CardMessageUtils';
 import {extractCollectionItemID} from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
@@ -88,6 +89,7 @@ import {
     isChatThread,
     isConciergeChatReport,
     isDeprecatedGroupDM,
+    isDM,
     isDomainRoom,
     isExpenseReport,
     isExpenseRequest,
@@ -379,6 +381,7 @@ function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportA
  */
 function getOptionData({
     report,
+    oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
     personalDetails,
@@ -391,6 +394,7 @@ function getOptionData({
     invoiceReceiverPolicy,
 }: {
     report: OnyxEntry<Report>;
+    oneTransactionThreadReport: OnyxEntry<Report>;
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     reportActions: OnyxEntry<ReportActions>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -468,7 +472,7 @@ function getOptionData({
     result.statusNum = report.statusNum;
     // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
     // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = isUnread(report) && !!report.lastActorAccountID;
+    result.isUnread = isUnread(report, oneTransactionThreadReport) && !!report.lastActorAccountID;
     result.isUnreadWithMention = isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -512,7 +516,7 @@ function getOptionData({
             : null;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
 
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
@@ -538,6 +542,18 @@ function getOptionData({
             const actionMessage = getReportActionMessageText(lastAction);
             result.alternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';
         } else if (isInviteOrRemovedAction(lastAction)) {
+            let actorDetails;
+            if (lastAction.actorAccountID) {
+                actorDetails = personalDetails?.[lastAction?.actorAccountID];
+            }
+            let actorDisplayName = lastAction?.person?.[0]?.text;
+            if (!actorDetails && actorDisplayName && lastAction.actorAccountID) {
+                actorDetails = {
+                    displayName: actorDisplayName,
+                    accountID: lastAction.actorAccountID,
+                };
+            }
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0;
@@ -546,7 +562,7 @@ function getOptionData({
                     ? translate(preferredLocale, 'workspace.invite.invited')
                     : translate(preferredLocale, 'workspace.invite.removed');
             const users = translate(preferredLocale, targetAccountIDsLength > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
-            result.alternateText = formatReportLastMessageText(`${lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
+            result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
             const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]);
             if (roomName) {
                 const preposition =
@@ -599,7 +615,8 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction});
+            const card = getExpensifyCardFromReportAction({reportAction: lastAction, policyID: report.policyID});
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, card});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`));
         } else if (lastAction && isOldDotReportAction(lastAction)) {
@@ -629,13 +646,18 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
         }
-        result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+        if (isDM(report) && lastActorDisplayName !== translateLocal('common.you')) {
+            result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+        } else {
+            result.alternateText = lastActorDisplayName
+                ? `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`
+                : formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+        }
     }
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
     if (isJoinRequestInAdminRoom(report)) {
-        result.isPinned = true;
         result.isUnread = true;
         result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }

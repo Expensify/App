@@ -4,13 +4,18 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
+// eslint-disable-next-line no-restricted-syntax
+import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import asyncOpenURL from '@libs/asyncOpenURL';
 import HttpUtils from '@libs/HttpUtils';
 import PushNotification from '@libs/Notification/PushNotification';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import '@libs/Notification/PushNotification/subscribePushNotification';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as SessionUtil from '@src/libs/actions/Session';
+import {signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
@@ -22,6 +27,9 @@ HttpUtils.xhr = jest.fn<typeof HttpUtils.xhr>();
 
 // Mocked to ensure push notifications are subscribed/unsubscribed as the session changes
 jest.mock('@libs/Notification/PushNotification');
+
+// Mocked to check SignOutAndRedirectToSignIn behavior
+jest.mock('@libs/asyncOpenURL');
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -207,23 +215,77 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(0);
     });
 
-    test('LogOut should replace same requests from the queue instead of adding new one', async () => {
+    test('SignOut should return a promise with response containing hasOldDotAuthCookies', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        SessionUtil.signOut();
-        SessionUtil.signOut();
-        SessionUtil.signOut();
-        SessionUtil.signOut();
-        SessionUtil.signOut();
+        (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+            // This will make the call to OpenApp below return with an expired session code
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                    hasOldDotAuthCookies: true,
+                }),
+            );
 
-        await waitForBatchedUpdates();
+        const signOutPromise = SessionUtil.signOut();
 
-        expect(getAllPersistedRequests().length).toBe(1);
-        expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.LOG_OUT);
+        expect(signOutPromise).toBeInstanceOf(Promise);
+
+        expect(await signOutPromise).toStrictEqual({
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+            hasOldDotAuthCookies: true,
+        });
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
         expect(getAllPersistedRequests().length).toBe(0);
+    });
+
+    test('SignOutAndRedirectToSignIn should redirect to OldDot when LogOut returns truthy hasOldDotAuthCookies', async () => {
+        await TestHelper.signInWithTestUser();
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+            // This will make the call to OpenApp below return with an expired session code
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                    hasOldDotAuthCookies: true,
+                }),
+            );
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        signOutAndRedirectToSignIn();
+
+        await waitForBatchedUpdates();
+
+        expect(asyncOpenURL).toHaveBeenCalledWith(Promise.resolve(), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
+        expect(redirectToSignInSpy).toHaveBeenCalled();
+        jest.clearAllMocks();
+    });
+
+    test('SignOutAndRedirectToSignIn should not redirect to OldDot when LogOut return falsy hasOldDotAuthCookies', async () => {
+        await TestHelper.signInWithTestUser();
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+            // This will make the call to OpenApp below return with an expired session code
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                }),
+            );
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        signOutAndRedirectToSignIn();
+
+        await waitForBatchedUpdates();
+
+        expect(asyncOpenURL).not.toHaveBeenCalled();
+        expect(redirectToSignInSpy).toHaveBeenCalled();
+        jest.clearAllMocks();
     });
 });

@@ -6,7 +6,7 @@ description: Get started with Expensify and start tracking personal expenses
 
 # Overview
 
-Welcome to Expensify! If you are a freelancer, sole proprietor or simply tracking your personal expenses, follow the steps below to get started and enjoy a free 7-day trial. The trial will begin when workspace activity begins.
+Welcome to Expensify! If you are a freelancer, sole proprietor or simply tracking your personal expenses, follow the steps below to get started and enjoy a free 30-day trial. The trial will begin when workspace activity begins.
 
 {% include info.html %}
 After you create your new workspace, you can schedule a free private onboarding session with one of our Setup Specialists. After you complete the steps below, check your email and notifications in Expensify for your unique signup link.

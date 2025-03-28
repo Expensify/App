@@ -1,69 +1,96 @@
 ---
-title: Set Up the Expensify Visa® Commercial Card for your Company
-description: Details on setting up the Expensify Card for your company as an admin
+title: Set Up the Expensify Visa® Commercial Card for Your Company  
+description: Step-by-step guide for admins to set up the Expensify Card for their organization.
+keywords: [Expensify Classic, Expensify Card, qualify, apply]
 ---
-# Overview
+<div id="expensify-classic" markdown="1">
 
-If you’re an admin interested in rolling out the Expensify Visa® Commercial Card for your organization, you’re in the right place. This article will cover how to qualify and apply for the Expensify Card program and begin issuing cards to your employees. 
+If you're an admin looking to roll out the Expensify Visa® Commercial Card for your organization, you're in the right place. This guide will walk you through the steps to qualify, apply for, and issue the Expensify Card to your employees.
 
-# How to qualify for the Expensify Card program
+---
 
-There are three prerequisites to consider before applying for the Expensify Card:
+# How to Qualify for the Expensify Card Program
 
-1. The email address associated with your account must be on a private domain
-2. You must claim your private domain in Expensify
-3. You must add and verify a US business bank account to your Expensify account
-   
-To claim a domain, you must be a workspace admin with a company email address matching the domain you want to claim. After you create an account and set up a workspace, head to **Settings > Domains** to claim your domain.
+Before you can apply for the Expensify Card, make sure you meet the following prerequisites:
 
-You can add a business bank account by navigating to **Settings > Account > Payments** and clicking Add Verified Bank Account. Follow the setup steps and complete the verification process as required.
+1. **Email Address**: The email associated with your Expensify account must be from a private domain.
+2. **Claim Your Domain**: You must claim your private domain in Expensify.
+3. **US Business Bank Account**: You need to add and verify a US business bank account to your Expensify account.
 
-# How to apply for the Expensify Card
+## 1. Claim Your Domain
 
-Once you’ve claimed your domain and added a verified US business bank account, you can apply for the Expensify Card. There are multiple ways to apply for the card from the web:
+To [claim a domain](https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain), you must be a workspace admin and use a company email address matching the domain you want to claim. After setting up your account and workspace, go to **Settings > Domains** to claim your domain.
 
-## From the home page
+## 2. Add and Verify Your US Business Bank Account
 
-1. Log into your Expensify account using your preferred web browser
-2. Head to your account’s home page
-3. On the task that says “Introducing the Expensify Card,” click **Enable my Expensify Cards** to get started
+1. To add your business bank account, go to **Settings > Account > Wallet**.
+2. Under **Bank Accounts**, click **Add Verified Bank Account**.
 
-## From the Company Cards page
+Follow the setup steps outlined [here](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account) to complete the verification process.
 
-1. Log into your Expensify account using your preferred web browser
-2. Head to **Settings > Domains > _Domain Name_ > Company Cards**
-3. Click **Get the Card**
+---
 
-After we receive your application, we’ll review it ASAP and send you a confirmation email with the next steps once we have them.
+# Apply for the Expensify Card
 
-# How to issue cards
+Once your domain is claimed and your business bank account is verified, you can apply for the Expensify Card. You can apply in multiple ways via the web:
 
-After you’ve been approved, it’s time to set limits for your employees. Setting a limit triggers an email and task on the home page requesting the employee’s shipping address. Once they enter their details, a card will be shipped to them. We’ll also create a virtual card for the employee that can be used immediately.
+## From the Home Page
 
-To set a limit, head over to the Company Cards UI via **Settings > Domains > _Domain Name_ > Company Cards**. Click the **Edit Limit** button next to members who need a card assigned, and set a non-$0 to issue them a card.
+1. Log into your Expensify account.
+2. Go to your account's home page.
+3. Find the task titled “Introducing the Expensify Card” and click **Enable my Expensify Cards** to start the application.
 
-If you have a validated domain, you can set a limit for multiple members by setting a limit for an entire domain group via **Settings > Domains > _Domain Name_ > Groups**. Keep in mind that custom limits that are set on an individual basis will override the group limit.
+## From the Company Cards Page
 
-The Company Cards page will act as a hub to view all employees who have been issued a card and where you can view and edit the individual card limits. You’ll also be able to see anyone who has requested a card but doesn’t have one yet.
+1. Log into your Expensify account.
+2. Go to **Settings > Domains > _Domain Name_ > Company Cards**.
+3. Click **Get the Card**.
 
-{% include faq-begin.md %}
+Once your application is received, we'll review it and send you a confirmation email with next steps.
 
-## Are there foreign transaction fees?
+---
 
-There are no foreign transaction fees when using your Expensify Card for international purchases.
+# Issue Cards
 
-## How does the Expensify Card affect my or my company's credit score?
+After approval, it’s time to set card limits for your employees. When you set a limit, the employee will receive an email and see a task on their home page asking for their shipping address. Once they enter the details, their physical card will be shipped, and a virtual card will be created for immediate use.
 
-Applying for or using the Expensify Card will never have any positive or negative effect on your personal credit score or your business's credit score. We do not consider your or your business' credit score when determining approval and your card limit.
+## Set a Card Limit for an Employee
 
-## How much does the Expensify Card cost?
+1. Go to **Settings > Domains > _Domain Name_ > Company Cards**.
+2. Click **Edit Limit** next to the employee who needs a card.
+3. Set a limit greater than $0 to issue the card.
 
-The Expensify Card is a free corporate card, and no fees are associated with it. In addition, if you use the Expensify Card, you can save money on your Expensify subscription (based on how much of your approved spend occurs on the Expensify Card, compared with other approved spend, in each month).
+## Set Limits for a Group of Employees
 
-## If I have staff outside the US, can they use the Expensify Card?
+If you have a validated domain, you can set limits for multiple employees at once:
 
-As long as the verified bank account used to apply for the Expensify Card is a US bank account, your cardholders can be anywhere in the world.
+1. Go to **Settings > Domains > _Domain Name_ > Groups**.
+2. Set a limit for the entire group.
 
-Otherwise, the Expensify Card is not available for customers using non-US banks. With that said, launching international support is a top priority for us. Let us know if you’re interested in contacting support, and we’ll reach out as soon as the Expensify Card is available outside the United States.
+Keep in mind that individual limits will override group limits.
 
-{% include faq-end.md %}
+The **Company Cards** page serves as a hub for managing card limits and viewing all employees with cards. It also shows who has requested a card but hasn’t received one yet.
+
+---
+
+# FAQ
+
+## Are there foreign transaction fees with the Expensify Card?
+
+No, there are no foreign transaction fees for international purchases made using your Expensify Card.
+
+## Does the Expensify Card affect my credit score?
+
+No, using the Expensify Card has no impact on your personal or business credit score. Your credit score is not considered when determining card approval or limit.
+
+## What are the costs associated with the Expensify Card?
+
+The Expensify Card is free and has no fees associated with it. Additionally, using the card can help you save money on your Expensify subscription based on your approved spending.
+
+## Can my staff who are located outside the U.S. use the Expensify Card?
+
+Yes, as long as your business bank account is US-based, your cardholders can be located anywhere in the world.
+
+Currently, the Expensify Card is not available for customers with non-US bank accounts, but international support is a priority. Contact support if you'd like to be notified when it becomes available.
+
+</div>

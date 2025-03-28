@@ -26,9 +26,9 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 ## Running tests locally 
 
 - Checkout your base environment, eg. `git checkout main`.
-- Collect baseline metrics with `npx reassure --baseline`.
+- Collect baseline metrics with `npm run perf-test -- --baseline`.
 - Apply any desired changes (for testing purposes you can eg. try to slow down a list).
-- Collect current metrics with `npx reassure`.
+- Collect current metrics with `npm run perf-test`.
 - Open up the resulting `output.md` / `output.json` (see console output) to compare the results.
 - With all that information, Reassure can present the render duration times as statistically significant or meaningless.
 

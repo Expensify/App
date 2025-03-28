@@ -1,7 +1,7 @@
 import noop from 'lodash/noop';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {ViewStyle} from 'react-native';
-import {BackHandler, DeviceEventEmitter, Dimensions, KeyboardAvoidingView, Modal, View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {NativeEventSubscription, ViewStyle} from 'react-native';
+import {BackHandler, DeviceEventEmitter, Dimensions, InteractionManager, KeyboardAvoidingView, Modal, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
@@ -41,6 +41,8 @@ function BottomDockedModal({
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [deviceWidth, setDeviceWidth] = useState(() => Dimensions.get('window').width);
     const [deviceHeight, setDeviceHeight] = useState(() => Dimensions.get('window').height);
+    const backHandlerListener = useRef<NativeEventSubscription | null>(null);
+    const handleRef = useRef<number>();
 
     const styles = useThemeStyles();
 
@@ -81,14 +83,14 @@ function BottomDockedModal({
         if (getPlatform() === CONST.PLATFORM.WEB) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
-            BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
+            backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
         }
 
         return () => {
             if (getPlatform() === CONST.PLATFORM.WEB) {
                 document.body.removeEventListener('keyup', handleEscape, {capture: true});
             } else {
-                BackHandler.removeEventListener('hardwareBackPress', onBackButtonPressHandler);
+                backHandlerListener.current?.remove();
             }
             deviceEventListener.remove();
         };
@@ -108,11 +110,13 @@ function BottomDockedModal({
 
     useEffect(() => {
         if (isVisible && !isContainerOpen && !isTransitioning) {
+            handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillShow();
 
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
+            handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
 
             setIsVisibleState(false);
@@ -133,12 +137,18 @@ function BottomDockedModal({
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
         setIsContainerOpen(true);
+        if (handleRef.current) {
+            InteractionManager.clearInteractionHandle(handleRef.current);
+        }
         onModalShow();
     }, [onModalShow]);
 
     const onCloseCallBack = useCallback(() => {
         setIsTransitioning(false);
         setIsContainerOpen(false);
+        if (handleRef.current) {
+            InteractionManager.clearInteractionHandle(handleRef.current);
+        }
         if (getPlatform() !== CONST.PLATFORM.IOS) {
             onModalHide();
         }

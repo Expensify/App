@@ -9,6 +9,7 @@
     - [ ] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [ ] I verified that the composer does not automatically focus or open the keyboard on mobile unless explicitly intended. This includes checking that returning the app from the background does not unexpectedly open the keyboard.
 - [ ] I verified tests pass on **all platforms** & I tested again on:
     - [ ] Android: Native
     - [ ] Android: mWeb Chrome

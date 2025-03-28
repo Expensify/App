@@ -4,7 +4,7 @@ import type {OnboardingCompanySize} from './CONST';
 import type Platform from './libs/getPlatform/types';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
-import type {Attendee} from './types/onyx/IOU';
+import type {Attendee, Participant} from './types/onyx/IOU';
 import type Onboarding from './types/onyx/Onboarding';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
@@ -464,6 +464,12 @@ const ONYXKEYS = {
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
 
+    /** The details of unknown user while sharing a file - we don't know if they exist */
+    SHARE_UNKNOWN_USER_DETAILS: 'shareUnknownUserDetails',
+
+    /** Temporary file to be shared from outside the app */
+    SHARE_TEMP_FILE: 'shareTempFile',
+
     /** Corpay fields to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
 
@@ -478,6 +484,12 @@ const ONYXKEYS = {
 
     /** Information about travel provisioning process */
     TRAVEL_PROVISIONING: 'travelProvisioning',
+
+    /** Stores the information about the state of side panel */
+    NVP_SIDE_PANE: 'nvp_sidePanel',
+
+    /** Information about loading states while talking with AI sales */
+    TALK_TO_AI_SALES: 'talkToAISales',
 
     /** Collection Keys */
     COLLECTION: {
@@ -565,6 +577,8 @@ const ONYXKEYS = {
 
         /**  Whether the bank account chosen for Expensify Card in on verification waitlist */
         NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist_',
+
+        NVP_EXPENSIFY_REPORT_PDFFILENAME: 'nvp_expensify_report_PDFFilename_',
 
         /** Stores the information about the state of issuing a new card */
         ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
@@ -759,6 +773,9 @@ const ONYXKEYS = {
         WORKSPACE_PER_DIEM_FORM: 'workspacePerDiemForm',
         WORKSPACE_PER_DIEM_FORM_DRAFT: 'workspacePerDiemFormDraft',
     },
+    DERIVED: {
+        CONCIERGE_CHAT_REPORT_ID: 'conciergeChatReportID',
+    },
 } as const;
 
 type AllOnyxKeys = DeepValueOf<typeof ONYXKEYS>;
@@ -900,6 +917,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: OnyxTypes.SelectedTabRequest;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
+    [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME]: string;
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
@@ -964,6 +982,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
+    [ONYXKEYS.TALK_TO_AI_SALES]: OnyxTypes.TalkToAISales;
 
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
@@ -1072,21 +1091,30 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
+    [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
+    [ONYXKEYS.NVP_SIDE_PANE]: OnyxTypes.SidePane;
 };
-type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
+
+type OnyxDerivedValuesMapping = {
+    [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: string | undefined;
+};
+
+type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;
 
 type OnyxCollectionKey = keyof OnyxCollectionValuesMapping;
 type OnyxFormKey = keyof OnyxFormValuesMapping;
 type OnyxFormDraftKey = keyof OnyxFormDraftValuesMapping;
 type OnyxValueKey = keyof OnyxValuesMapping;
+type OnyxDerivedKey = keyof OnyxDerivedValuesMapping;
 
-type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey;
+type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey | OnyxDerivedKey;
 type OnyxPagesKey = typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES;
 
 type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: ${Exclude<AllOnyxKeys, OnyxKey>}`;
@@ -1095,4 +1123,16 @@ type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: 
 type AssertOnyxKeys = AssertTypesEqual<AllOnyxKeys, OnyxKey, MissingOnyxKeysError>;
 
 export default ONYXKEYS;
-export type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxFormDraftKey, OnyxFormKey, OnyxFormValuesMapping, OnyxKey, OnyxPagesKey, OnyxValueKey, OnyxValues};
+export type {
+    OnyxCollectionKey,
+    OnyxCollectionValuesMapping,
+    OnyxFormDraftKey,
+    OnyxFormKey,
+    OnyxFormValuesMapping,
+    OnyxKey,
+    OnyxPagesKey,
+    OnyxValueKey,
+    OnyxValues,
+    OnyxDerivedKey,
+    OnyxDerivedValuesMapping,
+};

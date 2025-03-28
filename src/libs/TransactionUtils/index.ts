@@ -1,4 +1,4 @@
-import {parse} from 'date-fns';
+import {format, isValid, parse} from 'date-fns';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
@@ -35,6 +35,7 @@ import {
     isReportIDApproved,
     isReportManuallyReimbursed,
     isSettled,
+    isTestTransactionReport,
     isThread,
 } from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
@@ -176,6 +177,25 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     return CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
+/**
+ * Determines the expense type of a given transaction.
+ */
+function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.EXPENSE_TYPE> | undefined {
+    if (!transaction) {
+        return undefined;
+    }
+
+    if (isExpensifyCardTransaction(transaction)) {
+        if (isPending(transaction)) {
+            return CONST.IOU.EXPENSE_TYPE.PENDING_EXPENSIFY_CARD;
+        }
+
+        return CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD;
+    }
+
+    return getRequestType(transaction);
+}
+
 function isManualRequest(transaction: Transaction): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -183,6 +203,24 @@ function isManualRequest(transaction: Transaction): boolean {
     }
 
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    const merchant = getMerchant(transaction);
+
+    if (!merchant || isPartialMerchant(merchant)) {
+        return true;
+    }
+
+    if (isAmountMissing(transaction) && isScanRequest(transaction)) {
+        return true;
+    }
+
+    return false;
+}
+
+function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isReceiptBeingScanned(transaction));
 }
 
 /**
@@ -238,6 +276,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         lodashSet(commentJSON, 'customUnit', customUnit);
     }
 
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const isManagerMcTestTransaction = isTestTransactionReport(report);
+
     return {
         ...(!isEmptyObject(pendingFields) ? {pendingFields} : {}),
         transactionID,
@@ -248,7 +289,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        receipt: receipt?.source ? {source: receipt.source, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY} : {},
+        receipt: receipt?.source
+            ? {source: receipt.source, state: isManagerMcTestTransaction ? CONST.IOU.RECEIPT_STATE.SCANCOMPLETE : receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY}
+            : {},
         filename: (receipt?.source ? receipt?.name ?? filename : filename).toString(),
         category,
         tag,
@@ -558,7 +601,11 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
 function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const postedDate = getPostedDate(transaction);
     const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
-    return DateUtils.formatWithUTCTimeZone(parsedDate.toDateString(), dateFormat);
+
+    if (isValid(parsedDate)) {
+        return DateUtils.formatWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
+    }
+    return '';
 }
 
 /**
@@ -812,43 +859,45 @@ function isBrokenConnectionViolation(violation: TransactionViolation) {
     );
 }
 
-/**
- * Check if user should see broken connection violation warning.
- */
-function shouldShowBrokenConnectionViolation(
-    transactionOrIDList: Transaction | string[] | undefined,
-    report: OnyxEntry<Report> | SearchReport,
-    policy: OnyxEntry<Policy> | SearchPolicy,
-    transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]> | undefined,
-): boolean {
-    if (!transactionOrIDList) {
+function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy) {
+    if (brokenConnectionViolations.length === 0) {
         return false;
     }
-    let violations: TransactionViolation[];
-    if (Array.isArray(transactionOrIDList)) {
-        if (Array.isArray(transactionViolations)) {
-            // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
-            throw new Error('Invalid argument combination. If a transactionIDList is passed in, then an OnyxCollection of violations is expected');
-        }
-        violations = transactionOrIDList.flatMap((id) => transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []);
-    } else {
-        if (!Array.isArray(transactionViolations)) {
-            // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
-            throw new Error('Invalid argument combination. If a single transaction is passed in, then an array of violations for that transaction is expected');
-        }
-        violations = transactionViolations;
+
+    if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) {
+        return true;
     }
+
+    if (isOpenExpenseReport(report)) {
+        return true;
+    }
+
+    return isProcessingReport(report) && isInstantSubmitEnabled(policy);
+}
+
+/**
+ * Check if user should see broken connection violation warning based on violations list.
+ */
+function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy, transactionViolations: TransactionViolation[]): boolean {
+    const brokenConnectionViolations = transactionViolations.filter((violation) => isBrokenConnectionViolation(violation));
+
+    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
+}
+
+/**
+ * Check if user should see broken connection violation warning based on selected transactions.
+ */
+function shouldShowBrokenConnectionViolationForMultipleTransactions(
+    transactionIDs: string[],
+    report: OnyxEntry<Report> | SearchReport,
+    policy: OnyxEntry<Policy> | SearchPolicy,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+): boolean {
+    const violations = transactionIDs.flatMap((id) => transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []);
 
     const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
 
-    if (brokenConnectionViolations.length > 0) {
-        if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) {
-            return true;
-        }
-        return isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy));
-    }
-
-    return false;
+    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
 }
 
 function checkIfShouldShowMarkAsCashButton(hasRTERVPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
@@ -1181,7 +1230,7 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
-function getTransaction(transactionID: string | undefined): OnyxEntry<Transaction> {
+function getTransaction(transactionID: string | number | undefined): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
@@ -1469,6 +1518,7 @@ export {
     getUpdatedTransaction,
     getDescription,
     getRequestType,
+    getExpenseType,
     isManualRequest,
     isScanRequest,
     getAmount,
@@ -1524,6 +1574,7 @@ export {
     hasViolation,
     hasBrokenConnectionViolation,
     shouldShowBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
@@ -1547,6 +1598,8 @@ export {
     isBrokenConnectionViolation,
     checkIfShouldShowMarkAsCashButton,
     shouldShowRTERViolationMessage,
+    isPartialTransaction,
+    isPendingCardOrScanningTransaction,
 };
 
 export type {TransactionChanges};

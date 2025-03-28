@@ -1,9 +1,8 @@
 import React from 'react';
 import type {TDefaultRendererProps} from 'react-native-render-html';
-import useThemeStyles from '@hooks/useThemeStyles';
+import Text from '@components/Text';
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
-import WrappedText from './WrappedText';
 
 /**
  * Retrieves the text content from a Text or Phrasing node.
@@ -21,7 +20,6 @@ function getCurrentData(defaultRendererProps: TDefaultRendererProps<TTextOrTPhra
 }
 
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
-    const styles = useThemeStyles();
     const data = getCurrentData(defaultRendererProps);
 
     return (
@@ -29,12 +27,7 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
         >
-            <WrappedText
-                textStyles={textStyle}
-                wordStyles={[boxModelStyle, styles.codeWordStyle]}
-            >
-                {data}
-            </WrappedText>
+            <Text style={[boxModelStyle, textStyle]}>{data}</Text>
         </TDefaultRenderer>
     );
 }

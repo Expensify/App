@@ -153,8 +153,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         </Text>
                     ))}
                 {isChatRoom &&
-                    (!isInvoiceRoom || isArchivedRoom) &&
-                    !isAdminRoom &&
+                    ((!isInvoiceRoom && !isAdminRoom) || isArchivedRoom) &&
                     (welcomeMessage?.messageHtml ? (
                         <View style={styles.renderHTML}>
                             <RenderHTML html={welcomeMessage.messageHtml} />
@@ -174,7 +173,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                             {welcomeMessage.phrase2 !== undefined && <Text>{welcomeMessage.phrase2}</Text>}
                         </Text>
                     ))}
-                {isChatRoom && isAdminRoom && (
+                {isChatRoom && isAdminRoom && !isArchivedRoom && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>
                         {welcomeMessage.phrase2 !== undefined && <Text style={styles.textStrong}>{welcomeMessage.phrase2}</Text>}

@@ -10,20 +10,19 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
+import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
+import {getReportFieldKey} from '@libs/ReportUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {getReportFieldInitialValue} from '@libs/WorkspaceReportFieldUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {updateReportFieldInitialValue} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
-import * as ErrorUtils from '@src/libs/ErrorUtils';
-import * as ValidationUtils from '@src/libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
@@ -41,16 +40,16 @@ function ReportFieldsInitialValuePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
-    const reportField = policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)] ?? null;
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    const reportField = policy?.fieldList?.[getReportFieldKey(reportFieldID)] ?? null;
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
-    const currentInitialValue = WorkspaceReportFieldUtils.getReportFieldInitialValue(reportField);
+    const currentInitialValue = getReportFieldInitialValue(reportField);
     const [initialValue, setInitialValue] = useState(currentInitialValue);
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             if (currentInitialValue !== values.initialValue) {
-                ReportField.updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
+                updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
             }
             Navigation.goBack();
         },
@@ -58,35 +57,29 @@ function ReportFieldsInitialValuePage({
     );
 
     const submitListValueUpdate = (value: string) => {
-        ReportField.updateReportFieldInitialValue(policyID, reportFieldID, currentInitialValue === value ? '' : value);
+        updateReportFieldInitialValue(policyID, reportFieldID, currentInitialValue === value ? '' : value);
         Navigation.goBack();
     };
 
     const validateForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-            const {name, type, initialValue: formInitialValue} = values;
+            const {initialValue: formInitialValue} = values;
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
-            if (!ValidationUtils.isRequiredFulfilled(name)) {
-                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
-            } else if (Object.values(policy?.fieldList ?? {}).some((currentReportField) => currentReportField.name === name)) {
-                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
-            } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(
-                    errors,
-                    INPUT_IDS.NAME,
-                    translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}),
-                );
+            if (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
+                    length: formInitialValue.length,
+                    limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
+                });
             }
 
-            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !ValidationUtils.isRequiredFulfilled(formInitialValue)) {
+            if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
             }
 
             return errors;
         },
-        [availableListValuesLength, policy?.fieldList, translate],
+        [availableListValuesLength, reportField?.type, translate],
     );
 
     if (!reportField || hasAccountingConnections) {
@@ -135,7 +128,6 @@ function ReportFieldsInitialValuePage({
                             inputID={INPUT_IDS.INITIAL_VALUE}
                             label={translate('common.initialValue')}
                             accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
-                            maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                             multiline={false}
                             value={initialValue}
                             role={CONST.ROLE.PRESENTATION}

@@ -9,16 +9,18 @@ import {getButtonRole} from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
+import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useTheme from '@hooks/useTheme';
@@ -27,8 +29,8 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import HapticFeedback from '@libs/HapticFeedback';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -78,8 +80,9 @@ import {
     isPartialMerchant,
     isPending,
     isReceiptBeingScanned,
-    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
@@ -172,8 +175,7 @@ function ReportPreview({
         [transactions, iouReportID, action],
     );
 
-    const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
-    const [isApprovedAnimationRunning, setIsApprovedAnimationRunning] = useState(false);
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
@@ -237,9 +239,9 @@ function ReportPreview({
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
-    const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy, violations);
+    const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDList, iouReport, policy, violations);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
-    const formattedDescription = numberOfRequests === 1 ? getDescription(lastTransaction) : null;
+    const formattedDescription = numberOfRequests === 1 ? Parser.htmlToMarkdown(getDescription(lastTransaction)) : null;
 
     if (isPartialMerchant(formattedMerchant ?? '')) {
         formattedMerchant = null;
@@ -260,21 +262,8 @@ function ReportPreview({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
-    const stopAnimation = useCallback(() => {
-        setIsPaidAnimationRunning(false);
-        setIsApprovedAnimationRunning(false);
-    }, []);
-    const startAnimation = useCallback(() => {
-        setIsPaidAnimationRunning(true);
-        HapticFeedback.longPress();
-    }, []);
-    const startApprovedAnimation = useCallback(() => {
-        setIsApprovedAnimationRunning(true);
-        HapticFeedback.longPress();
-    }, []);
-
     const confirmPayment = useCallback(
-        (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+        (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
             if (!type) {
                 return;
             }
@@ -285,16 +274,15 @@ function ReportPreview({
             } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
                 setIsHoldMenuVisible(true);
             } else if (chatReport && iouReport) {
-                setIsPaidAnimationRunning(true);
-                HapticFeedback.longPress();
+                startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, payAsBusiness);
+                    payInvoice(type, chatReport, iouReport, payAsBusiness, methodID, paymentMethod);
                 } else {
                     payMoneyRequest(type, chatReport, iouReport);
                 }
             }
         },
-        [chatReport, iouReport, isDelegateAccessRestricted],
+        [chatReport, iouReport, isDelegateAccessRestricted, startAnimation],
     );
 
     const confirmApproval = () => {
@@ -304,8 +292,7 @@ function ReportPreview({
         } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            setIsApprovedAnimationRunning(true);
-            HapticFeedback.longPress();
+            startApprovedAnimation();
             approveMoneyRequest(iouReport, true);
         }
     };
@@ -517,7 +504,7 @@ function ReportPreview({
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const openReportFromPreview = useCallback(() => {
-        if (!iouReportID) {
+        if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
             return;
         }
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
@@ -637,6 +624,7 @@ function ReportPreview({
                                         confirmApproval={confirmApproval}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
+                                        shouldAddTopMargin
                                         shouldHidePaymentOptions={!shouldShowPayButton}
                                         shouldShowApproveButton={shouldShowApproveButton}
                                         shouldDisableApproveButton={shouldDisableApproveButton}
