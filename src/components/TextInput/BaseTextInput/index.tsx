@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {ForwardedRef, MutableRefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, Platform, StyleSheet, View} from 'react-native';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -112,8 +112,11 @@ function BaseTextInput(
 
     // AutoFocus which only works on mount:
     useEffect(() => {
+        // This is to avoid the logic to possibly running twice on mobile, since autoFocus is being passed on the inputProps
+        const isMobileDevice = Platform.OS === 'android' || Platform.OS === 'ios';
+
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!inputProps.autoFocus || !input.current) {
+        if (!inputProps.autoFocus || !input.current || isMobileDevice) {
             return;
         }
 
