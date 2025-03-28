@@ -49,18 +49,7 @@ import {
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
-import {
-    getMerchant,
-    getAmount as getTransactionAmount,
-    getCreated as getTransactionCreatedDate,
-    getMerchant as getTransactionMerchant,
-    isAmountMissing,
-    isExpensifyCardTransaction,
-    isPartialMerchant,
-    isPending,
-    isReceiptBeingScanned,
-    isScanRequest,
-} from './TransactionUtils';
+import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -393,11 +382,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     if (canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
-    const hasOnlyPendingCardOrScanningTransactions =
-        allReportTransactions.length > 0 &&
-        allReportTransactions.every(
-            (t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || (isScanRequest(t) && isReceiptBeingScanned(t)),
-        );
+    const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every(isPendingCardOrScanningTransaction);
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
     if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
@@ -529,7 +514,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
         }
     }
 
-    return Object.values(reportIDToTransactions);
+    // Filter out reports with no transactions to prevent the wrong number of the selected options
+    return Object.values(reportIDToTransactions).filter((report) => report.transactions.length);
 }
 
 /**
@@ -579,6 +565,30 @@ function getSortedSections(
 }
 
 /**
+ * Compares two values based on a specified sorting order and column.
+ * Handles both string and numeric comparisons, with special handling for absolute values when sorting by total amount.
+ */
+function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string): number {
+    const isAsc = sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
+
+    if (a === undefined || b === undefined) {
+        return 0;
+    }
+
+    if (typeof a === 'string' && typeof b === 'string') {
+        return isAsc ? a.localeCompare(b) : b.localeCompare(a);
+    }
+
+    if (typeof a === 'number' && typeof b === 'number') {
+        const aValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT ? Math.abs(a) : a;
+        const bValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT ? Math.abs(b) : b;
+        return isAsc ? aValue - bValue : bValue - aValue;
+    }
+
+    return 0;
+}
+
+/**
  * @private
  * Sorts transaction sections based on a specified column and sort order.
  */
@@ -597,19 +607,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
         const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty];
         const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty];
 
-        if (aValue === undefined || bValue === undefined) {
-            return 0;
-        }
-
-        // We are guaranteed that both a and b will be string or number at the same time
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-            return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-        }
-
-        const aNum = aValue as number;
-        const bNum = bValue as number;
-
-        return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? aNum - bNum : bNum - aNum;
+        return compareValues(aValue, bValue, sortOrder, sortingProperty);
     });
 }
 
@@ -814,5 +812,6 @@ export {
     createTypeMenuItems,
     createBaseSavedSearchMenuItem,
     shouldShowEmptyState,
+    compareValues,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};
