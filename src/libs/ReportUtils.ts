@@ -308,6 +308,7 @@ type OptimisticNewReport = Pick<
     | 'parentReportActionID'
     | 'participants'
     | 'managerID'
+    | 'pendingAction'
 >;
 
 type BuildOptimisticIOUReportActionParams = {
@@ -9793,6 +9794,9 @@ export {
     buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    populateOptimisticReportFormula,
+    getTitleReportField,
+    getReportFieldsByPolicyID,
 };
 
 export type {
