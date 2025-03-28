@@ -39,6 +39,7 @@ import {
 } from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
+    hasDuplicateTransactions,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
@@ -194,8 +195,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
+
+    const hasDuplicates = hasDuplicateTransactions(moneyRequestReport?.reportID);
     const shouldShowStatusBar =
-        hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
+        hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions || hasDuplicates;
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to theirself, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
@@ -295,6 +298,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (hasOnlyHeldExpenses) {
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expensesOnHold')};
         }
+
+        if (hasDuplicates) {
+            return {icon: getStatusIcon(Expensicons.Exclamation), description: translate('iou.duplicateTransaction')};
+        }
+
         if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
             return {
                 icon: getStatusIcon(Expensicons.Hourglass),
