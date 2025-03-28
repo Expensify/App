@@ -4547,6 +4547,10 @@ function updateLoadingInitialReportAction(reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isLoadingInitialReportActions: false});
 }
 
+function setNewRoomFormLoading() {
+    Onyx.merge(`${ONYXKEYS.FORMS.NEW_ROOM_FORM}`, {isLoading: true});
+}
+
 function clearNewRoomFormError() {
     Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
         isLoading: false,
@@ -5346,6 +5350,7 @@ export {
     clearGroupChat,
     clearIOUError,
     clearNewRoomFormError,
+    setNewRoomFormLoading,
     clearPolicyRoomNameErrors,
     clearPrivateNotesError,
     clearReportFieldKeyErrors,
