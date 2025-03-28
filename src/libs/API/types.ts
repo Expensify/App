@@ -466,6 +466,7 @@ const WRITE_COMMANDS = {
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
     CHANGE_REPORT_POLICY: 'ChangeReportPolicy',
+    CHANGE_TRANSACTIONS_REPORT: 'ChangeTransactionsReport',
     SEND_RECAP_IN_ADMINS_ROOM: 'SendRecapInAdminsRoom',
 } as const;
 
@@ -947,6 +948,9 @@ type WriteCommandParameters = {
 
     // Change report policy
     [WRITE_COMMANDS.CHANGE_REPORT_POLICY]: Parameters.ChangeReportPolicyParams;
+
+    // Change transaction report
+    [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
 };
 
 const READ_COMMANDS = {

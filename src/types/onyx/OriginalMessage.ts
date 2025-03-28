@@ -553,6 +553,30 @@ type OriginalMessageChangePolicy = {
     toPolicy: string;
 };
 
+/** Model of `UNREPORTED_TRANSACTION` report action */
+type OriginalMessageUnreportedTransaction = {
+    /** ID of the old report */
+    oldReportID: string;
+
+    /** ID of the new report */
+    toReportID: string;
+
+    /** ID of the transaction */
+    transactionID: string;
+};
+
+/** Model of `MOVEDTRANSACTION` report action */
+type OriginalMessageMovedTransaction = {
+    /** ID of the old report */
+    oldReportID: string;
+
+    /** ID of the new report */
+    toReportID: string;
+
+    /** ID of the transaction */
+    transactionID: string;
+};
+
 /** Model of `moved` report action */
 type OriginalMessageMoved = {
     /** ID of the old policy */
@@ -824,4 +848,6 @@ export type {
     OriginalMessageExportIntegration,
     IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
+    OriginalMessageUnreportedTransaction,
+    OriginalMessageMovedTransaction,
 };
