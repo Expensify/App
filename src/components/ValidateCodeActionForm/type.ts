@@ -32,6 +32,10 @@ type ValidateCodeActionFormProps = {
 
     /** Ref for validate code form */
     forwardedRef: ForwardedRef<ValidateCodeFormHandle>;
+
+    shouldShowSkipButton?: boolean;
+
+    handleSkipButtonPress?: () => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export

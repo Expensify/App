@@ -3,6 +3,7 @@ import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import AutoEmailLink from '@components/AutoEmailLink';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -35,6 +36,7 @@ import type {BaseOnboardingWorkEmailProps} from './types';
 type Item = {
     icon: IconAsset;
     titleTranslationKey: TranslationPaths;
+    shouldRenderEmail?: boolean;
 };
 
 function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmailProps) {
@@ -105,6 +107,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         {
             icon: Illustrations.EnvelopeReceipt,
             titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
+            shouldRenderEmail: true,
         },
         {
             icon: Illustrations.Profile,
@@ -180,7 +183,14 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                                             additionalStyles={[styles.mr3]}
                                         />
                                         <View style={[styles.flexColumn, styles.flex1]}>
-                                            <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
+                                            {item.shouldRenderEmail ? (
+                                                <AutoEmailLink
+                                                    style={[styles.textStrong, styles.lh20]}
+                                                    text={translate(item.titleTranslationKey)}
+                                                />
+                                            ) : (
+                                                <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
+                                            )}
                                         </View>
                                     </View>
                                 </View>

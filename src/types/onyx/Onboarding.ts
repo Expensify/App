@@ -20,6 +20,9 @@ type Onboarding = {
 
     /** A Boolean that informs whether the user needs to validate their work email */
     shouldValidate?: boolean;
+
+    /** A Boolean that informs whether merging accounts has been blocked */
+    isMergingAccountBlocked?: boolean;
 };
 
 export default Onboarding;

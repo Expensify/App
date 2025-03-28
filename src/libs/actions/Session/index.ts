@@ -8,7 +8,6 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import type {
     AuthenticatePusherParams,
     BeginAppleSignInParams,
@@ -29,14 +28,17 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
@@ -1390,33 +1392,39 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         },
     ).then((response) => {
         if (response?.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
-            Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, response?.message ?? '');
+            // If the error other than invalid code, we show a blocking screen
+            if (response?.message === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR) {
+                Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'));
+            } else {
+                Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
+            }
             return;
         }
 
-        return SequentialQueue.waitForIdle().then(() => {
+        return SequentialQueue.waitForIdle()
+            .then(() => {
+                if (response?.authToken && response?.encryptedAuthToken) {
+                    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
+                    updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
 
-        // Update authToken in Onyx and in our local variables so that API requests will use the new authToken 
-        updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken); 
-        
-        NetworkStore.setAuthToken(response?.authToken ?? null); 
-        }).then(() => {
-        if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && onboarding?.shouldRedirectToClassicAfterMerge) {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-            return;
-        }
+                    NetworkStore.setAuthToken(response?.authToken ?? null);
+                }
+            })
+            .then(() => {
+                if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && onboarding?.shouldRedirectToClassicAfterMerge) {
+                    openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                    return;
+                }
 
-        
+                const isVsb = onboarding && 'signupQualifier' in onboarding && onboarding.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
-        const isVsb = onboarding && 'signupQualifier' in onboarding && onboarding.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+                if (isVsb) {
+                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+                    return;
+                }
 
-        if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
-            return;
-        }
-
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-        })
+                Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+            });
     });
 }
 
