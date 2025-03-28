@@ -2,7 +2,7 @@ import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -155,14 +155,13 @@ function getPurchaseDetails(purchase?: Purchase) {
     const purchaseAmount = purchase?.message.billableAmount;
     const purchaseCurrency = purchase?.currency;
     const isBillingTypeProper = purchase?.message.billingType === 'failed_2018';
-    const purchaseCurrencySymbol = getLocalizedCurrencySymbol(purchaseCurrency ?? CONST.CURRENCY.USD);
     const purchaseDate = purchase?.created;
     const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
 
-    const formattedAmount = convertToFrontendAmountAsString(purchaseAmount, purchaseCurrency);
+    const formattedAmount = convertAmountToDisplayString(purchaseAmount, purchaseCurrency);
 
     return {
-        purchaseAmountWithCurrency: purchaseCurrencySymbol + formattedAmount,
+        purchaseAmountWithCurrency: formattedAmount,
         isBillingTypeProper,
         purchaseDateFormatted,
         isPurchase: !!purchase,
