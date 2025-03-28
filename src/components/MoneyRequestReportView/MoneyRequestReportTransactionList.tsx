@@ -143,10 +143,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         return;
     }
 
-    const pressableStyle = [
-        styles.overflowHidden,
-        // item.isSelected && styles.activeComponentBG,
-    ];
+    const pressableStyle = [styles.overflowHidden];
 
     const listHorizontalPadding = styles.ph5;
 
@@ -183,13 +180,10 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             role={getButtonRole(true)}
                             isNested
                             hoverDimmingValue={1}
-                            // pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
-                            // hoverStyle={item.isSelected && styles.activeComponentBG}
                             onMouseDown={(e) => e.preventDefault()}
                             id={transaction.transactionID}
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
-                            wrapperStyle={[]}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}
