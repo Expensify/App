@@ -19,7 +19,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
-import getPlatform from '@libs/getPlatform';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getReportAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
@@ -314,11 +313,9 @@ function BaseReportActionContextMenu({
 
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const card = getExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
-    const isUsingBottomDockedModal =
-        getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS || (shouldUseNarrowLayout && getPlatform(true) === CONST.PLATFORM.MOBILEWEB);
 
     return (
-        (isVisible || shouldKeepOpen || isUsingBottomDockedModal) && (
+        (isVisible || shouldKeepOpen) && (
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth}>
                 <View
                     ref={contentRef}
