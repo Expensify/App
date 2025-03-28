@@ -21,7 +21,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type UploadDocumentsProps = SubStepProps;
 
-const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE, PRD_AND_SFG, SIGNER_PREFIX} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE, SIGNER_PREFIX} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
 function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const {translate} = useLocalize();
@@ -40,25 +40,22 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const addressProofInputID = `${SIGNER_PREFIX}_${ADDRESS_PROOF}` as const;
     const directorsProofInputID = `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}` as const;
     const codiceFiscaleInputID = `${SIGNER_PREFIX}_${CODICE_FISCALE}` as const;
-    const prdAndSfgInputID = `${SIGNER_PREFIX}_${PRD_AND_SFG}` as const;
 
     const defaultValues: Record<string, FileObject[]> = {
         [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? reimbursementAccountDraft?.[copyOfIDInputID] : [],
         [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? reimbursementAccountDraft?.[addressProofInputID] : [],
         [directorsProofInputID]: Array.isArray(reimbursementAccountDraft?.[directorsProofInputID]) ? reimbursementAccountDraft?.[directorsProofInputID] : [],
         [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? reimbursementAccountDraft?.[codiceFiscaleInputID] : [],
-        [prdAndSfgInputID]: Array.isArray(reimbursementAccountDraft?.[prdAndSfgInputID]) ? reimbursementAccountDraft?.[prdAndSfgInputID] : [],
     };
 
     const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[copyOfIDInputID]);
     const [uploadedProofsOfAddress, setUploadedProofOfAddress] = useState<FileObject[]>(defaultValues[addressProofInputID]);
     const [uploadedProofsOfDirectors, setUploadedProofsOfDirectors] = useState<FileObject[]>(defaultValues[directorsProofInputID]);
     const [uploadedCodiceFiscale, setUploadedCodiceFiscale] = useState<FileObject[]>(defaultValues[codiceFiscaleInputID]);
-    const [uploadedPRDandSFG, setUploadedPRDandSFG] = useState<FileObject[]>(defaultValues[prdAndSfgInputID]);
 
     const STEP_FIELDS = useMemo(
-        (): Array<FormOnyxKeys<'reimbursementAccount'>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID, prdAndSfgInputID],
-        [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID, prdAndSfgInputID],
+        (): Array<FormOnyxKeys<'reimbursementAccount'>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
+        [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
     );
 
     const validate = useCallback(
@@ -203,31 +200,8 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                             setUploadError(error, `${SIGNER_PREFIX}_${CODICE_FISCALE}`);
                         }}
                     />
-                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.codiceFiscaleDescription')}</Text>
+                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.codiceFiscaleDescription')}</Text>
                     {isDocumentNeededStatus.isPRDandFSGNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
-                </View>
-            )}
-            {isDocumentNeededStatus.isPRDandFSGNeeded && (
-                <View>
-                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PRDandSFD')}</Text>
-                    <InputWrapper
-                        InputComponent={UploadFile}
-                        buttonText={translate('signerInfoStep.chooseFile')}
-                        uploadedFiles={uploadedPRDandSFG}
-                        onUpload={(files) => {
-                            handleSelectFile(files, uploadedPRDandSFG, `${SIGNER_PREFIX}_${PRD_AND_SFG}`, setUploadedPRDandSFG);
-                        }}
-                        onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedPRDandSFG, `${SIGNER_PREFIX}_${PRD_AND_SFG}`, setUploadedPRDandSFG);
-                        }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
-                        value={uploadedPRDandSFG}
-                        inputID={`${SIGNER_PREFIX}_${PRD_AND_SFG}`}
-                        setError={(error) => {
-                            setUploadError(error, `${SIGNER_PREFIX}_${PRD_AND_SFG}`);
-                        }}
-                    />
-                    <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.PRDandFSGDescription')}</Text>
                 </View>
             )}
             <WhyLink containerStyles={[styles.mt6]} />

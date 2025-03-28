@@ -90,17 +90,6 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
     }
 
-    if (isDocumentNeededStatus.isPRDandFSGNeeded && values.PRDandFSG.length > 0) {
-        summaryItems.push({
-            title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
-            description: translate('signerInfoStep.PRDandSFD'),
-            shouldShowRightIcon: true,
-            onPress: () => {
-                onMove(5);
-            },
-        });
-    }
-
     if (!isUserOwner) {
         summaryItems.unshift({
             title: values.fullName,
