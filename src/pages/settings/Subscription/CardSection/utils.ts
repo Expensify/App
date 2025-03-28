@@ -39,7 +39,14 @@ function getBillingStatus({translate, accountData, purchase}: GetBillingStatusPr
     const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
 
     const isCurrentCardExpired = DateUtils.isCardExpired(accountData?.cardMonth ?? 0, accountData?.cardYear ?? 0);
-    const {purchaseAmountWithCurrency, isBillingTypeProper, purchaseDateFormatted, isPurchase} = getPurchaseDetails(purchase);
+
+    const purchaseAmount = purchase?.message.billableAmount;
+    const purchaseCurrency = purchase?.currency;
+    const isBillingTypeProper = purchase?.message.billingType === 'failed_2018';
+    const purchaseDate = purchase?.created;
+    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
+    const purchaseAmountWithCurrency = convertAmountToDisplayString(purchaseAmount, purchaseCurrency);
+    const isPurchase = !!purchase;
 
     switch (subscriptionStatus?.status) {
         case PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
@@ -149,23 +156,6 @@ function getNextBillingDate(): string {
     const nextBillingDate = startOfMonth(addMonths(today, 1));
 
     return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-}
-
-function getPurchaseDetails(purchase?: Purchase) {
-    const purchaseAmount = purchase?.message.billableAmount;
-    const purchaseCurrency = purchase?.currency;
-    const isBillingTypeProper = purchase?.message.billingType === 'failed_2018';
-    const purchaseDate = purchase?.created;
-    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
-
-    const formattedAmount = convertAmountToDisplayString(purchaseAmount, purchaseCurrency);
-
-    return {
-        purchaseAmountWithCurrency: formattedAmount,
-        isBillingTypeProper,
-        purchaseDateFormatted,
-        isPurchase: !!purchase,
-    };
 }
 
 export default {getBillingStatus, getNextBillingDate};
