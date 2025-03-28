@@ -145,6 +145,7 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-import-type-side-effects': 'error',
         '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
+        '@typescript-eslint/max-params': ['error', {max: 10}],
         '@typescript-eslint/naming-convention': [
             'error',
             {
