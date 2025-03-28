@@ -557,6 +557,7 @@
         "xcrun",
         "xctrace",
         "xcworkspace",
+        "xdescribe",
         "xero",
         "Xfermode",
         "xlink",
@@ -617,7 +618,9 @@
         "src/libs/SearchParser/*",
         ".gitignore"
     ],
-    "ignoreRegExpList": ["@assets/.*"],
+    "ignoreRegExpList": [
+        "@assets/.*"
+    ],
     "useGitignore": true,
     "overrides": [
         {
