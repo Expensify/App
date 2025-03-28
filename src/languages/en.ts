@@ -926,6 +926,7 @@ const translations = {
         }),
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
+        duplicateTransaction: 'Potential duplicate expenses identified. Review duplicates to enable submission.',
         receiptIssuesFound: () => ({
             one: 'Issue found',
             other: 'Issues found',
@@ -1082,7 +1083,7 @@ const translations = {
         expenseWasPutOnHold: 'Expense was put on hold',
         expenseOnHold: 'This expense was put on hold. Please review the comments for next steps.',
         expensesOnHold: 'All expenses were put on hold. Please review the comments for next steps.',
-        expenseDuplicate: 'This expense has the same details as another one. Please review the duplicates to remove the hold.',
+        expenseDuplicate: 'This expense has similar details to another one. Please review the duplicates to continue.',
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
@@ -5128,6 +5129,10 @@ const translations = {
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
+        },
+        moneyRequestReport: {
+            emptyStateTitle: 'This report has no expenses',
+            emptyStateSubtitle: 'You can add expenses to this report \n using the button above.',
         },
         noCategory: 'No category',
         noTag: 'No tag',
