@@ -75,8 +75,8 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.IS_SIDEBAR_LOADED,
 ];
 
-function connect(email: string) {
-    if (!delegatedAccess?.delegators) {
+function connect(email: string, isFromOldDot = false) {
+    if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
 
@@ -142,7 +142,7 @@ function connect(email: string) {
                 Onyx.update(failureData);
                 return;
             }
-            if (!activePolicyID) {
+            if (!activePolicyID && CONFIG.IS_HYBRID_APP) {
                 Log.alert('[Delegate] Unable to access activePolicyID');
                 Onyx.update(failureData);
                 return;
@@ -159,7 +159,7 @@ function connect(email: string) {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
                     openApp().then(() => {
-                        if (!CONFIG.IS_HYBRID_APP) {
+                        if (!CONFIG.IS_HYBRID_APP || !policyID) {
                             return;
                         }
                         HybridAppModule.switchAccount({
