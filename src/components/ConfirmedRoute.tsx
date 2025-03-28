@@ -6,8 +6,8 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import * as MapboxToken from '@userActions/MapboxToken';
+import {getWaypointIndex} from '@libs/TransactionUtils';
+import {init, stop} from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MapboxAccessToken, Transaction} from '@src/types/onyx';
@@ -74,7 +74,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
                         return;
                     }
 
-                    const index = TransactionUtils.getWaypointIndex(key);
+                    const index = getWaypointIndex(key);
                     let MarkerComponent: IconAsset;
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
@@ -98,8 +98,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
     const waypointMarkers = getWaypointMarkers(waypoints);
 
     useEffect(() => {
-        MapboxToken.init();
-        return MapboxToken.stop;
+        init();
+        return stop;
     }, []);
 
     const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;

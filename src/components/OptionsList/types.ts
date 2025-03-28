@@ -1,4 +1,4 @@
-import type {RefObject} from 'react';
+import type {JSX, RefObject} from 'react';
 import type {SectionList, SectionListData, StyleProp, View, ViewStyle} from 'react-native';
 import type {OptionData} from '@libs/ReportUtils';
 

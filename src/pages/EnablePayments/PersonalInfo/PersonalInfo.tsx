@@ -8,7 +8,7 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import IdologyQuestions from '@pages/EnablePayments/IdologyQuestions';
 import getInitialSubStepForPersonalInfo from '@pages/EnablePayments/utils/getInitialSubStepForPersonalInfo';
 import getSubStepValues from '@pages/EnablePayments/utils/getSubStepValues';
-import * as Wallet from '@userActions/Wallet';
+import {setAdditionalDetailsQuestions, updateCurrentStep, updatePersonalDetails} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
@@ -44,7 +44,7 @@ function PersonalInfoPage() {
             ssn: values?.[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4] ?? '',
         };
         // Attempt to set the personal details
-        Wallet.updatePersonalDetails(personalDetails);
+        updatePersonalDetails(personalDetails);
     };
 
     const startFrom = useMemo(() => getInitialSubStepForPersonalInfo(values), [values]);
@@ -69,11 +69,11 @@ function PersonalInfoPage() {
             return;
         }
         if (screenIndex === 0) {
-            Wallet.updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
+            updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
             return;
         }
         if (showIdologyQuestions) {
-            Wallet.setAdditionalDetailsQuestions(null, '');
+            setAdditionalDetailsQuestions(null, '');
             return;
         }
         prevScreen();

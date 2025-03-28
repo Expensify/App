@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import CommonConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getSubStepValues from '@pages/EnablePayments/utils/getSubStepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,7 +19,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
     const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
 
     const isLoading = walletAdditionalDetails?.isLoading ?? false;
-    const error = ErrorUtils.getLatestErrorMessage(walletAdditionalDetails ?? {});
+    const error = getLatestErrorMessage(walletAdditionalDetails ?? {});
     const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 

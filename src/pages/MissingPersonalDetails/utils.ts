@@ -1,12 +1,12 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 function getSubStepValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, personalDetailsDraft: OnyxEntry<PersonalDetailsForm>): PersonalDetailsForm {
-    const address = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails);
+    const address = getCurrentAddress(privatePersonalDetails);
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
     return {

@@ -4,7 +4,7 @@ import {Dimensions} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {runOnJS, useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
-import * as Browser from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import {SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
@@ -59,7 +59,7 @@ const usePanGesture = ({
     const panVelocityX = useSharedValue(0);
     const panVelocityY = useSharedValue(0);
 
-    const isMobileBrowser = Browser.isMobile();
+    const isMobileBrowser = isMobile();
 
     // Disable "swipe down to close" gesture when content is bigger than the canvas
     const enableSwipeDownToClose = useDerivedValue(() => canvasSize.height < zoomedContentHeight.get(), [canvasSize.height]);

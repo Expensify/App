@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {pause, unpause} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
@@ -78,7 +78,7 @@ type EnqueueDeferredOnyxUpdatesOptions = {
  */
 function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredOnyxUpdatesOptions) {
     if (options?.shouldPauseSequentialQueue ?? true) {
-        SequentialQueue.pause();
+        pause();
     }
 
     // We check here if the "updates" param is a single update.
@@ -126,7 +126,7 @@ function clear(options?: ClearDeferredOnyxUpdatesOptions) {
 
     if (options?.shouldUnpauseSequentialQueue ?? true) {
         Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
-        SequentialQueue.unpause();
+        unpause();
     }
 }
 

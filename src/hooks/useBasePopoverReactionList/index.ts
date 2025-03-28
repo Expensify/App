@@ -1,8 +1,8 @@
 import {useEffect, useRef, useState} from 'react';
 import type {SyntheticEvent} from 'react';
 import {Dimensions} from 'react-native';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getEmojiReactionDetails} from '@libs/EmojiUtils';
+import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import type {BasePopoverReactionListHookProps, ReactionListAnchor, ShowReactionList} from './types';
 
 export default function useBasePopoverReactionList({emojiName, emojiReactions, accountID, reportActionID, preferredLocale}: BasePopoverReactionListHookProps) {
@@ -26,9 +26,9 @@ export default function useBasePopoverReactionList({emojiName, emojiReactions, a
             };
         }
 
-        const {emojiCodes, reactionCount, hasUserReacted, userAccountIDs} = EmojiUtils.getEmojiReactionDetails(emojiName, selectedReaction, accountID);
+        const {emojiCodes, reactionCount, hasUserReacted, userAccountIDs} = getEmojiReactionDetails(emojiName, selectedReaction, accountID);
 
-        const users = PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs: userAccountIDs, currentUserAccountID: accountID, shouldChangeUserDisplayName: true});
+        const users = getPersonalDetailsByIDs({accountIDs: userAccountIDs, currentUserAccountID: accountID, shouldChangeUserDisplayName: true});
         return {
             emojiName,
             emojiCodes,
