@@ -47,7 +47,7 @@ function NewReportWorkspaceSelectionPage() {
             }
             const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}), {forceReplace: true});
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}), {forceReplace: true});
             });
         },
         [currentUserPersonalDetails],
