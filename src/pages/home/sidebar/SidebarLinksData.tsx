@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import {useReportIDs} from '@hooks/useReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@userActions/Policy/Policy';
+import {getAssignedSupportData, openWorkspace} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks from './SidebarLinks';
@@ -35,8 +35,8 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
             return;
         }
 
-        Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs);
-        Policy.getAssignedSupportData(activeWorkspaceID);
+        openWorkspace(activeWorkspaceID, policyMemberAccountIDs);
+        getAssignedSupportData(activeWorkspaceID);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [activeWorkspaceID]);
 
