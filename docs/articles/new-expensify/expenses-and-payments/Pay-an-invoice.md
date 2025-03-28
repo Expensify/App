@@ -52,7 +52,7 @@ You will need to work with the vendor to discuss alternative payment options. Yo
 
 **Can I add additional payment methods?**
 
-You can add additional payment methods to your [Wallet](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Set-up-your-wallet). Click **Account Settings** > **Wallet** > click **Add Bank Account**.
+You can add additional payment methods to your [Wallet](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Set-up-your-wallet). Click **Account Settings** > **Wallet** > click **Add Bank Account**.
 
 You will be prompted to choose a payment method when paying future invoices. 
 
