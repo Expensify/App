@@ -105,9 +105,9 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                             undefined,
                             undefined,
                             adminsChatReportID,
-                            onboardingPolicyID,
+                            policyID,
                             undefined,
-                            onboardingCompanySize,
+                            selectedCompanySize,
                         );
                     }
 
