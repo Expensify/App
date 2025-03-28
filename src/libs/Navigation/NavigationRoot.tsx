@@ -15,7 +15,6 @@ import Log from '@libs/Log';
 import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
-import * as Session from '@userActions/Session';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
@@ -90,7 +89,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const {updateCurrentPlayingReportID} = usePlaybackContext();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [user] = useOnyx(ONYXKEYS.USER);
-    const isPrivateDomain = Session.isUserOnPrivateDomain();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -123,7 +121,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
         if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
-            return getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
+            return getAdaptedStateFromPath(getOnboardingInitialPath(!!user.hasAccessibleDomainPolicies), linkingConfig.config);
         }
 
         // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
