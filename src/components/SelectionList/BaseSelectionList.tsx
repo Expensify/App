@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
@@ -115,7 +115,6 @@ function BaseSelectionList<TItem extends ListItem>(
         windowSize = 5,
         updateCellsBatchingPeriod = 50,
         removeClippedSubviews = true,
-        shouldDelayFocus = true,
         onArrowFocus = () => {},
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
@@ -148,7 +147,6 @@ function BaseSelectionList<TItem extends ListItem>(
     const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const hasKeyBeenPressed = useRef(false);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
@@ -658,6 +656,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
                     errorText={errorText}
+                    autoFocus={textInputAutoFocus}
                 />
             </View>
         );
@@ -696,30 +695,6 @@ function BaseSelectionList<TItem extends ListItem>(
             scrollToIndex(newFocusedIndex, true);
         },
         [scrollToIndex, setFocusedIndex],
-    );
-
-    /** Function to focus text input */
-    const focusTextInput = useCallback(() => {
-        if (!innerTextInputRef.current) {
-            return;
-        }
-
-        innerTextInputRef.current.focus();
-    }, []);
-
-    /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
-    useFocusEffect(
-        useCallback(() => {
-            if (textInputAutoFocus && shouldShowTextInput) {
-                if (shouldDelayFocus) {
-                    focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
-                } else {
-                    requestAnimationFrame(focusTextInput);
-                }
-            }
-
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, [shouldShowTextInput, textInputAutoFocus, shouldDelayFocus, focusTextInput]),
     );
 
     const prevTextInputValue = usePrevious(textInputValue);
@@ -812,11 +787,14 @@ function BaseSelectionList<TItem extends ListItem>(
         isTextInputFocusedRef.current = isTextInputFocused;
     }, []);
 
-    useImperativeHandle(
-        ref,
-        () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput}),
-        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput],
-    );
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption}), [
+        scrollAndHighlightItem,
+        clearInputAfterSelect,
+        updateAndScrollToFocusedIndex,
+        updateExternalTextInputFocus,
+        scrollToIndex,
+        getFocusedOption,
+    ]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {

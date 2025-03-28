@@ -569,9 +569,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to ignore the focus event */
     shouldIgnoreFocus?: boolean;
 
-    /** Whether focus event should be delayed */
-    shouldDelayFocus?: boolean;
-
     /** Callback to fire when the text input changes */
     onArrowFocus?: (focusedItem: TItem) => void;
 
@@ -702,7 +699,6 @@ type SelectionListHandle = {
     updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => ListItem | undefined;
-    focusTextInput: () => void;
 };
 
 type ItemLayout = {
