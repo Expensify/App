@@ -2598,14 +2598,15 @@ const translations = {
         chooseFile: 'Seleccionar archivo',
         weAreWaiting: 'Estamos esperando que otros verifiquen sus identidades como directores o altos funcionarios de la empresa.',
         // TODO: translate it:
-        id: "Copy of ID",
+        id: 'Copy of ID',
         occupation: 'Occupation',
         whatsYourOccupation: "What's your occupation?",
         proofOfDirectors: 'Proof of director(s)',
         codiceFiscale: 'Codice Fiscale',
         codiceFiscaleDescription: 'Codice Fiscale for Signatories, Authorized Users and Beneficial Owners.',
         PDSandFSG: 'PDS + FSG disclosure paperwork',
-        PDSandFSGDescription: 'Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay\'s Financial Services Guide (FSG) and Product Disclosure Statement (PDS).\n\nPlease read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.',
+        PDSandFSGDescription:
+            "Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).\n\nPlease read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.",
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a signer or director of the business entity.',
         proofOfDirectorsDescription: 'Examples: Oncorp Corporate Profile or Business Registration.',
         regulationRequiresUsToCollectAtLeastOneDirector: 'Regulations requires us to collect information about at least one director of the company.',
