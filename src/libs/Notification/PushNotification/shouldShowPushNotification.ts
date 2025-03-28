@@ -15,8 +15,14 @@ export default function shouldShowPushNotification(pushPayload: PushPayload): bo
         return true;
     }
 
-    const reportAction = ReportActionUtils.getLatestReportActionFromOnyxData(data.onyxData ?? null);
-    const shouldShow = Report.shouldShowReportActionNotification(String(data.reportID), reportAction, true);
+    let shouldShow = false;
+    if (data.type === 'transaction') {
+        shouldShow = true;
+    } else {
+        const reportAction = ReportActionUtils.getLatestReportActionFromOnyxData(data.onyxData ?? null);
+        shouldShow = Report.shouldShowReportActionNotification(String(data.reportID), reportAction, true);
+    }
+
     Log.info(`[PushNotification] ${shouldShow ? 'Showing' : 'Not showing'} notification`);
     return shouldShow;
 }
