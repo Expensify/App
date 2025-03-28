@@ -134,7 +134,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
         <SortableTableHeader
             columns={columnConfig}
             shouldShowColumn={shouldShowColumn}
-            dateColumnSize={shouldShowYear ? 'wide' : 'normal'}
+            dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             shouldShowSorting={shouldShowSorting}
             sortBy={sortBy}
             sortOrder={sortOrder}

@@ -299,7 +299,7 @@ function SearchList(
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {canSelectMultiple && (
-                <View style={[styles.searchListHeaderContainerStyle]}>
+                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
                     <Checkbox
                         accessibilityLabel={translate('workspace.people.selectAll')}
                         isChecked={selectedItemsLength === data.length}

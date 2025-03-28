@@ -36,11 +36,11 @@ import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 
 type SearchTypeMenuProps = {
-    queryJSON: SearchQueryJSON;
+    queryJSON: SearchQueryJSON | undefined;
 };
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
-    const {type, hash} = queryJSON;
+    const {type, groupBy, hash} = queryJSON ?? {};
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
@@ -77,7 +77,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
             }
 
-            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, hash);
+            const isItemFocused = Number(key) === hash;
+            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
+
             return {
                 ...baseMenuItem,
                 onPress: () => {
@@ -168,10 +170,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [styles],
     );
 
-    const isCannedQuery = isCannedSearchQuery(queryJSON);
+    const isCannedQuery = queryJSON ? isCannedSearchQuery(queryJSON) : false;
     const activeItemIndex = isCannedQuery
         ? typeMenuItems.findIndex((item) => {
-              if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+              if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
                   return item.translationPath === 'common.expenseReports' && item.type === type;
               }
               return item.type === type;
@@ -189,7 +191,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     const onPress = singleExecution(() => {
                         clearAllFilters();
                         clearSelectedTransactions();
-                        Navigation.navigate(item.getRoute(queryJSON.policyID));
+                        Navigation.navigate(item.getRoute(queryJSON?.policyID));
                     });
 
                     return (

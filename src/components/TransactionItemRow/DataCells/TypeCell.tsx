@@ -2,9 +2,11 @@ import React from 'react';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 // If the transaction is cash, it has the type CONST.EXPENSE.TYPE.CASH_CARD_NAME.
@@ -23,18 +25,19 @@ const getTypeIcon = (type?: string) => {
     }
 };
 
-const getTypeText = (type?: string) => {
+const getTypeText = (type?: string): TranslationPaths => {
     switch (type) {
         case CONST.EXPENSE.TYPE.CASH_CARD_NAME:
-            return 'Cash';
+            return 'iou.cash';
         case undefined:
-            return 'Cash';
+            return 'iou.cash';
         default:
-            return 'CreditCard';
+            return 'iou.card';
     }
 };
 
 function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
+    const {translate} = useLocalize();
     const theme = useTheme();
     const typeIcon = getTypeIcon(transactionItem.cardName);
     const typeText = getTypeText(transactionItem.cardName);
@@ -43,7 +46,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     return shouldUseNarrowLayout ? (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
-            text={typeText}
+            text={translate(typeText)}
             style={[styles.textMicroSupporting, styles.pre, styles.justifyContentCenter]}
         />
     ) : (
