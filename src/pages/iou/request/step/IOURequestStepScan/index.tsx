@@ -318,7 +318,7 @@ function IOURequestStepScan({
                     },
                     transactionParams: {
                         amount: 0,
-                        attendees: transaction?.attendees,
+                        attendees: transaction?.comment?.attendees,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
                         merchant: '',
@@ -327,7 +327,7 @@ function IOURequestStepScan({
                 });
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.comment?.attendees, transaction?.created, transaction?.currency],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -444,7 +444,7 @@ function IOURequestStepScan({
                                     },
                                     transactionParams: {
                                         amount: 0,
-                                        attendees: transaction?.attendees,
+                                        attendees: transaction?.comment?.attendees,
                                         currency: transaction?.currency ?? 'USD',
                                         created: transaction?.created ?? '',
                                         merchant: '',
@@ -480,7 +480,7 @@ function IOURequestStepScan({
             transaction?.isFromGlobalCreate,
             transaction?.currency,
             transaction?.created,
-            transaction?.attendees,
+            transaction?.comment?.attendees,
             iouType,
             report,
             transactionID,

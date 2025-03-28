@@ -54,6 +54,9 @@ type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 
 /** Model of transaction comment */
 type Comment = {
+    /** Selected attendees */
+    attendees?: Attendee[];
+
     /** Content of the transaction comment */
     comment?: string;
 
@@ -391,9 +394,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
-        /** Selected attendees */
-        attendees?: Attendee[];
-
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -559,6 +559,9 @@ type AdditionalTransactionChanges = {
 
     /** Collection of modified waypoints */
     waypoints?: WaypointCollection;
+
+    /** Collection of modified attendees */
+    attendees?: Attendee[];
 
     /** The ID of the distance rate */
     customUnitRateID?: string;

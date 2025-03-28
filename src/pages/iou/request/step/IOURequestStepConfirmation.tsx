@@ -384,7 +384,7 @@ function IOURequestStepConfirmation({
                 action,
                 transactionParams: {
                     amount: transaction.amount,
-                    attendees: transaction.attendees,
+                    attendees: transaction.comment?.attendees,
                     currency: transaction.currency,
                     created: transaction.created,
                     merchant: transaction.merchant,
@@ -927,7 +927,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouAttendees={transaction?.attendees ?? []}
+                        iouAttendees={transaction?.comment?.attendees ?? []}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}

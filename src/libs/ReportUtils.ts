@@ -176,7 +176,6 @@ import {
     getCategory,
     getCurrency,
     getDescription,
-    getFormattedAttendees,
     getFormattedCreated,
     getFormattedPostedDate,
     getMCCGroup,
@@ -603,7 +602,7 @@ type OptimisticTaskReport = SetRequired<
 type TransactionDetails = {
     created: string;
     amount: number;
-    attendees: Attendee[];
+    attendees: Attendee[] | string;
     taxAmount?: number;
     taxCode?: string;
     currency: string;
@@ -4197,7 +4196,8 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.merchant = transactionChanges?.merchant;
     }
     if ('attendees' in transactionChanges) {
-        [originalMessage.oldAttendees, originalMessage.attendees] = getFormattedAttendees(transactionChanges?.attendees, getAttendees(oldTransaction));
+        originalMessage.oldAttendees = getAttendees(oldTransaction);
+        originalMessage.attendees = transactionChanges?.attendees;
     }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
