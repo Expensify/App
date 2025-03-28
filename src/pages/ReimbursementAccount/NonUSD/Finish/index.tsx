@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -19,6 +20,7 @@ import ROUTES from '@src/ROUTES';
 function Finish() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -70,7 +72,7 @@ function Finish() {
                             icon: Expensicons.Shield,
                             shouldShowRightIcon: true,
                             iconRight: Expensicons.NewWindow,
-                            wrapperStyle: [styles.cardMenuItem],
+                            outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                         },
                     ]}
                 >

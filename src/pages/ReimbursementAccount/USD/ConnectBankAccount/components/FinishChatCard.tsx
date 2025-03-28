@@ -1,8 +1,6 @@
 import React from 'react';
 import Button from '@components/Button';
-import {ChatBubble, RotateLeft} from '@components/Icon/Expensicons';
 import {ConciergeBubble} from '@components/Icon/Illustrations';
-import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
@@ -42,20 +40,16 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
                 <Button
-                    iconStyles={[styles.customMarginButtonWithMenuItem]}
+                    text={translate('workspace.bankAccount.noLetsStartOver')}
+                    onPress={requestResetBankAccount}
+                    style={styles.mb3}
+                    large
+                />
+                <Button
                     text={translate('connectBankAccountStep.letsChatCTA')}
                     onPress={handleNavigateToConciergeChat}
-                    icon={ChatBubble}
-                    shouldShowRightIcon
+                    large
                     success
-                    innerStyles={[styles.pr2, styles.pl4, styles.h13]}
-                />
-                <MenuItem
-                    title={translate('workspace.bankAccount.noLetsStartOver')}
-                    icon={RotateLeft}
-                    onPress={requestResetBankAccount}
-                    shouldShowRightIcon
-                    wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                 />
             </Section>
             {!requiresTwoFactorAuth && <Enable2FACard policyID={policyID} />}
