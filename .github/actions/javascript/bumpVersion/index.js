@@ -3545,7 +3545,6 @@ function updateiOSVersion(version) {
     (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`);
     (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_NSE}`);
     (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_SHARE}`);
-
     // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
     return cfVersion;
 }
