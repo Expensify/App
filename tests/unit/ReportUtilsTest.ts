@@ -22,6 +22,7 @@ import {
     getIconsForParticipants,
     getInvoiceChatByParticipants,
     getMostRecentlyVisitedReport,
+    getPolicyExpenseChat,
     getQuickActionDetails,
     getReportIDFromLink,
     getReportName,
@@ -1036,14 +1037,14 @@ describe('ReportUtils', () => {
         });
 
         it('should disable thread on split expense actions', () => {
-            const reportAction = buildOptimisticIOUReportAction(
-                CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-                50000,
-                CONST.CURRENCY.USD,
-                '',
-                [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
-                NumberUtils.rand64(),
-            ) as ReportAction;
+            const reportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+                amount: 50000,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
+                transactionID: NumberUtils.rand64(),
+            }) as ReportAction;
             expect(shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
         });
 
@@ -1437,36 +1438,26 @@ describe('ReportUtils', () => {
                     reportID: expenseReport.reportID,
                 },
             });
-            const expenseCreatedAction1 = buildOptimisticIOUReportAction(
-                'create',
-                100,
-                'USD',
-                '',
-                [],
-                expenseTransaction.transactionID,
-                undefined,
-                expenseReport.reportID,
-                undefined,
-                false,
-                false,
-                undefined,
-                undefined,
-            );
-            const expenseCreatedAction2 = buildOptimisticIOUReportAction(
-                'create',
-                100,
-                'USD',
-                '',
-                [],
-                expenseTransaction.transactionID,
-                undefined,
-                expenseReport.reportID,
-                undefined,
-                false,
-                false,
-                undefined,
-                undefined,
-            );
+            const expenseCreatedAction1 = buildOptimisticIOUReportAction({
+                type: 'create',
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+
+                iouReportID: expenseReport.reportID,
+            });
+            const expenseCreatedAction2 = buildOptimisticIOUReportAction({
+                type: 'create',
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+
+                iouReportID: expenseReport.reportID,
+            });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction1, expenseReport);
             const currentReportId = '1';
             const isInFocusMode = false;
@@ -1670,21 +1661,16 @@ describe('ReportUtils', () => {
                     reportID: expenseReport.reportID,
                 },
             });
-            const expenseCreatedAction = buildOptimisticIOUReportAction(
-                'create',
-                100,
-                'USD',
-                '',
-                [],
-                expenseTransaction.transactionID,
-                undefined,
-                expenseReport.reportID,
-                undefined,
-                false,
-                false,
-                undefined,
-                undefined,
-            );
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: 'create',
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+
+                iouReportID: expenseReport.reportID,
+            });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
             const currentReportId = '1';
@@ -1780,7 +1766,9 @@ describe('ReportUtils', () => {
 
     describe('buildOptimisticChatReport', () => {
         it('should always set isPinned to false', () => {
-            const result = buildOptimisticChatReport([1, 2, 3]);
+            const result = buildOptimisticChatReport({
+                participantList: [1, 2, 3],
+            });
             expect(result.isPinned).toBe(false);
         });
     });
@@ -1814,53 +1802,42 @@ describe('ReportUtils', () => {
     });
 
     describe('isAllowedToApproveExpenseReport', () => {
-        it('should return true if the rule feature is disabled even preventSelfApproval is true', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(6),
-                areRulesEnabled: false,
-                preventSelfApproval: true,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
+        const expenseReport: Report = {
+            ...createRandomReport(6),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+        };
 
-            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
-        });
-        it('should return false if preventSelfApproval is true and the manager is the owner of the expense report', () => {
+        it('should return true if preventSelfApproval is disabled and the approver is not the owner of the expense report', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(6),
-                areRulesEnabled: true,
-                preventSelfApproval: true,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
-
-            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
-        });
-        it('should return true if preventSelfApproval is false', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(6),
-                areRulesEnabled: true,
                 preventSelfApproval: false,
             };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, 0, fakePolicy)).toBeTruthy();
+        });
 
+        it('should return true if preventSelfApproval is enabled and the approver is not the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: true,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, 0, fakePolicy)).toBeTruthy();
+        });
+
+        it('should return true if preventSelfApproval is disabled and the approver is the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: false,
+            };
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
+        });
+
+        it('should return false if preventSelfApproval is enabled and the approver is the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: true,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
         });
     });
 
@@ -1929,6 +1906,33 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction).then(() => {
                 expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
             });
+        });
+    });
+
+    describe('getPolicyExpenseChat', () => {
+        it('should return the correct policy expense chat when we have a task report is the child of this report', async () => {
+            const policyExpenseChat: Report = {
+                ...createRandomReport(11),
+                ownerAccountID: 1,
+                policyID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const taskReport: Report = {
+                ...createRandomReport(10),
+                ownerAccountID: 1,
+                policyID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID: policyExpenseChat.reportID,
+                parentReportActionID: '1',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+
+            expect(getPolicyExpenseChat(1, '1')?.reportID).toBe(policyExpenseChat.reportID);
         });
     });
 

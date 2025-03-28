@@ -340,7 +340,7 @@ function createTaskAndNavigate(
         InteractionManager.runAfterInteractions(() => {
             clearOutTaskInfo();
         });
-        Navigation.dismissModal(parentReportID);
+        Navigation.dismissModalWithReport({reportID: parentReportID});
     }
     notifyNewAction(parentReportID, currentUserAccountID);
 }
@@ -550,7 +550,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 
     // Ensure title is defined before parsing it with getParsedComment. If title is undefined, fall back to reportName from report.
     // Trim the final parsed title for consistency.
-    const reportName = title ? ReportUtils.getParsedComment(title) : report?.reportName ?? '';
+    const reportName = title ? ReportUtils.getParsedComment(title, undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]) : report?.reportName ?? '';
     const parsedTitle = (reportName ?? '').trim();
 
     // Description can be unset, so we default to an empty string if so
@@ -811,18 +811,13 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report, isOptimisticReport 
 }
 
 function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number) {
-    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport(
-        [assigneeAccountID, currentUserAccountID],
-        '',
-        undefined,
-        CONST.POLICY.OWNER_EMAIL_FAKE,
-        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-        false,
-        '',
-        undefined,
-        undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-    );
+    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport({
+        participantList: [assigneeAccountID, currentUserAccountID],
+        reportName: '',
+        policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
+        ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    });
 
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 

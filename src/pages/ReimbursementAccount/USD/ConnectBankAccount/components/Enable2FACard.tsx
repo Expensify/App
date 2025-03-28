@@ -10,7 +10,7 @@ import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 type Enable2FACardProps = {
-    policyID: string;
+    policyID: string | undefined;
 };
 
 function Enable2FACard({policyID}: Enable2FACardProps) {

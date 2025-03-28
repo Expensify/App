@@ -13,18 +13,34 @@ type CountryProps = {
 
     /** Handles submit button press */
     onSubmit: () => void;
+
+    /** ID of current policy */
+    policyID: string | undefined;
 };
 
-const bodyContent: Array<ComponentType<SubStepProps>> = [Confirmation];
+type CountryStepProps = {
+    /** ID of current policy */
+    policyID: string | undefined;
+} & SubStepProps;
 
-function Country({onBackButtonPress, onSubmit}: CountryProps) {
+const bodyContent: Array<ComponentType<CountryStepProps>> = [Confirmation];
+
+function Country({onBackButtonPress, onSubmit, policyID}: CountryProps) {
     const {translate} = useLocalize();
 
     const submit = () => {
         onSubmit();
     };
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+    const {
+        componentToRender: SubStep,
+        isEditing,
+        screenIndex,
+        nextScreen,
+        prevScreen,
+        moveTo,
+        goToTheLastStep,
+    } = useSubStep<CountryStepProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -51,6 +67,7 @@ function Country({onBackButtonPress, onSubmit}: CountryProps) {
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
+                policyID={policyID}
             />
         </InteractiveStepWrapper>
     );
