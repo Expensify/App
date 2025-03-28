@@ -22,8 +22,8 @@ type MoneyRequestReportRHPNavigationButtonsProps = {
  * We only want to show the extra navigation for switching between transactions
  * If a transaction was opened from MoneyRequestReportView
  */
-function shouldShowTransactionNavigation(rootState: State<RootNavigatorParamList>) {
-    const lastFullscreenNavigator = rootState.routes.findLast((route) => isFullScreenName(route.name));
+function shouldShowTransactionNavigation(rootState?: State<RootNavigatorParamList>) {
+    const lastFullscreenNavigator = rootState?.routes.findLast((route) => isFullScreenName(route.name));
     if (lastFullscreenNavigator?.state) {
         const focusedRoute = findFocusedRoute(lastFullscreenNavigator.state);
         return focusedRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
