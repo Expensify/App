@@ -28,6 +28,7 @@ import {
     addPendingContactMethod,
     clearContactMethod,
     clearContactMethodErrors,
+    clearPendingContactActionErrors,
     clearUnvalidatedNewContactMethodAction,
     requestValidateCodeAction,
 } from '@userActions/User';
@@ -167,7 +168,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     )}
                 </FormProvider>
                 <ValidateCodeActionModal
-                    validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
+                    validateCodeActionErrorField="addedLogin"
                     validateError={validateLoginError}
                     handleSubmitForm={addNewContactMethod}
                     clearError={() => {
@@ -175,6 +176,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                             return;
                         }
                         clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin');
+                        clearPendingContactActionErrors();
                     }}
                     onClose={() => {
                         if (pendingContactAction?.contactMethod) {
@@ -184,7 +186,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                         setIsValidateCodeActionModalVisible(false);
                     }}
                     isVisible={isValidateCodeActionModalVisible}
-                    hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                     title={translate('delegate.makeSureItIsYou')}
                     sendValidateCode={() => requestValidateCodeAction()}
                     descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}

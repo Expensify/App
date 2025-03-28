@@ -63,7 +63,6 @@ function ExpensifyCardPage({
     },
 }: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const styles = useThemeStyles();
@@ -116,16 +115,21 @@ function ExpensifyCardPage({
                     ...prevState,
                     [currentCardID]: '',
                 }));
+                setIsValidateCodeActionModalVisible(false);
             })
             .catch((error: string) => {
+                // Displaying magic code errors is handled in the modal, no need to set it on the card
+                if (error === 'validateCodeForm.error.incorrectMagicCode') {
+                    return;
+                }
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
                     [currentCardID]: error,
                 }));
+                setIsValidateCodeActionModalVisible(false);
             })
             .finally(() => {
                 setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [currentCardID]: false}));
-                setIsValidateCodeActionModalVisible(false);
             });
     };
 
@@ -136,7 +140,6 @@ function ExpensifyCardPage({
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
     const primaryLogin = account?.primaryLogin ?? '';
-    const loginData = loginList?.[primaryLogin];
     const isSignedInAsdelegate = !!account?.delegatedAccess?.delegate || false;
 
     if (isNotFound) {
@@ -303,10 +306,10 @@ function ExpensifyCardPage({
             <ValidateCodeActionModal
                 handleSubmitForm={handleRevealDetails}
                 clearError={() => {}}
+                validateCodeActionErrorField="revealExpensifyCardDetails"
                 sendValidateCode={() => requestValidateCodeAction()}
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isVisible={isValidateCodeActionModalVisible}
-                hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                 title={translate('cardPage.validateCardTitle')}
                 descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
             />

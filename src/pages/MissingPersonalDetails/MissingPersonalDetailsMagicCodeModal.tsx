@@ -50,7 +50,7 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
     };
 
     const clearError = () => {
-        if (!validateLoginError) {
+        if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
         clearPersonalDetailsErrors();
@@ -60,12 +60,12 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
         <ValidateCodeActionModal
             clearError={clearError}
             onClose={onBackButtonPress}
+            validateCodeActionErrorField="personalDetails"
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
             sendValidateCode={() => requestValidateCodeAction()}
-            hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             handleSubmitForm={handleSubmitForm}
             isLoading={privatePersonalDetails?.isLoading}
         />
