@@ -68,7 +68,7 @@ function ShareDetailsPage({
         if (isTextShared) {
             addComment(report.reportID, message);
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-            Navigation.navigate(routeToNavigate);
+            Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
         }
 
