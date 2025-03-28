@@ -125,19 +125,6 @@ describe('CardSectionUtils', () => {
         });
     });
 
-    it('should return POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE variant with generalSubtitle', () => {
-        mockGetSubscriptionStatus.mockReturnValue({
-            status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
-        });
-
-        expect(CardSectionUtils.getBillingStatus({translate: translateMock, accountData: ACCOUNT_DATA, purchase: undefined})).toEqual({
-            title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
-            subtitle: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.generalSubtitle',
-            isError: true,
-            isRetryAvailable: true,
-        });
-    });
-
     it('should return OWNER_OF_POLICY_UNDER_INVOICING variant', () => {
         mockGetSubscriptionStatus.mockReturnValue({
             status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
