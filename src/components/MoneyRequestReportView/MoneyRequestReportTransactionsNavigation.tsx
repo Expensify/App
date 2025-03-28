@@ -5,6 +5,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {getActiveTransactionReportIDs} from './TransactionReportIDRepository';
 
@@ -51,9 +52,9 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
     return (
         <>
             <PressableWithFeedback
-                accessibilityRole="button"
+                accessibilityRole={CONST.ROLE.BUTTON}
                 accessible
-                accessibilityLabel="button"
+                accessibilityLabel={CONST.ROLE.BUTTON}
                 disabled={!prevReportID}
                 style={pressableStyle}
                 onPress={(e) => {
@@ -69,9 +70,9 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
                 />
             </PressableWithFeedback>
             <PressableWithFeedback
-                accessibilityRole="button"
+                accessibilityRole={CONST.ROLE.BUTTON}
                 accessible
-                accessibilityLabel="button"
+                accessibilityLabel={CONST.ROLE.BUTTON}
                 disabled={!nextReportID}
                 style={pressableStyle}
                 onPress={(e) => {
