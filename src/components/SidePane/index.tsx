@@ -3,9 +3,9 @@ import useSidePane from '@hooks/useSidePane';
 import Help from './HelpModal';
 
 function SidePane() {
-    const {isSidePaneTransitionEnded, shouldHideSidePane, sidePaneTranslateX, shouldHideSidePaneBackdrop, closeSidePane} = useSidePane();
+    const {isSidePaneTransitionEnded, shouldHideSidePane, shouldHideToolTip, sidePaneTranslateX, shouldHideSidePaneBackdrop, closeSidePane} = useSidePane();
 
-    if (isSidePaneTransitionEnded) {
+    if (isSidePaneTransitionEnded && shouldHideSidePane) {
         return null;
     }
 
