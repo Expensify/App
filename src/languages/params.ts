@@ -480,6 +480,8 @@ type SubscriptionCommitmentParams = {size: number; date: string};
 
 type SubscriptionSettingsSaveUpToParams = {amountWithCurrency: string};
 
+type SubscriptionSettingsSummaryParams = {subscriptionType: string; subscriptionSize: string; autoRenew: string; autoIncrease: string};
+
 type SubscriptionSettingsRenewsOnParams = {date: string};
 
 type UnapproveWithIntegrationWarningParams = {accountingIntegration: string};
@@ -898,4 +900,5 @@ export type {
     PolicyExpenseChatNameParams,
     YourPlanPriceValueParams,
     NeedCategoryForExportToIntegrationParams,
+    SubscriptionSettingsSummaryParams,
 };

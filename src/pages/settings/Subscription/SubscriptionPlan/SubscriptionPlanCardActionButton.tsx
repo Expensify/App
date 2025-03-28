@@ -37,6 +37,8 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const isNewSubscription = useIsNewSubscription();
     const currentUserAccountID = getCurrentUserAccountID();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
     const handlePlanPress = (planType: PersonalPolicyTypeExludedProps) => {
@@ -106,12 +108,18 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         }
     }
 
+    const autoIncrease = privateSubscription?.addNewUsersAutomatically ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
+    const subscriptionType = isAnnual ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
+    const subscriptionSize = `${privateSubscription?.userCount ?? translate('subscription.subscriptionSettings.none')}`;
+    const autoRenew = privateSubscription?.autoRenew ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
+
     return (
         <MenuItemWithTopDescription
             description={translate('subscription.subscriptionSettings.title')}
             shouldShowRightIcon
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
-            title=""
+            numberOfLinesTitle={3}
+            title={translate('subscription.subscriptionSettings.summary', {subscriptionType, subscriptionSize, autoRenew, autoIncrease})}
         />
     );
 }
