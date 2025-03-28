@@ -222,7 +222,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    const groupPoliciesWithChatEnabled = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
+    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
@@ -498,22 +498,25 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       text: translate('report.newReport.createReport'),
                       onSelected: () => {
                           interceptAnonymousUser(() => {
-                              if (groupPoliciesWithChatEnabled.length === 0) {
+                              if (shouldRedirectToExpensifyClassic) {
                                   setModalVisible(true);
                                   return;
                               }
 
                               // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
                               if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                  const optimisticReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
-                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}));
-
+                                  const createdReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
+                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                  });
                                   return;
                               }
 
                               if (groupPoliciesWithChatEnabled.length === 1) {
-                                  const optimisticReportID = createNewReport(currentUserPersonalDetails, groupPoliciesWithChatEnabled.at(0)?.id);
-                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}));
+                                  const createdReportID = createNewReport(currentUserPersonalDetails, groupPoliciesWithChatEnabled.at(0)?.id);
+                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                  });
                                   return;
                               }
 

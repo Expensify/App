@@ -65,7 +65,9 @@ function navigateToQuickAction(
         case CONST.QUICK_ACTIONS.CREATE_REPORT:
             selectOption(() => {
                 const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}));
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}));
+                });
             }, true);
             break;
         default:
