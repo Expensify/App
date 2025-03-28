@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Alert, AppState, View} from 'react-native';
-import RNFS from 'react-native-fs';
 import type {FileObject} from '@components/AttachmentModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,6 +16,7 @@ import ShareActionHandler from '@libs/ShareActionHandlerModule';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
+import getFileSize from './getFileSize';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
 
@@ -61,13 +61,13 @@ function ShareRootPage() {
             }
 
             if (tempFile?.mimeType && tempFile?.mimeType !== 'txt') {
-                RNFS.stat(tempFile?.content).then((fileStat) => {
-                    if (fileStat.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                getFileSize(tempFile?.content).then((size) => {
+                    if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                         setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
                         setErrorMessage(translate('attachmentPicker.sizeExceeded'));
                     }
 
-                    if (fileStat.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                    if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                         setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
                         setErrorMessage(translate('attachmentPicker.sizeNotMet'));
                     }
