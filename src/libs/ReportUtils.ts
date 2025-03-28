@@ -308,6 +308,7 @@ type OptimisticNewReport = Pick<
     | 'parentReportActionID'
     | 'participants'
     | 'managerID'
+    | 'pendingAction'
 >;
 
 type BuildOptimisticIOUReportActionParams = {
@@ -3670,8 +3671,8 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
         return false;
     }
 
-    // Admin & managers can always edit coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
-    if ((isAdmin || isManager) && !isOpenExpenseReport(moneyRequestReport)) {
+    // Admin & managers can always edit coding fields such as tag, category, billable, etc.
+    if (isAdmin || isManager) {
         return true;
     }
 
@@ -9794,6 +9795,9 @@ export {
     buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    populateOptimisticReportFormula,
+    getTitleReportField,
+    getReportFieldsByPolicyID,
 };
 
 export type {

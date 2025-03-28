@@ -1766,6 +1766,8 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
+                defaultBillable: false,
+                disabledFields: {defaultBillable: true},
             },
         },
     ];
@@ -1866,6 +1868,8 @@ function buildPolicyData(
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
+                defaultBillable: false,
+                disabledFields: {defaultBillable: true},
                 avatarURL: file?.uri,
                 originalFileName: file?.name,
                 ...optimisticMccGroupData.optimisticData,
@@ -2197,6 +2201,8 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
+                defaultBillable: false,
+                disabledFields: {defaultBillable: true},
             },
         },
         {
@@ -2519,6 +2525,8 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
             approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         },
+        defaultBillable: false,
+        disabledFields: {defaultBillable: true},
     };
 
     const optimisticData: OnyxUpdate[] = [
