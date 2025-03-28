@@ -58,7 +58,7 @@ function useSidePane() {
 
     const [isSidePaneTransitionEnded, setIsSidePaneTransitionEnded] = useState(true);
     const {shouldHideSidePane, shouldHideSidePaneBackdrop, shouldHideHelpButton, sidePaneNVP} = useSidePaneDisplayStatus();
-    const shouldHideToolTip = isExtraLargeScreenWidth ? !shouldHideSidePane && !isSidePaneTransitionEnded : !shouldHideSidePane;
+    const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePaneTransitionEnded : !shouldHideSidePane;
 
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !shouldHideSidePane;
     const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
@@ -78,10 +78,7 @@ function useSidePane() {
                 duration: CONST.ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-        ]).start(() => {
-            console.log('Side pane animation ended');
-            setIsSidePaneTransitionEnded(true);
-        });
+        ]).start(() => setIsSidePaneTransitionEnded(true));
     }, [shouldHideSidePane, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth, isExtraLargeScreenWidth]);
 
     const openSidePane = useCallback(() => {
@@ -89,7 +86,6 @@ function useSidePane() {
             return;
         }
 
-        console.log('Side pane animation started');
         setIsSidePaneTransitionEnded(false);
         KeyboardUtils.dismiss();
 
