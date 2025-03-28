@@ -20,6 +20,7 @@ import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceListItem = {
@@ -44,7 +45,8 @@ function NewReportWorkspaceSelectionPage() {
             if (!policyID) {
                 return;
             }
-            createNewReport(currentUserPersonalDetails, policyID, true);
+            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}), {forceReplace: true});
         },
         [currentUserPersonalDetails],
     );

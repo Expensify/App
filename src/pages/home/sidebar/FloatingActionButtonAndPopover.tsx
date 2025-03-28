@@ -505,12 +505,15 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
                               // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
                               if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                  createNewReport(currentUserPersonalDetails, activePolicyID);
+                                  const optimisticReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
+                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}));
+
                                   return;
                               }
 
                               if (groupPoliciesWithChatEnabled.length === 1) {
-                                  createNewReport(currentUserPersonalDetails, groupPoliciesWithChatEnabled.at(0)?.id);
+                                  const optimisticReportID = createNewReport(currentUserPersonalDetails, groupPoliciesWithChatEnabled.at(0)?.id);
+                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}));
                                   return;
                               }
 

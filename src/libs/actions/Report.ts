@@ -2586,7 +2586,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
     return {optimisticData, successData, failureData};
 }
 
-function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string, shouldForceReplaceScreen = false) {
+function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string) {
     const policy = getPolicy(policyID);
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
@@ -2600,7 +2600,6 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
         {reportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID, shouldUpdateQAB: true},
         {optimisticData, successData, failureData},
     );
-    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}), {forceReplace: shouldForceReplaceScreen});
     return optimisticReportID;
 }
 

@@ -1,5 +1,7 @@
+import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
@@ -34,8 +36,7 @@ function navigateToQuickAction(
     policyID: string | undefined,
     selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void,
 ) {
-    const quickActionReportID = `${quickAction?.chatReportID ?? CONST.DEFAULT_NUMBER_ID}`;
-    const reportID = isValidReport ? quickActionReportID : generateReportID();
+    const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
     const requestType = getQuickActionRequestType(quickAction?.action);
 
     switch (quickAction?.action) {
@@ -62,7 +63,10 @@ function navigateToQuickAction(
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
             break;
         case CONST.QUICK_ACTIONS.CREATE_REPORT:
-            selectOption(() => createNewReport(currentUserPersonalDetails, policyID), true);
+            selectOption(() => {
+                const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}));
+            }, true);
             break;
         default:
     }
