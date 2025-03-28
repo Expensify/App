@@ -35,7 +35,6 @@ import {
     isReportIDApproved,
     isReportManuallyReimbursed,
     isSettled,
-    isTestTransactionReport,
     isThread,
 } from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
@@ -276,9 +275,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         lodashSet(commentJSON, 'customUnit', customUnit);
     }
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const isManagerMcTestTransaction = isTestTransactionReport(report);
-
     return {
         ...(!isEmptyObject(pendingFields) ? {pendingFields} : {}),
         transactionID,
@@ -289,9 +285,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        receipt: receipt?.source
-            ? {source: receipt.source, state: isManagerMcTestTransaction ? CONST.IOU.RECEIPT_STATE.SCANCOMPLETE : receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY}
-            : {},
+        receipt: receipt?.source ? {source: receipt.source, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY} : {},
         filename: (receipt?.source ? receipt?.name ?? filename : filename).toString(),
         category,
         tag,
