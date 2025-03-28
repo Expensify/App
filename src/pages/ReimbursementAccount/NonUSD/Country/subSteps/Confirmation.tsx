@@ -100,7 +100,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             </Text>
             <InputWrapper
                 InputComponent={PushRowWithModal}
-                optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_COUNTRIES : CONST.ALL_COUNTRIES}
+                optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES}
                 onValueChange={(value) => setSelectedCountry(value as string)}
                 description={translate('common.country')}
                 modalHeaderTitle={translate('countryStep.selectCountry')}
