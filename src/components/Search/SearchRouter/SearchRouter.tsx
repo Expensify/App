@@ -149,7 +149,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 {
                     data: [
                         {
-                            text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
+                            text: StringUtils.lineBreaksToSpaces(`${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`),
                             singleIcon: Expensicons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
                             autocompleteID,

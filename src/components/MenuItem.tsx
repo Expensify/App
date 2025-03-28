@@ -293,6 +293,12 @@ type MenuItemBaseProps = {
     /** Text to display under the main item */
     furtherDetails?: string;
 
+    /** The maximum number of lines for further details text */
+    furtherDetailsNumberOfLines?: number;
+
+    /** The further details additional style */
+    furtherDetailsStyle?: StyleProp<TextStyle>;
+
     /** Render custom content under the main item */
     furtherDetailsComponent?: ReactElement;
 
@@ -407,6 +413,8 @@ function MenuItem(
         iconRight = Expensicons.ArrowRight,
         furtherDetailsIcon,
         furtherDetails,
+        furtherDetailsNumberOfLines = 2,
+        furtherDetailsStyle,
         furtherDetailsComponent,
         description,
         helperText,
@@ -839,8 +847,11 @@ function MenuItem(
                                                                     />
                                                                 )}
                                                                 <Text
-                                                                    style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
-                                                                    numberOfLines={2}
+                                                                    style={[
+                                                                        furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting,
+                                                                        furtherDetailsStyle,
+                                                                    ]}
+                                                                    numberOfLines={furtherDetailsNumberOfLines}
                                                                 >
                                                                     {furtherDetails}
                                                                 </Text>
