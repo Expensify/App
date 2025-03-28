@@ -100,7 +100,7 @@ export default {
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
     gutterWidth: 12,
-    popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
+    shadowPreset: '0px 4px 12px 0px ',
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
