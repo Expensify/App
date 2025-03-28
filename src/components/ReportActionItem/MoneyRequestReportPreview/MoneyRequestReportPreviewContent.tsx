@@ -1,7 +1,8 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
-import type {ListRenderItemInfo, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, ListRenderItemInfo, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
+import type {LayoutRectangle} from 'react-native/Libraries/Types/CoreEventTypes';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
@@ -68,6 +69,7 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -75,6 +77,14 @@ import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {MoneyRequestReportPreviewContentProps} from './types';
+
+type WebLayoutNativeEvent = {
+    layout: LayoutRectangle;
+    target: Element;
+};
+
+const checkIfReportNameOverflows = <T extends LayoutChangeEvent>({nativeEvent}: T) =>
+    'target' in nativeEvent ? (nativeEvent as WebLayoutNativeEvent).target.scrollHeight > variables.h20 * 3.5 : false;
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
@@ -107,6 +117,8 @@ function MoneyRequestReportPreviewContent({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const [doesReportNameOverflow, setDoesReportNameOverflow] = useState(false);
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -386,6 +398,13 @@ function MoneyRequestReportPreviewContent({
         carouselRef.current?.scrollToIndex({index, animated: true});
     };
 
+    const onTextLayoutChange = (e: LayoutChangeEvent) => {
+        const doesOverflow = checkIfReportNameOverflows(e);
+        if (doesOverflow !== doesReportNameOverflow) {
+            setDoesReportNameOverflow(doesOverflow);
+        }
+    };
+
     const renderFlatlistItem = (itemInfo: ListRenderItemInfo<Transaction>) => {
         if (itemInfo.index > 9) {
             return (
@@ -403,6 +422,29 @@ function MoneyRequestReportPreviewContent({
 
     // The button should expand up to transaction width
     const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
+
+    const approvedOrSettledicon = (
+        <>
+            {iouSettled && (
+                <Animated.View style={[styles.defaultCheckmarkWrapper, {transform: [{scale: checkMarkScale}]}]}>
+                    <Icon
+                        src={Expensicons.Checkmark}
+                        fill={theme.iconSuccessFill}
+                        inline
+                    />
+                </Animated.View>
+            )}
+            {isApproved && (
+                <Animated.View style={[thumbsUpStyle]}>
+                    <Icon
+                        src={Expensicons.ThumbsUp}
+                        fill={theme.icon}
+                        inline
+                    />
+                </Animated.View>
+            )}
+        </>
+    );
 
     return (
         transactions.length > 0 && (
@@ -439,29 +481,20 @@ function MoneyRequestReportPreviewContent({
                                             <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                                                 <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                     <Text
-                                                        style={[styles.lh20, styles.headerText]}
+                                                        onLayout={onTextLayoutChange}
+                                                        style={[styles.lh20, styles.headerText, (iouSettled || isApproved) && styles.pr8]}
                                                         testID="MoneyRequestReportPreview-reportName"
-                                                        numberOfLines={2}
+                                                        numberOfLines={3}
                                                     >
                                                         {action.childReportName}
+                                                        {!doesReportNameOverflow && <View style={[styles.pAbsolute, styles.dInlineFlex, styles.mtn0Half]}>{approvedOrSettledicon}</View>}
                                                     </Text>
+                                                    {doesReportNameOverflow && (
+                                                        <View style={[styles.mtn0Half, (transactions.length < 3 || shouldUseNarrowLayout) && styles.alignSelfStart]}>
+                                                            {approvedOrSettledicon}
+                                                        </View>
+                                                    )}
                                                 </Animated.View>
-                                                {iouSettled && (
-                                                    <Animated.View style={[styles.defaultCheckmarkWrapper, {transform: [{scale: checkMarkScale}]}]}>
-                                                        <Icon
-                                                            src={Expensicons.Checkmark}
-                                                            fill={theme.iconSuccessFill}
-                                                        />
-                                                    </Animated.View>
-                                                )}
-                                                {isApproved && (
-                                                    <Animated.View style={thumbsUpStyle}>
-                                                        <Icon
-                                                            src={Expensicons.ThumbsUp}
-                                                            fill={theme.icon}
-                                                        />
-                                                    </Animated.View>
-                                                )}
                                             </View>
                                             {!shouldUseNarrowLayout && transactions.length > 2 && (
                                                 <View style={[styles.flexRow, {alignItems: 'center'}]}>
