@@ -11502,14 +11502,12 @@ const github_1 = __nccwpck_require__(5438);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 function getTestBuildMessage() {
-    const inputs = ['ANDROID', 'ANDROID_HYBRID', 'DESKTOP', 'IOS', 'IOS_HYBRID', 'WEB'];
+    const inputs = ['ANDROID', 'DESKTOP', 'IOS', 'WEB'];
     const names = {
         [inputs[0]]: 'Android',
-        [inputs[1]]: 'Android Hybrid',
-        [inputs[2]]: 'Desktop',
-        [inputs[3]]: 'iOS',
-        [inputs[4]]: 'iOS Hybrid',
-        [inputs[5]]: 'Web',
+        [inputs[1]]: 'Desktop',
+        [inputs[2]]: 'iOS',
+        [inputs[3]]: 'Web',
     };
     const result = inputs.reduce((acc, platform) => {
         const input = core.getInput(platform, { required: false });
@@ -11531,11 +11529,9 @@ function getTestBuildMessage() {
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
+| Android :robot::arrows_counterclockwise:  | iOS :apple::arrows_counterclockwise: |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
 | ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
-| Android Hybrid :robot::arrows_counterclockwise:  | iOS Hybrid :apple::arrows_counterclockwise: |
-| ${result.ANDROID_HYBRID.link}  | ${result.IOS_HYBRID.link}  |
-| ${result.ANDROID_HYBRID.qrCode}  | ${result.IOS_HYBRID.qrCode}  |
 | Desktop :computer: | Web :spider_web: |
 | ${result.DESKTOP.link}  | ${result.WEB.link}  |
 | ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |
