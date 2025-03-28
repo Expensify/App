@@ -1,4 +1,4 @@
-import {parse} from 'date-fns';
+import {format, isValid, parse} from 'date-fns';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
@@ -8,7 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getPolicyCategoriesData} from '@libs/actions/Policy/Category';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
-import type {TransactionMergeParams} from '@libs/API/parameters';
+import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -44,7 +44,7 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -177,6 +177,25 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     return CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
+/**
+ * Determines the expense type of a given transaction.
+ */
+function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.EXPENSE_TYPE> | undefined {
+    if (!transaction) {
+        return undefined;
+    }
+
+    if (isExpensifyCardTransaction(transaction)) {
+        if (isPending(transaction)) {
+            return CONST.IOU.EXPENSE_TYPE.PENDING_EXPENSIFY_CARD;
+        }
+
+        return CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD;
+    }
+
+    return getRequestType(transaction);
+}
+
 function isManualRequest(transaction: Transaction): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -184,6 +203,24 @@ function isManualRequest(transaction: Transaction): boolean {
     }
 
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    const merchant = getMerchant(transaction);
+
+    if (!merchant || isPartialMerchant(merchant)) {
+        return true;
+    }
+
+    if (isAmountMissing(transaction) && isScanRequest(transaction)) {
+        return true;
+    }
+
+    return false;
+}
+
+function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isReceiptBeingScanned(transaction));
 }
 
 /**
@@ -564,7 +601,11 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
 function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const postedDate = getPostedDate(transaction);
     const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
-    return DateUtils.formatWithUTCTimeZone(parsedDate.toDateString(), dateFormat);
+
+    if (isValid(parsedDate)) {
+        return DateUtils.formatWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
+    }
+    return '';
 }
 
 /**
@@ -989,7 +1030,7 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
-    return !!transaction.comment?.hold || isDuplicate(transaction.transactionID, true);
+    return !!transaction.comment?.hold;
 }
 
 /**
@@ -1041,6 +1082,13 @@ function hasViolation(transaction: Transaction | undefined, transactionViolation
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
             !isViolationDismissed(transaction, violation),
     );
+}
+
+function hasDuplicateTransactions(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
+    const transactionsByIouReportID = getReportTransactions(iouReportID);
+    const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
+
+    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction?.transactionID, true));
 }
 
 /**
@@ -1408,7 +1456,7 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
     };
 }
 
-function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
+function buildMergeDuplicatesParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): MergeDuplicatesParams {
     return {
         amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
         reportID: originalTransaction?.reportID,
@@ -1477,6 +1525,7 @@ export {
     getUpdatedTransaction,
     getDescription,
     getRequestType,
+    getExpenseType,
     isManualRequest,
     isScanRequest,
     getAmount,
@@ -1530,6 +1579,7 @@ export {
     getRecentTransactions,
     hasReservationList,
     hasViolation,
+    hasDuplicateTransactions,
     hasBrokenConnectionViolation,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
@@ -1541,7 +1591,7 @@ export {
     compareDuplicateTransactionFields,
     getTransactionID,
     buildNewTransactionAfterReviewingDuplicates,
-    buildTransactionsMergeParams,
+    buildMergeDuplicatesParams,
     getReimbursable,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
@@ -1556,6 +1606,8 @@ export {
     isBrokenConnectionViolation,
     checkIfShouldShowMarkAsCashButton,
     shouldShowRTERViolationMessage,
+    isPartialTransaction,
+    isPendingCardOrScanningTransaction,
 };
 
 export type {TransactionChanges};
