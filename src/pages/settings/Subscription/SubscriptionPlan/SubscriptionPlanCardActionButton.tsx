@@ -21,9 +21,10 @@ type SubscriptionPlanCardActionButtonProps = {
     subscriptionPlan: PersonalPolicyTypeExludedProps | null;
     isFromComparisonModal: boolean;
     isSelected: boolean;
+    closeComparisonModal?: () => void;
 };
 
-function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected}: SubscriptionPlanCardActionButtonProps) {
+function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected, closeComparisonModal}: SubscriptionPlanCardActionButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -33,8 +34,10 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
     const handlePlanPress = (planType: PersonalPolicyTypeExludedProps) => {
-        // If the selected plan and the current plan are the same, and the user has no policies, return.
-        if (planType === subscriptionPlan || !ownerPolicies.length) {
+        closeComparisonModal?.();
+
+        // If user has no policies, return.
+        if (!ownerPolicies.length) {
             return;
         }
 

@@ -6288,6 +6288,7 @@ const translations = {
         },
         yourPlan: {
             title: 'Tu plan',
+            exploreAllPlans: 'Explorar todos los planes',
             customPricing: 'Precios personalizados',
             asLowAs: ({price}: YourPlanPriceValueParams) => `desde ${price} por miembro activo/mes`,
             perMemberMonth: ({price}: YourPlanPriceValueParams) => `${price} por miembro/mes`,
@@ -6326,6 +6327,12 @@ const translations = {
             saveWithExpensifyTitle: 'Ahorra con la Tarjeta Expensify',
             saveWithExpensifyDescription: 'Utiliza nuestra calculadora de ahorro para ver cómo el reembolso en efectivo de la Tarjeta Expensify puede reducir tu factura de Expensify',
             saveWithExpensifyButton: 'Más información',
+        },
+        compareModal: {
+            comparePlans: 'Comparar planes',
+            unlockTheFeatures: 'Desbloquea las funciones que necesitas con el plan adecuado para ti. ',
+            viewOurPricing: 'Consulta nuestra página de precios',
+            forACompleteFeatureBreakdown: ' para ver un desglose completo de las funciones de cada uno de nuestros planes.',
         },
         details: {
             title: 'Datos de suscripción',

@@ -5769,6 +5769,7 @@ const translations = {
         },
         yourPlan: {
             title: 'Your plan',
+            exploreAllPlans: 'Explore all plans',
             customPricing: 'Custom pricing',
             asLowAs: ({price}: YourPlanPriceValueParams) => `as low as ${price} per active member/month`,
             perMemberMonth: ({price}: YourPlanPriceValueParams) => `${price} per member/month`,
@@ -5807,6 +5808,12 @@ const translations = {
             saveWithExpensifyTitle: 'Save with the Expensify Card',
             saveWithExpensifyDescription: 'Use our savings calculator to see how cash back from the Expensify Card can reduce your Expensify bill.',
             saveWithExpensifyButton: 'Learn more',
+        },
+        compareModal: {
+            comparePlans: 'Compare Plans',
+            unlockTheFeatures: 'Unlock the features you need with the plan that’s right for you. ',
+            viewOurPricing: 'View our pricing page',
+            forACompleteFeatureBreakdown: ' for a complete feature breakdown of each of our plans.',
         },
         details: {
             title: 'Subscription details',

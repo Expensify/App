@@ -23,9 +23,10 @@ type SubscriptionPlanCardProps = {
     // TODO: add comments
     subscriptionPlan: PersonalPolicyTypeExludedProps | null;
     isFromComparisonModal?: boolean;
+    closeComparisonModal?: () => void;
 };
 
-function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false}: SubscriptionPlanCardProps) {
+function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, closeComparisonModal}: SubscriptionPlanCardProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -34,9 +35,10 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false}:
     const preferredCurrency = usePreferredCurrency();
     const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(subscriptionPlan, privateSubscription?.type, preferredCurrency);
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
+    const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
 
     return (
-        <View style={[styles.borderedContentCard, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus]}>
+        <View style={[styles.borderedContentCard, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus, styles.justifyContentBetween]}>
             <View style={styles.p5}>
                 <View style={[styles.flexRow, styles.justifyContentBetween]}>
                     <Icon
@@ -47,7 +49,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false}:
                     <View>
                         <SelectCircle
                             isChecked={isSelected}
-                            selectCircleStyles={[styles.sectionSelectCircle, styles.borderNone]}
+                            selectCircleStyles={[styles.bgTransparent, styles.borderNone]}
                         />
                     </View>
                 </View>
@@ -59,7 +61,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false}:
                     key={shouldUseNarrowLayout ? 1 : 2}
                     data={benefits}
                     keyExtractor={(item) => item}
-                    numColumns={shouldUseNarrowLayout ? 1 : 2}
+                    numColumns={benefitsColumns}
                     renderItem={({item}) => (
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
                             <Icon
@@ -73,11 +75,12 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false}:
                     )}
                 />
             </View>
-            <View style={[styles.pb5]}>
+            <View style={styles.pb5}>
                 <SubscriptionPlanCardActionButton
                     subscriptionPlan={subscriptionPlan}
                     isFromComparisonModal={isFromComparisonModal}
                     isSelected={isSelected}
+                    closeComparisonModal={closeComparisonModal}
                 />
             </View>
         </View>
