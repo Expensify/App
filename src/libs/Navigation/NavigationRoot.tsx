@@ -167,7 +167,11 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        Navigation.setShouldPopAllStateOnUP(!shouldUseNarrowLayout);
+        if (!shouldUseNarrowLayout) {
+            return;
+        }
+
+        Navigation.setShouldPopAllStateOnUP(true);
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
