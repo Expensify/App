@@ -75,7 +75,7 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
                 return;
             }
 
-            // TODO - We're returning only the first file for now. BE will be adjusted later to handle multiple files. I will update this in - https://github.com/Expensify/App/issues/50911
+            // TODO - We're returning only the first file for now. BE will be adjusted later to handle multiple files. I will update this in - https://github.com/Expensify/App/issues/50912
             ownerFiles[ownerFilesKey] = reimbursementAccountDraft?.[ownerFilesKey][0];
         });
     });

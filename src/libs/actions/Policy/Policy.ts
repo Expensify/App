@@ -3,7 +3,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import * as API from '@libs/API';
 import type {
@@ -254,10 +254,10 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 
 /**
  * Checks if the currency is supported for direct reimbursement
- * USD currency is the only one supported in NewDot for now
  */
-function isCurrencySupportedForDirectReimbursement(currency: string) {
-    return currency === CONST.CURRENCY.USD;
+function isCurrencySupportedForDirectReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>) {
+    // TODO https://github.com/Expensify/App/issues/50912 check if we want to enable it temporarily on dev and staging environments only
+    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
 }
 
 /**
