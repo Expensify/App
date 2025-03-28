@@ -1,0 +1,21 @@
+{
+  "cxxNamespace": ["utils"],
+  "ios": {
+    "iosModuleName": "UtilsModule"
+  },
+  "android": {
+    "androidNamespace": ["utils"],
+    "androidCxxLibName": "UtilsModule"
+  },
+  "autolinking": {
+    "ContactsModule": {
+      "swift": "HybridContactsModule",
+      "kotlin": "HybridContactsModule"
+    },
+    "UtilsModule": {
+      "swift": "HybridUtilsModule",
+      "kotlin": "HybridUtilsModule"
+    }
+  },
+  "ignorePaths": ["node_modules"]
+}
