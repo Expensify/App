@@ -2258,11 +2258,11 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
 /**
  * Checks whether the card transaction support deleting based on liability type
  */
-function canDeleteCardTransactionByLiabilityType(iouTransactionID?: string): boolean {
+function canDeleteCardTransactionByLiabilityType(iouTransactionID?: string, defaultTransactionDeleteValue?: boolean): boolean {
     const transaction = getTransaction(iouTransactionID ?? CONST.DEFAULT_NUMBER_ID);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     if (!isCardTransaction) {
-        return true;
+        return defaultTransactionDeleteValue ?? true;
     }
     return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
