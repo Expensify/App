@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import * as CategoryOptionsListUtils from '@libs/CategoryOptionListUtils';
+import {getCategoryListSections, getCategoryOptionTree, sortCategories} from '@libs/CategoryOptionListUtils';
+import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -9,7 +10,7 @@ describe('CategoryOptionListUtils', () => {
         const emptySearch = '';
         const wrongSearch = 'bla bla';
         const recentlyUsedCategories = ['Taxi', 'Restaurant'];
-        const selectedOptions: CategoryOptionsListUtils.Category[] = [
+        const selectedOptions: Category[] = [
             {
                 name: 'Medical',
                 enabled: true,
@@ -57,7 +58,7 @@ describe('CategoryOptionListUtils', () => {
                 pendingAction: undefined,
             },
         };
-        const smallResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const smallResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -93,7 +94,7 @@ describe('CategoryOptionListUtils', () => {
                 indexOffset: 3,
             },
         ];
-        const smallSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const smallSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -120,7 +121,7 @@ describe('CategoryOptionListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const smallWrongSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -256,7 +257,7 @@ describe('CategoryOptionListUtils', () => {
                 origin: '',
             },
         };
-        const largeResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const largeResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -396,7 +397,7 @@ describe('CategoryOptionListUtils', () => {
                 ],
             },
         ];
-        const largeSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const largeSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -432,7 +433,7 @@ describe('CategoryOptionListUtils', () => {
                 ],
             },
         ];
-        const largeWrongSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const largeWrongSearchResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -441,7 +442,7 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
         const emptyCategoriesList = {};
-        const emptySelectedResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+        const emptySelectedResultList: CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -460,19 +461,19 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
 
-        const smallResult = CategoryOptionsListUtils.getCategoryListSections({
+        const smallResult = getCategoryListSections({
             searchValue: emptySearch,
             categories: smallCategoriesList,
         });
         expect(smallResult).toStrictEqual(smallResultList);
 
-        const smallSearchResult = CategoryOptionsListUtils.getCategoryListSections({searchValue: search, categories: smallCategoriesList});
+        const smallSearchResult = getCategoryListSections({searchValue: search, categories: smallCategoriesList});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);
 
-        const smallWrongSearchResult = CategoryOptionsListUtils.getCategoryListSections({searchValue: wrongSearch, categories: smallCategoriesList});
+        const smallWrongSearchResult = getCategoryListSections({searchValue: wrongSearch, categories: smallCategoriesList});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);
 
-        const largeResult = CategoryOptionsListUtils.getCategoryListSections({
+        const largeResult = getCategoryListSections({
             searchValue: emptySearch,
             selectedOptions,
             categories: largeCategoriesList,
@@ -480,7 +481,7 @@ describe('CategoryOptionListUtils', () => {
         });
         expect(largeResult).toStrictEqual(largeResultList);
 
-        const largeSearchResult = CategoryOptionsListUtils.getCategoryListSections({
+        const largeSearchResult = getCategoryListSections({
             searchValue: search,
             selectedOptions,
             categories: largeCategoriesList,
@@ -488,7 +489,7 @@ describe('CategoryOptionListUtils', () => {
         });
         expect(largeSearchResult).toStrictEqual(largeSearchResultList);
 
-        const largeWrongSearchResult = CategoryOptionsListUtils.getCategoryListSections({
+        const largeWrongSearchResult = getCategoryListSections({
             searchValue: wrongSearch,
             selectedOptions,
             categories: largeCategoriesList,
@@ -496,7 +497,7 @@ describe('CategoryOptionListUtils', () => {
         });
         expect(largeWrongSearchResult).toStrictEqual(largeWrongSearchResultList);
 
-        const emptyResult = CategoryOptionsListUtils.getCategoryListSections({searchValue: search, selectedOptions, categories: emptyCategoriesList});
+        const emptyResult = getCategoryListSections({searchValue: search, selectedOptions, categories: emptyCategoriesList});
         expect(emptyResult).toStrictEqual(emptySelectedResultList);
     });
 
@@ -883,8 +884,8 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
 
-        expect(CategoryOptionsListUtils.getCategoryOptionTree(categories)).toStrictEqual(result);
-        expect(CategoryOptionsListUtils.getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
+        expect(getCategoryOptionTree(categories)).toStrictEqual(result);
+        expect(getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
     });
 
     it('sortCategories', () => {
@@ -1235,8 +1236,8 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
 
-        expect(CategoryOptionsListUtils.sortCategories(categoriesIncorrectOrdering)).toStrictEqual(result);
-        expect(CategoryOptionsListUtils.sortCategories(categoriesIncorrectOrdering2)).toStrictEqual(result2);
-        expect(CategoryOptionsListUtils.sortCategories(categoriesIncorrectOrdering3)).toStrictEqual(result3);
+        expect(sortCategories(categoriesIncorrectOrdering)).toStrictEqual(result);
+        expect(sortCategories(categoriesIncorrectOrdering2)).toStrictEqual(result2);
+        expect(sortCategories(categoriesIncorrectOrdering3)).toStrictEqual(result3);
     });
 });

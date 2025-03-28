@@ -378,9 +378,12 @@ function updateQuickbooksDesktopShouldAutoCreateVendor<TSettingValue extends Con
 }
 
 function updateQuickbooksDesktopMarkChecksToBePrinted<TSettingValue extends Connections['quickbooksDesktop']['config']['markChecksToBePrinted']>(
-    policyID: string,
+    policyID: string | undefined,
     settingValue: TSettingValue,
 ) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED, settingValue, !settingValue);
 
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {

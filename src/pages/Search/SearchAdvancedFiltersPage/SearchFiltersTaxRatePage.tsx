@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import * as SearchActions from '@userActions/Search';
+import {updateAdvancedFilters} from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -39,7 +39,7 @@ function SearchFiltersTaxRatePage() {
         return Object.entries(singlePolicyTaxRates).map(([taxRateKey, taxRate]) => ({name: taxRate.name, value: [taxRateKey]}));
     }, [allTaxRates, singlePolicyTaxRates]);
 
-    const updateTaxRateFilters = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({taxRate: values}), []);
+    const updateTaxRateFilters = useCallback((values: string[]) => updateAdvancedFilters({taxRate: values}), []);
 
     return (
         <ScreenWrapper

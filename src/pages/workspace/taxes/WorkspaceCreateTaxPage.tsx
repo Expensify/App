@@ -16,7 +16,7 @@ import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxN
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {hasAccountingConnections} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -75,7 +75,7 @@ function WorkspaceCreateTaxPage({
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
             >
-                <FullPageNotFoundView shouldShow={PolicyUtils.hasAccountingConnections(policy)}>
+                <FullPageNotFoundView shouldShow={hasAccountingConnections(policy)}>
                     <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
                         <HeaderWithBackButton title={translate('workspace.taxes.addRate')} />
                         <FormProvider

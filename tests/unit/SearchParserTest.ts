@@ -1,5 +1,5 @@
 import type {SearchQueryJSON} from '@components/Search/types';
-import * as searchParser from '@libs/SearchParser/searchParser';
+import {parse} from '@libs/SearchParser/searchParser';
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
 const tests = [
@@ -569,14 +569,14 @@ const keywordTests = [
 
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        const result = searchParser.parse(query) as SearchQueryJSON;
+        const result = parse(query) as SearchQueryJSON;
         expect(result).toEqual(expected);
     });
 });
 
 describe('Testing search parser with special characters and wrapped in quotes.', () => {
     test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
-        const result = searchParser.parse(query) as SearchQueryJSON;
+        const result = parse(query) as SearchQueryJSON;
         expect(result).toEqual(expected);
     });
 });

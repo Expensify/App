@@ -10,10 +10,10 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Tag from '@libs/actions/Policy/Tag';
+import {renamePolicyTagList} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagListName} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -28,7 +28,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const tagListName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
+    const tagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const {inputCallbackRef} = useAutoFocusInput();
     const backTo = route.params.backTo;
     const isQuickSettingsFlow = !!backTo;
@@ -58,7 +58,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const updateTagListName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
             if (values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
-                Tag.renamePolicyTagList(route.params.policyID, {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
+                renamePolicyTagList(route.params.policyID, {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
             }
             goBackToTagsSettings();
         },
@@ -94,7 +94,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                             inputID={INPUT_IDS.POLICY_TAGS_NAME}
                             label={translate(`workspace.tags.customTagName`)}
                             accessibilityLabel={translate(`workspace.tags.customTagName`)}
-                            defaultValue={PolicyUtils.getCleanedTagName(tagListName)}
+                            defaultValue={getCleanedTagName(tagListName)}
                             role={CONST.ROLE.PRESENTATION}
                             ref={inputCallbackRef}
                         />

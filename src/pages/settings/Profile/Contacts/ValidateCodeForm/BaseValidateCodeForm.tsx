@@ -16,10 +16,10 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Session from '@userActions/Session';
-import * as User from '@userActions/User';
+import {getEarliestErrorField, getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import {isValidValidateCode} from '@libs/ValidationUtils';
+import {clearAccountMessages} from '@userActions/Session';
+import {addNewContactMethod, clearContactMethodErrors, requestContactMethodValidateCode, saveNewContactMethodAndRequestValidationCode, validateSecondaryLogin} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,7 +84,7 @@ function BaseValidateCodeForm({
     const [validateCode, setValidateCode] = useState('');
     const loginData = loginList?.[pendingContact?.contactMethod ?? contactMethod];
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
-    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
+    const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -129,11 +129,11 @@ function BaseValidateCodeForm({
     );
 
     useEffect(() => {
-        Session.clearAccountMessages();
+        clearAccountMessages();
         if (!validateLoginError) {
             return;
         }
-        User.clearContactMethodErrors(contactMethod, 'validateLogin');
+        clearContactMethodErrors(contactMethod, 'validateLogin');
         // contactMethod is not added as a dependency since it does not change between renders
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -162,9 +162,9 @@ function BaseValidateCodeForm({
      */
     const resendValidateCode = () => {
         if (!!pendingContact?.contactMethod && isValidatingAction) {
-            User.saveNewContactMethodAndRequestValidationCode(pendingContact?.contactMethod);
+            saveNewContactMethodAndRequestValidationCode(pendingContact?.contactMethod);
         } else {
-            User.requestContactMethodValidateCode(contactMethod);
+            requestContactMethodValidateCode(contactMethod);
         }
 
         inputValidateCodeRef.current?.clear();
@@ -179,7 +179,7 @@ function BaseValidateCodeForm({
             setFormError({});
 
             if (validateLoginError) {
-                User.clearContactMethodErrors(contactMethod, 'validateLogin');
+                clearContactMethodErrors(contactMethod, 'validateLogin');
             }
         },
         [validateLoginError, contactMethod],
@@ -194,7 +194,7 @@ function BaseValidateCodeForm({
             return;
         }
 
-        if (!ValidationUtils.isValidValidateCode(validateCode)) {
+        if (!isValidValidateCode(validateCode)) {
             setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
             return;
         }
@@ -202,11 +202,11 @@ function BaseValidateCodeForm({
         setFormError({});
 
         if (!!pendingContact?.contactMethod && isValidatingAction) {
-            User.addNewContactMethod(pendingContact?.contactMethod, validateCode);
+            addNewContactMethod(pendingContact?.contactMethod, validateCode);
             return;
         }
 
-        User.validateSecondaryLogin(loginList, contactMethod, validateCode);
+        validateSecondaryLogin(loginList, contactMethod, validateCode);
     }, [loginList, validateCode, contactMethod, isValidatingAction, pendingContact?.contactMethod]);
 
     return (
@@ -217,16 +217,16 @@ function BaseValidateCodeForm({
                 name="validateCode"
                 value={validateCode}
                 onChangeText={onTextInput}
-                errorText={formError?.validateCode ? translate(formError?.validateCode) : ErrorUtils.getLatestErrorMessage(account ?? {})}
+                errorText={formError?.validateCode ? translate(formError?.validateCode) : getLatestErrorMessage(account ?? {})}
                 hasError={!isEmptyObject(validateLoginError)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
             />
             <OfflineWithFeedback
                 pendingAction={pendingContact?.pendingFields?.validateCodeSent ?? loginData?.pendingFields?.validateCodeSent}
-                errors={ErrorUtils.getLatestErrorField(pendingContact ?? loginData, pendingContact ? 'actionVerified' : 'validateCodeSent')}
+                errors={getLatestErrorField(pendingContact ?? loginData, pendingContact ? 'actionVerified' : 'validateCodeSent')}
                 errorRowStyles={[styles.mt2]}
-                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
+                onClose={() => clearContactMethodErrors(contactMethod, 'validateCodeSent')}
             >
                 <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
                     <PressableWithFeedback
@@ -255,7 +255,7 @@ function BaseValidateCodeForm({
                 pendingAction={loginData?.pendingFields?.validateLogin}
                 errors={validateLoginError}
                 errorRowStyles={[styles.mt2]}
-                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
+                onClose={() => clearContactMethodErrors(contactMethod, 'validateLogin')}
             >
                 <Button
                     isDisabled={isOffline}

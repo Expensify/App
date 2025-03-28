@@ -19,16 +19,16 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
+import {isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
-import * as LoginUtils from '@libs/LoginUtils';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import * as CloseAccount from '@userActions/CloseAccount';
-import * as Session from '@userActions/Session';
+import {setDefaultData} from '@userActions/CloseAccount';
+import {beginSignIn, clearAccountMessages, clearSignInData} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -66,7 +66,7 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
                 return false;
             }
 
-            const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
+            const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim));
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
             if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
@@ -95,12 +95,12 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
             }
 
             if (!!account?.errors || !!account?.message) {
-                Session.clearAccountMessages();
+                clearAccountMessages();
             }
 
             // Clear the "Account successfully closed" message when the user starts typing
             if (closeAccount?.success && !isInputAutoFilled(input.current)) {
-                CloseAccount.setDefaultData();
+                setDefaultData();
             }
         },
         [account, closeAccount, input, onLoginChanged, validate],
@@ -121,7 +121,7 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
 
         // If account was closed and have success message in Onyx, we clear it here
         if (closeAccount?.success) {
-            CloseAccount.setDefaultData();
+            setDefaultData();
         }
 
         // For native, the single input doesn't lost focus when we click outside.
@@ -137,11 +137,11 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
 
         const loginTrim = login.trim();
 
-        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
+        const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim));
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
         // Check if this login has an account associated with it or not
-        Session.beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
+        beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
     }, [login, account, closeAccount, isOffline, validate]);
 
     useEffect(() => {
@@ -150,7 +150,7 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
         // resetting account.isLoading will cause the app to briefly display the session expiration page.
 
         if (isFocused && isVisible) {
-            Session.clearAccountMessages();
+            clearAccountMessages();
         }
         if (!canFocusInputOnScreenFocus() || !input.current || !isVisible || !isFocused) {
             return;
@@ -196,20 +196,20 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
                 return;
             }
             if (clearLogin) {
-                Session.clearSignInData();
+                clearSignInData();
             }
             input.current.focus();
         },
     }));
 
-    const serverErrorText = useMemo(() => (account ? ErrorUtils.getLatestErrorMessage(account) : ''), [account]);
+    const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
     const shouldShowServerError = !!serverErrorText && !formError;
     const isSigningWithAppleOrGoogle = useRef(false);
     const setIsSigningWithAppleOrGoogle = useCallback((isPressed: boolean) => (isSigningWithAppleOrGoogle.current = isPressed), []);
 
     const submitContainerRef = useRef<View | HTMLDivElement>(null);
     const handleFocus = useCallback(() => {
-        if (!Browser.isMobileWebKit()) {
+        if (!isMobileWebKit()) {
             return;
         }
         // On mobile WebKit browsers, when an input field gains focus, the keyboard appears and the virtual viewport is resized and scrolled to make the input field visible.
