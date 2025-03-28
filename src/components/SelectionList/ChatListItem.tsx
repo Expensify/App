@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getChatListItemReportName} from '@libs/ReportUtils';
 import ReportActionItemDate from '@pages/home/report/ReportActionItemDate';
 import ReportActionItemFragment from '@pages/home/report/ReportActionItemFragment';
 import variables from '@styles/variables';
@@ -110,7 +111,7 @@ function ChatListItem<TItem extends ListItem>({
                                         onPress={() => onSelectRow(item)}
                                         numberOfLines={1}
                                     >
-                                        {reportActionItem.reportName}
+                                        {getChatListItemReportName(reportActionItem)}
                                     </TextLink>
                                 </View>
                                 <View style={styles.flexRow}>

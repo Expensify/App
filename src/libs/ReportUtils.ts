@@ -4496,6 +4496,12 @@ function getSearchReportName(props: GetReportNameParams): string {
     return getReportNameInternal(props);
 }
 
+function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
+    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+    const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
+    return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
+}
+
 function getReportNameInternal({
     report,
     policy,
@@ -4644,9 +4650,7 @@ function getReportNameInternal({
     }
 
     if (isInvoiceReport(report)) {
-        const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
-        const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
-        formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
+        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
@@ -9445,6 +9449,16 @@ function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
     return isSelectedManagerMcTest(persionalDetails?.login);
 }
 
+function getChatListItemReportName(action: ReportAction & {reportID: string; reportName?: string}): string {
+    const report = getReport(action.reportID, allReports);
+
+    if (isInvoiceReport(report)) {
+        return getInvoiceReportName(report);
+    }
+
+    return action?.reportName ?? '';
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -9793,6 +9807,8 @@ export {
     buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    getInvoiceReportName,
+    getChatListItemReportName,
 };
 
 export type {
