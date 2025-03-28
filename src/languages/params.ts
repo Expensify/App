@@ -448,7 +448,7 @@ type BadgeFreeTrialParams = {numOfDays: number};
 
 type BillingBannerSubtitleWithDateParams = {date: string};
 
-type BillingBannerOwnerAmountOwedOverdueParams = {date: string; purchaseAmountOwed: string};
+type BillingBannerOwnerAmountOwedOverdueParams = {date?: string; purchaseAmountOwed?: string};
 
 type BillingBannerDisputePendingParams = {amountOwed: number; cardEnding: string};
 
