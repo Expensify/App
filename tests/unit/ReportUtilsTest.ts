@@ -1429,6 +1429,25 @@ describe('ReportUtils', () => {
             expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeTruthy();
         });
 
+        it('should return false for empty workspace chat if excludeEmptyChats is true', () => {
+            const workspaceChat: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const isInFocusMode = false;
+            expect(
+                shouldReportBeInOptionList({
+                    report: workspaceChat,
+                    isInFocusMode,
+                    excludeEmptyChats: true,
+                    betas: [],
+                    currentReportId: undefined,
+                    doesReportHaveViolations: false,
+                    policies: {},
+                }),
+            ).toBe(false);
+        });
+
         it('should return true when the report has outstanding violations', async () => {
             const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
             const expenseTransaction = buildOptimisticTransaction({
