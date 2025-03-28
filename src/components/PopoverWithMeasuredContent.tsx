@@ -72,6 +72,10 @@ function PopoverWithMeasuredContent({
 
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
+    /**
+     * Reset the content measurement state when the popover becomes invisible.
+     * This ensures we re-measure the content next time the popover is shown.
+     */
     useEffect(() => {
         if (isVisible) {
             return;
