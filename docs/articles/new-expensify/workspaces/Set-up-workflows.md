@@ -42,7 +42,7 @@ The payments section is where you’ll set up your business bank account for pay
 1. Click **Workflows**.
 2. Enable the Payments toggle.
 3. Click **Connect Bank Account**.
-4. Follow the prompts to [connect your company bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account).
+4. Follow the prompts to [connect your company bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
 5. Once enabled, choose an authorized expense payer. The authorized payer is a workspace admin who has access to the business bank account. They will be the default reimburser/payor for expenses submitted to the workspace. 
 
 {% include faq-begin.md %}
