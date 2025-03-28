@@ -109,6 +109,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
             <ReportActionItemFragment
                 /* eslint-disable-next-line react/no-array-index-key */
                 key={`actionFragment-${action.reportActionID}-${index}`}
+                reportActionID={action.reportActionID}
                 fragment={fragment}
                 iouMessage={iouMessage}
                 isThreadParentMessage={isThreadParentMessage(action, reportID)}
