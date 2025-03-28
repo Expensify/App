@@ -86,7 +86,7 @@ target 'NewExpensify' do
     'ReleaseProduction' => :release,
     'Debug' => :debug
 
-  config = use_native_modules!
+  config = use_native_modules!(['npx', 'rnef', 'config', '-p', 'ios'])
 
   # Flags change depending on the env values.
   flags = get_default_flags()
