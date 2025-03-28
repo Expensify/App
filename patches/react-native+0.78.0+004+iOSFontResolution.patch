@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
-index b086734..7d7f770 100644
+index b48a427..2470f20 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
 +++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
 @@ -38,9 +38,6 @@ static RCTFontProperties RCTResolveFontProperties(
@@ -12,8 +12,8 @@ index b086734..7d7f770 100644
    fontProperties.variant =
        fontProperties.variant != RCTFontVariantUndefined ? fontProperties.variant : baseFontProperties.variant;
    return fontProperties;
-@@ -157,10 +154,14 @@ static RCTFontStyle RCTGetFontStyle(UIFont *font)
-   if ([fontProperties.family isEqualToString:defaultFontProperties.family]) {
+@@ -179,10 +176,14 @@ UIFont *RCTFontWithFontProperties(RCTFontProperties fontProperties)
+   } else if ([fontProperties.family isEqualToString:defaultFontProperties.family]) {
      // Handle system font as special case. This ensures that we preserve
      // the specific metrics of the standard system font as closely as possible.
 +    fontProperties.weight = !isnan(fontProperties.weight) ? fontProperties.weight : defaultFontProperties.weight;
@@ -27,7 +27,7 @@ index b086734..7d7f770 100644
  
      if (fontNames.count == 0) {
        // Gracefully handle being given a font name rather than font family, for
-@@ -173,15 +174,18 @@ static RCTFontStyle RCTGetFontStyle(UIFont *font)
+@@ -195,15 +196,18 @@ UIFont *RCTFontWithFontProperties(RCTFontProperties fontProperties)
          // Failback to system font.
          font = [UIFont systemFontOfSize:effectiveFontSize weight:fontProperties.weight];
        }

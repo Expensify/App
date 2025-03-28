@@ -43,7 +43,7 @@ index 6c4bbb2..770dfee 100644
      disableFullscreenUI: true,
      includeFontPadding: true,
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
-index 53d9349..865ccb2 100644
+index 27cd180..4bedac9 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
 @@ -88,6 +88,9 @@ const RCTTextInputViewConfig = {
@@ -65,10 +65,10 @@ index 53d9349..865ccb2 100644
        onKeyPressSync: true,
      }),
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-index f7074aa..214ccc0 100644
+index 13a73e7..2112772 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
-@@ -510,6 +510,16 @@ export interface TextInputSubmitEditingEventData {
+@@ -515,6 +515,16 @@ export interface TextInputSubmitEditingEventData {
    text: string;
  }
  
@@ -85,7 +85,7 @@ index f7074aa..214ccc0 100644
  /**
   * @see https://reactnative.dev/docs/textinput#props
   */
-@@ -861,6 +871,13 @@ export interface TextInputProps
+@@ -866,6 +876,13 @@ export interface TextInputProps
      | ((e: NativeSyntheticEvent<TextInputKeyPressEventData>) => void)
      | undefined;
  
@@ -100,7 +100,7 @@ index f7074aa..214ccc0 100644
     * The string that will be rendered before text input has been entered
     */
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
-index b61fe39..64a5b99 100644
+index faee19f..220eb99 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.flow.js
 @@ -93,6 +93,18 @@ export type EditingEvent = SyntheticEvent<
@@ -122,7 +122,7 @@ index b61fe39..64a5b99 100644
  type DataDetectorTypesType =
    | 'phoneNumber'
    | 'link'
-@@ -833,6 +845,11 @@ export type Props = $ReadOnly<{|
+@@ -839,6 +851,11 @@ export type Props = $ReadOnly<{|
     */
    onScroll?: ?(e: ScrollEvent) => mixed,
  
@@ -135,7 +135,7 @@ index b61fe39..64a5b99 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-index 0107e78..0684516 100644
+index aa49725..636bb80 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 @@ -134,6 +134,18 @@ export type EditingEvent = SyntheticEvent<
@@ -157,7 +157,7 @@ index 0107e78..0684516 100644
  type DataDetectorTypesType =
    | 'phoneNumber'
    | 'link'
-@@ -836,6 +848,11 @@ export type Props = $ReadOnly<{|
+@@ -842,6 +854,11 @@ export type Props = $ReadOnly<{|
     */
    onScroll?: ?(e: ScrollEvent) => mixed,
  
@@ -170,7 +170,7 @@ index 0107e78..0684516 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index d5e2e22..065a819 100644
+index 565b0f6..f6670fd 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 @@ -13,6 +13,10 @@
@@ -184,7 +184,7 @@ index d5e2e22..065a819 100644
  @implementation RCTUITextView {
    UILabel *_placeholderView;
    UITextView *_detachedTextView;
-@@ -172,7 +176,31 @@ - (void)scrollRangeToVisible:(NSRange)range
+@@ -198,7 +202,31 @@ static UIColor *defaultPlaceholderColor(void)
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
@@ -217,7 +217,7 @@ index d5e2e22..065a819 100644
  }
  
  // Turn off scroll animation to fix flaky scrolling.
-@@ -264,6 +292,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+@@ -290,6 +318,10 @@ static UIColor *defaultPlaceholderColor(void)
      return NO;
    }
  
@@ -265,7 +265,7 @@ diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInp
 index ac8e464..2b91802 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegateAdapter.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegateAdapter.mm
-@@ -147,6 +147,11 @@ - (void)selectedTextRangeWasSet
+@@ -147,6 +147,11 @@ static void *TextFieldSelectionObservingContext = &TextFieldSelectionObservingCo
    [self textFieldProbablyDidChangeSelection];
  }
  
@@ -277,7 +277,7 @@ index ac8e464..2b91802 100644
  #pragma mark - Generalization
  
  - (void)textFieldProbablyDidChangeSelection
-@@ -292,6 +297,11 @@ - (void)skipNextTextInputDidChangeSelectionEventWithTextRange:(UITextRange *)tex
+@@ -292,6 +297,11 @@ static void *TextFieldSelectionObservingContext = &TextFieldSelectionObservingCo
    _previousSelectedTextRange = textRange;
  }
  
@@ -302,10 +302,10 @@ index 4804624..90b7081 100644
  @property (nonatomic, assign) NSInteger mostRecentEventCount;
  @property (nonatomic, assign, readonly) NSInteger nativeEventCount;
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
-index 95edfd5..5111bda 100644
+index 6a2d4f8..b6e6060 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
-@@ -574,6 +574,26 @@ - (void)textInputDidChangeSelection
+@@ -599,6 +599,26 @@ RCT_NOT_IMPLEMENTED(-(instancetype)initWithFrame : (CGRect)frame)
    });
  }
  
@@ -333,10 +333,10 @@ index 95edfd5..5111bda 100644
  {
    [self enforceTextAttributesIfNeeded];
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
-index db7c519..ec05595 100644
+index 93f8129..4b43542 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
-@@ -67,6 +67,7 @@ @implementation RCTBaseTextInputViewManager {
+@@ -67,6 +67,7 @@ RCT_EXPORT_VIEW_PROPERTY(onClear, RCTDirectEventBlock)
  RCT_EXPORT_VIEW_PROPERTY(onChangeSync, RCTDirectEventBlock)
  RCT_EXPORT_VIEW_PROPERTY(onSelectionChange, RCTDirectEventBlock)
  RCT_EXPORT_VIEW_PROPERTY(onScroll, RCTDirectEventBlock)
@@ -345,7 +345,7 @@ index db7c519..ec05595 100644
  RCT_EXPORT_VIEW_PROPERTY(mostRecentEventCount, NSInteger)
  
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 0318671..667e646 100644
+index 338a1f4..a3df02a 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 @@ -12,6 +12,10 @@
@@ -359,7 +359,7 @@ index 0318671..667e646 100644
  @implementation RCTUITextField {
    RCTBackedTextFieldDelegateAdapter *_textInputDelegateAdapter;
    NSDictionary<NSAttributedStringKey, id> *_defaultTextAttributes;
-@@ -139,6 +143,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+@@ -165,6 +169,10 @@
      return NO;
    }
  
@@ -370,7 +370,7 @@ index 0318671..667e646 100644
    return [super canPerformAction:action withSender:sender];
  }
  
-@@ -222,7 +230,31 @@ - (void)scrollRangeToVisible:(NSRange)range
+@@ -248,7 +256,31 @@
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
@@ -404,10 +404,10 @@ index 0318671..667e646 100644
  
  #pragma mark - Layout
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-index f8358ed..91aff1a 100644
+index d3170c7..6c038a8 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -481,6 +481,13 @@ - (void)textInputDidChangeSelection
+@@ -486,6 +486,13 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
    }
  }
  
@@ -445,7 +445,7 @@ index 0000000..bfb5819
 +  public void onPaste(String type, String data);
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-index 56a1069..272ea7d 100644
+index a037077..150fc6c 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 @@ -9,6 +9,10 @@ package com.facebook.react.views.textinput;
@@ -467,7 +467,7 @@ index 56a1069..272ea7d 100644
  import android.os.Build;
  import android.os.Bundle;
  import android.text.Editable;
-@@ -122,6 +127,7 @@ public class ReactEditText extends AppCompatEditText {
+@@ -120,6 +125,7 @@ public class ReactEditText extends AppCompatEditText {
    private @Nullable SelectionWatcher mSelectionWatcher;
    private @Nullable ContentSizeWatcher mContentSizeWatcher;
    private @Nullable ScrollWatcher mScrollWatcher;
@@ -475,7 +475,7 @@ index 56a1069..272ea7d 100644
    private InternalKeyListener mKeyListener;
    private boolean mDetectScrollMovement = false;
    private boolean mOnKeyPress = false;
-@@ -165,6 +171,7 @@ public class ReactEditText extends AppCompatEditText {
+@@ -163,6 +169,7 @@ public class ReactEditText extends AppCompatEditText {
        mKeyListener = new InternalKeyListener();
      }
      mScrollWatcher = null;
@@ -483,7 +483,7 @@ index 56a1069..272ea7d 100644
      mTextAttributes = new TextAttributes();
  
      applyTextAttributes();
-@@ -332,8 +339,29 @@ public class ReactEditText extends AppCompatEditText {
+@@ -330,8 +337,29 @@ public class ReactEditText extends AppCompatEditText {
     */
    @Override
    public boolean onTextContextMenuItem(int id) {
@@ -514,7 +514,7 @@ index 56a1069..272ea7d 100644
      }
      return super.onTextContextMenuItem(id);
    }
-@@ -395,6 +423,10 @@ public class ReactEditText extends AppCompatEditText {
+@@ -393,6 +421,10 @@ public class ReactEditText extends AppCompatEditText {
      mScrollWatcher = scrollWatcher;
    }
  
