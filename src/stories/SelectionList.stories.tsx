@@ -3,7 +3,7 @@ import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {BaseSelectionListProps, ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListProps} from '@components/SelectionList/types';
 import withNavigationFallback from '@components/withNavigationFallback';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
@@ -71,7 +71,7 @@ const SECTIONS = [
     },
 ];
 
-function Default(props: BaseSelectionListProps<ListItem>) {
+function Default(props: SelectionListProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const sections = props.sections.map((section) => {
@@ -110,7 +110,7 @@ Default.args = {
     initiallyFocusedOptionKey: 'option-2',
 };
 
-function WithTextInput(props: BaseSelectionListProps<ListItem>) {
+function WithTextInput(props: SelectionListProps<ListItem>) {
     const [searchText, setSearchText] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(1);
 
@@ -162,7 +162,7 @@ WithTextInput.args = {
     onChangeText: () => {},
 };
 
-function WithHeaderMessage(props: BaseSelectionListProps<ListItem>) {
+function WithHeaderMessage(props: SelectionListProps<ListItem>) {
     return (
         <WithTextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -177,7 +177,7 @@ WithHeaderMessage.args = {
     sections: [],
 };
 
-function WithAlternateText(props: BaseSelectionListProps<ListItem>) {
+function WithAlternateText(props: SelectionListProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const sections = props.sections.map((section) => {
@@ -218,7 +218,7 @@ WithAlternateText.args = {
     ...Default.args,
 };
 
-function MultipleSelection(props: BaseSelectionListProps<ListItem>) {
+function MultipleSelection(props: SelectionListProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
@@ -288,7 +288,7 @@ MultipleSelection.args = {
     onSelectAll: () => {},
 };
 
-function WithSectionHeader(props: BaseSelectionListProps<ListItem>) {
+function WithSectionHeader(props: SelectionListProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
@@ -356,7 +356,7 @@ WithSectionHeader.args = {
     ...MultipleSelection.args,
 };
 
-function WithConfirmButton(props: BaseSelectionListProps<ListItem>) {
+function WithConfirmButton(props: SelectionListProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {

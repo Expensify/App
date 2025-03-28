@@ -328,9 +328,13 @@ function assertFormDataMatchesObject(obj: Report, formData?: FormData) {
     }
 }
 
+function getNavigateToChatHintRegex(): RegExp {
+    const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
+    return new RegExp(hintTextPrefix, 'i');
+}
+
 async function navigateToSidebarOption(index: number): Promise<void> {
-    const hintText = translateLocal('accessibilityHints.navigatesToChat');
-    const optionRow = screen.queryAllByAccessibilityHint(hintText).at(index);
+    const optionRow = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex()).at(index);
     if (!optionRow) {
         return;
     }
@@ -353,4 +357,5 @@ export {
     setupGlobalFetchMock,
     navigateToSidebarOption,
     getOnyxData,
+    getNavigateToChatHintRegex,
 };

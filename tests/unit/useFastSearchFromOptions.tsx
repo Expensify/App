@@ -46,4 +46,32 @@ describe('useFastSearchFromOptions', () => {
         expect(personalDetails).toEqual([expect.objectContaining({text: 'Ahmed Gaber'})]);
         expect(recentReports).toEqual([{text: 'Ahmed Gaber (Report)'}]);
     });
+    it('should return reports/personalDetails with non-latin characters', () => {
+        const options = {
+            currentUserOption: null,
+            userToInvite: null,
+            personalDetails: [
+                {
+                    text: 'Fábio',
+                    participantsList: [
+                        {
+                            displayName: 'Fábio',
+                        },
+                    ],
+                },
+            ],
+            recentReports: [
+                {
+                    text: 'Fábio (Report)',
+                },
+            ],
+        } as Options;
+        const {result} = renderHook(() => useFastSearchFromOptions(options));
+        const search = result.current;
+
+        const {personalDetails, recentReports} = search('Fabio');
+
+        expect(personalDetails).toEqual([expect.objectContaining({text: 'Fábio'})]);
+        expect(recentReports).toEqual([{text: 'Fábio (Report)'}]);
+    });
 });

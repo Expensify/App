@@ -191,15 +191,110 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
             ],
+            [
+                [
+                    {
+                        created: '2022-11-09 22:27:01.825',
+                        reportActionID: '8401445780099176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:27:01.600',
+                        reportActionID: '6401435781022176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    // this item has no created field, so it should appear right after CONST.REPORT.ACTIONS.TYPE.CREATED
+                    {
+                        reportActionID: '2962390724708756',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.889',
+                        reportActionID: '1609646094152486',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.989',
+                        reportActionID: '1661970171066218',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                ],
+                [
+                    {
+                        created: '2022-11-09 22:27:01.600',
+                        reportActionID: '6401435781022176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        reportActionID: '2962390724708756',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.889',
+                        reportActionID: '1609646094152486',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.989',
+                        reportActionID: '1661970171066218',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:27:01.825',
+                        reportActionID: '8401445780099176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                ],
+            ],
         ];
 
         test.each(cases)('sorts by created, then actionName, then reportActionID', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input);
+            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[]);
             expect(result).toStrictEqual(expectedOutput);
         });
 
         test.each(cases)('in descending order', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input, true);
+            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[], true);
             expect(result).toStrictEqual(expectedOutput.reverse());
         });
     });
