@@ -1,0 +1,40 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp b/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
+index f608576..5671af7 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
+@@ -3,7 +3,6 @@
+ #include <fbjni/fbjni.h>
+ #include <react/fabric/JFabricUIManager.h>
+ #include <react/jni/ReadableNativeMap.h>
+-#include <react/renderer/components/androidtextinput/AndroidTextInputState.h>
+ #include <react/renderer/components/view/conversions.h>
+ #include <react/renderer/core/ComponentDescriptor.h>
+ #include <yoga/Yoga.h>
+diff --git a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownTextInputDecoratorShadowNode.mm b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownTextInputDecoratorShadowNode.mm
+index 0249590..02a3ed8 100644
+--- a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownTextInputDecoratorShadowNode.mm
++++ b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownTextInputDecoratorShadowNode.mm
+@@ -88,7 +88,9 @@ Size MarkdownTextInputDecoratorShadowNode::measureContent(
+       std::const_pointer_cast<TextInputShadowNode>(child);
+   applyMarkdownFormattingToTextInputState(mutableChild, layoutContext);
+ 
+-  return child->measureContent(layoutContext, layoutConstraints);
++  const auto childWithMeasureContentAccess =
++      std::static_pointer_cast<const YogaLayoutableShadowNode>(child);
++  return childWithMeasureContentAccess->measureContent(layoutContext, layoutConstraints);
+ }
+ 
+ void MarkdownTextInputDecoratorShadowNode::layout(LayoutContext layoutContext) {
+diff --git a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
+index 348b6d5..56b713d 100644
+--- a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
++++ b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
+@@ -133,7 +133,7 @@ const MarkdownTextInput = React.forwardRef<MarkdownTextInput, MarkdownTextInputP
+     const currentlyFocusedField = useRef<HTMLDivElement | null>(null);
+     const contentSelection = useRef<Selection | null>(null);
+     const className = `react-native-live-markdown-input-${multiline ? 'multiline' : 'singleline'}`;
+-    const history = useRef<InputHistory>();
++    const history = useRef<InputHistory>(null);
+     const dimensions = useRef<Dimensions | null>(null);
+     const pasteContent = useRef<string | null>(null);
+     const hasJustBeenFocused = useRef<boolean>(false);
