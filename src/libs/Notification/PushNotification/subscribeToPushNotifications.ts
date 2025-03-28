@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
-import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
@@ -65,11 +64,6 @@ Onyx.connect({
 
 function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: ReportActionPushNotificationData): Promise<void> {
     Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
-
-    if (!ActiveClientManager.isClientTheLeader()) {
-        Log.info('[PushNotification] received report comment notification, but ignoring it since this is not the active client');
-        return Promise.resolve();
-    }
 
     const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
         if (isDataMissing) {
