@@ -521,6 +521,7 @@ const translations = {
         help: 'Ayuda',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
+        reimbursable: 'Reembolsable',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

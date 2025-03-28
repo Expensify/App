@@ -2741,6 +2741,10 @@ const CONST = {
 
     LANGUAGES: ['en', 'es'],
 
+    BILLABLE_OPTIONS: ['yes', 'no'],
+
+    REIMBURSABLE_OPTIONS: ['yes', 'no'],
+
     PRONOUNS_LIST: [
         'coCos',
         'eEyEmEir',
@@ -6512,6 +6516,8 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            REIMBURSABLE: 'reimbursable',
+            BILLABLE: 'billable',
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {

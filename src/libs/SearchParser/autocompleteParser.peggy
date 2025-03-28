@@ -68,6 +68,8 @@ autocompleteKey "key"
       / cardID
       / feed
       / groupBy
+      / reimbursable
+      / billable
     )
 
 identifier

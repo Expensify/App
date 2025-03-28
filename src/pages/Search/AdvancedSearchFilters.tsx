@@ -136,6 +136,16 @@ const baseFilterConfig = {
         description: 'common.in' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
     },
+    reimbursable: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.reimbursable' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_REIMBURSABLE,
+    },
+    billable: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.billable' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_BILLABLE,
+    },
 };
 
 /**
@@ -155,6 +165,8 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
         ],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [
@@ -527,6 +539,8 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                     }
                     return {
                         key,
