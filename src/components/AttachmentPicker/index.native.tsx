@@ -1,10 +1,10 @@
+import RNDocumentPicker from '@react-native-documents/picker';
+import type {DocumentPickerOptions, DocumentPickerResponse} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
 import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
-import RNDocumentPicker from 'react-native-document-picker';
-import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';

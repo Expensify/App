@@ -1,4 +1,4 @@
-import type {pick, pickDirectory, releaseSecureAccess, types} from 'react-native-document-picker';
+import type {pick, pickDirectory, releaseSecureAccess, types} from '@react-native-documents/picker';
 
 type ReactNativeDocumentPickerMock = {
     pick: typeof pick;
