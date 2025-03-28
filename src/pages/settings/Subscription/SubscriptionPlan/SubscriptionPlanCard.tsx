@@ -64,6 +64,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                 <FlatList
                     key={shouldUseNarrowLayout ? 1 : 2}
                     data={benefits}
+                    scrollEnabled={false}
                     keyExtractor={(item) => item}
                     numColumns={benefitsColumns}
                     renderItem={({item}) => (

@@ -27,7 +27,7 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const renderPlans = () => (
-        <View style={[styles.ph8, styles.pb8]}>
+        <View style={isSmallScreenWidth ? [styles.ph4, styles.pb8] : [styles.ph8, styles.pb8]}>
             <Text style={[styles.textLabelSupporting, styles.textNormal]}>
                 {translate('subscription.compareModal.unlockTheFeatures')}
                 <TextLink href={CONST.PRICING}>{translate('subscription.compareModal.viewOurPricing')}</TextLink>
@@ -60,7 +60,7 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
                 shouldShowCloseButton
                 onCloseButtonPress={() => setIsModalVisible(false)}
                 shouldShowBackButton={false}
-                style={[styles.pr3, styles.pl8]}
+                style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
             />
             {isSmallScreenWidth ? <ScrollView>{renderPlans()}</ScrollView> : renderPlans()}
         </Modal>
