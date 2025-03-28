@@ -119,6 +119,7 @@ import {
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     isArchivedReport,
     isArchivedReportWithID,
+    isClosedReport as isClosedReportUtil,
     isDraftReport,
     isExpenseReport,
     isIndividualInvoiceRoom,
@@ -8484,8 +8485,10 @@ function canApproveIOU(
         return false;
     }
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport?.reportID, reportTransactions);
-
-    return reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isPayAtEndExpenseReport;
+    const isClosedReport = isClosedReportUtil(iouReport);
+    return (
+        reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isPayAtEndExpenseReport && !isClosedReport
+    );
 }
 
 function canUnapproveIOU(iouReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
@@ -9177,7 +9180,6 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingChildRequest: true,
                 iouReportID: expenseReport.reportID,
             },
         });

@@ -156,6 +156,12 @@ const webViewStyles = (theme: ThemeColors) =>
                 fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
             },
 
+            strong: {
+                // We set fontFamily and fontWeight directly in order to avoid overriding fontStyle.
+                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+                fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+            },
+
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
@@ -589,7 +595,8 @@ const styles = (theme: ThemeColors) =>
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            display: shouldDisplayTopLevelBottomTabBar ? 'flex' : 'none',
+            opacity: shouldDisplayTopLevelBottomTabBar ? 1 : 0,
+            pointerEvents: shouldDisplayTopLevelBottomTabBar ? 'auto' : 'none',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             paddingBottom: bottomSafeAreaOffset,
             bottom: 0,
@@ -3768,10 +3775,20 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
+        searchListHeaderContainerStyle: {
+            width: '100%',
+            flexDirection: 'row',
+            alignItems: 'center',
+            ...userSelect.userSelectNone,
+            paddingBottom: 12,
+            backgroundColor: theme.appBG,
+            justifyContent: 'flex-start',
+        },
+
         narrowSearchHeaderStyle: {
+            flex: 1,
             paddingTop: 12,
             backgroundColor: theme.appBG,
-            flex: 1,
         },
 
         narrowSearchRouterInactiveStyle: {
@@ -4300,18 +4317,20 @@ const styles = (theme: ThemeColors) =>
             ...writingDirection.ltr,
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh2,
+            lineHeight: variables.lineHeighTaskTitle,
             maxWidth: '100%',
             ...wordBreak.breakWord,
+            textUnderlineOffset: -1,
         },
 
         taskTitleMenuItemItalic: {
             ...writingDirection.ltr,
             ...headlineItalicFont,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh2,
+            lineHeight: variables.lineHeighTaskTitle,
             maxWidth: '100%',
             ...wordBreak.breakWord,
+            textUnderlineOffset: -1,
         },
 
         taskDescriptionMenuItem: {
