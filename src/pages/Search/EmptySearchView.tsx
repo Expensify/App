@@ -233,7 +233,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
 
     return (
         <>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+            >
                 <EmptyStateComponent
                     SkeletonComponent={SearchRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}

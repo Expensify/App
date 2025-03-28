@@ -411,7 +411,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 )}
 
                 {!hasVisibleSubRates && !isLoading && (
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             SkeletonComponent={TableListItemSkeleton}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
