@@ -366,8 +366,8 @@ function peg$parse(input, options) {
   var peg$f18 = function() { return "cardID"; };
   var peg$f19 = function() { return "from"; };
   var peg$f20 = function() { return "expenseType"; };
-  var peg$f21 = function() { return "billable" };
-  var peg$f22 = function() { return "reimbursable" };
+  var peg$f21 = function() { return "billable"; };
+  var peg$f22 = function() { return "reimbursable"; };
   var peg$f23 = function() { return "type"; };
   var peg$f24 = function() { return "status"; };
   var peg$f25 = function() { return "sortBy"; };
