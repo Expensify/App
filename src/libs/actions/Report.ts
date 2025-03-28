@@ -83,6 +83,7 @@ import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
@@ -179,7 +180,6 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Permissions from '../Permissions';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
 import {close} from './Modal';
@@ -879,7 +879,6 @@ function clearAvatarErrors(reportID: string) {
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
- * @param useTableReportView Flag deciding how api returns reportActions - if set to true, api will return oldest first starting from the beginning of report.
  */
 function openReport(
     reportID: string | undefined,
