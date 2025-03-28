@@ -497,6 +497,22 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
+    const previousLastAction = usePrevious(lastAction);
+    useEffect(() => {
+        if (
+            lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER ||
+            lastAction?.reportActionID === previousLastAction?.reportActionID ||
+            !hasNewestReportAction ||
+            scrollingVerticalOffset.current >= AUTOSCROLL_TO_TOP_THRESHOLD
+        ) {
+            return;
+        }
+        InteractionManager.runAfterInteractions(() => {
+            reportScrollManager.scrollToBottom();
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [lastAction]);
+
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
