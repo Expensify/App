@@ -4,8 +4,10 @@ import React, {useContext} from 'react';
 import {Text as RNText, StyleSheet} from 'react-native';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
+import {containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type {FontUtilsType} from '@styles/utils/FontUtils';
 import FontUtils from '@styles/utils/FontUtils';
+import fontFamily from '@styles/utils/FontUtils/fontFamily/multiFontFamily';
 import variables from '@styles/variables';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';
@@ -43,6 +45,9 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
 
     if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
+    }
+    if (typeof children === 'string' && containsOnlyCustomEmoji(children)) {
+        componentStyle.fontFamily = 'Custom Emoji Font';
     }
 
     return (
