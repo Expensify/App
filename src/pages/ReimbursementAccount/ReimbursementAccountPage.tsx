@@ -395,7 +395,18 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
-        errorText = translate('bankAccount.hasCurrencyError');
+        errorText = (
+            <Text style={styles.flexRow}>
+                {translate('bankAccount.hasCurrencyError.phrase1')}
+                <TextLink
+                    style={styles.link}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policyIDParam ?? '', Navigation.getActiveRoute()))}
+                >
+                    {translate('bankAccount.hasCurrencyError.link')}
+                </TextLink>
+                {translate('bankAccount.hasCurrencyError.phrase2')}
+            </Text>
+        );
     }
 
     if (errorText) {
