@@ -151,7 +151,7 @@ You can also forward receipts to receipts@expensify.com using your primary or se
 - Expenses submitted to an individual are instantly sent.
 - The payer will receive an email or text prompting them to review and pay the expense.
 - You can chat with the paying individual in Expensify.
-- Make sure to [connect your personal bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Personal-Bank-Account) to receive payment. 
+- Make sure to [connect your personal bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account) to receive payment. 
 
 # Next Steps for expense sent to a workspace
 
@@ -161,12 +161,12 @@ You can also forward receipts to receipts@expensify.com using your primary or se
 - Once a report is submitted, your approver will get an email or text to review and pay the expense.
 - If changes are required, you will receive a notification to fix the expense and resubmit.
 - You will also be notified once your approver approves or denies your expenses.
-- Make sure to [connect your personal bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Personal-Bank-Account) to receive payment. 
+- Make sure to [connect your personal bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account) to receive payment. 
 
 {% include faq-begin.md %}
 **Can I divide a payment between multiple people?**
 
-Yes, you can [split an expense](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Split-an-expense) in a group chat.  
+Yes, you can [split an expense](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Split-an-expense) in a group chat.  
 
 **Can I change an expense once I’ve submitted it?**
 

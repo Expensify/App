@@ -11,7 +11,7 @@ The Expensify Wallet allows you to receive peer-to-peer payments. To set this up
 1. Click your profile image or icon in the bottom left menu.
 2. Click **Wallet** in the left menu. 
 3. Click **Enable wallet**.
-4. If you haven’t already added your bank account, click **Continue** and follow the prompts to [connect your personal bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Personal-Bank-Account) via Plaid. If you have already connected your bank account, you’ll skip to the next step.
+4. If you haven’t already added your bank account, click **Continue** and follow the prompts to [connect your personal bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account) via Plaid. If you have already connected your bank account, you’ll skip to the next step.
 
 {% include info.html %}
 Plaid is an encrypted third-party financial data platform that Expensify uses to securely verify your banking information.
