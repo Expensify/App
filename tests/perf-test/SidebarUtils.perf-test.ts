@@ -89,7 +89,6 @@ describe('SidebarUtils', () => {
                 preferredLocale,
                 policy,
                 parentReportAction,
-                hasViolations: false,
                 oneTransactionThreadReport: undefined,
             }),
         );
