@@ -11,6 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import usePermissions from './usePermissions';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
@@ -30,6 +31,7 @@ function useSidePane() {
     const {windowWidth} = useWindowDimensions();
 
     const [sidePaneNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
+    const {canUseHelpSidePanel} = usePermissions();
     const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
         selector: (modal) =>
@@ -38,7 +40,7 @@ function useSidePane() {
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL,
     });
     const isLanguageUnsupported = language !== CONST.LOCALES.EN;
-    const isPaneHidden = isSidePaneHidden(sidePaneNVP, isExtraLargeScreenWidth) || isLanguageUnsupported || isModalCenteredVisible;
+    const isPaneHidden = isSidePaneHidden(sidePaneNVP, isExtraLargeScreenWidth) || isLanguageUnsupported || isModalCenteredVisible || !canUseHelpSidePanel;
 
     const sidePaneWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;
@@ -50,10 +52,10 @@ function useSidePane() {
     const shouldHideToolTip = isExtraLargeScreenWidth ? isAnimatingExtraLargeScree : !shouldHideSidePane;
 
     // The help button is hidden when:
-    // - side pane nvp is not set
+    // - the user is not part of the corresponding beta
     // - side pane is displayed currently
     // - language is unsupported
-    const shouldHideHelpButton = !sidePaneNVP || !isPaneHidden || isLanguageUnsupported;
+    const shouldHideHelpButton = !canUseHelpSidePanel || !isPaneHidden || isLanguageUnsupported;
 
     const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
     const sidePaneTranslateX = useRef(new Animated.Value(isPaneHidden ? sidePaneWidth : 0));
