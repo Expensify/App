@@ -13,6 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -32,7 +33,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -50,6 +51,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicyOption = ListItem & {
     /** Category name is used as a key for the selectedCategories state */
@@ -62,9 +64,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {translate} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
@@ -99,6 +101,26 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
+
+    useEffect(() => {
+        if (isEmptyObject(selectedCategories) || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedCategories((prevSelectedCategories) => {
+            const keys = Object.keys(prevSelectedCategories);
+            const newSelectedCategories: Record<string, boolean> = {};
+
+            for (const key of keys) {
+                if (policyCategories?.[key] && policyCategories[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    newSelectedCategories[key] = prevSelectedCategories[key];
+                }
+            }
+
+            return newSelectedCategories;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policyCategories]);
 
     useSearchBackPress({
         onClearSelection: () => setSelectedCategories({}),
@@ -400,7 +422,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldShowThreeDotsButton
                     style={styles.headerBarDesktopHeight}
                     threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
@@ -425,16 +447,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 )}
 
                 {!hasVisibleCategories && !isLoading && (
-                    <EmptyStateComponent
-                        SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                        headerMedia={LottieAnimations.GenericEmptyState}
-                        title={translate('workspace.categories.emptyCategories.title')}
-                        subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                        headerContentStyles={styles.emptyStateFolderWebStyles}
-                    />
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                        <EmptyStateComponent
+                            SkeletonComponent={TableListItemSkeleton}
+                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                            headerMedia={LottieAnimations.GenericEmptyState}
+                            title={translate('workspace.categories.emptyCategories.title')}
+                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                            headerContentStyles={styles.emptyStateFolderWebStyles}
+                        />
+                    </ScrollView>
                 )}
                 {hasVisibleCategories && !isLoading && (
                     <SelectionListWithModal

@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy as PolicyType, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Onboarding, Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
@@ -220,6 +220,50 @@ describe('actions/Policy', () => {
             workspaceReportActions = adminReportActions.concat(expenseReportActions);
             workspaceReportActions.forEach((reportAction) => {
                 expect(reportAction.pendingAction).toBeFalsy();
+            });
+        });
+
+        it('create a new workspace fails will reset hasCompletedGuidedSetupFlow to the correct value', async () => {
+            (fetch as MockFetch)?.pause?.();
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true, chatReportID: '12345'});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
+            await waitForBatchedUpdates();
+
+            (fetch as MockFetch)?.fail?.();
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME);
+            await waitForBatchedUpdates();
+
+            (fetch as MockFetch)?.resume?.();
+            await waitForBatchedUpdates();
+
+            let onboarding: OnyxEntry<Onboarding>;
+            await TestHelper.getOnyxData({
+                key: ONYXKEYS.NVP_ONBOARDING,
+                waitForCollectionCallback: false,
+                callback: (val) => {
+                    onboarding = val;
+                },
+            });
+            expect(onboarding?.hasCompletedGuidedSetupFlow).toBeTruthy();
+        });
+
+        it('create a new workspace with delayed submission set to manually if the onboarding choice is newDotManageTeam or newDotLookingAround', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to MANAGE_TEAM
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then the autoReportingFrequency should be set to manually
+                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+                },
             });
         });
 
@@ -448,6 +492,43 @@ describe('actions/Policy', () => {
                     },
                 });
             });
+        });
+
+        it('should remove violation from expense report', async () => {
+            const policyID = '123';
+            const expenseChatReportID = '1';
+            const expenseReportID = '2';
+            const transactionID = '3';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`, {
+                ...createRandomReport(Number(expenseChatReportID)),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                iouReportID: expenseReportID,
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reportID: expenseReportID,
+                transactionID,
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {name: 'cashExpenseWithNoReceipt', type: CONST.VIOLATION_TYPES.VIOLATION},
+                {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
+            ]);
+
+            Policy.deleteWorkspace(policyID, 'test');
+
+            await waitForBatchedUpdates();
+
+            const violations = await new Promise<OnyxEntry<TransactionViolations>>((resolve) => {
+                Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    callback: resolve,
+                });
+            });
+
+            expect(violations?.every((violation) => violation.type !== CONST.VIOLATION_TYPES.VIOLATION)).toBe(true);
         });
     });
 

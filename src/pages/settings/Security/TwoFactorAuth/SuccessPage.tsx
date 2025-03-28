@@ -1,8 +1,10 @@
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {openLink} from '@userActions/Link';
@@ -17,6 +19,26 @@ type SuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList
 function SuccessPage({route}: SuccessPageProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const styles = useThemeStyles();
+
+    const goBack = useCallback(() => {
+        if (route.params?.backTo === ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
+            Navigation.dismissModal();
+            return;
+        }
+        quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
+    }, [route.params?.backTo]);
+
+    useEffect(() => {
+        return () => {
+            // When the 2FA RHP is closed, we want to remove the 2FA required page fromt the navigation stack too.
+            if (route.params?.backTo !== ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
+                return;
+            }
+            Navigation.popRootToTop();
+        };
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <TwoFactorAuthWrapper
@@ -26,6 +48,7 @@ function SuccessPage({route}: SuccessPageProps) {
                 step: 3,
                 text: translate('twoFactorAuth.stepSuccess'),
             }}
+            onBackButtonPress={goBack}
         >
             <ConfirmationPage
                 illustration={LottieAnimations.Fireworks}
@@ -34,12 +57,12 @@ function SuccessPage({route}: SuccessPageProps) {
                 shouldShowButton
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={() => {
-                    quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
-
+                    goBack();
                     if (route.params?.forwardTo) {
                         openLink(route.params.forwardTo, environmentURL);
                     }
                 }}
+                containerStyle={styles.flex1}
             />
         </TwoFactorAuthWrapper>
     );

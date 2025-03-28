@@ -28,6 +28,7 @@ type CategorizeTrackedExpenseParams = {
     adminsCreatedReportActionID?: string;
     guidedSetupData?: string;
     engagementChoice?: string;
+    description?: string;
 };
 
 export default CategorizeTrackedExpenseParams;

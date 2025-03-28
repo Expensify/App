@@ -350,7 +350,9 @@ function AttachmentPickerWithMenuItems({
                             </View>
                         </View>
                         <PopoverMenu
-                            animationInTiming={CONST.ANIMATION_IN_TIMING}
+                            animationInTiming={menuItems.length * 50}
+                            // The menu should close 2/3 of the time it took to open
+                            animationOutTiming={menuItems.length * 50 * 0.66}
                             isVisible={isMenuVisible && isFocused}
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {
@@ -375,6 +377,7 @@ function AttachmentPickerWithMenuItems({
                             menuItems={menuItems}
                             withoutOverlay
                             anchorRef={actionButtonRef}
+                            shouldUseNewModal
                         />
                         <DelegateNoAccessModal
                             isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}

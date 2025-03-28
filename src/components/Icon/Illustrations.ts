@@ -37,6 +37,7 @@ import ConciergeExclamation from '@assets/images/product-illustrations/concierge
 import CreditCardsBlue from '@assets/images/product-illustrations/credit-cards--blue.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
+import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
@@ -55,6 +56,7 @@ import ReceiptYellow from '@assets/images/product-illustrations/receipt--yellow.
 import ReceiptsSearchYellow from '@assets/images/product-illustrations/receipts-search--yellow.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketOrange from '@assets/images/product-illustrations/rocket--orange.svg';
+import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
 import SafeBlue from '@assets/images/product-illustrations/safe.svg';
 import SmartScan from '@assets/images/product-illustrations/simple-illustration__smartscan.svg';
 import TadaBlue from '@assets/images/product-illustrations/tada--blue.svg';
@@ -91,6 +93,7 @@ import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
+import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
@@ -153,6 +156,7 @@ import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
     Abracadabra,
+    Encryption,
     BankArrowPink,
     BankMouseGreen,
     BankUserGreen,
@@ -185,6 +189,7 @@ export {
     ReceiptYellow,
     ReceiptWrangler,
     RocketBlue,
+    RocketDude,
     RocketOrange,
     SanFrancisco,
     SafeBlue,
@@ -229,6 +234,7 @@ export {
     QRCode,
     RealtimeReport,
     HoldExpense,
+    ReceiptFairy,
     ReceiptEnvelope,
     Approval,
     WalletAlt,

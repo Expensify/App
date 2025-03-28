@@ -1,27 +1,58 @@
 ---
-title: Lyft & Expensify
-description: Setting up and using Expensify's Lyft integration
+title: Lyft-Expensify-Integration.md
+description: Learn how to connect your Lyft Business Profile with Expensify to automatically import receipts for work-related rides.
+keywords: [Lyft, Expensify, Business Profile, receipts, integration, expense management]
 ---
 
-# Overview
-You can link Expensify directly to your Lyft account. This means that your receipts for work-related Lyft rides will populate automatically in Expensify.
+# Lyft & Expensify Integration  
 
-# How to connect a Lyft Business profile for individual use
-If you use Lyft for work, you can connect your business profile to Expensify to have your Business-related trips populate directly in your Expensify account.
-1. Open the Lyft mobile app and tap your profile photo in the upper left.
-2. Go to Settings.
-3. Select Business profile, and create one if you don’t already have one.
-4. Tap Expense management and choose Expensify. You'll be asked to enter your email, make sure it matches the email you use to access Expensify.
+Expensify seamlessly integrates with Lyft, allowing you to automatically import receipts for work-related rides into your Expensify account.  
 
-You're all set! Switch into business profile mode each time you take a ride for work, and your receipts will automatically populate in Expensify.
+---
 
-# How to set up Lyft for Business
-If you have a Lyft for Business account for your company, setting up the Expensify and Lyft integration for your whole team is very straightforward:
-1. Open your Lyft for Business portal from a web browser.
-2. Navigate to People > Business Profile (+) and input each team member's work email.
-3. Once invited, each employee will receive an email prompting Lyft Business Profile setup.
-4. After they set up their profiles, employees can then switch into business profile mode each time they take a ride for work, and their receipts will automatically populate in Expensify.
+## Connecting a Lyft Business Profile to Expensify  
 
-Now, when any employee completes a ride on a Lyft Business Profile, it will show up in the "Rides" section of your Lyft for Business portal.
+To ensure your business-related Lyft rides sync with Expensify, follow these steps:  
 
-![Setting up the Lyft Integration: Connecting your account](https://help.expensify.com/assets/images/ExpensifyHelp_Lyft_01.png){:width="100%"}
+1. Open the **Lyft** app and tap your **profile picture** in the upper left corner.  
+2. Go to **Settings**.  
+3. Select **Business Profile** and create one if you haven't already.  
+4. Tap **Expense Management** and choose **Expensify**.  
+5. Enter your email address—make sure it matches your Expensify account email.  
+
+> **Note:** Always switch to your **Business Profile** before taking a ride for work to ensure receipts are automatically sent to Expensify.  
+
+---
+
+## Setting Up Lyft for Business with Expensify  
+
+If you're managing a **Lyft for Business** account for your company, you can set up the Expensify integration for your entire team:  
+
+1. Open the **Lyft for Business** portal in a web browser.  
+2. Navigate to **People > Business Profile (+)** and enter each employee's **work email**.  
+3. Employees will receive an email prompting them to set up their **Lyft Business Profile**.  
+4. Once set up, they should switch to **Business Profile mode** for work-related rides to ensure receipts sync to Expensify.  
+
+> **Tip:** Business-related rides will also appear in the **Rides** section of your **Lyft for Business** portal for easy tracking.  
+
+![Setting up the Lyft Integration: Connecting your account](https://help.expensify.com/assets/images/ExpensifyHelp_Lyft_01.png){:width="100%"}  
+
+---
+
+# FAQ  
+
+## Why aren’t my Lyft receipts showing in Expensify?  
+Ensure that:  
+- You have correctly linked Expensify under **Expense Management** in your **Business Profile**.  
+- You are using your **Business Profile** for work-related rides.  
+- Your Expensify email matches the one used in Lyft.  
+
+## Can I use this integration with a personal Lyft account?  
+No, this integration only works with a **Lyft Business Profile**. Personal rides will not sync to Expensify.  
+
+## How do I remove Expensify from my Lyft account?  
+1. Open the **Lyft** app and navigate to **Settings**.  
+2. Select **Business Profile**.  
+3. Tap **Expense Management** and remove Expensify.  
+
+

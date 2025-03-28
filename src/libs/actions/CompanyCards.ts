@@ -38,6 +38,10 @@ function setAssignCardStepAndData({data, isEditing, currentStep}: Partial<Assign
     Onyx.merge(ONYXKEYS.ASSIGN_CARD, {data, isEditing, currentStep});
 }
 
+function setTransactionStartDate(startDate: string) {
+    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {startDate});
+}
+
 function clearAssignCardStepAndData() {
     Onyx.set(ONYXKEYS.ASSIGN_CARD, {});
 }
@@ -112,6 +116,15 @@ function addNewCompanyCardsFeed(policyID: string | undefined, cardFeed: CompanyC
             value: feedType,
         },
     ];
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
 
     const parameters: RequestFeedSetupParams = {
         policyID,
@@ -120,7 +133,7 @@ function addNewCompanyCardsFeed(policyID: string | undefined, cardFeed: CompanyC
         feedDetails,
     };
 
-    API.write(WRITE_COMMANDS.REQUEST_FEED_SETUP, parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.REQUEST_FEED_SETUP, parameters, {optimisticData, failureData, successData, finallyData});
 }
 
 function setWorkspaceCompanyCardFeedName(policyID: string, workspaceAccountID: number, bankName: string, userDefinedName: string) {
@@ -301,12 +314,22 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
                     [optimisticCardAssignedReportAction.reportActionID]: optimisticCardAssignedReportAction,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {isAssigning: true},
+            },
         ],
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
                 value: {[optimisticCardAssignedReportAction.reportActionID]: {pendingAction: null}},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {isAssigned: true, isAssigning: false},
             },
         ],
         failureData: [
@@ -319,6 +342,11 @@ function assignWorkspaceCompanyCard(policyID: string, data?: Partial<AssignCardD
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {isAssigning: false},
             },
         ],
     };
@@ -781,4 +809,5 @@ export {
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
     openAssignFeedCardPage,
+    setTransactionStartDate,
 };

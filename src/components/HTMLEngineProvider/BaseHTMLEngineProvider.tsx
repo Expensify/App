@@ -32,6 +32,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'edited',
                 contentModel: HTMLContentModel.textual,
             }),
+            'task-title': HTMLElementModel.fromCustomModel({
+                tagName: 'task-title',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: {...styles.taskTitleMenuItem},
+            }),
             'alert-text': HTMLElementModel.fromCustomModel({
                 tagName: 'alert-text',
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
@@ -80,6 +85,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
+            'mention-short': HTMLElementModel.fromCustomModel({tagName: 'mention-short', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
@@ -119,6 +125,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.mutedNormalTextLabel,
             styles.onlyEmojisText,
             styles.onlyEmojisTextLineHeight,
+            styles.taskTitleMenuItem,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */

@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -13,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
+import {setPolicyCategoryPayrollCode} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,9 +25,9 @@ type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList
 function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyId = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const categoryName = route.params.categoryName;
     const payrollCode = policyCategories?.[categoryName]?.['Payroll Code'];
@@ -38,15 +38,30 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newPayrollCode = values.payrollCode.trim();
             if (newPayrollCode !== payrollCode) {
-                Category.setPolicyCategoryPayrollCode(route.params.policyID, categoryName, newPayrollCode);
+                setPolicyCategoryPayrollCode(policyID, categoryName, newPayrollCode);
             }
             Navigation.goBack(
-                isQuickSettingsFlow
-                    ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName, backTo)
-                    : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, categoryName),
+                isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, categoryName, backTo) : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName),
             );
         },
-        [categoryName, payrollCode, route.params.policyID, isQuickSettingsFlow, backTo],
+        [categoryName, payrollCode, policyID, isQuickSettingsFlow, backTo],
+    );
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
+            const value = values[INPUT_IDS.PAYROLL_CODE];
+
+            if (value.length > CONST.MAX_LENGTH_256) {
+                errors[INPUT_IDS.PAYROLL_CODE] = translate('common.error.characterLimitExceedCounter', {
+                    length: value.length,
+                    limit: CONST.MAX_LENGTH_256,
+                });
+            }
+
+            return errors;
+        },
+        [translate],
     );
 
     return (
@@ -73,6 +88,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
+                    validate={validate}
                     onSubmit={editPayrollCode}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
@@ -86,7 +102,6 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                         accessibilityLabel={translate('workspace.categories.payrollCode')}
                         inputID={INPUT_IDS.PAYROLL_CODE}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.MAX_LENGTH_256}
                     />
                 </FormProvider>
             </ScreenWrapper>
