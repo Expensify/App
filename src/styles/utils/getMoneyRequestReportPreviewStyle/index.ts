@@ -4,7 +4,7 @@ import sizing from '@styles/utils/sizing';
 import spacing from '@styles/utils/spacing';
 
 const componentsSpacing = {
-    flatListStyle: [spacing.mhn4, spacing.ph4],
+    flatListStyle: [spacing.mhn4],
     wrapperStyle: spacing.p4,
     contentContainerStyle: spacing.gap4,
 };
