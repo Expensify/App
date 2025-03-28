@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
-import shouldDelayFocus from '@libs/shouldDelayFocus';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import PDFInfoMessage from './PDFInfoMessage';
@@ -131,7 +130,6 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
                 onFocus={() => onPasswordFieldFocused?.(true)}
                 onBlur={() => onPasswordFieldFocused?.(false)}
                 autoFocus
-                shouldDelayFocus={shouldDelayFocus}
                 secureTextEntry
             />
             <Button
