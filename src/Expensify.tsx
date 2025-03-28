@@ -4,6 +4,7 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
+import alert from './components/Alert';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -24,6 +25,7 @@ import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
+import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
 import * as Growl from './libs/Growl';
 import Log from './libs/Log';
@@ -45,14 +47,21 @@ import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 
-Onyx.registerLogger(({level, message}) => {
+Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
-        Log.alert(message);
+        Log.alert(message, parameters);
         console.error(message);
+
+        // useOnyx() calls with "canBeMissing" config set to false will display a visual alert in dev environment
+        // when they doesn't return data.
+        const shouldShowAlert = typeof parameters === 'object' && !Array.isArray(parameters) && 'showAlert' in parameters;
+        if (Environment.isDevelopment() && shouldShowAlert) {
+            alert(message);
+        }
     } else if (level === 'hmmm') {
-        Log.hmmm(message);
+        Log.hmmm(message, parameters);
     } else {
-        Log.info(message);
+        Log.info(message, undefined, parameters);
     }
 });
 
