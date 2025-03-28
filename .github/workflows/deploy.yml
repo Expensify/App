@@ -56,56 +56,7 @@ jobs:
     needs: prep
     secrets: inherit
 
-  buildAndroid:
-    name: Build Android app
-    uses: ./.github/workflows/buildAndroid.yml
-    if: ${{ github.ref == 'refs/heads/staging' }}
-    needs: prep
-    secrets: inherit
-    with:
-      type: release
-      ref: staging
-
-  uploadAndroid:
-    name: Upload Android build to Google Play Store
-    needs: buildAndroid
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
-        with:
-          bundler-cache: true
-
-      - name: Download Android build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: /tmp/artifacts
-          pattern: android-*-artifact
-          merge-multiple: true
-
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
-
-      - name: Load files from 1Password
-        working-directory: android/app
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
-
-      - name: Upload Android app to Google Play
-        run: bundle exec fastlane android upload_google_play_internal
-        env:
-          aabPath: /tmp/artifacts/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}
-
-      - name: Upload Android build to Browser Stack
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/tmp/artifacts/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-  android_hybrid:
+  android:
     name: Build and deploy Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
@@ -243,21 +194,21 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: android-hybrid-apk-artifact
+          name: android-apk-artifact
           path: Expensify.apk
 
       - name: Upload Android build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: android-hybrid-build-artifact
+          name: android-build-artifact
           path: ${{ env.aabPath }}
 
       - name: Upload Android sourcemap artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: android-hybrid-sourcemap-artifact
+          name: android-sourcemap-artifact
           path: /home/runner/work/App/App/Mobile-Expensify/Android/build/generated/sourcemaps/react/release/index.android.bundle.map
 
       - name: Set current App version in Env
@@ -333,120 +284,7 @@ jobs:
           name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-build-artifact' || 'desktop-staging-build-artifact' }}
           path: ./desktop-build/NewExpensify.dmg
 
-  iOS:
-    name: Build and deploy iOS
-    needs: prep
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
-    runs-on: macos-15-xlarge
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-
-      - name: Setup Node
-        id: setup-node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.204.0
-        with:
-          bundler-cache: true
-
-      - name: Cache Pod dependencies
-        uses: actions/cache@v4
-        id: pods-cache
-        with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
-
-      - name: Compare Podfile.lock and Manifest.lock
-        id: compare-podfile-and-manifest
-        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
-
-      - name: Install cocoapods
-        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
-        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: scripts/pod-install.sh
-
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
-
-      - name: Load files from 1Password
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |
-          op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore/NewApp_AppStore.mobileprovision" --force --out-file ./NewApp_AppStore.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore_Notification_Service/NewApp_AppStore_Notification_Service.mobileprovision" --force --out-file ./NewApp_AppStore_Notification_Service.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore_Share_Extension/NewApp_AppStore_Share_Extension.mobileprovision" --force --out-file ./NewApp_AppStore_Share_Extension.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
-          op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
-
-      - name: Get iOS native version
-        id: getIOSVersion
-        run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
-
-      - name: Build iOS release app
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios build
-
-      - name: Upload release build to TestFlight
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios upload_testflight
-        env:
-          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
-          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
-          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
-          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
-
-      - name: Upload DSYMs to Firebase
-        if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios upload_dsyms
-
-      - name: Upload iOS build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-      - name: Upload iOS sourcemaps artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-sourcemaps-artifact
-          path: ./main.jsbundle.map
-
-      - name: Upload iOS build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-build-artifact
-          path: /Users/runner/work/App/App/New\ Expensify.ipa
-
-      - name: Warn deployers if iOS production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 iOS production deploy failed. Please manually submit ${{ steps.getIOSVersion.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/1530278510/appstore|App Store>. 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-  iOS_hybrid:
+  ios:
     name: Build and deploy iOS HybridApp
     needs: prep
     runs-on: macos-15-xlarge
@@ -571,14 +409,14 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: ios-hybrid-build-artifact
+          name: ios-build-artifact
           path: ${{ env.ipaPath }}
 
       - name: Upload iOS sourcemap artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         uses: actions/upload-artifact@v4
         with:
-          name: ios-hybrid-sourcemap-artifact
+          name: ios-sourcemap-artifact
           path: /Users/runner/work/App/App/Mobile-Expensify/main.jsbundle.map
 
       - name: Warn deployers if iOS production deploy failed
@@ -685,7 +523,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web]
+    needs: [android, desktop, ios, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -700,20 +538,15 @@ jobs:
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web]
+    needs: [android, desktop, ios, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
         id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          if [ "${{ needs.uploadAndroid.result }}" == "success" ]; then
-            isAtLeastOnePlatformDeployed="true"
-          fi
-
           if [ "${{ needs.iOS.result }}" == "success" ] || \
-            [ "${{ needs.iOS_hybrid.result }}" == "success" ] || \
-            [ "${{ needs.android_hybrid.result }}" == "success" ] || \
+            [ "${{ needs.android.result }}" == "success" ] || \
             [ "${{ needs.desktop.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
@@ -726,15 +559,10 @@ jobs:
         run: |
           isAllPlatformsDeployed="false"
           if [ "${{ needs.iOS.result }}" == "success" ] && \
-            [ "${{ needs.iOS_hybrid.result }}" == "success" ] && \
-            [ "${{ needs.android_hybrid.result }}" == "success" ] && \
+            [ "${{ needs.android.result }}" == "success" ] && \
             [ "${{ needs.desktop.result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
-          fi
-
-          if [ "${{ needs.uploadAndroid.result }}" != "success" ]; then
-            isAllPlatformsDeployed="false"
           fi
 
           echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
@@ -769,19 +597,15 @@ jobs:
       - name: Upload artifacts to GitHub Release
         continue-on-error: true
         run: |
-          # Release asset name should follow the template: [platform]-[hybrid, staging, production or blank]-[sourcemap or blank].[file extension]
+          # Release asset name should follow the template: [platform]-[staging, production or blank]-[sourcemap or blank].[file extension]
           files=(
-            "./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap.js.map"
-            "./android-aab-artifact/app-production-release.aab#android.aab"
-            "./android-hybrid-build-artifact/Expensify-release.aab#android-hybrid.aab"
-            "./android-hybrid-apk-artifact/Expensify.apk#android-hybrid.apk"
-            "./android-hybrid-sourcemap-artifact/index.android.bundle.map#android-hybrid-sourcemap.js.map"
+            "./android-build-artifact/Expensify-release.aab#android.aab"
+            "./android-apk-artifact/Expensify.apk#android.apk"
+            "./android-sourcemap-artifact/index.android.bundle.map#android-sourcemap.js.map"
             "./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap.js.map"
             "./desktop-staging-build-artifact/NewExpensify.dmg#desktop-staging.dmg"
-            "./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap.js.map"
-            "./ios-build-artifact/New Expensify.ipa#ios.ipa"
-            "./ios-hybrid-build-artifact/Expensify.ipa#ios-hybrid.ipa"
-            "./ios-hybrid-sourcemap-artifact/main.jsbundle.map#ios-hybrid-sourcemap.js.map"
+            "./ios-build-artifact/Expensify.ipa#ios.ipa"
+            "./ios-sourcemap-artifact/main.jsbundle.map#ios-sourcemap.js.map"
             "./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap.js.map"
             "./web-staging-build-tar-gz-artifact/webBuild.tar.gz#web-staging.tar.gz"
             "./web-staging-build-zip-artifact/webBuild.zip#web-staging.zip"
@@ -841,7 +665,7 @@ jobs:
       - name: Upload artifacts to GitHub Release
         continue-on-error: true
         run: |
-          # Release asset name should follow the template: [platform]-[hybrid, staging, production or blank]-[sourcemap or blank].[file extension]
+          # Release asset name should follow the template: [platform]-[staging, production or blank]-[sourcemap or blank].[file extension]
           files=(
             "./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-production-sourcemap.js.map"
             "./desktop-build-artifact/NewExpensify.dmg#desktop-production.dmg"
@@ -883,7 +707,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         uses: 8398a7/action-slack@v3
@@ -937,13 +761,11 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
-      android: ${{ github.ref == 'refs/heads/production' || needs.uploadAndroid.result }}
-      android_hybrid: ${{ needs.android_hybrid.result }}
-      ios: ${{ needs.iOS.result }}
-      ios_hybrid: ${{ needs.iOS_hybrid.result }}
+      android: ${{ needs.android.result }}
+      ios: ${{ needs.ios.result }}
       web: ${{ needs.web.result }}
       desktop: ${{ needs.desktop.result }}
