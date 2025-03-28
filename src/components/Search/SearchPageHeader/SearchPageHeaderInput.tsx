@@ -305,7 +305,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
               styles.pAbsolute,
               styles.pt2,
               {top: 8 - BORDER_WIDTH, left: leftPopoverHorizontalPosition, right: rightPopoverHorizontalPosition},
-              {boxShadow: `${variables.shadowPreset} ${theme.shadow}`},
+              {boxShadow: theme.shadow},
           ]
         : [styles.pt4];
     const inputWrapperActiveStyle = isAutocompleteListVisible ? styles.ph2 : null;

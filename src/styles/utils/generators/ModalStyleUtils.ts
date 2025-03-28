@@ -74,7 +74,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: `${variables.shadowPreset} ${theme.shadow}`,
+                    boxShadow: theme.shadow,
                     borderRadius: variables.componentBorderRadiusLarge,
                     overflow: 'hidden',
                     width: variables.sideBarWidth,
@@ -98,7 +98,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: `${variables.shadowPreset} ${theme.shadow}`,
+                    boxShadow: theme.shadow,
                     flex: 1,
                     marginTop: isSmallScreenWidth ? 0 : 20,
                     marginBottom: isSmallScreenWidth ? 0 : 20,
@@ -128,7 +128,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: `${variables.shadowPreset} ${theme.shadow}`,
+                    boxShadow: theme.shadow,
                     flex: 1,
                     marginTop: isSmallScreenWidth ? 0 : 20,
                     marginBottom: isSmallScreenWidth ? 0 : 20,
@@ -155,7 +155,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: `${variables.shadowPreset} ${theme.shadow}`,
+                    boxShadow: theme.shadow,
                     flex: 1,
                     marginTop: isSmallScreenWidth ? 0 : 20,
                     marginBottom: isSmallScreenWidth ? 0 : 20,
@@ -180,7 +180,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: `${variables.shadowPreset} ${theme.shadow}`,
+                    boxShadow: theme.shadow,
                     borderRadius: variables.componentBorderRadiusLarge,
                     borderWidth: 0,
                 };
@@ -232,7 +232,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderColor: theme.border,
                     justifyContent: 'center',
                     overflow: 'hidden',
-                    boxShadow: `${variables.shadowPreset} ${theme.shadow}`,
+                    boxShadow:theme.shadow,
                 };
 
                 hideBackdrop = true;

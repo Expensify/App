@@ -273,7 +273,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             justifyContent: 'center',
             overflow: 'hidden',
-            boxShadow: `${variables.shadowPreset} ${theme.shadow}`,
+            boxShadow: theme.shadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
         },
 
