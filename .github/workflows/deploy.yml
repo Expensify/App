@@ -164,14 +164,6 @@ jobs:
             exit 0
           fi
 
-          # Complete the previous version rollout if the current rollout percentage is not -1 or 1
-          if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
-              echo "Completing the previous version rollout"
-              bundle exec fastlane android complete_hybrid_rollout
-          else
-              echo "Skipping the completion of the previous version rollout"
-          fi
-
           # Submit the new version for review and slow rollout when it's approved
           bundle exec fastlane android upload_google_play_production_hybrid_rollout
         env:
