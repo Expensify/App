@@ -32,6 +32,7 @@ jest.mock('@libs/ReportUtils', () => ({
     findLastAccessedReport: () => mockFindLastAccessedReport() as OnyxEntry<Report>,
     parseReportRouteParams: jest.fn(() => ({})),
     isConciergeChatReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isConciergeChatReport,
+    isArchivedReportWithID: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isArchivedReportWithID,
     isThread: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isThread,
 }));
 
