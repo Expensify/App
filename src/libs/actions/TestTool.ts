@@ -2,7 +2,7 @@ import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as Modal from './Modal';
+import {close} from './Modal';
 
 let isTestToolsModalOpen = false;
 Onyx.connect({
@@ -20,7 +20,7 @@ function toggleTestToolsModal() {
             Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, !isTestToolsModalOpen);
         };
         if (!isTestToolsModalOpen) {
-            Modal.close(toggleIsTestToolsModalOpen);
+            close(toggleIsTestToolsModalOpen);
             return;
         }
         toggleIsTestToolsModalOpen();
@@ -29,4 +29,12 @@ function toggleTestToolsModal() {
     throttledToggle();
 }
 
-export default toggleTestToolsModal;
+/** Closes the test tools modal if it is currently open */
+function closeTestToolsModal() {
+    if (!isTestToolsModalOpen) {
+        return;
+    }
+    Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, false);
+}
+
+export {toggleTestToolsModal, closeTestToolsModal};
