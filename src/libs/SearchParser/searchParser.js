@@ -2394,7 +2394,7 @@ function peg$parse(input, options) {
 
  
   let nameOperator = false;
-  let expectingNestedQuote = false; 
+  let expectingNestedQuote = false;
 
   peg$result = peg$startRuleFunction();
 
