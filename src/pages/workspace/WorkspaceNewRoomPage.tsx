@@ -270,7 +270,6 @@ function WorkspaceNewRoomPage() {
                                 ref={inputCallbackRef}
                                 inputID={INPUT_IDS.ROOM_NAME}
                                 isFocused={isFocused}
-                                shouldDelayFocus
                                 autoFocus
                             />
                         </View>

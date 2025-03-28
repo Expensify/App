@@ -28,9 +28,6 @@ type MagicCodeInputProps = {
     /** Should the input auto focus */
     autoFocus?: boolean;
 
-    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
-    shouldDelayFocus?: boolean;
-
     /** Error text to display */
     errorText?: string;
 
@@ -98,7 +95,6 @@ function MagicCodeInput(
         value = '',
         name = '',
         autoFocus = true,
-        shouldDelayFocus = false,
         errorText = '',
         shouldSubmitOnComplete = true,
         onChangeText: onChangeTextProp = () => {},
@@ -408,7 +404,6 @@ function MagicCodeInput(
                             value={input}
                             hideFocusedState
                             autoComplete={input.length === 0 ? autoComplete : undefined}
-                            shouldDelayFocus={input.length === 0 && shouldDelayFocus}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             onChangeText={onChangeText}
                             onKeyPress={onKeyPress}
