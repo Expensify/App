@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {pause, unpause} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
@@ -26,7 +26,7 @@ function setMissingOnyxUpdatesQueryPromise(promise: Promise<Response | Response[
     missingOnyxUpdatesQueryPromise = promise;
 }
 
-type GetDeferredOnyxUpdatesOptiosn = {
+type GetDeferredOnyxUpdatesOptions = {
     minUpdateID?: number;
 };
 
@@ -35,7 +35,7 @@ type GetDeferredOnyxUpdatesOptiosn = {
  * @param minUpdateID An optional minimum update ID to filter the deferred updates by
  * @returns
  */
-function getUpdates(options?: GetDeferredOnyxUpdatesOptiosn) {
+function getUpdates(options?: GetDeferredOnyxUpdatesOptions) {
     if (options?.minUpdateID == null) {
         return deferredUpdates;
     }
@@ -78,7 +78,7 @@ type EnqueueDeferredOnyxUpdatesOptions = {
  */
 function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredOnyxUpdatesOptions) {
     if (options?.shouldPauseSequentialQueue ?? true) {
-        SequentialQueue.pause();
+        pause();
     }
 
     // We check here if the "updates" param is a single update.
@@ -126,7 +126,7 @@ function clear(options?: ClearDeferredOnyxUpdatesOptions) {
 
     if (options?.shouldUnpauseSequentialQueue ?? true) {
         Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
-        SequentialQueue.unpause();
+        unpause();
     }
 }
 

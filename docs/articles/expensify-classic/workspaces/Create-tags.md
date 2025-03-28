@@ -55,7 +55,7 @@ Once the tags are updated in your accounting integration, the changes will autom
 
 # Multi-Level Tags
 
-You can add mutli-level tags by importing them in a .csv, .txt, .xls, or .xlsx spreadsheet.
+You can add multi-level tags by importing them in a .csv, .txt, .xls, or .xlsx spreadsheet.
 
 First, determine whether you will use independent (a separate tag for department and project) or dependent tags (the project tags populate different options based on the department selected) and whether you will capture general ledger (GL) codes. 
 

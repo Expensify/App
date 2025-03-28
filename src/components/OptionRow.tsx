@@ -6,8 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
+import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import Button from './Button';
@@ -39,13 +39,13 @@ type OptionRowProps = {
     /** Whether we should show the selected state */
     showSelectedState?: boolean;
 
-    /** Whether to show a button pill instead of a tickbox */
+    /** Whether to show a button pill instead of a check box */
     shouldShowSelectedStateAsButton?: boolean;
 
     /** Text for button pill */
     selectedStateButtonText?: string;
 
-    /** Callback to fire when the multiple selector (tickbox or button) is clicked */
+    /** Callback to fire when the multiple selector (check box or button) is clicked */
     onSelectedStatePressed?: (option: OptionData) => void;
 
     /** Whether we highlight selected option */
@@ -149,7 +149,7 @@ function OptionRow({
     const firstIcon = option?.icons?.at(0);
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), shouldUseShortFormInTooltip);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), shouldUseShortFormInTooltip);
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {
         subscriptColor = focusedBackgroundColor;
@@ -221,7 +221,7 @@ function OptionRow({
                                             icons={option.icons}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
-                                            shouldShowTooltip={showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(option)}
+                                            shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option)}
                                         />
                                     ))}
                                 <View style={contentContainerStyles}>

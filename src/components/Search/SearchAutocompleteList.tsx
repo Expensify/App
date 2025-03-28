@@ -446,7 +446,7 @@ function SearchAutocompleteList(
         const filteredOptions = filterOptions(autocompleteQueryValue);
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
-            preferChatroomsOverThreads: true,
+            preferChatRoomsOverThreads: true,
         });
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 

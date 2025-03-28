@@ -2,7 +2,7 @@ import React from 'react';
 import useEnvironment from '@hooks/useEnvironment';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Environment from '@libs/Environment/Environment';
+import {isInternalTestBuild} from '@libs/Environment/Environment';
 import CONST from '@src/CONST';
 import pkg from '../../package.json';
 import Badge from './Badge';
@@ -23,21 +23,21 @@ function EnvironmentBadge() {
     const success = environment === CONST.ENVIRONMENT.STAGING;
     const error = environment !== CONST.ENVIRONMENT.STAGING && environment !== CONST.ENVIRONMENT.ADHOC;
 
-    const badgeEnviromentStyle = StyleUtils.getEnvironmentBadgeStyle(success, error, adhoc);
+    const badgeEnvironmentStyle = StyleUtils.getEnvironmentBadgeStyle(success, error, adhoc);
 
     // If we are on production, don't show any badge
     if (isProduction) {
         return null;
     }
 
-    const text = Environment.isInternalTestBuild() ? `v${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : ENVIRONMENT_SHORT_FORM[environment];
+    const text = isInternalTestBuild() ? `v${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : ENVIRONMENT_SHORT_FORM[environment];
 
     return (
         <Badge
             success={success}
             error={error}
             text={text}
-            badgeStyles={[styles.alignSelfStart, styles.headerEnvBadge, styles.environmentBadge, badgeEnviromentStyle]}
+            badgeStyles={[styles.alignSelfStart, styles.headerEnvBadge, styles.environmentBadge, badgeEnvironmentStyle]}
             textStyles={styles.headerEnvBadgeText}
             environment={environment}
             pressable

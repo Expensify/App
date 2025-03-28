@@ -16,7 +16,7 @@ import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxN
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {hasAccountingConnections} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -75,7 +75,7 @@ function WorkspaceCreateTaxPage({
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
             >
-                <FullPageNotFoundView shouldShow={PolicyUtils.hasAccountingConnections(policy)}>
+                <FullPageNotFoundView shouldShow={hasAccountingConnections(policy)}>
                     <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
                         <HeaderWithBackButton title={translate('workspace.taxes.addRate')} />
                         <FormProvider
@@ -107,7 +107,7 @@ function WorkspaceCreateTaxPage({
                                     description={translate('workspace.taxes.value')}
                                     rightLabel={translate('common.required')}
                                     hideCurrencySymbol
-                                    // The default currency uses 2 decimal places, so we substract it
+                                    // The default currency uses 2 decimal places, so we subtract it
                                     extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
                                     // We increase the amount max length to support the extra decimals.
                                     amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}

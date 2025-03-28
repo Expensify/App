@@ -68,7 +68,7 @@ const PRList: Record<number, PullRequest> = {
 const version = '42.42.42-42';
 const defaultTags = [
     {name: '42.42.42-42', commit: {sha: 'abcd'}},
-    {name: '42.42.42-41', commit: {sha: 'efgh'}},
+    {name: '42.42.42-41', commit: {sha: '1234'}},
 ];
 
 function mockGetInputDefaultImplementation(key: string): boolean | string {
@@ -107,7 +107,7 @@ beforeAll(() => {
     mockGetInput.mockImplementation(mockGetInputDefaultImplementation);
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
                 // eslint-disable-next-line @typescript-eslint/require-await
@@ -137,7 +137,7 @@ beforeAll(() => {
         paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
     };
 
-    GithubUtils.internalOctokit = moctokit as unknown as InternalOctokit;
+    GithubUtils.internalOctokit = mockOctokit as unknown as InternalOctokit;
 
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = jest.fn();
@@ -266,7 +266,7 @@ platform | result
                 return {
                     data: {
                         message: `Merge pull request #3 blahblahblah
-(cherry picked from commit dagdag)
+(cherry picked from commit abcdef)
 (CP triggered by freyja)`,
                         committer: {name: 'freyja'},
                     },

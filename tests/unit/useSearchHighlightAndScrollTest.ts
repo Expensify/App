@@ -2,7 +2,8 @@
 import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
-import * as Search from '@libs/actions/Search';
+import {search} from '@libs/actions/Search';
+import CONST from '@src/CONST';
 
 jest.mock('@libs/actions/Search');
 
@@ -53,7 +54,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,
@@ -92,7 +93,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,
@@ -106,7 +107,7 @@ describe('useSearchHighlightAndScroll', () => {
             reportActions: {
                 reportActions_209647397999267: {
                     1: {
-                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
                         reportActionID: '1',
                         created: '',
                     },
@@ -115,7 +116,7 @@ describe('useSearchHighlightAndScroll', () => {
             previousReportActions: {
                 reportActions_209647397999267: {
                     1: {
-                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
                         reportActionID: '1',
                         created: '',
                     },
@@ -164,7 +165,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,
@@ -180,12 +181,12 @@ describe('useSearchHighlightAndScroll', () => {
         const {rerender} = renderHook((prop: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(prop), {
             initialProps,
         });
-        expect(Search.search).not.toHaveBeenCalled();
+        expect(search).not.toHaveBeenCalled();
 
         // When the transaction ids list change though it has the same length as previous value
         rerender(changedProp);
 
-        // Then Search will be triggerred.
-        expect(Search.search).toHaveBeenCalled();
+        // Then Search will be triggered.
+        expect(search).toHaveBeenCalled();
     });
 });

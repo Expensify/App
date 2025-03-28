@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import * as Environment from '@libs/Environment/Environment';
+import {isDevelopment} from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,7 +48,7 @@ export default function enhanceParameters(command: string, parameters: Record<st
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
 
-    // In addition to the referer (ecash), we pass the platform to help differentiate what device type
+    // In addition to the referer (e-cash), we pass the platform to help differentiate what device type
     // is sending the request.
     finalParameters.platform = getPlatform();
 
@@ -60,7 +60,7 @@ export default function enhanceParameters(command: string, parameters: Record<st
     // Include current user's email in every request and the server logs
     finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
 
-    finalParameters.isFromDevEnv = Environment.isDevelopment();
+    finalParameters.isFromDevEnv = isDevelopment();
 
     finalParameters.appversion = pkg.version;
 

@@ -238,7 +238,7 @@ const convertedInvoiceChat: OnyxTypes.Report = {
     isOwnPolicyExpenseChat: false,
     isPinned: false,
     isWaitingOnBankAccount: false,
-    lastActionType: 'REPORTPREVIEW',
+    lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
     lastActorAccountID: 32,
     lastMessageHtml: 'paid $1.00',
     lastMessageText: 'paid $1.00',

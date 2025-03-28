@@ -246,7 +246,7 @@ describe('actions/OnyxUpdateManager', () => {
         applyOnyxUpdatesReliably(mockUpdate5);
 
         const assertAfterFirstGetMissingOnyxUpdates = () => {
-            // While the fetching of missing udpates and the validation and application of the deferred updaes is running,
+            // While the fetching of missing updates and the validation and application of the deferred updates is running,
             // the SequentialQueue should be paused.
             expect(SequentialQueue.isPaused()).toBeTruthy();
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);

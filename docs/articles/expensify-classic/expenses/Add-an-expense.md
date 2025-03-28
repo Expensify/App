@@ -1,11 +1,11 @@
 ---
 title: add-an-expense.md
-description: Learn how to add, edit, and manage expenses in Expensify, including SmartScans, per diems, mileage, and group expenses.
+description: Learn how to add, edit, and manage expenses in Expensify, including SmartScans, per diem, mileage, and group expenses.
 keywords: [Expensify Classic, add expense, add expense to a report, SmartScan, per diem, mileage, group expense, receipts, upload receipts, distance tracking, bulk expense upload]
 ---
 <div id="expensify-classic" markdown="1">
 
-Add, track, and manage all types of expenses in Expensify—from SmartScanned receipts to mileage, per diems, and group costs. This guide walks through all your options.
+Add, track, and manage all types of expenses in Expensify—from SmartScanned receipts to mileage, per diem, and group costs. This guide walks through all your options.
 
 ---
 

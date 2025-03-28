@@ -105,7 +105,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         PushMessage message = arguments.getMessage();
         Log.d(TAG, "buildNotification: " + message.toString());
 
-        // Improve notification delivery by categorising as a time-critical message
+        // Improve notification delivery by categorizing as a time-critical message
         builder.setCategory(CATEGORY_MESSAGE);
         builder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE);
 

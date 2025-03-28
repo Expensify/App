@@ -14,7 +14,7 @@ const switchToOldDotOnNonMicroCompanySize: SwitchToOldDotOnNonMicroCompanySize =
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_TRYNEWDOT,
+            key: ONYXKEYS.NVP_TRY_NEW_DOT,
             value: {
                 classicRedirect: {
                     dismissed: true,

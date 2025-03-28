@@ -461,8 +461,8 @@ describe('SidebarUtils', () => {
     });
 
     describe('getOptionsData', () => {
-        it('returns the last action message as an alternate text if the action is POLICYCHANGELOG_LEAVEROOM type', async () => {
-            // When a report has last action of POLICYCHANGELOG_LEAVEROOM type
+        it('returns the last action message as an alternate text if the action is POLICY_CHANGE_LOG.LEAVE_ROOM type', async () => {
+            // When a report has last action of POLICY_CHANGE_LOG.LEAVE_ROOM type
             const report: Report = {
                 ...createRandomReport(4),
                 chatType: 'policyAdmins',
@@ -627,8 +627,8 @@ describe('SidebarUtils', () => {
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
             });
-            it('returns the last action message as an alternate text if the action is INVITETOROOM type', async () => {
-                // When a report has last action of INVITETOROOM type
+            it('returns the last action message as an alternate text if the action is INVITE_TO_ROOM type', async () => {
+                // When a report has last action of INVITE_TO_ROOM type
                 const policy: Policy = {
                     ...createRandomPolicy(1),
                     role: CONST.POLICY.ROLE.ADMIN,

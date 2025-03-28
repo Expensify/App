@@ -1,6 +1,6 @@
 import type {FileObject} from '@components/AttachmentModal';
 
-type AddCommentOrAttachementParams = {
+type AddCommentOrAttachmentParams = {
     reportID: string;
     reportActionID?: string;
     commentReportActionID?: string | null;
@@ -12,4 +12,4 @@ type AddCommentOrAttachementParams = {
     idempotencyKey?: string;
 };
 
-export default AddCommentOrAttachementParams;
+export default AddCommentOrAttachmentParams;

@@ -15,7 +15,7 @@ type User = {
     /** Whether or not the user use expensify card */
     isUsingExpensifyCard: boolean;
 
-    /** Whever Expensify Card approval flow is ongoing - checking loginList for private domains */
+    /** Whether Expensify Card approval flow is ongoing - checking loginList for private domains */
     isCheckingDomain?: boolean;
 
     /** Whether or not the user has lounge access */

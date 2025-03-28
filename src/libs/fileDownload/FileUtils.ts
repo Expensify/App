@@ -70,7 +70,7 @@ function showPermissionErrorAlert() {
 function showCameraPermissionsAlert() {
     Alert.alert(
         translateLocal('attachmentPicker.cameraPermissionRequired'),
-        translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+        translateLocal('attachmentPicker.expensifyDoesNotHaveAccessToCamera'),
         [
             {
                 text: translateLocal('common.cancel'),

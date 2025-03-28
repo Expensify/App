@@ -58,7 +58,7 @@ const generateArgTypes = (mapping: Record<string, unknown>): InputType => ({
 /* eslint-disable @typescript-eslint/naming-convention */
 const transactionsMap = {
     'No Merchant': modifiedTransaction({}),
-    Food: modifiedTransaction({category: 'Food', tag: 'Yummm', merchant: 'Burgers'}),
+    Food: modifiedTransaction({category: 'Food', tag: 'Yum', merchant: 'Burgers'}),
     Grocery: modifiedTransaction({category: 'Shopping', tag: 'Tesco', merchant: 'Supermarket'}),
     Cars: modifiedTransaction({category: 'Porsche', tag: 'Car shop', merchant: 'Merchant'}),
     'Too Long': modifiedTransaction({category: veryLongString, tag: veryLongString, merchant: veryLongString, amount: veryBigNumber}),
@@ -144,7 +144,7 @@ const KeepButtonCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const KeepButtonRBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const KeepButtonSplitRBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const DeletedKeepButtonSplitRBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
-const KeepButtonIOURBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
+const KeepButtonIOURbrCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 
 const storiesTransactionData = {category: 'Grocery stores', tag: 'Food', merchant: 'Acme'};
 
@@ -174,7 +174,7 @@ KeepButtonSplitRBRCategoriesAndTag.args = {
     isBillSplit: true,
 };
 
-KeepButtonIOURBRCategoriesAndTag.args = {
+KeepButtonIOURbrCategoriesAndTag.args = {
     ...KeepButtonRBRCategoriesAndTag.args,
     iouReport: iouReportWithModifiedType(CONST.REPORT.TYPE.IOU),
 };
@@ -191,7 +191,7 @@ export {
     CategoriesAndTag,
     KeepButtonCategoriesAndTag,
     KeepButtonRBRCategoriesAndTag,
-    KeepButtonIOURBRCategoriesAndTag,
+    KeepButtonIOURbrCategoriesAndTag,
     KeepButtonSplitRBRCategoriesAndTag,
     DeletedKeepButtonSplitRBRCategoriesAndTag,
 };

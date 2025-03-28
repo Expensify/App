@@ -227,7 +227,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
         const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
         const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
-        const distanceSymbolCoorinate = useMemo(() => {
+        const distanceSymbolCoordinate = useMemo(() => {
             if (!directionCoordinates?.length || !waypoints?.length) {
                 return;
             }
@@ -310,9 +310,9 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                     })}
 
                     {!!directionCoordinates && <Direction coordinates={directionCoordinates} />}
-                    {!!distanceSymbolCoorinate && !!distanceInMeters && !!distanceUnit && (
+                    {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
                         <MarkerView
-                            coordinate={distanceSymbolCoorinate}
+                            coordinate={distanceSymbolCoordinate}
                             id="distance-label"
                             key="distance-label"
                         >
