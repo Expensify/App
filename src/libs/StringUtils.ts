@@ -106,4 +106,12 @@ function removeDoubleQuotes(text = '') {
     return text.replace(/"/g, '');
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, lineBreaksToSpaces, getFirstLine, removeDoubleQuotes};
+/**
+ * Sort an array of strings by their length.
+ * The longest strings will be at the end of the array.
+ */
+function sortStringArrayByLength(arr: string[]): string[] {
+    return arr.sort((a, b) => a.length - b.length);
+}
+
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, lineBreaksToSpaces, getFirstLine, removeDoubleQuotes, sortStringArrayByLength};

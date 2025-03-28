@@ -1,4 +1,5 @@
 import deburr from 'lodash/deburr';
+import StringUtils from '@libs/StringUtils';
 import {useMemo} from 'react';
 import FastSearch from '@libs/FastSearch';
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
@@ -64,8 +65,9 @@ function useFastSearchFromOptions(
         ]);
 
         function search(searchInput: string): AllOrSelectiveOptions {
-            const searchWords = deburr(searchInput).split(' ').sort(); // asc sorted
-            const longestSearchWord = searchWords.at(searchWords.length - 1); // longest word is the last element
+            const searchWords = deburr(searchInput).split(' ');
+            const searchWordsSorted = StringUtils.sortStringArrayByLength(searchWords);
+            const longestSearchWord = searchWordsSorted.at(searchWordsSorted.length - 1); // longest word is the last element
             if (!longestSearchWord) {
                 return emptyResult;
             }
