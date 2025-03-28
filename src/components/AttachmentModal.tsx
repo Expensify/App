@@ -4,7 +4,7 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {FadeIn, useSharedValue} from 'react-native-reanimated';
+import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -592,28 +592,30 @@ function AttachmentModal({
                             ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {!!onConfirm && !isConfirmButtonDisabled && (
-                        <SafeAreaConsumer>
-                            {({safeAreaPaddingBottomStyle}) => (
-                                <Animated.View
-                                    style={safeAreaPaddingBottomStyle}
-                                    entering={FadeIn}
-                                >
-                                    <Button
-                                        ref={viewRef(submitRef)}
-                                        success
-                                        large
-                                        style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
-                                        textStyles={[styles.buttonConfirmText]}
-                                        text={translate('common.send')}
-                                        onPress={submitAndClose}
-                                        isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
-                                        pressOnEnter
-                                    />
-                                </Animated.View>
-                            )}
-                        </SafeAreaConsumer>
-                    )}
+                    <LayoutAnimationConfig skipEntering>
+                        {!!onConfirm && !isConfirmButtonDisabled && (
+                            <SafeAreaConsumer>
+                                {({safeAreaPaddingBottomStyle}) => (
+                                    <Animated.View
+                                        style={safeAreaPaddingBottomStyle}
+                                        entering={FadeIn}
+                                    >
+                                        <Button
+                                            ref={viewRef(submitRef)}
+                                            success
+                                            large
+                                            style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
+                                            textStyles={[styles.buttonConfirmText]}
+                                            text={translate('common.send')}
+                                            onPress={submitAndClose}
+                                            isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
+                                            pressOnEnter
+                                        />
+                                    </Animated.View>
+                                )}
+                            </SafeAreaConsumer>
+                        )}
+                    </LayoutAnimationConfig>
                     {isReceiptAttachment && (
                         <ConfirmModal
                             title={translate('receipt.deleteReceipt')}
