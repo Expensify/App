@@ -43,6 +43,7 @@ import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
+import SearchScopeProvider from './SearchScopeProvider';
 import type {SearchColumnType, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
@@ -144,6 +145,12 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const {canUseTableReportView} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
+    // const { setIsOnSearch } = useSearchContext();
+
+    // useEffect(() => {
+    //     setIsOnSearch(true);
+    //     return () => setIsOnSearch(false);
+    // }, [setIsOnSearch]);
 
     useEffect(() => {
         clearSelectedTransactions(hash);
@@ -446,43 +453,45 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
 
     return (
-        <SearchList
-            ref={handleSelectionListScroll(sortedSelectedData)}
-            data={sortedSelectedData}
-            ListItem={ListItem}
-            onSelectRow={openReport}
-            onCheckboxPress={toggleTransaction}
-            onAllCheckboxPress={toggleAllTransactions}
-            canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
-            shouldPreventLongPressRow={isChat}
-            SearchTableHeader={
-                !isLargeScreenWidth ? undefined : (
-                    <SearchTableHeader
-                        data={searchResults?.data}
-                        metadata={searchResults?.search}
-                        onSortPress={onSortPress}
-                        sortOrder={sortOrder}
-                        sortBy={sortBy}
-                        shouldShowYear={shouldShowYear}
-                        shouldShowSorting={shouldShowSorting}
-                    />
-                )
-            }
-            contentContainerStyle={[contentContainerStyle, styles.pb3]}
-            containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onScroll={onSearchListScroll}
-            onEndReachedThreshold={0.75}
-            onEndReached={fetchMoreResults}
-            ListFooterComponent={
-                shouldShowLoadingMoreItems ? (
-                    <SearchRowSkeleton
-                        shouldAnimate
-                        fixedNumItems={5}
-                    />
-                ) : undefined
-            }
-        />
+        <SearchScopeProvider isOnSearch>
+            <SearchList
+                ref={handleSelectionListScroll(sortedSelectedData)}
+                data={sortedSelectedData}
+                ListItem={ListItem}
+                onSelectRow={openReport}
+                onCheckboxPress={toggleTransaction}
+                onAllCheckboxPress={toggleAllTransactions}
+                canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
+                shouldPreventLongPressRow={isChat}
+                SearchTableHeader={
+                    !isLargeScreenWidth ? undefined : (
+                        <SearchTableHeader
+                            data={searchResults?.data}
+                            metadata={searchResults?.search}
+                            onSortPress={onSortPress}
+                            sortOrder={sortOrder}
+                            sortBy={sortBy}
+                            shouldShowYear={shouldShowYear}
+                            shouldShowSorting={shouldShowSorting}
+                        />
+                    )
+                }
+                contentContainerStyle={[contentContainerStyle, styles.pb3]}
+                containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                onScroll={onSearchListScroll}
+                onEndReachedThreshold={0.75}
+                onEndReached={fetchMoreResults}
+                ListFooterComponent={
+                    shouldShowLoadingMoreItems ? (
+                        <SearchRowSkeleton
+                            shouldAnimate
+                            fixedNumItems={5}
+                        />
+                    ) : undefined
+                }
+            />
+        </SearchScopeProvider>
     );
 }
 

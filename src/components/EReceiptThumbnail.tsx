@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useEReceipt from '@hooks/useEReceipt';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
