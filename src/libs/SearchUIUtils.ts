@@ -49,18 +49,7 @@ import {
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
-import {
-    getMerchant,
-    getAmount as getTransactionAmount,
-    getCreated as getTransactionCreatedDate,
-    getMerchant as getTransactionMerchant,
-    isAmountMissing,
-    isExpensifyCardTransaction,
-    isPartialMerchant,
-    isPending,
-    isReceiptBeingScanned,
-    isScanRequest,
-} from './TransactionUtils';
+import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -393,11 +382,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     if (canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
-    const hasOnlyPendingCardOrScanningTransactions =
-        allReportTransactions.length > 0 &&
-        allReportTransactions.every(
-            (t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || (isScanRequest(t) && isReceiptBeingScanned(t)),
-        );
+    const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every(isPendingCardOrScanningTransaction);
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
     if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
@@ -529,7 +514,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
         }
     }
 
-    return Object.values(reportIDToTransactions);
+    // Filter out reports with no transactions to prevent the wrong number of the selected options
+    return Object.values(reportIDToTransactions).filter((report) => report.transactions.length);
 }
 
 /**

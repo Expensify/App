@@ -11,12 +11,12 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
-import {changeReportPolicy} from '@libs/actions/Report';
+import {changeReportPolicy, moveIOUReportToPolicy} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
-import {isWorkspaceEligibleForReportChange} from '@libs/PolicyUtils';
-import {isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {isPolicyMember, isWorkspaceEligibleForReportChange} from '@libs/PolicyUtils';
+import {isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -45,9 +45,13 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 return;
             }
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-            changeReportPolicy(reportID, policyID);
+            if (isIOUReport(reportID) && isPolicyMember(currentUserLogin, policyID)) {
+                moveIOUReportToPolicy(reportID, policyID);
+            } else {
+                changeReportPolicy(reportID, policyID);
+            }
         },
-        [reportID],
+        [currentUserLogin, reportID],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
@@ -59,7 +63,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
         additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin),
     });
 
-    if (!isExpenseReport(report) || isMoneyRequestReportPendingDeletion(report) || (!report.total && !report.unheldTotal)) {
+    if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report) || (!report.total && !report.unheldTotal)) {
         return <NotFoundPage />;
     }
 
