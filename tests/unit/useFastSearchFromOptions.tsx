@@ -34,6 +34,7 @@ describe('useFastSearchFromOptions', () => {
                 },
                 {
                     // This starts with Ah as well, but should not match
+                    // cspell:disable-next-line
                     text: 'Ahntony',
                 },
             ],

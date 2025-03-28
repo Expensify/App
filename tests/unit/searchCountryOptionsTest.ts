@@ -1,5 +1,6 @@
 import searchOptions from '@libs/searchOptions';
 
+// cspell:disable
 describe('searchCountryOptions', () => {
     test('when the search term is a country code, the country with that code should be prioritized', () => {
         const searchValue = 'US';
@@ -279,3 +280,4 @@ describe('searchCountryOptions', () => {
         expect(actual).toEqual(expected);
     });
 });
+// cspell:enable

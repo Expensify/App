@@ -30,7 +30,7 @@ const ONYXKEYS = {
 } as const;
 
 // We need to fix this test as a follow up. There seems to be some problems with memory after filtering got more complicated.
-xdescribe('Sidebar', () => {
+describe('Sidebar', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,

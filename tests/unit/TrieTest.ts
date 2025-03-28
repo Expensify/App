@@ -36,7 +36,7 @@ describe('Trie', () => {
         wordTrie.add('Rob', {code: '👨🏻', suggestions: []});
         wordTrie.add('Rocco', {code: '👨🏿', suggestions: []});
         wordTrie.add('Roger', {code: '👨🏼', suggestions: []});
-        wordTrie.add('Roni', {code: '👨🏻', suggestions: []});
+        wordTrie.add('Rona', {code: '👨🏻', suggestions: []});
         expect(wordTrie.getAllMatchingWords('Ro').length).toBe(5);
     });
 
@@ -50,7 +50,7 @@ describe('Trie', () => {
         wordTrie.add('Rob', {code: '👨🏻', suggestions: []});
         wordTrie.add('Rocco', {code: '👨🏿', suggestions: []});
         wordTrie.add('Roger', {code: '👨🏼', suggestions: []});
-        wordTrie.add('Roni', {code: '👨🏻', suggestions: []});
+        wordTrie.add('Rona', {code: '👨🏻', suggestions: []});
         expect(wordTrie.getAllMatchingWords('Ro', limit).length).toBe(limit);
     });
 
