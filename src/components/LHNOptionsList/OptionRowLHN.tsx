@@ -48,6 +48,9 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
+import { containsCustomEmoji as containsCustomEmojiUtils } from '@libs/EmojiUtils';
+import RenderHTML from '@components/RenderHTML';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 
 function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
@@ -131,7 +134,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-
+    const alternateTextContainsCustomEmoji = containsCustomEmojiUtils(optionItem.alternateText);
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -301,7 +304,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                     </Tooltip>
                                                 )}
                                             </View>
-                                            {optionItem.alternateText ? (
+                                            {optionItem.alternateText && !alternateTextContainsCustomEmoji && (
                                                 <Text
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
@@ -309,7 +312,15 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 >
                                                     {Parser.htmlToText(optionItem.alternateText)}
                                                 </Text>
-                                            ) : null}
+                                            )}
+                                            {optionItem.alternateText && alternateTextContainsCustomEmoji && (
+                                                <TextWithEmojiFragment
+                                                    message={optionItem.alternateText}
+                                                    style={[alternateTextStyle, styles.mh0]}
+                                                    // numberOfLines={1}
+                                                    // accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
+                                                />
+                                            )}
                                         </View>
                                         {optionItem?.descriptiveText ? (
                                             <View style={[styles.flexWrap]}>

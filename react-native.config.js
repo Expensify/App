@@ -8,5 +8,5 @@ module.exports = {
         android: {sourceDir: androidSourceDir},
     },
     assets: ['./assets/fonts/native'],
-    commands: [linkAssets.commands.linkAssets]
+    commands: [linkAssets.commands.linkAssets],
 };

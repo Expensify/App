@@ -308,6 +308,9 @@ const styles = (theme: ThemeColors) =>
             ...spacing.p2,
             borderRadius: 8,
         },
+        customEmojiFont: {
+            fontFamily: 'Custom Emoji Font',
+        },
 
         mentionSuggestionsAvatarContainer: {
             width: 24,

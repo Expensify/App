@@ -49,6 +49,7 @@
 		ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */; };
 		F0C450EA2705020500FD2970 /* colors.json in Resources */ = {isa = PBXBuildFile; fileRef = F0C450E92705020500FD2970 /* colors.json */; };
 		FF941A8D48F849269AB85C9A /* ExpensifyNewKansas-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 44BF435285B94E5B95F90994 /* ExpensifyNewKansas-Medium.otf */; };
+		D815395ECEB444929DAAB5F3 /* CustomEmojiFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FBE37BAE4CDD495DA089A43C /* CustomEmojiFont.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -160,6 +161,7 @@
 		F0C450E92705020500FD2970 /* colors.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = colors.json; path = ../colors.json; sourceTree = "<group>"; };
 		F4F8A052A22040339996324B /* ExpensifyNeue-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Regular.otf"; path = "../assets/fonts/native/ExpensifyNeue-Regular.otf"; sourceTree = "<group>"; };
 		F8839E9820F4C312BD1C9339 /* Pods-NewExpensify.releasedevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releasedevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releasedevelopment.xcconfig"; sourceTree = "<group>"; };
+		FBE37BAE4CDD495DA089A43C /* CustomEmojiFont.ttf */ = {isa = PBXFileReference; name = "CustomEmojiFont.ttf"; path = "../assets/fonts/native/CustomEmojiFont.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -322,6 +324,7 @@
 				8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */,
 				BF6A4C5167244B9FB8E4D4E3 /* ExpensifyNeue-Italic.otf */,
 				F4F8A052A22040339996324B /* ExpensifyNeue-Regular.otf */,
+				FBE37BAE4CDD495DA089A43C /* CustomEmojiFont.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -494,6 +497,7 @@
 				D27CE6B77196EF3EF450EEAC /* PrivacyInfo.xcprivacy in Resources */,
 				524F95D57E75496EBD14B0AA /* ExpensifyMono-BoldItalic.otf in Resources */,
 				0F749C2B3B8F4562B816DEAB /* BuildFile in Resources */,
+				D815395ECEB444929DAAB5F3 /* CustomEmojiFont.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -621,6 +625,7 @@
 				"${BUILT_PRODUCTS_DIR}/MapboxMaps/MapboxMaps.framework",
 				"${BUILT_PRODUCTS_DIR}/Turf/Turf.framework",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/FullStory/FullStory.framework/FullStory",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/JitsiWebRTC/WebRTC.framework/WebRTC",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxCommon/MapboxCommon.framework/MapboxCommon",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxCoreMaps/MapboxCoreMaps.framework/MapboxCoreMaps",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/MapboxMobileEvents/MapboxMobileEvents.framework/MapboxMobileEvents",
@@ -633,6 +638,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxMaps.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Turf.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FullStory.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WebRTC.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxCommon.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxCoreMaps.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MapboxMobileEvents.framework",

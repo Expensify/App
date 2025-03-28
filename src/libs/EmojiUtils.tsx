@@ -674,6 +674,24 @@ function getProcessedText(processedTextArray: TextWithEmoji[], style: StyleProp<
     );
 }
 
+function containsCustomEmoji(text?: string): boolean {
+    if (!text) {
+      return false;
+    }
+  
+    const privateUseAreaRegex = /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u;
+    return privateUseAreaRegex.test(text);
+  }
+
+  function containsOnlyCustomEmoji(text?: string): boolean {
+    if (!text) {
+      return false;
+    }
+  
+    const privateUseAreaRegex = /^[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]+$/u;
+    return privateUseAreaRegex.test(text);
+  }
+
 export type {HeaderIndice, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
 
 export {
@@ -701,4 +719,6 @@ export {
     getRemovedSkinToneEmoji,
     getSpacersIndexes,
     splitTextWithEmojis,
+    containsCustomEmoji,
+    containsOnlyCustomEmoji
 };

@@ -7867,10 +7867,10 @@ const emojis: PickerEmojis = [
         icon: Flags,
         code: 'customEmojis',
     },
-    { 
+    {
         name: 'global_create',
         code: '\uE001',
-    }
+    },
 ];
 
 const categoryFrequentlyUsed: HeaderEmoji = {
