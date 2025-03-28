@@ -1,7 +1,8 @@
 type CreateAppleSigitalWalletParams = {
     platform: string;
     appVersion: string;
-    certificates: string[];
+    // stringified {"certificates": string[]}
+    certificates: string;
     nonce: string;
     nonceSignature: string;
 };

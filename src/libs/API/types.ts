@@ -1109,7 +1109,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     // PayMoneyRequestOnSearch only works online (pattern C) and we need to play the success sound only when the request is successful
     PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',
     LOG_OUT: 'LogOut',
-    CREATE_DIGITAL_APPLE_WALLET: 'CreateDigitalAppleWallet',
+    CREATE_DIGITAL_APPLE_WALLET: 'CreateDigitalWallet',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
