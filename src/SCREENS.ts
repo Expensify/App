@@ -146,6 +146,11 @@ const SCREENS = {
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
             UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
         },
+        MERGE_ACCOUNTS: {
+            ACCOUNT_DETAILS: 'Settings_MergeAccounts_AccountDetails',
+            ACCOUNT_VALIDATE: 'Settings_MergeAccounts_AccountValidate',
+            MERGE_RESULT: 'Settings_MergeAccounts_MergeResult',
+        },
     },
     TWO_FACTOR_AUTH: {
         ROOT: 'Settings_TwoFactorAuth_Root',
