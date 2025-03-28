@@ -1,9 +1,11 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
@@ -18,6 +20,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {openOldDotLink} from '@userActions/Link';
 import {clearMergeWithValidateCode, clearRequestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
 import {navigateToConciergeChat} from '@userActions/Report';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,6 +29,7 @@ import type SCREENS from '@src/SCREENS';
 function MergeResultPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const [mergeWithValidateCode] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.mergeWithValidateCode});
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
@@ -152,7 +156,14 @@ function MergeResultPage() {
                     </>
                 ),
                 secondaryButtonText: translate('mergeAccountsPage.mergePendingSAML.goToExpensifyClassic'),
-                onSecondaryButtonPress: () => openOldDotLink(CONST.OLDDOT_URLS.INBOX, false),
+                onSecondaryButtonPress: () => {
+                    if (CONFIG.IS_HYBRID_APP) {
+                        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                        setRootStatusBarEnabled(false);
+                        return;
+                    }
+                    openOldDotLink(CONST.OLDDOT_URLS.INBOX, false);
+                },
                 shouldShowSecondaryButton: true,
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
