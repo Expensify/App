@@ -960,6 +960,8 @@ function openReport(
         parentReportActionID,
     };
 
+    // temporary flag will be removed once ReportScreen supports MoneyRequestReportView - https://github.com/Expensify/App/issues/57509
+    // Permission will be removed before the end of the project
     if (temporaryShouldUseTableReportView && Permissions.canUseTableReportView(allBetas)) {
         parameters.useTableReportView = true;
     }
