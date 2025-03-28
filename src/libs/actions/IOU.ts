@@ -1343,17 +1343,14 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     ...iou.report,
                     ...(!isScanRequest ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
                     hasOutstandingChildRequest: false,
-                    pendingFields: {
-                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
+                    lastActorAccountID: currentUserPersonalDetails?.accountID,
                 },
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
                 value: {
-                    [optimisticIOUReportAction.reportActionID]: {
+                    [iou.action.reportActionID]: {
                         ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
                     },
                 },
