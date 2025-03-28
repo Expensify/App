@@ -1179,14 +1179,6 @@ function isInvoiceReport(report: OnyxInputOrEntry<Report> | SearchReport): boole
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
-function isInvoiceReportByReportID(reportID: string | undefined): boolean {
-    if (!reportID) {
-        return false;
-    }
-
-    return isInvoiceReport(getReport(reportID, allReports));
-}
-
 function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
     if (!invoiceRoomID) {
         return false;
@@ -9457,6 +9449,16 @@ function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
     return isSelectedManagerMcTest(persionalDetails?.login);
 }
 
+function getChatListItemReportName(action: ReportAction & {reportName?: string}): string {
+    const report = getReport(action?.reportID ?? '', allReports);
+
+    if (isInvoiceReport(report)) {
+        return getInvoiceReportName(report);
+    }
+
+    return action?.reportName ?? '';
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -9806,7 +9808,7 @@ export {
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
     getInvoiceReportName,
-    isInvoiceReportByReportID,
+    getChatListItemReportName,
 };
 
 export type {
