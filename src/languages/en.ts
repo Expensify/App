@@ -885,6 +885,7 @@ const translations = {
         header: 'Quick action',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
+        createReport: 'Create report',
     },
     iou: {
         amount: 'Amount',
