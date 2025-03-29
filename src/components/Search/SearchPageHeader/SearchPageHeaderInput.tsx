@@ -21,6 +21,7 @@ import type {SelectionListHandle} from '@components/SelectionList/types';
 import HelpButton from '@components/SidePane/HelpComponents/HelpButton';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {clearAllFilters} from '@libs/actions/Search';
@@ -55,6 +56,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const {translate} = useLocalize();
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -303,7 +305,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
               styles.pAbsolute,
               styles.pt2,
               {top: 8 - BORDER_WIDTH, left: leftPopoverHorizontalPosition, right: rightPopoverHorizontalPosition},
-              {boxShadow: variables.popoverMenuShadow},
+              {boxShadow: theme.shadow},
           ]
         : [styles.pt4];
     const inputWrapperActiveStyle = isAutocompleteListVisible ? styles.ph2 : null;
