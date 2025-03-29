@@ -221,7 +221,12 @@ function BaseModal(
               shouldAddBottomSafeAreaMargin,
               shouldAddTopSafeAreaMargin,
               // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
-              shouldAddBottomSafeAreaPadding: !enableEdgeToEdgeBottomSafeAreaPadding && (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
+              shouldAddBottomSafeAreaPadding:
+                  (!avoidKeyboard ||
+                      (!keyboardStateContextValue?.isKeyboardShown && !keyboardStateContextValue.isKeyboardWillShow) ||
+                      (keyboardStateContextValue.isKeyboardShown && keyboardStateContextValue.isKeyboardWillHide)) &&
+                  shouldAddBottomSafeAreaPadding &&
+                  !enableEdgeToEdgeBottomSafeAreaPadding,
               shouldAddTopSafeAreaPadding,
               modalContainerStyleMarginTop: modalContainerStyle.marginTop,
               modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
