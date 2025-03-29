@@ -102,7 +102,8 @@ freeTextFilter
     }
 
 standardFilter
-  = _ field:key _ op:operator _ values:identifier {
+  = _ field:filterKey _ op:filterOperator _  values:identifier {
+      expectingNestedQuote = false; nameOperator = false;
       return buildFilter(op, field, values);
     }
 
@@ -131,11 +132,17 @@ key "key"
       / feed
     )
 
+filterKey
+  = k:key {
+      nameOperator = (k === "from" || k === "to");
+      return k;
+}
+
 defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
 
 identifier
   = (","+)? parts:(quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
-      const value = parts.flat().map((word) => {
+      const value = parts.flat().filter(Boolean).map((word) => {
         if (word.startsWith('"') && word.endsWith('"') && word.length >= 2) {
           return word.slice(1, -1);
         }
