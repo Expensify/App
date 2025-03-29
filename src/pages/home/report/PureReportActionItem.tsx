@@ -844,7 +844,7 @@ function PureReportActionItem({
             const wasSubmittedViaHarvesting = getOriginalMessage(action)?.harvesting ?? false;
             if (wasSubmittedViaHarvesting) {
                 children = (
-                    <ReportActionItemBasicMessage message="">
+                    <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
@@ -855,7 +855,7 @@ function PureReportActionItem({
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoApproved) {
                 children = (
-                    <ReportActionItemBasicMessage message="">
+                    <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
@@ -868,7 +868,7 @@ function PureReportActionItem({
             const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {
                 children = (
-                    <ReportActionItemBasicMessage message="">
+                    <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${reportAutomaticallyForwardedMessage}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
