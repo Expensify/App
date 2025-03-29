@@ -112,11 +112,8 @@ function BaseTextInput(
 
     // AutoFocus which only works on mount:
     useEffect(() => {
-        // This is to avoid the logic to possibly running twice on mobile, since autoFocus is being passed on inputProps
-        const isMobileDevice = Platform.OS === 'android' || Platform.OS === 'ios';
-
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!inputProps.autoFocus || !input.current || isMobileDevice) {
+        if (!inputProps.autoFocus || !input.current) {
             return;
         }
 
