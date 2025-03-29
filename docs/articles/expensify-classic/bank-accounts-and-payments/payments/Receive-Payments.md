@@ -1,8 +1,9 @@
 ---
 title: Receive Payments
 description: Learn how to receive reimbursements through Expensify, including ACH, Wise, PayPal, and Venmo options.
-keywords: [reimbursement, ACH, bank account, Wise, PayPal, Venmo, Rapid Reimbursement]
+keywords: [Expensify Classic, reimbursement, ACH, bank account, Wise, PayPal, Venmo, Rapid Reimbursement]
 ---
+<div id="expensify-classic" markdown="1">
 
 To receive a reimbursement after submitting an expense report, you must first [connect a personal bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-Bank-Account) to Expensify. Once your employer approves your report or invoice, the reimbursement is deposited directly into your bank account.
 
@@ -80,3 +81,5 @@ For **ACH and global payments**, Expensify displays the **expected deposit date*
 
 ## What currency will my global reimbursement be in?
 Expensify will reimburse you in your local currency, based on the conversion at the time of payout.
+
+</div>

@@ -5,6 +5,7 @@ import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
+import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -56,6 +57,10 @@ type PopoverMenuItem = MenuItemProps & {
     shouldCloseAllModals?: boolean;
 
     pendingAction?: PendingAction;
+
+    rightIcon?: React.FC<SvgProps>;
+
+    key?: string;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> &
@@ -273,22 +278,24 @@ function PopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, ...menuItemProps} = item;
+        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, ...menuItemProps} = item;
         return (
             <OfflineWithFeedback
                 // eslint-disable-next-line react/no-array-index-key
-                key={`${item.text}_${menuIndex}`}
+                key={key ?? `${item.text}_${menuIndex}`}
                 pendingAction={item.pendingAction}
             >
                 <FocusableMenuItem
                     // eslint-disable-next-line react/no-array-index-key
-                    key={`${item.text}_${menuIndex}`}
+                    key={key ?? `${item.text}_${menuIndex}`}
                     pressableTestID={`PopoverMenuItem-${item.text}`}
                     title={text}
                     onPress={() => selectItem(menuIndex)}
                     focused={focusedIndex === menuIndex}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     shouldCheckActionAllowedOnPress={false}
+                    iconRight={item.rightIcon}
+                    shouldShowRightIcon={!!item.rightIcon}
                     onFocus={() => {
                         if (!shouldUpdateFocusedIndex) {
                             return;

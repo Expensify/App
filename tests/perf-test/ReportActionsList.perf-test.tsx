@@ -117,7 +117,6 @@ function ReportActionsListWrapper() {
                         report={report}
                         onLayout={mockOnLayout}
                         onScroll={mockOnScroll}
-                        onContentSizeChange={() => {}}
                         listID={1}
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}

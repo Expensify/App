@@ -6,6 +6,7 @@ on:
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
+  IS_APP_REPO: ${{ github.repository == 'Expensify/App' }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -185,12 +186,14 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          ANDROID_BUILD_TYPE: ${{ vars.ANDROID_BUILD_TYPE }}
 
       - name: Upload Android app to Google Play
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android upload_google_play_internal_hybrid
+        run: bundle exec fastlane android ${{ vars.ANDROID_UPLOAD_COMMAND }}
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+          ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
 
       - name: Get current Android rollout percentage
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -217,7 +220,7 @@ jobs:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
       - name: Upload Android build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
@@ -401,6 +404,10 @@ jobs:
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
+      - name: Upload DSYMs to Firebase
+        if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane ios upload_dsyms
+
       - name: Upload iOS build to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
@@ -503,9 +510,9 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
           op read "op://${{ vars.OP_VAULT }}/firebase.json/firebase.json" --force --out-file ./firebase.json
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore/OldApp_AppStore.mobileprovision" --force --out-file ./OldApp_AppStore.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Share_Extension/OldApp_AppStore_Share_Extension.mobileprovision" --force --out-file ./OldApp_AppStore_Share_Extension.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Notification_Service/OldApp_AppStore_Notification_Service.mobileprovision" --force --out-file ./OldApp_AppStore_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore/${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Share_Extension/${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Notification_Service/${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
           op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
@@ -519,6 +526,14 @@ jobs:
       - name: Build iOS HybridApp
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane ios build_hybrid
+        env:
+          APPLE_ID: ${{ vars.APPLE_ID }}
+          APPLE_STORE_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}
+          APPLE_STORE_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_STORE_PROVISIONING_PROFILE_NAME }}
+          APPLE_SHARE_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}
+          APPLE_SHARE_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_NAME }}
+          APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
+          APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME }}
 
       - name: Upload release build to TestFlight
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -528,6 +543,11 @@ jobs:
           APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+          APPLE_ID: ${{ vars.APPLE_ID }}
+
+      - name: Upload DSYMs to Firebase for HybridApp
+        if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane ios upload_dsyms_hybrid
 
       - name: Submit production build for App Store review and a slow rollout
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -539,9 +559,10 @@ jobs:
           bundle exec fastlane ios submit_hybrid_for_rollout
         env:
           VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
+          APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Upload iOS build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}

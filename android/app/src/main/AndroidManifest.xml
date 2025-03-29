@@ -104,6 +104,52 @@
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/track-expense"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/submit-expense"/>
             </intent-filter>
+             <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <!-- Images -->
+                <data android:mimeType="image/jpg" />
+                <data android:mimeType="image/jpeg" />
+                <data android:mimeType="image/gif" />
+                <data android:mimeType="image/png" />
+                <data android:mimeType="image/tif" />
+                <data android:mimeType="image/tiff" />
+
+                <!-- Documents -->
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="application/msword" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+                <data android:mimeType="application/rtf" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="message/rfc822" />
+
+                <!-- Text / HTML -->
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="text/html" />
+                <data android:mimeType="text/xml" />
+
+                <!-- Audio / Video -->
+                <data android:mimeType="audio/mpeg" />
+                <data android:mimeType="audio/aac" />
+                <data android:mimeType="audio/flac" />
+                <data android:mimeType="audio/wav" />
+                <data android:mimeType="audio/x-wav" />
+                <data android:mimeType="audio/mp3" />
+                <data android:mimeType="audio/vorbis" />
+                <data android:mimeType="audio/x-vorbis" />
+                <data android:mimeType="audio/opus" />
+
+                <data android:mimeType="video/mp4" />
+                <data android:mimeType="video/mp2t" />
+                <data android:mimeType="video/webm" />
+                <data android:mimeType="video/avc" />
+                <data android:mimeType="video/hevc" />
+                <data android:mimeType="video/x-vnd.on2.vp8" />
+                <data android:mimeType="video/x-vnd.on2.vp9" />
+                <data android:mimeType="video/av01" />
+
+            </intent-filter>
         </activity>
 
         <meta-data

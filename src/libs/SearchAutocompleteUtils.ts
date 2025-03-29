@@ -135,6 +135,9 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
     return newQuery;
 }
 
+/**
+ * @private
+ */
 function filterOutRangesWithCorrectValue(
     range: SearchAutocompleteQueryRange,
     substitutionMap: SubstitutionMap,
@@ -181,19 +184,18 @@ function filterOutRangesWithCorrectValue(
 }
 
 /**
- * Parses input string using the autocomplete parser and returns array of
- * markdown ranges that can be used by RNMarkdownTextInput.
- * It is simpler version of search parser that can be run on UI.
+ * Parses input string using the autocomplete parser and returns array of markdown ranges that can be used by RNMarkdownTextInput.
+ * It is a simpler version of search parser that can be run on UI thread.
  */
 function parseForLiveMarkdown(
     input: string,
-    userDisplayName: string,
+    currentUserName: string,
     map: SubstitutionMap,
     userLogins: SharedValue<string[]>,
     currencyList: SharedValue<string[]>,
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
-) {
+): MarkdownRange[] {
     'worklet';
 
     const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
@@ -201,14 +203,11 @@ function parseForLiveMarkdown(
     return ranges
         .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList))
         .map((range) => {
-            let type = 'mention-user';
+            const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName;
+            const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
 
-            if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (userLogins.get().includes(range.value) || range.value === userDisplayName)) {
-                type = 'mention-here';
-            }
-
-            return {...range, type};
-        }) as MarkdownRange[];
+            return {start: range.start, type, length: range.length};
+        });
 }
 
 export {

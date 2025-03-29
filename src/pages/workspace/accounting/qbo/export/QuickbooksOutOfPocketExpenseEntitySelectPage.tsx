@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -20,6 +20,7 @@ import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Account, QBOReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
 function Footer({isTaxEnabled}: {isTaxEnabled: boolean}) {
@@ -52,6 +53,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const policyID = policy?.id;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT>>();
     const backTo = route.params?.backTo;
+    const [selectedExportDestinationError, setSelectedExportDestinationError] = useState<Errors | null>(null);
 
     const data: MenuItem[] = useMemo(
         () => [
@@ -89,7 +91,15 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     }, [policyID, backTo]);
     const selectExportEntity = useCallback(
         (row: MenuItem) => {
+            if (!row.accounts.at(0)) {
+                setSelectedExportDestinationError({
+                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.exportDestinationSetupAccountsInfo.${row.value}`),
+                });
+                return;
+            }
+
             if (row.value !== qboConfig?.reimbursableExpensesExportDestination) {
+                setSelectedExportDestinationError(null);
                 updateManyPolicyConnectionConfigs(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.QBO,
@@ -105,8 +115,13 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
             }
             goBack();
         },
-        [qboConfig?.reimbursableExpensesExportDestination, policyID, qboConfig?.reimbursableExpensesAccount, goBack],
+        [qboConfig?.reimbursableExpensesExportDestination, policyID, qboConfig?.reimbursableExpensesAccount, goBack, translate],
     );
+
+    const errors =
+        hasErrors && qboConfig?.reimbursableExpensesExportDestination
+            ? {[CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.accounts.${qboConfig?.reimbursableExpensesExportDestination}Error`)}
+            : getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION);
 
     return (
         <SelectionScreen
@@ -126,13 +141,12 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
                 qboConfig?.pendingFields,
             )}
-            errors={
-                hasErrors && qboConfig?.reimbursableExpensesExportDestination
-                    ? {[CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.accounts.${qboConfig?.reimbursableExpensesExportDestination}Error`)}
-                    : getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)
-            }
+            errors={selectedExportDestinationError ?? errors}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}
+            onClose={() => {
+                setSelectedExportDestinationError(null);
+                clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION);
+            }}
             listFooterContent={<Footer isTaxEnabled={isTaxesEnabled} />}
         />
     );

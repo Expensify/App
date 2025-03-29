@@ -71,8 +71,7 @@ const signUpWithTestUser = () => {
 };
 
 const getOptionRows = () => {
-    const hintText = translateLocal('accessibilityHints.navigatesToChat');
-    return screen.queryAllByAccessibilityHint(hintText);
+    return screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
 };
 
 const getDisplayNames = () => {

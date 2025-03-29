@@ -206,14 +206,39 @@ When impactful changes are made to the report, such as changing an expense's rei
 
 # Report Statuses
 
-Each report has a status based on its approval progress:
-- **Open**: The report is in progress and has not been submitted. If labeled **Rejected**, it was submitted but needs adjustments.
-- **Processing**: The report has been submitted and is awaiting approval.
-- **Approved**: The report is approved but not reimbursed.
-- **Reimbursed**: The report has been successfully reimbursed.
-  - **Withdrawing**: The ACH process is initiated.
-  - **Confirmed**: The ACH process is in progress or complete.
-- **Closed**: The report is finalized.
+In Expensify, every report moves through different statuses based on its stage in the approval process. Understanding these statuses helps ensure reports are properly submitted, approved, and reimbursed.
+
+## Status Definitions
+- **Open** – The report is "In Progress" and has not been submitted.  
+  - If a report is also labeled **Rejected**, it means an Approver has sent it back for changes.  
+  - Open the report to review comments and make necessary adjustments.  
+
+- **Processing** – The report has been submitted and is pending approval.
+
+- **Approved** – The report has been approved but not reimbursed.  
+  - For non-reimbursable reports, this is the final status.  
+
+- **Reimbursed** – The report has been successfully reimbursed.  
+  - If a reimbursed report is labeled:  
+    - **Withdrawing** – The ACH process has been initiated.  
+    - **Confirmed** – The ACH process is in progress or completed.  
+
+- **Closed** – The report has been finalized and is no longer editable.  
+
+## Report Statuses Based on Approval Workflow
+
+For Workspaces using Submit and Approve or Advanced Approval Workflows, reports are finalized based on the expense type:
+- **Non-reimbursable expenses** – The report is finalized when it enters the **Approved** state.  
+- **Reimbursable expenses** – The report is finalized when it enters the **Reimbursed** state.  
+  - This applies whether the report is reimbursed via Expensify or manually marked as reimbursed outside Expensify.  
+- **Mixed reimbursable and non-reimbursable expenses** – The report is finalized when it reaches the **Reimbursed** state.
+
+## Reports Marked as Closed
+
+A report is automatically marked **Closed** under these conditions:
+
+- **Individual Workspace** – Reports are closed by default after submission.  
+- **Group Workspace with Submit and Close Workflow** – Reports automatically close upon submission.  
 
 ---
 

@@ -89,12 +89,6 @@ target 'NewExpensify' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-
-  target 'NewExpensifyTests' do
-    inherit! :complete
-    # Pods for testing
-  end
-
   post_install do |installer|
     # Configure Mapbox after installation
     $RNMapboxMaps.post_install(installer)

@@ -20,7 +20,7 @@ type ScrollingEventData = {
  */
 function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnScroll = false, ...props}: EducationalTooltipProps) {
     const genericTooltipStateRef = useRef<GenericTooltipState>();
-    const tooltipElementRef = useRef<React.Component & Readonly<NativeMethods>>();
+    const tooltipElementRef = useRef<Readonly<NativeMethods>>();
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<() => void>();

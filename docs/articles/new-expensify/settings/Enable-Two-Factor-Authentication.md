@@ -13,7 +13,7 @@ To enable 2FA,
 {% include option.html value="desktop" %}
 1. Click your profile image or icon in the bottom left menu.
 2. Click **Security** in the left menu.
-3. Under Security Options, click **Two Factor Authentication**. 
+3. Under Security Options, click **Two-Factor Authentication**.
 4. Save a copy of your backup codes. This step is critical! You will lose access to your account if you cannot use your authenticator app and do not have your recovery codes.
    - Click **Download** to save a copy of your backup codes to your computer.
    - Click **Copy** to paste the codes into a document or other secure location.
@@ -25,9 +25,9 @@ To enable 2FA,
 {% include end-option.html %}
 
 {% include option.html value="mobile" %}
-1. Tap your profile image or icon at the bottom of the screen. 
-2. Tap **Security**. 
-3. Under Security Options, tap **Two Factor Authentication**. 
+1. Tap your profile image or icon at the bottom of the screen.
+2. Tap **Security**.
+3. Under Security Options, tap **Two-Factor Authentication**.
 4. Save a copy of your backup codes. This step is critical! You will lose access to your account if you cannot use your authenticator app and do not have your recovery codes.
    - Tap **Download** to save a copy of your backup codes to your device.
    - Tap **Copy** to paste the codes into a document or other secure location.

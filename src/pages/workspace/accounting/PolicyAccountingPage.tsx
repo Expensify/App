@@ -29,9 +29,10 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {
@@ -76,7 +77,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseNetSuiteUSATax, canUseNSQS} = usePermissions();
-    const {windowWidth} = useWindowDimensions();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -360,7 +361,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 title: translate('workspace.accounting.export'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 onPress: integrationData?.onExportPagePress,
-                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator:
+                    areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) || shouldShowQBOReimbursableExportDestinationAccountError(policy)
+                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                        : undefined,
                 pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
             },
             ...(shouldShowCardReconciliationOption
@@ -569,7 +573,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     icon={Illustrations.Accounting}
                     shouldUseHeadlineHeader
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

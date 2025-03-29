@@ -1,23 +1,25 @@
 ---
 title: Close or Reopen an Account
 description: Learn how to close or reopen an Expensify account.
+keywords: [Expensify Classic, close account, reopen account]
 ---
-
+<div id="expensify-classic" markdown="1">
+  
 Closing an Expensify account deletes the data tied to it. However, transactions shared with others, including approved and reimbursed company expenses, remain visible to the Admins on the workspace where those reports were submitted. Some transaction records may also be retained for legal compliance.
 
 If you need to leave a **Company Workspace** but want to keep your data:
 - Ask the **Workspace Admin** to remove you from the workspace.
 - If you own the workspace, you can delete it.
 
-Once removed from the workspace, the account will downgrade to a **free account**, and you will retain access to your historical data.
+Once removed from the workspace, the account will downgrade to a free account, and you will retain access to your historical data.
 
 ---
 
-# Close Your Account
+# Close Account
 
 **On Web:**
-1. Hover over **Settings**, then click **Account**.
-2. Scroll to the bottom and click **Close Account**.
+1. Hover over **Settings > Account > Profile**.
+2. Scroll down and click **Close Account**.
 3. Confirm the closure using your phone or email.
 
 If you don't see this option, your account may be domain-controlled. To close it, contact your **Domain Admin**.
@@ -35,7 +37,7 @@ It may be domain-controlled if you don't see the option to close your account. I
 # Reopen a Closed Account
 
 1. Sign in to your web account with your email or phone number.
-2. Click **Reopen Account**.
+2. Choose **Reopen Account**.
 3. Open your email and click the link from Expensify.
 
 Your account is open, and you can recreate workspaces, adjust settings, and access shared historical data.
@@ -72,3 +74,5 @@ If you encounter an error or the **Close Account** button is unavailable, check 
 ## How can I reopen a domain member's account?
 
 A domain admin can reopen closed accounts under **Settings > Domain Members > Entering the employee's email address > Clicking Invite**.
+
+</div>

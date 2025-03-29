@@ -71,6 +71,7 @@ function RegistrationNumber({onNext, isEditing}: RegistrationNumberProps) {
                 containerStyles={[styles.mt6]}
                 defaultValue={defaultValue}
                 shouldSaveDraft={!isEditing}
+                autoFocus
             />
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                 <Icon

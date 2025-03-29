@@ -1,10 +1,11 @@
 ---
-title: Enable and set up expense violations
+title: Enable and set up Expense Violations
 description: Set up rules for expenses and enable violations
+keywords: [Expensify Classic, violations, expense violations]
 ---
 <div id="expensify-classic" markdown="1">
 
-Expensify automatically detects expense errors or discrepancies as violations that must be corrected. You can also set rules for a workspace that will trigger a violation if the rule is not met. These rules can be set for categories, tags, and even for specific domain groups.
+   Expensify automatically detects expense errors or discrepancies as violations that must be corrected. You can also set rules for a workspace that will trigger a violation if the rule is not met. These rules can be set for categories, tags, and even for specific domain groups.
 
 When reviewing submitted expense reports, approvers will see violations highlighted with an exclamation mark. There are two types of violations:
 - **Yellow**: Automated highlights that require attention but may not require corrective action. For example, if a receipt was SmartScanned and then the amount was modified, a yellow violation will be added to call out the change for review.
@@ -12,100 +13,104 @@ When reviewing submitted expense reports, approvers will see violations highligh
 
 You can hover over the icon to see a brief description, and you can find more detailed information below the list of expenses. 
 
-{% include info.html %}
-If your workspace has automations set to automatically submit reports for approval, the report that contains violations will not be submitted automatically until the violations are corrected. (However, if a comment is added to an expense, it will override the violation as the member is providing a reason for submission *unless* domain workspace rules are set to be strictly enforced, as detailed near the bottom of this article.) 
-{% include end-info.html %}
+⚠️ **Important:** If your workspace is set to automatically submit reports for approval, the report containing violations will not be submitted automatically until the violations are corrected. However, if a comment is added to an expense, it will override the violation as the member is providing a reason for submission **unless domain workspace rules are set to be strictly enforced**, as detailed near the bottom of this article.
 
-# Enable or disable expense violations
+---
 
-1. Hover over Settings, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
-3. Click the desired workspace name. 
-4. Click the **Expenses** tab on the left. 
-5. Click the “Enable violations” toggle. 
-6. If desired, enter the expense rules that will be used to create violations:
+# Enable Expense Violations
+
+1. Hover over **Settings**, then click **Workspaces**.
+2. Click the **Group** tab on the left.
+3. Click the desired workspace name.
+4. Click the **Expenses** tab on the left.
+5. Click the **Enable violations** toggle to turn it on or off.
+   - If disabled, expense violations will no longer appear, and workspace rules will not enforce restrictions.
+6. If enabled, enter the expense rules that will be used to create violations:
    - **Max expense age (days)**: How old an expense can be
    - **Max expense amount**: How much a single expense can cost
    - **Receipt required amount**: How much a single expense can cost before a receipt is required
 
-{% include info.html %}
-Expensify includes certain system mandatory violations that can't be disabled, even if your workspace has violations turned off.
-{% include end-info.html %}
+**Note:** Expensify includes certain system-mandatory violations that can't be turned off, even if you do not have violations enabled on your workspace.
 
-# Set category rules
+---
 
-Admins on a Control workspace can enable specific rules for each category, including setting expense caps for specific categories, requiring receipts, and more. These rules can allow you to have a default expense limit of $2,500 but to only allow a daily entertainment limit of $150 per person. You can also choose to not require receipts for mileage or per diem expenses.
+# Set Category Rules
 
-To set up category rules, 
-1. Hover over Settings, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
+Admins on a Control workspace can enable specific rules for each category, including setting expense caps for specific categories, requiring receipts, and more. These rules allow you to set different limits per category. For example, you can set a general expense limit of $2,500 but limit daily entertainment expenses to $150 per person. You can also choose to exempt certain expense types, such as mileage or per diem, from receipt requirements.
+
+To set up category rules:
+1. Hover over **Settings**, then click **Workspaces**.
+2. Click the **Group** tab on the left.
 3. Click the desired workspace name.
 4. Click the **Categories** tab on the left.
-5. Click **Edit** to the right of the category.
-6. Enter your category rules, as desired:
-   - **GL Code and Payroll Code**: You can add general ledger (GL) or payroll codes to the category for accounting. GL codes populate automatically if you have an accounting integration connected with Expensify.
-   - **Max Amount**: You can set specific expense caps for the expense category. Use the Limit Type dropdown to determine if the amount is set per individual expense or per day, then enter the maximum amount into this field.
-   - **Receipts**: You can determine whether receipts are required for the category. For example, many companies disable receipt requirements for toll expenses.
-   - **Description**: You can determine whether a description is required for expenses under this category.
-   - **Description Hint**: You can add a hint in the description field to prompt the expense creator on what they should enter into the description field for expenses under this category.
-   - **Approver**: You can set a specific approver for expenses labeled with this category. 
+5. Click **Edit** next to the category.
+6. Enter your category rules as needed:
+   - **GL Code and Payroll Code**: Add general ledger (GL) or payroll codes to the category for accounting.
+   - **Max Amount**: Set specific expense caps per expense or per day.
+   - **Receipts**: Define whether receipts are required for the category.
+   - **Description**: Require a description for the category.
+   - **Description Hint**: Provide a prompt to guide users on entering a description.
+   - **Approver**: Assign a specific approver for expenses in this category.
 
-If users are in violation of these rules, the violations will be shown in red on the report. 
+If users violate these rules, the violations will be displayed in red on the report.
 
-{% include info.html %}
-If Scheduled Submit is enabled on a workspace, expenses with category violations will not be auto-submitted unless the expense has a comment added.
-{% include end-info.html %}
+**Note:** If Scheduled Submit is enabled on a workspace, expenses with category violations will not be auto-submitted unless a comment is added to the expense.
 
-# Make categories required
+---
 
-This means all expenses must be coded with a Category. 
+# Make Categories Required
 
-1. Hover over Settings, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
+This setting ensures all expenses must be coded with a category.
+
+1. Hover over **Settings**, then click **Workspaces**.
+2. Click the **Group** tab on the left.
 3. Click the desired workspace name.
 4. Click the **Categories** tab on the left.
-5. Enable the “People must categorize expenses” toggle. 
+5. Click the **People must categorize expenses** toggle.
 
-Each Workspace Member will now be required to select a category for their expense. If they do not select a category, the report will receive a violation, which can prevent submission if Scheduled Submit is enabled.
+If a category is not selected, the report will receive a violation, which may prevent submission if **Scheduled Submit** is enabled.
 
-# Make tags required
+---
 
-1. Hover over Settings, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
+# Make Tags Required
+
+1. Hover over **Settings**, then click **Workspaces**.
+2. Click the **Group** tab on the left.
 3. Click the desired workspace name.
-4. Click the **Tags** tab on the left. 
-5. Enable the “People must tag expenses” toggle.
+4. Click the **Tags** tab on the left.
+5. Click the **People must tag expenses** toggle.
 
-Each Workspace Member will now be required to select a tag for their expense before they’re able to submit it. 
+Each workspace member must now select a tag before submitting an expense.
 
-# Require strict compliance by domain group
+---
 
-You can require strict compliance to require members of a specific domain group to submit reports that meet **all** workspace rules before they can submit their expense report—even if they add a note. Every rule and regulation on the workspace must be met before a report can be submitted. 
+# Require Strict Compliance by Domain Group
 
-{% include info.html %}
-This will prevent members from submitting any reports where a manager has granted them a manual exception for any of the workspace rules.
-{% include end-info.html %}
+You can enforce strict compliance to ensure that all workspace rules are met before members of a specific domain group can submit an expense report—even if they add a note. Every rule must be followed without exception.
 
-To enable strict domain group compliance for reports,
+**Note:** This setting prevents members from submitting reports where a manager has granted them a manual exception for workspace rules.
 
-1. Hover over Settings, then click **Domains**. 
-2. Click the **Groups** tab on the left. 
-3. Click **Edit** to the right of the desired workspace name. 
-4. Enable the “Strictly enforce expense workspace rules” toggle. 
+To enable strict compliance:
+1. Hover over **Settings**, then click **Domains**.
+2. Click the **Groups** tab on the left.
+3. Click **Edit** next to the domain group name.
+4. Click the **Strictly enforce expense workspace rules** toggle.
 
-# FAQs
+---
 
-**Why can’t my employees see the categories on their expenses?**
+# FAQ
 
-The employee may have their default workspace set as their personal workspace. Look under the details section on top right of the report to ensure it is being reported under the correct workspace. 
+## Why can’t my employees see the categories on their expenses?
 
-**Will the account numbers from our accounting system (QuickBooks Online, Sage Intacct, etc.) show in the category list for employees?**
+Employees may have their default workspace set to their personal workspace. Check the **Details** section at the top right of the report to ensure it is being reported under the correct workspace.
 
-The general ledger (GL) account numbers are visible only for Workspace Admins in the workspace settings when they are part of a control workspace. This information is not visible to other members of the workspace. However, if you wish to have this information available to your employees when they are categorizing their expenses, you can edit the account name in your accounting software to include the GL number (for example, Accounts Payable - 12345).
+## Will the account numbers from our accounting system (QuickBooks Online, Sage Intacct, etc.) show in the category list for employees?
 
-**What causes a category violation?** 
+GL account numbers are only visible to **Workspace Admins** when part of a Control workspace. They are not visible to other members. If you want employees to see this information, modify the account name in your accounting system to include the GL number (e.g., Accounts Payable - 12345).
 
-- An expense is categorized with a category that is not included in the workspace's categories. This may happen if the employee creates an expense under the wrong workspace, which will cause a "category out of workspace" violation.
-- If the workspace categories are being imported from an accounting integration and they’ve been updated in the accounting system but not in Expensify, this can cause an old category to still be in use on an open report which would throw a violation on submission. Simply reselect a proper category to clear violation. 
+## What causes a category violation?
+
+- An expense is categorized under a category that is not included in the workspace settings.
+- If workspace categories are imported from an accounting system and updated there but not in Expensify, old categories may still be assigned, leading to violations. Re-select a correct category to resolve the issue.
 
 </div>

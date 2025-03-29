@@ -180,12 +180,12 @@ Manage your Copilot settings:
    3. Under Copilot: Delegated Access, press **Add Copilot**.
    4. Search for the user you'd like to add using their name or email address.
    5. Select **Full** or **Limited** access and press **Add Copilot**.
-   
+
 2. To remove a Copilot:
    1. Press your **profile icon** in the bottom left corner to open **Settings**.
    2. Press **Security**.
    3. Under Copilot: Delegated Access, press the three vertical dots next to the Copilot and press **Remove Copilot**.
-   
+
 3. To act as a Copilot:
    1. Press your **profile icon** in the bottom left corner to open **Settings**.
    2. Press the up-down arrow next to your profile name in the top left corner to access the account switcher.
@@ -319,7 +319,7 @@ To request an early cancellation:
 Note: Early cancellation might not be available for all customers.
 
 #### [Pricing Information] Where can I find more details on pricing plans?
-For detailed pricing plans, visit the billing page [coming soon]. 
+For detailed pricing plans, visit the billing page [coming soon].
 
 ### Security and Customization
 #### [Enable 2FA Security] How do I secure my account with two-factor authentication?
@@ -334,7 +334,7 @@ Adding an extra layer of security can help protect your financial data. To enabl
 
 1. Press your profile image or icon in the bottom menu.
 2. Press **Security**.
-3. Under Security Options, press **Two Factor Authentication**.
+3. Under Security Options, press **Two-Factor Authentication**.
 4. Save a copy of your backup codes. This is critical to avoid losing access if you cannot use your authenticator app.
    - Press **Download** to save the backup codes to your device.
    - Press **Copy** to paste the codes into a secure location.

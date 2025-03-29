@@ -559,6 +559,21 @@ index 0000000..56a6c3d
 diff --git a/node_modules/react-native-vision-camera/android/src/main/.DS_Store b/node_modules/react-native-vision-camera/android/src/main/.DS_Store
 new file mode 100644
 index 0000000..e69de29
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt
+index 862c03a..f892ab7 100644
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt
++++ b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt
+@@ -90,7 +90,9 @@ class CameraSession(internal val context: Context, internal val callback: Callba
+     }
+   }
+ 
+-  override fun getLifecycle(): Lifecycle = lifecycleRegistry
++  override val lifecycle: Lifecycle
++    get() = lifecycleRegistry
++//  override fun getLifecycle(): Lifecycle = lifecycleRegistry
+ 
+   /**
+    * Configures the [CameraSession] with new values in one batch.
 diff --git a/node_modules/react-native-vision-camera/ios/.swiftformat b/node_modules/react-native-vision-camera/ios/.swiftformat
 new file mode 100644
 index 0000000..95e71c1
@@ -1056,7 +1071,7 @@ index 0000000..20f4996
 +@end
 +#endif
 diff --git a/node_modules/react-native-vision-camera/lib/commonjs/Camera.js b/node_modules/react-native-vision-camera/lib/commonjs/Camera.js
-index 4c04727..12b9255 100644
+index 4c04727..9628241 100644
 --- a/node_modules/react-native-vision-camera/lib/commonjs/Camera.js
 +++ b/node_modules/react-native-vision-camera/lib/commonjs/Camera.js
 @@ -1,27 +1,42 @@
@@ -2299,6 +2314,7 @@ index 4c04727..12b9255 100644
 +    },
  });
  //# sourceMappingURL=Camera.js.map
+\ No newline at end of file
 diff --git a/node_modules/react-native-vision-camera/lib/commonjs/Camera.js.map b/node_modules/react-native-vision-camera/lib/commonjs/Camera.js.map
 index a21019c..667d46b 100644
 --- a/node_modules/react-native-vision-camera/lib/commonjs/Camera.js.map
@@ -2525,7 +2541,7 @@ index 0000000..f3c7b03
 +  "mappings": ";;;;;;AAGA,IAAAA,uBAAA,GAAAC,sBAAA,CAAAC,OAAA;AAA6F,SAAAD,uBAAAE,GAAA,WAAAA,GAAA,IAAAA,GAAA,CAAAC,UAAA,GAAAD,GAAA,KAAAE,OAAA,EAAAF,GAAA;AAH7F;AAAA,IAAAG,QAAA,GAAAC,OAAA,CAAAF,OAAA,GA0Fe,IAAAG,+BAAsB,EAAc,YAAY,CAAC"
 +}
 diff --git a/node_modules/react-native-vision-camera/lib/module/Camera.js b/node_modules/react-native-vision-camera/lib/module/Camera.js
-index e97f27c..fea7ccf 100644
+index e97f27c..95a2328 100644
 --- a/node_modules/react-native-vision-camera/lib/module/Camera.js
 +++ b/node_modules/react-native-vision-camera/lib/module/Camera.js
 @@ -1,21 +1,35 @@
@@ -3756,6 +3772,7 @@ index e97f27c..fea7ccf 100644
 +    },
  });
  //# sourceMappingURL=Camera.js.map
+\ No newline at end of file
 diff --git a/node_modules/react-native-vision-camera/lib/module/Camera.js.map b/node_modules/react-native-vision-camera/lib/module/Camera.js.map
 index a1a484f..b45fa1d 100644
 --- a/node_modules/react-native-vision-camera/lib/module/Camera.js.map

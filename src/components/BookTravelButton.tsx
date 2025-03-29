@@ -1,5 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
+import type {ReactElement} from 'react';
 import React, {useCallback, useContext, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -23,6 +24,8 @@ import ConfirmModal from './ConfirmModal';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import {RocketDude} from './Icon/Illustrations';
+import Text from './Text';
+import TextLink from './TextLink';
 
 type BookTravelButtonProps = {
     text: string;
@@ -40,7 +43,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const policy = usePolicy(activePolicyID);
-    const [errorMessage, setErrorMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
@@ -65,7 +68,18 @@ function BookTravelButton({text}: BookTravelButtonProps) {
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
-            setErrorMessage(translate('travel.phoneError'));
+            setErrorMessage(
+                <Text style={[styles.flexRow, StyleUtils.getDotIndicatorTextStyles(true)]}>
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase1')}</Text>{' '}
+                    <TextLink
+                        style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
+                    >
+                        {translate('travel.phoneError.link')}
+                    </TextLink>
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase2')}</Text>
+                </Text>,
+            );
             return;
         }
 
@@ -114,7 +128,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled, isBlockedFromSpotnanaTravel]);
+    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled, isBlockedFromSpotnanaTravel, StyleUtils, styles]);
 
     return (
         <>

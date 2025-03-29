@@ -1,0 +1,37 @@
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm b/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
+index 4f1c040..481be63 100644
+--- a/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStackHeaderConfig.mm
+@@ -824,6 +824,8 @@ static RCTResizeMode resizeModeFromCppEquiv(react::ImageResizeMode resizeMode)
+       return RCTResizeModeCenter;
+     case react::ImageResizeMode::Repeat:
+       return RCTResizeModeRepeat;
++    default:
++      throw @"[RNScreens] Unhandled resizeMode";
+   }
+ }
+ 
+diff --git a/node_modules/react-native-screens/package.json b/node_modules/react-native-screens/package.json
+index bb7c35f..082fda3 100644
+--- a/node_modules/react-native-screens/package.json
++++ b/node_modules/react-native-screens/package.json
+@@ -156,6 +156,19 @@
+     "jsSrcsDir": "./src/fabric",
+     "android": {
+       "javaPackageName": "com.swmansion.rnscreens"
++    },
++    "ios": {
++      "componentProvider": {
++        "RNSFullWindowOverlay": "RNSFullWindowOverlay",
++        "RNSModalScreen": "RNSModalScreen",
++        "RNSScreenContainer": "RNSScreenContainerView",
++        "RNSScreen": "RNSScreenView",
++        "RNSScreenNavigationContainer": "RNSScreenNavigationContainerView",
++        "RNSScreenStackHeaderConfig": "RNSScreenStackHeaderConfig",
++        "RNSScreenStackHeaderSubview": "RNSScreenStackHeaderSubview",
++        "RNSScreenStack": "RNSScreenStackView",
++        "RNSSearchBar": "RNSSearchBar"
++      }
+     }
+   },
+   "packageManager": "yarn@4.1.1"

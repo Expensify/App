@@ -16,9 +16,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {isWorkspaceEligibleForReportChange} from '@libs/PolicyUtils';
+import {isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
@@ -51,11 +53,15 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin,
-        isOffline,
+        shouldShowPendingDeletePolicy: false,
         selectedPolicyID: report.policyID,
         searchTerm: debouncedSearchTerm,
         additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin),
     });
+
+    if (!isExpenseReport(report) || isMoneyRequestReportPendingDeletion(report) || (!report.total && !report.unheldTotal)) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper

@@ -1,11 +1,16 @@
 ---
 title: Expensify Card Statements
 description: Learn how to access and manage your Expensify Card statements and settlements.
+keywords: [Expensify Classic, Expensify Card statements]
 ---
+<div id="expensify-classic" markdown="1">
 
 The Expensify Card provides detailed statements that help you track transactions and settlements with ease. This guide explains how to access, export, and manage your statements while understanding key details like settlement frequency and outstanding balances.
 
+---
+
 # Accessing Your Statement
+
 To view your Expensify Card statement:
 1. Ensure your domain uses the Expensify Card and has a validated Business Bank Account.
 2. Navigate to **Settings > Domains > [Your Domain Name] > Company Cards**.
@@ -17,6 +22,7 @@ To view your Expensify Card statement:
 ---
 
 # Key Information in the Statement
+
 Each statement includes the following details:
 - **Date**: The posted date of each transaction and payment.
 - **Entry ID**: A unique identifier grouping payments and transactions.
@@ -30,7 +36,9 @@ Each statement includes the following details:
 **Note:** Statements only include payments from active Business Bank Accounts under **Settings > Account > Payments > Business Accounts**. Payments from deleted accounts will not appear.
 
 ---
+
 # Exporting Statements
+
 To download a statement:
 1. Log in to Expensify.
 2. Go to **Settings > Domains > Company Cards**.
@@ -42,7 +50,9 @@ To download a statement:
 ![Click the Download CSV button in the middle of the page to export your card settlements.](https://help.expensify.com/assets/images/ExpensifyHelp_SettlementExport.png){:width="100%"}
 
 ---
+
 # Expensify Card Settlement Frequency
+
 You can choose between two settlement options:
 - **Daily Settlement**: Your balance is paid in full every business day.
 - **Monthly Settlement**: Your balance is settled once per month on a predetermined date (available for Plaid-connected accounts with no recent negative balances).
@@ -56,7 +66,9 @@ You can choose between two settlement options:
 **Note:** You cannot choose a specific settlement date beyond the available daily or monthly options.
 
 ---
+
 # How Settlement Works
+
 - On your scheduled settlement date, Expensify calculates the total of all posted transactions.
 - The total settlement amount is withdrawn from your Verified Business Bank Account, resetting your card balance to $0.
 - To change your settlement frequency or bank account:
@@ -68,6 +80,7 @@ You can choose between two settlement options:
 ![Change your card settlement account or settlement frequency via the dropdown menus in the middle of the screen.](https://help.expensify.com/assets/images/ExpensifyHelp_CardSettings.png){:width="100%"}
 
 ---
+
 # FAQ
 
 ## Can I pay my balance early if I’ve reached my Domain Limit?
@@ -88,3 +101,5 @@ It includes all pending and posted transactions since the last settlement. Only 
 5. The **Imported Total** will display the outstanding amount, with a breakdown of individual expenses available.
 
 For additional support, contact Concierge via Expensify.
+
+</div>

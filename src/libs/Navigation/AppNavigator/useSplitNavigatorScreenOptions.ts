@@ -53,7 +53,7 @@ const useSplitNavigatorScreenOptions = () => {
             animation: shouldUseNarrowLayout ? undefined : Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePane: true}),
-                cardStyle: shouldUseNarrowLayout ? StyleUtils.getNavigationModalCardStyle() : undefined,
+                cardStyle: shouldUseNarrowLayout ? StyleUtils.getNavigationModalCardStyle() : themeStyles.h100,
             },
         },
     } satisfies SplitNavigatorScreenOptions;

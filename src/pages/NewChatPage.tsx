@@ -215,7 +215,9 @@ function NewChatPage() {
             }
 
             selectionListRef?.current?.clearInputAfterSelect?.();
-            selectionListRef.current?.focusTextInput();
+            if (!canUseTouchScreen()) {
+                selectionListRef.current?.focusTextInput();
+            }
             setSelectedOptions(newSelectedOptions);
         },
         [selectedOptions, setSelectedOptions],
@@ -229,7 +231,11 @@ function NewChatPage() {
     const selectOption = useCallback(
         (option?: Option) => {
             if (option?.isSelfDM) {
-                Navigation.dismissModal(option.reportID);
+                if (!option.reportID) {
+                    Navigation.dismissModal();
+                    return;
+                }
+                Navigation.dismissModalWithReport({reportID: option.reportID});
                 return;
             }
             if (selectedOptions.length && option) {

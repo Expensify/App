@@ -830,8 +830,8 @@ describe('OptionsListUtils', () => {
     });
 
     it('getLastActorDisplayName()', () => {
-        expect(getLastActorDisplayName(PERSONAL_DETAILS['2'], true)).toBe('You');
-        expect(getLastActorDisplayName(PERSONAL_DETAILS['3'], true)).toBe('Spider-Man');
+        expect(getLastActorDisplayName(PERSONAL_DETAILS['2'])).toBe('You');
+        expect(getLastActorDisplayName(PERSONAL_DETAILS['3'])).toBe('Spider-Man');
     });
 
     it('formatMemberForList()', () => {

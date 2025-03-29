@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {getCommentLength, getParsedComment, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
+import {getCommentLength, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
@@ -40,8 +40,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors = {};
-            const parsedDescription = getParsedComment(values?.description);
-            const taskDescriptionLength = getCommentLength(parsedDescription);
+            const taskDescriptionLength = getCommentLength(values.description);
             if (values?.description && taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
                 addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
             }
@@ -59,14 +58,14 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                 editTask(report, {description: values.description});
             }
 
-            Navigation.dismissModal(report?.reportID);
+            Navigation.dismissModalWithReport({reportID: report?.reportID});
         },
         [report],
     );
 
     if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal(report?.reportID);
+            Navigation.dismissModalWithReport({reportID: report?.reportID});
         });
     }
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
