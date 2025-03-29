@@ -27,11 +27,12 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -42,6 +43,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -125,12 +127,15 @@ function WorkspacesListPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.WORKSPACES>>();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    const {setIsDeletingPaidWorkspace, isLoadingBill} = usePayAndDowngrade(setIsDeleteModalOpen);
+
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
@@ -164,6 +169,8 @@ function WorkspacesListPage() {
         }
     };
 
+    const shouldCalculateBillNewDot = shouldCalculateBillNewDotFn();
+
     /**
      * Gets the menu item for each workspace
      */
@@ -187,16 +194,26 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
+                    shouldShowLoadingSpinnerIcon: isLoadingBill,
                     onSelected: () => {
                         if (isSupportalAction) {
                             setIsSupportalActionRestrictedModalOpen(true);
                             return;
                         }
+
                         setPolicyIDToDelete(item.policyID);
                         setPolicyNameToDelete(item.title);
+
+                        if (shouldCalculateBillNewDot) {
+                            setIsDeletingPaidWorkspace(true);
+                            calculateBillNewDot();
+                            return;
+                        }
+
                         setIsDeleteModalOpen(true);
                     },
-                    shouldCallAfterModalHide: true,
+                    shouldKeepModalOpen: shouldCalculateBillNewDot,
+                    shouldCallAfterModalHide: !shouldCalculateBillNewDot,
                 });
             }
 
@@ -263,6 +280,7 @@ function WorkspacesListPage() {
                                 shouldDisableThreeDotsMenu={item.disabled}
                                 style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
                                 isDefault={isDefault}
+                                isDeleteModalOpen={isDeleteModalOpen}
                             />
                         )}
                     </PressableWithoutFeedback>
@@ -281,6 +299,10 @@ function WorkspacesListPage() {
             session?.email,
             activePolicyID,
             isSupportalAction,
+            setIsDeletingPaidWorkspace,
+            isLoadingBill,
+            isDeleteModalOpen,
+            shouldCalculateBillNewDot,
         ],
     );
 

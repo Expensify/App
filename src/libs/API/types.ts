@@ -467,6 +467,7 @@ const WRITE_COMMANDS = {
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
     CHANGE_REPORT_POLICY: 'ChangeReportPolicy',
     SEND_RECAP_IN_ADMINS_ROOM: 'SendRecapInAdminsRoom',
+    PAY_AND_DOWNGRADE: 'PayAndDowngrade',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -947,6 +948,8 @@ type WriteCommandParameters = {
 
     // Change report policy
     [WRITE_COMMANDS.CHANGE_REPORT_POLICY]: Parameters.ChangeReportPolicyParams;
+
+    [WRITE_COMMANDS.PAY_AND_DOWNGRADE]: null;
 };
 
 const READ_COMMANDS = {
@@ -1017,6 +1020,7 @@ const READ_COMMANDS = {
     OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
     OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
+    CALCULATE_BILL_NEW_DOT: 'CalculateBillNewDot',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1089,6 +1093,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
     [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
+    [READ_COMMANDS.CALCULATE_BILL_NEW_DOT]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

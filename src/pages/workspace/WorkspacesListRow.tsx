@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -70,6 +70,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** is policy defualt */
     isDefault?: boolean;
+
+    /** Whether the delete modal is open */
+    isDeleteModalOpen?: boolean;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -114,6 +117,7 @@ function WorkspacesListRow({
     isJoinRequestPending,
     policyID,
     isDefault,
+    isDeleteModalOpen,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -122,6 +126,14 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
+    const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
+
+    useEffect(() => {
+        if (!isDeleteModalOpen || !threeDotsMenuRef.current?.isPopupMenuVisible) {
+            return;
+        }
+        threeDotsMenuRef?.current?.hidePopoverMenu();
+    }, [isDeleteModalOpen]);
 
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
@@ -188,6 +200,7 @@ function WorkspacesListRow({
                             shouldOverlay
                             disabled={shouldDisableThreeDotsMenu}
                             isNested
+                            threeDotsMenuRef={threeDotsMenuRef}
                         />
                     </View>
                 </View>

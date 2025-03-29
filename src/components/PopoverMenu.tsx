@@ -61,6 +61,9 @@ type PopoverMenuItem = MenuItemProps & {
     rightIcon?: React.FC<SvgProps>;
 
     key?: string;
+
+    /** Whether to keep the modal open after clicking on the menu item */
+    shouldKeepModalOpen?: boolean;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> &
