@@ -297,7 +297,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 <View style={[styles.mv3]}>
                     {isUsingRecoveryCode ? (
                         <TextInput
-                            shouldDelayFocus
                             accessibilityLabel={translate('recoveryCodeForm.recoveryCode')}
                             value={recoveryCode}
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
@@ -310,7 +309,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         />
                     ) : (
                         <MagicCodeInput
-                            shouldDelayFocus
                             autoComplete={autoComplete}
                             ref={(magicCodeInput) => {
                                 if (!magicCodeInput) {
