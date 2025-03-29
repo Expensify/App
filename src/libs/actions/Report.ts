@@ -3425,13 +3425,10 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     navigateToMostRecentReport(report);
 }
 
-/** Invites people to a room */
-function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportMetadata = getReportMetadata(reportID);
-    if (!report) {
-        return;
-    }
+    const isGroupChat = isGroupChatReportUtils(report);
 
     const defaultNotificationPreference = getDefaultNotificationPreferenceForReport(report);
 
@@ -3451,7 +3448,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             reportParticipants[accountID] = participant;
             return reportParticipants;
         },
-        {...report.participants},
+        {...report?.participants},
     );
 
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
@@ -3523,7 +3520,14 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
         },
     ];
 
-    if (isGroupChatReportUtils(report)) {
+    return {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs};
+}
+
+/** Invites people to a room */
+function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs} = buildInviteToRoomOnyxData(reportID, inviteeEmailsToAccountIDs);
+
+    if (isGroupChat) {
         const parameters: InviteToGroupChatParams = {
             reportID,
             inviteeEmails,
@@ -5374,6 +5378,7 @@ export {
     handleUserDeletedLinksInHtml,
     hasErrorInPrivateNotes,
     inviteToGroupChat,
+    buildInviteToRoomOnyxData,
     inviteToRoom,
     joinRoom,
     leaveGroupChat,
