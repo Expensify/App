@@ -24,8 +24,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {
     findSelfDMReportID,
     getChatByParticipants,
@@ -52,22 +51,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type ProfilePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
-
-/**
- * Gets the phone number to display for SMS logins
- */
-const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined => {
-    const {login = '', displayName = ''} = details ?? {};
-    // If the user hasn't set a displayName, it is set to their phone number
-    const parsedPhoneNumber = parsePhoneNumber(displayName);
-
-    if (parsedPhoneNumber.possible) {
-        return parsedPhoneNumber?.number?.e164;
-    }
-
-    // If the user has set a displayName, get the phone number from the SMS login
-    return login ? Str.removeSMSDomain(login) : '';
-};
 
 /**
  * This function narrows down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
