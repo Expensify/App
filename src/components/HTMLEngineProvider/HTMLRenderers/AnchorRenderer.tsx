@@ -46,6 +46,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 style={styles.link}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
                 suppressHighlighting
+                testID="a"
             >
                 <TNodeChildrenRenderer tnode={tnode} />
             </Text>
