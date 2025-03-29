@@ -104,7 +104,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                 <View style={[styles.flexRow, styles.flex4, styles.gap2, styles.alignItemsCenter]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textMicroSupporting, styles.lh16]}
                     >
                         {translate('workspace.expensifyCard.name')}
                     </Text>
@@ -113,7 +113,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                     <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
                         <Text
                             numberOfLines={1}
-                            style={[styles.textLabelSupporting, styles.lh16]}
+                            style={[styles.textMicroSupporting, styles.lh16]}
                         >
                             {translate('common.type')}
                         </Text>
@@ -130,7 +130,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                 >
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textMicroSupporting, styles.lh16]}
                     >
                         {translate('workspace.expensifyCard.lastFour')}
                     </Text>
@@ -138,7 +138,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                 <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textMicroSupporting, styles.lh16]}
                     >
                         {translate('workspace.expensifyCard.limit')}
                     </Text>

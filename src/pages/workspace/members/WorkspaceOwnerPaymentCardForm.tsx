@@ -107,7 +107,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                         containerStyles={[styles.mh0, styles.mt5]}
                     >
                         <View style={[styles.mt4, styles.ph2, styles.pb2]}>
-                            <Text style={[styles.searchInputStyle, styles.dFlex, styles.alignItemsCenter]}>
+                            <Text style={[styles.textSupportingNormal, styles.dFlex, styles.alignItemsCenter]}>
                                 <Icon
                                     src={Expensicons.Checkmark}
                                     additionalStyles={[styles.mr3]}
@@ -115,7 +115,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                                 />
                                 {translate('workspace.changeOwner.addPaymentCardPciCompliant')}
                             </Text>
-                            <Text style={[styles.mt3, styles.searchInputStyle, styles.dFlex, styles.alignItemsCenter]}>
+                            <Text style={[styles.mt3, styles.textSupportingNormal, styles.dFlex, styles.alignItemsCenter]}>
                                 <Icon
                                     src={Expensicons.Checkmark}
                                     additionalStyles={[styles.mr3]}
@@ -123,7 +123,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                                 />
                                 {translate('workspace.changeOwner.addPaymentCardBankLevelEncrypt')}
                             </Text>
-                            <Text style={[styles.mt3, styles.searchInputStyle, styles.dFlex, styles.alignItemsCenter]}>
+                            <Text style={[styles.mt3, styles.textSupportingNormal, styles.dFlex, styles.alignItemsCenter]}>
                                 <Icon
                                     src={Expensicons.Checkmark}
                                     additionalStyles={[styles.mr3]}
@@ -132,10 +132,10 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                                 {translate('workspace.changeOwner.addPaymentCardRedundant')}
                             </Text>
                         </View>
-                        <Text style={[styles.mt3, styles.searchInputStyle]}>
+                        <Text style={[styles.mt3, styles.textSupportingNormal]}>
                             {translate('workspace.changeOwner.addPaymentCardLearnMore')}{' '}
                             <TextLink
-                                style={[styles.searchInputStyle, styles.link]}
+                                style={[styles.textSupportingNormal, styles.link]}
                                 href={CONST.PERSONAL_DATA_PROTECTION_INFO_URL}
                             >
                                 {translate('workspace.changeOwner.addPaymentCardSecurity')}
