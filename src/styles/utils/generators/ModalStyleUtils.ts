@@ -232,7 +232,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderColor: theme.border,
                     justifyContent: 'center',
                     overflow: 'hidden',
-                    boxShadow:theme.shadow,
+                    boxShadow: theme.shadow,
                 };
 
                 hideBackdrop = true;
