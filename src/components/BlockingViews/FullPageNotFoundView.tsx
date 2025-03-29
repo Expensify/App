@@ -105,6 +105,7 @@ function FullPageNotFoundView({
                         subtitleStyle={subtitleStyle}
                         addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                         addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
+                        testID={FullPageNotFoundView.displayName}
                     />
                 </View>
             </ForceFullScreenView>

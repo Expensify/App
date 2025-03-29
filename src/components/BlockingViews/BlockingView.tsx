@@ -57,6 +57,9 @@ type BaseBlockingViewProps = {
 
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** A testing ID that can be applied to the element on the page */
+    testID?: string;
 };
 
 type BlockingViewIconProps = {
@@ -108,6 +111,7 @@ function BlockingView({
     containerStyle: containerStyleProp,
     addBottomSafeAreaPadding = false,
     addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+    testID,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -151,6 +155,7 @@ function BlockingView({
         <View
             style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
             accessibilityLabel={accessibilityLabel}
+            testID={testID}
         >
             {!!animation && (
                 <Lottie
