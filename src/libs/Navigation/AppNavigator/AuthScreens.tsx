@@ -2,10 +2,10 @@ import type {RouteProp} from '@react-navigation/native';
 import {findFocusedRoute, useNavigation} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
-import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
@@ -54,6 +54,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import createRootStackNavigator from './createRootStackNavigator';
 import {reportsSplitsWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
@@ -68,7 +69,7 @@ import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
-type AuthScreensProps = {
+type AuthScreensContentProps = {
     /** Session of currently logged in user */
     session: OnyxEntry<OnyxTypes.Session>;
 
@@ -182,7 +183,7 @@ const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
 const modalScreenListeners = {
     focus: () => {
-        Modal.setModalVisibility(true);
+        Modal.setModalVisibility(true, CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
     },
     blur: () => {
         Modal.setModalVisibility(false);
@@ -211,7 +212,29 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
-function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+// AuthScreens has been migrated to useOnyx. In the previous version, withOnyx waited until all the Onyx values are loaded and then rendered the component first time.
+// To avoid breaking functionalities that rely on this logic, we keep the same behavior by waiting for the Onyx values to be loaded before rendering the component.
+function AuthScreens() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [lastOpenedPublicRoomID, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
+    const [initialLastUpdateIDAppliedToClient, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+    const isLastOpenedPublicRoomIDLoading = isLoadingOnyxValue(lastOpenedPublicRoomIDStatus);
+    const isInitialLastUpdateIDAppliedToClientLoading = isLoadingOnyxValue(initialLastUpdateIDAppliedToClientStatus);
+
+    if (isLastOpenedPublicRoomIDLoading || isInitialLastUpdateIDAppliedToClientLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
+
+    return (
+        <AuthScreensContent
+            session={session}
+            lastOpenedPublicRoomID={lastOpenedPublicRoomID}
+            initialLastUpdateIDAppliedToClient={initialLastUpdateIDAppliedToClient}
+        />
+    );
+}
+
+function AuthScreensContent({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensContentProps) {
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
@@ -657,27 +680,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
             </RootStack.Navigator>
             <SearchRouterModal />
-            <ActiveGuidesEventListener />
         </ComposeProviders>
     );
 }
 
 AuthScreens.displayName = 'AuthScreens';
 
-const AuthScreensMemoized = memo(AuthScreens, () => true);
-
-// Migration to useOnyx cause re-login if logout from deeplinked report in desktop app
-// Further analysis required and more details can be seen here:
-// https://github.com/Expensify/App/issues/50560
-// eslint-disable-next-line
-export default withOnyx<AuthScreensProps, AuthScreensProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    lastOpenedPublicRoomID: {
-        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-    },
-    initialLastUpdateIDAppliedToClient: {
-        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    },
-})(AuthScreensMemoized);
+// This memo is needed because <AuthScreens> is one of the main components in the app and navigation root and is relevant for the app performance.
+export default memo(AuthScreens);

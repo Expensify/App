@@ -969,6 +969,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_CUSTOM]: {
         policyID: string;
     };
@@ -1613,6 +1616,8 @@ type ReportsSplitNavigatorParamList = {
         reportID: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
+        moneyRequestReportActionID?: string;
+        transactionID?: string;
     };
 };
 
@@ -1860,6 +1865,8 @@ type AuthScreensParamList = SharedScreensParamList & {
         transactionID: string;
         readonly?: string;
         isFromReviewDuplicates?: string;
+        action?: IOUAction;
+        iouType?: IOUType;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;

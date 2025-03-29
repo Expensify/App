@@ -959,6 +959,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_CUSTOM]: {
                             path: ROUTES.RULES_CUSTOM.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
+                            path: ROUTES.RULES_PROHIBITED_DEFAULT.route,
+                        },
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
                         },
@@ -1560,7 +1563,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.HOME,
                     exact: true,
                 },
-                [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+                [SCREENS.REPORT]: {
+                    path: ROUTES.REPORT_WITH_ID.route,
+                    // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
+                    // We want to avoid that situation, so we will return an empty string instead.
+                    parse: {
+                        // eslint-disable-next-line
+                        reportID: (reportID: string | undefined) => reportID ?? '',
+                    },
+                    stringify: {
+                        // eslint-disable-next-line
+                        reportID: (reportID: string | undefined) => reportID ?? '',
+                    },
+                },
             },
         },
 

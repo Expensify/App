@@ -14,6 +14,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -31,7 +32,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearPolicyTagErrors, deletePolicyTags, downloadTagsCSV, openPolicyTagsPage, setPolicyTagsRequired, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
@@ -68,7 +69,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
@@ -455,7 +456,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     }}
                     shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
                     threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
@@ -479,16 +480,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     />
                 )}
                 {!hasVisibleTags && !isLoading && (
-                    <EmptyStateComponent
-                        SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                        headerMedia={LottieAnimations.GenericEmptyState}
-                        title={translate('workspace.tags.emptyTags.title')}
-                        subtitle={translate('workspace.tags.emptyTags.subtitle')}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                        headerContentStyles={styles.emptyStateFolderWebStyles}
-                    />
+                    <ScrollView>
+                        <EmptyStateComponent
+                            SkeletonComponent={TableListItemSkeleton}
+                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                            headerMedia={LottieAnimations.GenericEmptyState}
+                            title={translate('workspace.tags.emptyTags.title')}
+                            subtitle={translate('workspace.tags.emptyTags.subtitle')}
+                            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                            headerContentStyles={styles.emptyStateFolderWebStyles}
+                        />
+                    </ScrollView>
                 )}
                 {hasVisibleTags && !isLoading && (
                     <SelectionListWithModal
