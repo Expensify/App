@@ -1,7 +1,7 @@
 import React, {useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
-import * as Browser from '@libs/Browser';
+import {isMobileChrome} from '@libs/Browser';
 import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import type AttachmentPickerProps from './types';
@@ -10,7 +10,7 @@ import type AttachmentPickerProps from './types';
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
  */
 function getAcceptableFileTypes(type: string): string | undefined {
-    if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE || Browser.isMobileChrome()) {
+    if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE || isMobileChrome()) {
         return;
     }
 
