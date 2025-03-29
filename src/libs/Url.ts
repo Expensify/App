@@ -66,7 +66,7 @@ function appendParam(url: string, paramName: string, paramValue: string) {
 }
 
 function hasURL(text: string) {
-    const urlPattern = /((https|http)?:\/\/[^\s]+)/g;
+    const urlPattern = /(https?|http):\/+[^\s]+/g;
 
     return urlPattern.test(text);
 }
