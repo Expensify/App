@@ -27,7 +27,7 @@ function usePayAndDowngrade(setIsDeleteModalOpen: (value: boolean) => void) {
         isDeletingPaidWorkspaceRef.current = false;
     }, [isLoadingBill, shouldBillWhenDowngrading, setIsDeleteModalOpen]);
 
-    return {setIsDeletingPaidWorkspace};
+    return {setIsDeletingPaidWorkspace, isLoadingBill};
 }
 
 export default usePayAndDowngrade;

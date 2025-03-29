@@ -164,7 +164,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    const {setIsDeletingPaidWorkspace} = usePayAndDowngrade(setIsDeleteModalOpen);
+    const {setIsDeletingPaidWorkspace, isLoadingBill} = usePayAndDowngrade(setIsDeleteModalOpen);
 
     const confirmDeleteAndHideModal = useCallback(() => {
         if (!policy?.id || !policyName) {
@@ -376,7 +376,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         text={translate('common.delete')}
                                         style={[styles.ml2]}
                                         onPress={onDeleteWorkspace}
-                                        icon={Expensicons.Trashcan}
+                                        icon={!isLoadingBill ? Expensicons.Trashcan : undefined}
+                                        isLoading={isLoadingBill}
                                     />
                                 )}
                             </View>

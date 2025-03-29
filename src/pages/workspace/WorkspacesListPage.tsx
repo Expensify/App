@@ -43,7 +43,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
+import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -134,7 +134,7 @@ function WorkspacesListPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
-    const {setIsDeletingPaidWorkspace} = usePayAndDowngrade(setIsDeleteModalOpen);
+    const {setIsDeletingPaidWorkspace, isLoadingBill} = usePayAndDowngrade(setIsDeleteModalOpen);
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
@@ -169,6 +169,8 @@ function WorkspacesListPage() {
         }
     };
 
+    const shouldCalculateBillNewDot = shouldCalculateBillNewDotFn();
+
     /**
      * Gets the menu item for each workspace
      */
@@ -192,6 +194,7 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
+                    shouldShowLoadingSpinnerIcon: isLoadingBill,
                     onSelected: () => {
                         if (isSupportalAction) {
                             setIsSupportalActionRestrictedModalOpen(true);
@@ -201,7 +204,7 @@ function WorkspacesListPage() {
                         setPolicyIDToDelete(item.policyID);
                         setPolicyNameToDelete(item.title);
 
-                        if (shouldCalculateBillNewDot()) {
+                        if (shouldCalculateBillNewDot) {
                             setIsDeletingPaidWorkspace(true);
                             calculateBillNewDot();
                             return;
@@ -209,7 +212,8 @@ function WorkspacesListPage() {
 
                         setIsDeleteModalOpen(true);
                     },
-                    shouldCallAfterModalHide: true,
+                    shouldKeepModalOpen: shouldCalculateBillNewDot,
+                    shouldCallAfterModalHide: !shouldCalculateBillNewDot,
                 });
             }
 
@@ -276,6 +280,7 @@ function WorkspacesListPage() {
                                 shouldDisableThreeDotsMenu={item.disabled}
                                 style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
                                 isDefault={isDefault}
+                                isDeleteModalOpen={isDeleteModalOpen}
                             />
                         )}
                     </PressableWithoutFeedback>
@@ -295,6 +300,9 @@ function WorkspacesListPage() {
             activePolicyID,
             isSupportalAction,
             setIsDeletingPaidWorkspace,
+            isLoadingBill,
+            isDeleteModalOpen,
+            shouldCalculateBillNewDot,
         ],
     );
 
