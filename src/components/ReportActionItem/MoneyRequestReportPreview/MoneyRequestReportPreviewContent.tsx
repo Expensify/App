@@ -108,6 +108,8 @@ function MoneyRequestReportPreviewContent({
     lastTransactionViolations,
     isDelegateAccessRestricted,
     renderItem,
+    getCurrentWidth,
+    reportPreviewStyles,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
@@ -417,9 +419,6 @@ function MoneyRequestReportPreviewContent({
         }
         return renderItem(itemInfo);
     };
-
-    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout);
-
     // The button should expand up to transaction width
     const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
 
@@ -454,7 +453,10 @@ function MoneyRequestReportPreviewContent({
                 needsOffscreenAlphaCompositing
                 style={styles.mt1}
             >
-                <View style={[styles.chatItemMessage, containerStyles]}>
+                <View
+                    style={[styles.chatItemMessage, containerStyles]}
+                    onLayout={getCurrentWidth}
+                >
                     <PressableWithoutFeedback
                         onPress={() => {}}
                         onPressIn={() => canUseTouchScreen() && ControlSelection.block()}

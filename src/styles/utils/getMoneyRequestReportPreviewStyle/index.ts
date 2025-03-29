@@ -1,3 +1,4 @@
+import type {MoneyRequestReportPreviewStyleType} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 // eslint-disable-next-line no-restricted-imports
 import sizing from '@styles/utils/sizing';
 // eslint-disable-next-line no-restricted-imports
@@ -9,9 +10,15 @@ const componentsSpacing = {
     contentContainerStyle: spacing.gap4,
 };
 
-const mobileStyle = {
-    transactionPreviewStyle: {width: 256},
-    componentStyle: [sizing.mw100, {width: 'min-content'}],
+const NEXT_TRANSACTION_PEEK = 32;
+
+const mobileStyle = (currentWidth: number, isSingleTransaction?: boolean) => {
+    const peek = isSingleTransaction ? spacing.p2.padding : NEXT_TRANSACTION_PEEK;
+    const transactionPreviewWidth = currentWidth - spacing.p4.padding - peek;
+    return {
+        transactionPreviewStyle: {width: transactionPreviewWidth, maxWidth: transactionPreviewWidth},
+        componentStyle: [sizing.mw100, {width: '100%'}],
+    };
 };
 
 const desktopStyle = {
@@ -19,6 +26,9 @@ const desktopStyle = {
     componentStyle: [{maxWidth: 'min(680px, 100%)'}, {width: 'min-content'}],
 };
 
-const getMoneyRequestReportPreviewStyle = (shouldUseNarrowLayout: boolean) => ({...componentsSpacing, ...(shouldUseNarrowLayout ? mobileStyle : desktopStyle)});
+const getMoneyRequestReportPreviewStyle = (shouldUseNarrowLayout: boolean, currentWidth?: number, isSingleTransaction?: boolean): MoneyRequestReportPreviewStyleType => ({
+    ...componentsSpacing,
+    ...(shouldUseNarrowLayout ? mobileStyle(currentWidth ?? 256, isSingleTransaction) : desktopStyle),
+});
 
 export default getMoneyRequestReportPreviewStyle;

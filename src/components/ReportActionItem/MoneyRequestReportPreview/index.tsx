@@ -1,5 +1,5 @@
-import React from 'react';
-import type {ListRenderItem} from 'react-native';
+import React, {useMemo, useState} from 'react';
+import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
@@ -47,7 +47,11 @@ function MoneyRequestReportPreview({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
-    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout);
+    const [currentWidth, setCurrentWidth] = useState(256);
+    const reportPreviewStyles = useMemo(
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, transactions.length === 1),
+        [StyleUtils, currentWidth, shouldUseNarrowLayout, transactions.length],
+    );
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
@@ -90,6 +94,10 @@ function MoneyRequestReportPreview({
             lastTransactionViolations={lastTransactionViolations}
             isDelegateAccessRestricted={isDelegateAccessRestricted}
             renderItem={renderItem}
+            getCurrentWidth={(e: LayoutChangeEvent) => {
+                setCurrentWidth(e.nativeEvent.layout.width ?? 255);
+            }}
+            reportPreviewStyles={reportPreviewStyles}
         />
     );
 }

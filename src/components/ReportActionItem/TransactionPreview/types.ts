@@ -4,6 +4,11 @@ import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActio
 import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+type TransactionPreviewStyleType = {
+    width: number;
+    maxWidth?: number;
+};
+
 type TransactionPreviewProps = {
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
@@ -30,7 +35,7 @@ type TransactionPreviewProps = {
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Optional custom styles to be applied to wrapper component. */
-    wrapperStyles?: StyleProp<ViewStyle>;
+    wrapperStyles: TransactionPreviewStyleType;
 
     /** True if this IOU has a type of split */
     isBillSplit: boolean;
@@ -79,7 +84,7 @@ type TransactionPreviewContentProps = {
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Optional custom styles to be applied to wrapper component. */
-    wrapperStyles?: StyleProp<ViewStyle>;
+    wrapperStyles: TransactionPreviewStyleType;
 
     /** Records any errors related to wallet terms. */
     walletTermsErrors: Errors | undefined;
@@ -118,4 +123,4 @@ type TransactionPreviewContentProps = {
     shouldHideOnDelete?: boolean;
 };
 
-export type {TransactionPreviewProps, TransactionPreviewContentProps};
+export type {TransactionPreviewProps, TransactionPreviewContentProps, TransactionPreviewStyleType};

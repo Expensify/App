@@ -1,20 +1,19 @@
 import React from 'react';
 import {Rect} from 'react-native-svg';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
-function TransactionPreviewSkeletonView() {
+type TransactionPreviewSkeletonViewProps = {
+    transactionPreviewWidth: number;
+};
+
+function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPreviewSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const previewStyle = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout);
     const {width, height} = {
-        width: previewStyle.transactionPreviewStyle.width - styles.p4.padding * 2,
+        width: transactionPreviewWidth - styles.p4.padding * 2,
         height: variables.transactionPreviewSkeletonHeight,
     };
 

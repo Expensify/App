@@ -205,7 +205,7 @@ function TransactionPreviewContent({
                         />
                     )}
                     {shouldShowSkeleton ? (
-                        <TransactionPreviewSkeletonView />
+                        <TransactionPreviewSkeletonView transactionPreviewWidth={wrapperStyles.width} />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
