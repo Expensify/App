@@ -3,7 +3,7 @@ import type {MutableRefObject} from 'react';
 import type {Animated} from 'react-native';
 
 type HelpProps = {
-    isPaneHidden: boolean;
+    shouldHideSidePane: boolean;
     sidePaneTranslateX: MutableRefObject<Animated.Value>;
     shouldHideSidePaneBackdrop: boolean;
     closeSidePane: (shouldUpdateNarrow?: boolean) => void;
