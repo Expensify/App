@@ -24,6 +24,7 @@ import {
     getTaxAmount,
     getTaxName,
     isAmountMissing,
+    isCardTransaction,
     isCreatedMissing,
     isFetchingWaypointsFromServer,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
@@ -192,6 +193,12 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The PDF password callback */
     onPDFPassword?: () => void;
+
+    /** Function to toggle reimbursable */
+    onToggleReimbursable?: (isOn: boolean) => void;
+
+    /** Flag indicating if the IOU is reimbursable */
+    iouIsReimbursable: boolean;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -242,6 +249,8 @@ function MoneyRequestConfirmationListFooter({
     unit,
     onPDFLoadError,
     onPDFPassword,
+    iouIsReimbursable,
+    onToggleReimbursable,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -282,6 +291,7 @@ function MoneyRequestConfirmationListFooter({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
+    const shouldShowReimbursable = policy?.disabledFields?.reimbursable === false && !isCardTransaction(transaction);
     // Do not hide fields in case of paying someone
     const shouldShowAllFields = !!isPerDiemRequest || !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
@@ -603,6 +613,25 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowAttendees,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <View
+                    key={Str.UCFirst(translate('iou.reimbursable'))}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
+                >
+                    <ToggleSettingOptionRow
+                        switchAccessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
+                        title={Str.UCFirst(translate('iou.reimbursable'))}
+                        onToggle={(isOn) => onToggleReimbursable?.(isOn)}
+                        isActive={iouIsReimbursable}
+                        disabled={isReadOnly}
+                        wrapperStyle={styles.flex1}
+                    />
+                </View>
+            ),
+            shouldShow: shouldShowReimbursable,
             isSupplementary: true,
         },
         {
