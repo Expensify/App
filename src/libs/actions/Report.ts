@@ -2789,6 +2789,17 @@ function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, sh
     });
 }
 
+function clearCreateChatError(report: OnyxEntry<Report>) {
+    const metaData = getReportMetadata(report?.reportID);
+    const isOptimisticReport = metaData?.isOptimisticReport;
+    if (report?.errorFields?.createChat && !isOptimisticReport) {
+        clearReportFieldKeyErrors(report.reportID, 'createChat');
+        return;
+    }
+
+    navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true);
+}
+
 /**
  * @param policyRoomReport The policy room report
  * @param policyRoomName The updated name for the policy room
@@ -4348,6 +4359,13 @@ function prepareOnboardingOnyxData(
                     },
                 },
                 {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                    value: {
+                        isOptimisticReport: true,
+                    },
+                },
+                {
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     value: {
@@ -4364,6 +4382,13 @@ function prepareOnboardingOnyxData(
                         pendingFields: {
                             createChat: null,
                         },
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                    value: {
+                        isOptimisticReport: false,
                     },
                 },
                 {
@@ -5385,6 +5410,7 @@ export {
     navigateToAndOpenReportWithAccountIDs,
     navigateToConciergeChat,
     navigateToConciergeChatAndDeleteReport,
+    clearCreateChatError,
     notifyNewAction,
     openLastOpenedPublicRoom,
     openReport,

@@ -1274,7 +1274,34 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReport?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
     );
+
+    if (isNewChatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        });
+    }
+
+    if (shouldCreateNewMoneyRequestReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        });
+    }
 
     if (!isEmptyObject(transactionThreadCreatedReportAction)) {
         optimisticData.push({
@@ -1704,6 +1731,13 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
             },
         },
         {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+        {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionParams.transaction.transactionID}`,
             value: transactionParams.transaction,
@@ -1737,6 +1771,13 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionParams.threadReport.reportID}`,
             value: transactionParams.threadReport,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionParams.threadReport?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
     ];
 
     if (transactionParams.threadCreatedReportAction?.reportActionID) {
@@ -1763,6 +1804,16 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
                 ...(chat.isNewReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         });
+
+        if (chat.isNewReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            });
+        }
     }
 
     if (optimisticDataParams.policyRecentlyUsedCategories.length) {
@@ -2207,6 +2258,15 @@ function buildOnyxDataForTrackExpense({
                 },
             },
         );
+        if (shouldCreateNewMoneyRequestReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReport.reportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            });
+        }
     } else {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2229,6 +2289,13 @@ function buildOnyxDataForTrackExpense({
             value: {
                 ...transactionThreadReport,
                 pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReport?.reportID}`,
+            value: {
+                isOptimisticReport: true,
             },
         },
     );
@@ -2279,6 +2346,15 @@ function buildOnyxDataForTrackExpense({
                 },
             },
         );
+        if (shouldCreateNewMoneyRequestReport) {
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReport.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            });
+        }
     } else {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5503,6 +5579,17 @@ function createSplitsAndOnyxData({
             value: splitTransaction,
         },
     ];
+
+    if (!existingSplitChatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        });
+    }
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5518,6 +5605,16 @@ function createSplitsAndOnyxData({
             value: {pendingAction: null, pendingFields: null},
         },
     ];
+
+    if (!existingSplitChatReport) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        });
+    }
 
     const redundantParticipants: Record<number, null> = {};
     if (!existingSplitChatReport) {
@@ -6089,6 +6186,16 @@ function startSplitBill({
         },
     ];
 
+    if (!existingSplitChatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        });
+    }
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6104,6 +6211,16 @@ function startSplitBill({
             value: {pendingAction: null},
         },
     ];
+
+    if (!existingSplitChatReport) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        });
+    }
 
     const redundantParticipants: Record<number, null> = {};
     if (!existingSplitChatReport) {
@@ -7647,6 +7764,23 @@ function getSendMoneyParams(
           }
         : undefined;
 
+    const optimisticMetaData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReport.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticTransactionThread.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+    ];
+
     const successData: OnyxUpdate[] = [];
 
     // Add optimistic personal details for recipient
@@ -7831,6 +7965,7 @@ function getSendMoneyParams(
         optimisticIOUReportActionsData,
         optimisticTransactionData,
         optimisticTransactionThreadData,
+        ...optimisticMetaData,
     ];
 
     if (optimisticTransactionThreadReportActionsData) {
