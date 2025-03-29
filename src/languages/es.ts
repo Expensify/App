@@ -3174,6 +3174,7 @@ const translations = {
 
         sageIntacct: {
             preferredExporter: 'Exportador preferido',
+            taxSolution: 'Solución fiscal',
             notConfigured: 'No configurado',
             exportDate: {
                 label: 'Fecha de exportación',
