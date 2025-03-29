@@ -10,186 +10,131 @@ If your company’s business bank account is in the US, Canada, the UK, Europe, 
 The process to enable international reimbursements depends on the currency of your reimbursement bank account, so be sure to review the corresponding instructions below. 
 
 ---
+# Enable Global Reimbursements
 
-# If the Reimbursement Account is in the U.S. (USD)
+## Overview
 
-Before you begin, ensure you have a verified U.S. business bank account connected. Once global reimbursement is enabled on your account, employees receiving payments will connect their **non-USD bank account**.
+Expensify supports direct reimbursements from business bank accounts based in:
 
-## Step 1: Connect a U.S Business Bank Account
+- United States (USD)
+- Canada (CAD)
+- United Kingdom (GBP)
+- European Union (EUR)
+- Australia (AUD)
+- Singapore (SGD)
 
-If you haven't already, follow the instructions to [Connect a US Business Bank Account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account). 
+Setup steps vary by currency and country, so select the instructions based on your business bank account's location.
 
-## Step 2: Verify the Bank Account for Global Reimbursements
+# If Your Reimbursement Bank Account Is in the U.S. (USD)
 
-1. Hover over **Settings**, then click **Workspaces**. 
-3. Click the **Reports** tab on the left. 
-4. Ensure that the workspace currency is set to **USD**. 
-5. Click the **Reimbursements** tab on the left.
-6. Ensure that the reimbursement method is set to **Direct** and that the correct bank account is selected. 
-7. Head to **Settings > Account > Wallet** on the left-side menu.
-8. Click **Enable Global Reimbursement** next to the bank account.  
-9. Complete the Global Reimbursement DocuSign form.
-10. Once the form is complete, it is automatically sent to our Compliance Team for review. 
+## Step 1: Connect a U.S. Business Bank Account
+1. Go to Settings > Account > Wallet.
+2. Follow the steps to Connect a US Business Bank Account.
 
-**Our Support Team will contact you with more details if additional information is required, which may include:** 
-- An authorization letter
-- Proof of address and ID for the reimburser and/or company directors
-- Independently certified documentation, such as a shareholder agreement from a lawyer, notary, or public accountant if an individual owns more than 25% of the company
+## Step 2: Enable Global Reimbursements
+1. Go to Settings > Workspaces and select your workspace.
+2. Under the **Reports** tab, ensure the currency is **USD**.
+3. In the **Reimbursements** tab:
+   - Set the reimbursement method to **Direct**.
+   - Select the connected bank account.
+4. Return to Settings > Account > Wallet.
+5. Click Enable Global Reimbursement next to the bank account.
+6. Complete the **DocuSign form**.
+7. Wait for our Compliance Team to review your application.
 
-## Step 3: Start Reimbursing Internationally
+You may be asked to provide:
+- Authorization letter
+- Proof of address and ID for the reimburser or company directors
+- Certified documentation if any individual owns more than 25% of the company
 
-After the bank account is verified for international payments, set the correct bank account as the reimbursement account:
-
-1. Under **Settings** > **Workspaces** > **Group** > **[Workspace Name]** > **Reimbursements**
-2. Select the reimbursement account as the default account.
-3. Ask your employees to add their deposit-only bank account.
-   - They can do this by logging into their Expensify accounts, heading to **Settings** > **Account** > **Wallet**, and clicking **Add Deposit-Only Bank Account**. 
-
----
-
-# If the Bank Account is Outside of the U.S (AUD, CAD, GBP, EUR, and SGD Currencies)
-
-**Overview of the International Bank Account Setup:**
-1. Connect the reimbursement account to Expensify.
-2. Complete DocuSign Form.
-3. Expensify's Compliance Team Reviews the Application: Depending on the country, the team approves the request or requests additional documentation.
-4. Expensify sends test deposits to the provided bank account: Expensify asks the customer to confirm test deposit amounts.
-5. Admin Actions Required:
-     - Set the reimbursement account under **Settings > Workspaces > [Workspace Name] > Reimbursements**.
-     - Ensure employees add their deposit-only bank accounts under **Settings > Account > Wallet > Add Deposit-Only Bank Account**.
-
-## Step 1: Connect the Bank Account
-
-1. Hover over **Settings**, then click **Workspaces**. 
-2. Click the **Reports** tab on the left. 
-3. Ensure that the selected workspace currency matches your reimbursement bank account currency.
-4. Click the **Reimbursements** tab on the left.
-5. Set the reimbursement method to **Direct**. 
-6. Click **Add Business Bank Account**.
-7. Click **Switch Country** and adjust the **Currency** so the information is correct.
-8. Click **Save & Continue**.
-9. Enter the details of your bank account and click **Save & Continue**.
-
-## Step 2: Verify the Bank Account for Global Reimbursements
-
-1. Complete the Global Reimbursement DocuSign form.
-2. Once the form is complete, it is automatically sent to our Compliance Team for review.
-3. See the **Requirements for Global Reimbursement** section below to determine which additional information is required to set up international reimbursements for your entity.
-4. If prompted, upload one of the following:
-   - **Voided check** with business name and account details
-   - **Bank statement** showing the business name and account information
-   - **Bank letter** confirming the account details
-
-**Our Support Team will contact you via Concierge with more details if additional information is required.** 
-
-
-## Step 3: Start Reimbursing Internationally
-
-After the bank account is verified for international payments, set the correct bank account as the reimbursement account:
-
-1. Under **Settings** > **Workspaces** > **Group** > **[Workspace Name]** > **Reimbursements**
-2. Select the reimbursement account as the default account.
-3. Ask your employees to add their deposit-only bank account.
-   - They can do this by logging into their Expensify accounts, heading to **Settings** > **Account** > **Wallet**, and clicking **Add Deposit-Only Bank Account**. 
+## Step 3: Reimburse Internationally
+1. Set the reimbursement account under  
+   Settings > Workspaces > Group > [Workspace Name] > Reimbursements.
+2. Ask employees to add their deposit-only bank account via:  
+   Settings > Account > Wallet > Add Deposit-Only Bank Account.
 
 ---
 
-# Requirements for International Reimbursement
+# If Your Reimbursement Bank Account Is in Canada (CAD)
 
-## U.S.
-**Requirements:**
-- ✅ Partner Application Form
-- ✅ Address Verification Document (e.g., utility bill, lease agreement)
-- ✅ Bank Statement for Direct Debit Setup
+## Step 1: Connect a Canadian Business Bank Account
+1. Go to Settings > Workspaces.
+2. Open the **Reports** tab and confirm the workspace currency is **CAD**.
+3. In the **Reimbursements** tab:
+   - Set reimbursement method to **Direct**.
+   - Click Add Business Bank Account.
+   - Click Switch Country, select **Canada**, then click Save & Continue.
+   - Enter bank details and complete setup.
 
-**Direct Debit Timeline:**
-⏳ Takes 1 day to set up once onboarding is complete and the bank account is verified.
+## Step 2: Enable Global Reimbursements
+1. Complete the **DocuSign form** when prompted.
+2. Submit any required documents:
+   - Voided check or bank statement showing business name and account number
+   - Address verification document
+   - Proof of beneficial ownership
 
-## Canada
-**Requirements:**
-- ✅ Partner Application Form
-- ✅ Address Verification Document
-- ✅ Bank Statement for Direct Debit Setup
-- ✅ Proof of Beneficial Ownership
+## Step 3: Reimburse in CAD
+1. Set the reimbursement account under  
+   Settings > Workspaces > [Workspace Name] > Reimbursements.
+2. Ask employees to add their **deposit-only bank account** under  
+   Settings > Account > Wallet > Add Deposit-Only Bank Account.
 
-**Direct Debit Timeline:**
-⏳ Takes 1 day to set up once onboarding is complete and the bank account is verified.
+---
 
-## United Kingdom
-**Requirements:**
-- ✅ Partner Application Form
-- ✅ Address Verification Document
-- ✅ Bank Statement for Direct Debit Setup
-- ✅ Proof of Beneficial Ownership
-- ✅ Copy of ID and Proof of Address for Signatories
+# If Your Bank Account Is in Another Country (AUD, GBP, EUR, SGD)
 
-**Direct Debit Timeline:**
-⏳ Can only be set up after onboarding is complete.
+## Step 1: Connect a Non-U.S. Bank Account
+1. Go to Settings > Workspaces.
+2. In the **Reports** tab, match the workspace currency to your bank account's currency.
+3. In the **Reimbursements** tab:
+   - Set the method to **Direct**.
+   - Click Add Business Bank Account.
+   - Select the correct country and currency, then click Save & Continue.
+   - Enter bank details and submit.
 
-## European Union
-**Requirements:**
-- ✅ Partner Application Form
-- ✅ Address Verification Document
-- ✅ Bank Statement for Direct Debit Setup
-- ✅ Proof of Beneficial Ownership
-- ✅ Certified Copies of ID & Address for UBOs (Only if the company is in Jersey)
+## Step 2: Verify the Bank Account for Global Reimbursements
+1. Complete the **Global Reimbursement DocuSign form**.
+2. Submit required documents (varies by region; see table below).
+3. Confirm test deposits when prompted.
 
-**Special Notes:**
-🇮🇹 Italy: Requires "Codice Fiscale" (Tax Identification Number).
-🇪🇸 Spain: Driver's license not accepted as ID.
+## Step 3: Start Reimbursing Internationally
+1. Set the reimbursement account under  
+   Settings > Workspaces > [Workspace Name] > Reimbursements.
+2. Instruct employees to add their **deposit-only bank account** under  
+   Settings > Account > Wallet > Add Deposit-Only Bank Account.
 
-**Direct Debit Timeline:**
-⏳ Can only be set up after onboarding is complete.
+---
 
-## Australia
-**Requirements:**
-- ✅ Partner Application Form
-- ✅ Address Verification Document
-- ✅ Bank Statement for Direct Debit Setup
-- ✅ Proof of Beneficial Ownership
-- ✅ Copy of ID & Proof of Address for all Signatories
+# Requirements for International Reimbursement by Country
 
-**Special Notes:**
-Expensify's Compliance Team must send a PDS FSG to company directors before onboarding.
+# Requirements by Country
 
-**Direct Debit Timeline:**
-⏳ Takes 1 day to set up once onboarding is complete and the bank account is verified.
-
-## Singapore
-**Requirements:**
-- ✅ Partner Application Form
-- ✅ Address Verification Document
-- ✅ Proof of Beneficial Ownership
-- ✅ Director/Board Resolution
-- ✅ Memorandum & Articles of Association
-- ✅ Certified Copies of ID & Address for UBOs
-
-**Direct Debit Timeline:**
-⏳ Takes 3 weeks to set up. Clients are encouraged to pre-fund the account while waiting.
+| Country         | Required Documents                                                                 | Direct Debit Setup Time             |
+|----------------|--------------------------------------------------------------------------------------|-------------------------------------|
+| **U.S.**        | Partner form, address verification, bank statement                                 | ⏳ 1 day post-verification           |
+| **Canada**      | Partner form, address verification, bank statement, proof of beneficial ownership  | ⏳ 1 day post-verification           |
+| **UK**          | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ After onboarding          |
+| **EU**          | Partner form, address verification, bank statement, proof of beneficial ownership, certified ID copies | ⏳ After onboarding<br>🇮🇹 Italy: Requires Tax ID<br>🇪🇸 Spain: No driver's license as ID |
+| **Australia**   | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1 day post-verification           |
+| **Singapore**   | Partner form, address verification, proof of beneficial ownership, board resolution, M&A, certified ID copies | ⏳ ~3 weeks<br>💡Pre-funding recommended |
 
 ---
 
 # FAQ
 
 ## Can multiple people send reimbursements internationally?
+Yes. Once a bank account is verified, the person who connected it can share access with other admins in the workspace.
 
-Yes, once your company is authorized to send international payments, the individual who verified the bank account can share it with additional admins on the workspace, enabling them to send global reimbursements.
-
-## How long does it take to verify an account for global payments?
-
-The verification process can take anywhere from a few business days to several weeks, depending on the information provided in the DocuSign form and if additional information is required for compliance.
+## How long does verification take?
+It typically takes a few business days, but can extend to several weeks depending on compliance review.
 
 ## Why can't my employee add a non-USD bank account?
+Check that their default workspace matches the one connected to the reimbursement bank account.
 
-Make sure your employee's default workspace is set to the one linked to the bank you're using for global payments. They can confirm their default workspace by following [these steps](https://help.expensify.com/articles/expensify-classic/workspaces/Navigate-multiple-workspaces).
+## Who is the “Authorized User” on the DocuSign form?
+This is the person who processes international reimbursements and should be the same person who connects the bank account in Expensify.
 
-## Who are the “Authorized User” and the “User” on the International Reimbursement DocuSign form?
-
-- **Authorized User**: The person who will process international reimbursements. The Authorized User should be the same person who manages the bank account connection in Expensify.
-- **User**: Expensify (leave blank).
-
-## Does Global Reimbursement in Expensify support SEPA (Single Euro Payments Area) in the EU?
-
-Global Reimbursement uses SEPA B2B to facilitate payments from EU-based accounts. SEPA Core is not supported.
+## Does Expensify support SEPA in the EU?
+Yes. Expensify supports **SEPA B2B**. **SEPA Core is not supported**.
 
 </div>
