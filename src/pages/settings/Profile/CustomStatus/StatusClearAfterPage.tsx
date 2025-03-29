@@ -11,10 +11,10 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {validateDateTimeIsAtLeastOneMinuteInFuture} from '@libs/ValidationUtils';
+import {updateDraftCustomStatus} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -47,7 +47,7 @@ const useValidateCustomDate = (data: string) => {
     const [customDateError, setCustomDateError] = useState('');
     const [customTimeError, setCustomTimeError] = useState('');
     const validate = () => {
-        const {dateValidationErrorKey, timeValidationErrorKey} = ValidationUtils.validateDateTimeIsAtLeastOneMinuteInFuture(data);
+        const {dateValidationErrorKey, timeValidationErrorKey} = validateDateTimeIsAtLeastOneMinuteInFuture(data);
 
         setCustomDateError(dateValidationErrorKey);
         setCustomTimeError(timeValidationErrorKey);
@@ -113,7 +113,7 @@ function StatusClearAfterPage() {
             const selectedRange = statusType.find((item) => item.isSelected);
             calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
         }
-        User.updateDraftCustomStatus({clearAfter: calculatedDraftDate});
+        updateDraftCustomStatus({clearAfter: calculatedDraftDate});
         Navigation.goBack(ROUTES.SETTINGS_STATUS);
     };
 
@@ -125,11 +125,11 @@ function StatusClearAfterPage() {
             setDraftPeriod(mode.value);
 
             if (mode.value === CONST.CUSTOM_STATUS_TYPES.CUSTOM) {
-                User.updateDraftCustomStatus({clearAfter: DateUtils.getOneHourFromNow()});
+                updateDraftCustomStatus({clearAfter: DateUtils.getOneHourFromNow()});
             } else {
                 const selectedRange = statusType.find((item) => item.value === mode.value);
                 const calculatedDraftDate = DateUtils.getDateFromStatusType(selectedRange?.value ?? CONST.CUSTOM_STATUS_TYPES.NEVER);
-                User.updateDraftCustomStatus({clearAfter: calculatedDraftDate});
+                updateDraftCustomStatus({clearAfter: calculatedDraftDate});
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
             }
         },
@@ -137,7 +137,7 @@ function StatusClearAfterPage() {
     );
 
     useEffect(() => {
-        User.updateDraftCustomStatus({
+        updateDraftCustomStatus({
             clearAfter: draftClearAfter || clearAfter,
         });
 
@@ -179,6 +179,7 @@ function StatusClearAfterPage() {
                 scrollContextEnabled={false}
                 isSubmitButtonVisible={false}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <View>
                     {timePeriodOptions()}

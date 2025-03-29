@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import * as ExitSurvey from '@userActions/ExitSurvey';
+import {saveExitReason} from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -68,12 +68,13 @@ function ExitSurveyReasonPage() {
                         if (!reason) {
                             return;
                         }
-                        ExitSurvey.saveExitReason(reason);
+                        saveExitReason(reason);
                         Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.getRoute(reason, ROUTES.SETTINGS_EXIT_SURVEY_REASON.route));
                     }}
                     submitButtonText={translate('common.next')}
                     shouldValidateOnBlur
                     shouldValidateOnChange
+                    shouldHideFixErrorsAlert
                 >
                     {isOffline && <ExitSurveyOffline />}
                     {!isOffline && (

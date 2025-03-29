@@ -113,6 +113,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                     validate={validate}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <Text style={[styles.mb5]}>{translate('reportDescriptionPage.explainerText')}</Text>
                     <View style={[styles.mb6]}>

@@ -85,6 +85,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                     onSubmit={submit}
                     validate={validate}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

@@ -109,6 +109,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                     onSubmit={submit}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <View style={[styles.mb4]}>
                         <InputWrapper

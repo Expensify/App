@@ -88,6 +88,7 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
                         enabledWhenOffline
                         shouldValidateOnBlur
                         shouldValidateOnChange
+                        shouldHideFixErrorsAlert
                     >
                         <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.nsqs.setup.description')}</Text>
                         <InputWrapper

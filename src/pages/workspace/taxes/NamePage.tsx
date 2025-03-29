@@ -90,6 +90,7 @@ function NamePage({
                     onSubmit={submit}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

@@ -29,7 +29,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {RecentWaypoint, Transaction} from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -38,7 +38,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 // Only grab the most recent 20 waypoints because that's all that is shown in the UI. This also puts them into the format of data
 // that the google autocomplete component expects for it's "predefined places" feature.
-function recentWaypointsSelector(waypoints: OnyxTypes.RecentWaypoint[] = []) {
+function recentWaypointsSelector(waypoints: RecentWaypoint[] = []) {
     return waypoints
         .slice(0, CONST.RECENT_WAYPOINTS_NUMBER)
         .filter((waypoint) => waypoint.keyForList?.includes(CONST.YOUR_LOCATION_TEXT) !== true)
@@ -55,7 +55,7 @@ function recentWaypointsSelector(waypoints: OnyxTypes.RecentWaypoint[] = []) {
 }
 
 type IOURequestStepWaypointProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transaction: OnyxEntry<Transaction>;
 };
 
 function IOURequestStepWaypoint({
@@ -218,6 +218,7 @@ function IOURequestStepWaypoint({
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
+                    shouldHideFixErrorsAlert
                 >
                     <View>
                         <InputWrapperWithRef

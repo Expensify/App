@@ -9,6 +9,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setBankAccountSubStep, validatePlaidSelection} from '@userActions/BankAccounts';
 import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -47,7 +48,7 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
         onNext(bankAccountData);
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     useEffect(() => {
         const plaidBankAccounts = plaidData?.bankAccounts ?? [];
@@ -72,6 +73,7 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
+            shouldHideFixErrorsAlert
         >
             <InputWrapper
                 InputComponent={AddPlaidBankAccount}

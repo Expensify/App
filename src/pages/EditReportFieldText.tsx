@@ -51,6 +51,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
             validate={validate}
             submitButtonText={translate('common.save')}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
         >
             <View style={styles.mb4}>
                 <InputWrapper

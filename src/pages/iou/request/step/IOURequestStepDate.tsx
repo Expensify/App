@@ -1,83 +1,71 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as IOUUtils from '@libs/IOUUtils';
+import {isValidMoneyRequestType, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import * as IOU from '@userActions/IOU';
+import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
+import {areRequiredFieldsEmpty, getFormattedCreated} from '@libs/TransactionUtils';
+import {setDraftSplitTransaction, setMoneyRequestCreated, updateMoneyRequestDate} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepDateOnyxProps = {
-    /** The draft transaction that holds data to be persisted on the current transaction */
-    splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
+type IOURequestStepDateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DATE> & {
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    transaction: OnyxEntry<Transaction>;
 
-    /** The actions from the parent report */
-    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-
-    /** The policy of the report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-
-    /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    /** The report linked to the transaction */
+    report: OnyxEntry<Report>;
 };
-
-type IOURequestStepDateProps = IOURequestStepDateOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DATE> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-        transaction: OnyxEntry<OnyxTypes.Transaction>;
-
-        /** The report linked to the transaction */
-        report: OnyxEntry<Report>;
-    };
 
 function IOURequestStepDate({
     route: {
-        params: {action, iouType, reportID, backTo, reportActionID},
+        params: {action, iouType, reportID, backTo, reportActionID, transactionID},
     },
     transaction,
-    splitDraftTransaction,
-    policy,
-    policyTags,
-    policyCategories,
-    reportActions,
     report,
-    session,
 }: IOURequestStepDateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const policy = usePolicy(report?.policyID);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const reportActionsReportID = useMemo(() => {
+        let actionsReportID;
+        if (action === CONST.IOU.ACTION.EDIT) {
+            actionsReportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
+        }
+        return actionsReportID;
+    }, [action, iouType, report?.reportID, report?.parentReportID]);
+    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
+        canEvict: false,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        selector: (reportActions) => reportActions?.[`${report?.parentReportActionID || reportActionID}`],
+    });
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
-    const currentCreated =
-        isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? TransactionUtils.getFormattedCreated(splitDraftTransaction) : TransactionUtils.getFormattedCreated(transaction);
-    const parentReportAction = reportActions?.[(isEditingSplitBill ? reportActionID : report?.parentReportActionID) ?? -1];
-    const canEditingSplitBill =
-        isEditingSplitBill && session && parentReportAction && session.accountID === parentReportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
-    const canEditMoneyRequest = isEditing && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
+    const currentCreated = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
+    const canEditingSplitBill = isEditingSplitBill && session && reportAction && session.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
+    const canEditMoneyRequest = isEditing && canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !IOUUtils.isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill);
+    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -94,17 +82,17 @@ function IOURequestStepDate({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transaction?.transactionID ?? '-1', {created: newCreated});
+            setDraftSplitTransaction(transactionID, {created: newCreated});
             navigateBack();
             return;
         }
 
-        const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
+        const isTransactionDraft = shouldUseTransactionDraft(action);
 
-        IOU.setMoneyRequestCreated(transaction?.transactionID ?? '-1', newCreated, isTransactionDraft);
+        setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft);
 
         if (isEditing) {
-            IOU.updateMoneyRequestDate(transaction?.transactionID ?? '-1', reportID, newCreated, policy, policyTags, policyCategories);
+            updateMoneyRequestDate(transactionID, reportID, newCreated, policy, policyTags, policyCategories);
         }
 
         navigateBack();
@@ -125,6 +113,7 @@ function IOURequestStepDate({
                 onSubmit={updateDate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={DatePicker}
@@ -141,44 +130,8 @@ function IOURequestStepDate({
 
 IOURequestStepDate.displayName = 'IOURequestStepDate';
 
-const IOURequestStepDateWithOnyx = withOnyx<IOURequestStepDateProps, IOURequestStepDateOnyxProps>({
-    splitDraftTransaction: {
-        key: ({route}) => {
-            const transactionID = route?.params.transactionID ?? -1;
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    reportActions: {
-        key: ({
-            route: {
-                params: {action, iouType},
-            },
-            report,
-        }) => {
-            let reportID;
-            if (action === CONST.IOU.ACTION.EDIT) {
-                reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
-            }
-            return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID ?? '-1'}`;
-        },
-        canEvict: false,
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
-    },
-    policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
-    },
-    policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(IOURequestStepDate);
-
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDateWithOnyx);
+const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDate);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDateWithFullTransactionOrNotFound);
 

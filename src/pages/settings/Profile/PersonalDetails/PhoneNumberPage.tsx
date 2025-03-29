@@ -94,6 +94,7 @@ function PhoneNumberPage() {
                         onSubmit={updatePhoneNumber}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
+                        shouldHideFixErrorsAlert
                     >
                         <OfflineWithFeedback
                             errors={validateLoginError}
