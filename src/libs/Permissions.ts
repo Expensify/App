@@ -58,6 +58,10 @@ function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
 }
 
+function canUseHelpSidePanel(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.HELP_SIDE_PANEL) || canUseAllBetas(betas);
+}
+
 function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) || canUseAllBetas(betas);
 }
@@ -79,6 +83,7 @@ export default {
     canUseNSQS,
     canUseCustomRules,
     canUseTableReportView,
+    canUseHelpSidePanel,
     canUseTalkToAISales,
     canUseProhibitedExpenses,
 };

@@ -1,6 +1,6 @@
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
-import useSidePane from './useSidePane';
+import {useSidePaneDisplayStatus} from './useSidePane';
 import useWindowDimensions from './useWindowDimensions';
 
 /**
@@ -9,9 +9,9 @@ import useWindowDimensions from './useWindowDimensions';
  */
 function useThreeDotsAnchorPosition(anchorPositionStyle: (screenWidth: number) => AnchorPosition) {
     const {windowWidth} = useWindowDimensions();
-    const {isPaneHidden} = useSidePane();
+    const {shouldHideSidePane} = useSidePaneDisplayStatus();
 
-    return anchorPositionStyle(isPaneHidden ? windowWidth : windowWidth - variables.sideBarWidth);
+    return anchorPositionStyle(shouldHideSidePane ? windowWidth : windowWidth - variables.sideBarWidth);
 }
 
 export default useThreeDotsAnchorPosition;

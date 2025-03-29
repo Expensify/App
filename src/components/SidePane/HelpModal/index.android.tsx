@@ -6,7 +6,7 @@ import HelpContent from '@components/SidePane/HelpComponents/HelpContent';
 import CONST from '@src/CONST';
 import type HelpProps from './types';
 
-function Help({isPaneHidden, closeSidePane}: HelpProps) {
+function Help({shouldHideSidePane, closeSidePane}: HelpProps) {
     // SidePane isn't a native screen, this handles the back button press on Android
     useFocusEffect(
         useCallback(() => {
@@ -23,7 +23,7 @@ function Help({isPaneHidden, closeSidePane}: HelpProps) {
     return (
         <Modal
             onClose={() => closeSidePane()}
-            isVisible={!isPaneHidden}
+            isVisible={!shouldHideSidePane}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             shouldHandleNavigationBack
         >
