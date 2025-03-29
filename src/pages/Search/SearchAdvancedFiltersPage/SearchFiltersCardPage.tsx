@@ -183,7 +183,6 @@ function SearchFiltersCardPage() {
                     canSelectMultiple
                     shouldPreventDefaultFocusOnSelectRow={false}
                     shouldKeepFocusedItemAtTopOfViewableArea={false}
-                    shouldScrollToFocusedIndex={false}
                     ListItem={CardListItem}
                     shouldShowTextInput={shouldShowSearchInput}
                     textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
