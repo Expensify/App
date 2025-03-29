@@ -7,7 +7,7 @@ import {isReportListItemType} from '@libs/SearchUIUtils';
 import type {BaseListItemProps, ExtendedTargetedEvent, ListItem, SelectionListProps} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
-    Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldHighlightSelectedItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
+    Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
         index: number;
         selectRow: (item: TItem, indexToFocus?: number) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
@@ -39,7 +39,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     setFocusedIndex,
     normalizedIndex,
     shouldSyncFocus,
-    shouldHighlightSelectedItem,
     wrapperStyle,
     titleStyles,
     singleExecution,
@@ -90,7 +89,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                     setFocusedIndex(normalizedIndex);
                 }}
                 shouldSyncFocus={shouldSyncFocus}
-                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 wrapperStyle={wrapperStyle}
                 titleStyles={titleStyles}
                 titleContainerStyles={titleContainerStyles}

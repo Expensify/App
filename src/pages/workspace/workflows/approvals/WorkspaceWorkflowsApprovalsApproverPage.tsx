@@ -1,4 +1,5 @@
 import {useNavigationState} from '@react-navigation/native';
+import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -217,13 +218,17 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         );
     }, [isInitialCreationFlow, nextStep, selectedApproverEmail, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
 
-    const toggleApprover = (approver: SelectionListApprover) => {
-        if (selectedApproverEmail === approver.login) {
-            setSelectedApproverEmail(undefined);
-            return;
-        }
-        setSelectedApproverEmail(approver.login);
-    };
+    const toggleApprover = useCallback(
+        (approver: SelectionListApprover) =>
+            debounce(() => {
+                if (selectedApproverEmail === approver.login) {
+                    setSelectedApproverEmail(undefined);
+                    return;
+                }
+                setSelectedApproverEmail(approver.login);
+            }, 200)(),
+        [selectedApproverEmail],
+    );
 
     const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data?.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
 
@@ -275,7 +280,8 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         footerContent={button}
                         listEmptyContent={listEmptyContent}
                         shouldShowListEmptyContent={shouldShowListEmptyContent}
-                        shouldHighlightSelectedItem
+                        initiallyFocusedOptionKey={selectedApproverEmail}
+                        shouldUpdateFocusedIndex
                         shouldShowTextInput={shouldShowTextInput}
                     />
                 </FullPageNotFoundView>
