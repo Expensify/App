@@ -1,8 +1,9 @@
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 
 const amount = 1000;
-const currency = 'USD';
+const currency = CONST.CURRENCY.USD;
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const personalDetails: PersonalDetailsList = {
@@ -108,7 +109,7 @@ const iouReport: Report = {
     },
     permissions: [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE],
     policyID: CONST.POLICY.ID_FAKE,
-    reportID: '111111111111111',
+    reportID: '1111111111111111',
     reportName: 'IOU',
     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -160,7 +161,7 @@ const chatReport: Report = {
     reportName: 'Chat Report',
     stateNum: 0,
     statusNum: 0,
-    total: 0,
+    total: 100,
     type: 'chat',
     unheldNonReimbursableTotal: 0,
     unheldTotal: 0,
@@ -198,7 +199,7 @@ const transaction: Transaction = {
         source: 'mockData/eReceiptBGs/eReceiptBG_pink.png',
     },
     reimbursable: true,
-    reportID: '111111111111111',
+    reportID: '1111111111111111',
     status: CONST.TRANSACTION.STATUS.POSTED,
     tag: '',
     transactionID: '1111111111111111111',
@@ -224,8 +225,8 @@ const violations: TransactionViolations = [
 ];
 
 const originalMessage: OriginalMessageIOU = {
-    IOUReportID: '111111111111111',
-    IOUTransactionID: '590639150582440369',
+    IOUReportID: '1111111111111111',
+    IOUTransactionID: '1111111111111111111',
     amount,
     comment: '',
     currency,
@@ -247,9 +248,10 @@ const action: ReportAction = {
             deleted: '',
         },
     ],
-    actionName: 'IOU',
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     originalMessage,
     childReportID: '1111111111111111',
+    childReportName: 'Expense #123456789',
     created: '2025-02-14 08:12:05.165',
     actorAccountID: 11111111,
     childType: 'chat',
@@ -262,6 +264,18 @@ const action: ReportAction = {
     ],
 };
 
+const receiptErrors: ReceiptErrors = {
+    '1201421': {
+        source: 'fake',
+        filename: 'fake',
+        action: 'fake',
+        retryParams: {
+            transactionID: '1111111111111111111',
+            source: 'fake',
+        },
+    },
+};
+
 /* eslint-enable @typescript-eslint/naming-convention */
 
-export {personalDetails, iouReport, chatReport, transaction, violations, action};
+export {personalDetails, iouReport, chatReport, transaction, violations, action, receiptErrors};

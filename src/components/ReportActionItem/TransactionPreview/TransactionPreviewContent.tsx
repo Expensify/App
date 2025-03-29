@@ -5,13 +5,13 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {DotIndicator, Folder, Tag} from '@components/Icon/Expensicons';
-import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/SelectionList/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
+import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,6 +49,7 @@ function TransactionPreviewContent({
     navigateToReviewFields,
     onPreviewPressed,
     containerStyles,
+    wrapperStyles,
     isBillSplit,
     areThereDuplicates,
     sessionAccountID,
@@ -159,12 +160,12 @@ function TransactionPreviewContent({
         () =>
             shouldShowSplitShare
                 ? transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
-                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount ?? 0, requestCurrency ?? '', action.actorAccountID === sessionAccountID)
+                  calculateAmount(isReportAPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount ?? 0, requestCurrency ?? '', action?.actorAccountID === sessionAccountID)
                 : 0,
         [
             shouldShowSplitShare,
             isReportAPolicyExpenseChat,
-            action.actorAccountID,
+            action?.actorAccountID,
             participantAccountIDs.length,
             transaction?.comment?.splits,
             requestAmount,
@@ -173,8 +174,12 @@ function TransactionPreviewContent({
         ],
     );
 
+    const previewTextViewGap = (isBillSplit || shouldShowMerchantOrDescription || shouldShowCategoryOrTag) && styles.gap2;
+    const previewTextMargin = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag && styles.mbn1;
+    const shouldWrapDisplayAmount = !(shouldShowMerchantOrDescription || isBillSplit);
+
     const transactionContent = (
-        <View style={[styles.border, styles.reportContainerBorderRadius]}>
+        <View style={[styles.border, styles.reportContainerBorderRadius, containerStyles]}>
             <OfflineWithFeedback
                 errors={walletTermsErrors}
                 onClose={() => offlineWithFeedbackOnClose}
@@ -187,7 +192,7 @@ function TransactionPreviewContent({
             >
                 <View
                     style={[
-                        isScanning || isWhisper ? [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius] : undefined,
+                        (isScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius],
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles, themeStyles] : {},
                     ]}
                 >
@@ -200,27 +205,27 @@ function TransactionPreviewContent({
                         />
                     )}
                     {shouldShowSkeleton ? (
-                        <MoneyRequestSkeletonView />
+                        <TransactionPreviewSkeletonView transactionPreviewWidth={wrapperStyles.width} />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
-                                <View style={isBillSplit || shouldShowMerchantOrDescription || shouldShowCategoryOrTag ? styles.gap2 : {}}>
-                                    {shouldShowIOUHeader && (
-                                        <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
-                                            <UserInfoCellsWithArrow
-                                                shouldDisplayArrowIcon
-                                                participantFrom={from}
-                                                participantFromDisplayName={from.displayName ?? from.login ?? ''}
-                                                participantTo={to}
-                                                participantToDisplayName={to.displayName ?? to.login ?? ''}
-                                                avatarSize="mid-subscript"
-                                                infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
-                                                infoCellsAvatarStyle={styles.pr1}
-                                            />
-                                        </View>
-                                    )}
+                                {shouldShowIOUHeader && (
+                                    <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
+                                        <UserInfoCellsWithArrow
+                                            shouldDisplayArrowIcon
+                                            participantFrom={from}
+                                            participantFromDisplayName={from.displayName ?? from.login ?? ''}
+                                            participantTo={to}
+                                            participantToDisplayName={to.displayName ?? to.login ?? ''}
+                                            avatarSize="mid-subscript"
+                                            infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                                            infoCellsAvatarStyle={styles.pr1}
+                                        />
+                                    </View>
+                                )}
+                                <View style={previewTextViewGap}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{previewHeaderText}</Text>
+                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16, previewTextMargin]}>{previewHeaderText}</Text>
                                         {isBillSplit && (
                                             <View style={styles.moneyRequestPreviewBoxAvatar}>
                                                 <MultipleAvatars
@@ -231,7 +236,7 @@ function TransactionPreviewContent({
                                                 />
                                             </View>
                                         )}
-                                        {!isBillSplit && !shouldShowMerchantOrDescription && (
+                                        {shouldWrapDisplayAmount && (
                                             <Text
                                                 fontSize={variables.fontSizeNormal}
                                                 style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
@@ -260,7 +265,7 @@ function TransactionPreviewContent({
                                                         {merchantOrDescription}
                                                     </Text>
                                                 )}
-                                                {(shouldShowMerchant || shouldShowDescription || isBillSplit) && (
+                                                {!shouldWrapDisplayAmount && (
                                                     <Text
                                                         fontSize={variables.fontSizeNormal}
                                                         style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
@@ -364,7 +369,7 @@ function TransactionPreviewContent({
             accessibilityHint={convertToDisplayString(requestAmount, requestCurrency)}
             style={[
                 styles.moneyRequestPreviewBox,
-                containerStyles,
+                wrapperStyles,
                 themeStyles,
                 shouldDisableOnPress && styles.cursorDefault,
                 (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,

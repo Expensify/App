@@ -112,6 +112,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
         walletTermsErrors: undefined,
         routeName: SCREENS.TRANSACTION_DUPLICATE.REVIEW,
         shouldHideOnDelete: false,
+        wrapperStyles: {width: 256},
     },
     argTypes: {
         ...disabledProperties,
