@@ -298,10 +298,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 App.reconnectApp(initialLastUpdateIDAppliedToClient);
             }
         }
-        // For delegator from OldDot we have separate logic to handle FocusMode.
-        if (!delegatorEmail) {
+                
+        Navigation.isNavigationReady().then(() => {
             PriorityMode.autoSwitchToFocusMode();
-        }
+        });
 
         App.setUpPoliciesAndNavigate(session);
 

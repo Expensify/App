@@ -20,7 +20,6 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
-import {autoSwitchToFocusMode} from './PriorityMode';
 import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
@@ -189,14 +188,13 @@ function connect(email: string, setIsDelegatorReadyFromOldDot?: (isReady: boolea
                         Navigation.navigate(exitTo as Route);
                     });
                 }
-                Navigation.isNavigationReady().then(() => {
-                    autoSwitchToFocusMode();
-                });
+                Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
             }
         })
         .catch((error) => {
             Log.alert('[Delegate] Error connecting as delegate', {error});
             Onyx.update(failureData);
+            Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         })
         .finally(() => {
             setIsDelegatorReadyFromOldDot?.(true);
