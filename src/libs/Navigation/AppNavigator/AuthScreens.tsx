@@ -298,7 +298,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 App.reconnectApp(initialLastUpdateIDAppliedToClient);
             }
         }
-                
+
         Navigation.isNavigationReady().then(() => {
             PriorityMode.autoSwitchToFocusMode();
         });
