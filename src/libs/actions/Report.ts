@@ -241,7 +241,6 @@ const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 let currentUserEmail: string | undefined;
-let isPrivateDomainAndHasAccesiblePolicies: boolean | undefined;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -253,13 +252,6 @@ Onyx.connect({
         }
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: (value) => {
-        isPrivateDomainAndHasAccesiblePolicies = !value?.isFromPublicDomain && !!value?.hasAccessibleDomainPolicies;
     },
 });
 
@@ -3175,7 +3167,7 @@ function openReportFromDeepLink(url: string) {
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: () => startOnboardingFlow(isPrivateDomainAndHasAccesiblePolicies),
+                            onNotCompleted: () => startOnboardingFlow(),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
