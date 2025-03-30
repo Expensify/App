@@ -20,7 +20,7 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
-import * as PriorityMode from './PriorityMode';
+import {autoSwitchToFocusMode} from './PriorityMode';
 import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
@@ -191,7 +191,7 @@ function connect(email: string, setIsDelegatorReadyFromOldDot?: (isReady: boolea
                 }
                 setIsDelegatorReadyFromOldDot(true);
                 Navigation.isNavigationReady().then(() => {
-                    PriorityMode.autoSwitchToFocusMode();
+                    autoSwitchToFocusMode();
                 });
             }
         })

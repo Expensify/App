@@ -16,8 +16,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import * as ExitSurvey from '@userActions/ExitSurvey';
-import * as Link from '@userActions/Link';
+import {switchToOldDot} from '@userActions/ExitSurvey';
+import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -87,9 +87,9 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
                     text={translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}
                     pressOnEnter
                     onPress={() => {
-                        ExitSurvey.switchToOldDot();
+                        switchToOldDot();
                         Navigation.dismissModal();
-                        Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                     }}
                     isDisabled={isOffline}
                 />
