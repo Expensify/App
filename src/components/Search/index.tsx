@@ -454,6 +454,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             onCheckboxPress={toggleTransaction}
             onAllCheckboxPress={toggleAllTransactions}
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
+            shouldPreventLongPressRow={isChat}
             SearchTableHeader={
                 !isLargeScreenWidth ? undefined : (
                     <SearchTableHeader
