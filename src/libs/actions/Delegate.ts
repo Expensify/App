@@ -86,7 +86,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
  * when the delegator is authenticated (used in case of switching from OldDot to NewDot).
  */
 function connect(email: string, setIsDelegatorReadyFromOldDot?: (isReady: boolean) => void) {
-    if (!delegatedAccess?.delegators) {
+    if (!delegatedAccess?.delegators && !setIsDelegatorReadyFromOldDot) {
         return;
     }
 
