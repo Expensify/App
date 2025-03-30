@@ -229,7 +229,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const navigation = useNavigation();
 
     // State to track whether the delegator's authentication is completed before displaying data
-    const [isDelegatorReadyFromOldDot, setIsDelegatorReadyFromOldDot] = useState(false);
+    const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('state', () => {
@@ -289,7 +289,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
             if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
                 if (delegatorEmail) {
-                    connect(delegatorEmail, setIsDelegatorReadyFromOldDot);
+                    connect(delegatorEmail, setIsDelegatorFromOldDotIsReady);
                 } else {
                     App.openApp();
                 }
@@ -467,7 +467,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         clearStatus();
     }, [currentUserPersonalDetails.status?.clearAfter]);
 
-    if (delegatorEmail && !isDelegatorReadyFromOldDot) {
+    if (delegatorEmail && !isDelegatorFromOldDotIsReady) {
         return <FullScreenLoadingIndicator />;
     }
 

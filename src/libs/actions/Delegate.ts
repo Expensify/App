@@ -81,11 +81,11 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
 
 /**
  * @param email - The email of the user for whom the connection is being established.
- * @param setIsDelegatorReadyFromOldDot - An optional callback function that is called
+ * @param setIsDelegatorFromOldDotIsReady - An optional callback function that is called
  * when the delegator is authenticated (used in case of switching from OldDot to NewDot).
  */
-function connect(email: string, setIsDelegatorReadyFromOldDot?: (isReady: boolean) => void) {
-    if (!delegatedAccess?.delegators && !setIsDelegatorReadyFromOldDot) {
+function connect(email: string, setIsDelegatorFromOldDotIsReady?: (isReady: boolean) => void) {
+    if (!delegatedAccess?.delegators && !setIsDelegatorFromOldDotIsReady) {
         return;
     }
 
@@ -182,7 +182,7 @@ function connect(email: string, setIsDelegatorReadyFromOldDot?: (isReady: boolea
         })
         .then(() => {
             const exitTo = getSearchParamFromUrl(getCurrentUrl(), 'exitTo');
-            if (setIsDelegatorReadyFromOldDot) {
+            if (setIsDelegatorFromOldDotIsReady) {
                 if (exitTo) {
                     Navigation.isNavigationReady().then(() => {
                         Navigation.navigate(exitTo as Route);
@@ -197,7 +197,7 @@ function connect(email: string, setIsDelegatorReadyFromOldDot?: (isReady: boolea
             Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         })
         .finally(() => {
-            setIsDelegatorReadyFromOldDot?.(true);
+            setIsDelegatorFromOldDotIsReady?.(true);
         });
 }
 
