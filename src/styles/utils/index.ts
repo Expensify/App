@@ -635,7 +635,7 @@ function getCodeFontSize(isInsideH1: boolean, isInsideTaskTitle?: boolean) {
         return 15;
     }
     if (isInsideTaskTitle) {
-        return 19;
+        return 18;
     }
     return 13;
 }
