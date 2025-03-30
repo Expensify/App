@@ -349,7 +349,6 @@ function ReportActionsList({
         }
 
         setUnreadMarkerTime(mostRecentReportActionCreated);
-        readNewestAction(report.reportID);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [lastAction?.created]);
