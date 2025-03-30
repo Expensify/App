@@ -189,7 +189,6 @@ function connect(email: string, setIsDelegatorReadyFromOldDot?: (isReady: boolea
                         Navigation.navigate(exitTo as Route);
                     });
                 }
-                setIsDelegatorReadyFromOldDot(true);
                 Navigation.isNavigationReady().then(() => {
                     autoSwitchToFocusMode();
                 });
@@ -198,6 +197,9 @@ function connect(email: string, setIsDelegatorReadyFromOldDot?: (isReady: boolea
         .catch((error) => {
             Log.alert('[Delegate] Error connecting as delegate', {error});
             Onyx.update(failureData);
+        })
+        .finally(() => {
+            setIsDelegatorReadyFromOldDot?.(true);
         });
 }
 
