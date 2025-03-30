@@ -225,7 +225,19 @@ jobs:
             echo "performanceRegressionDetected=true" >> "$GITHUB_OUTPUT"
 
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
-            gh pr comment ${{ inputs.PR_NUMBER }} -F "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
+
+            # Check if there are any split files
+            if ls "./Host_Machine_Files/\$WORKING_DIRECTORY"/output_* 1> /dev/null 2>&1; then
+              # Post each split file as a separate comment
+              for file in "./Host_Machine_Files/\$WORKING_DIRECTORY/output_"*; do
+                if [ -f "$file" ]; then
+                  gh pr comment ${{ inputs.PR_NUMBER }} -F $file
+                fi
+              done
+            else
+              gh pr comment ${{ inputs.PR_NUMBER }} -F "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
+            fi
+
             gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
           else
             echo "performanceRegressionDetected=false" >> "$GITHUB_OUTPUT"
