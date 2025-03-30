@@ -212,7 +212,7 @@ function IOURequestStepConfirmation({
             : transaction?.reportID === reportID;
 
         // Exit if the transaction already exists and is associated with the current report
-        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && isCurrentReportID) {
+        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && (isCurrentReportID || isMovingTransactionFromTrackExpense)) {
             return;
         }
 
@@ -223,7 +223,7 @@ function IOURequestStepConfirmation({
             generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction, reportID]);
+    }, [isLoadingTransaction, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
         if (!transaction?.category) {
@@ -939,7 +939,6 @@ function IOURequestStepConfirmation({
                         receiptFilename={receiptFilename}
                         iouType={iouType}
                         reportID={reportID}
-                        shouldDisplayReceipt
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={getIOURequestPolicyID(transaction, report)}
                         bankAccountRoute={getBankAccountRoute(report)}
