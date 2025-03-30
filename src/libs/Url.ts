@@ -76,4 +76,9 @@ function extractUrlDomain(url: string): string | undefined {
     return match?.[1];
 }
 
-export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain};
+function getSearchParamFromUrl(currentUrl: string, param: string) {
+    const url = new URL(currentUrl);
+    return url.searchParams.get(param) ?? '';
+}
+
+export {getSearchParamFromUrl, addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain};

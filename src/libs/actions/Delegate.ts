@@ -6,16 +6,21 @@ import type {AddDelegateParams, RemoveDelegateParams, UpdateDelegateRoleParams} 
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import getCurrentUrl from '@libs/Navigation/currentUrl';
+import Navigation from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {getSearchParamFromUrl} from '@libs/Url';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
+import * as PriorityMode from './PriorityMode';
 import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
@@ -75,8 +80,13 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.IS_SIDEBAR_LOADED,
 ];
 
-function connect(email: string) {
-    if (!delegatedAccess?.delegators) {
+/**
+ * @param email - The email of the user for whom the connection is being established.
+ * @param setIsDelegatorReadyFromOldDot - An optional callback function that is called  
+ * when the delegator is authenticated (used in case of switching from OldDot to NewDot).
+ */
+function connect(email: string, setIsDelegatorReadyFromOldDot?: (isReady: boolean) => void) {
+    if (!delegatedAccess?.delegators && !setIsDelegatorReadyFromOldDot) {
         return;
     }
 
@@ -142,7 +152,7 @@ function connect(email: string) {
                 Onyx.update(failureData);
                 return;
             }
-            if (!activePolicyID) {
+            if (!activePolicyID && CONFIG.IS_HYBRID_APP) {
                 Log.alert('[Delegate] Unable to access activePolicyID');
                 Onyx.update(failureData);
                 return;
@@ -159,7 +169,7 @@ function connect(email: string) {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
                     openApp().then(() => {
-                        if (!CONFIG.IS_HYBRID_APP) {
+                        if (!CONFIG.IS_HYBRID_APP || !policyID) {
                             return;
                         }
                         HybridAppModule.switchAccount({
@@ -170,6 +180,19 @@ function connect(email: string) {
                         });
                     });
                 });
+        })
+        .then(() => {
+            const exitTo = getSearchParamFromUrl(getCurrentUrl(), 'exitTo');
+            if (setIsDelegatorReadyFromOldDot) {
+                if (exitTo) {
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.navigate(exitTo as Route);
+                    });
+                }
+                PriorityMode.autoSwitchToFocusMode();
+                confirmReadyToOpenApp();
+                setIsDelegatorReadyFromOldDot(true);
+            }
         })
         .catch((error) => {
             Log.alert('[Delegate] Error connecting as delegate', {error});

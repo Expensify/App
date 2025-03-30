@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
@@ -14,6 +15,7 @@ import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
+import {connect} from '@libs/actions/Delegate';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -31,6 +33,7 @@ import onyxSubscribe from '@libs/onyxSubscribe';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
+import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
@@ -216,12 +219,17 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {toggleSearch} = useSearchRouterContext();
+    const currentUrl = getCurrentUrl();
+    const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
+
+    // State to track whether the delegator's authentication is completed before displaying data
+    const [isDelegatorReadyFromOldDot, setIsDelegatorReadyFromOldDot] = useState(false);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('state', () => {
@@ -261,7 +269,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
-        const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -279,16 +286,22 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
         if (!CONFIG.IS_HYBRID_APP) {
             // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-            if (SessionUtils.didUserLogInDuringSession()) {
-                App.openApp();
+            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
+            if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
+                if (delegatorEmail) {
+                    connect(delegatorEmail, setIsDelegatorReadyFromOldDot);
+                } else {
+                    App.openApp();
+                }
             } else {
                 Log.info('[AuthScreens] Sending ReconnectApp');
                 App.reconnectApp(initialLastUpdateIDAppliedToClient);
             }
         }
-
-        PriorityMode.autoSwitchToFocusMode();
+        // For delegator from OldDot we have separate logic to handle FocusMode.
+        if (!delegatorEmail) {
+            PriorityMode.autoSwitchToFocusMode();
+        }
 
         App.setUpPoliciesAndNavigate(session);
 
@@ -453,6 +466,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         clearStatus();
     }, [currentUserPersonalDetails.status?.clearAfter]);
+
+    if (delegatorEmail && !isDelegatorReadyFromOldDot) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, ReportIDsContextProvider, SearchContextProvider]}>
