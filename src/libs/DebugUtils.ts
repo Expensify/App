@@ -799,7 +799,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                         },
                         deleted: 'string',
                         bankAccountID: 'string',
-                        payAsBusiness: 'string'
+                        payAsBusiness: 'string',
                     }),
                 () =>
                     validateObject<ObjectElement<ReportAction, 'message'>>(value, {
@@ -884,7 +884,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                         resolution: 'string',
                         deleted: 'string',
                         bankAccountID: 'string',
-                        payAsBusiness: 'string'
+                        payAsBusiness: 'string',
                     }),
             );
     }
