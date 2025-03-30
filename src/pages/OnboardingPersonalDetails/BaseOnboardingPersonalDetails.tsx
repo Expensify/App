@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import {isCurrentUserValidated} from '@libs/UserUtils';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
 import {setDisplayName} from '@userActions/PersonalDetails';
@@ -36,9 +37,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
-    const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
     const [user] = useOnyx(ONYXKEYS.USER);
-
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
@@ -48,6 +48,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {activeWorkspaceID} = useActiveWorkspace();
 
     const isPrivateDomainAndHasAccesiblePolicies = !user?.isFromPublicDomain && !!user?.hasAccessibleDomainPolicies;
+    const isValidated = isCurrentUserValidated(loginList);
 
     useEffect(() => {
         setOnboardingErrorMessage('');
@@ -76,23 +77,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth],
     );
 
-    useEffect(() => {
-        /**
-         * Handle onboarding flow for users on private domains:
-         * 1. If on a private domain, the flow starts with personal details.
-         * 2. If the user skips this step, they must select an onboarding purpose.
-         * 3. If an onboarding purpose is selected and the person is on a private domain,
-         * skip the personal details step as it was already filled.
-         */
-        const skippedPrivateDomainFlow = isPrivateDomainAndHasAccesiblePolicies && onboardingPurposeSelected;
-
-        if (!skippedPrivateDomainFlow || !onboardingPersonalDetails?.firstName || !onboardingPersonalDetails?.lastName) {
-            return;
-        }
-
-        completeOnboarding(onboardingPersonalDetails.firstName, onboardingPersonalDetails.lastName);
-    }, [onboardingPersonalDetails, isPrivateDomainAndHasAccesiblePolicies, onboardingPurposeSelected, completeOnboarding]);
-
     const handleSubmit = useCallback(
         (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
             const firstName = values.firstName.trim();
@@ -103,13 +87,14 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             setPersonalDetails(firstName, lastName);
 
             if (isPrivateDomainAndHasAccesiblePolicies && !onboardingPurposeSelected) {
-                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(route.params?.backTo));
+                const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
+                Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
                 return;
             }
 
             completeOnboarding(firstName, lastName);
         },
-        [isPrivateDomainAndHasAccesiblePolicies, onboardingPurposeSelected, route.params?.backTo, completeOnboarding],
+        [isPrivateDomainAndHasAccesiblePolicies, onboardingPurposeSelected, isValidated, route.params?.backTo, completeOnboarding],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {

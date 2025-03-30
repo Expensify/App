@@ -37,7 +37,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [joinablePolicies, joinablePoliciesStatus] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
-    const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.GET_ACCESSIBLE_POLICIES);
+    const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const fetchedPolicies = useRef(false);
     const joinablePoliciesLoading = getAccessiblePoliciesAction?.loading;
 
@@ -124,7 +124,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID="BaseOnboardingWorkspaces"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
@@ -133,7 +133,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                 progressBarPercentage={60}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <View style={[styles.flex1, styles.mb5, styles.mt8]}>
+            <View style={[styles.flex1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5]}>
                 <View style={[wrapperPadding, styles.mb5]}>
                     <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
                     <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
@@ -145,14 +145,16 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                     ListItem={UserListItem}
                     listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}
                     showLoadingPlaceholder={joinablePoliciesLoading}
+                    shouldStopPropagation
+                    showScrollIndicator
+                    containerStyle={[styles.flexGrow1, styles.mb5]}
                 />
 
-                <View style={[styles.flex1, styles.justifyContentEnd, wrapperPadding]}>
+                <View style={[styles.flexShrink0, wrapperPadding]}>
                     <Button
                         isDisabled={isOffline}
                         success={false}
                         large
-                        style={[styles.mb5]}
                         text={translate('common.skip')}
                         onPress={() => {
                             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));

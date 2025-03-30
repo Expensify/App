@@ -5044,7 +5044,7 @@ function getAccessiblePolicies(validateCode?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.GET_ACCESSIBLE_POLICIES,
+            key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
             value: {
                 loading: true,
                 errors: null,
@@ -5055,7 +5055,7 @@ function getAccessiblePolicies(validateCode?: string) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.GET_ACCESSIBLE_POLICIES,
+            key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
             value: {
                 loading: false,
                 errors: null,
@@ -5066,7 +5066,7 @@ function getAccessiblePolicies(validateCode?: string) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.GET_ACCESSIBLE_POLICIES,
+            key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
             value: {
                 loading: false,
             },
@@ -5082,7 +5082,7 @@ function getAccessiblePolicies(validateCode?: string) {
  * Clear the errors from the get accessible policies request
  */
 function clearGetAccessiblePoliciesErrors() {
-    Onyx.merge(ONYXKEYS.GET_ACCESSIBLE_POLICIES, {errors: null});
+    Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {errors: null});
 }
 
 export {

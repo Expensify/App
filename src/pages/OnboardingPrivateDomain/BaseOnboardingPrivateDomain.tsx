@@ -8,10 +8,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
@@ -22,25 +20,22 @@ import type {BaseOnboardingPrivateDomainProps} from './types';
 
 function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
     const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
-    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.GET_ACCESSIBLE_POLICIES);
+    const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
 
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
-    const isValidated = isCurrentUserValidated(loginList);
-
-    const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
-
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
+
+    const isValidated = isCurrentUserValidated(loginList);
 
     const sendValidateCode = useCallback(() => {
         if (!credentials?.login) {
@@ -55,12 +50,12 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
+        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
     }, [sendValidateCode, isValidated]);
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID="BaseOnboardingPrivateDomain"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
@@ -76,6 +71,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                     validateCodeAction={validateCodeAction}
                     handleSubmitForm={(code) => {
                         getAccessiblePolicies(code);
+                        setHasMagicCodeBeenSent(false);
                     }}
                     sendValidateCode={() => {
                         sendValidateCode();
@@ -88,12 +84,11 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 />
                 <View style={[styles.flex2, styles.justifyContentEnd]}>
                     <Button
-                        isDisabled={isOffline}
                         success={false}
                         large
                         style={[styles.mb5]}
                         text={translate('common.skip')}
-                        isLoading={isValidateCodeFormSubmitting}
+                        isLoading={getAccessiblePoliciesAction?.loading}
                         onPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo))}
                     />
                     {shouldUseNarrowLayout && <OfflineIndicator />}

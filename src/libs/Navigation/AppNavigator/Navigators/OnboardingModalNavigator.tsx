@@ -12,6 +12,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
+import {isCurrentUserValidated} from '@libs/UserUtils';
 import OnboardingAccounting from '@pages/OnboardingAccounting';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
@@ -37,6 +38,12 @@ function OnboardingModalNavigator() {
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [user] = useOnyx(ONYXKEYS.USER);
+
+    const isOnPrivateDomainAndHasAccessiblePolicies = !user?.isFromPublicDomain && user?.hasAccessibleDomainPolicies;
+
+    const isValidated = isCurrentUserValidated(loginList);
 
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
@@ -68,22 +75,32 @@ function OnboardingModalNavigator() {
                         style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
                     >
                         <Stack.Navigator screenOptions={defaultScreenOptions}>
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.PURPOSE}
-                                component={OnboardingPurpose}
-                            />
+                            {!isOnPrivateDomainAndHasAccessiblePolicies && (
+                                <Stack.Screen
+                                    name={SCREENS.ONBOARDING.PURPOSE}
+                                    component={OnboardingPurpose}
+                                />
+                            )}
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
                             />
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}
-                                component={OnboardingPrivateDomain}
-                            />
+                            {!isValidated && (
+                                <Stack.Screen
+                                    name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}
+                                    component={OnboardingPrivateDomain}
+                                />
+                            )}
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.WORKSPACES}
                                 component={OnboardingWorkspaces}
                             />
+                            {!!isOnPrivateDomainAndHasAccessiblePolicies && (
+                                <Stack.Screen
+                                    name={SCREENS.ONBOARDING.PURPOSE}
+                                    component={OnboardingPurpose}
+                                />
+                            )}
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.EMPLOYEES}
                                 component={OnboardingEmployees}
