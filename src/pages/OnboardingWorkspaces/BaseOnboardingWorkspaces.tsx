@@ -29,7 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 import type {BaseOnboardingWorkspacesProps} from './types';
 
-function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboardingWorkspacesProps) {
+function BaseOnboardingWorkspaces({route}: BaseOnboardingWorkspacesProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -125,32 +125,30 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
             testID="BaseOnboardingWorkspaces"
-            style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
+            style={[styles.defaultModalContainer]}
         >
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={60}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <View style={[styles.flex1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5]}>
-                <View style={[wrapperPadding, styles.mb5]}>
-                    <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
-                    <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
-                </View>
-
-                <SelectionList
-                    sections={[{data: policyIDItems}]}
-                    onSelectRow={() => {}}
-                    ListItem={UserListItem}
-                    listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}
-                    showLoadingPlaceholder={joinablePoliciesLoading}
-                    shouldStopPropagation
-                    showScrollIndicator
-                    containerStyle={[styles.flexGrow1, styles.mb5]}
-                />
-
-                <View style={[styles.flexShrink0, wrapperPadding]}>
+            <SelectionList
+                sections={[{data: policyIDItems}]}
+                onSelectRow={() => {}}
+                ListItem={UserListItem}
+                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}
+                showLoadingPlaceholder={joinablePoliciesLoading}
+                shouldStopPropagation
+                showScrollIndicator
+                headerContent={
+                    <View style={[wrapperPadding, onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mb5]}>
+                        <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
+                        <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
+                    </View>
+                }
+                footerContent={
                     <Button
                         isDisabled={isOffline}
                         success={false}
@@ -159,9 +157,10 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                         onPress={() => {
                             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
                         }}
+                        style={[styles.mt5]}
                     />
-                </View>
-            </View>
+                }
+            />
             {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
