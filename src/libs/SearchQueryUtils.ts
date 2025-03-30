@@ -397,7 +397,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     const amountFilter = buildAmountFilterQuery(filterValues);
     filtersString.push(amountFilter);
 
-    return filtersString.join(' ').trim();
+    return filtersString.filter(Boolean).join(' ').trim();
 }
 
 /**

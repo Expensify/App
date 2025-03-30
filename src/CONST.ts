@@ -342,6 +342,7 @@ const EMAIL = {
     SVFG: 'svfg@expensify.com',
     EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
+    TEAM: 'team@expensify.com',
     MANAGER_MCTEST: 'manager_mctest@expensify.com',
 };
 
@@ -363,7 +364,7 @@ const CONST = {
         BILLABLE: 'billable',
         NON_BILLABLE: 'nonBillable',
     },
-
+    TASK_TITLE_DISABLED_RULES: ['image'],
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
     ANDROID_PACKAGE_NAME,
@@ -1122,6 +1123,7 @@ const CONST = {
         TRACK_DISTANCE: 'trackDistance',
         ASSIGN_TASK: 'assignTask',
         SEND_MONEY: 'sendMoney',
+        CREATE_REPORT: 'createReport',
     },
 
     RECEIPT: {
@@ -1307,6 +1309,7 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
+                RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
@@ -1809,7 +1812,70 @@ const CONST = {
         PNG: 'image/png',
         WEBP: 'image/webp',
         JPEG: 'image/jpeg',
+        JPG: 'image/jpg',
+        GIF: 'image/gif',
+        TIF: 'image/tif',
+        TIFF: 'image/tiff',
     },
+
+    RECEIPT_ALLOWED_FILE_TYPES: {
+        PNG: 'image/png',
+        WEBP: 'image/webp',
+        JPEG: 'image/jpeg',
+        JPG: 'image/jpg',
+        GIF: 'image/gif',
+        TIF: 'image/tif',
+        TIFF: 'image/tiff',
+        IMG: 'image/*',
+        HTML: 'text/html',
+        XML: 'text/xml',
+        RTF: 'application/rtf',
+        PDF: 'application/pdf',
+        OFFICE: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        MSWORD: 'application/msword',
+        ZIP: 'application/zip',
+        RFC822: 'message/rfc822',
+    },
+
+    SHARE_FILE_MIMETYPE: {
+        JPG: 'image/jpg',
+        JPEG: 'image/jpeg',
+        GIF: 'image/gif',
+        PNG: 'image/png',
+        WEBP: 'image/webp',
+        TIF: 'image/tif',
+        TIFF: 'image/tiff',
+        IMG: 'image/*',
+        PDF: 'application/pdf',
+        MSWORD: 'application/msword',
+        OFFICE: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        RTF: 'application/rtf',
+        ZIP: 'application/zip',
+        RFC822: 'message/rfc822',
+        TEXT: 'text/plain',
+        HTML: 'text/html',
+        XML: 'text/xml',
+        MPEG: 'audio/mpeg',
+        AAC: 'audio/aac',
+        FLAC: 'audio/flac',
+        WAV: 'audio/wav',
+        XWAV: 'audio/x-wav',
+        MP3: 'audio/mp3',
+        VORBIS: 'audio/vorbis',
+        XVORBIS: 'audio/x-vorbis',
+        OPUS: 'audio/opus',
+        MP4: 'video/mp4',
+        MP2T: 'video/mp2t',
+        WEBM: 'video/webm',
+        AVC: 'video/avc',
+        HEVC: 'video/hevc',
+        XVND8: 'video/x-vnd.on2.vp8',
+        XVND9: 'video/x-vnd.on2.vp9',
+        AV01: 'video/av01',
+        VIDEO: 'video/*',
+        TXT: 'txt',
+    },
+
     ATTACHMENT_TYPE: {
         REPORT: 'r',
         NOTE: 'n',
@@ -3459,6 +3525,7 @@ const CONST = {
         EMAIL.RECEIPTS,
         EMAIL.STUDENT_AMBASSADOR,
         EMAIL.SVFG,
+        EMAIL.TEAM,
         EMAIL.MANAGER_MCTEST,
     ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
@@ -4974,6 +5041,11 @@ const CONST = {
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
+        SHARE: {
+            NAVIGATOR_ID: 'ShareNavigatorID',
+            SHARE: 'ShareTab',
+            SUBMIT: 'SubmitTab',
+        },
     },
     TAB_REQUEST: {
         MANUAL: 'manual',
@@ -6741,6 +6813,7 @@ const CONST = {
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
+        HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
     },
 
     DEBUG: {
