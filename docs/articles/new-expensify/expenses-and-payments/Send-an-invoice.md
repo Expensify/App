@@ -71,7 +71,7 @@ Only workspace admins can send invoices. Invoices can be sent directly from Expe
 
 # Receive invoice payment 
 
-If you have not [connected a business bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account) to receive invoice payments, you will see an **Invoice balance** in your [Wallet](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Set-up-your-wallet). Expensify will automatically transfer these invoice payments once a business bank account is connected.
+If you have not [connected a business bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account) to receive invoice payments, you will see an **Invoice balance** in your [Wallet](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Set-up-your-wallet). Expensify will automatically transfer these invoice payments once a business bank account is connected.
 
  
 {% include faq-begin.md %}

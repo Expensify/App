@@ -170,6 +170,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
 
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`) ?? null;
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`);
+    const isDownloadingPDF = download?.isDownloading ?? false;
+
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`, {
         selector: (actions) => (report?.parentReportActionID ? actions?.[report.parentReportActionID] : undefined),
     });
@@ -877,6 +880,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
+                    furtherDetailsNumberOfLines={isPolicyExpenseChat ? 0 : undefined}
+                    furtherDetailsStyle={isPolicyExpenseChat ? styles.textAlignCenter : undefined}
                     onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
                     numberOfLinesTitle={isThread ? 2 : 0}
                     shouldBreakWord
@@ -1160,6 +1165,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         </View>
                         {!!reportPDFFilename && reportPDFFilename !== 'error' && (
                             <Button
+                                isLoading={isDownloadingPDF}
                                 style={[styles.mt3, styles.noSelect]}
                                 onPress={() => downloadReportPDF(reportPDFFilename ?? '', reportName)}
                                 text={translate('common.download')}

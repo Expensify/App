@@ -12,18 +12,10 @@ on:
         required: true
         type: string
       android:
-        description: Android deploy status
-        required: true
-        type: string
-      android_hybrid:
         description: Android HybridApp deploy status
         required: true
         type: string
       ios:
-        description: iOS deploy status
-        required: true
-        type: string
-      ios_hybrid:
         description: iOS HybridApp deploy status
         required: true
         type: string
@@ -49,15 +41,6 @@ on:
           - staging
           - production
       android:
-        description: Android deploy status
-        required: true
-        type: choice
-        options:
-          - success
-          - failure
-          - cancelled
-          - skipped
-      android_hybrid:
         description: Android HybridApp deploy status
         required: true
         type: choice
@@ -67,15 +50,6 @@ on:
           - cancelled
           - skipped
       ios:
-        description: iOS deploy status
-        required: true
-        type: choice
-        options:
-          - success
-          - failure
-          - cancelled
-          - skipped
-      ios_hybrid:
         description: iOS HybridApp deploy status
         required: true
         type: choice
@@ -136,11 +110,9 @@ jobs:
           IS_PRODUCTION_DEPLOY: ${{ inputs.env == 'production' }}
           DEPLOY_VERSION: ${{ inputs.version }}
           GITHUB_TOKEN: ${{ github.token }}
-          ANDROID_HYBRID: ${{ inputs.android_hybrid }}
           ANDROID: ${{ inputs.android }}
           DESKTOP: ${{ inputs.desktop }}
           IOS: ${{ inputs.ios }}
-          IOS_HYBRID: ${{ inputs.ios_hybrid }}
           WEB: ${{ inputs.web }}
           DATE: ${{ inputs.date }}
           NOTE: ${{ inputs.note }}
