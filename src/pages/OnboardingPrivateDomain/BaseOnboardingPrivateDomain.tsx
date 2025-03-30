@@ -81,6 +81,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                     hideSubmitButton
                     validateError={getAccessiblePoliciesAction?.errors}
                     hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                    autoSubmitAfterFailure
                 />
                 <View style={[styles.flex2, styles.justifyContentEnd]}>
                     <Button

@@ -72,6 +72,9 @@ type ValidateCodeFormProps = {
 
     /** Whether the form is loading or not */
     isLoading?: boolean;
+
+    /** Whether to allow auto submit again after the previous attempt fails */
+    autoSubmitAfterFailure?: boolean;
 };
 
 function BaseValidateCodeForm({
@@ -87,6 +90,7 @@ function BaseValidateCodeForm({
     buttonStyles,
     hideSubmitButton,
     isLoading,
+    autoSubmitAfterFailure,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -188,9 +192,12 @@ function BaseValidateCodeForm({
             if (!isEmptyObject(validateError) || !isEmptyObject(latestActionVerifiedError)) {
                 clearError();
                 clearValidateCodeActionError('actionVerified');
+                if (autoSubmitAfterFailure) {
+                    inputValidateCodeRef.current?.clearWasSubmit();
+                }
             }
         },
-        [validateError, clearError, latestActionVerifiedError],
+        [validateError, clearError, latestActionVerifiedError, autoSubmitAfterFailure],
     );
 
     /**

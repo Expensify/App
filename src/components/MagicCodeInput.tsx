@@ -68,6 +68,7 @@ type MagicCodeInputHandle = {
     resetFocus: () => void;
     clear: () => void;
     blur: () => void;
+    clearWasSubmit: () => void;
 };
 
 /**
@@ -173,6 +174,9 @@ function MagicCodeInput(
         },
         blur() {
             blurMagicCodeInput();
+        },
+        clearWasSubmit() {
+            setWasSubmitted(false);
         },
     }));
 
