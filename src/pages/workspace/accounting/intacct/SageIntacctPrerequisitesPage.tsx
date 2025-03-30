@@ -30,6 +30,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View | RNText | null>(null);
     const policyID: string = route.params.policyID;
+    const backTo = route.params.backTo;
 
     const menuItems = useMemo(
         () => [
@@ -82,7 +83,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.dismissModal()}
+                onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <View style={styles.flex1}>
                 <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>

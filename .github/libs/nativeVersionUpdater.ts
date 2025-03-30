@@ -11,6 +11,7 @@ import getBuildVersion from 'semver/functions/prerelease';
 const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test' ? path.resolve(__dirname, '../../android/app/build.gradle') : './android/app/build.gradle';
 const PLIST_PATH = './ios/NewExpensify/Info.plist';
 const PLIST_PATH_NSE = './ios/NotificationServiceExtension/Info.plist';
+const PLIST_PATH_SHARE = './ios/ShareViewController/Info.plist';
 
 /**
  * Pad a number to be two digits (with leading zeros if necessary).
@@ -65,8 +66,10 @@ function updateiOSVersion(version: string): string {
     // Update Plists
     execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`);
     execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_NSE}`);
+    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_SHARE}`);
     execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`);
     execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_NSE}`);
+    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_SHARE}`);
 
     // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
     return cfVersion;
