@@ -104,6 +104,11 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const previousAuthenticated = usePrevious(authenticated);
 
     const initialState = useMemo(() => {
+        const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL) && lastVisitedPath && isOnboardingCompleted && authenticated) {
+            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+        }
+
         if (!user || user.isFromPublicDomain) {
             return;
         }
@@ -113,7 +118,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config);
         }
 
-        const path = initialUrl ? getPathFromURL(initialUrl) : null;
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
@@ -170,7 +174,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // Since the NAVIGATORS.REPORTS_SPLIT_NAVIGATOR url is "/" and it has to be used as an URL for SignInPage,
         // this navigator should be the only one in the navigation state after logout.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
-        if (!hasUserLoggedOut) {
+        if (!hasUserLoggedOut || !navigationRef.isReady()) {
             return;
         }
 

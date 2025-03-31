@@ -24,7 +24,7 @@ import {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,
 } from '@libs/actions/IOU';
-import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
+import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode, setWorkspaceAutoReportingFrequency} from '@libs/actions/Policy/Policy';
 import {addComment, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
 import {subscribeToUserEvents} from '@libs/actions/User';
@@ -1865,6 +1865,48 @@ describe('actions/IOU', () => {
             });
             expect(report?.lastVisibleActionCreated).toBe(iouAction?.created);
         });
+
+        it('optimistic transaction should be merged with the draft transaction if it is a distance request', async () => {
+            // Given a workspace expense chat and a draft split transaction
+            const workspaceReportID = '1';
+            const transactionAmount = 100;
+            const draftTransaction = {
+                amount: transactionAmount,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'test',
+                created: '',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, draftTransaction);
+
+            // When doing a distance split expense
+            splitBill({
+                participants: [{reportID: workspaceReportID}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                existingSplitChatReportID: workspaceReportID,
+                ...draftTransaction,
+                comment: '',
+            });
+
+            await waitForBatchedUpdates();
+
+            const optimisticTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        resolve(Object.values(transactions ?? {}).find((transaction) => transaction?.amount === -(transactionAmount / 2)));
+                    },
+                });
+            });
+
+            // Then the data from the transaction draft should be merged into the optimistic transaction
+            expect(optimisticTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
+        });
     });
 
     describe('payMoneyRequestElsewhere', () => {
@@ -3624,7 +3666,9 @@ describe('actions/IOU', () => {
             let policy: OnyxEntry<Policy>;
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    const policyID = generatePolicyID();
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+                    setWorkspaceAutoReportingFrequency(policyID, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -3790,7 +3834,9 @@ describe('actions/IOU', () => {
             let policy: OnyxEntry<Policy>;
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    const policyID = generatePolicyID();
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+                    setWorkspaceAutoReportingFrequency(policyID, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -4696,6 +4742,10 @@ describe('actions/IOU', () => {
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
+            if (expectedCommand === WRITE_COMMANDS.SHARE_TRACKED_EXPENSE) {
+                expect(params).toHaveProperty('policyName');
+            }
+
             // And the parameters should be supported by XMLHttpRequest
             Object.values(params as Record<string, unknown>).forEach((value) => {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
@@ -4760,6 +4810,7 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
@@ -4771,9 +4822,10 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
-                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                merchant: 'test merchant',
                 modifiedMerchant: undefined,
             };
 
@@ -4816,9 +4868,10 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
-                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                merchant: 'test merchant',
                 modifiedMerchant: undefined,
             };
 
@@ -4857,6 +4910,7 @@ describe('actions/IOU', () => {
                 reportID,
                 amount: 0,
                 receipt: {
+                    source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
@@ -4876,6 +4930,35 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
+        });
+
+        it('should return false if the report is closed', async () => {
+            // Given a closed report, a policy, and a transaction
+            const policyID = '2';
+            const reportID = '1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID)),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+            };
+            Onyx.multiSet({
+                [ONYXKEYS.COLLECTION.REPORT]: fakeReport,
+                [ONYXKEYS.COLLECTION.TRANSACTION]: fakeTransaction,
+            });
+            await waitForBatchedUpdates();
+            // Then, canApproveIOU should return false since the report is closed
+            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
         });
     });
 

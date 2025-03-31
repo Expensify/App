@@ -26,6 +26,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useSidePaneDisplayStatus} from '@hooks/useSidePane';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -240,6 +241,7 @@ function ComposerWithSuggestions(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
+    const {isSidePaneHiddenOrLargeScreen} = useSidePaneDisplayStatus();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -565,14 +567,14 @@ function ComposerWithSuggestions(
     const setUpComposeFocusManager = useCallback(
         (shouldTakeOverFocus = false) => {
             ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
-                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused) {
+                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePaneHiddenOrLargeScreen) {
                     return;
                 }
 
                 focus(true);
             }, shouldTakeOverFocus);
         },
-        [focus, isFocused],
+        [focus, isFocused, isSidePaneHiddenOrLargeScreen],
     );
 
     /**
@@ -592,6 +594,11 @@ function ComposerWithSuggestions(
                 return;
             }
 
+            // Do not focus the composer if the side pane is visible
+            if (!isSidePaneHiddenOrLargeScreen) {
+                return;
+            }
+
             if (!shouldAutoFocusOnKeyPress(e)) {
                 return;
             }
@@ -603,7 +610,7 @@ function ComposerWithSuggestions(
 
             focus();
         },
-        [checkComposerVisibility, focus],
+        [checkComposerVisibility, focus, isSidePaneHiddenOrLargeScreen],
     );
 
     const blur = useCallback(() => {
@@ -642,7 +649,7 @@ function ComposerWithSuggestions(
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
         };
-    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager]);
+    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager, isSidePaneHiddenOrLargeScreen]);
 
     const prevIsModalVisible = usePrevious(modal?.isVisible);
     const prevIsFocused = usePrevious(isFocused);
@@ -660,6 +667,11 @@ function ComposerWithSuggestions(
             return;
         }
 
+        // Do not focus the composer if the side pane is visible
+        if (!isSidePaneHiddenOrLargeScreen) {
+            return;
+        }
+
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
@@ -672,7 +684,7 @@ function ComposerWithSuggestions(
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePaneHiddenOrLargeScreen]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
