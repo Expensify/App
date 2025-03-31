@@ -237,7 +237,6 @@ const fakeTransaction456: Transaction = {
     reportID: '111111111111111',
     status: CONST.TRANSACTION.STATUS.POSTED,
     tag: '',
-
     hasEReceipt: true,
 };
 
@@ -261,7 +260,7 @@ const violations: TransactionViolations = [
 
 const originalMessage: OriginalMessageIOU = {
     IOUReportID: '1111111111111111',
-    IOUTransactionID: '1111111111111111111',
+    IOUTransactionID: '590639150582440369',
     amount,
     comment: '',
     currency,
