@@ -31,6 +31,8 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+const mockSecondTransactionID = `${mockTransaction.transactionID.substring(0, mockTransaction.transactionID.length - 1)}2`;
+
 jest.mock('@react-navigation/native');
 
 jest.mock('@rnmapbox/maps', () => {
@@ -47,7 +49,7 @@ jest.mock('@react-native-community/geolocation', () => ({
 
 jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () =>
     jest.fn((): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] => {
-        return [mockChatReport, [mockTransaction, {...mockTransaction, transactionID: `${Number(mockTransaction.transactionID) + 1}`}], {violations: mockViolations}];
+        return [mockChatReport, [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID}], {violations: mockViolations}];
     }),
 );
 
@@ -100,7 +102,7 @@ const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
 const mockSecondTransaction: Transaction = {
     ...mockTransaction,
     amount: mockTransaction.amount * 2,
-    transactionID: `${Number(mockTransaction.transactionID) + 1}`,
+    transactionID: mockSecondTransactionID,
 };
 
 const mockOnyxTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, Transaction> = {

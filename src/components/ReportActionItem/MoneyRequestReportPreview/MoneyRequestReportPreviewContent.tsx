@@ -164,7 +164,7 @@ function MoneyRequestReportPreviewContent({
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
 
-    const iouSettled = true || isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const iouSettled = isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const previewMessageOpacity = useSharedValue(1);
     const previewMessageStyle = useAnimatedStyle(() => ({
         opacity: previewMessageOpacity.get(),
@@ -173,10 +173,6 @@ function MoneyRequestReportPreviewContent({
 
     const isApproved = isReportApproved({report: iouReport, parentReportAction: action});
     const thumbsUpScale = useSharedValue(isApproved ? 1 : 0);
-    const thumbsUpStyle = useAnimatedStyle(() => ({
-        ...styles.defaultCheckmarkWrapper,
-        transform: [{scale: thumbsUpScale.get()}],
-    }));
 
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const isInvoiceRoom = isInvoiceRoomReportUtils(chatReport);
