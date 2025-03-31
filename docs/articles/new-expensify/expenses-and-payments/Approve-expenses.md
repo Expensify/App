@@ -6,13 +6,13 @@ description: Approve, hold, and unapprove submitted expenses
 
 Expenses can be created through manual entry, tracking distance, or scanning a receipt. They can be submitted to an individual or a workspace. 
 
-This [help article](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense) has more details about creating and submitting an expense to an individual or a workspace. 
+This [help article](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Create-an-expense) has more details about creating and submitting an expense to an individual or a workspace. 
 
 # Receiving an expense from an Individual
 
 When an expense is submitted to an individual, it doesn’t need approval. It only needs to be paid. 
 
-This [help article](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Pay-an-expense) has the steps to pay the expense. 
+This [help article](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Pay-an-expense) has the steps to pay the expense. 
 
 # Receiving a workspace expense
 
@@ -33,7 +33,7 @@ A workspace admin can set an [approval workflow](https://help.expensify.com/arti
 2. Click the expense in the email to be directed to New Expensify, where you can review it.
 3. Click on the expense to view the receipt, amount, description, and additional details the submitter provides.
 4. Click **Approve**.
-5. When you are ready to pay the expense, follow the steps in this [help article](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Pay-an-expense).
+5. When you are ready to pay the expense, follow the steps in this [help article](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Pay-an-expense).
 {% include end-option.html %}
 
 {% include option.html value="mobile" %}

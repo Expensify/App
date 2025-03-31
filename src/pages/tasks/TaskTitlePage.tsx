@@ -41,7 +41,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
 
-            const parsedTitle = getParsedComment(title);
+            const parsedTitle = getParsedComment(title, undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]);
             const parsedTitleLength = getCommentLength(parsedTitle);
 
             if (!parsedTitle) {
@@ -110,7 +110,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
-                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '')}
+                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '', {})}
                                 ref={(element: AnimatedTextInputRef) => {
                                     if (!element) {
                                         return;
