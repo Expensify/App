@@ -118,8 +118,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
                             if (isActivePolicyGroup) {
                                 acceptSpotnanaTerms(domain);
-                            } else {
-                                setErrorMessage(translate('travel.termsAndConditions.defaultWorkspaceError'));
                             }
                         }}
                         message={errorMessage}
