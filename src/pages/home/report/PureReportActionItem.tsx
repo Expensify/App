@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
+import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
@@ -8,6 +9,7 @@ import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -41,7 +43,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
-import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,7 +52,6 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
-    getAllReportActions,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getIOUReportIDFromReportActionPreview,
@@ -89,7 +90,6 @@ import {
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
-    isModifiedExpenseAction,
     isMoneyRequestAction,
     isPendingRemove,
     isReimbursementDeQueuedAction,
@@ -133,7 +133,6 @@ import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member'
 import {expandURLPreview} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
-import {getLastModifiedExpense, revert} from '@userActions/Transaction';
 import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
@@ -199,6 +198,7 @@ type PureReportActionItemProps = {
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
+    /** Report action ID that was referenced in the deeplink to report  */
     linkedReportActionID?: string;
 
     /** Callback to be called on onPress */
@@ -418,19 +418,26 @@ function PureReportActionItem({
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
 
-    const onClose = () => {
-        let transactionID;
-        if (isMoneyRequestAction(action)) {
-            transactionID = getOriginalMessage(action)?.IOUTransactionID;
-            revert(transactionID, getLastModifiedExpense(reportID));
-        } else if (isModifiedExpenseAction(action)) {
-            transactionID = getOriginalMessage(Object.values(getAllReportActions(reportID)).find(isMoneyRequestAction))?.IOUTransactionID;
-            revert(transactionID, getOriginalMessage(action));
-        }
+    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
+    const dismissError = useCallback(() => {
+        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (transactionID) {
             clearError(transactionID);
         }
         clearAllRelatedReportActionErrors(reportID, action);
+    }, [reportID, clearError, clearAllRelatedReportActionErrors, action]);
+
+    const onClose = () => {
+        const errors = linkedTransactionRouteError ?? getLatestErrorMessageField(action as OnyxDataWithErrors);
+        const errorEntries = Object.entries(errors ?? {});
+        const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
+        const hasReceiptError = Object.values(errorMessages).some((error) => isReceiptError(error));
+
+        if (hasReceiptError) {
+            setShowConfirmDismissReceiptError(true);
+        } else {
+            dismissError();
+        }
     };
     useEffect(
         () => () => {
@@ -894,6 +901,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={getDismissedViolationMessageText(getOriginalMessage(action))} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES)) {
+            children = <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
             children = <ReportActionItemBasicMessage message={getWorkspaceNameUpdatedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION) {
@@ -1234,6 +1243,7 @@ function PureReportActionItem({
                         >
                             <OfflineWithFeedback
                                 onClose={onClose}
+                                dismissError={dismissError}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
@@ -1276,6 +1286,22 @@ function PureReportActionItem({
             <View style={styles.reportActionSystemMessageContainer}>
                 <InlineSystemMessage message={action.error} />
             </View>
+            <ConfirmModal
+                isVisible={showConfirmDismissReceiptError}
+                onConfirm={() => {
+                    dismissError();
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                onCancel={() => {
+                    setShowConfirmDismissReceiptError(false);
+                }}
+                title={translate('iou.dismissReceiptError')}
+                prompt={translate('iou.dismissReceiptErrorConfirmation')}
+                confirmText={translate('common.dismiss')}
+                cancelText={translate('common.cancel')}
+                shouldShowCancelButton
+                danger
+            />
         </PressableWithSecondaryInteraction>
     );
 }

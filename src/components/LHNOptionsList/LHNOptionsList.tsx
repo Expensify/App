@@ -20,6 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
@@ -288,6 +289,20 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
     }, [getScrollOffset, route, isWebOrDesktop]);
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (shouldShowEmptyLHN) {
+            Log.info('Woohoo! All caught up. Was rendered', false, {
+                reportsCount: Object.keys(reports ?? {}).length,
+                reportActionsCount: Object.keys(reportActions ?? {}).length,
+                policyCount: Object.keys(policy ?? {}).length,
+                personalDetailsCount: Object.keys(personalDetails ?? {}).length,
+                route,
+                reportsIDsFromUseReportsCount: data.length,
+            });
+        }
+    }, [data, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
+
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
             {shouldShowEmptyLHN ? (
@@ -298,6 +313,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     title={translate('common.emptyLHN.title')}
                     shouldShowLink={false}
                     CustomSubtitle={emptyLHNSubtitle}
+                    accessibilityLabel={translate('common.emptyLHN.title')}
                 />
             ) : (
                 <FlashList

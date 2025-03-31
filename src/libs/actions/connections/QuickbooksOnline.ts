@@ -1,4 +1,4 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {ConnectPolicyToAccountingIntegrationParams} from '@libs/API/parameters';
@@ -7,9 +7,11 @@ import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/U
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections, QBOConnectionConfig} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
 
 function getQuickbooksOnlineSetupLink(policyID: string) {
     const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
@@ -18,6 +20,11 @@ function getQuickbooksOnlineSetupLink(policyID: string) {
         shouldSkipWebProxy: true,
     });
     return commandURL + new URLSearchParams(params).toString();
+}
+
+function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    return isPolicyAdmin(policy) && !!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount;
 }
 
 function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends Partial<Connections['quickbooksOnline']['config']>>(
@@ -404,6 +411,7 @@ function updateQuickbooksOnlinePreferredExporter<TSettingValue extends Connectio
 }
 
 export {
+    shouldShowQBOReimbursableExportDestinationAccountError,
     getQuickbooksOnlineSetupLink,
     updateQuickbooksOnlineEnableNewCategories,
     updateQuickbooksOnlineAutoCreateVendor,

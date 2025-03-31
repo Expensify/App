@@ -74,6 +74,7 @@ function triggerListLayout(reportID?: string) {
                 ...LIST_SIZE,
             },
         },
+        persist: () => {},
     });
 
     fireEvent(within(report).getByTestId('report-actions-list'), 'onContentSizeChange', LIST_CONTENT_SIZE.width, LIST_CONTENT_SIZE.height);
@@ -281,7 +282,7 @@ describe('Pagination', () => {
         await navigateToSidebarOption(REPORT_ID);
 
         expect(getReportActions()).toHaveLength(5);
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
@@ -292,7 +293,7 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
     });
@@ -305,7 +306,7 @@ describe('Pagination', () => {
         await navigateToSidebarOption(REPORT_ID);
 
         expect(getReportActions()).toHaveLength(CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT);
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
@@ -314,7 +315,7 @@ describe('Pagination', () => {
         scrollToOffset(LIST_CONTENT_SIZE.height);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 1);
         TestHelper.expectAPICommandToHaveBeenCalledWith('GetOlderActions', 0, {reportID: REPORT_ID, reportActionID: '4'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
@@ -338,6 +339,9 @@ describe('Pagination', () => {
         await act(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
+        // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493
+        // we need to scroll too to trigger `onStartReached` which triggers other updates
+        scrollToOffset(0);
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
         await waitForBatchedUpdatesWithAct();
@@ -346,7 +350,7 @@ describe('Pagination', () => {
         expect(getReportActions()).toHaveLength(10);
 
         // There is 1 extra call here because of the comment linking report.
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 4);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
@@ -357,7 +361,7 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 4);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
 
@@ -372,7 +376,7 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 4);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
 
