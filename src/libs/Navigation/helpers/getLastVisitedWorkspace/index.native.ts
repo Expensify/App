@@ -9,7 +9,7 @@ function getLastVisitedWorkspaceScreen() {
     return SCREENS.WORKSPACE.INITIAL;
 }
 
-function getLastVisitedSettingsPath() : string {
+function getLastVisitedSettingsPath() : string {    
     return '';
 }
 

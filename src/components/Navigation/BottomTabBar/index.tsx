@@ -20,7 +20,8 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {getLastVisitedSettingsPath} from '@libs/Navigation/helpers/getLastVisitedWorkspace/index.native';
+import {getLastVisitedSettingsPath} from '@libs/Navigation/helpers/getLastVisitedWorkspace';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -136,15 +137,17 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         }
 
         interceptAnonymousUser(() => {
-            const lastSettingsOrWorkspaceNavigatorRoute = rootState.routes.findLast(
-                (rootRoute) => rootRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || rootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-            );
+            const lastVisitedSettingsPath = getLastVisitedSettingsPath();
+            const settingsState = getStateFromPath(lastVisitedSettingsPath as Route);
+            const lastSettingsOrWorkspaceNavigatorRoute = settingsState
+                ? settingsState.routes.findLast((settingsRoute) => settingsRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || settingsRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR)
+                : rootState.routes.findLast((rootRoute) => rootRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || rootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
             // If there is no settings or workspace navigator route, then we should open the settings navigator.
             if (!lastSettingsOrWorkspaceNavigatorRoute) {
                 Navigation.navigate(ROUTES.SETTINGS);
                 return;
             }
-            const state = lastSettingsOrWorkspaceNavigatorRoute.state ?? getPreservedNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key);
+            const state = lastSettingsOrWorkspaceNavigatorRoute.state ?? getPreservedNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key ?? ''); // given so that eslint doesn't throw errors
             // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
             if (lastSettingsOrWorkspaceNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
                 const params = state?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
@@ -162,7 +165,6 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
             }
             // mamy sciezke zapisana do settings splita (1szego navigatora)
             // po prostu navigate mozemy bo tylko jeden split
-            const lastVisitedSettingsPath = getLastVisitedSettingsPath();
             if (lastVisitedSettingsPath !== '' && !getIsNarrowLayout()) {
                 Navigation.navigate(lastVisitedSettingsPath as Route);
                 return;
