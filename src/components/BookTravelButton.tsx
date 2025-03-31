@@ -13,7 +13,7 @@ import {openTravelDotLink} from '@libs/actions/Link';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePolicies, getAdminsPrivateEmailDomains} from '@libs/PolicyUtils';
+import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -91,7 +91,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             Navigation.navigate(ROUTES.TRAVEL_UPGRADE);
             return;
         }
-        
+
         if (!isPaidGroupPolicy(policy)) {
             setErrorMessage(translate('travel.termsAndConditions.defaultWorkspaceError'));
             return;
@@ -137,18 +137,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [
-        policy,
-        wasNewDotLaunchedJustForTravel,
-        travelSettings,
-        translate,
-        primaryContactMethod,
-        setRootStatusBarEnabled,
-        isBlockedFromSpotnanaTravel,
-        StyleUtils,
-        styles,
-        isUserMemberOfSingleGroupPolicy,
-    ]);
+    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled, isBlockedFromSpotnanaTravel, StyleUtils, styles]);
 
     return (
         <>
