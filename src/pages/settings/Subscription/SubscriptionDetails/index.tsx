@@ -105,7 +105,7 @@ function SubscriptionDetails() {
                         />
                     )}
                 </View>
-                {true && <TaxExemptActions />}
+                {!privateTaxExempt && <TaxExemptActions />}
             </View>
             {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                 <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
