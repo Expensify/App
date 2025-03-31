@@ -84,6 +84,7 @@ import {
     isAdminRoom,
     isAnnounceRoom,
     isArchivedNonExpenseReport,
+    isArchivedReport,
     isArchivedReportWithID,
     isChatRoom,
     isChatThread,
@@ -646,7 +647,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
         }
-        if (isDM(report) && lastActorDisplayName !== translateLocal('common.you')) {
+        if ((isDM(report) && lastActorDisplayName !== translateLocal('common.you')) || isArchivedReport(reportNameValuePairs)) {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
         } else {
             result.alternateText = lastActorDisplayName

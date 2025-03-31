@@ -1305,6 +1305,14 @@ describe('OptionsListUtils', () => {
         });
     });
 
+    describe('Alternative text', () => {
+        it("The text should not contain the last actor's name at prefix if the report is archived.", () => {
+            const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+            const archivedReport = reports.find((report) => report.reportID === '10');
+            expect(archivedReport?.lastMessageText).toBe('Esta sala de chat ha sido eliminada.'); // Default archived reason
+        });
+    });
+
     describe('filterSelfDMChat', () => {
         const REPORT = {
             reportID: '1',
