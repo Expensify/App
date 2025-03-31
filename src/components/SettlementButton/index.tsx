@@ -95,11 +95,12 @@ function SettlementButton({
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
 
     useEffect(() => {
-        if (!isLoadingLastPaymentMethod) {
+        if (isLoadingLastPaymentMethod) {
             return;
         }
         lastPaymentMethodRef.current = lastPaymentMethod;
-    }, [isLoadingLastPaymentMethod, lastPaymentMethod]);
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isLoadingLastPaymentMethod]);
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
     const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions;
