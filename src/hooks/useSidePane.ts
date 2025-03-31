@@ -40,7 +40,7 @@ function useSidePaneDisplayStatus() {
     const isSidePaneHiddenOrLargeScreen = !isSidePaneVisible || isLanguageUnsupported || isExtraLargeScreenWidth || !canUseHelpSidePanel;
 
     // The help button is hidden when:
-    // - side pane nvp is not set
+    // - the user is not part of the corresponding beta
     // - side pane is displayed currently
     // - language is unsupported
     const shouldHideHelpButton = !canUseHelpSidePanel || !shouldHideSidePane || isLanguageUnsupported;
@@ -83,10 +83,6 @@ function useSidePane() {
     }, [shouldHideSidePane, shouldApplySidePaneOffset, sidePaneWidth]);
 
     const openSidePane = useCallback(() => {
-        if (!sidePaneNVP) {
-            return;
-        }
-
         setIsSidePaneTransitionEnded(false);
         KeyboardUtils.dismiss();
 
@@ -94,14 +90,10 @@ function useSidePane() {
             isOpen: true,
             isOpenNarrowScreen: isExtraLargeScreenWidth ? undefined : true,
         });
-    }, [isExtraLargeScreenWidth, sidePaneNVP]);
+    }, [isExtraLargeScreenWidth]);
 
     const closeSidePane = useCallback(
         (shouldUpdateNarrow = false) => {
-            if (!sidePaneNVP) {
-                return;
-            }
-
             setIsSidePaneTransitionEnded(false);
             const shouldOnlyUpdateNarrowLayout = !isExtraLargeScreenWidth || shouldUpdateNarrow;
             triggerSidePane({
@@ -112,7 +104,7 @@ function useSidePane() {
             // Focus the composer after closing the side pane
             focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
         },
-        [isExtraLargeScreenWidth, sidePaneNVP],
+        [isExtraLargeScreenWidth],
     );
 
     return {
