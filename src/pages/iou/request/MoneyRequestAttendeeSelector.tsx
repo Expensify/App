@@ -11,6 +11,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {SectionListDataType} from '@components/SelectionList/types';
+import type {Option} from '@libs/OptionsListUtils';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -31,6 +32,7 @@ import {
     orderOptions,
 } from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -148,7 +150,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
      * Returns the sections needed for the OptionsSelector
      */
     const [sections, header] = useMemo(() => {
-        const newSections: Array<SectionListDataType<Attendee>> = [];
+        const newSections: Array<SectionListDataType<Option>> = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
@@ -158,23 +160,28 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         const formatResults = formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            attendees.map((attendee) => ({...attendee, reportID: attendee.reportID ?? CONST.DEFAULT_NUMBER_ID.toString()})),
+            attendees.map((attendee) => ({
+                ...attendee, 
+                reportID: attendee.reportID ?? CONST.DEFAULT_NUMBER_ID.toString(),
+                selected: true,
+                ...getPersonalDetailByEmail(attendee.email)
+            })),
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
             true,
         );
-        newSections.push(formatResults.section as SectionListDataType<Attendee>);
+        newSections.push(formatResults.section;
 
         newSections.push({
             title: translate('common.recents'),
-            data: fiveRecents as Attendee[],
+            data: fiveRecents,
             shouldShow: fiveRecents.length > 0,
         });
 
         newSections.push({
             title: translate('common.contacts'),
-            data: contactsWithRestOfRecents as Attendee[],
+            data: contactsWithRestOfRecents,
             shouldShow: contactsWithRestOfRecents.length > 0,
         });
 
@@ -187,7 +194,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                }) as Attendee[],
+                }),
                 shouldShow: true,
             });
         }
