@@ -66,6 +66,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
+    const containsOnlyCustomEmoji = EmojiUtils.containsOnlyCustomEmoji(text);
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
@@ -119,6 +120,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                         styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
                         !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
+                        containsOnlyCustomEmoji && styles.customEmojiFont,
                     ]}
                 >
                     {convertToLTR(message ?? '')}

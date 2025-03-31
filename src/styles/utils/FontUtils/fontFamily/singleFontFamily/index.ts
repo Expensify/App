@@ -62,6 +62,9 @@ const fontFamily: FontFamilyStyles = {
         fontStyle: 'italic',
         fontWeight: fontWeight.medium,
     },
+    CUSTOM_EMOJI_FONT: {
+        fontFamily: 'Custom Emoji Font',
+    },
 };
 
 export default fontFamily;
