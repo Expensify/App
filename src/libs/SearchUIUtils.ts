@@ -46,21 +46,11 @@ import {
     isClosedReport,
     isInvoiceReport,
     isMoneyRequestReport,
+    isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
-import {
-    getMerchant,
-    getAmount as getTransactionAmount,
-    getCreated as getTransactionCreatedDate,
-    getMerchant as getTransactionMerchant,
-    isAmountMissing,
-    isExpensifyCardTransaction,
-    isPartialMerchant,
-    isPending,
-    isReceiptBeingScanned,
-    isScanRequest,
-} from './TransactionUtils';
+import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -294,8 +284,10 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         .filter(isTransactionEntry)
         .map((key) => {
             const transactionItem = data[key];
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+            const shouldShowBlankTo = isOpenExpenseReport(report);
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -305,7 +297,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 from,
                 to,
                 formattedFrom,
-                formattedTo,
+                formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
                 date,
@@ -393,11 +385,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     if (canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
-    const hasOnlyPendingCardOrScanningTransactions =
-        allReportTransactions.length > 0 &&
-        allReportTransactions.every(
-            (t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || (isScanRequest(t) && isReceiptBeingScanned(t)),
-        );
+    const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every(isPendingCardOrScanningTransaction);
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
     if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
@@ -498,9 +486,11 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+            const shouldShowBlankTo = isOpenExpenseReport(report);
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -510,7 +500,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 from,
                 to,
                 formattedFrom,
-                formattedTo,
+                formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
                 date,
@@ -529,7 +519,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
         }
     }
 
-    return Object.values(reportIDToTransactions);
+    // Filter out reports with no transactions to prevent the wrong number of the selected options
+    return Object.values(reportIDToTransactions).filter((report) => report.transactions.length);
 }
 
 /**
