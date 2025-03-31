@@ -628,7 +628,7 @@ function MoneyRequestReportPreviewContent({
                                             icon={Expensicons.DotIndicator}
                                             iconFill={theme.danger}
                                             iconHoverFill={theme.danger}
-                                            text={`${translate('common.review')}${shouldShowSettlementButton ? ` ${getSettlementAmount()}` : ''}`}
+                                            text={translate('common.review', {amount: shouldShowSettlementButton ? getSettlementAmount() : ''})}
                                             onPress={() => {}}
                                             style={buttonMaxWidth}
                                         />
