@@ -6,15 +6,11 @@ import type {AddDelegateParams, RemoveDelegateParams, UpdateDelegateRoleParams} 
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import {getSearchParamFromUrl} from '@libs/Url';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
@@ -181,15 +177,10 @@ function connect(email: string, setIsDelegatorFromOldDotIsReady?: (isReady: bool
                 });
         })
         .then(() => {
-            const exitTo = getSearchParamFromUrl(getCurrentUrl(), 'exitTo');
-            if (setIsDelegatorFromOldDotIsReady) {
-                if (exitTo) {
-                    Navigation.isNavigationReady().then(() => {
-                        Navigation.navigate(exitTo as Route);
-                    });
-                }
-                Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            if (!setIsDelegatorFromOldDotIsReady) {
+                return;
             }
+            Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
         })
         .catch((error) => {
             Log.alert('[Delegate] Error connecting as delegate', {error});
