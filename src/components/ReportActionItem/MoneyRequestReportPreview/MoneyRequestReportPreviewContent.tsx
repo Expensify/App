@@ -200,10 +200,10 @@ function MoneyRequestReportPreviewContent({
         hasActionsWithErrors(iouReportID);
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDList, iouReport, policy, violations);
-    let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
+    let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : undefined;
 
     if (isPartialMerchant(formattedMerchant ?? '')) {
-        formattedMerchant = null;
+        formattedMerchant = undefined;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;

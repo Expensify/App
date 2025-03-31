@@ -33,13 +33,13 @@ const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<Transaction>
 };
 
 function TransactionPreview(props: TransactionPreviewProps) {
-    const {action, chatReportID, reportID, contextMenuAnchor, checkIfContextMenuActive = () => {}, shouldDisplayContextMenu, iouReportID, transactionID: transactionIDfromProps} = props;
+    const {action, chatReportID, reportID, contextMenuAnchor, checkIfContextMenuActive = () => {}, shouldDisplayContextMenu, iouReportID, transactionID: transactionIDFromProps} = props;
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
-    const transactionID = transactionIDfromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
+    const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
