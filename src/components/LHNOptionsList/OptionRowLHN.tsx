@@ -63,7 +63,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
     const session = useSession();
     const shouldShowWokspaceChatTooltip = isPolicyExpenseChat(report) && !isThread(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
-    const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
+    const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !(session?.email?.includes('+') && !session?.email?.startsWith('+'));
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, introSelected?.choice);
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
 

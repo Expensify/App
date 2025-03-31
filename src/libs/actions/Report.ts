@@ -3897,7 +3897,7 @@ function prepareOnboardingOnyxData(
     type PostTasksInAdminsRoomOnboardingChoices = 'newDotManageTeam' | 'newDotTrackWorkspace';
     const shouldPostTasksInAdminsRoom =
         [CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE].includes(engagementChoice as PostTasksInAdminsRoomOnboardingChoices) &&
-        !currentUserEmail?.includes('+');
+        !(currentUserEmail?.includes('+') && !currentUserEmail?.startsWith('+'));
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID}
