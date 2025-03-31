@@ -33,6 +33,7 @@ jest.mock('@libs/ReportUtils', () => ({
     parseReportRouteParams: jest.fn(() => ({})),
     isConciergeChatReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isConciergeChatReport,
     isThread: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isThread,
+    generateReportName: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportName,
 }));
 
 jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
