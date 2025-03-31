@@ -11,7 +11,7 @@ jobs:
   prepare-build-metadata:
     runs-on: ubuntu-latest
     outputs:
-      REACT_NATIVE_ERSION: ${{ steps.getVersion.outputs.VERSION }}
+      REACT_NATIVE_VERSION: ${{ steps.getVersion.outputs.VERSION }}
       PATCHES_HASH: ${{ steps.savePatchesHash.outputs.PATCHES_HASH }}
       COMMIT_HASH: ${{ steps.saveCommitHash.outputs.COMMIT_HASH }}
     steps:
@@ -56,3 +56,62 @@ jobs:
         with:
           name: react-native-module
           path: node_modules/react-native/
+  publish-react-native-artifacts:
+    needs: prepare-build-metadata
+    runs-on: ubuntu-latest
+    outputs:
+        NEW_VERSION: ${{ steps.determineNewVersion.outputs.NEW_VERSION }}
+    container:
+      image: reactnativecommunity/react-native-android:latest
+      env:
+        TERM: "dumb"
+        GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+    steps:
+        - name: Download react-native-module
+          uses: actions/download-artifact@v4
+          with:
+            name: react-native-module
+            path: node_modules/react-native/
+
+        - name: Setup temporary react-native directory
+          run: |
+            TEMP_REACT_NATIVE_DIR=$(mktemp -d ./tmp-react-native-repoXXX)
+            VERSION="${{ needs.prepare-build-metadata.outputs.REACT_NATIVE_VERSION }}"
+            git clone --branch "v${VERSION}" --single-branch --depth 1 https://github.com/facebook/react-native.git $TEMP_REACT_NATIVE_DIR
+            cp -r ./node_modules/react-native/ReactAndroid $TEMP_REACT_NATIVE_DIR/packages/react-native/
+            echo "TEMP_REACT_NATIVE_DIR=$TEMP_REACT_NATIVE_DIR" >> $GITHUB_ENV
+
+        - name: Setup gradle
+          uses: gradle/actions/setup-gradle@v4
+          with:
+            gradle-version: wrapper
+
+        - name: Setup Node
+          uses: ./.github/actions/composite/setupNode
+
+        - name: Determine React Native version used for patched release and increment patch iteration
+          id: determineNewVersion
+          run: |
+            VERSION="${{ needs.prepare-build-metadata.outputs.REACT_NATIVE_VERSION }}"
+
+            FILTERED_MAVEN_VERSIONS=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
+            "https://maven.pkg.github.com/mateuuszzzzz/App/com/example/react/react-android/maven-metadata.xml" | \
+            grep -o "<version>${VERSION}-[0-9]\+</version>" | \
+            grep -o "${VERSION}-[0-9]" | \
+            sort -t'-' -k2 -n)
+
+            LATEST_CUSTOM_VERSION=$(echo "$FILTERED_MAVEN_VERSIONS" | tail -n1)
+
+            if [ -n "$LATEST_CUSTOM_VERSION" ]; then
+              PATCH_ITERATION=$(echo $LATEST_CUSTOM_VERSION | sed 's/^.*-//')
+              INCREMENTED_PATCH_ITERATION=$((PATCH_ITERATION + 1))
+              NEW_VERSION="${VERSION}-${INCREMENTED_PATCH_ITERATION}"
+
+              echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+              echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+              echo "Found latest custom version: $LATEST_CUSTOM_VERSION. Incrementing to $NEW_VERSION"
+            else
+              echo "No existing custom versions found for $VERSION. Starting from 0"
+              echo "NEW_VERSION=$VERSION-0" >> $GITHUB_ENV
+              echo "NEW_VERSION=$VERSION-0" >> $GITHUB_OUTPUT
+            fi
