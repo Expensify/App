@@ -22,6 +22,7 @@ function SearchMoneyRequestReportEmptyState() {
                 headerStyles={[styles.emptyStateMoneyRequestReport]}
                 lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                 headerContentStyles={styles.emptyStateFolderWebStyles}
+                minModalHeight={380}
             />
         </View>
     );

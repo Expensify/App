@@ -22,8 +22,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
-import {setActiveTransactionReportIDs} from './TransactionReportIDRepository';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
+import {setActiveTransactionReportIDs} from './TransactionReportIDRepository';
 
 type MoneyRequestReportTransactionListProps = {
     report: OnyxTypes.Report;
@@ -141,10 +141,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     }, [transactions]);
 
-    if (sortedData.transactions.length === 0) {
-        return;
-    }
-
     const pressableStyle = [styles.overflowHidden];
 
     const listHorizontalPadding = styles.ph5;
@@ -231,6 +227,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                     </Text>
                 </View>
             </View>
+        </>
     ) : (
         <SearchMoneyRequestReportEmptyState />
     );

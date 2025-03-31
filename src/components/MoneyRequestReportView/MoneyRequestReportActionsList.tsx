@@ -353,36 +353,35 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
-        <View style={styles.flex1}>
-            {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
-                <SearchMoneyRequestReportEmptyState />
-            ) : (
-                <FlatList
-                    initialNumToRender={INITIAL_NUM_TO_RENDER}
-                    accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    testID="money-request-report-actions-list"
-                    style={styles.overscrollBehaviorContain}
-                    data={visibleReportActions}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item.reportActionID}
-                    onEndReached={onEndReached}
-                    onEndReachedThreshold={0.75}
-                    onStartReached={onStartReached}
-                    onStartReachedThreshold={0.75}
-                    ListHeaderComponent={
-                        <MoneyRequestReportTransactionList
-                            report={report}
-                            transactions={transactions}
-                            reportActions={reportActions}
-                            hasComments={reportHasComments}
-                        />
-                    }
-                    keyboardShouldPersistTaps="handled"
-                    onScroll={trackVerticalScrolling}
-                    ref={reportScrollManager.ref}
-                />
+                {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
+                    <SearchMoneyRequestReportEmptyState />
+                ) : (
+                    <FlatList
+                        initialNumToRender={INITIAL_NUM_TO_RENDER}
+                        accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                        testID="money-request-report-actions-list"
+                        style={styles.overscrollBehaviorContain}
+                        data={visibleReportActions}
+                        renderItem={renderItem}
+                        keyExtractor={(item) => item.reportActionID}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={0.75}
+                        onStartReached={onStartReached}
+                        onStartReachedThreshold={0.75}
+                        ListHeaderComponent={
+                            <MoneyRequestReportTransactionList
+                                report={report}
+                                transactions={transactions}
+                                reportActions={reportActions}
+                                hasComments={reportHasComments}
+                            />
+                        }
+                        keyboardShouldPersistTaps="handled"
+                        onScroll={trackVerticalScrolling}
+                        ref={reportScrollManager.ref}
+                    />
+                )}
             </View>
-            )}
         </View>
     );
 }
