@@ -19,7 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -70,7 +70,7 @@ const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions |
 const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
     const fileName = fileData.name || 'chat_attachment';
     const fileResult: FileObject = {
-        name: FileUtils.cleanFileName(fileName),
+        name: cleanFileName(fileName),
         type: fileData.type,
         width: fileData.width,
         height: fileData.height,
@@ -141,7 +141,7 @@ function AttachmentPicker({
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                FileUtils.showCameraPermissionsAlert();
+                                showCameraPermissionsAlert();
                                 return resolve();
                             default:
                                 showGeneralAlert();
@@ -159,7 +159,7 @@ function AttachmentPicker({
                     }
 
                     if (targetAsset?.type?.startsWith('image')) {
-                        FileUtils.verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
+                        verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
                             .then((isHEIC) => {
                                 // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                 if (isHEIC && targetAssetUri) {
@@ -196,7 +196,7 @@ function AttachmentPicker({
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
     // eslint-disable-next-line @lwc/lwc/no-async-await
-    const showDocumentPicker = async (): Promise<LocalCopy[] | void> => {
+    const showDocumentPicker = useCallback(async (): Promise<LocalCopy[] | void> => {
         const pickedFiles = await pick({
             type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
             allowMultiSelection: fileLimit !== 1,
@@ -220,7 +220,7 @@ function AttachmentPicker({
                 type: file.type,
             };
         });
-    };
+    }, [fileLimit, type]);
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
@@ -405,7 +405,7 @@ function AttachmentPicker({
             };
             close();
         },
-        [pickAttachment],
+        [pickAttachment, showGeneralAlert],
     );
 
     useKeyboardShortcut(

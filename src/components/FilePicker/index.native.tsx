@@ -4,7 +4,7 @@ import {Alert} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import type {FileObject} from '@components/AttachmentModal';
 import useLocalize from '@hooks/useLocalize';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {cleanFileName} from '@libs/fileDownload/FileUtils';
 import type FilePickerProps from './types';
 
 type LocalCopy = {
@@ -21,7 +21,7 @@ type LocalCopy = {
 const getDataForUpload = (fileData: LocalCopy): Promise<FileObject> => {
     const fileName = fileData.name ?? 'spreadsheet';
     const fileResult: FileObject = {
-        name: FileUtils.cleanFileName(fileName),
+        name: cleanFileName(fileName),
         type: fileData.type ?? undefined,
         uri: fileData.uri,
         size: fileData.size,
@@ -98,7 +98,7 @@ function FilePicker({children}: FilePickerProps) {
         });
 
         return {
-            name: FileUtils.cleanFileName(file.name ?? 'spreadsheet'),
+            name: cleanFileName(file.name ?? 'spreadsheet'),
             type: file.type,
             uri: localCopy.sourceUri,
             size: file.size,
