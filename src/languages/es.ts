@@ -4914,6 +4914,7 @@ const translations = {
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
+        deleteTagList: ({tagListName}: UpdatedPolicyTagParams) => `eliminó múltiples etiquetas de la lista "${tagListName}"`,
         updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
             if (oldValue) {
                 return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" cambiando el ${updatedField} a "${newValue}" (previamente "${oldValue}")`;

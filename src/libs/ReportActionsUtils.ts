@@ -1145,6 +1145,7 @@ function isTagModificationAction(actionName: string): boolean {
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_ENABLED ||
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_NAME ||
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG_LIST ||
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG
     );
 }
@@ -1965,6 +1966,12 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
         return translateLocal('workspaceActions.deleteTag', {
             tagListName,
             tagName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG_LIST && tagListName) {
+        return translateLocal('workspaceActions.deleteTagList', {
+            tagListName,
         });
     }
 
