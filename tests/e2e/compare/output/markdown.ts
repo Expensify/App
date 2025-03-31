@@ -170,7 +170,7 @@ const writeToMarkdown = (outputDir: string, data: Data, skippedTests: string[]) 
 
     if (markdownFiles.length === 1) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return writeToFile(path.join(outputDir, 'output.md'), markdownFiles.at(0)!);
+        return writeToFile(path.join(outputDir, 'output1.md'), markdownFiles.at(0)!);
     }
 
     return Promise.all(
