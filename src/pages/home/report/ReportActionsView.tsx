@@ -81,6 +81,7 @@ function ReportActionsView({
         selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report), true),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
@@ -270,7 +271,7 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if (isLoadingInitialReportActions && visibleReportActions.length === 0 && !isOffline) {
+    if ((isLoadingInitialReportActions && !isOffline) ?? isLoadingApp) {
         return <ReportActionsSkeletonView />;
     }
 
