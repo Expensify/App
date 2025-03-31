@@ -1,3 +1,4 @@
+import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
@@ -9,6 +10,7 @@ import {compareValues} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
+import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 type MoneyRequestReportTransactionListProps = {
     /** List of transactions belonging to one report */
@@ -72,7 +74,7 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
         }));
     }, [sortBy, sortOrder, transactions]);
 
-    return (
+    return !isEmpty(transactions) ? (
         <>
             {!displayNarrowVersion && (
                 <MoneyRequestReportTableHeader
@@ -104,6 +106,8 @@ function MoneyRequestReportTransactionList({transactions}: MoneyRequestReportTra
                 })}
             </View>
         </>
+    ) : (
+        <SearchMoneyRequestReportEmptyState />
     );
 }
 

@@ -137,7 +137,8 @@ jobs:
             ./package-lock.json \
             ./android/app/build.gradle \
             ./ios/NewExpensify/Info.plist \
-            ./ios/NotificationServiceExtension/Info.plist
+            ./ios/NotificationServiceExtension/Info.plist \
+            ./ios/ShareViewController/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
       - name: Update Mobile-Expensify submodule in E/App
