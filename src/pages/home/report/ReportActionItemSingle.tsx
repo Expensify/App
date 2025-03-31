@@ -227,7 +227,6 @@ function ReportActionItemSingle({
     const reportID = report?.reportID;
     const iouReportID = iouReport?.reportID;
 
-
     const showActorDetails = useCallback(() => {
         if (isWorkspaceActor) {
             showWorkspaceDetails(reportID);
