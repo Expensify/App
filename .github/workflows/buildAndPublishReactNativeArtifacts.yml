@@ -15,18 +15,18 @@ jobs:
       PATCHES_HASH: ${{ steps.savePatchesHash.outputs.PATCHES_HASH }}
       COMMIT_HASH: ${{ steps.saveCommitHash.outputs.COMMIT_HASH }}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }}/head
 
-      - name: Checkout on PR branch and save commit hash
+      - name: Save commit hash
         id: saveCommitHash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          PR_NUMBER=${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          gh pr checkout "${PR_NUMBER}"
           COMMIT_HASH=$(git rev-parse HEAD)
-          echo "COMMIT_HASH=$COMMIT_HASH" >> "$GITHUB_OUTPUT"
+          echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_OUTPUT
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -67,6 +67,11 @@ jobs:
         TERM: "dumb"
         GRADLE_OPTS: "-Dorg.gradle.daemon=false"
     steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            ref: refs/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }}/head
+
         - name: Download react-native-module
           uses: actions/download-artifact@v4
           with:
