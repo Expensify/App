@@ -26,6 +26,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     Beta,
+    NewGroupChatDraft,
     OnyxInputOrEntry,
     PersonalDetails,
     PersonalDetailsList,
@@ -998,6 +999,12 @@ let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
+});
+
+let newGroupChatDraft: OnyxEntry<NewGroupChatDraft>;
+Onyx.connect({
+    key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
+    callback: (value) => (newGroupChatDraft = value),
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
@@ -9472,6 +9479,10 @@ function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
     return isSelectedManagerMcTest(persionalDetails?.login);
 }
 
+function getGroupChatDraft() {
+    return newGroupChatDraft;
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -9824,6 +9835,7 @@ export {
     populateOptimisticReportFormula,
     getTitleReportField,
     getReportFieldsByPolicyID,
+    getGroupChatDraft,
 };
 
 export type {
