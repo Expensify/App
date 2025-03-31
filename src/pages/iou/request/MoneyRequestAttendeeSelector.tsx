@@ -221,9 +221,13 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     ]);
 
     const addAttendeeToSelection = useCallback(
-        (option: Attendee) => {
+        (option: Option) => {
             const isOptionSelected = (selectedOption: Attendee) => {
                 if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
+                    return true;
+                }
+
+                if (selectedOption.email && selectedOption.email === option?.login) {
                     return true;
                 }
 
@@ -246,7 +250,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                         displayName: option.text ?? '',
                         selected: true,
                         searchText: option.searchText,
-                        avatarUrl: option.avatarUrl ?? '',
+                        avatarUrl: option.avatarUrl ?? option.icons?.[0]?.source?.toString() ?? '',
                         iouType,
                     },
                 ];
@@ -260,7 +264,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const shouldShowErrorMessage = attendees.length < 1;
 
     const handleConfirmSelection = useCallback(
-        (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Attendee) => {
+        (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Option) => {
             if (shouldShowErrorMessage || (!attendees.length && !option)) {
                 return;
             }
