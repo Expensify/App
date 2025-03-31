@@ -9928,7 +9928,6 @@ export {
     buildOptimisticMovedTransactionAction,
     buildOptimisticUnreportedTransactionAction,
     buildOptimisticResolvedDuplicatesReportAction,
-    populateOptimisticReportFormula,
     getTitleReportField,
     getReportFieldsByPolicyID,
 };
