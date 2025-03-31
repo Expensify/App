@@ -162,8 +162,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             debouncedSearchTerm,
             attendees.map((attendee) => ({
                 ...attendee,
-                reportID: attendee.reportID ?? CONST.DEFAULT_NUMBER_ID.toString(),
+                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
                 selected: true,
+                login: attendee.email,
                 ...getPersonalDetailByEmail(attendee.email),
             })),
             chatOptions.recentReports,
