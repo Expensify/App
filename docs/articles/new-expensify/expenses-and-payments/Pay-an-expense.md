@@ -6,8 +6,8 @@ description: Pay workspace expenses or expenses submitted by friends and family
 
 # Pay expenses submitted to a workspace
 
-To pay expenses within Expensify, you’ll need to set up your [business bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account). 
-The submitter must also connect a [personal bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Personal-Bank-Account) to receive the payment. 
+To pay expenses within Expensify, you’ll need to set up your [business bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account). 
+The submitter must also connect a [personal bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account) to receive the payment. 
 
 To pay an expense,
 {% include selector.html values="desktop, mobile" %}
@@ -15,7 +15,7 @@ To pay an expense,
 1. You will receive an email and in-app notification prompting you to review and **Pay** the expense. If your default contact method is a phone number, you'll receive a text.
 2. Click the **Pay** button on the notification to be directed to New Expensify.
 3. Select a payment option.
-- **Pay with Expensify** to pay the total expense within Expensify. Follow the prompt to pay with a [business bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account).
+- **Pay with Expensify** to pay the total expense within Expensify. Follow the prompt to pay with a [business bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
 - **Pay Elsewhere** to pay outside Expensify.
 {% include end-option.html %}
 
@@ -23,7 +23,7 @@ To pay an expense,
 1. When an employee sends you an expense, you will receive an email and in-app notification prompting you to review and **Pay** the expense. If your default contact method is a phone number, you'll receive a text.
 2. Tap the **Pay** button on the notification to be directed to New Expensify.
 3. Select a payment option.
-- **Pay with Expensify** to pay the total expense within Expensify. Follow the prompt to pay with a [business bank account](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account).
+- **Pay with Expensify** to pay the total expense within Expensify. Follow the prompt to pay with a [business bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
 - **Pay Elsewhere** to pay outside Expensify.
 {% include end-option.html %}
 {% include end-selector.html %}
@@ -32,7 +32,7 @@ To pay an expense,
 
 # Pay back friends and family
 
-You'll need to [set up your wallet](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Set-up-your-wallet) to send and receive personal payments within Expensify. The wallet is currently available to customers in the US-only.
+You'll need to [set up your wallet](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Set-up-your-wallet) to send and receive personal payments within Expensify. The wallet is currently available to customers in the US-only.
 
 To pay an expense,
 
