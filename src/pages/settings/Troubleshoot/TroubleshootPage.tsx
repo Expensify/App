@@ -31,7 +31,7 @@ import {getBrowser, isChromeIOS} from '@libs/Browser';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearOnyxAndResetApp} from '@userActions/App';
-import * as Report from '@userActions/Report';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -140,7 +140,7 @@ function TroubleshootPage() {
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('initialSettingsPage.troubleshoot.description')}</Text>{' '}
                                 <TextLink
                                     style={styles.link}
-                                    onPress={() => Report.navigateToConciergeChat()}
+                                    onPress={() => navigateToConciergeChat()}
                                 >
                                     {translate('initialSettingsPage.troubleshoot.submitBug')}
                                 </TextLink>
