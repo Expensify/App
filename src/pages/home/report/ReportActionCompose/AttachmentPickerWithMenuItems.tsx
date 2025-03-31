@@ -20,11 +20,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {canCreateTaskInReport, getPayeeName, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
-import {setIsComposerFullSize} from '@userActions/Report';
+import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
 import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
 import DelegateNoAccessModal from '@src/components/DelegateNoAccessModal';
 import type {IOUType} from '@src/CONST';
@@ -39,6 +39,9 @@ type MoneyRequestOptions = Record<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST
 type AttachmentPickerWithMenuItemsProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
+
+    /** The personal details of the current user */
+    currentUserPersonalDetails: OnyxTypes.PersonalDetails;
 
     /** Callback to open the file in the modal */
     displayFileInModal: (url: FileObject) => void;
@@ -97,6 +100,7 @@ type AttachmentPickerWithMenuItemsProps = {
  */
 function AttachmentPickerWithMenuItems({
     report,
+    currentUserPersonalDetails,
     reportParticipantIDs,
     displayFileInModal,
     isFullComposerAvailable,
@@ -181,6 +185,22 @@ function AttachmentPickerWithMenuItems({
         return moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
     }, [translate, report, policy, reportParticipantIDs, isDelegateAccessRestricted]);
 
+    const createReportOption: PopoverMenuItem[] = useMemo(() => {
+        if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
+            return [];
+        }
+
+        return [
+            {
+                icon: Expensicons.Document,
+                text: translate('report.newReport.createReport'),
+                onSelected: () => {
+                    createNewReport(currentUserPersonalDetails, report?.policyID);
+                },
+            },
+        ];
+    }, [currentUserPersonalDetails, report, translate]);
+
     /**
      * Determines if we can show the task option
      */
@@ -256,6 +276,7 @@ function AttachmentPickerWithMenuItems({
                 };
                 const menuItems = [
                     ...moneyRequestOptions,
+                    ...createReportOption,
                     ...taskOption,
                     {
                         icon: Expensicons.Paperclip,
