@@ -531,6 +531,7 @@ const translations = {
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
         reimbursable: 'Reimbursable',
+        comments: 'Comments',
     },
     supportalNoAccess: {
         title: 'Not so fast',
