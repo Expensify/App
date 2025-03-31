@@ -222,6 +222,7 @@ function VerifiedBankAccountFlowEntryPoint({
                             errors={
                                 reimbursementAccount?.maxAttemptsReached ? getMicroSecondOnyxErrorWithTranslationKey('connectBankAccountStep.maxAttemptsReached') : getLatestError(errors)
                             }
+                            errorRowStyles={styles.mt2}
                             shouldShowErrorMessages
                             canDismissError={!reimbursementAccount?.maxAttemptsReached}
                             onClose={resetReimbursementAccount}
