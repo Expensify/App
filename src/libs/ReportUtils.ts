@@ -7466,14 +7466,14 @@ function reasonForReportToBeInOptionList({
             : null;
     }
 
-    // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
-    if (isInDefaultMode && isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
-        return CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED;
-    }
-
     // Hide chats between two users that haven't been commented on from the LNH
     if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isSystemChat(report) && !isGroupChat(report) && canHideReport) {
         return null;
+    }
+
+    // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
+    if (isInDefaultMode && isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
+        return CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED;
     }
 
     if (isSelfDM(report)) {
