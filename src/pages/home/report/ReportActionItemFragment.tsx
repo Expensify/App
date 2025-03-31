@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import isReportMessageAttachment from '@libs/isReportMessageAttachment';
+import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';

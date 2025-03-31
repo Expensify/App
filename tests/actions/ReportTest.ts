@@ -26,6 +26,14 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
+jest.mock('@libs/ReportUtils', () => {
+    const originalModule = jest.requireActual<Report>('@libs/ReportUtils');
+    return {
+        ...originalModule,
+        getPolicyExpenseChat: jest.fn().mockReturnValue({reportID: '1234'}),
+    };
+});
+
 const UTC = 'UTC';
 jest.mock('@src/libs/actions/Report', () => {
     const originalModule = jest.requireActual<Report>('@src/libs/actions/Report');
@@ -1513,6 +1521,7 @@ describe('actions/Report', () => {
 
                     // Then the quickAction.action should be set to CREATE_REPORT
                     expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.CREATE_REPORT);
+                    expect(quickAction?.chatReportID).toBe('1234');
                     resolve();
                 },
             });

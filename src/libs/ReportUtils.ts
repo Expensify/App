@@ -62,14 +62,14 @@ import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyReques
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged, prepareOnboardingOnyxData} from './actions/Report';
+import {handleReportChanged} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
-import isReportMessageAttachment from './isReportMessageAttachment';
+import {isReportMessageAttachment} from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -9759,7 +9759,6 @@ export {
     isReportFieldDisabled,
     isReportFieldOfTypeTitle,
     isReportManager,
-    isReportMessageAttachment,
     isReportOwner,
     isReportParticipant,
     isSelfDM,
@@ -9847,7 +9846,6 @@ export {
     getReportMetadata,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
-    prepareOnboardingOnyxData,
     isSelectedManagerMcTest,
     isTestTransactionReport,
     getReportSubtitlePrefix,
