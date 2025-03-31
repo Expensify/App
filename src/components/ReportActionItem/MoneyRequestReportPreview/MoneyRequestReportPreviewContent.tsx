@@ -85,7 +85,7 @@ type WebLayoutNativeEvent = {
 };
 
 const checkIfReportNameOverflows = <T extends LayoutChangeEvent>({nativeEvent}: T) =>
-    'target' in nativeEvent ? (nativeEvent as WebLayoutNativeEvent).target.scrollHeight > variables.h20 * 3.5 : false;
+    'target' in nativeEvent ? (nativeEvent as WebLayoutNativeEvent).target.scrollHeight > variables.h70 : false;
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
@@ -498,7 +498,7 @@ function MoneyRequestReportPreviewContent({
                                                 </Animated.View>
                                             </View>
                                             {!shouldUseNarrowLayout && transactions.length > 2 && (
-                                                <View style={[styles.flexRow, {alignItems: 'center'}]}>
+                                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                     <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
                                                     <PressableWithFeedback
                                                         accessibilityRole="button"
