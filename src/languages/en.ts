@@ -899,6 +899,7 @@ const translations = {
         header: 'Quick action',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
+        createReport: 'Create report',
     },
     iou: {
         amount: 'Amount',
@@ -5213,6 +5214,10 @@ const translations = {
             exported: 'Exported',
             posted: 'Posted',
         },
+        moneyRequestReport: {
+            emptyStateTitle: 'This report has no expenses',
+            emptyStateSubtitle: 'You can add expenses to this report \n using the button above.',
+        },
         noCategory: 'No category',
         noTag: 'No tag',
         expenseType: 'Expense type',
@@ -5683,6 +5688,7 @@ const translations = {
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicate requests you don't keep will be held for the member to delete`,
         hold: 'Hold',
+        resolvedDuplicates: 'resolved the duplicate',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
