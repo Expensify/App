@@ -346,7 +346,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.pb4]}>
                 <FloatingMessageCounter
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}

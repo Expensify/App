@@ -14,7 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getIOUActionForReportIDPure} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
@@ -84,8 +84,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
-    // const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
-    const shouldShowBreakdown = true;
+    const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
 
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
@@ -119,7 +118,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
-            const iouAction = getIOUActionForReportIDPure(reportActions, activeTransaction.transactionID);
+            const iouAction = getIOUActionForTransactionID(reportActions, activeTransaction.transactionID);
             const reportIDToNavigate = iouAction?.childReportID;
             if (!reportIDToNavigate) {
                 return;
@@ -131,7 +130,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
             // we use this data to display prev/next arrows in RHP for navigating between transactions
             const sortedSiblingTransactionReportIDs = sortedData.transactions
                 .map((transaction) => {
-                    const action = getIOUActionForReportIDPure(reportActions, transaction.transactionID);
+                    const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
                     return action?.childReportID;
                 })
                 .filter((reportID): reportID is string => !!reportID);
@@ -152,10 +151,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         return;
     }
 
-    const pressableStyle = [
-        styles.overflowHidden,
-        // item.isSelected && styles.activeComponentBG,
-    ];
+    const pressableStyle = [styles.overflowHidden];
 
     const listHorizontalPadding = styles.ph5;
 
@@ -207,13 +203,10 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             role={getButtonRole(true)}
                             isNested
                             hoverDimmingValue={1}
-                            // pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
-                            // hoverStyle={item.isSelected && styles.activeComponentBG}
                             onMouseDown={(e) => e.preventDefault()}
                             id={transaction.transactionID}
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
-                            wrapperStyle={[]}
                         >
                             <View style={[styles.mb2]}>
                                 <TransactionItemRow

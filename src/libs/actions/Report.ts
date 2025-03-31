@@ -83,6 +83,7 @@ import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
@@ -155,6 +156,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    Beta,
     DismissedProductTraining,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -192,6 +194,12 @@ import {
 import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
 import {startOnboardingFlow} from './Welcome/OnboardingFlow';
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
+});
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -871,7 +879,7 @@ function clearAvatarErrors(reportID: string) {
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
- * @param useTableReportView Flag deciding how api returns reportActions - if set to true, api will return oldest first starting from the beginning of report.
+ * @param temporaryShouldUseTableReportView -For now MoneyRequestReportView is only supported on Search pages. Once the view is handled on ReportScreens as well we will remove this flag
  */
 function openReport(
     reportID: string | undefined,
@@ -881,8 +889,8 @@ function openReport(
     parentReportActionID?: string,
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
-    useTableReportView = false,
     avatar?: File | CustomRNImageManipulatorResult,
+    temporaryShouldUseTableReportView = false,
 ) {
     if (!reportID) {
         return;
@@ -950,8 +958,13 @@ function openReport(
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
-        useTableReportView,
     };
+
+    // temporary flag will be removed once ReportScreen supports MoneyRequestReportView - https://github.com/Expensify/App/issues/57509
+    // Permission will be removed before the end of the project
+    if (temporaryShouldUseTableReportView && Permissions.canUseTableReportView(allBetas)) {
+        parameters.useTableReportView = true;
+    }
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
@@ -1219,7 +1232,7 @@ function navigateToAndOpenReport(
     const report = isEmptyObject(chat) ? newChat : chat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(report?.reportID, '', userLogins, newChat, undefined, undefined, undefined, false, avatarFile);
+    openReport(report?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
         if (getIsNarrowLayout()) {
             Navigation.dismissModalWithReport({report});
