@@ -522,18 +522,19 @@ function SearchAutocompleteList(
 
     useEffect(() => {
         const referenceText = sections?.at(1)?.data?.[0]?.text?.toLowerCase() ?? '';
-        const normalizedTargetText = autocompleteQueryValue.toLowerCase().trim();
+        const targetText = autocompleteQueryValue.toLowerCase().trim();
 
-        let isHighlightFirstItem = false;
-
-        if (normalizedTargetText === 'invite') {
-            isHighlightFirstItem = true;
-        } else if (normalizedTargetText.length >= 2 && !/[^a-zA-Z0-9]$/.test(normalizedTargetText)) {
-            const regex = new RegExp(`\\b${normalizedTargetText}\\b`, 'i');
-            isHighlightFirstItem = regex.test(referenceText);
+        if (!targetText) {
+            return;
         }
 
-        if (isHighlightFirstItem) {
+        // Escape special regex characters in user input
+        const escapedText = targetText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        // Match exact words/phrases, avoid partial word matches
+        const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
+
+        if (pattern.test(referenceText)) {
             onHighlightFirstItem?.();
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, ref, sections]);
