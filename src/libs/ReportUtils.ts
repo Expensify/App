@@ -309,7 +309,7 @@ type OptimisticNewReport = Pick<
     | 'participants'
     | 'managerID'
     | 'pendingAction'
->;
+> & {reportName: string};
 
 type BuildOptimisticIOUReportActionParams = {
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
@@ -5410,6 +5410,39 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
+function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReportID: string | undefined, policy: OnyxEntry<Policy>, timeOfCreation: string) {
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
+    const optimisticEmptyReport: OptimisticNewReport = {
+        reportName: '',
+        reportID,
+        policyID: policy?.id,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        ownerAccountID: accountID,
+        stateNum,
+        statusNum,
+        total: 0,
+        nonReimbursableTotal: 0,
+        participants: {},
+        lastVisibleActionCreated: timeOfCreation,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        parentReportID,
+    };
+
+    const optimisticReportName = populateOptimisticReportFormula(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, optimisticEmptyReport, policy);
+    optimisticEmptyReport.reportName = optimisticReportName;
+
+    if (accountID) {
+        optimisticEmptyReport.participants = {
+            [accountID]: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            },
+        };
+        optimisticEmptyReport.ownerAccountID = accountID;
+    }
+    return optimisticEmptyReport;
+}
+
 function getFormattedAmount(reportAction: ReportAction, report?: Report | null) {
     if (
         !isSubmittedAction(reportAction) &&
@@ -9487,6 +9520,7 @@ export {
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticEditedTaskFieldReportAction,
     buildOptimisticExpenseReport,
+    buildOptimisticEmptyReport,
     buildOptimisticGroupChatReport,
     buildOptimisticHoldReportAction,
     buildOptimisticHoldReportActionComment,

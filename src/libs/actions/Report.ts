@@ -91,13 +91,14 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import type {OptimisticAddCommentReportAction, OptimisticChatReport, OptimisticNewReport} from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
     buildOptimisticChangePolicyReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
+    buildOptimisticEmptyReport,
     buildOptimisticExportIntegrationAction,
     buildOptimisticGroupChatReport,
     buildOptimisticRenamedRoomReportAction,
@@ -116,7 +117,6 @@ import {
     getChatByParticipants,
     getChildReportNotificationPreference,
     getDefaultNotificationPreferenceForReport,
-    getExpenseReportStateAndStatus,
     getFieldViolation,
     getLastVisibleMessage,
     getOptimisticDataForParentReportAction,
@@ -125,7 +125,6 @@ import {
     getPendingChatMembers,
     getPolicyExpenseChat,
     getReportFieldKey,
-    getReportFieldsByPolicyID,
     getReportIDFromLink,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
@@ -134,7 +133,6 @@ import {
     getReportTransactions,
     getReportViolations,
     getRouteFromLink,
-    getTitleReportField,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
     isExpenseReport,
@@ -144,7 +142,6 @@ import {
     isMoneyRequestReport,
     isSelfDM,
     isValidReportIDFromPath,
-    populateOptimisticReportFormula,
 } from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {getNavatticURL} from '@libs/TourUtils';
@@ -2452,36 +2449,9 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
 
 function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: string, reportActionID: string, creatorPersonalDetails: PersonalDetails, reportPreviewReportActionID: string) {
     const {accountID, login} = creatorPersonalDetails;
-    const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
     const timeOfCreation = DateUtils.getDBTime();
-    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
-    const optimisticDataValue: OptimisticNewReport = {
-        reportID,
-        policyID: policy?.id,
-        type: CONST.REPORT.TYPE.EXPENSE,
-        ownerAccountID: accountID,
-        stateNum,
-        statusNum,
-        total: 0,
-        nonReimbursableTotal: 0,
-        participants: {},
-        lastVisibleActionCreated: timeOfCreation,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        parentReportID: parentReport?.reportID,
-    };
-
-    const optimisticReportName = populateOptimisticReportFormula(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, optimisticDataValue, policy);
-    optimisticDataValue.reportName = optimisticReportName;
-
-    if (accountID) {
-        optimisticDataValue.participants = {
-            [accountID]: {
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-            },
-        };
-        optimisticDataValue.ownerAccountID = accountID;
-    }
+    const parentReport = getPolicyExpenseChat(accountID, policy?.id);
+    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport?.reportID, policy, timeOfCreation);
 
     const optimisticCreateAction = {
         action: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -2509,7 +2479,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
     const optimisticReportPreview = {
         action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-        childReportName: optimisticReportName,
+        childReportName: optimisticReportData.reportName,
         childReportID: reportID,
         childType: CONST.REPORT.TYPE.EXPENSE,
         created: timeOfCreation,
@@ -2523,13 +2493,13 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const optimisticNextStep = buildNextStep(optimisticDataValue, CONST.REPORT.STATUS_NUM.OPEN);
+    const optimisticNextStep = buildNextStep(optimisticReportData, CONST.REPORT.STATUS_NUM.OPEN);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: optimisticDataValue,
+            value: optimisticReportData,
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -2601,7 +2571,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         },
     ];
 
-    return {optimisticReportName, optimisticData, successData, failureData};
+    return {optimisticReportName: optimisticReportData.reportName, optimisticData, successData, failureData};
 }
 
 function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: string) {
