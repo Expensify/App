@@ -150,6 +150,11 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
         return false;
     }
 
+    // for report actions with this type we get an empty array as message by design
+    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED) {
+        return false;
+    }
+
     const message = reportAction?.message ?? [];
 
     if (!Array.isArray(message)) {

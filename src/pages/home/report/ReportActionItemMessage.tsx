@@ -51,6 +51,8 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`);
+    const {bankAccountLastFour, currency, policyID: originalMessagePolicyID} = action.originalMessage as {bankAccountLastFour: string, currency: string, policyID: string};
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${originalMessagePolicyID ?? ''}`);
 
     const fragments = getReportActionMessageFragments(action);
     const isIOUReport = isMoneyRequestAction(action);
@@ -81,6 +83,30 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                     style={style}
                     source=""
                     styleAsDeleted={false}
+                />
+            </View>
+        );
+    }
+
+    const handleEnterSignerInfoPress = () => {
+
+    };
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED) {
+        let policyCurrency: string | undefined = currency;
+
+        if (!policyCurrency) {
+            policyCurrency = policy?.outputCurrency;
+        }
+
+        return (
+            <View style={[styles.chatItemMessage, style]}>
+                <Text>is connecting a {policyCurrency} business bank account ending in {bankAccountLastFour} to Expensify to pay employees in {policyCurrency}. The next step requires signer info from a director or senior officer.</Text>
+                <Button
+                    style={[styles.mt2, styles.alignSelfStart]}
+                    success
+                    text="Enter signer info"
+                    onPress={handleEnterSignerInfoPress}
                 />
             </View>
         );
