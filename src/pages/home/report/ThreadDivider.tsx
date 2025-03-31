@@ -5,17 +5,14 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import {shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, navigateToLinkedReportAction} from '@libs/ReportUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 type ThreadDividerProps = {
     /** Thread ancestor */
@@ -30,6 +27,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isInNarrowPaneModal} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
 
     return (
         <View
@@ -48,25 +46,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
                 </>
             ) : (
                 <PressableWithoutFeedback
-                    onPress={() => {
-                        const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWriteAction(ancestor.report));
-                        if (isInNarrowPaneModal) {
-                            Navigation.navigate(
-                                ROUTES.SEARCH_REPORT.getRoute({
-                                    reportID: ancestor.report.reportID,
-                                    reportActionID: ancestor.reportAction.reportActionID,
-                                    backTo: SCREENS.SEARCH.REPORT_RHP,
-                                }),
-                            );
-                            return;
-                        }
-                        // Pop the thread report screen before navigating to the chat report.
-                        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
-                        if (isVisibleAction) {
-                            // Pop the chat report screen before navigating to the linked report action.
-                            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID));
-                        }
-                    }}
+                    onPress={() => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction(ancestor.report), isOffline)}
                     accessibilityLabel={translate('threads.thread')}
                     role={CONST.ROLE.BUTTON}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}

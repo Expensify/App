@@ -296,6 +296,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const backTo = route?.params?.backTo as string;
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
@@ -313,7 +314,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [report]);
 
     const onBackButtonPress = useCallback(() => {
-        const backTo = route?.params?.backTo as string;
         if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
             Navigation.dismissModal();
             return;
