@@ -299,10 +299,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             }
         }
 
-        Navigation.isNavigationReady().then(() => {
-            PriorityMode.autoSwitchToFocusMode();
-        });
-
         App.setUpPoliciesAndNavigate(session);
 
         App.redirectThirdPartyDesktopSignIn();
@@ -312,6 +308,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
         }
         Download.clearDownloads();
+
+        Navigation.isNavigationReady().then(() => {
+            PriorityMode.autoSwitchToFocusMode();
+        });
 
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
