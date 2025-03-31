@@ -240,6 +240,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             if (isOptionInList) {
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
             } else {
+                const iconSource = option.icons?.[0]?.source;
+                const icon = typeof iconSource === 'function' ? '' : iconSource?.toString() ?? '';
                 newSelectedOptions = [
                     ...attendees,
                     {
@@ -251,7 +253,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                         displayName: option.text ?? '',
                         selected: true,
                         searchText: option.searchText,
-                        avatarUrl: option.avatarUrl ?? option.icons?.[0]?.source?.toString() ?? '',
+                        avatarUrl: option.avatarUrl ?? icon,
                         iouType,
                     },
                 ];
