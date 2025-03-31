@@ -7,7 +7,9 @@ import type {Data, Entry} from './console';
 import * as format from './format';
 import markdownTable from './markdownTable';
 
-const TIMES_TO_SPLIT_MEANINGLESS_CHANGES = 1;
+const MAX_CHARACTERS_PER_FILE = 65536;
+const FILE_SIZE_SAFETY_MARGIN = 1000;
+const MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN = MAX_CHARACTERS_PER_FILE - FILE_SIZE_SAFETY_MARGIN;
 
 const tableHeader = ['Name', 'Duration'];
 
@@ -47,16 +49,16 @@ const formatEntryDuration = (entry: Entry): string => {
     return '';
 };
 
-const buildDetailsTable = (entries: Entry[], timesToSplit = 0) => {
+const buildDetailsTable = (entries: Entry[], numberOfTables = 1) => {
     if (!entries.length) {
-        return '';
+        return [''];
     }
 
-    const entriesPerTable = Math.floor(entries.length / timesToSplit);
+    const entriesPerTable = Math.floor(entries.length / numberOfTables);
     const tables: string[] = [];
-    for (let i = 0; i < timesToSplit; i++) {
+    for (let i = 0; i < numberOfTables; i++) {
         const start = i * entriesPerTable;
-        const end = i === timesToSplit - 1 ? entries.length : start + entriesPerTable;
+        const end = i === numberOfTables - 1 ? entries.length : start + entriesPerTable;
         const tableEntries = entries.slice(start, end);
 
         const rows = tableEntries.map((entry) => [entry.name, buildDurationDetailsEntry(entry)]);
@@ -81,9 +83,26 @@ const buildSummaryTable = (entries: Entry[], collapse = false) => {
     return collapse ? collapsibleSection('Show entries', content) : content;
 };
 
-const buildMarkdown = (data: Data, skippedTests: string[]) => {
+const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: number): [string, ...string[]] => {
+    let singleFileOutput: string | undefined;
+    let nExtraFiles = numberOfExtraFiles ?? 0;
+
+    // If the user didn't specify the number of extra files, calculate it based on the size of the single file
+    if (numberOfExtraFiles === undefined) {
+        singleFileOutput = buildMarkdown(data, skippedTests, 0)[0];
+        const totalCharacters = singleFileOutput.length ?? 0;
+
+        // If the single file is small enough, return it
+        if (totalCharacters <= MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN) {
+            return [singleFileOutput];
+        }
+
+        // Otherwise, calculate the number of extra files needed
+        nExtraFiles = Math.ceil(totalCharacters / MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN);
+    }
+
     let mainFile = '## Performance Comparison Report 📊';
-    mainFile += TIMES_TO_SPLIT_MEANINGLESS_CHANGES > 0 ? ` (1/${TIMES_TO_SPLIT_MEANINGLESS_CHANGES + 1})` : '';
+    mainFile += nExtraFiles > 0 ? ` (1/${nExtraFiles + 1})` : '';
 
     if (data.errors?.length) {
         mainFile += '\n\n### Errors\n';
@@ -105,20 +124,28 @@ const buildMarkdown = (data: Data, skippedTests: string[]) => {
 
     mainFile += '\n\n### Significant Changes To Duration';
     mainFile += `\n${buildSummaryTable(data.significance)}`;
-    mainFile += `\n${buildDetailsTable(data.significance).at(0)}`;
+    mainFile += `\n${buildDetailsTable(data.significance, 1).at(0)}`;
 
-    const meaninglessDetailsTables = buildDetailsTable(data.meaningless, TIMES_TO_SPLIT_MEANINGLESS_CHANGES);
+    const meaninglessDetailsTables = buildDetailsTable(data.meaningless, nExtraFiles);
+
+    if (nExtraFiles === 0) {
+        mainFile += '\n\n### Meaningless Changes To Duration';
+        mainFile += `\n${buildSummaryTable(data.meaningless, true)}`;
+        mainFile += `\n${meaninglessDetailsTables.at(0)}`;
+
+        return [mainFile];
+    }
 
     const extraFiles: string[] = [];
-    for (let i = 0; i < TIMES_TO_SPLIT_MEANINGLESS_CHANGES; i++) {
+    for (let i = 0; i < nExtraFiles; i++) {
         let extraFile = '## Performance Comparison Report 📊';
-        extraFile += TIMES_TO_SPLIT_MEANINGLESS_CHANGES > 0 ? ` (${i + 2}/${TIMES_TO_SPLIT_MEANINGLESS_CHANGES + 1})` : '';
+        extraFile += nExtraFiles > 0 ? ` (${i + 2}/${nExtraFiles + 1})` : '';
 
         extraFile += '\n\n### Meaningless Changes To Duration';
-        extraFile += TIMES_TO_SPLIT_MEANINGLESS_CHANGES > 0 ? ` (${i + 1}/${TIMES_TO_SPLIT_MEANINGLESS_CHANGES + 1})` : '';
+        extraFile += nExtraFiles > 0 ? ` (${i + 1}/${nExtraFiles + 1})` : '';
 
         extraFile += `\n${buildSummaryTable(data.meaningless, true)}`;
-        extraFile += `\n${meaninglessDetailsTables[i]}`;
+        extraFile += `\n${meaninglessDetailsTables.at(i)}`;
         extraFile += '\n';
 
         extraFiles.push(extraFile);
@@ -147,8 +174,7 @@ const writeToMarkdown = (outputDir: string, data: Data, skippedTests: string[]) 
     Logger.info('Markdown was built successfully, writing to file...', filesString);
 
     if (markdownFiles.length === 1) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return writeToFile(path.join(outputDir, 'output.md'), markdownFiles.at(0)!);
+        return writeToFile(path.join(outputDir, 'output1.md'), markdownFiles[0]);
     }
 
     return Promise.all(
