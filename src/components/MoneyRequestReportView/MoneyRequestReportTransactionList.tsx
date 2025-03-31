@@ -1,3 +1,4 @@
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
@@ -22,6 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import {setActiveTransactionReportIDs} from './TransactionReportIDRepository';
+import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 type MoneyRequestReportTransactionListProps = {
     report: OnyxTypes.Report;
@@ -147,8 +149,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
     const listHorizontalPadding = styles.ph5;
 
-    return (
-        <View style={[styles.flex1]}>
+    return !isEmpty(transactions) ? (
+        <>
             {!displayNarrowVersion && (
                 <MoneyRequestReportTableHeader
                     shouldShowSorting
@@ -229,7 +231,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                     </Text>
                 </View>
             </View>
-        </View>
+    ) : (
+        <SearchMoneyRequestReportEmptyState />
     );
 }
 

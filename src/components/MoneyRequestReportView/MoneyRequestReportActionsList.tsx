@@ -1,4 +1,5 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -39,6 +40,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
+import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
@@ -351,6 +353,10 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
+        <View style={styles.flex1}>
+            {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
+                <SearchMoneyRequestReportEmptyState />
+            ) : (
                 <FlatList
                     initialNumToRender={INITIAL_NUM_TO_RENDER}
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
@@ -376,6 +382,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                     ref={reportScrollManager.ref}
                 />
             </View>
+            )}
         </View>
     );
 }

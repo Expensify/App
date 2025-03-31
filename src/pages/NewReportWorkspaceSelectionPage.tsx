@@ -45,8 +45,10 @@ function NewReportWorkspaceSelectionPage() {
             if (!policyID) {
                 return;
             }
-            const createdReportID = createNewReport(currentUserPersonalDetails, policyID);
-            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}), {forceReplace: true});
+            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}), {forceReplace: true});
+            });
         },
         [currentUserPersonalDetails],
     );

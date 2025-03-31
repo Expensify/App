@@ -886,6 +886,7 @@ const translations = {
         header: 'Quick action',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
+        createReport: 'Create report',
     },
     iou: {
         amount: 'Amount',
@@ -927,6 +928,7 @@ const translations = {
         }),
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
+        duplicateTransaction: 'Potential duplicate expenses identified. Review duplicates to enable submission.',
         receiptIssuesFound: () => ({
             one: 'Issue found',
             other: 'Issues found',
@@ -1083,7 +1085,7 @@ const translations = {
         expenseWasPutOnHold: 'Expense was put on hold',
         expenseOnHold: 'This expense was put on hold. Please review the comments for next steps.',
         expensesOnHold: 'All expenses were put on hold. Please review the comments for next steps.',
-        expenseDuplicate: 'This expense has the same details as another one. Please review the duplicates to remove the hold.',
+        expenseDuplicate: 'This expense has similar details to another one. Please review the duplicates to continue.',
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
@@ -5130,6 +5132,10 @@ const translations = {
             exported: 'Exported',
             posted: 'Posted',
         },
+        moneyRequestReport: {
+            emptyStateTitle: 'This report has no expenses',
+            emptyStateSubtitle: 'You can add expenses to this report \n using the button above.',
+        },
         noCategory: 'No category',
         noTag: 'No tag',
         expenseType: 'Expense type',
@@ -5599,6 +5605,7 @@ const translations = {
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicate requests you don't keep will be held for the member to delete`,
         hold: 'Hold',
+        resolvedDuplicates: 'resolved the duplicate',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
