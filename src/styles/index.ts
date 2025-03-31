@@ -4745,6 +4745,10 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
             height: 180,
+            maxWidth: '100%',
+        },
+
+        expenseViewImage: {
             maxWidth: 360,
         },
 
@@ -5348,6 +5352,13 @@ const styles = (theme: ThemeColors) =>
         emptyStateCardIllustration: {
             width: 164,
             height: 190,
+        },
+
+        emptyStateMoneyRequestReport: {
+            maxHeight: 85,
+            minHeight: 85,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
         },
 
         pendingStateCardIllustration: {
