@@ -49,7 +49,7 @@ function Confirmation() {
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
 
-    const transactionsMergeParams = useMemo(() => TransactionUtils.buildTransactionsMergeParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
+    const transactionsMergeParams = useMemo(() => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const mergeDuplicates = useCallback(() => {

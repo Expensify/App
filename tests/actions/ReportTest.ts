@@ -1485,4 +1485,37 @@ describe('actions/Report', () => {
 
         expect(report?.lastMentionedTime).toBeUndefined();
     });
+
+    it('should create new report and "create report" quick action, when createNewReport gets called', async () => {
+        const reportID = Report.createNewReport({accountID: 1234}, '5678');
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (reports) => {
+                    Onyx.disconnect(connection);
+                    const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+                    // assert correctness of crucial onyx data
+                    expect(createdReport?.reportID).toBe(reportID);
+                    expect(createdReport?.total).toBe(0);
+
+                    resolve();
+                },
+            });
+        });
+
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                callback: (quickAction) => {
+                    Onyx.disconnect(connection);
+
+                    // Then the quickAction.action should be set to CREATE_REPORT
+                    expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.CREATE_REPORT);
+                    resolve();
+                },
+            });
+        });
+    });
 });
