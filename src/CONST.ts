@@ -2748,10 +2748,6 @@ const CONST = {
 
     LANGUAGES: ['en', 'es'],
 
-    BILLABLE_OPTIONS: ['yes', 'no'],
-
-    REIMBURSABLE_OPTIONS: ['yes', 'no'],
-
     PRONOUNS_LIST: [
         'coCos',
         'eEyEmEir',

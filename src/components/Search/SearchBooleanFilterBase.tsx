@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchActions from '@userActions/Search';
+import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,7 +47,7 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
             });
     }, [booleanKey, searchAdvancedFiltersForm, translate, booleanValues]);
 
-    const updateFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({[booleanKey]: values}), [booleanKey]);
+    const updateFilter = useCallback((values: string[]) => updateAdvancedFilters({[booleanKey]: values}), [booleanKey]);
 
     return (
         <ScreenWrapper
