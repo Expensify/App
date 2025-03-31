@@ -384,6 +384,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Custom unit name */
     rateName?: string;
 
+    /** Tax percentage of the new tax rate linked to distance rate */
+    newTaxPercentage?: string;
+
     /** Added/Updated tag name */
     tagName?: string;
 

@@ -2095,16 +2095,24 @@ function getWorkspaceCustomUnitRateAddedMessage(action: ReportAction): string {
 }
 
 function getWorkspaceCustomUnitRateUpdatedMessage(action: ReportAction): string {
-    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue} =
+    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
 
-    if (customUnitName && customUnitRateName && updatedField && typeof oldValue === 'string' && typeof newValue === 'string') {
+    if (customUnitName && customUnitRateName && updatedField === 'rate' && typeof oldValue === 'string' && typeof newValue === 'string') {
         return translateLocal('workspaceActions.updatedCustomUnitRate', {
             customUnitName,
             customUnitRateName,
             updatedField,
             oldValue,
             newValue,
+        });
+    }
+
+    if (customUnitRateName && updatedField === 'taxRateExternalID' && typeof newValue === 'string' && newTaxPercentage) {
+        return translateLocal('workspaceActions.updatedCustomUnitTaxRateExternalID', {
+            customUnitRateName,
+            newValue,
+            newTaxPercentage,
         });
     }
 
