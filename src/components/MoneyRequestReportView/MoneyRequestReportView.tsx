@@ -72,8 +72,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     });
 
     const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
-    // const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
-    const isLoadingInitialReportActions = true;
+    const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
 
     if (isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) {
         return <InitialLoadingSkeleton styles={styles} />;

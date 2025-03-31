@@ -879,7 +879,7 @@ function clearAvatarErrors(reportID: string) {
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
- * @param temporaryShouldUseTableReportView -For now MoneyRequestReportView is only supported on Search pages. Once the view is handled on ReportScreens as well we will remove this flag
+ * @param temporaryShouldUseTableReportView For now MoneyRequestReportView is only supported on Search pages. Once the view is handled on ReportScreens as well we will remove this flag
  */
 function openReport(
     reportID: string | undefined,
