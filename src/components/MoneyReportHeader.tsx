@@ -204,14 +204,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 icon: Expensicons.Stopwatch,
                 value: CONST.REPORT.SECONDARY_ACTIONS.HOLD,
                 onSelected: () => {
-                    const iouActions = reportActions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU));
-                    const selectedTransactionIDs = new Set(selectedTransactions.map((t) => t.transactionID));
-                    const selectedIOUActions = iouActions.filter(
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                        (action) => action.originalMessage?.IOUTransactionID && selectedTransactionIDs.has(action?.originalMessage?.IOUTransactionID),
-                    );
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                    selectedIOUActions.forEach((action) => putOnHold(action?.originalMessage?.IOUTransactionID, 'hold', moneyRequestReport?.reportID));
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.getRoute({reportID: moneyRequestReport?.reportID ?? ''}));
                 },
             });
         }
