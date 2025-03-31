@@ -24,9 +24,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           PR_NUMBER=${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          gh pr checkout ${PR_NUMBER}
+          gh pr checkout "${PR_NUMBER}"
           COMMIT_HASH=$(git rev-parse HEAD)
-          echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_OUTPUT
+          echo "COMMIT_HASH=$COMMIT_HASH" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -38,7 +38,7 @@ jobs:
         id: getVersion
         run: |
           VERSION=$(jq -r '.dependencies["react-native"]' package.json)
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Save patches hash
         id: savePatchesHash
@@ -48,7 +48,7 @@ jobs:
             echo "Files being considered for hash calculation:"
             find patches -type f -name "react-native+${VERSION}*.patch" -exec echo {} \;
             HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
-            echo "PATCHES_HASH=$HASH" >> $GITHUB_OUTPUT
+            echo "PATCHES_HASH=$HASH" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Save patched react-native module
