@@ -13,17 +13,11 @@ inputs:
     ANDROID:
         description: "Android job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: false
-    ANDROID_HYBRID:
-        description: "Android Hybrid job result ('success', 'failure', 'cancelled', or 'skipped')"
-        required: false
     DESKTOP:
         description: "Desktop job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: false
     IOS:
         description: "iOS job result ('success', 'failure', 'cancelled', or 'skipped')"
-        required: false
-    IOS_Hybrid:
-        description: "iOS Hybrid job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: false
     WEB:
         description: "Web job result ('success', 'failure', 'cancelled', or 'skipped')"
@@ -31,17 +25,11 @@ inputs:
     ANDROID_LINK:
         description: "Link for the Android build"
         required: false
-    ANDROID_HYBRID_LINK:
-        description: "Link for the Android Hybrid build"
-        required: false
     DESKTOP_LINK:
         description: "Link for the desktop build"
         required: false
     IOS_LINK:
         description: "Link for the iOS build"
-        required: false
-    IOS_HYBRID_LINK:
-        description: "Link for the iOS Hybrid build"
         required: false
     WEB_LINK:
         description: "Link for the web build"
