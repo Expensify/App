@@ -19,7 +19,6 @@ type LogInWithShortLivedAuthTokenPageProps = PlatformStackScreenProps<PublicScre
 function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
     const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    // State to track whether the system is waiting for navigation for the delegator to show loader
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
@@ -57,7 +56,6 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route]);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (account?.isLoading) {
         return <FullScreenLoadingIndicator />;
     }
