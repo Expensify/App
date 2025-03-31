@@ -342,6 +342,7 @@ const EMAIL = {
     SVFG: 'svfg@expensify.com',
     EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
+    TEAM: 'team@expensify.com',
     MANAGER_MCTEST: 'manager_mctest@expensify.com',
 };
 
@@ -1122,6 +1123,7 @@ const CONST = {
         TRACK_DISTANCE: 'trackDistance',
         ASSIGN_TASK: 'assignTask',
         SEND_MONEY: 'sendMoney',
+        CREATE_REPORT: 'createReport',
     },
 
     RECEIPT: {
@@ -1307,6 +1309,7 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
+                RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
@@ -1315,6 +1318,9 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
+            // Used when displaying reportActions list to handle of unread messages icon/button
+            SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
+            ACTION_VISIBLE_THRESHOLD: 250,
         },
         TRANSACTION_LIST: {
             COLUMNS: {
@@ -1518,6 +1524,7 @@ const CONST = {
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
         PUSHER_PING_PONG: 'pusher_ping_pong',
         LOCATION_UPDATE_INTERVAL: 5000,
+        PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3522,6 +3529,7 @@ const CONST = {
         EMAIL.RECEIPTS,
         EMAIL.STUDENT_AMBASSADOR,
         EMAIL.SVFG,
+        EMAIL.TEAM,
         EMAIL.MANAGER_MCTEST,
     ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
@@ -6429,6 +6437,10 @@ const CONST = {
         },
         GROUP_BY: {
             REPORTS: 'reports',
+        },
+        TABLE_COLUMN_SIZES: {
+            NORMAL: 'normal',
+            WIDE: 'wide',
         },
         STATUS: {
             EXPENSE: {

@@ -110,6 +110,8 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
             return getIconForAction(CONST.IOU.TYPE.TRACK);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return Expensicons.ReceiptScan;
+        case CONST.QUICK_ACTIONS.CREATE_REPORT:
+            return Expensicons.Document;
         default:
             return Expensicons.MoneyCircle;
     }
@@ -160,6 +162,8 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
+        case CONST.QUICK_ACTIONS.CREATE_REPORT:
+            return 'quickAction.createReport';
         default:
             return '' as TranslationPaths;
     }
@@ -191,6 +195,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
@@ -266,6 +271,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         const displayName = personalDetails?.[quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID]?.firstName ?? '';
         return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length === 0;
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
+
+    const quickActionSubtitle = useMemo(() => {
+        if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
+            return quickActionPolicy?.name;
+        }
+        return !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '';
+    }, [hideQABSubtitle, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -393,7 +405,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             }
             const onSelected = () => {
                 interceptAnonymousUser(() => {
-                    navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
+                    navigateToQuickAction(isValidReport, quickAction, currentUserPersonalDetails, quickActionPolicy?.id, selectOption);
                 });
             };
             return [
@@ -401,7 +413,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     ...baseQuickAction,
                     icon: getQuickActionIcon(quickAction?.action),
                     text: quickActionTitle,
-                    description: !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
+                    description: quickActionSubtitle,
                     onSelected,
                     shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
                 },
@@ -440,17 +452,18 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         quickActionAvatars,
         quickAction,
         policyChatForActivePolicy,
-        quickActionReport,
-        quickActionPolicy,
         quickActionTitle,
-        hideQABSubtitle,
+        quickActionSubtitle,
+        currentUserPersonalDetails,
+        quickActionPolicy,
+        quickActionReport,
         isValidReport,
         selectOption,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
     const canModifyTask = canModifyTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
 

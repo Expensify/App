@@ -26,6 +26,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     Beta,
+    NewGroupChatDraft,
     OnyxInputOrEntry,
     PersonalDetails,
     PersonalDetailsList,
@@ -998,6 +999,12 @@ let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
+});
+
+let newGroupChatDraft: OnyxEntry<NewGroupChatDraft>;
+Onyx.connect({
+    key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
+    callback: (value) => (newGroupChatDraft = value),
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
@@ -6726,6 +6733,32 @@ function buildOptimisticDismissedViolationReportAction(
     };
 }
 
+function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedViolationReportAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: translateLocal('violations.resolvedDuplicates'),
+            },
+        ],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+    };
+}
+
 function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): OptimisticAnnounceChat {
     const announceReport = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     const policy = getPolicy(policyID);
@@ -9446,6 +9479,10 @@ function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
     return isSelectedManagerMcTest(persionalDetails?.login);
 }
 
+function getGroupChatDraft() {
+    return newGroupChatDraft;
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -9469,6 +9506,7 @@ export {
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedReportAction,
+    buildOptimisticChangePolicyReportAction,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticRoomDescriptionUpdatedReportAction,
@@ -9791,12 +9829,13 @@ export {
     isSelectedManagerMcTest,
     isTestTransactionReport,
     getReportSubtitlePrefix,
-    buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    buildOptimisticResolvedDuplicatesReportAction,
     populateOptimisticReportFormula,
     getTitleReportField,
     getReportFieldsByPolicyID,
+    getGroupChatDraft,
 };
 
 export type {
