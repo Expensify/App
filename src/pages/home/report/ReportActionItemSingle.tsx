@@ -321,7 +321,7 @@ function ReportActionItemSingle({
                         <ReportActionItemFragment
                             style={[styles.flexShrink1]}
                             key={`person-${action?.reportActionID}-${1}`}
-                            accountID={parseInt(`${secondaryAvatar?.id ?? -1}`, 10)}
+                            accountID={parseInt(`${secondaryAvatar?.id ?? CONST.DEFAULT_NUMBER_ID}`, 10)}
                             fragment={{...personArray.at(1), type: 'TEXT', text: secondaryAvatar.name ?? ''}}
                             delegateAccountID={action?.delegateAccountID}
                             isSingleLine
@@ -338,7 +338,7 @@ function ReportActionItemSingle({
                             style={[styles.flex1]}
                             // eslint-disable-next-line react/no-array-index-key
                             key={`person-${action?.reportActionID}-${index}`}
-                            accountID={actorAccountID ?? -1}
+                            accountID={actorAccountID ?? CONST.DEFAULT_NUMBER_ID}
                             fragment={{...fragment, type: fragment?.type ?? '', text: fragment?.text ?? ''}}
                             delegateAccountID={action?.delegateAccountID}
                             isSingleLine
@@ -351,20 +351,20 @@ function ReportActionItemSingle({
         };
     }, [
         displayAllActors,
-        secondaryAvatar,
-        isReportPreviewAction,
         personArray,
-        styles.flexRow,
-        styles.flexShrink0,
-        styles.flexShrink1,
+        isReportPreviewAction,
         styles.flex1,
+        styles.flexRow,
+        styles.overflowHidden,
+        styles.flexShrink1,
         styles.chatItemMessageHeaderSender,
         styles.pre,
-        styles.overflowHidden,
+        styles.optionItemAvatarNameWrapper,
         action,
-        actorAccountID,
-        displayName,
         icon,
+        displayName,
+        secondaryAvatar,
+        actorAccountID,
     ]);
 
     const hasEmojiStatus = !displayAllActors && status?.emojiCode;
