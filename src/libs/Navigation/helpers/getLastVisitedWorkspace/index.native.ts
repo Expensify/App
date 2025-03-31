@@ -1,16 +1,14 @@
-import SCREENS from "@src/SCREENS";
-
+import SCREENS from '@src/SCREENS';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function savePathToSessionStorage(url:string) {
-}
+function savePathToSessionStorage(url: string) {}
 
 function getLastVisitedWorkspaceScreen() {
     return SCREENS.WORKSPACE.INITIAL;
 }
 
-function getLastVisitedSettingsPath() : string {    
+function getLastVisitedSettingsPath(): string {
     return '';
 }
 
-export  {savePathToSessionStorage, getLastVisitedWorkspaceScreen, getLastVisitedSettingsPath};
+export {savePathToSessionStorage, getLastVisitedWorkspaceScreen, getLastVisitedSettingsPath};
