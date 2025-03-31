@@ -49,16 +49,16 @@ const formatEntryDuration = (entry: Entry): string => {
     return '';
 };
 
-const buildDetailsTable = (entries: Entry[], timesToSplit = 0) => {
+const buildDetailsTable = (entries: Entry[], numberOfTables = 1) => {
     if (!entries.length) {
         return '';
     }
 
-    const entriesPerTable = Math.floor(entries.length / timesToSplit);
+    const entriesPerTable = Math.floor(entries.length / numberOfTables);
     const tables: string[] = [];
-    for (let i = 0; i < timesToSplit; i++) {
+    for (let i = 0; i < numberOfTables; i++) {
         const start = i * entriesPerTable;
-        const end = i === timesToSplit - 1 ? entries.length : start + entriesPerTable;
+        const end = i === numberOfTables - 1 ? entries.length : start + entriesPerTable;
         const tableEntries = entries.slice(start, end);
 
         const rows = tableEntries.map((entry) => [entry.name, buildDurationDetailsEntry(entry)]);
@@ -119,14 +119,14 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
 
     mainFile += '\n\n### Significant Changes To Duration';
     mainFile += `\n${buildSummaryTable(data.significance)}`;
-    mainFile += `\n${buildDetailsTable(data.significance).at(0)}`;
+    mainFile += `\n${buildDetailsTable(data.significance, 1).at(0)}`;
 
     const meaninglessDetailsTables = buildDetailsTable(data.meaningless, nExtraFiles);
 
     if (nExtraFiles === 0) {
         mainFile += '\n\n### Meaningless Changes To Duration';
         mainFile += `\n${buildSummaryTable(data.meaningless, true)}`;
-        mainFile += `\n${meaninglessDetailsTables[0]}`;
+        mainFile += `\n${meaninglessDetailsTables.at(0)}`;
 
         return [mainFile];
     }
