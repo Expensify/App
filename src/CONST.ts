@@ -6442,6 +6442,10 @@ const CONST = {
         GROUP_BY: {
             REPORTS: 'reports',
         },
+        BOOLEAN: {
+            YES: 'yes',
+            NO: 'no',
+        },
         BILLABLE: {
             YES: 'yes',
             NO: 'no',
