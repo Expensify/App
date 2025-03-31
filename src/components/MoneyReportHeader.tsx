@@ -78,6 +78,7 @@ import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import ConfirmModal from './ConfirmModal';
+import DecisionModal from './DecisionModal';
 import DelegateNoAccessModal from './DelegateNoAccessModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -186,6 +187,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [moneyRequestReport, chatReport, policy, transaction],
     );
 
+    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
+
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(moneyRequestReport?.reportID);
 
     const selectedTransactionsOptions = useMemo(() => {
@@ -195,7 +198,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         const options = [];
         const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
 
-        // TODO memo is not calcualted on hold/unhold
         const anyTransactionOnHold = selectedTransactions.some(isOnHoldTransactionUtils);
         const allTransactionOnHold = selectedTransactions.every(isOnHoldTransactionUtils);
 
@@ -216,11 +218,16 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 icon: Expensicons.Stopwatch,
                 value: 'UNHOLD',
                 onSelected: () => {
-                    const iouActions = reportActions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU));
-                    const selectedIOUActions = iouActions.filter(
+                    const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
+
+                    const selectedIOUActions = iouActions.filter((action) => {
+                        // I have no idea why this it's unsafe assignment
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        const IOUTransactionID = getOriginalMessage(action)?.IOUTransactionID;
+
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                        (action) => action.originalMessage?.IOUTransactionID && selectedTransactionsID.includes(action?.originalMessage?.IOUTransactionID),
-                    );
+                        return IOUTransactionID && selectedTransactionsID.includes(IOUTransactionID);
+                    });
                     selectedIOUActions.forEach((action) => changeMoneyRequestHoldStatus(action));
                     setSelectedTransactionsID([...selectedTransactionsID]); // it's needed in order to recalculate options
                 },
@@ -236,7 +243,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     return;
                 }
                 exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: selectedTransactionsID}, () => {
-                    console.error('Export failed!'); // TODO show modal?
+                    setDownloadErrorModalVisible(true);
                 });
             },
         });
@@ -266,6 +273,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     }));
 
                     transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
+                    setSelectedTransactionsID([]);
                 },
             });
         }
@@ -691,6 +699,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 cancelText={translate('common.cancel')}
                 danger
                 shouldEnableNewFocusManagement
+            />
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={downloadErrorModalVisible}
+                onClose={() => setDownloadErrorModalVisible(false)}
             />
         </View>
     );
