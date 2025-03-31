@@ -1,32 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-
 <dict>
-    <key>NSExtension</key>
-    <dict>
-        <key>NSExtensionAttributes</key>
-        <dict>
-            <key>NSExtensionActivationRule</key>
+	<key>CFBundleDisplayName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>9.1.21</string>
+	<key>CFBundleVersion</key>
+	<string>9.1.21.0</string>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionAttributes</key>
+		<dict>
+			<key>NSExtensionActivationRule</key>
 			<dict>
-                <key>NSExtensionActivationSupportsAttachmentsWithMaxCount</key>
-                <integer>1</integer>
-                <key>NSExtensionActivationSupportsMovieWithMaxCount</key>
-                <integer>1</integer>
-                <key>NSExtensionActivationSupportsImageWithMaxCount</key>
-                <integer>1</integer>
-                <key>NSExtensionActivationSupportsFileWithMaxCount</key>
-                <integer>1</integer>
-                <key>NSExtensionActivationSupportsText</key>
-                <true/>
-                <key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
-                <integer>1</integer>
-            </dict>
-        </dict>
-        <key>NSExtensionMainStoryboard</key>
-        <string>MainInterface</string>
-        <key>NSExtensionPointIdentifier</key>
-        <string>com.apple.share-services</string>
-    </dict>
+				<key>NSExtensionActivationSupportsAttachmentsWithMaxCount</key>
+				<integer>1</integer>
+				<key>NSExtensionActivationSupportsFileWithMaxCount</key>
+				<integer>1</integer>
+				<key>NSExtensionActivationSupportsImageWithMaxCount</key>
+				<integer>1</integer>
+				<key>NSExtensionActivationSupportsMovieWithMaxCount</key>
+				<integer>1</integer>
+				<key>NSExtensionActivationSupportsText</key>
+				<true/>
+				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
+				<integer>1</integer>
+			</dict>
+		</dict>
+		<key>NSExtensionMainStoryboard</key>
+		<string>MainInterface</string>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.share-services</string>
+	</dict>
 </dict>
 </plist>
