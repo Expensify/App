@@ -505,7 +505,7 @@ function MoneyRequestReportPreviewContent({
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex - 1)}
                                                         disabled={currentIndex === 0}
-                                                        disabledStyle={styles.cursorDefault}
+                                                        disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
                                                             src={Expensicons.BackArrow}
@@ -521,7 +521,7 @@ function MoneyRequestReportPreviewContent({
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex + 1)}
                                                         disabled={lastVisibleIndex === Math.min(transactions.length - 1, 9)}
-                                                        disabledStyle={styles.cursorDefault}
+                                                        disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
                                                             src={Expensicons.ArrowRight}
