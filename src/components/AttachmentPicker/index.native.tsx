@@ -1,7 +1,7 @@
 import type {FileToCopy} from '@react-native-documents/picker';
 import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
-import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
@@ -163,7 +163,9 @@ function AttachmentPicker({
                             .then((isHEIC) => {
                                 // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                 if (isHEIC && targetAssetUri) {
-                                    manipulateAsync(targetAssetUri, [], {format: SaveFormat.JPEG})
+                                    ImageManipulator.manipulate(targetAssetUri)
+                                        .renderAsync()
+                                        .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
                                         .then((manipResult) => {
                                             const uri = manipResult.uri;
                                             const convertedAsset = {
