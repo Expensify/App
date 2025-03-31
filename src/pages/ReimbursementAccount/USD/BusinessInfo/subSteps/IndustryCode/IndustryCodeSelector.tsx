@@ -68,7 +68,7 @@ function IndustryCodeSelector({defaultValue, onInputChange}: IndustryCodeSelecto
                     onInputChange?.(item.value);
                 }}
                 shouldStopPropagation
-                textInputLabel="Search for industry classsification code"
+                textInputLabel={translate('companyStep.industryClassificationCodePlaceholder')}
                 onChangeText={(val) => {
                     setSearchValue(val);
                     setShouldDisplayChildItems(false);

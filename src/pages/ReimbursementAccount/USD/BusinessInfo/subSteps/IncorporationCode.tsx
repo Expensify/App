@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isValidIndustryCode} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import IndustryCodeSelector from './IndustryCode/IndustryCodeSelector';
@@ -35,8 +35,8 @@ function IncorporationCode({onNext, isEditing}: SubStepProps) {
 
         if (!values[COMPANY_INCORPORATION_CODE_KEY]) {
             errors[COMPANY_INCORPORATION_CODE_KEY] = translate('common.error.fieldRequired');
-        } else if (!ValidationUtils.isValidIndustryCode(values[COMPANY_INCORPORATION_CODE_KEY])) {
-            errors[COMPANY_INCORPORATION_CODE_KEY] = 'Please enter a valid industry classification code with six digits.';
+        } else if (!isValidIndustryCode(values[COMPANY_INCORPORATION_CODE_KEY])) {
+            errors[COMPANY_INCORPORATION_CODE_KEY] = translate('bankAccount.error.industryCode');
         }
 
         return errors;
@@ -51,7 +51,7 @@ function IncorporationCode({onNext, isEditing}: SubStepProps) {
             style={[styles.mh0, styles.flexGrow1]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{'What industry is the business classify as?'}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('companyStep.whatIndustryIsTheBusinessClassifiedAs')}</Text>
             <InputWrapper
                 InputComponent={IndustryCodeSelector}
                 inputID={COMPANY_INCORPORATION_CODE_KEY}

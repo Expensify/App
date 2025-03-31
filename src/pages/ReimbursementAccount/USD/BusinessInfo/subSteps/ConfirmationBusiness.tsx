@@ -12,12 +12,12 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 type States = keyof typeof COMMON_CONST.STATES;
 
@@ -44,7 +44,7 @@ function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS]);
+            const errors = getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS]);
 
             if (!values.hasNoConnectionToCannabis) {
                 errors.hasNoConnectionToCannabis = translate('bankAccount.error.restrictedBusiness');
@@ -129,7 +129,7 @@ function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
                 }}
             />
             <MenuItemWithTopDescription
-                description={'Industry classification code'}
+                description={translate('companyStep.industryClassificationCode')}
                 title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_CODE]}
                 shouldShowRightIcon
                 onPress={() => {
