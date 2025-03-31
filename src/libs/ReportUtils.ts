@@ -4511,10 +4511,6 @@ function getReportNameInternal({
     const reportID = report?.reportID;
     const cacheKey = getCacheKey(report);
 
-    if (!reportID && report?.reportName) {
-        return report.reportName;
-    }
-
     if (reportID) {
         const reportNameFromCache = reportNameCache.get(cacheKey);
 
