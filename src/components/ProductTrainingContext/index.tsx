@@ -263,7 +263,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             onPress={() => {
                                 hideTooltip(true);
                             }}
-                            style={[styles.touchableButtonImage]}
+                            shouldUseAutoHitSlop
                             accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                             role={CONST.ROLE.BUTTON}
                         >
@@ -312,7 +312,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.ph2,
         styles.gap2,
         styles.textBold,
-        styles.touchableButtonImage,
         theme.tooltipHighlightText,
         theme.icon,
         translate,
