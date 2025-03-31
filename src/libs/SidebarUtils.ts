@@ -26,6 +26,7 @@ import {
     getAddedApprovaRulelMessage,
     getAddedConnectionMessage,
     getCardIssuedMessage,
+    getDeletedApprovaRulelMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -654,6 +655,8 @@ function getOptionData({
             result.alternateText = getUpdatedAuditRateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE) {
             result.alternateText = getAddedApprovaRulelMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE) {
+            result.alternateText = getDeletedApprovaRulelMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE) {
             result.alternateText = getUpdatedApprovalRuleMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {

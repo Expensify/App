@@ -26,6 +26,7 @@ import {
     getAddedApprovaRulelMessage,
     getAddedConnectionMessage,
     getCardIssuedMessage,
+    getDeletedApprovaRulelMessage,
     getExportIntegrationMessageHTML,
     getIOUReportIDFromReportActionPreview,
     getMemberChangeMessageFragment,
@@ -639,6 +640,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedAuditRateMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE)) {
                     setClipboardMessage(getAddedApprovaRulelMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE)) {
+                    setClipboardMessage(getDeletedApprovaRulelMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE)) {
                     setClipboardMessage(getUpdatedApprovalRuleMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {

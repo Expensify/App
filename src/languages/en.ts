@@ -4952,6 +4952,8 @@ const translations = {
     },
     workspaceActions: {
         addApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) => `added ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
+        deleteApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) =>
+            `removed ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
         updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) =>
             `updated the approver for the ${field} "${name}" from ${oldApproverName} (${oldApproverEmail}) to ${newApproverName} (${newApproverEmail})`,
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `added the category "${categoryName}"`,

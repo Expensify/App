@@ -2338,10 +2338,26 @@ function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPO
 
 function getAddedApprovaRulelMessage(reportAction: OnyxEntry<ReportAction>) {
     const {name, approverAccountID, approverEmail, field, approverName} =
-        getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE>) ?? {};
+        getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE>) ?? {};
 
     if (name && approverAccountID && approverEmail && field && approverName) {
         return translateLocal('workspaceActions.addApprovalRule', {
+            approverEmail,
+            approverName,
+            field,
+            name,
+        });
+    }
+
+    return getReportActionText(reportAction);
+}
+
+function getDeletedApprovaRulelMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {name, approverAccountID, approverEmail, field, approverName} =
+        getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE>) ?? {};
+
+    if (name && approverAccountID && approverEmail && field && approverName) {
+        return translateLocal('workspaceActions.deleteApprovalRule', {
             approverEmail,
             approverName,
             field,
@@ -2532,6 +2548,7 @@ export {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getAddedApprovaRulelMessage,
+    getDeletedApprovaRulelMessage,
     getUpdatedApprovalRuleMessage,
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
