@@ -61,12 +61,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
         NEW_VERSION: ${{ steps.determineNewVersion.outputs.NEW_VERSION }}
+    container:
+      image: reactnativecommunity/react-native-android:latest
+      env:
+        TERM: "dumb"
+        GRADLE_OPTS: "-Dorg.gradle.daemon=false"
     steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-          with:
-            ref: refs/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }}/head
-
         - name: Download react-native-module
           uses: actions/download-artifact@v4
           with:
@@ -86,8 +86,10 @@ jobs:
           with:
             gradle-version: wrapper
 
-        - name: Setup Node
-          uses: ./.github/actions/composite/setupNode
+        - name: Setup node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 20
 
         - name: Determine React Native version used for patched release and increment patch iteration
           id: determineNewVersion
