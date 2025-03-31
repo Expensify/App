@@ -1,18 +1,17 @@
 import React, {useCallback, useContext, useMemo, useState} from 'react';
-import type {Transaction} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type TMoneyRequestReportContext = {
-    selectedTransactions: Record<string, Transaction[]>;
-    setSelectedTransactions: (reportID: string) => (transactions: Transaction[]) => void;
-    toggleTransaction: (reportID: string) => (transaction: Transaction) => void;
+    selectedTransactionsID: Record<string, string[]>;
+    setSelectedTransactionsID: (reportID: string) => (transactionsID: string[]) => void;
+    toggleTransaction: (reportID: string) => (transactionID: string) => void;
     removeTransaction: (reportID: string) => (transactionID: string) => void;
-    isTransactionSelected: (reportID: string) => (transaction: Transaction) => boolean;
+    isTransactionSelected: (reportID: string) => (transactionID: string) => boolean;
 };
 
 const defaultMoneyRequestReportContext = {
-    selectedTransactions: {},
-    setSelectedTransactions: () => () => {},
+    selectedTransactionsID: {},
+    setSelectedTransactionsID: () => () => {},
     toggleTransaction: () => () => {},
     removeTransaction: () => () => {},
     isTransactionSelected: () => () => false,
@@ -21,23 +20,23 @@ const defaultMoneyRequestReportContext = {
 const Context = React.createContext<TMoneyRequestReportContext>(defaultMoneyRequestReportContext);
 
 function MoneyRequestReportContextProvider({children}: ChildrenProps) {
-    const [selectedTransactionsForReport, setSelectedTransactionsForReport] = useState<Record<string, Transaction[]>>({});
+    const [selectedTransactionsForReport, setSelectedTransactionsForReport] = useState<Record<string, string[]>>({});
 
-    const setSelectedTransactions = useCallback(
-        (reportID: string) => (transactions: Transaction[]) => {
-            setSelectedTransactionsForReport((prev) => ({...prev, [reportID]: transactions}));
+    const setSelectedTransactionsID = useCallback(
+        (reportID: string) => (transactionsID: string[]) => {
+            setSelectedTransactionsForReport((prev) => ({...prev, [reportID]: transactionsID}));
         },
         [],
     );
 
     const toggleTransaction = useCallback(
-        (reportID: string) => (transaction: Transaction) => {
+        (reportID: string) => (transactionID: string) => {
             setSelectedTransactionsForReport((prev) => {
                 const prevTransactions = prev[reportID] ?? [];
-                if (prevTransactions.includes(transaction)) {
-                    return {...prev, [reportID]: prevTransactions.filter((t) => t !== transaction)};
+                if (prevTransactions.includes(transactionID)) {
+                    return {...prev, [reportID]: prevTransactions.filter((t) => t !== transactionID)};
                 }
-                return {...prev, [reportID]: [...prevTransactions, transaction]};
+                return {...prev, [reportID]: [...prevTransactions, transactionID]};
             });
         },
         [],
@@ -47,26 +46,26 @@ function MoneyRequestReportContextProvider({children}: ChildrenProps) {
         (reportID: string) => (transactionID: string) => {
             setSelectedTransactionsForReport((prev) => {
                 const prevTransactions = prev[reportID] ?? [];
-                return {...prev, [reportID]: prevTransactions.filter((t) => t.transactionID !== transactionID)};
+                return {...prev, [reportID]: prevTransactions.filter((t) => t !== transactionID)};
             });
         },
         [],
     );
 
     const isTransactionSelected = useCallback(
-        (reportID: string) => (transaction: Transaction) => (selectedTransactionsForReport[reportID] ?? []).includes(transaction),
+        (reportID: string) => (transactionID: string) => (selectedTransactionsForReport[reportID] ?? []).includes(transactionID),
         [selectedTransactionsForReport],
     );
 
     const context = useMemo(
         () => ({
-            selectedTransactions: selectedTransactionsForReport,
-            setSelectedTransactions,
+            selectedTransactionsID: selectedTransactionsForReport,
+            setSelectedTransactionsID,
             toggleTransaction,
             isTransactionSelected,
             removeTransaction,
         }),
-        [isTransactionSelected, removeTransaction, selectedTransactionsForReport, setSelectedTransactions, toggleTransaction],
+        [isTransactionSelected, removeTransaction, selectedTransactionsForReport, setSelectedTransactionsID, toggleTransaction],
     );
 
     return <Context.Provider value={context}>{children}</Context.Provider>;
@@ -77,8 +76,8 @@ function useMoneyRequestReportContext(reportID = '') {
 
     return useMemo(
         () => ({
-            selectedTransactions: context.selectedTransactions[reportID] ?? [],
-            setSelectedTransactions: context.setSelectedTransactions(reportID),
+            selectedTransactionsID: context.selectedTransactionsID[reportID] ?? [],
+            setSelectedTransactionsID: context.setSelectedTransactionsID(reportID),
             toggleTransaction: context.toggleTransaction(reportID),
             isTransactionSelected: context.isTransactionSelected(reportID),
             removeTransaction: context.removeTransaction(reportID),

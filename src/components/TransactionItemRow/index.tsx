@@ -38,7 +38,7 @@ function TransactionItemRow({
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {selectedTransactions, toggleTransaction, isTransactionSelected} = useMoneyRequestReportContext(reportID);
+    const {toggleTransaction, isTransactionSelected} = useMoneyRequestReportContext(reportID);
 
     const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
@@ -55,10 +55,10 @@ function TransactionItemRow({
                                 <View style={[styles.mr3, styles.justifyContentCenter]}>
                                     <Checkbox
                                         onPress={() => {
-                                            toggleTransaction(transactionItem);
+                                            toggleTransaction(transactionItem.transactionID);
                                         }}
                                         accessibilityLabel="checkbox"
-                                        isChecked={isTransactionSelected(transactionItem)}
+                                        isChecked={isTransactionSelected(transactionItem.transactionID)}
                                     />
                                 </View>
                                 <View style={[styles.mr3]}>
@@ -126,10 +126,10 @@ function TransactionItemRow({
                                 <View style={[styles.mr3]}>
                                     <Checkbox
                                         onPress={() => {
-                                            toggleTransaction(transactionItem);
+                                            toggleTransaction(transactionItem.transactionID);
                                         }}
                                         accessibilityLabel="checkbox"
-                                        isChecked={selectedTransactions.map((t) => t.transactionID).includes(transactionItem.transactionID)}
+                                        isChecked={isTransactionSelected(transactionItem.transactionID)}
                                     />
                                 </View>
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>

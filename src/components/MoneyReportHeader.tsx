@@ -40,6 +40,7 @@ import {
 import {
     allHavePendingRTERViolation,
     checkIfShouldShowMarkAsCashButton,
+    getTransaction,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
@@ -60,7 +61,6 @@ import {
     getNextApproverAccountID,
     payInvoice,
     payMoneyRequest,
-    putOnHold,
     submitReport,
 } from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
@@ -186,13 +186,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [moneyRequestReport, chatReport, policy, transaction],
     );
 
-    const {selectedTransactions} = useMoneyRequestReportContext(moneyRequestReport?.reportID);
+    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(moneyRequestReport?.reportID);
 
     const selectedTransactionsOptions = useMemo(() => {
-        if (!selectedTransactions.length) {
+        if (!selectedTransactionsID.length) {
             return [];
         }
         const options = [];
+        const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
 
         // TODO memo is not calcualted on hold/unhold
         const anyTransactionOnHold = selectedTransactions.some(isOnHoldTransactionUtils);
@@ -216,12 +217,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 value: 'UNHOLD',
                 onSelected: () => {
                     const iouActions = reportActions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU));
-                    const selectedTransactionIDs = new Set(selectedTransactions.map((t) => t.transactionID));
                     const selectedIOUActions = iouActions.filter(
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                        (action) => action.originalMessage?.IOUTransactionID && selectedTransactionIDs.has(action?.originalMessage?.IOUTransactionID),
+                        (action) => action.originalMessage?.IOUTransactionID && selectedTransactionsID.includes(action?.originalMessage?.IOUTransactionID),
                     );
                     selectedIOUActions.forEach((action) => changeMoneyRequestHoldStatus(action));
+                    setSelectedTransactionsID([...selectedTransactionsID]); // it's needed in order to recalculate options
                 },
             });
         }
@@ -234,15 +235,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 if (!moneyRequestReport) {
                     return;
                 }
-                exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: selectedTransactions.map((t) => t.transactionID)}, () => {
+                exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: selectedTransactionsID}, () => {
                     console.error('Export failed!'); // TODO show modal?
                 });
             },
         });
 
-        const canAllSelectedTransactionBeRemoved = selectedTransactions.every((t) => {
-            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(t.transactionID);
-            const action = getIOUActionForTransactionID(reportActions, t?.transactionID ?? '');
+        const canAllSelectedTransactionBeRemoved = selectedTransactionsID.every((transactionID) => {
+            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transactionID);
+            const action = getIOUActionForTransactionID(reportActions, transactionID ?? '');
             const isActionDeleted = isDeletedAction(action);
             const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
 
@@ -269,7 +270,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             });
         }
         return options;
-    }, [moneyRequestReport, reportActions, selectedTransactions, session?.accountID, translate]);
+    }, [moneyRequestReport, reportActions, selectedTransactionsID, session?.accountID, setSelectedTransactionsID, translate]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length;
 
@@ -496,7 +497,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         <ButtonWithDropdownMenu
                             onPress={() => null}
                             options={selectedTransactionsOptions}
-                            customText={translate('workspace.common.selected', {count: selectedTransactions.length})}
+                            customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
                             isSplitButton={false}
                             shouldAlwaysShowDropdownMenu
                         />
@@ -578,7 +579,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             <ButtonWithDropdownMenu
                                 onPress={() => null}
                                 options={selectedTransactionsOptions}
-                                customText={translate('workspace.common.selected', {count: selectedTransactions.length})}
+                                customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
                                 isSplitButton={false}
                                 shouldAlwaysShowDropdownMenu
                                 wrapperStyle={styles.w100}

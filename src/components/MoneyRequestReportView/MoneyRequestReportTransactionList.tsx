@@ -89,7 +89,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
-    const {selectedTransactions, setSelectedTransactions} = useMoneyRequestReportContext(report.reportID);
+    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(report.reportID);
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
@@ -162,14 +162,14 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                     <View style={[styles.p2, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
-                                if (selectedTransactions.length === transactions.length) {
-                                    setSelectedTransactions([]);
+                                if (selectedTransactionsID.length === transactions.length) {
+                                    setSelectedTransactionsID([]);
                                 } else {
-                                    setSelectedTransactions(transactions);
+                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
                                 }
                             }}
                             accessibilityLabel="checkbox"
-                            isChecked={selectedTransactions.length === transactions.length}
+                            isChecked={selectedTransactionsID.length === transactions.length}
                         />
                     </View>
                     <MoneyRequestReportTableHeader

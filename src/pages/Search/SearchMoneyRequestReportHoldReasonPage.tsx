@@ -28,14 +28,13 @@ function SearchMoneyRequestReportHoldReasonPage({route}: SearchMoneyRequestRepor
     const {translate} = useLocalize();
 
     const {backTo = '', reportID = ''} = route.params ?? {};
-    const {selectedTransactions, setSelectedTransactions} = useMoneyRequestReportContext(reportID);
+    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(reportID);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        const transactionIDs = selectedTransactions.map((t) => t.transactionID);
         // I'm using search API because it's simpler. Alternative solution is to interate over selected transactions
         // and find transaction thread report for each transaction and then call `putOnHold`.
-        holdMoneyRequestOnSearch(-1, transactionIDs, values.comment);
-        setSelectedTransactions([...selectedTransactions]);
+        holdMoneyRequestOnSearch(-1, selectedTransactionsID, values.comment);
+        setSelectedTransactionsID([...selectedTransactionsID]); // It's needed so the actions in header are recalculated
 
         Navigation.goBack();
     };
