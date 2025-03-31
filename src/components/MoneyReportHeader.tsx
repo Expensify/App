@@ -14,9 +14,10 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getOriginalMessage, isActionOfType, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
     canBeExported,
+    canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
     changeMoneyRequestHoldStatus,
     getArchiveReason,
@@ -59,6 +60,7 @@ import {
     getNextApproverAccountID,
     payInvoice,
     payMoneyRequest,
+    putOnHold,
     submitReport,
 } from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
@@ -192,13 +194,33 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         const options = [];
 
+        // TODO memo is not calcualted on hold/unhold
         const anyTransactionOnHold = selectedTransactions.some(isOnHoldTransactionUtils);
+        const allTransactionOnHold = selectedTransactions.every(isOnHoldTransactionUtils);
 
         if (!anyTransactionOnHold) {
             options.push({
                 text: translate('iou.hold'),
                 icon: Expensicons.Stopwatch,
                 value: CONST.REPORT.SECONDARY_ACTIONS.HOLD,
+                onSelected: () => {
+                    const iouActions = reportActions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU));
+                    const selectedTransactionIDs = new Set(selectedTransactions.map((t) => t.transactionID));
+                    const selectedIOUActions = iouActions.filter(
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                        (action) => action.originalMessage?.IOUTransactionID && selectedTransactionIDs.has(action?.originalMessage?.IOUTransactionID),
+                    );
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                    selectedIOUActions.forEach((action) => putOnHold(action?.originalMessage?.IOUTransactionID, 'hold', moneyRequestReport?.reportID));
+                },
+            });
+        }
+
+        if (allTransactionOnHold) {
+            options.push({
+                text: translate('iou.unhold'),
+                icon: Expensicons.Stopwatch,
+                value: 'UNHOLD',
                 onSelected: () => {
                     const iouActions = reportActions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU));
                     const selectedTransactionIDs = new Set(selectedTransactions.map((t) => t.transactionID));
@@ -225,25 +247,36 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             },
         });
 
-        // TODO add condition for deletion
-        options.push({
-            text: translate('common.delete'),
-            icon: Expensicons.Trashcan,
-            value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-            onSelected: () => {
-                const iouActions = reportActions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU));
+        const canAllSelectedTransactionBeRemoved = selectedTransactions.every((t) => {
+            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(t.transactionID);
+            const action = getIOUActionForTransactionID(reportActions, t?.transactionID ?? '');
+            const isActionDeleted = isDeletedAction(action);
+            const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
 
-                const transactionsWithActions = selectedTransactions.map((t) => ({
-                    transactionID: t.transactionID,
-                    action: iouActions.find((action) => action?.originalMessage?.IOUTransactionID === t.transactionID),
-                }));
-
-                transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
-            },
+            return canRemoveTransaction && isIOUActionOwner && !isActionDeleted;
         });
 
+        const canRemoveReportTransaction = canDeleteTransaction(moneyRequestReport);
+
+        if (canRemoveReportTransaction && canAllSelectedTransactionBeRemoved) {
+            options.push({
+                text: translate('common.delete'),
+                icon: Expensicons.Trashcan,
+                value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
+                onSelected: () => {
+                    const iouActions = reportActions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU));
+
+                    const transactionsWithActions = selectedTransactions.map((t) => ({
+                        transactionID: t.transactionID,
+                        action: iouActions.find((action) => action?.originalMessage?.IOUTransactionID === t.transactionID),
+                    }));
+
+                    transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
+                },
+            });
+        }
         return options;
-    }, [moneyRequestReport, reportActions, selectedTransactions, translate]);
+    }, [moneyRequestReport, reportActions, selectedTransactions, session?.accountID, translate]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length;
 

@@ -6,6 +6,7 @@ type TMoneyRequestReportContext = {
     selectedTransactions: Record<string, Transaction[]>;
     setSelectedTransactions: (reportID: string) => (transactions: Transaction[]) => void;
     toggleTransaction: (reportID: string) => (transaction: Transaction) => void;
+    removeTransaction: (reportID: string) => (transactionID: string) => void;
     isTransactionSelected: (reportID: string) => (transaction: Transaction) => boolean;
 };
 
@@ -13,6 +14,7 @@ const defaultMoneyRequestReportContext = {
     selectedTransactions: {},
     setSelectedTransactions: () => () => {},
     toggleTransaction: () => () => {},
+    removeTransaction: () => () => {},
     isTransactionSelected: () => () => false,
 };
 
@@ -41,6 +43,16 @@ function MoneyRequestReportContextProvider({children}: ChildrenProps) {
         [],
     );
 
+    const removeTransaction = useCallback(
+        (reportID: string) => (transactionID: string) => {
+            setSelectedTransactionsForReport((prev) => {
+                const prevTransactions = prev[reportID] ?? [];
+                return {...prev, [reportID]: prevTransactions.filter((t) => t.transactionID !== transactionID)};
+            });
+        },
+        [],
+    );
+
     const isTransactionSelected = useCallback(
         (reportID: string) => (transaction: Transaction) => (selectedTransactionsForReport[reportID] ?? []).includes(transaction),
         [selectedTransactionsForReport],
@@ -52,8 +64,9 @@ function MoneyRequestReportContextProvider({children}: ChildrenProps) {
             setSelectedTransactions,
             toggleTransaction,
             isTransactionSelected,
+            removeTransaction,
         }),
-        [isTransactionSelected, selectedTransactionsForReport, setSelectedTransactions, toggleTransaction],
+        [isTransactionSelected, removeTransaction, selectedTransactionsForReport, setSelectedTransactions, toggleTransaction],
     );
 
     return <Context.Provider value={context}>{children}</Context.Provider>;
@@ -68,6 +81,7 @@ function useMoneyRequestReportContext(reportID = '') {
             setSelectedTransactions: context.setSelectedTransactions(reportID),
             toggleTransaction: context.toggleTransaction(reportID),
             isTransactionSelected: context.isTransactionSelected(reportID),
+            removeTransaction: context.removeTransaction(reportID),
         }),
         [context, reportID],
     );

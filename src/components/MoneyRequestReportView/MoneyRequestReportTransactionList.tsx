@@ -106,7 +106,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {sortBy, sortOrder} = sortedData;
 
     useEffect(() => {
-        if (areTransactionValuesEqual(transactions, sortBy)) {
+        if (areTransactionValuesEqual(transactions, sortBy) && sortedData.transactions.length === transactions.length) {
             return;
         }
 
@@ -114,7 +114,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
             ...prevState,
             transactions: [...transactions].sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy)),
         }));
-    }, [sortBy, sortOrder, transactions]);
+    }, [sortBy, sortOrder, sortedData.transactions.length, transactions]);
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
