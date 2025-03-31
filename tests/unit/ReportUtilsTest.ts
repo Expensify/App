@@ -1940,7 +1940,7 @@ describe('ReportUtils', () => {
     describe('findLastAccessedReport', () => {
         let archivedReport: Report;
         let normalReport: Report;
-        
+
         beforeAll(async () => {
             // Set up test reports - one archived, one normal
             archivedReport = {
@@ -1949,51 +1949,51 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-02-01 04:56:47.233',
                 lastVisibleActionCreated: '2024-02-01 04:56:47.233',
             };
-            
+
             normalReport = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1002',
                 lastReadTime: '2024-01-01 04:56:47.233', // Older last read time
                 lastVisibleActionCreated: '2024-01-01 04:56:47.233',
             };
-            
+
             // Set up report name value pairs to mark one report as archived
             const reportNameValuePairs = {
                 private_isArchived: DateUtils.getDBTime(),
             };
-            
+
             // Add reports to Onyx
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, archivedReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`, normalReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
-            
+
             // Set up report metadata for lastVisitTime
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${archivedReport.reportID}`, { 
-                lastVisitTime: '2024-02-01 04:56:47.233' // More recent visit
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${archivedReport.reportID}`, {
+                lastVisitTime: '2024-02-01 04:56:47.233', // More recent visit
             });
-            
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${normalReport.reportID}`, { 
-                lastVisitTime: '2024-01-01 04:56:47.233'
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${normalReport.reportID}`, {
+                lastVisitTime: '2024-01-01 04:56:47.233',
             });
-            
+
             return waitForBatchedUpdates();
         });
-        
+
         afterAll(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
         });
-        
+
         it('should not return an archived report even if it was most recently accessed', () => {
             const result = findLastAccessedReport(false);
-            
+
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
             expect(result?.reportID).toBe(normalReport.reportID);
             expect(result?.reportID).not.toBe(archivedReport.reportID);
         });
     });
-    
+
     describe('getApprovalChain', () => {
         describe('submit and close policy', () => {
             it('should return empty array', () => {
