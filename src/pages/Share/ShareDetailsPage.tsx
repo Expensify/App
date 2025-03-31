@@ -108,7 +108,6 @@ function ShareDetailsPage({
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
-                shouldEnableKeyboardAvoidingView={false}
                 keyboardAvoidingViewBehavior="padding"
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID={ShareDetailsPage.displayName}

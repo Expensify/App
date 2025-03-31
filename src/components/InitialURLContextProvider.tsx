@@ -1,11 +1,14 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
 import {signInAfterTransitionFromOldDot} from '@libs/actions/Session';
-import Navigation from '@navigation/Navigation';
+import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {AppProps} from '@src/App';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
 type InitialUrlContextType = {
@@ -32,7 +35,19 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
         if (url && hybridAppSettings) {
             signInAfterTransitionFromOldDot(hybridAppSettings).then(() => {
                 setInitialURL(url);
+
+                const parsedUrl = Navigation.parseHybridAppUrl(url);
+
                 Navigation.isNavigationReady().then(() => {
+                    if (parsedUrl.startsWith(`/${ROUTES.SHARE_ROOT}`)) {
+                        const focusRoute = findFocusedRoute(navigationRef.getRootState());
+                        if (focusRoute?.name === SCREENS.SHARE.SHARE_DETAILS || focusRoute?.name === SCREENS.SHARE.SUBMIT_DETAILS) {
+                            Navigation.goBack(ROUTES.SHARE_ROOT);
+                        } else {
+                            Navigation.navigate(ROUTES.SHARE_ROOT);
+                        }
+                        return;
+                    }
                     Navigation.navigate(Navigation.parseHybridAppUrl(url));
                 });
 
