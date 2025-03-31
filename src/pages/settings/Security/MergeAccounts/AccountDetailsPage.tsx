@@ -1,6 +1,6 @@
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -22,7 +22,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
-import {requestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
+import {clearRequestValidationCodeForAccountMerge, requestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -65,20 +65,32 @@ function AccountDetailsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    useEffect(() => {
-        if (!validateCodeSent || !email) {
-            return;
-        }
+    useFocusEffect(
+        useCallback(() => {
+            if (!validateCodeSent || !email) {
+                return;
+            }
 
-        return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email));
-    }, [validateCodeSent, email]);
+            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email));
+        }, [validateCodeSent, email]),
+    );
 
-    useEffect(() => {
-        if (!errorKey || !email) {
-            return;
-        }
-        return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorKey));
-    }, [errorKey, email]);
+    useFocusEffect(
+        useCallback(() => {
+            if (!errorKey || !email) {
+                return;
+            }
+            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorKey));
+        }, [errorKey, email]),
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                clearRequestValidationCodeForAccountMerge();
+            };
+        }, []),
+    );
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM>): Errors => {
         const errors = {};

@@ -1,6 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useRoute} from '@react-navigation/native';
-import React, {useContext, useEffect, useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
@@ -18,7 +18,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {openOldDotLink} from '@userActions/Link';
-import {clearMergeWithValidateCode, clearRequestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -30,12 +29,9 @@ function MergeResultPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
-    const [mergeWithValidateCode] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.mergeWithValidateCode});
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {result, login} = params;
-
-    const mergeStepHadError = Object.values(mergeWithValidateCode?.errors ?? {}).length > 0;
 
     const defaultResult = {
         heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
@@ -241,20 +237,6 @@ function MergeResultPage() {
         shouldShowSecondaryButton,
     } = results[result] || defaultResult;
 
-    useEffect(() => {
-        if (result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS) {
-            if (mergeStepHadError) {
-                clearMergeWithValidateCode();
-            } else {
-                clearRequestValidationCodeForAccountMerge();
-            }
-            return;
-        }
-
-        clearRequestValidationCodeForAccountMerge();
-        clearMergeWithValidateCode();
-    }, [result, mergeStepHadError]);
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -264,8 +246,7 @@ function MergeResultPage() {
                 title={translate('mergeAccountsPage.mergeAccount')}
                 shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
                 onBackButtonPress={() => {
-                    const route = mergeStepHadError ? ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(login) : ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute(login);
-                    Navigation.goBack(route);
+                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute(login));
                 }}
                 shouldDisplayHelpButton={false}
             />
