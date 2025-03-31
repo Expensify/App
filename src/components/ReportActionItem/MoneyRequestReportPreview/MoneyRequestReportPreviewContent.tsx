@@ -417,6 +417,7 @@ function MoneyRequestReportPreviewContent({
         }
         return renderItem(itemInfo);
     };
+
     // The button should expand up to transaction width
     const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
 
