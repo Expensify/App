@@ -8118,18 +8118,6 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>) {
-    const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
-
-    // If the expense report is marked for deletion, let us prevent any further write action.
-    if (isMoneyRequestReportPendingDeletion(report)) {
-        return false;
-    }
-
-    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-    return !isArchivedNonExpenseReport(report, reportNameValuePairs) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
-}
-
 function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: boolean, canUserPerformWriteAction: boolean | undefined, isOffline: boolean) {
     const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWriteAction);
 
@@ -8151,6 +8139,18 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
         // Pop the chat report screen before navigating to the linked report action.
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID));
     }
+}
+
+function canUserPerformWriteAction(report: OnyxEntry<Report>) {
+    const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
+
+    // If the expense report is marked for deletion, let us prevent any further write action.
+    if (isMoneyRequestReportPendingDeletion(report)) {
+        return false;
+    }
+
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+    return !isArchivedNonExpenseReport(report, reportNameValuePairs) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
 }
 
 /**
