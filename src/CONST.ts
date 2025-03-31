@@ -6446,14 +6446,6 @@ const CONST = {
             YES: 'yes',
             NO: 'no',
         },
-        BILLABLE: {
-            YES: 'yes',
-            NO: 'no',
-        },
-        REIMBURSABLE: {
-            YES: 'yes',
-            NO: 'no',
-        },
         TABLE_COLUMN_SIZES: {
             NORMAL: 'normal',
             WIDE: 'wide',

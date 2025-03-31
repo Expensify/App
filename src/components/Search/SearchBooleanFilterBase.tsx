@@ -40,12 +40,12 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
 
     const initiallySelectedItems = useMemo(() => {
         return searchAdvancedFiltersForm?.[booleanKey]
-            ?.filter((value) => Object.values(CONST.SEARCH.BOOLEAN).includes(value as ValueOf<typeof CONST.SEARCH.BOOLEAN>))
+            ?.filter((value) => booleanValues.includes(value as ValueOf<typeof CONST.SEARCH.BOOLEAN>))
             .map((value) => {
                 const name = translate(`common.${value as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`);
                 return {name, value};
             });
-    }, [booleanKey, searchAdvancedFiltersForm, translate]);
+    }, [booleanKey, searchAdvancedFiltersForm, translate, booleanValues]);
 
     const updateFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({[booleanKey]: values}), [booleanKey]);
 

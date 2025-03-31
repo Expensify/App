@@ -161,8 +161,7 @@ function SearchAutocompleteList(
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
-    const billableTypes = Object.values(CONST.SEARCH.BILLABLE);
-    const reimbursableTypes = Object.values(CONST.SEARCH.REIMBURSABLE);
+    const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -395,23 +394,19 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
-                const filteredBillableTypes = billableTypes
-                    .filter((billableType) => billableType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(billableType))
-                    .sort();
+                const filteredValues = booleanTypes.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(value)).sort();
 
-                return filteredBillableTypes.map((billableType) => ({
+                return filteredValues.map((value) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.BILLABLE,
-                    text: billableType,
+                    text: value,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE: {
-                const filteredReimbursableTypes = reimbursableTypes
-                    .filter((reimbursableType) => reimbursableType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(reimbursableType))
-                    .sort();
+                const filteredValues = booleanTypes.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(value)).sort();
 
-                return filteredReimbursableTypes.map((reimbursableType) => ({
+                return filteredValues.map((value) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REIMBURSABLE,
-                    text: reimbursableType,
+                    text: value,
                 }));
             }
             default: {
@@ -437,8 +432,7 @@ function SearchAutocompleteList(
         cardAutocompleteList,
         allCards,
         groupByAutocompleteList,
-        billableTypes,
-        reimbursableTypes,
+        booleanTypes,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

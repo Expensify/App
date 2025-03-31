@@ -436,14 +436,6 @@ function buildFilterFormValuesFromQuery(
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
             filtersForm[filterKey] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
-            const validReimbursableTypes = new Set(Object.values(CONST.SEARCH.REIMBURSABLE));
-            filtersForm[filterKey] = filterValues.filter((reimbursableType) => validReimbursableTypes.has(reimbursableType as ValueOf<typeof CONST.SEARCH.REIMBURSABLE>));
-        }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
-            const validBillableTypes = new Set(Object.values(CONST.SEARCH.BILLABLE));
-            filtersForm[filterKey] = filterValues.filter((billableType) => validBillableTypes.has(billableType as ValueOf<typeof CONST.SEARCH.BILLABLE>));
-        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
             filtersForm[filterKey] = filterValues.filter((card) => cardList[card]);
         }
@@ -509,6 +501,10 @@ function buildFilterFormValuesFromQuery(
             filtersForm[FILTER_KEYS.GREATER_THAN] =
                 filterList.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
                 filtersForm[FILTER_KEYS.GREATER_THAN];
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
+            const validBooleanTypes = new Set(Object.values(CONST.SEARCH.BOOLEAN));
+            filtersForm[filterKey] = filterValues.filter((value) => validBooleanTypes.has(value as ValueOf<typeof CONST.SEARCH.BOOLEAN>));
         }
     }
 
