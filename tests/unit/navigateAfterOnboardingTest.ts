@@ -112,7 +112,14 @@ describe('navigateAfterOnboarding', () => {
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
         const testSession = {email: 'test+account@gmail.com'};
 
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+') && !testSession?.email?.startsWith('+'));
+        navigateAfterOnboarding(
+            true,
+            true,
+            ONBOARDING_POLICY_ID,
+            ACTIVE_WORKSPACE_ID,
+            ONBOARDING_ADMINS_CHAT_REPORT_ID,
+            (testSession?.email ?? '').includes('+') && !testSession?.email?.startsWith('+'),
+        );
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 });
