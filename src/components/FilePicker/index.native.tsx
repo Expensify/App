@@ -59,7 +59,11 @@ function FilePicker({children}: FilePickerProps) {
      * @param fileData The file data received from the picker
      */
     const validateAndCompleteFileSelection = useCallback(
-        (fileData: LocalCopy) => {
+        (fileData: LocalCopy | void) => {
+            if (!fileData) {
+                onCanceled.current();
+                return;
+            }
             return getDataForUpload(fileData)
                 .then((result) => {
                     completeFileSelection.current(result);
@@ -78,34 +82,27 @@ function FilePicker({children}: FilePickerProps) {
      * @param files The array of DocumentPickerResponse
      */
     // eslint-disable-next-line @lwc/lwc/no-async-await
-    const pickFile = async () => {
-        try {
-            const [file] = await pick({
-                type: [types.allFiles],
-            });
+    const pickFile = async (): Promise<LocalCopy> => {
+        const [file] = await pick({
+            type: [types.allFiles],
+        });
 
-            const [localCopy] = await keepLocalCopy({
-                files: [
-                    {
-                        uri: file.uri,
-                        fileName: file.name ?? 'spreadsheet',
-                    },
-                ],
-                destination: 'cachesDirectory',
-            });
+        const [localCopy] = await keepLocalCopy({
+            files: [
+                {
+                    uri: file.uri,
+                    fileName: file.name ?? 'spreadsheet',
+                },
+            ],
+            destination: 'cachesDirectory',
+        });
 
-            const fileResult: LocalCopy = {
-                name: FileUtils.cleanFileName(file.name ?? 'spreadsheet'),
-                type: file.type,
-                uri: localCopy.sourceUri,
-                size: file.size,
-            };
-
-            validateAndCompleteFileSelection(fileResult);
-        } catch (error) {
-            showGeneralAlert(error.message);
-            throw error;
-        }
+        return {
+            name: FileUtils.cleanFileName(file.name ?? 'spreadsheet'),
+            type: file.type,
+            uri: localCopy.sourceUri,
+            size: file.size,
+        };
     };
 
     /**
@@ -118,7 +115,18 @@ function FilePicker({children}: FilePickerProps) {
     const open = (onPickedHandler: (file: FileObject) => void, onCanceledHandler: () => void = () => {}) => {
         completeFileSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
-        pickFile();
+        pickFile()
+            .catch((error: Error) => {
+                if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
+                    onCanceled.current();
+                    return Promise.resolve();
+                }
+
+                showGeneralAlert(error.message);
+                throw error;
+            })
+            .then(validateAndCompleteFileSelection)
+            .catch(console.error);
     };
 
     /**

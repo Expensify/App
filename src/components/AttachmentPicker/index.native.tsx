@@ -196,49 +196,30 @@ function AttachmentPicker({
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
     // eslint-disable-next-line @lwc/lwc/no-async-await
-    const showDocumentPicker = async (): Promise<LocalCopy[]> => {
-        try {
-            const [pickedFile, ...pickedFiles] = await pick({
-                type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
-                allowMultiSelection: fileLimit !== 1,
-            });
+    const showDocumentPicker = async (): Promise<LocalCopy[] | void> => {
+        const pickedFiles = await pick({
+            type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
+            allowMultiSelection: fileLimit !== 1,
+        });
 
-            const [localCopy, ...localCopies] = await keepLocalCopy({
-                files: [
-                    {
-                        uri: pickedFile.uri,
-                        fileName: pickedFile.name ?? '',
-                    } as FileToCopy,
-                    ...pickedFiles.map((file) => {
-                        return {
-                            uri: file.uri,
-                            fileName: file.name ?? '',
-                        } as FileToCopy;
-                    }),
-                ],
-                destination: 'cachesDirectory',
-            });
+        const localCopies = await keepLocalCopy({
+            files: pickedFiles.map((file) => {
+                return {
+                    uri: file.uri,
+                    fileName: file.name ?? '',
+                };
+            }) as [FileToCopy, ...FileToCopy[]],
+            destination: 'cachesDirectory',
+        });
 
-            return [
-                {
-                    name: pickedFile.name,
-                    uri: localCopy.sourceUri,
-                    size: pickedFile.size,
-                    type: pickedFile.type,
-                },
-                ...pickedFiles.map((file, index) => {
-                    return {
-                        name: file.name,
-                        uri: localCopies.at(index)?.sourceUri ?? file.uri,
-                        size: file.size,
-                        type: file.type,
-                    };
-                }),
-            ];
-        } catch (error) {
-            showGeneralAlert(error.message);
-            throw error;
-        }
+        return pickedFiles.map((file, index) => {
+            return {
+                name: file.name,
+                uri: localCopies.at(index)?.sourceUri ?? file.uri,
+                size: file.size,
+                type: file.type,
+            };
+        });
     };
 
     const menuItemData: Item[] = useMemo(() => {
@@ -409,6 +390,14 @@ function AttachmentPicker({
             onModalHide.current = () => {
                 setTimeout(() => {
                     item.pickAttachment()
+                        .catch((error: Error) => {
+                            if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
+                                return;
+                            }
+
+                            showGeneralAlert(error.message);
+                            throw error;
+                        })
                         .then((result) => pickAttachment(result))
                         .catch(console.error)
                         .finally(() => delete onModalHide.current);
