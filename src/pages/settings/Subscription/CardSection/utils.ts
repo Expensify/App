@@ -59,11 +59,14 @@ function getBillingStatus({translate, accountData, purchase}: GetBillingStatusPr
         case PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE:
             return {
                 title: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle', 
-                    isBillingFailed ? {
-                        date: purchaseDateFormatted,
-                        purchaseAmountOwed: purchaseAmountWithCurrency,
-                    } : {}
+                subtitle: translate(
+                    'subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle',
+                    isBillingFailed
+                        ? {
+                              date: purchaseDateFormatted,
+                              purchaseAmountOwed: purchaseAmountWithCurrency,
+                          }
+                        : {},
                 ),
                 isError: true,
                 isRetryAvailable: true,
