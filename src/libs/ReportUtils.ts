@@ -2886,9 +2886,9 @@ function getIcons(
         };
         const isManager = currentUserAccountID === report?.managerID;
 
-        // For one transaction IOUs, display a simplified report icon. IOUs use the managerIcon.
+        // For one transaction IOUs, display a simplified report icon.
         if (isOneTransactionReport(report?.reportID)) {
-            return [managerIcon];
+            return [ownerIcon];
         }
 
         return isManager ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
