@@ -18,7 +18,6 @@ import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actio
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
-import {getActivePolicy} from '@libs/PolicyUtils';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,8 +35,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
-    const activePolicy = getActivePolicy();
-    const isActivePolicyGroup = activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL;
 
     useEffect(() => {
         if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
@@ -116,9 +113,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
                                 setErrorMessage('');
                             }
 
-                            if (isActivePolicyGroup) {
-                                acceptSpotnanaTerms(domain);
-                            }
+                            acceptSpotnanaTerms(domain);
                         }}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}
