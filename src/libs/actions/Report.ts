@@ -84,7 +84,6 @@ import {buildNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
@@ -965,8 +964,7 @@ function openReport(
     };
 
     // temporary flag will be removed once ReportScreen supports MoneyRequestReportView - https://github.com/Expensify/App/issues/57509
-    // Permission will be removed before the end of the project
-    if (temporaryShouldUseTableReportView && Permissions.canUseTableReportView(allBetas)) {
+    if (temporaryShouldUseTableReportView) {
         parameters.useTableReportView = true;
     }
 
