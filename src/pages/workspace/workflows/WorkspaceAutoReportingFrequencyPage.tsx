@@ -9,8 +9,8 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Localize from '@libs/Localize';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {translate} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -39,12 +39,12 @@ type WorkspaceAutoReportingFrequencyPageItem = {
 type AutoReportingFrequencyDisplayNames = Record<AutoReportingFrequencyKey, string>;
 
 const getAutoReportingFrequencyDisplayNames = (locale: Locale): AutoReportingFrequencyDisplayNames => ({
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: Localize.translate(locale, 'workflowsPage.frequencies.monthly'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: Localize.translate(locale, 'workflowsPage.frequencies.daily'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: Localize.translate(locale, 'workflowsPage.frequencies.weekly'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: Localize.translate(locale, 'workflowsPage.frequencies.twiceAMonth'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: Localize.translate(locale, 'workflowsPage.frequencies.byTrip'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: Localize.translate(locale, 'workflowsPage.frequencies.manually'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: translate(locale, 'workflowsPage.frequencies.monthly'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: translate(locale, 'workflowsPage.frequencies.daily'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: translate(locale, 'workflowsPage.frequencies.weekly'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: translate(locale, 'workflowsPage.frequencies.twiceAMonth'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: translate(locale, 'workflowsPage.frequencies.byTrip'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: translate(locale, 'workflowsPage.frequencies.manually'),
 });
 
 function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoReportingFrequencyPageProps) {
@@ -80,7 +80,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     const monthlyFrequencyDetails = () => (
         <OfflineWithFeedback
             pendingAction={policy?.pendingFields?.autoReportingOffset}
-            errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
+            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
             onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
             errorRowStyles={[styles.ml7]}
         >
@@ -124,7 +124,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                     />
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingFields?.autoReportingFrequency}
-                        errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
+                        errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
                         onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
                         style={styles.flex1}
                         contentContainerStyle={styles.flex1}

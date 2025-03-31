@@ -22,7 +22,7 @@ function FeesAndTerms() {
     const submit = () => {
         acceptWalletTerms({
             hasAcceptedTerms: true,
-            reportID: walletTerms?.chatReportID ?? '',
+            reportID: walletTerms?.chatReportID,
         });
         clearPersonalBankAccount();
         resetWalletAdditionalDetailsDraft();

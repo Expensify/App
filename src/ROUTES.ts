@@ -421,7 +421,12 @@ const ROUTES = {
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_PARTICIPANTS route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/participants` as const, backTo);
+        },
     },
     REPORT_PARTICIPANTS_INVITE: {
         route: 'r/:reportID/participants/invite',
@@ -518,7 +523,12 @@ const ROUTES = {
     },
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the ROOM_MEMBERS route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/members` as const, backTo);
+        },
     },
     ROOM_MEMBER_DETAILS: {
         route: 'r/:reportID/members/:accountID',

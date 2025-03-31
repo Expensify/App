@@ -119,7 +119,10 @@ function closeAccount(reason: string) {
 /**
  * Re-sends a validation link to a given login
  */
-function resendValidateCode(login: string) {
+function resendValidateCode(login: string | undefined) {
+    if (!login) {
+        return;
+    }
     sessionResendValidateCode(login);
 }
 

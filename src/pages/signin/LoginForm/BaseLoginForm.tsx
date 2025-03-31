@@ -25,7 +25,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import {setDefaultData} from '@userActions/CloseAccount';
 import {beginSignIn, clearAccountMessages, clearSignInData} from '@userActions/Session';
@@ -70,7 +70,7 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
             if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
-                if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
+                if (isNumericWithSpecialChars(loginTrim)) {
                     setFormError('common.error.phoneNumber');
                 } else {
                     setFormError('loginForm.error.invalidFormatEmailLogin');

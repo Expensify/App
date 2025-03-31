@@ -1,13 +1,17 @@
 import Onyx from 'react-native-onyx';
 import type {AppActionsMock} from '@userActions/__mocks__/App';
 import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
-import {getMissingOnyxUpdates} from '@userActions/App';
+// eslint-disable-next-line no-restricted-syntax
+import * as AppImport from '@userActions/App';
 import {handleMissingOnyxUpdates, queryPromise, resetDeferralLogicVariables} from '@userActions/OnyxUpdateManager';
-import {detectGapsAndSplit, validateAndApplyDeferredUpdates} from '@userActions/OnyxUpdateManager/utils';
+// eslint-disable-next-line no-restricted-syntax
+import * as OnyxUpdateManagerUtilsImport from '@userActions/OnyxUpdateManager/utils';
 import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
-import {applyUpdates} from '@userActions/OnyxUpdateManager/utils/applyUpdates';
-import {apply} from '@userActions/OnyxUpdates';
+// eslint-disable-next-line no-restricted-syntax
+import * as ApplyUpdatesImport from '@userActions/OnyxUpdateManager/utils/applyUpdates';
+// eslint-disable-next-line no-restricted-syntax
+import * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 
@@ -22,10 +26,10 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     }),
 }));
 
-const OnyxUpdates = {apply} as OnyxUpdatesMock;
-const App = {getMissingOnyxUpdates} as AppActionsMock;
-const ApplyUpdates = {applyUpdates} as ApplyUpdatesMock;
-const OnyxUpdateManagerUtils = {detectGapsAndSplit, validateAndApplyDeferredUpdates} as OnyxUpdateManagerUtilsMock;
+const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMock;
+const App = AppImport as AppActionsMock;
+const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
+const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
 
 const update2 = OnyxUpdateMockUtils.createUpdate(2);
 const pendingUpdateUpTo2 = OnyxUpdateMockUtils.createPendingUpdate(2);

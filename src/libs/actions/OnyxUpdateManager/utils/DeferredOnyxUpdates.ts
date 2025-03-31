@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 // eslint-disable-next-line import/no-cycle
-import * as OnyxUpdateManagerUtils from '.';
+import {validateAndApplyDeferredUpdates} from '.';
 
 let missingOnyxUpdatesQueryPromise: Promise<Response | Response[] | void> | undefined;
 let deferredUpdates: DeferredUpdatesDictionary = {};
@@ -61,10 +61,10 @@ function isEmpty() {
  */
 function process() {
     if (missingOnyxUpdatesQueryPromise) {
-        missingOnyxUpdatesQueryPromise.finally(() => OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates);
+        missingOnyxUpdatesQueryPromise.finally(() => validateAndApplyDeferredUpdates);
     }
 
-    missingOnyxUpdatesQueryPromise = OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates();
+    missingOnyxUpdatesQueryPromise = validateAndApplyDeferredUpdates();
 }
 
 type EnqueueDeferredOnyxUpdatesOptions = {

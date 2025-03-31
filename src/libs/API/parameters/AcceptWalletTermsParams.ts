@@ -1,6 +1,6 @@
 type AcceptWalletTermsParams = {
     hasAcceptedTerms: boolean;
-    reportID: string;
+    reportID?: string;
 };
 
 export default AcceptWalletTermsParams;

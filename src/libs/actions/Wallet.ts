@@ -154,6 +154,10 @@ function verifyIdentity(parameters: VerifyIdentityParams) {
  * @param parameters.chatReportID When accepting the terms of wallet to pay an IOU, indicates the parent chat ID of the IOU
  */
 function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
+    if (!parameters.reportID) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

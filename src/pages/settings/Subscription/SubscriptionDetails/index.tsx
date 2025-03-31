@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import TaxExemptActions from '@pages/settings/Subscription/TaxExemptActions';
 import variables from '@styles/variables';
-import * as Subscription from '@userActions/Subscription';
+import {clearUpdateSubscriptionSizeError, updateSubscriptionType} from '@userActions/Subscription';
 import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,7 +57,7 @@ function SubscriptionDetails() {
             return;
         }
 
-        Subscription.updateSubscriptionType(option);
+        updateSubscriptionType(option);
     };
 
     const onSubscriptionSizePress = () => {
@@ -76,7 +76,7 @@ function SubscriptionDetails() {
                     pendingAction={privateSubscription?.pendingFields?.userCount}
                     errors={privateSubscription?.errorFields?.userCount}
                     onClose={() => {
-                        Subscription.clearUpdateSubscriptionSizeError();
+                        clearUpdateSubscriptionSizeError();
                     }}
                 >
                     <MenuItemWithTopDescription
