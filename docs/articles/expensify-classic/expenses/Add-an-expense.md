@@ -148,6 +148,12 @@ Add your expenses to a report to submit them for approval and reimbursement.
    - **Existing Report** – Adds expenses to a report you choose.
    - **None** – Removes selected expenses from any report, as long as the report hasn’t been submitted.
 
+## Expenses Detected as Duplicates
+
+Expenses are flagged as duplicates only when both the date and amount of two (or more) expenses match exactly. If only the date or amount matches, the expenses will not be flagged as duplicates.
+
+To resolve duplicates, you can [merge the expenses](https://help.expensify.com/articles/expensify-classic/expenses/Edit-expenses#merge-expenses).
+
 ---
 
 # FAQ

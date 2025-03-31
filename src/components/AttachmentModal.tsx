@@ -21,7 +21,6 @@ import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, is
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import {detachReceipt} from '@userActions/IOU';
-import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -130,15 +129,6 @@ type AttachmentModalProps = {
     /** A function as a child to pass modal launching methods to */
     children?: React.FC<ChildrenProps>;
 
-    /** The iou action of the expense creation flow of which we are displaying the receipt for. */
-    iouAction?: IOUAction;
-
-    /** The iou type of the expense creation flow of which we are displaying the receipt for. */
-    iouType?: IOUType;
-
-    /** The id of the draft transaction linked to the receipt. */
-    draftTransactionID?: string;
-
     fallbackSource?: AvatarSource;
 
     canEditReceipt?: boolean;
@@ -176,9 +166,6 @@ function AttachmentModal({
     type = undefined,
     accountID = undefined,
     shouldDisableSendButton = false,
-    draftTransactionID,
-    iouAction,
-    iouType: iouTypeProp,
     attachmentLink = '',
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
@@ -198,7 +185,7 @@ function AttachmentModal({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
-    const iouType = useMemo(() => iouTypeProp ?? (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction, iouTypeProp]);
+    const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
@@ -450,19 +437,13 @@ function AttachmentModal({
                     closeModal(true);
                     InteractionManager.runAfterInteractions(() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                iouAction ?? CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                draftTransactionID ?? transaction?.transactionID,
-                                report?.reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     });
                 },
             });
         }
-        if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
+        if (!isOffline && allowDownload && !isLocalSource) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),
@@ -553,6 +534,11 @@ function AttachmentModal({
                         onCloseButtonPress={closeModal}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
+                        threeDotsAnchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
+                        shouldSetModalVisibility={false}
                         threeDotsMenuItems={threeDotsMenuItems}
                         shouldOverlayDots
                         subTitleLink={currentAttachmentLink ?? ''}
