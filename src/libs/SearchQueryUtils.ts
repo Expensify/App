@@ -761,6 +761,20 @@ function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTA
     return UserFriendlyKeyMap[keyName];
 }
 
+function shouldHighlight(referenceText: string, searchText: string) {
+    if (!referenceText || !searchText) {
+        return false;
+    }
+
+    const escapedText = searchText
+        .toLowerCase()
+        .trim()
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
+
+    return pattern.test(referenceText.toLowerCase());
+}
+
 export {
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -775,4 +789,5 @@ export {
     getQueryWithUpdatedValues,
     getUserFriendlyKey,
     isDefaultExpensesQuery,
+    shouldHighlight,
 };

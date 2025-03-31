@@ -34,7 +34,7 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -521,20 +521,10 @@ function SearchAutocompleteList(
     );
 
     useEffect(() => {
-        const referenceText = sections?.at(1)?.data?.[0]?.text?.toLowerCase() ?? '';
-        const targetText = autocompleteQueryValue.toLowerCase().trim();
+        const referenceText = sections?.at(1)?.data?.[0]?.text ?? '';
+        const targetText = autocompleteQueryValue;
 
-        if (!targetText) {
-            return;
-        }
-
-        // Escape special regex characters in user input
-        const escapedText = targetText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-        // Match exact words/phrases, avoid partial word matches
-        const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
-
-        if (pattern.test(referenceText)) {
+        if (shouldHighlight(referenceText, targetText)) {
             onHighlightFirstItem?.();
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, ref, sections]);
