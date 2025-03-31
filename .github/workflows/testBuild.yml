@@ -23,16 +23,8 @@ on:
         description: Should build iOS app?
         type: boolean
         default: true
-      IOS_HYBRID:
-        description: Should build iOS hybrid app?
-        type: boolean
-        default: true
       ANDROID:
         description: Should build android app?
-        type: boolean
-        default: true
-      ANDROID_HYBRID:
-        description: Should build android hybrid app?
         type: boolean
         default: true
 
@@ -77,150 +69,6 @@ jobs:
     secrets: inherit
     with:
       APP_PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-
-  buildAndroid:
-    name: Build Android app for testing
-    if: ${{ inputs.ANDROID }}
-    uses: ./.github/workflows/buildAndroid.yml
-    needs: [prep]
-    secrets: inherit
-    with:
-      type: adhoc
-      ref: ${{ needs.prep.outputs.REF }}
-      pull_request_number: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-
-  uploadAndroid:
-    name: Upload Android app to S3
-    needs: [buildAndroid]
-    runs-on: ubuntu-latest
-    outputs:
-      S3_APK_PATH: ${{ steps.exportS3Path.outputs.S3_APK_PATH }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
-        with:
-          bundler-cache: true
-
-      - name: Download Android build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: /tmp/artifacts
-          pattern: android-*-artifact
-          merge-multiple: true
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Upload AdHoc build to S3
-        run: bundle exec fastlane android upload_s3
-        env:
-          apkPath: /tmp/artifacts/${{ needs.buildAndroid.outputs.APK_FILE_NAME }}
-          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          S3_BUCKET: ad-hoc-expensify-cash
-          S3_REGION: us-east-1
-
-      - name: Export S3 paths
-        id: exportS3Path
-        run: |
-          # $s3APKPath is set from within the Fastfile, android upload_s3 lane
-          echo "S3_APK_PATH=$s3APKPath" >> "$GITHUB_OUTPUT"
-
-  iOS:
-    name: Build and deploy iOS for testing
-    if: ${{ inputs.IOS }}
-    needs: [prep]
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
-    runs-on: macos-15-xlarge
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prep.outputs.REF }}
-
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-
-      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
-        run: |
-          cp .env.staging .env.adhoc
-          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
-
-      - name: Setup Node
-        id: setup-node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Setup XCode
-        run: sudo xcode-select -switch /Applications/Xcode_16.2.0.app
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.204.0
-        with:
-          bundler-cache: true
-
-      - name: Cache Pod dependencies
-        uses: actions/cache@v4
-        id: pods-cache
-        with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
-
-      - name: Compare Podfile.lock and Manifest.lock
-        id: compare-podfile-and-manifest
-        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
-
-      - name: Install cocoapods
-        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
-        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: scripts/pod-install.sh
-
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
-
-      - name: Load files from 1Password
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: |
-          op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc/NewApp_AdHoc.mobileprovision" --force --out-file ./NewApp_AdHoc.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc_Notification_Service/NewApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./NewApp_AdHoc_Notification_Service.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc_Share_Extension/NewApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./NewApp_AdHoc_Share_Extension.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Build AdHoc app
-        run: bundle exec fastlane ios build_adhoc
-
-      - name: Upload AdHoc build to S3
-        run: bundle exec fastlane ios upload_s3
-        env:
-          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          S3_BUCKET: ad-hoc-expensify-cash
-          S3_REGION: us-east-1
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios
-          path: ./ios_paths.json
 
   desktop:
     name: Build and deploy Desktop for testing
@@ -314,14 +162,14 @@ jobs:
     with:
       APP_PR_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
       APP_REF: ${{ needs.prep.outputs.REF }}
-      IOS_HYBRID: ${{ inputs.IOS_HYBRID }}
-      ANDROID_HYBRID: ${{ inputs.ANDROID_HYBRID }}
+      IOS: ${{ inputs.IOS }}
+      ANDROID: ${{ inputs.ANDROID }}
 
   postGithubComment:
     runs-on: ubuntu-latest
     if: always()
     name: Post a GitHub comment with app download links for testing
-    needs: [prep, uploadAndroid, iOS, desktop, web, buildHybridApps]
+    needs: [prep, desktop, web, buildHybridApps]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -331,31 +179,16 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v4
 
-      - name: Read JSONs with iOS paths
-        id: get_ios_path
-        if: ${{ needs.iOS.result == 'success' }}
-        run: |
-          content_ios="$(cat ./ios/ios_paths.json)"
-          content_ios="${content_ios//'%'/'%25'}"
-          content_ios="${content_ios//$'\n'/'%0A'}"
-          content_ios="${content_ios//$'\r'/'%0D'}"
-          ios_path=$(echo "$content_ios" | jq -r '.html_path')
-          echo "ios_path=$ios_path" >> "$GITHUB_OUTPUT"
-
       - name: Publish links to apps for download
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
           PR_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
-          ANDROID: ${{ needs.uploadAndroid.result }}
-          ANDROID_HYBRID: ${{ needs.buildHybridApps.result }}
+          ANDROID: ${{ needs.buildHybridApps.result }}
           DESKTOP: ${{ needs.desktop.result }}
-          IOS: ${{ needs.iOS.result }}
-          IOS_HYBRID: ${{ needs.buildHybridApps.result }}
+          IOS: ${{ needs.buildHybridApps.result }}
           WEB: ${{ needs.web.result }}
-          ANDROID_LINK: ${{ needs.uploadAndroid.outputs.S3_APK_PATH }}
-          ANDROID_HYBRID_LINK: ${{ needs.buildHybridApps.outputs.ANDROID_LINK }}
+          ANDROID_LINK: ${{ needs.buildHybridApps.outputs.ANDROID_LINK }}
           DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ github.event.inputs.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
-          IOS_LINK: ${{ steps.get_ios_path.outputs.ios_path }}
-          IOS_HYBRID_LINK: ${{ needs.buildHybridApps.outputs.IOS_LINK }}
+          IOS_LINK: ${{ needs.buildHybridApps.outputs.IOS_LINK }}
           WEB_LINK: https://${{ github.event.inputs.PULL_REQUEST_NUMBER }}.pr-testing.expensify.com
