@@ -41,7 +41,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -1510,13 +1509,6 @@ function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
 
-function subscribeToActiveGuides() {
-    const pusherChannelName = `${CONST.PUSHER.PRESENCE_ACTIVE_GUIDES}${CONFIG.PUSHER.SUFFIX}`;
-    Pusher.subscribe(pusherChannelName).catch(() => {
-        Log.hmmm('[User] Failed to initially subscribe to Pusher channel', {pusherChannelName});
-    });
-}
-
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
 }
@@ -1558,7 +1550,6 @@ export {
     requestValidateCodeAction,
     addPendingContactMethod,
     clearValidateCodeActionError,
-    subscribeToActiveGuides,
     setIsDebugModeEnabled,
     resetValidateActionCodeSent,
 };
