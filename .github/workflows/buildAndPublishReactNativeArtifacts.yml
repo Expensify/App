@@ -1,0 +1,58 @@
+name: Build And Publish Artifacts
+on:
+  workflow_dispatch:
+    inputs:
+      PULL_REQUEST_NUMBER:
+        description: Pull Request number, if not specified defaults to main branch.
+        required: true
+        type: number
+
+jobs:
+  prepare-build-metadata:
+    runs-on: ubuntu-latest
+    outputs:
+      REACT_NATIVE_ERSION: ${{ steps.getVersion.outputs.VERSION }}
+      PATCHES_HASH: ${{ steps.savePatchesHash.outputs.PATCHES_HASH }}
+      COMMIT_HASH: ${{ steps.saveCommitHash.outputs.COMMIT_HASH }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout on PR branch and save commit hash
+        id: saveCommitHash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER=${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          gh pr checkout "${PR_NUMBER}"
+          COMMIT_HASH=$(git rev-parse HEAD)
+          echo "COMMIT_HASH=$COMMIT_HASH" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Install dependencies and apply patches
+        run: npm i-standalone
+
+      - name: Get react-native version
+        id: getVersion
+        run: |
+          VERSION=$(jq -r '.dependencies["react-native"]' package.json)
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Save patches hash
+        id: savePatchesHash
+        run: |
+          VERSION="${{ steps.getVersion.outputs.version }}"
+          if [ -d "patches" ]; then
+            echo "Files being considered for hash calculation:"
+            find patches -type f -name "react-native+${VERSION}*.patch" -exec echo {} \;
+            HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+            echo "PATCHES_HASH=$HASH" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save patched react-native module
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-native-module
+          path: node_modules/react-native/
