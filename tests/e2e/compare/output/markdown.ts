@@ -85,7 +85,7 @@ const buildSummaryTable = (entries: Entry[], collapse = false) => {
 
 const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: number) => {
     let nExtraFiles = numberOfExtraFiles ?? 0;
-    if (!numberOfExtraFiles) {
+    if (numberOfExtraFiles === undefined) {
         const singleMarkdown = buildMarkdown(data, skippedTests, 0).at(0);
         const totalCharacters = singleMarkdown?.length ?? 0;
 
