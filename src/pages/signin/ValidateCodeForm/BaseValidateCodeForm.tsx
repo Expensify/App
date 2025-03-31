@@ -25,7 +25,7 @@ import {isValidRecoveryCode, isValidTwoFactorCode, isValidValidateCode} from '@l
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
 import {clearAccountMessages, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
-import * as User from '@userActions/User';
+import {resendValidateCode as userActionsResendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -153,7 +153,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        User.resendValidateCode(credentials?.login ?? '');
+        userActionsResendValidateCode(credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
         setTimeRemaining(CONST.REQUEST_CODE_DELAY);
