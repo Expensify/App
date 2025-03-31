@@ -18,7 +18,7 @@ import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types'
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
-import HelpButton from '@components/SidePane/HelpButton';
+import HelpButton from '@components/SidePane/HelpComponents/HelpButton';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,8 +63,8 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
-    }, [translate, workspaceCardFeeds, userCardList]);
+        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
+    }, [translate, workspaceCardFeeds]);
     const {inputQuery: originalInputQuery} = queryJSON;
     const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
     const [shouldUseAnimation, setShouldUseAnimation] = useState(false);
