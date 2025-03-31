@@ -1,0 +1,12 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp b/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
+index f608576..5671af7 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
+@@ -3,7 +3,6 @@
+ #include <fbjni/fbjni.h>
+ #include <react/fabric/JFabricUIManager.h>
+ #include <react/jni/ReadableNativeMap.h>
+-#include <react/renderer/components/androidtextinput/AndroidTextInputState.h>
+ #include <react/renderer/components/view/conversions.h>
+ #include <react/renderer/core/ComponentDescriptor.h>
+ #include <yoga/Yoga.h>
