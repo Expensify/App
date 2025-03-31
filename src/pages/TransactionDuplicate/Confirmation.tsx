@@ -28,6 +28,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -66,7 +67,7 @@ function Confirmation() {
         if (!reportAction?.childReportID) {
             return;
         }
-        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportAction.childReportID), {compareParams: false});
     }, [reportAction?.childReportID, transactionsMergeParams, canUseTableReportView]);
 
     const resolveDuplicates = useCallback(() => {
