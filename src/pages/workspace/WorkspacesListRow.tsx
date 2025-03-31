@@ -1,4 +1,5 @@
 import React, {useCallback, useRef} from 'react';
+import {Str} from 'expensify-common';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -235,7 +236,7 @@ function WorkspacesListRow({
                                     numberOfLines={1}
                                     style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
                                 >
-                                    {ownerDetails.login}
+                                    {Str.removeSMSDomain(ownerDetails?.login ?? '')}
                                 </Text>
                             </View>
                         </>
