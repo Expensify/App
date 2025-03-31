@@ -880,6 +880,7 @@ const translations = {
         header: 'Acción rápida',
         noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
         updateDestination: 'Actualiza el destino',
+        createReport: 'Crear informe',
     },
     iou: {
         amount: 'Importe',
@@ -5203,6 +5204,10 @@ const translations = {
             exported: 'Exportado',
             posted: 'Contabilizado',
         },
+        moneyRequestReport: {
+            emptyStateTitle: 'Este informe no tiene gastos',
+            emptyStateSubtitle: 'Puedes añadir gastos a este informe usando el botón de arriba.',
+        },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
         expenseType: 'Tipo de gasto',
@@ -6135,6 +6140,7 @@ const translations = {
         confirmDetails: 'Confirma los detalles que conservas',
         confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
         hold: 'Retenido',
+        resolvedDuplicates: 'resolvió el duplicado',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} es obligatorio`,
