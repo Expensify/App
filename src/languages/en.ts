@@ -530,6 +530,7 @@ const translations = {
         help: 'Help',
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
+        comments: 'Comments',
     },
     supportalNoAccess: {
         title: 'Not so fast',

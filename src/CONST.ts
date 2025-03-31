@@ -1318,6 +1318,9 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
+            // Used when displaying reportActions list to handle of unread messages icon/button
+            SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
+            ACTION_VISIBLE_THRESHOLD: 250,
         },
         TRANSACTION_LIST: {
             COLUMNS: {
@@ -1521,6 +1524,7 @@ const CONST = {
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
         PUSHER_PING_PONG: 'pusher_ping_pong',
         LOCATION_UPDATE_INTERVAL: 5000,
+        PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -6433,6 +6437,10 @@ const CONST = {
         },
         GROUP_BY: {
             REPORTS: 'reports',
+        },
+        TABLE_COLUMN_SIZES: {
+            NORMAL: 'normal',
+            WIDE: 'wide',
         },
         STATUS: {
             EXPENSE: {
