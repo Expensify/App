@@ -13,7 +13,7 @@ const componentsSpacing = {
 const NEXT_TRANSACTION_PEEK = 32;
 
 const mobileStyle = (currentWidth: number, isSingleTransaction?: boolean) => {
-    const peek = isSingleTransaction ? spacing.p2.padding : NEXT_TRANSACTION_PEEK;
+    const peek = isSingleTransaction ? spacing.p4.padding : NEXT_TRANSACTION_PEEK;
     const transactionPreviewWidth = currentWidth - spacing.p4.padding - peek;
     return {
         transactionPreviewStyle: {width: transactionPreviewWidth, maxWidth: transactionPreviewWidth},

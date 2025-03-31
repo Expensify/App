@@ -561,8 +561,8 @@ function MoneyRequestReportPreviewContent({
                                             renderItem={renderFlatlistItem}
                                             onViewableItemsChanged={onViewableItemsChanged}
                                             viewabilityConfig={viewabilityConfig}
-                                            ListFooterComponent={<View style={styles.pl1} />}
-                                            ListHeaderComponent={<View style={styles.pr1} />}
+                                            ListFooterComponent={<View style={styles.pl2} />}
+                                            ListHeaderComponent={<View style={styles.pr2} />}
                                         />
                                     </View>
                                     {shouldUseNarrowLayout && transactions.length > 1 && (
