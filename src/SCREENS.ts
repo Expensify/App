@@ -251,6 +251,7 @@ const SCREENS = {
         STEP_DESTINATION_EDIT: 'Money_Request_Destination_Edit',
         STEP_TIME_EDIT: 'Money_Request_Time_Edit',
         STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
+        STEP_REPORT: 'Money_Request_Report',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -680,6 +681,11 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
+    SHARE: {
+        ROOT: 'Share_Root',
+        SHARE_DETAILS: 'Share_Details',
+        SUBMIT_DETAILS: 'Submit_Details',
+    },
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',

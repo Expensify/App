@@ -1,13 +1,6 @@
 type ChangeTransactionsReportParams = {
     transactionList: string;
     reportID: string;
-    transactionIDToReportActionAndThreadData: {
-        transactionID: {
-            movedReportActionID: string;
-            transactionThreadReportID?: string;
-            transactionThreadCreatedReportActionID?: string;
-        };
-    };
+    reportActionIDToThreadReportIDMap: Record<string, string>; // A map linking the optimistic MOVEDTRANSACTION or UNREPORTEDTRANSACTION reportActionID to the transaction thread reportID.
 };
-
 export default ChangeTransactionsReportParams;

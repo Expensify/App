@@ -633,6 +633,10 @@ export default {
         paddingTop: 20,
     },
 
+    pt6: {
+        paddingTop: 24,
+    },
+
     pt8: {
         paddingTop: 32,
     },
