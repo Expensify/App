@@ -43,8 +43,8 @@ function getBillingStatus({translate, accountData, purchase}: GetBillingStatusPr
     const purchaseAmount = purchase?.message.billableAmount;
     const purchaseCurrency = purchase?.currency;
     const purchaseDate = purchase?.created;
-    const isBillingTypeProper = purchase?.message.billingType === 'failed_2018';
-    const purchaseDateFormatted = purchaseDate && isBillingTypeProper ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : undefined;
+    const isBillingFailed = purchase?.message.billingType === 'failed_2018';
+    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : undefined;
     const purchaseAmountWithCurrency = convertAmountToDisplayString(purchaseAmount, purchaseCurrency);
 
     switch (subscriptionStatus?.status) {
@@ -59,10 +59,12 @@ function getBillingStatus({translate, accountData, purchase}: GetBillingStatusPr
         case PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE:
             return {
                 title: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle', {
-                    date: purchaseDateFormatted,
-                    purchaseAmountOwed: purchaseAmountWithCurrency,
-                }),
+                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle', 
+                    isBillingFailed ? {
+                        date: purchaseDateFormatted,
+                        purchaseAmountOwed: purchaseAmountWithCurrency,
+                    } : {}
+                ),
                 isError: true,
                 isRetryAvailable: true,
             };
