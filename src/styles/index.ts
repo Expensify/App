@@ -443,6 +443,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSmall,
         },
 
+        textSupportingNormal: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+        },
+
         textExtraSmallSupporting: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -3738,12 +3744,6 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        searchInputStyle: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
-        },
-
         searchRouterTextInputContainer: {
             borderRadius: variables.componentBorderRadiusSmall,
             borderWidth: 1,
@@ -3781,8 +3781,6 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             ...userSelect.userSelectNone,
             paddingBottom: 12,
-            paddingHorizontal: 32,
-            paddingTop: 12,
             backgroundColor: theme.appBG,
             justifyContent: 'flex-start',
         },
@@ -4892,6 +4890,11 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 12,
             paddingVertical: 12,
             borderRadius: 8,
+        },
+
+        listTableHeader: {
+            paddingVertical: 12,
+            paddingHorizontal: 32,
         },
 
         cardItemSecondaryIconStyle: {
