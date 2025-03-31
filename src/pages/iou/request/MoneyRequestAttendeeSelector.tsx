@@ -11,7 +11,6 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {SectionListDataType} from '@components/SelectionList/types';
-import type {Option} from '@libs/OptionsListUtils';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,6 +18,7 @@ import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {Option} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
@@ -31,8 +31,8 @@ import {
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
 import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -161,10 +161,10 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         const formatResults = formatSectionsFromSearchTerm(
             debouncedSearchTerm,
             attendees.map((attendee) => ({
-                ...attendee, 
+                ...attendee,
                 reportID: attendee.reportID ?? CONST.DEFAULT_NUMBER_ID.toString(),
                 selected: true,
-                ...getPersonalDetailByEmail(attendee.email)
+                ...getPersonalDetailByEmail(attendee.email),
             })),
             chatOptions.recentReports,
             chatOptions.personalDetails,
