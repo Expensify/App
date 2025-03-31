@@ -1,13 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 28.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 52 52" style="enable-background:new 0 0 52 52;" xml:space="preserve">
-<style type="text/css">
-	.st0{opacity:0.8;fill:#03D47C;}
-	.st1{fill:#FCFBF9;}
-</style>
-<path class="st0" d="M0,26C0,11.641,11.641,0,26,0l0,0c14.359,0,26,11.641,26,26l0,0c0,14.359-11.641,26-26,26l0,0
-	C11.641,52,0,40.359,0,26L0,26z"/>
-<path class="st1" d="M23.24,33.863c-1.667,0.952-3.74-0.251-3.74-2.171V20.308c0-1.92,2.074-3.123,3.74-2.171l9.961,5.692
-	c1.68,0.96,1.68,3.381,0,4.341L23.24,33.863z"/>
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="72" height="72" rx="36" fill="#061B09" fill-opacity="0.88"/>
+<path d="M31.9846 48.5803C29.3179 50.104 26 48.1786 26 45.1073L26 26.8927C26 23.8214 29.3179 21.896 31.9846 23.4198L47.9223 32.5271C50.6096 34.0626 50.6096 37.9374 47.9223 39.473L31.9846 48.5803Z" fill="white"/>
 </svg>
