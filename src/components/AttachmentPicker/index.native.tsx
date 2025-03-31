@@ -1,5 +1,5 @@
-import RNDocumentPicker from '@react-native-documents/picker';
-import type {DocumentPickerOptions, DocumentPickerResponse} from '@react-native-documents/picker';
+import type {FileToCopy} from '@react-native-documents/picker';
+import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
 import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -26,13 +26,20 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import launchCamera from './launchCamera/launchCamera';
 import type AttachmentPickerProps from './types';
 
+type LocalCopy = {
+    name: string | null;
+    uri: string;
+    size: number | null;
+    type: string | null;
+};
+
 type Item = {
     /** The icon associated with the item. */
     icon: IconAsset;
     /** The key in the translations file to use for the title */
     textTranslationKey: TranslationPaths;
     /** Function to call when the user clicks the item */
-    pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
+    pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
 };
 
 /**
@@ -53,28 +60,6 @@ const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions |
         includeExtra: false,
         assetRepresentationMode: 'current',
         selectionLimit: fileLimit,
-    };
-};
-
-/**
- * Return documentPickerOptions based on the type
- * @param {String} type
- * @param {Number} fileLimit
- * @returns {Object}
- */
-
-const getDocumentPickerOptions = (type: string, fileLimit: number): DocumentPickerOptions => {
-    if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
-        return {
-            type: [RNDocumentPicker.types.images],
-            copyTo: 'cachesDirectory',
-            allowMultiSelection: fileLimit !== 1,
-        };
-    }
-    return {
-        type: [RNDocumentPicker.types.allFiles],
-        copyTo: 'cachesDirectory',
-        allowMultiSelection: fileLimit !== 1,
     };
 };
 
@@ -209,21 +194,52 @@ function AttachmentPicker({
     );
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
-     *
-     * @returns {Promise<DocumentPickerResponse[] | void>}
      */
-    const showDocumentPicker = useCallback(
-        (): Promise<DocumentPickerResponse[] | void> =>
-            RNDocumentPicker.pick(getDocumentPickerOptions(type, fileLimit)).catch((error: Error) => {
-                if (RNDocumentPicker.isCancel(error)) {
-                    return;
-                }
+    // eslint-disable-next-line @lwc/lwc/no-async-await
+    const showDocumentPicker = async (): Promise<LocalCopy[]> => {
+        try {
+            const [pickedFile, ...pickedFiles] = await pick({
+                type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
+                allowMultiSelection: fileLimit !== 1,
+            });
 
-                showGeneralAlert(error.message);
-                throw error;
-            }),
-        [fileLimit, showGeneralAlert, type],
-    );
+            const [localCopy, ...localCopies] = await keepLocalCopy({
+                files: [
+                    {
+                        uri: pickedFile.uri,
+                        fileName: pickedFile.name ?? '',
+                    } as FileToCopy,
+                    ...pickedFiles.map((file) => {
+                        return {
+                            uri: file.uri,
+                            fileName: file.name ?? '',
+                        } as FileToCopy;
+                    }),
+                ],
+                destination: 'cachesDirectory',
+            });
+
+            return [
+                {
+                    name: pickedFile.name,
+                    uri: localCopy.sourceUri,
+                    size: pickedFile.size,
+                    type: pickedFile.type,
+                },
+                ...pickedFiles.map((file, index) => {
+                    return {
+                        name: file.name,
+                        uri: localCopies.at(index)?.sourceUri ?? file.uri,
+                        size: file.size,
+                        type: file.type,
+                    };
+                }),
+            ];
+        } catch (error) {
+            showGeneralAlert(error.message);
+            throw error;
+        }
+    };
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
@@ -306,7 +322,7 @@ function AttachmentPicker({
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Asset[] | DocumentPickerResponse[] | void = []): Promise<void[]> | undefined => {
+        (attachments: Asset[] | LocalCopy[] | void = []): Promise<void[]> | undefined => {
             if (!attachments || attachments.length === 0) {
                 onCanceled.current();
                 return Promise.resolve([]);
@@ -319,8 +335,8 @@ function AttachmentPicker({
                 }
 
                 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-                const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) || '';
-                const fileDataUri = ('fileCopyUri' in fileData && fileData.fileCopyUri) || ('uri' in fileData && fileData.uri) || '';
+                const fileDataName = ('name' in fileData && fileData.name) || '';
+                const fileDataUri = ('uri' in fileData && fileData.uri) || '';
 
                 const fileDataObject: FileResponse = {
                     name: fileDataName ?? '',
