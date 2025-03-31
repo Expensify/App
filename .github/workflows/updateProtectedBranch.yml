@@ -1,0 +1,66 @@
+name: Update Protected Branch
+
+on:
+  workflow_call:
+    inputs:
+      TARGET_BRANCH:
+        description: 'Which branch to update. Should be one of: [staging, production]'
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.TARGET_BRANCH }}
+
+jobs:
+  updateProtectedBranch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine SOURCE_BRANCH
+        id: getSourceBranch
+        run: |
+          if [[ '${{ inputs.TARGET_BRANCH }}' == 'staging' ]]; then
+            echo "SOURCE_BRANCH=main" >> "$GITHUB_OUTPUT"
+          elif [[ '${{ inputs.TARGET_BRANCH }}' == 'production' ]]; then
+            echo "SOURCE_BRANCH=staging" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::💥 Invalid TARGET_BRANCH ${{ inputs.TARGET_BRANCH }}"
+            exit 1
+          fi
+
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.getSourceBranch.outputs.SOURCE_BRANCH }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
+
+      - name: Setup git for OSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        id: setupGitForOSBotify
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SETUP_AS_APP: false
+
+      - name: Update target branch in Mobile-Expensify
+        working-directory: Mobile-Expensify
+        run: |
+          # Re-create the target branch from the source branch
+          git switch -c ${{ inputs.TARGET_BRANCH }}
+          # Force-update the remote target branch.
+          git push --force origin ${{ inputs.TARGET_BRANCH }}
+          echo "::notice::New HEAD of Mobile-Expensify ${{ inputs.TARGET_BRANCH}}: $(git log -1 --pretty=format:"%h \"%s\" by %an")"
+
+      - name: Update target branch in E/App
+        run: |
+          # Re-create the target branch from the source branch
+          git switch -c ${{ inputs.TARGET_BRANCH }}
+          # Force-update the remote target branch.
+          git push --force origin ${{ inputs.TARGET_BRANCH }}
+          echo "::notice::New HEAD of E/App ${{ inputs.TARGET_BRANCH}}: $(git log -1 --pretty=format:"%h \"%s\" by %an")"
+
+      - name: Announce failed workflow in Slack
+        if: ${{ failure() }}
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
