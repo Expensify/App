@@ -7,7 +7,7 @@ import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import getLastVisitedWorkspaceScreen from '@libs/Navigation/helpers/getLastVisitedWorkspace';
+import {getLastVisitedWorkspaceScreen} from '@libs/Navigation/helpers/getLastVisitedWorkspace';
 import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, SwitchPolicyIdActionType} from './types';
 
 const MODAL_ROUTES_TO_DISMISS: string[] = [
