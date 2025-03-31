@@ -520,14 +520,16 @@ function SearchAutocompleteList(
         [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
     );
 
+    const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
+    const normalizedReferenceText = useMemo(() => sectionItemText.toLowerCase(), [sectionItemText]);
+
     useEffect(() => {
-        const referenceText = sections?.at(1)?.data?.[0]?.text ?? '';
         const targetText = autocompleteQueryValue;
 
-        if (shouldHighlight(referenceText, targetText)) {
+        if (shouldHighlight(normalizedReferenceText, targetText)) {
             onHighlightFirstItem?.();
         }
-    }, [autocompleteQueryValue, onHighlightFirstItem, ref, sections]);
+    }, [autocompleteQueryValue, onHighlightFirstItem, ref, normalizedReferenceText]);
 
     return (
         <SelectionList<OptionData | SearchQueryItem>
