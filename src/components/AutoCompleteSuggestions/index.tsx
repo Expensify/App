@@ -102,10 +102,6 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
             let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
 
-            console.log(
-                `windowHeight ${windowHeight} - (cursorCoordinates.y ${cursorCoordinates.y} - scrollValue ${scrollValue} + y ${y}) - keyboardHeight ${keyboardHeight} = ${bottomValue}`,
-            );
-
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
             const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({
