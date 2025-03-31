@@ -22,7 +22,7 @@ function TextWithCopy({children, copyValue, ...rest}: TextWithCopyProps) {
     const popoverAnchor = useRef<View>(null);
     const styles = useThemeStyles();
 
-    const toggleCopyContextMenu = (event: GestureResponderEvent | MouseEvent) => {
+    const showCopyContextMenu = (event: GestureResponderEvent | MouseEvent) => {
         if (!copyValue) {
             return;
         }
@@ -37,7 +37,7 @@ function TextWithCopy({children, copyValue, ...rest}: TextWithCopyProps) {
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchor}
-            onSecondaryInteraction={toggleCopyContextMenu}
+            onSecondaryInteraction={showCopyContextMenu}
             accessibilityLabel={copyValue}
             accessible
             style={styles.cursorDefault}
