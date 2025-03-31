@@ -110,6 +110,8 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
             return getIconForAction(CONST.IOU.TYPE.TRACK);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return Expensicons.ReceiptScan;
+        case CONST.QUICK_ACTIONS.CREATE_REPORT:
+            return Expensicons.Document;
         default:
             return Expensicons.MoneyCircle;
     }
@@ -160,6 +162,8 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
+        case CONST.QUICK_ACTIONS.CREATE_REPORT:
+            return 'quickAction.createReport';
         default:
             return '' as TranslationPaths;
     }
@@ -191,6 +195,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
@@ -217,7 +222,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    const groupPoliciesWithChatEnabled = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
+    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
@@ -266,6 +271,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         const displayName = personalDetails?.[quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID]?.firstName ?? '';
         return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length === 0;
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
+
+    const quickActionSubtitle = useMemo(() => {
+        if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
+            return quickActionPolicy?.name;
+        }
+        return !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '';
+    }, [hideQABSubtitle, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -393,7 +405,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             }
             const onSelected = () => {
                 interceptAnonymousUser(() => {
-                    navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
+                    navigateToQuickAction(isValidReport, quickAction, currentUserPersonalDetails, quickActionPolicy?.id, selectOption);
                 });
             };
             return [
@@ -401,7 +413,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     ...baseQuickAction,
                     icon: getQuickActionIcon(quickAction?.action),
                     text: quickActionTitle,
-                    description: !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
+                    description: quickActionSubtitle,
                     onSelected,
                     shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
                 },
@@ -440,17 +452,18 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         quickActionAvatars,
         quickAction,
         policyChatForActivePolicy,
-        quickActionReport,
-        quickActionPolicy,
         quickActionTitle,
-        hideQABSubtitle,
+        quickActionSubtitle,
+        currentUserPersonalDetails,
+        quickActionPolicy,
+        quickActionReport,
         isValidReport,
         selectOption,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
     const canModifyTask = canModifyTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
@@ -485,7 +498,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       text: translate('report.newReport.createReport'),
                       onSelected: () => {
                           interceptAnonymousUser(() => {
-                              if (groupPoliciesWithChatEnabled.length === 0) {
+                              if (shouldRedirectToExpensifyClassic) {
                                   setModalVisible(true);
                                   return;
                               }
@@ -493,13 +506,17 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                               // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
                               if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
                                   const createdReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
-                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                  });
                                   return;
                               }
 
                               if (groupPoliciesWithChatEnabled.length === 1) {
                                   const createdReportID = createNewReport(currentUserPersonalDetails, groupPoliciesWithChatEnabled.at(0)?.id);
-                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                  });
                                   return;
                               }
 
