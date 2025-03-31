@@ -2118,6 +2118,14 @@ function getWorkspaceCustomUnitRateUpdatedMessage(action: ReportAction): string 
         });
     }
 
+    if (customUnitRateName && updatedField === 'taxClaimablePercentage' && typeof newValue === 'number' && customUnitRateName) {
+        return translateLocal('workspaceActions.updatedCustomUnitTaxClaimablePercentage', {
+            customUnitRateName,
+            newValue: parseFloat(parseFloat(newValue ?? 0).toFixed(2)),
+            oldValue: typeof oldValue === 'number' ? parseFloat(parseFloat(oldValue ?? 0).toFixed(2)) : undefined,
+        });
+    }
+
     return getReportActionText(action);
 }
 
