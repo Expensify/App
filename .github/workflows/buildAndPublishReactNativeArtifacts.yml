@@ -61,11 +61,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
         NEW_VERSION: ${{ steps.determineNewVersion.outputs.NEW_VERSION }}
-    container:
-      image: reactnativecommunity/react-native-android:latest
-      env:
-        TERM: "dumb"
-        GRADLE_OPTS: "-Dorg.gradle.daemon=false"
     steps:
         - name: Checkout
           uses: actions/checkout@v4
