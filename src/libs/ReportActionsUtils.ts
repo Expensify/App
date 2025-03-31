@@ -1950,7 +1950,7 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG_LIST && tagListName) {
         return translateLocal('workspaceActions.deleteTagList', {
-            tagListName
+            tagListName,
         });
     }
 
