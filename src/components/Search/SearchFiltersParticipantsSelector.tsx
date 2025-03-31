@@ -28,7 +28,7 @@ const defaultListOptions = {
 };
 
 function getSelectedOptionData(option: Option): OptionData {
-    return {...option, selected: true, reportID: option.reportID};
+    return {...option, selected: true, reportID: option.reportID ?? '-1'};
 }
 
 type SearchFiltersParticipantsSelectorProps = {
