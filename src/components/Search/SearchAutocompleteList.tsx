@@ -161,6 +161,8 @@ function SearchAutocompleteList(
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
+    const billableTypes = Object.values(CONST.SEARCH.BILLABLE);
+    const reimbursableTypes = Object.values(CONST.SEARCH.REIMBURSABLE);
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -392,6 +394,26 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
+                const filteredBillableTypes = billableTypes
+                    .filter((billableType) => billableType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(billableType))
+                    .sort();
+
+                return filteredBillableTypes.map((billableType) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.BILLABLE,
+                    text: billableType,
+                }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE: {
+                const filteredReimbursableTypes = reimbursableTypes
+                    .filter((reimbursableType) => reimbursableType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(reimbursableType))
+                    .sort();
+
+                return filteredReimbursableTypes.map((reimbursableType) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REIMBURSABLE,
+                    text: reimbursableType,
+                }));
+            }
             default: {
                 return [];
             }
@@ -415,6 +437,8 @@ function SearchAutocompleteList(
         cardAutocompleteList,
         allCards,
         groupByAutocompleteList,
+        billableTypes,
+        reimbursableTypes,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

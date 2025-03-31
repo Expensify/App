@@ -6449,6 +6449,7 @@ const CONST = {
         REIMBURSABLE: {
             YES: 'yes',
             NO: 'no',
+        },
         TABLE_COLUMN_SIZES: {
             NORMAL: 'normal',
             WIDE: 'wide',

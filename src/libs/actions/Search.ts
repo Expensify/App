@@ -405,6 +405,7 @@ function clearAdvancedFilters() {
             values[key] = null;
         });
 
+    console.log('CLEARINV ADVANCED');
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
