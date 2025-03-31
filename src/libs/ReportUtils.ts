@@ -4587,6 +4587,10 @@ function getReportNameInternal({
             return translateLocal('parentReportAction.deletedMessage');
         }
 
+        if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
+            return translateLocal('violations.resolvedDuplicates');
+        }
+
         const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
         const reportActionMessage = getReportActionMessage({
             reportAction: parentReportAction,
