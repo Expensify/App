@@ -1318,6 +1318,9 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
+            // Used when displaying reportActions list to handle of unread messages icon/button
+            SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
+            ACTION_VISIBLE_THRESHOLD: 250,
         },
         TRANSACTION_LIST: {
             COLUMNS: {
@@ -6434,6 +6437,10 @@ const CONST = {
         },
         GROUP_BY: {
             REPORTS: 'reports',
+        },
+        TABLE_COLUMN_SIZES: {
+            NORMAL: 'normal',
+            WIDE: 'wide',
         },
         STATUS: {
             EXPENSE: {

@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 const amount = 1000;
 const currency = 'USD';
 
-/* eslint-disable @typescript-eslint/naming-convention */
+const REPORT_ID_456 = 'R98765';
+const REPORT_ID_111 = '1111111111111111';
+
 const personalDetails: PersonalDetailsList = {
     11111111: {
         accountID: 11111111,
@@ -69,7 +72,7 @@ const personalDetails: PersonalDetailsList = {
 };
 
 const iouReport: Report = {
-    chatReportID: '1111111111111111',
+    chatReportID: REPORT_ID_111,
     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
     currency,
     description: '',
@@ -156,7 +159,7 @@ const chatReport: Report = {
     },
     permissions: ['read', 'write'],
     policyID: CONST.POLICY.ID_FAKE,
-    reportID: '1111111111111111',
+    reportID: REPORT_ID_111,
     reportName: 'Chat Report',
     stateNum: 0,
     statusNum: 0,
@@ -166,7 +169,7 @@ const chatReport: Report = {
     unheldTotal: 0,
     welcomeMessage: '',
     writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ALL,
-    iouReportID: '1111111111111111',
+    iouReportID: REPORT_ID_111,
     managerID: 0,
 };
 
@@ -205,6 +208,38 @@ const transaction: Transaction = {
     hasEReceipt: true,
 };
 
+const fakeTransaction456: Transaction = {
+    amount,
+    transactionID: 'trsx456',
+    bank: '',
+    billable: false,
+    cardID: 0,
+    cardName: 'Cash Expense',
+    cardNumber: '',
+    category: '',
+    comment: {},
+    created: '2025-02-14',
+    currency,
+    filename: '',
+    inserted: '2025-02-14 08:12:19',
+    managedCard: false,
+    merchant: 'Acme',
+    modifiedAmount: 0,
+    modifiedCreated: '',
+    modifiedCurrency: '',
+    modifiedMerchant: '',
+    originalAmount: 0,
+    originalCurrency: '',
+    parentTransactionID: '',
+    posted: '',
+    reimbursable: true,
+    reportID: '111111111111111',
+    status: CONST.TRANSACTION.STATUS.POSTED,
+    tag: '',
+
+    hasEReceipt: true,
+};
+
 const violations: TransactionViolations = [
     {
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
@@ -234,6 +269,17 @@ const originalMessage: OriginalMessageIOU = {
     type: 'create',
 };
 
+const fakeOriginalMessage456: OriginalMessageIOU = {
+    IOUReportID: 'rep456',
+    IOUTransactionID: 'trsx456',
+    amount,
+    comment: '',
+    currency,
+    lastModified: '2025-02-20 08:10:05.165',
+    participantAccountIDs: [11111111, 22222222],
+    type: 'create',
+};
+
 const action: ReportAction = {
     reportActionID: '1111111111111111111',
     message: [
@@ -249,7 +295,7 @@ const action: ReportAction = {
     ],
     actionName: 'IOU',
     originalMessage,
-    childReportID: '1111111111111111',
+    childReportID: REPORT_ID_111,
     created: '2025-02-14 08:12:05.165',
     actorAccountID: 11111111,
     childType: 'chat',
@@ -262,6 +308,32 @@ const action: ReportAction = {
     ],
 };
 
-/* eslint-enable @typescript-eslint/naming-convention */
+const fakeAction456: ReportAction = {
+    reportActionID: 'ra456',
+    message: [
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            html: '$0.01 expense',
+            text: '$0.01 expense',
+            isEdited: false,
+            whisperedTo: [],
+            isDeletedParentAction: false,
+            deleted: '',
+        },
+    ],
+    actionName: 'IOU',
+    originalMessage: fakeOriginalMessage456,
+    childReportID: REPORT_ID_456,
+    created: '2025-02-14 08:12:05.165',
+    actorAccountID: 11111111,
+    childType: 'chat',
+    person: [
+        {
+            type: 'TEXT',
+            style: 'strong',
+            text: 'John Smith',
+        },
+    ],
+};
 
-export {personalDetails, iouReport, chatReport, transaction, violations, action};
+export {personalDetails, iouReport, chatReport, transaction, violations, action, fakeAction456, fakeTransaction456};
