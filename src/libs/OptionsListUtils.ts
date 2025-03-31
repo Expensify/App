@@ -1,4 +1,4 @@
-, undefined, undefined/* eslint-disable @typescript-eslint/prefer-for-of */
+/* eslint-disable @typescript-eslint/prefer-for-of */
 
 /* eslint-disable no-continue */
 import {Str} from 'expensify-common';
@@ -755,7 +755,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
-        lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false)
+        lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
         lastMessageTextFromReport = getLeaveRoomMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
