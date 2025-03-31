@@ -159,7 +159,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
-    Beta,
     DismissedProductTraining,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -197,12 +196,6 @@ import {
 import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
 import {startOnboardingFlow} from './Welcome/OnboardingFlow';
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
-});
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
