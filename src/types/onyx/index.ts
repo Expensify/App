@@ -26,6 +26,7 @@ import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
+import type ExpensifyCardBankAccountSettings from './ExpensifyCardBankAccountSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
@@ -139,6 +140,7 @@ export type {
     Download,
     WorkspaceCardsList,
     ExpensifyCardSettings,
+    ExpensifyCardBankAccountSettings,
     FrequentlyUsedEmoji,
     Fund,
     FundList,
