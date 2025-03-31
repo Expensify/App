@@ -387,6 +387,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Tax percentage of the new tax rate linked to distance rate */
     newTaxPercentage?: string;
 
+    /** Tax percentage of the old tax rate linked to distance rate */
+    oldTaxPercentage?: string;
+
     /** Added/Updated tag name */
     tagName?: string;
 

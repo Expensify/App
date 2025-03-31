@@ -327,7 +327,7 @@ type AddOrDeletePolicyCustomUnitRateParams = {customUnitName: string; rateName: 
 
 type UpdatedPolicyCustomUnitRateParams = {customUnitName: string; customUnitRateName: string; oldValue: string; newValue: string; updatedField: string};
 
-type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: string; newValue: string; newTaxPercentage: string};
+type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: string; newValue: string; newTaxPercentage: string; oldValue?: string; oldTaxPercentage?: string};
 
 type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 

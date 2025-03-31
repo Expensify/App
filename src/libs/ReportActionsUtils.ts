@@ -2095,7 +2095,7 @@ function getWorkspaceCustomUnitRateAddedMessage(action: ReportAction): string {
 }
 
 function getWorkspaceCustomUnitRateUpdatedMessage(action: ReportAction): string {
-    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage} =
+    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
 
     if (customUnitName && customUnitRateName && updatedField === 'rate' && typeof oldValue === 'string' && typeof newValue === 'string') {
@@ -2113,6 +2113,8 @@ function getWorkspaceCustomUnitRateUpdatedMessage(action: ReportAction): string 
             customUnitRateName,
             newValue,
             newTaxPercentage,
+            oldTaxPercentage,
+            oldValue: oldValue as string | undefined,
         });
     }
 

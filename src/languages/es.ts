@@ -5072,8 +5072,12 @@ const translations = {
         addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
             `actualizó la tasa del ${customUnitName} ${updatedField} "${customUnitRateName}" de "${oldValue}" a "${newValue}"`,
-        updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) =>
-            `añadió la tasa de impuesto "${newValue} (${newTaxPercentage})" a la tasa de distancia "${customUnitRateName}"`,
+        updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
+            if (oldTaxPercentage && oldValue) {
+                return `cambió la tasa de impuesto de "${oldValue} (${oldTaxPercentage})" a "${newValue} (${newTaxPercentage})" en la tasa de distancia "${customUnitRateName}"`;
+            }
+            return `añadió la tasa de impuesto "${newValue} (${newTaxPercentage})" a la tasa de distancia "${customUnitRateName}"`;
+        },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
