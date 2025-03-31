@@ -192,12 +192,9 @@ function BaseValidateCodeForm({
             if (!isEmptyObject(validateError) || !isEmptyObject(latestActionVerifiedError)) {
                 clearError();
                 clearValidateCodeActionError('actionVerified');
-                if (autoSubmitAfterFailure) {
-                    inputValidateCodeRef.current?.clearWasSubmit();
-                }
             }
         },
-        [validateError, clearError, latestActionVerifiedError, autoSubmitAfterFailure],
+        [validateError, clearError, latestActionVerifiedError],
     );
 
     /**
@@ -242,6 +239,7 @@ function BaseValidateCodeForm({
                 hasError={canShowError ? !isEmptyObject(validateError) : false}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
+                autoSubmitAfterFailure={autoSubmitAfterFailure}
             />
             {shouldShowTimer && (
                 <Text style={[styles.mt5]}>
