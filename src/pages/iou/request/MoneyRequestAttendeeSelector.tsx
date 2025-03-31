@@ -171,7 +171,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             personalDetails,
             true,
         );
-        newSections.push(formatResults.section;
+        newSections.push(formatResults.section);
 
         newSections.push({
             title: translate('common.recents'),
