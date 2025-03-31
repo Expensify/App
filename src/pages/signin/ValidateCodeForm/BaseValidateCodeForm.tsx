@@ -24,7 +24,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidRecoveryCode, isValidTwoFactorCode, isValidValidateCode} from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import {clearAccountMessages, signIn, signInWithValidateCode, clearSignInData as userActionsClearSignInData} from '@userActions/Session';
+import {clearAccountMessages, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -175,7 +175,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      */
     const clearSignInData = useCallback(() => {
         clearLocalSignInData();
-        userActionsClearSignInData();
+        sessionActionsClearSignInData();
     }, [clearLocalSignInData]);
 
     useImperativeHandle(forwardedRef, () => ({
