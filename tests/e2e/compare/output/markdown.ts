@@ -86,7 +86,7 @@ const buildSummaryTable = (entries: Entry[], collapse = false) => {
 const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: number) => {
     let nExtraFiles = numberOfExtraFiles ?? 0;
     if (!numberOfExtraFiles) {
-        const singleMarkdown = buildMarkdown(data, skippedTests).at(0);
+        const singleMarkdown = buildMarkdown(data, skippedTests, 0).at(0);
         const totalCharacters = singleMarkdown?.length ?? 0;
 
         if (totalCharacters > MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN) {
