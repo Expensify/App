@@ -7,18 +7,33 @@ import useLocalize from '@hooks/useLocalize';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import type FilePickerProps from './types';
 
+type LocalCopy = {
+    name: string | null;
+    uri: string;
+    size: number | null;
+    type: string | null;
+};
+
 /**
  * The data returned from `show` is different on web and mobile,
  * use this function to ensure the data will be handled properly.
  */
-const getDataForUpload = (fileData: FileObject): Promise<FileObject> => {
-    if (fileData.size) {
-        return Promise.resolve(fileData);
+const getDataForUpload = (fileData: LocalCopy): Promise<FileObject> => {
+    const fileName = fileData.name ?? 'spreadsheet';
+    const fileResult: FileObject = {
+        name: FileUtils.cleanFileName(fileName),
+        type: fileData.type ?? undefined,
+        uri: fileData.uri,
+        size: fileData.size,
+    };
+
+    if (fileResult.size) {
+        return Promise.resolve(fileResult);
     }
 
-    return RNFetchBlob.fs.stat(fileData.uri!.replace('file://', '')).then((stats) => {
-        fileData.size = stats.size;
-        return fileData;
+    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+        fileResult.size = stats.size;
+        return fileResult;
     });
 };
 
@@ -44,7 +59,7 @@ function FilePicker({children}: FilePickerProps) {
      * @param fileData The file data received from the picker
      */
     const validateAndCompleteFileSelection = useCallback(
-        (fileData: FileObject) => {
+        (fileData: LocalCopy) => {
             return getDataForUpload(fileData)
                 .then((result) => {
                     completeFileSelection.current(result);
@@ -58,16 +73,12 @@ function FilePicker({children}: FilePickerProps) {
     );
 
     /**
-     * Opens the file picker
+     * Handles the file picker result and sends the selected file to the caller
      *
-     * @param onPickedHandler A callback that will be called with the selected file
-     * @param onCanceledHandler A callback that will be called if the file is canceled
+     * @param files The array of DocumentPickerResponse
      */
     // eslint-disable-next-line @lwc/lwc/no-async-await
-    const open = async (onPickedHandler: (file: FileObject) => void, onCanceledHandler: () => void = () => {}) => {
-        completeFileSelection.current = onPickedHandler;
-        onCanceled.current = onCanceledHandler;
-
+    const pickFile = async () => {
         try {
             const [file] = await pick({
                 type: [types.allFiles],
@@ -83,9 +94,9 @@ function FilePicker({children}: FilePickerProps) {
                 destination: 'cachesDirectory',
             });
 
-            const fileResult: FileObject = {
+            const fileResult: LocalCopy = {
                 name: FileUtils.cleanFileName(file.name ?? 'spreadsheet'),
-                type: file.type ?? undefined,
+                type: file.type,
                 uri: localCopy.sourceUri,
                 size: file.size,
             };
@@ -95,6 +106,19 @@ function FilePicker({children}: FilePickerProps) {
             showGeneralAlert(error.message);
             throw error;
         }
+    };
+
+    /**
+     * Opens the file picker
+     *
+     * @param onPickedHandler A callback that will be called with the selected file
+     * @param onCanceledHandler A callback that will be called if the file is canceled
+     */
+    // eslint-disable-next-line @lwc/lwc/no-async-await
+    const open = (onPickedHandler: (file: FileObject) => void, onCanceledHandler: () => void = () => {}) => {
+        completeFileSelection.current = onPickedHandler;
+        onCanceled.current = onCanceledHandler;
+        pickFile();
     };
 
     /**
