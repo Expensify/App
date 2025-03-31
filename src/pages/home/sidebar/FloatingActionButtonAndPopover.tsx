@@ -232,6 +232,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
     }, [allPolicies]);
+    const shouldShowCreateReportOption = canUseTableReportView && (shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0);
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
 
@@ -491,7 +492,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const menuItems = [
         ...expenseMenuItems,
-        ...(canUseTableReportView
+        ...(shouldShowCreateReportOption
             ? [
                   {
                       icon: Expensicons.Document,
