@@ -51,7 +51,7 @@ const formatEntryDuration = (entry: Entry): string => {
 
 const buildDetailsTable = (entries: Entry[], numberOfTables = 1) => {
     if (!entries.length) {
-        return '';
+        return [''];
     }
 
     const entriesPerTable = Math.floor(entries.length / numberOfTables);
@@ -83,17 +83,22 @@ const buildSummaryTable = (entries: Entry[], collapse = false) => {
     return collapse ? collapsibleSection('Show entries', content) : content;
 };
 
-const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: number) => {
+const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: number): [string, ...string[]] => {
+    let singleFileOutput: string | undefined;
     let nExtraFiles = numberOfExtraFiles ?? 0;
-    if (numberOfExtraFiles === undefined) {
-        const singleMarkdown = buildMarkdown(data, skippedTests, 0).at(0);
-        const totalCharacters = singleMarkdown?.length ?? 0;
 
-        if (totalCharacters > MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN) {
-            nExtraFiles = Math.ceil(totalCharacters / MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN);
-        } else {
-            nExtraFiles = 0;
+    // If the user didn't specify the number of extra files, calculate it based on the size of the single file
+    if (numberOfExtraFiles === undefined) {
+        singleFileOutput = buildMarkdown(data, skippedTests, 0)[0];
+        const totalCharacters = singleFileOutput.length ?? 0;
+
+        // If the single file is small enough, return it
+        if (totalCharacters <= MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN) {
+            return [singleFileOutput];
         }
+
+        // Otherwise, calculate the number of extra files needed
+        nExtraFiles = Math.ceil(totalCharacters / MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN);
     }
 
     let mainFile = '## Performance Comparison Report 📊';
@@ -140,7 +145,7 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
         extraFile += nExtraFiles > 0 ? ` (${i + 1}/${nExtraFiles + 1})` : '';
 
         extraFile += `\n${buildSummaryTable(data.meaningless, true)}`;
-        extraFile += `\n${meaninglessDetailsTables[i]}`;
+        extraFile += `\n${meaninglessDetailsTables.at(i)}`;
         extraFile += '\n';
 
         extraFiles.push(extraFile);
@@ -169,8 +174,7 @@ const writeToMarkdown = (outputDir: string, data: Data, skippedTests: string[]) 
     Logger.info('Markdown was built successfully, writing to file...', filesString);
 
     if (markdownFiles.length === 1) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return writeToFile(path.join(outputDir, 'output1.md'), markdownFiles.at(0)!);
+        return writeToFile(path.join(outputDir, 'output1.md'), markdownFiles[0]);
     }
 
     return Promise.all(
