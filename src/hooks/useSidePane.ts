@@ -9,6 +9,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import KeyboardUtils from '@src/utils/keyboard';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
@@ -24,7 +25,8 @@ function useSidePaneDisplayStatus() {
         selector: (modal) =>
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT ||
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL,
+            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL ||
+            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED,
     });
 
     const isLanguageUnsupported = language !== CONST.LOCALES.EN;
@@ -57,16 +59,14 @@ function useSidePane() {
 
     const [isSidePaneTransitionEnded, setIsSidePaneTransitionEnded] = useState(true);
     const {shouldHideSidePane, shouldHideSidePaneBackdrop, shouldHideHelpButton, sidePaneNVP} = useSidePaneDisplayStatus();
-    const shouldHideToolTip = isExtraLargeScreenWidth ? !shouldHideSidePane && isSidePaneTransitionEnded : !shouldHideSidePane;
+    const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePaneTransitionEnded : !shouldHideSidePane;
 
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !shouldHideSidePane;
     const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
     const sidePaneTranslateX = useRef(new Animated.Value(shouldHideSidePane ? sidePaneWidth : 0));
 
     useEffect(() => {
-        if (!shouldHideSidePane) {
-            setIsSidePaneTransitionEnded(false);
-        }
+        setIsSidePaneTransitionEnded(false);
 
         Animated.parallel([
             Animated.timing(sidePaneOffset.current, {
@@ -79,8 +79,22 @@ function useSidePane() {
                 duration: CONST.ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-        ]).start(() => setIsSidePaneTransitionEnded(shouldHideSidePane));
-    }, [shouldHideSidePane, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth, isExtraLargeScreenWidth]);
+        ]).start(() => setIsSidePaneTransitionEnded(true));
+    }, [shouldHideSidePane, shouldApplySidePaneOffset, sidePaneWidth]);
+
+    const openSidePane = useCallback(() => {
+        if (!sidePaneNVP) {
+            return;
+        }
+
+        setIsSidePaneTransitionEnded(false);
+        KeyboardUtils.dismiss();
+
+        triggerSidePane({
+            isOpen: true,
+            isOpenNarrowScreen: isExtraLargeScreenWidth ? undefined : true,
+        });
+    }, [isExtraLargeScreenWidth, sidePaneNVP]);
 
     const closeSidePane = useCallback(
         (shouldUpdateNarrow = false) => {
@@ -88,6 +102,7 @@ function useSidePane() {
                 return;
             }
 
+            setIsSidePaneTransitionEnded(false);
             const shouldOnlyUpdateNarrowLayout = !isExtraLargeScreenWidth || shouldUpdateNarrow;
             triggerSidePane({
                 isOpen: shouldOnlyUpdateNarrowLayout ? undefined : false,
@@ -109,6 +124,7 @@ function useSidePane() {
         shouldHideToolTip,
         sidePaneOffset,
         sidePaneTranslateX,
+        openSidePane,
         closeSidePane,
     };
 }
