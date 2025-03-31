@@ -1042,6 +1042,8 @@ function subscribeToUserEvents() {
         applyOnyxUpdatesReliably(updates);
     });
 
+    // Debounce the playSoundForMessageType function to avoid playing sounds too often, for example when a user comeback after offline and alot of messages come in
+    // See https://github.com/Expensify/App/issues/57961 for more details
     const debouncedPlaySoundForMessageType = debounce(
         (pushJSONMessage: OnyxServerUpdate[]) => {
             playSoundForMessageType(pushJSONMessage);
