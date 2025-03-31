@@ -1376,6 +1376,21 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
+/**
+ * Returns an array of user emails who are currently self-approving:
+ * i.e. user.submitsTo === their own email.
+ */
+function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
+    const defaultApprover = policy?.approver ?? policy?.owner;
+    if (!policy?.employeeList || !defaultApprover) {
+        return [];
+    }
+    return Object.keys(policy.employeeList).filter((email) => {
+        const employee = policy?.employeeList?.[email] ?? {};
+        return employee?.submitsTo === email && employee?.email !== defaultApprover;
+    });
+}
+
 function isPrefferedExporter(policy: Policy) {
     const user = getCurrentUserEmail();
     const exporters = [
@@ -1409,6 +1424,7 @@ export {
     escapeTagName,
     getActivePolicies,
     getPerDiemCustomUnits,
+    getAllSelfApprovers,
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
