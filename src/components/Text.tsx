@@ -47,7 +47,7 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
     }
     if (typeof children === 'string' && containsOnlyCustomEmoji(children)) {
-        componentStyle.fontFamily = 'Custom Emoji Font';
+        componentStyle.fontFamily = FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT?.fontFamily;
     }
 
     return (
