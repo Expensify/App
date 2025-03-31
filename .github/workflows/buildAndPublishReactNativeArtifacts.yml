@@ -32,7 +32,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Install dependencies and apply patches
-        run: npm i-standalone
+        run: npm run i-standalone
 
       - name: Get react-native version
         id: getVersion
