@@ -349,6 +349,11 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         return filters[nonDateFilterKey];
     }
 
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
+        const filterArray = filters[nonDateFilterKey] ?? [];
+        return filterArray.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`)).join(', ');
+    }
+
     const filterValue = filters[nonDateFilterKey];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
