@@ -8,6 +8,7 @@ import {getButtonRole} from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -87,6 +88,9 @@ type WebLayoutNativeEvent = {
 const checkIfReportNameOverflows = <T extends LayoutChangeEvent>({nativeEvent}: T) =>
     'target' in nativeEvent ? (nativeEvent as WebLayoutNativeEvent).target.scrollHeight > variables.h70 : false;
 
+// Do not remove this empty view, it is a workaround for the icon padding at the end of the preview text
+const FixIconPadding = <View />;
+
 function MoneyRequestReportPreviewContent({
     iouReportID,
     policyID,
@@ -160,7 +164,7 @@ function MoneyRequestReportPreviewContent({
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
 
-    const iouSettled = isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const iouSettled = true || isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const previewMessageOpacity = useSharedValue(1);
     const previewMessageStyle = useAnimatedStyle(() => ({
         opacity: previewMessageOpacity.get(),
@@ -421,27 +425,15 @@ function MoneyRequestReportPreviewContent({
     // The button should expand up to transaction width
     const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
 
-    const approvedOrSettledicon = (
-        <>
-            {iouSettled && (
-                <Animated.View style={[styles.defaultCheckmarkWrapper, {transform: [{scale: checkMarkScale}]}]}>
-                    <Icon
-                        src={Expensicons.Checkmark}
-                        fill={theme.iconSuccessFill}
-                        inline
-                    />
-                </Animated.View>
-            )}
-            {isApproved && (
-                <Animated.View style={[thumbsUpStyle]}>
-                    <Icon
-                        src={Expensicons.ThumbsUp}
-                        fill={theme.icon}
-                        inline
-                    />
-                </Animated.View>
-            )}
-        </>
+    const approvedOrSettledicon = (iouSettled || isApproved) && (
+        <ImageSVG
+            src={isApproved ? Expensicons.Checkmark : Expensicons.ThumbsUp}
+            fill={isApproved ? theme.iconSuccessFill : theme.icon}
+            width={20}
+            height={20}
+            style={{transform: 'translateY(4px)'}}
+            contentFit="cover"
+        />
     );
 
     return (
@@ -479,16 +471,17 @@ function MoneyRequestReportPreviewContent({
                                 <View style={[reportPreviewStyles.contentContainerStyle]}>
                                     <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
                                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
-                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
+                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1, styles.mtn1]}>
                                                 <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                     <Text
                                                         onLayout={onTextLayoutChange}
-                                                        style={[styles.lh20, styles.headerText, (iouSettled || isApproved) && styles.pr8]}
+                                                        style={[styles.headerText, styles.lh20]}
                                                         testID="MoneyRequestReportPreview-reportName"
                                                         numberOfLines={3}
                                                     >
-                                                        {action.childReportName}
-                                                        {!doesReportNameOverflow && <View style={[styles.pAbsolute, styles.dInlineFlex, styles.mtn0Half]}>{approvedOrSettledicon}</View>}
+                                                        {FixIconPadding}
+                                                        <Text>{action.childReportName}</Text>
+                                                        {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledicon}</>}
                                                     </Text>
                                                     {doesReportNameOverflow && (
                                                         <View style={[styles.mtn0Half, (transactions.length < 3 || shouldUseNarrowLayout) && styles.alignSelfStart]}>
