@@ -7,7 +7,6 @@ import ROUTES from '@src/ROUTES';
 /**
  * If there are already other screens open in WorkspaceSplitNavigator, we return to the previous one.
  * If not, from the central screen in WorkspaceSplitNavigator we should return to the WorkspaceInitialPage.
- *
  */
 function goBackFromWorkspaceCentralScreen(policyID: string | undefined) {
     const rootState = navigationRef.getRootState();
