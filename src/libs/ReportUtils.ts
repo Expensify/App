@@ -9472,6 +9472,10 @@ function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
     return isSelectedManagerMcTest(persionalDetails?.login);
 }
 
+function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
+    return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -9740,6 +9744,7 @@ export {
     isValidReport,
     isValidReportIDFromPath,
     isWaitingForAssigneeToCompleteAction,
+    isWaitingForSubmissionFromCurrentUser,
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
