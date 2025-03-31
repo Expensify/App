@@ -467,16 +467,20 @@ function MoneyRequestReportPreviewContent({
                                 <View style={[reportPreviewStyles.contentContainerStyle]}>
                                     <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
                                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
-                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1, styles.mtn1]}>
+                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1, (isApproved || iouSettled) && styles.mtn1]}>
                                                 <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                     <Text
                                                         onLayout={onTextLayoutChange}
-                                                        style={[styles.headerText, styles.lh20]}
-                                                        testID="MoneyRequestReportPreview-reportName"
+                                                        style={[styles.lh20]}
                                                         numberOfLines={3}
                                                     >
                                                         {FixIconPadding}
-                                                        <Text>{action.childReportName}</Text>
+                                                        <Text
+                                                            style={[styles.headerText]}
+                                                            testID="MoneyRequestReportPreview-reportName"
+                                                        >
+                                                            {action.childReportName}
+                                                        </Text>
                                                         {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledicon}</>}
                                                     </Text>
                                                     {doesReportNameOverflow && (
