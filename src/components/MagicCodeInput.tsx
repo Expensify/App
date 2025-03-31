@@ -6,7 +6,7 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileSafari, isMobileChrome} from '@libs/Browser';
+import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import {isNumeric} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import FormHelpMessage from './FormHelpMessage';
