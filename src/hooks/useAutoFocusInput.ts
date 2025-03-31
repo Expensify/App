@@ -6,8 +6,8 @@ import {InteractionManager} from 'react-native';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
-import useSidePane from './useSidePane';
 import usePrevious from './usePrevious';
+import useSidePane from './useSidePane';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
@@ -62,11 +62,9 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         if (!shouldHideSidePane || prevShouldHideSidePane) {
             return;
         }
-        
+
         setIsScreenTransitionEnded(isSidePaneTransitionEnded);
     }, [isSidePaneTransitionEnded, shouldHideSidePane, prevShouldHideSidePane]);
-
-    
 
     const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;
