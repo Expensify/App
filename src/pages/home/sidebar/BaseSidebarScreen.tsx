@@ -73,7 +73,7 @@ function BaseSidebarScreen() {
                         breadcrumbLabel={translate('common.inbox')}
                         activeWorkspaceID={activeWorkspaceID}
                         shouldDisplaySearch={shouldUseNarrowLayout}
-                        shouldDisplaySidePane={shouldUseNarrowLayout}
+                        shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData insets={insets} />
