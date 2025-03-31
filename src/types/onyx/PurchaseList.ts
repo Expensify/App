@@ -22,6 +22,20 @@ type Subscription = {
     userCount: number;
 };
 
+/** Type for a billable policy */
+type BillablePolicy = {
+    /** List of actors in the policy */
+    actorList: string;
+    /** Approved spend amounts by currency */
+    approvedSpend: Record<string, number>;
+    /** Whether the policy is corporate */
+    corporate: boolean;
+    /** Expensify card spend by currency */
+    expensifyCardSpend: Record<string, number>;
+    /** Type of the policy */
+    type: string;
+};
+
 /** Message type for a purchase */
 type Message = {
     /** Account manager account ID */
@@ -40,18 +54,7 @@ type Message = {
     billableAmountBeforeFreeTrialDiscount: number;
 
     /** Record of billable policies with their details */
-    billablePolicies: Record<string, {
-        /** List of actors in the policy */
-        actorList: string;
-        /** Approved spend amounts by currency */
-        approvedSpend: Record<string, number>;
-        /** Whether the policy is corporate */
-        corporate: boolean;
-        /** Expensify card spend by currency */
-        expensifyCardSpend: Record<string, number>;
-        /** Type of the policy */
-        type: string;
-    }>;
+    billablePolicies: Record<string, BillablePolicy>;
 
     /** Billing type */
     billingType: string;
