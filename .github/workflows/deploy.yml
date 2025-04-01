@@ -5,7 +5,7 @@ on:
     branches: [staging, production, andrew-web-desktop]
 
 env:
-  SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
+  SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/andrew-web-desktop' }}
   IS_APP_REPO: ${{ github.repository == 'Expensify/App' }}
 
 concurrency:
