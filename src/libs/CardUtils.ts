@@ -323,6 +323,10 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemoved
     );
 }
 
+function getExpensifyCardFeeds(cardFeeds: OnyxEntry<CardFeeds>) {
+
+}
+
 function getBankName(feedType: CompanyCardFeed): string {
     const feedNamesMapping = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',

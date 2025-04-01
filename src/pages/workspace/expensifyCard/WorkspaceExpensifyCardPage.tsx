@@ -26,7 +26,16 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [workspaceCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}`);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+
+    console.log(workspaceCardFeeds, workspaceCardSettings);
+
+    // TODO: move to getExpensifyCardFeeds
+    const hasDomainFeed = Object.values(workspaceCardSettings).some((value) => Boolean(value?.preferredPolicy) && value?.preferredPolicy === policyID);
+
+    console.log(hasDomainFeed);
 
     const fetchExpensifyCards = useCallback(() => {
         openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
@@ -39,26 +48,36 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
 
+    const renderContent = () => {
+        if (!!isLoading && !paymentBankAccountID && !hasDomainFeed) {
+            return (
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={styles.flex1}
+                    color={theme.spinner}
+                />
+            );
+        }
+        if (!!paymentBankAccountID || hasDomainFeed) {
+            return (
+                <WorkspaceExpensifyCardListPage
+                    cardsList={cardsList}
+                    route={route}
+                />
+            );
+        }
+        if (!paymentBankAccountID && !isLoading) {
+            return <WorkspaceExpensifyCardPageEmptyState route={route} />;
+        }
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            {!!isLoading && !paymentBankAccountID && (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={styles.flex1}
-                    color={theme.spinner}
-                />
-            )}
-            {!!paymentBankAccountID && (
-                <WorkspaceExpensifyCardListPage
-                    cardsList={cardsList}
-                    route={route}
-                />
-            )}
-            {!paymentBankAccountID && !isLoading && <WorkspaceExpensifyCardPageEmptyState route={route} />}
+            {renderContent()}
         </AccessOrNotFoundWrapper>
     );
 }
