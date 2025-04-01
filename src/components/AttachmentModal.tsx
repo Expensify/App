@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -68,6 +68,9 @@ type ChildrenProps = {
 type AttachmentModalProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
+
+    /** The id of the attachment. */
+    attachmentID?: string;
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: ((file: FileObject) => void) | null;
@@ -164,6 +167,7 @@ function AttachmentModal({
     isLoading = false,
     shouldShowNotFoundPage = false,
     type = undefined,
+    attachmentID,
     accountID = undefined,
     shouldDisableSendButton = false,
     attachmentLink = '',
@@ -435,7 +439,7 @@ function AttachmentModal({
                 text: translate('common.replace'),
                 onSelected: () => {
                     closeModal(true);
-                    Navigation.isNavigationReady().then(() => {
+                    InteractionManager.runAfterInteractions(() => {
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
                         );
@@ -534,9 +538,15 @@ function AttachmentModal({
                         onCloseButtonPress={closeModal}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
+                        threeDotsAnchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
+                        shouldSetModalVisibility={false}
                         threeDotsMenuItems={threeDotsMenuItems}
                         shouldOverlayDots
                         subTitleLink={currentAttachmentLink ?? ''}
+                        shouldDisplayHelpButton={false}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {isLoading && <FullScreenLoadingIndicator />}
@@ -557,6 +567,7 @@ function AttachmentModal({
                                 <AttachmentCarousel
                                     accountID={accountID}
                                     type={type}
+                                    attachmentID={attachmentID}
                                     report={report}
                                     onNavigate={onNavigate}
                                     onClose={closeModal}

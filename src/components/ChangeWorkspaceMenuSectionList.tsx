@@ -46,7 +46,7 @@ function ChangeWorkspaceMenuSectionList() {
                         src={section.icon}
                         additionalStyles={[styles.mr4]}
                     />
-                    <View style={[styles.flex1, styles.justifyContentCenter]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.wAuto]}>
                         <RenderHTML html={`<comment>${convertToLTR(translate(section.titleTranslationKey))}</comment>`} />
                     </View>
                 </View>

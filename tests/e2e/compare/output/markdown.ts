@@ -7,6 +7,10 @@ import type {Data, Entry} from './console';
 import * as format from './format';
 import markdownTable from './markdownTable';
 
+const MAX_CHARACTERS_PER_FILE = 65536;
+const FILE_SIZE_SAFETY_MARGIN = 1000;
+const MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN = MAX_CHARACTERS_PER_FILE - FILE_SIZE_SAFETY_MARGIN;
+
 const tableHeader = ['Name', 'Duration'];
 
 const collapsibleSection = (title: string, content: string) => `<details>\n<summary>${title}</summary>\n\n${content}\n</details>\n\n`;
@@ -45,15 +49,27 @@ const formatEntryDuration = (entry: Entry): string => {
     return '';
 };
 
-const buildDetailsTable = (entries: Entry[]) => {
+const buildDetailsTable = (entries: Entry[], numberOfTables = 1) => {
     if (!entries.length) {
-        return '';
+        return [''];
     }
 
-    const rows = entries.map((entry) => [entry.name, buildDurationDetailsEntry(entry)]);
-    const content = markdownTable([tableHeader, ...rows]);
+    const entriesPerTable = Math.floor(entries.length / numberOfTables);
+    const tables: string[] = [];
+    for (let i = 0; i < numberOfTables; i++) {
+        const start = i * entriesPerTable;
+        const end = i === numberOfTables - 1 ? entries.length : start + entriesPerTable;
+        const tableEntries = entries.slice(start, end);
 
-    return collapsibleSection('Show details', content);
+        const rows = tableEntries.map((entry) => [entry.name, buildDurationDetailsEntry(entry)]);
+        const content = markdownTable([tableHeader, ...rows]);
+
+        const tableMarkdown = collapsibleSection('Show details', content);
+
+        tables.push(tableMarkdown);
+    }
+
+    return tables;
 };
 
 const buildSummaryTable = (entries: Entry[], collapse = false) => {
@@ -67,36 +83,75 @@ const buildSummaryTable = (entries: Entry[], collapse = false) => {
     return collapse ? collapsibleSection('Show entries', content) : content;
 };
 
-const buildMarkdown = (data: Data, skippedTests: string[]) => {
-    let result = '## Performance Comparison Report 📊';
+const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: number): [string, ...string[]] => {
+    let singleFileOutput: string | undefined;
+    let nExtraFiles = numberOfExtraFiles ?? 0;
+
+    // If the user didn't specify the number of extra files, calculate it based on the size of the single file
+    if (numberOfExtraFiles === undefined) {
+        singleFileOutput = buildMarkdown(data, skippedTests, 0)[0];
+        const totalCharacters = singleFileOutput.length ?? 0;
+
+        // If the single file is small enough, return it
+        if (totalCharacters <= MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN) {
+            return [singleFileOutput];
+        }
+
+        // Otherwise, calculate the number of extra files needed
+        nExtraFiles = Math.ceil(totalCharacters / MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN);
+    }
+
+    let mainFile = '## Performance Comparison Report 📊';
+    mainFile += nExtraFiles > 0 ? ` (1/${nExtraFiles + 1})` : '';
 
     if (data.errors?.length) {
-        result += '\n\n### Errors\n';
+        mainFile += '\n\n### Errors\n';
         data.errors.forEach((message) => {
-            result += ` 1. 🛑 ${message}\n`;
+            mainFile += ` 1. 🛑 ${message}\n`;
         });
     }
 
     if (data.warnings?.length) {
-        result += '\n\n### Warnings\n';
+        mainFile += '\n\n### Warnings\n';
         data.warnings.forEach((message) => {
-            result += ` 1. 🟡 ${message}\n`;
+            mainFile += ` 1. 🟡 ${message}\n`;
         });
     }
 
-    result += '\n\n### Significant Changes To Duration';
-    result += `\n${buildSummaryTable(data.significance)}`;
-    result += `\n${buildDetailsTable(data.significance)}`;
-    result += '\n\n### Meaningless Changes To Duration';
-    result += `\n${buildSummaryTable(data.meaningless, true)}`;
-    result += `\n${buildDetailsTable(data.meaningless)}`;
-    result += '\n';
-
     if (skippedTests.length > 0) {
-        result += `⚠️ Some tests did not pass successfully, so some results are omitted from final report: ${skippedTests.join(', ')}`;
+        mainFile += `⚠️ Some tests did not pass successfully, so some results are omitted from final report: ${skippedTests.join(', ')}`;
     }
 
-    return result;
+    mainFile += '\n\n### Significant Changes To Duration';
+    mainFile += `\n${buildSummaryTable(data.significance)}`;
+    mainFile += `\n${buildDetailsTable(data.significance, 1).at(0)}`;
+
+    const meaninglessDetailsTables = buildDetailsTable(data.meaningless, nExtraFiles);
+
+    if (nExtraFiles === 0) {
+        mainFile += '\n\n### Meaningless Changes To Duration';
+        mainFile += `\n${buildSummaryTable(data.meaningless, true)}`;
+        mainFile += `\n${meaninglessDetailsTables.at(0)}`;
+
+        return [mainFile];
+    }
+
+    const extraFiles: string[] = [];
+    for (let i = 0; i < nExtraFiles; i++) {
+        let extraFile = '## Performance Comparison Report 📊';
+        extraFile += nExtraFiles > 0 ? ` (${i + 2}/${nExtraFiles + 1})` : '';
+
+        extraFile += '\n\n### Meaningless Changes To Duration';
+        extraFile += nExtraFiles > 0 ? ` (${i + 1}/${nExtraFiles + 1})` : '';
+
+        extraFile += `\n${buildSummaryTable(data.meaningless, true)}`;
+        extraFile += `\n${meaninglessDetailsTables.at(i)}`;
+        extraFile += '\n';
+
+        extraFiles.push(extraFile);
+    }
+
+    return [mainFile, ...extraFiles];
 };
 
 const writeToFile = (filePath: string, content: string) =>
@@ -113,13 +168,24 @@ const writeToFile = (filePath: string, content: string) =>
             throw error;
         });
 
-const writeToMarkdown = (filePath: string, data: Data, skippedTests: string[]) => {
-    const markdown = buildMarkdown(data, skippedTests);
-    Logger.info('Markdown was built successfully, writing to file...', markdown);
-    return writeToFile(filePath, markdown).catch((error) => {
-        console.error(error);
-        throw error;
-    });
+const writeToMarkdown = (outputDir: string, data: Data, skippedTests: string[]) => {
+    const markdownFiles = buildMarkdown(data, skippedTests);
+    const filesString = markdownFiles.join('\n\n');
+    Logger.info('Markdown was built successfully, writing to file...', filesString);
+
+    if (markdownFiles.length === 1) {
+        return writeToFile(path.join(outputDir, 'output1.md'), markdownFiles[0]);
+    }
+
+    return Promise.all(
+        markdownFiles.map((file, index) => {
+            const filePath = `${outputDir}/output-${index + 1}.md`;
+            return writeToFile(filePath, file).catch((error) => {
+                console.error(error);
+                throw error;
+            });
+        }),
+    );
 };
 
 export default writeToMarkdown;
