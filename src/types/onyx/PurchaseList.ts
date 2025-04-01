@@ -1,165 +1,165 @@
 /** Subscription type for a purchase */
 type Subscription = {
     /** Whether new users are added automatically */
-    addNewUsersAutomatically: boolean;
+    addNewUsersAutomatically?: boolean;
 
     /** Whether the subscription auto-renews */
-    autoRenew: boolean;
+    autoRenew?: boolean;
 
     /** Date when auto-renew was last changed */
-    autoRenewLastChangedDate: string;
+    autoRenewLastChangedDate?: string;
 
     /** End date of the subscription */
-    endDate: string;
+    endDate?: string;
 
     /** Start date of the subscription */
-    startDate: string;
+    startDate?: string;
 
     /** Type of subscription */
-    type: string;
+    type?: string;
 
     /** Number of users in the subscription */
-    userCount: number;
+    userCount?: number;
 };
 
 /** Type for a billable policy */
 type BillablePolicy = {
     /** List of actors in the policy */
-    actorList: string;
+    actorList?: string;
     /** Approved spend amounts by currency */
-    approvedSpend: Record<string, number>;
+    approvedSpend?: Record<string, number>;
     /** Whether the policy is corporate */
-    corporate: boolean;
+    corporate?: boolean;
     /** Expensify card spend by currency */
-    expensifyCardSpend: Record<string, number>;
+    expensifyCardSpend?: Record<string, number>;
     /** Type of the policy */
-    type: string;
+    type?: string;
 };
 
 /** Message type for a purchase */
 type Message = {
     /** Account manager account ID */
-    accountManagerAccountID: number;
+    accountManagerAccountID?: number;
 
     /** List of approved accountant account IDs */
-    approvedAccountantAccountIDs: number[];
+    approvedAccountantAccountIDs?: number[];
 
     /** Approved spend amounts by currency */
-    approvedSpend: Record<string, number>;
+    approvedSpend?: Record<string, number>;
 
     /** Billable amount */
-    billableAmount: number;
+    billableAmount?: number;
 
     /** Billable amount before free trial discount */
-    billableAmountBeforeFreeTrialDiscount: number;
+    billableAmountBeforeFreeTrialDiscount?: number;
 
     /** Record of billable policies with their details */
-    billablePolicies: Record<string, BillablePolicy>;
+    billablePolicies?: Record<string, BillablePolicy>;
 
     /** Billing type */
-    billingType: string;
+    billingType?: string;
 
     /** Card spend surcharge percentage */
-    cardSpendSurchargePercent: number;
+    cardSpendSurchargePercent?: number;
 
     /** Cash back amount */
-    cashBackAmount: number;
+    cashBackAmount?: number;
 
     /** Cash back percentage */
-    cashBackPercentage: number;
+    cashBackPercentage?: number;
 
     /** Chat only actor list */
-    chatOnlyActorList: string;
+    chatOnlyActorList?: string;
 
     /** Corporate actor count */
-    corporateActorCount: number;
+    corporateActorCount?: number;
 
     /** Corporate revenue */
-    corporateRevenue: number;
+    corporateRevenue?: number;
 
     /** Expensify card monthly spend */
-    expensifyCardMonthlySpend: number;
+    expensifyCardMonthlySpend?: number;
 
     /** Expensify card spend by currency */
-    expensifyCardSpend: Record<string, number>;
+    expensifyCardSpend?: Record<string, number>;
 
     /** Free actor count */
-    freeActorCount: number;
+    freeActorCount?: number;
 
     /** Free trial days */
-    freeTrialDays: number;
+    freeTrialDays?: number;
 
     /** Free trial discount amount */
-    freeTrialDiscountAmount: number;
+    freeTrialDiscountAmount?: number;
 
     /** Free trial discount percentage */
-    freeTrialDiscountPercentage: number;
+    freeTrialDiscountPercentage?: number;
 
     /** Freebie credits used */
-    freebieCreditsUsed: number;
+    freebieCreditsUsed?: number;
 
     /** Guide account ID */
-    guideAccountID: number;
+    guideAccountID?: number;
 
     /** Whether the user is an approved accountant */
-    isApprovedAccountant: boolean;
+    isApprovedAccountant?: boolean;
 
     /** Whether the user is an approved accountant client */
-    isApprovedAccountantClient: boolean;
+    isApprovedAccountantClient?: boolean;
 
     /** Paid actor count */
-    paidActorCount: number;
+    paidActorCount?: number;
 
     /** Partner manager account ID */
-    partnerManagerAccountID: number;
+    partnerManagerAccountID?: number;
 
     /** Per policy total members count */
-    perPolicyTotalMembersCount: Record<string, number>;
+    perPolicyTotalMembersCount?: Record<string, number>;
 
     /** Potential cash back amount */
-    potentialCashBackAmount: number;
+    potentialCashBackAmount?: number;
 
     /** Potential cash back percentage */
-    potentialCashBackPercentage: number;
+    potentialCashBackPercentage?: number;
 
     /** Subscription details */
-    subscription: Subscription;
+    subscription?: Subscription;
 
     /** Team actor count */
-    teamActorCount: number;
+    teamActorCount?: number;
 
     /** Team revenue */
-    teamRevenue: number;
+    teamRevenue?: number;
 
     /** Total actor count */
-    totalActorCount: number;
+    totalActorCount?: number;
 
     /** Total freebie credits */
-    totalFreebieCredits: number;
+    totalFreebieCredits?: number;
 
     /** Total platform spend */
-    totalPlatformSpend: number;
+    totalPlatformSpend?: number;
 
     /** Total revenue */
-    totalRevenue: number;
+    totalRevenue?: number;
 
     /** Total unique members count */
-    totalUniqueMembersCount: number;
+    totalUniqueMembersCount?: number;
 
     /** Whether domain billing was used */
-    wasDomainBillingUsed: boolean;
+    wasDomainBillingUsed?: boolean;
 
     /** Yearly overage surcharge */
-    yearlyOverageSurcharge: number;
+    yearlyOverageSurcharge?: number;
 
     /** Yearly subscription overage cost */
-    yearlySubscriptionOverageCost: number;
+    yearlySubscriptionOverageCost?: number;
 
     /** Yearly subscription surcharge */
-    yearlySubscriptionSurcharge: number;
+    yearlySubscriptionSurcharge?: number;
 
     /** Yearly subscription user count cost */
-    yearlySubscriptionUserCountCost: number;
+    yearlySubscriptionUserCountCost?: number;
 };
 
 /** Purchase type */
