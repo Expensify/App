@@ -535,13 +535,20 @@ describe('SubscriptionUtils', () => {
     });
 
     describe('getEarlyDiscountInfo', () => {
+        const TEST_DATE = new Date();
+
+        beforeEach(() => {
+            jest.spyOn(Date, 'now').mockImplementation(() => TEST_DATE.getTime());
+        });
+
         afterEach(async () => {
+            jest.spyOn(Date, 'now').mockRestore();
             await Onyx.clear();
         });
         it('should return the discount info if the user is on a free trial and trial was started less than 24 hours before', async () => {
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(addMinutes(subDays(new Date(), 1), 12), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(addMinutes(subDays(new Date(TEST_DATE), 1), 12), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(TEST_DATE), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
             expect(getEarlyDiscountInfo()).toEqual({
@@ -555,8 +562,8 @@ describe('SubscriptionUtils', () => {
 
         it('should return the discount info if the user is on a free trial and trial was started more than 24 hours before', async () => {
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(TEST_DATE), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(TEST_DATE), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
             expect(getEarlyDiscountInfo()).toEqual({
