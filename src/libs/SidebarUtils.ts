@@ -85,6 +85,7 @@ import {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReportWithID,
+    isChatReport,
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
@@ -242,7 +243,10 @@ function getOrderedReportIDs(
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
-
+        // Ensures that an empty chat report only shows on sidebar if it is selected
+        if (isChatReport(report) && !report.lastMessageText && !isFocused) {
+            return;
+        }
         if (
             shouldReportBeInOptionList({
                 report,

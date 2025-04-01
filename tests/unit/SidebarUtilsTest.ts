@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
+import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
@@ -694,6 +695,55 @@ describe('SidebarUtils', () => {
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
                 expect(result?.alternateText).toBe(`You invited 1 user`);
             });
+        });
+    });
+
+    describe('getOrderedReportIds', () => {
+        const accountID = 12345;
+        const mockedReports = createCollection<Report>(
+            (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
+            (index) => ({
+                ...createRandomReport(index),
+                type: 'chat',
+                lastMessageText: index === 0 ? 'hello' : undefined,
+                participants: {
+                    '12345': {
+                        notificationPreference: 'daily',
+                        role: 'admin',
+                    },
+                },
+            }),
+            2,
+        );
+        const mockedBetas = Object.values(CONST.BETAS);
+        const mockedPolicies = createCollection<Policy>(
+            (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+            (index) => createRandomPolicy(index),
+            1,
+        );
+        const mockedTransactionViolations = {} as OnyxCollection<TransactionViolation[]>;
+
+        it('does not return a chat report if it has no messages and is not the current report', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                accountID,
+            });
+
+            const result = SidebarUtils.getOrderedReportIDs(undefined, mockedReports, mockedBetas, mockedPolicies, CONST.PRIORITY_MODE.DEFAULT, mockedTransactionViolations);
+
+            expect(result).toEqual(['0']);
+        });
+
+        it('returns a chat report if it has no message, but is the current report', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                accountID,
+            });
+
+            const result = SidebarUtils.getOrderedReportIDs('1', mockedReports, mockedBetas, mockedPolicies, CONST.PRIORITY_MODE.DEFAULT, mockedTransactionViolations);
+
+            /* Since it's creating random reports 
+            and the sorting order can vary depending on some aspects,
+            expecting the exact result here can make the test flaky */
+            expect(result).toEqual(expect.arrayContaining(['0', '1']));
         });
     });
 });
