@@ -292,7 +292,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                                     <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                                         <Avatar
-                                            containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
+                                            containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
                                             imageStyles={[styles.avatarXLarge]}
                                             source={details.avatar}
                                             avatarID={accountID}
@@ -303,7 +303,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </OfflineWithFeedback>
                                     {!!(details.displayName ?? '') && (
                                         <Text
-                                            style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
+                                            style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
                                             numberOfLines={1}
                                         >
                                             {displayName}
