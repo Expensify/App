@@ -95,8 +95,8 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
                 savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
             }
-
-            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, savedSearchTitle, hash);
+            const isItemFocused = Number(key) === hash;
+            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, savedSearchTitle, isItemFocused);
 
             return {
                 ...baseMenuItem,
