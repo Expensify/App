@@ -157,7 +157,7 @@ function AccessOrNotFoundWrapper({
         }
         // If tax feature is disabled, for instance from OD, we will navigate to the more features page.
         if (!isFeatureEnabled && featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
-            Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+            Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             return;
         }
 
