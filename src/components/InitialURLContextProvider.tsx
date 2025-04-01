@@ -43,12 +43,10 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
                         const focusRoute = findFocusedRoute(navigationRef.getRootState());
                         if (focusRoute?.name === SCREENS.SHARE.SHARE_DETAILS || focusRoute?.name === SCREENS.SHARE.SUBMIT_DETAILS) {
                             Navigation.goBack(ROUTES.SHARE_ROOT);
-                        } else {
-                            Navigation.navigate(ROUTES.SHARE_ROOT);
+                            return;
                         }
-                        return;
                     }
-                    Navigation.navigate(Navigation.parseHybridAppUrl(url));
+                    Navigation.navigate(parsedUrl);
                 });
 
                 if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
