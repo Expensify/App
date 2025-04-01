@@ -60,11 +60,10 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
                     navigationRef.current?.dispatch(blockedNavigationAction.current);
                     return;
                 }
-                if (shouldNavigateBack.current) {
-                    setTimeout(() => {
-                        navigationRef.current?.goBack();
-                    }, 0);
+                if (!shouldNavigateBack.current) {
+                    return;
                 }
+                navigationRef.current?.goBack();
             }}
             onCancel={() => {
                 setIsVisible(false);
