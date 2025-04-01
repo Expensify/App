@@ -86,7 +86,6 @@ function PopoverWithMeasuredContent({
     const measurePopover = ({nativeEvent}: LayoutChangeEvent) => {
         setPopoverWidth(nativeEvent.layout.width);
         setPopoverHeight(nativeEvent.layout.height);
-
         setIsContentMeasured(true);
     };
 
