@@ -57,7 +57,7 @@ function TransactionItemRow({
                                         onPress={() => {
                                             toggleTransaction(transactionItem.transactionID);
                                         }}
-                                        accessibilityLabel="checkbox"
+                                        accessibilityLabel={CONST.ROLE.CHECKBOX}
                                         isChecked={isTransactionSelected(transactionItem.transactionID)}
                                     />
                                 </View>
@@ -128,7 +128,7 @@ function TransactionItemRow({
                                         onPress={() => {
                                             toggleTransaction(transactionItem.transactionID);
                                         }}
-                                        accessibilityLabel="checkbox"
+                                        accessibilityLabel={CONST.ROLE.CHECKBOX}
                                         isChecked={isTransactionSelected(transactionItem.transactionID)}
                                     />
                                 </View>

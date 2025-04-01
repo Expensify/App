@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
@@ -100,6 +100,15 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         setMouseUp();
     };
 
+    const transactionsMap = useMemo(
+        () =>
+            transactions.reduce((acc, curr) => {
+                acc[curr.transactionID] = curr;
+                return acc;
+            }, {} as Record<string, OnyxTypes.Transaction>),
+        [transactions],
+    );
+
     const [sortedData, setSortedData] = useState<SortedTransactions>({
         transactions,
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -110,6 +119,10 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
     useEffect(() => {
         if (areTransactionValuesEqual(transactions, sortBy) && sortedData.transactions.length === transactions.length) {
+            setSortedData((prevState) => ({
+                ...prevState,
+                transactions: prevState.transactions.map((prevTransaction) => transactionsMap[prevTransaction.transactionID]),
+            }));
             return;
         }
 
@@ -117,7 +130,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
             ...prevState,
             transactions: [...transactions].sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy)),
         }));
-    }, [sortBy, sortOrder, sortedData.transactions.length, transactions]);
+    }, [sortBy, sortOrder, sortedData.transactions, transactions, transactionsMap]);
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
@@ -161,7 +174,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                     setSelectedTransactionsID(transactions.map((t) => t.transactionID));
                                 }
                             }}
-                            accessibilityLabel="checkbox"
+                            accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={selectedTransactionsID.length === transactions.length}
                         />
                     </View>
@@ -256,4 +269,4 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
 MoneyRequestReportTransactionList.displayName = 'MoneyRequestReportTransactionList';
 
-export default MoneyRequestReportTransactionList;
+export default memo(MoneyRequestReportTransactionList);

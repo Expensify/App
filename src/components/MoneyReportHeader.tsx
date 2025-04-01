@@ -249,7 +249,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             },
         });
 
-        const canAllSelectedTransactionBeRemoved = selectedTransactionsID.every((transactionID) => {
+        const canAllSelectedTransactionsBeRemoved = selectedTransactionsID.every((transactionID) => {
             const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transactionID);
             const action = getIOUActionForTransactionID(reportActions, transactionID ?? '');
             const isActionDeleted = isDeletedAction(action);
@@ -260,7 +260,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
         const canRemoveReportTransaction = canDeleteTransaction(moneyRequestReport);
 
-        if (canRemoveReportTransaction && canAllSelectedTransactionBeRemoved) {
+        if (canRemoveReportTransaction && canAllSelectedTransactionsBeRemoved) {
             options.push({
                 text: translate('common.delete'),
                 icon: Expensicons.Trashcan,
