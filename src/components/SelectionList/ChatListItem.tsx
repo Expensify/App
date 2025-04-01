@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import {AttachmentContext} from '@components/AttachmentContext';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -17,6 +18,7 @@ import ReportActionItemDate from '@pages/home/report/ReportActionItemDate';
 import ReportActionItemFragment from '@pages/home/report/ReportActionItemFragment';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
 
@@ -31,7 +33,9 @@ function ChatListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    queryJSONHash,
 }: ChatListItemProps<TItem>) {
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSONHash ?? CONST.DEFAULT_NUMBER_ID}`);
     const reportActionItem = item as unknown as ReportActionListItemType;
     const from = reportActionItem.from;
     const icons = [
@@ -111,7 +115,10 @@ function ChatListItem<TItem extends ListItem>({
                                         onPress={() => onSelectRow(item)}
                                         numberOfLines={1}
                                     >
-                                        {getChatListItemReportName(reportActionItem)}
+                                        {getChatListItemReportName(
+                                            reportActionItem,
+                                            currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID ?? CONST.DEFAULT_NUMBER_ID}`],
+                                        )}
                                     </TextLink>
                                 </View>
                                 <View style={styles.flexRow}>

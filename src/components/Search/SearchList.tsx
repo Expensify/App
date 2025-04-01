@@ -65,6 +65,9 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
+
+    /** The hash of the queryJSON */
+    queryJSONHash: number;
 };
 
 function SearchList(
@@ -84,6 +87,7 @@ function SearchList(
         ListFooterComponent,
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
+        queryJSONHash,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -290,10 +294,11 @@ function SearchList(
                         ...item,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                    queryJSONHash={queryJSONHash}
                 />
             );
         },
-        [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, itemsToHighlight, onCheckboxPress, onSelectRow, setFocusedIndex, shouldPreventDefaultFocusOnSelectRow],
+        [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, itemsToHighlight, onCheckboxPress, onSelectRow, queryJSONHash, setFocusedIndex, shouldPreventDefaultFocusOnSelectRow],
     );
 
     return (

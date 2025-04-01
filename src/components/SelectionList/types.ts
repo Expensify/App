@@ -358,7 +358,9 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    queryJSONHash?: number;
+};
 
 type ValidListItem =
     | typeof RadioListItem

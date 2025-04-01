@@ -9476,11 +9476,12 @@ function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
     return isSelectedManagerMcTest(persionalDetails?.login);
 }
 
-function getChatListItemReportName(action: ReportAction & {reportID: string; reportName?: string}): string {
-    const report = getReport(action.reportID, allReports);
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined): string {
+    if (report && isInvoiceReport(report)) {
+        const properInvoiceReport = report;
+        properInvoiceReport.chatReportID = report.parentReportID;
 
-    if (isInvoiceReport(report)) {
-        return getInvoiceReportName(report);
+        return getInvoiceReportName(properInvoiceReport);
     }
 
     return action?.reportName ?? '';
