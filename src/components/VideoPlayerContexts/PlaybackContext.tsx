@@ -1,4 +1,5 @@
-import type {NavigationState} from '@react-navigation/native';
+import type {NavigationState, Route} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import type {AVPlaybackStatus, AVPlaybackStatusToSet} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
@@ -7,10 +8,21 @@ import usePrevious from '@hooks/usePrevious';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
+import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
+import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext, StatusCallback} from './types';
 
 const Context = React.createContext<PlaybackContext | null>(null);
+
+type SearchRoute = Omit<Route<string>, 'key'> | undefined;
+type MoneyRequestReportState = {
+    params: SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT];
+} & SearchRoute;
+
+function isMoneyRequestReportRouteWithReportIDInParams(route: SearchRoute): route is MoneyRequestReportState {
+    return !!route && !!route.params && route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT && 'reportID' in route.params;
+}
 
 function PlaybackContextProvider({children}: ChildrenProps) {
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<string | null>(null);
@@ -58,11 +70,9 @@ function PlaybackContextProvider({children}: ChildrenProps) {
      */
     const updateCurrentPlayingReportID = useCallback(
         (state: NavigationState) => {
-            if (!isReportTopmostSplitNavigator()) {
-                setCurrentReportID(undefined);
-                return;
-            }
-            const reportID = Navigation.getTopmostReportId(state);
+            const focusedRoute = findFocusedRoute(state);
+            const reportID = isMoneyRequestReportRouteWithReportIDInParams(focusedRoute) ? focusedRoute.params.reportID : Navigation.getTopmostReportId(state);
+
             setCurrentReportID(reportID);
         },
         [setCurrentReportID],
