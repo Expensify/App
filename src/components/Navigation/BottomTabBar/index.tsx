@@ -123,7 +123,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
 
         const lastRouteOfTopmostFullScreenRoute = 'state' in topmostFullScreenRoute ? topmostFullScreenRoute.state?.routes.at(-1) : undefined;
 
-        if (lastRouteOfTopmostFullScreenRoute && lastRouteOfTopmostFullScreenRoute.name === SCREENS.SETTINGS.WORKSPACES && shouldUseNarrowLayout) {
+        if (lastRouteOfTopmostFullScreenRoute && lastRouteOfTopmostFullScreenRoute.name === SCREENS.WORKSPACE_HUB.WORKSPACES && shouldUseNarrowLayout) {
             Navigation.goBack(ROUTES.SETTINGS);
             return;
         }
@@ -164,7 +164,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
             }
 
             // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
-            if (state?.routes?.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES) {
+            if (state?.routes?.at(-1)?.name === SCREENS.WORKSPACE_HUB.WORKSPACES) {
                 Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
                 return;
             }

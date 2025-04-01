@@ -126,7 +126,7 @@ function WorkspacesListPage() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-    const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.WORKSPACES>>();
+    const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.WORKSPACE_HUB.WORKSPACES>>();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();

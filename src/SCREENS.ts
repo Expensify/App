@@ -67,7 +67,6 @@ const SCREENS = {
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
-        WORKSPACES: 'Settings_Workspaces',
         SECURITY: 'Settings_Security',
         ABOUT: 'Settings_About',
         SAVE_THE_WORLD: 'Settings_TeachersUnite',
@@ -131,15 +130,6 @@ const SCREENS = {
             CONFIRM: 'Settings_ExitSurvey_Confirm',
         },
 
-        SUBSCRIPTION: {
-            ROOT: 'Settings_Subscription',
-            SIZE: 'Settings_Subscription_Size',
-            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
-            DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
-            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
-            CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
-            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
-        },
         DELEGATE: {
             ADD_DELEGATE: 'Settings_Delegate_Add',
             DELEGATE_ROLE: 'Settings_Delegate_Role',
@@ -348,7 +338,20 @@ const SCREENS = {
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
+    WORKSPACE_HUB: {
+        ROOT: 'Workspace_Hub_Root',
+        WORKSPACES: 'Workspace_List',
 
+        SUBSCRIPTION: {
+            ROOT: 'Settings_Subscription',
+            SIZE: 'Settings_Subscription_Size',
+            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
+            DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
+            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
+            CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
+            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
+        },
+    },
     WORKSPACE: {
         ACCOUNTING: {
             ROOT: 'Policy_Accounting',

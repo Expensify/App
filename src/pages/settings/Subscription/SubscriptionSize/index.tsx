@@ -20,7 +20,7 @@ import Size from './substeps/Size';
 
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [Size, Confirmation];
 
-type SubscriptionSizePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.SIZE>;
+type SubscriptionSizePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE_HUB.SUBSCRIPTION.SIZE>;
 
 function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);

@@ -23,7 +23,7 @@ import SubscriptionDetails from './SubscriptionDetails';
 import SubscriptionPlan from './SubscriptionPlan';
 import SubscriptionSettings from './SubscriptionSettings';
 
-type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.ROOT>;
+type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT>;
 
 function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const backTo = route?.params?.backTo;
