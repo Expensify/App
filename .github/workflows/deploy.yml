@@ -2,7 +2,7 @@ name: Deploy code to staging or production
 
 on:
   push:
-    branches: [staging, production]
+    branches: [staging, production, andrew-web-desktop]
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
@@ -267,9 +267,8 @@ jobs:
           DESKTOP_CERTIFICATE_BASE64: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_LINK"
           DESKTOP_CERTIFICATE_PASSWORD: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_KEY_PASSWORD"
 
-      - name: Build staging desktop app
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build-staging
+      - name: Build desktop app
+        run: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && 'npm run desktop-build' || 'npm run desktop-build-staging' }}
         env:
           CSC_LINK: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_BASE64 }}
           CSC_KEY_PASSWORD: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_PASSWORD }}
@@ -279,21 +278,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
-          S3_BUCKET: ${{ vars.STAGING_S3_BUCKET }}
-
-      - name: Build production desktop app
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: npm run desktop-build
-        env:
-          CSC_LINK: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_BASE64 }}
-          CSC_KEY_PASSWORD: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
-          S3_BUCKET: ${{ vars.PRODUCTION_S3_BUCKET }}
+          S3_BUCKET: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && vars.PRODUCTION_S3_BUCKET || vars.STAGING_S3_BUCKET }}
 
       - name: Upload desktop sourcemaps artifact
         # v4
@@ -517,25 +502,20 @@ jobs:
         env:
           S3_URL: s3://${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging-' || '' }}${{ vars.PRODUCTION_S3_BUCKET }}
 
-      - name: Purge staging Cloudflare cache
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ vars.WEB_STAGING_HOST }}"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+      - name: Purge Cloudflare cache
+        run: |
+          HOST=${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
+          /home/runner/.local/bin/cli4 --verbose --delete hosts=["$HOST"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
+          SHOULD_DEPLOY_PRODUCTION: ${{ env.SHOULD_DEPLOY_PRODUCTION }}
 
-      - name: Purge production Cloudflare cache
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ vars.WEB_PRODUCTION_HOST }}"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+      - name: Verify deploy
+        run: |
+          HOST=${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
+          ./.github/scripts/verifyDeploy.sh "$HOST" "${{ needs.prep.outputs.APP_VERSION }}"
         env:
-          CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
-
-      - name: Verify staging deploy
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: ./.github/scripts/verifyDeploy.sh ${{ vars.WEB_STAGING_HOST }} ${{ needs.prep.outputs.APP_VERSION }}
-
-      - name: Verify production deploy
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: ./.github/scripts/verifyDeploy.sh ${{ vars.WEB_PRODUCTION_HOST }} ${{ needs.prep.outputs.APP_VERSION }}
+          SHOULD_DEPLOY_PRODUCTION: ${{ env.SHOULD_DEPLOY_PRODUCTION }}
 
       - name: Upload web sourcemaps artifact
         # v4
