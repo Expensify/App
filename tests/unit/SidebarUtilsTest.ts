@@ -740,7 +740,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.getOrderedReportIDs('1', mockedReports, mockedBetas, mockedPolicies, CONST.PRIORITY_MODE.DEFAULT, mockedTransactionViolations);
 
-            /* Since it's creating random reports 
+            /* Since this test is creating random reports 
             and the sorting order can vary depending on some aspects,
             expecting the exact result here can make the test flaky */
             expect(result).toEqual(expect.arrayContaining(['0', '1']));
