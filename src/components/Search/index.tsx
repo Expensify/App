@@ -338,10 +338,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 return;
             }
 
-            /**
-             * This line ensures that the app refreshes the search results when the user scrolls to the top.
-             * More info: https://github.com/Expensify/App/issues/56969
-             */
+            // This line ensures that the app refreshes the search results when the user scrolls to the top.
             setOffset(0);
         },
         [shouldShowLoadingState],
