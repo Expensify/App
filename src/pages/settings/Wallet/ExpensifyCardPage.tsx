@@ -242,6 +242,43 @@ function ExpensifyCardPage({
                                 )}
                             </>
                         ))}
+                        {virtualCards.map((card) => (
+                            <>
+                                <>
+                                    <MenuItemWithTopDescription
+                                        description={'Travel Card CVV'}
+                                        title={'•••'}
+                                        interactive={false}
+                                        titleStyle={styles.walletCardNumber}
+                                        shouldShowRightComponent
+                                        rightComponent={
+                                            !isSignedInAsdelegate ? (
+                                                <Button
+                                                    text={translate('Reveal CVV')}
+                                                    onPress={() => openValidateCodeModal(card.cardID)}
+                                                    isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
+                                                    isLoading={isCardDetailsLoading[card.cardID]}
+                                                />
+                                            ) : undefined
+                                        }
+                                    />
+                                    <DotIndicatorMessage
+                                        messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
+                                        type="error"
+                                        style={[styles.ph5]}
+                                    />
+                                </>
+                                {!isSignedInAsdelegate && (
+                                    <MenuItemWithTopDescription
+                                        title={'Report travel card fraud'}
+                                        titleStyle={styles.walletCardMenuItem}
+                                        icon={Expensicons.Flag}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                    />
+                                )}
+                            </>
+                        ))}
                         {physicalCards.map((card) => {
                             if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
                                 return null;
