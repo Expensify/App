@@ -26,15 +26,15 @@ Onyx.connect({
     callback: (val) => (recentWaypoints = val ?? []),
 });
 
-let allTransactions: OnyxCollection<Transaction> = {};
+const allTransactions: Record<string, Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
+    callback: (transaction, key) => {
+        if (!key || !transaction) {
             return;
         }
-        allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => transaction)) as OnyxCollection<Transaction>;
+        const transactionID = CollectionUtils.extractCollectionItemID(key);
+        allTransactions[transactionID] = transaction;
     },
 });
 
@@ -368,7 +368,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
 function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
-    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction?.reportID ?? '', transaction?.transactionID ?? ''));
+    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID, transaction.transactionID));
     const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
@@ -399,11 +399,11 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
 
     const optimisticDataTransactions: OnyxUpdate[] = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
         value: {
             ...transaction,
             comment: {
-                ...transaction?.comment,
+                ...transaction.comment,
                 dismissedViolations: {
                     duplicatedTransaction: {
                         [dissmissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
@@ -423,7 +423,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
 
     const failureDataTransaction: OnyxUpdate[] = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
         value: {
             ...transaction,
         },
@@ -669,7 +669,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, tr
     // 4 & 5. Optimistically add new MOVEDTRANSACTION or UNREPORTEDTRANSACTION report actions
     const optimisticDataNewReportActions: OnyxUpdate[] = Object.entries(transactionIDToReportActionAndThreadData).map(([transactionID, threadReportID]) => {
         const transaction = allTransactions?.[transactionID];
-        const originalReportID = transaction?.reportID ?? '';
+        const originalReportID = transaction.reportID;
         const reportAction =
             reportID === CONST.REPORT.UNREPORTED_REPORTID
                 ? buildOptimisticUnreportedTransactionAction(originalReportID, reportID, transactionID)
@@ -686,7 +686,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, tr
 
     const failureDataNewReportActions: OnyxUpdate[] = Object.entries(transactionIDToReportActionAndThreadData).map(([transactionID, threadReportID]) => {
         const transaction = allTransactions?.[transactionID];
-        const originalReportID = transaction?.reportID ?? '';
+        const originalReportID = transaction.reportID;
         const reportAction =
             reportID === CONST.REPORT.UNREPORTED_REPORTID
                 ? buildOptimisticUnreportedTransactionAction(originalReportID, reportID, transactionID)
