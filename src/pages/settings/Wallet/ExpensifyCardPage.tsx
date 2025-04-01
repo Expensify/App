@@ -246,8 +246,6 @@ function ExpensifyCardPage({
                             <>
                                 {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
                                     <CardDetails
-                                        pan={cardsDetails[card.cardID]?.pan}
-                                        expiration={formatCardExpiration(cardsDetails[card.cardID]?.expiration ?? '')}
                                         cvv={cardsDetails[card.cardID]?.cvv}
                                         domain={domain}
                                     />
