@@ -93,7 +93,6 @@ describe('getReportPreviewAction', () => {
     });
 
     it('canPay should return true for expense report with payments enabled', async () => {
-        (PolicyUtils.hasAccountingConnections as jest.Mock).mockReturnValueOnce(false);
         const report = {
             ...createRandomReport(REPORT_ID),
             type: CONST.REPORT.TYPE.EXPENSE,
