@@ -13,6 +13,14 @@ let currentHybridApp: OnyxEntry<HybridApp>;
 let currentTryNewDot: OnyxEntry<TryNewDot>;
 let currentCredentials: OnyxEntry<Credentials>;
 
+// this code fixes bug on backend side, remove it once backend is fixed
+Onyx.connect({
+    key: 'tryNewDot',
+    callback: (tryNewDot) => {
+        Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, tryNewDot);
+    },
+});
+
 Onyx.connect({
     key: ONYXKEYS.HYBRID_APP,
     callback: (hybridApp) => {

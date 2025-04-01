@@ -239,7 +239,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (account?.isLoading || hybridApp?.readyToShowAuthScreens) {
+        if (account?.isLoading || hybridApp?.readyToShowAuthScreens || hybridApp?.newDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.STARTED || session?.authToken) {
             return;
         }
         if (CONFIG.IS_HYBRID_APP) {
@@ -299,7 +299,19 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         } else {
             SessionActions.signIn(validateCode, recoveryCodeOr2faCode);
         }
-    }, [account?.isLoading, account?.errors, account?.requiresTwoFactorAuth, hybridApp?.readyToShowAuthScreens, isUsingRecoveryCode, recoveryCode, twoFactorAuthCode, credentials?.accountID, validateCode]);
+    }, [
+        account?.isLoading,
+        account?.errors,
+        account?.requiresTwoFactorAuth,
+        hybridApp?.readyToShowAuthScreens,
+        hybridApp?.newDotSignInState,
+        session?.authToken,
+        isUsingRecoveryCode,
+        recoveryCode,
+        twoFactorAuthCode,
+        credentials?.accountID,
+        validateCode,
+    ]);
 
     return (
         <SafariFormWrapper>
