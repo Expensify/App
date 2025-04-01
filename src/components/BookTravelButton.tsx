@@ -1,7 +1,7 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -21,7 +21,6 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
-import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import {RocketDude} from './Icon/Illustrations';
 import Text from './Text';
@@ -48,13 +47,12 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {isBlockedFromSpotnanaTravel} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
 
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
-    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
 
@@ -93,15 +91,14 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             openTravelDotLink(policy?.id)
                 ?.then(() => {
                     // When a user selects "Trips" in the Expensify Classic menu, the HybridApp opens the ManageTrips page in NewDot.
-                    // The wasNewDotLaunchedJustForTravel flag indicates if NewDot was launched solely for this purpose.
-                    if (!CONFIG.IS_HYBRID_APP || !wasNewDotLaunchedJustForTravel) {
+                    // The isSingleNewDotEntry flag indicates if NewDot was launched solely for this purpose.
+                    if (!CONFIG.IS_HYBRID_APP || !hybridApp?.isSingleNewDotEntry) {
                         return;
                     }
 
                     // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
                     HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
-                    setRootStatusBarEnabled(false);
                 })
                 ?.catch(() => {
                     setErrorMessage(translate('travel.errorMessage'));
@@ -128,7 +125,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled, isBlockedFromSpotnanaTravel, StyleUtils, styles]);
+    }, [policy, hybridApp?.isSingleNewDotEntry, travelSettings, translate, primaryContactMethod, isBlockedFromSpotnanaTravel, StyleUtils, styles]);
 
     return (
         <>

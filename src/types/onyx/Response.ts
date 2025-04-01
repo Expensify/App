@@ -105,6 +105,9 @@ type Response = {
     /** Short-lived client secret for openai session */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     client_secret?: ClientSecret;
+
+    /** [HybridApp] Determines which app should be opened, NewDot or OldDot */
+    tryNewDot?: boolean;
 };
 
 export default Response;

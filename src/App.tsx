@@ -41,6 +41,7 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
 import './setup/backgroundTask';
+import './libs/HybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
 /**
