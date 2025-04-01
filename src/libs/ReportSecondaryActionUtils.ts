@@ -36,7 +36,7 @@ import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactio
 function isSubmitAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpenseReport) {
+    if (!isExpenseReport || report?.total === 0) {
         return false;
     }
 

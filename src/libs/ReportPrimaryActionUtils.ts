@@ -43,7 +43,7 @@ function isSubmitAction(report: Report, policy?: Policy) {
     const isOpenReport = isOpenReportUtils(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
-    return isExpenseReport && isReportSubmitter && isOpenReport && isManualSubmitEnabled;
+    return isExpenseReport && isReportSubmitter && isOpenReport && isManualSubmitEnabled && report.total !== 0;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
