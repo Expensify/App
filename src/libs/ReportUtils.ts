@@ -3051,10 +3051,10 @@ function getReimbursementQueuedActionMessage({
 }
 
 /**
- * Returns the preview message for `REIMBURSEMENT_DEQUEUED` or `REIMBURSEMENT_ACH_CANCELLED` action
+ * Returns the preview message for `REIMBURSEMENT_DEQUEUED` or `REIMBURSEMENT_ACH_CANCELED` action
  */
-function getReimbursementDeQueuedOrCancelledActionMessage(
-    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED>>,
+function getReimbursementDeQueuedOrCanceledActionMessage(
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
     reportOrID: OnyxEntry<Report> | string | SearchReport,
     isLHNPreview = false,
 ): string {
@@ -9612,7 +9612,7 @@ export {
     getPolicyExpenseChatName,
     getPolicyName,
     getPolicyType,
-    getReimbursementDeQueuedOrCancelledActionMessage,
+    getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
     getReportDescription,

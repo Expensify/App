@@ -91,7 +91,7 @@ import {
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
-    isReimbursementDeQueuedOrCancelledAction,
+    isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
     isTagModificationAction,
@@ -289,8 +289,8 @@ type PureReportActionItemProps = {
     /** What missing payment method does this report action indicate, if any? */
     missingPaymentMethod?: MissingPaymentMethod | undefined;
 
-    /** Returns the preview message for `REIMBURSEMENT_DEQUEUED` or `REIMBURSEMENT_ACH_CANCELLED` action */
-    reimbursementDeQueuedOrCancelledActionMessage?: string;
+    /** Returns the preview message for `REIMBURSEMENT_DEQUEUED` or `REIMBURSEMENT_ACH_CANCELED` action */
+    reimbursementDeQueuedOrCanceledActionMessage?: string;
 
     /** The report action message when expense has been modified. */
     modifiedExpenseMessage?: string;
@@ -360,7 +360,7 @@ function PureReportActionItem({
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant = () => false,
     missingPaymentMethod,
-    reimbursementDeQueuedOrCancelledActionMessage = '',
+    reimbursementDeQueuedOrCanceledActionMessage = '',
     modifiedExpenseMessage = '',
     getTransactionsWithReceipts = () => [],
     clearError = () => {},
@@ -836,8 +836,8 @@ function PureReportActionItem({
                     </>
                 </ReportActionItemBasicMessage>
             );
-        } else if (isReimbursementDeQueuedOrCancelledAction(action)) {
-            children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCancelledActionMessage} />;
+        } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
+            children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = <ReportActionItemBasicMessage message={modifiedExpenseMessage} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
@@ -1344,7 +1344,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
         lodashIsEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
-        prevProps.reimbursementDeQueuedOrCancelledActionMessage === nextProps.reimbursementDeQueuedOrCancelledActionMessage &&
+        prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
         prevProps.reportAutomaticallyForwardedMessage === nextProps.reportAutomaticallyForwardedMessage

@@ -9,7 +9,7 @@ import {
     createDraftTransactionAndNavigateToParticipantSelector,
     getIndicatedMissingPaymentMethod,
     getOriginalReportID,
-    getReimbursementDeQueuedOrCancelledActionMessage,
+    getReimbursementDeQueuedOrCanceledActionMessage,
     getReportAutomaticallyForwardedMessage,
     getTransactionsWithReceipts,
     isArchivedNonExpenseReportWithID,
@@ -87,8 +87,8 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport)}
             isCurrentUserTheOnlyParticipant={isCurrentUserTheOnlyParticipant}
             missingPaymentMethod={missingPaymentMethod}
-            reimbursementDeQueuedOrCancelledActionMessage={getReimbursementDeQueuedOrCancelledActionMessage(
-                action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED>>,
+            reimbursementDeQueuedOrCanceledActionMessage={getReimbursementDeQueuedOrCanceledActionMessage(
+                action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
                 report,
             )}
             modifiedExpenseMessage={ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction: action})}
