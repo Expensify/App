@@ -709,7 +709,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             : undefined;
         const reportPreviewMessage = getReportPreviewMessage(
             !isEmptyObject(iouReport) ? iouReport : null,
-            lastIOUMoneyReportAction,
+            lastIOUMoneyReportAction ?? lastReportAction,
             true,
             reportUtilsIsChatReport(report),
             null,
@@ -719,11 +719,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
 
         lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
 
-        // If lastMessageTextFromReport is empty, try to extract the message from the lastReportAction instead
-        if (!lastMessageTextFromReport) {
-            const lastReportActionMessage = getReportActionMessageText(lastReportAction);
-            lastMessageTextFromReport = lastReportActionMessage;
-
+        // If lastIOUMoneyReportAction is empty, format the message with the actor's display name
+        if (!lastIOUMoneyReportAction) {
             // Get the actor's display name instead of using email
             const actorAccountID = lastReportAction?.actorAccountID;
             const actorDetails = actorAccountID ? allPersonalDetails?.[actorAccountID] : null;
