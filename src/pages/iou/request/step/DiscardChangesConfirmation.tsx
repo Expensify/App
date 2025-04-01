@@ -22,6 +22,13 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
                 }
 
                 e.preventDefault();
+
+                if(blockedNavigationAction.current){
+                    setIsVisible(false);
+                    navigationRef.current?.dispatch(blockedNavigationAction.current);
+                    return;
+                }
+
                 blockedNavigationAction.current = e.data.action;
                 setIsVisible(true);
             },
