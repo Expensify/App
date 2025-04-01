@@ -116,6 +116,7 @@ function AttachmentPicker({
     shouldValidateImage = true,
     shouldHideGalleryOption = false,
     fileLimit = 1,
+    onOpenPicker,
 }: AttachmentPickerProps) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
@@ -394,6 +395,7 @@ function AttachmentPicker({
      */
     const selectItem = useCallback(
         (item: Item) => {
+            onOpenPicker?.();
             /* setTimeout delays execution to the frame after the modal closes
              * without this on iOS closing the modal closes the gallery/camera as well */
             onModalHide.current = () => {
@@ -406,7 +408,7 @@ function AttachmentPicker({
             };
             close();
         },
-        [pickAttachment],
+        [pickAttachment, onOpenPicker],
     );
 
     useKeyboardShortcut(

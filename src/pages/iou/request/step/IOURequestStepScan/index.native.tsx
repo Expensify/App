@@ -550,10 +550,6 @@ function IOURequestStepScan({
             setPdfFile(originalFile);
             return;
         }
-
-        if (Str.isImage(originalFile.name ?? '')) {
-            setIsLoadingReceipt(true);
-        }
         resizeImageIfNeeded(originalFile).then((file) => {
             // Store the receipt on the transaction object in Onyx
             // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
@@ -783,7 +779,7 @@ function IOURequestStepScan({
                 </EducationalTooltip>
 
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                    <AttachmentPicker>
+                    <AttachmentPicker onOpenPicker={() => setIsLoadingReceipt(true)}>
                         {({openPicker}) => (
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
@@ -792,6 +788,7 @@ function IOURequestStepScan({
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
+                                        onCanceled: () => setIsLoadingReceipt(false),
                                     });
                                 }}
                             >
