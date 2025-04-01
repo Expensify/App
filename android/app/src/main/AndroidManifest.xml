@@ -122,6 +122,7 @@
                 <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
                 <data android:mimeType="application/rtf" />
                 <data android:mimeType="application/zip" />
+                <data android:mimeType="application/txt" />
                 <data android:mimeType="message/rfc822" />
 
                 <!-- Text / HTML -->
@@ -141,6 +142,7 @@
                 <data android:mimeType="audio/opus" />
 
                 <data android:mimeType="video/mp4" />
+                <data android:mimeType="video/mpeg" />
                 <data android:mimeType="video/mp2t" />
                 <data android:mimeType="video/webm" />
                 <data android:mimeType="video/avc" />
