@@ -8,7 +8,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,7 +37,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
 
-    const sortedCards = useMemo(() => CardUtils.sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
+    const sortedCards = useMemo(() => sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
@@ -64,9 +64,9 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
                         }}
                     >
                         <WorkspaceCompanyCardsListRow
-                            cardholder={personalDetails?.[item.accountID ?? '-1']}
+                            cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
                             cardNumber={item.lastFourPAN ?? ''}
-                            name={customCardNames?.[item.cardID] ?? CardUtils.getDefaultCardName(personalDetails?.[item.accountID ?? '-1']?.firstName)}
+                            name={customCardNames?.[item.cardID] ?? getDefaultCardName(personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]?.firstName)}
                         />
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
@@ -80,13 +80,13 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
             <View style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4]}>
                 <Text
                     numberOfLines={1}
-                    style={[styles.textLabelSupporting, styles.lh16]}
+                    style={[styles.textMicroSupporting, styles.lh16]}
                 >
                     {translate('common.name')}
                 </Text>
                 <Text
                     numberOfLines={1}
-                    style={[styles.textLabelSupporting, styles.lh16]}
+                    style={[styles.textMicroSupporting, styles.lh16]}
                 >
                     {translate('workspace.expensifyCard.lastFour')}
                 </Text>
