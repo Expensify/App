@@ -91,7 +91,7 @@ jobs:
             --label DeployBlockerCash \
             --json number \
             --jq '.[].number' \
-            | xargs -L1 --max-procs 4 gh issue edit "$1" --remove-label DeployBlockerCash
+            | xargs -L1 --max-procs=4 gh issue edit "$1" --remove-label DeployBlockerCash
         with:
           GITHUB_TOKEN: ${{ github.token }}
 
