@@ -279,7 +279,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
-          S3_BUCKET: ${{ vars.DESKTOP_STAGING_S3_BUCKET }}
+          S3_BUCKET: ${{ vars.STAGING_S3_BUCKET }}
 
       - name: Build production desktop app
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -293,7 +293,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
-          S3_BUCKET: ${{ vars.DESKTOP_S3_BUCKET }}
+          S3_BUCKET: ${{ vars.PRODUCTION_S3_BUCKET }}
 
       - name: Upload desktop sourcemaps artifact
         # v4
@@ -515,7 +515,7 @@ jobs:
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{ env.S3_URL }}/.well-known/apple-app-site-association
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{env.S3_URL }}/apple-app-site-association
         env:
-          S3_URL: s3://${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging-' || '' }}${{ vars.WEB_S3_BUCKET }}
+          S3_URL: s3://${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging-' || '' }}${{ vars.PRODUCTION_S3_BUCKET }}
 
       - name: Purge staging Cloudflare cache
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
