@@ -186,7 +186,6 @@ function ReportPreview({
     );
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
-    const canIOUBePaidAndApproved = useMemo(() => getCanIOUBePaid(false, false), [getCanIOUBePaid]);
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
@@ -493,7 +492,6 @@ function ReportPreview({
 
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBSUP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
-
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
             return;
@@ -527,22 +525,21 @@ function ReportPreview({
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
             <AnimatedSettlementButton
                 onlyShowPayElsewhere={onlyShowPayElsewhere}
-                isPaidAnimationRunning={isPaidAnimationRunning}
-                isApprovedAnimationRunning={isApprovedAnimationRunning}
-                canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
-                onAnimationFinish={stopAnimation}
-                formattedAmount={getSettlementAmount() ?? ''}
                 currency={iouReport?.currency}
                 policyID={policyID}
                 chatReportID={chatReportID}
                 iouReport={iouReport}
                 onPress={confirmPayment}
-                onPaymentOptionsShow={onPaymentOptionsShow}
-                onPaymentOptionsHide={onPaymentOptionsHide}
-                confirmApproval={confirmApproval}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
                 shouldHidePaymentOptions={!shouldShowPayButton}
+                canIOUBePaid
+                formattedAmount={getSettlementAmount() ?? ''}
+                isPaidAnimationRunning={isPaidAnimationRunning}
+                isApprovedAnimationRunning={isApprovedAnimationRunning}
+                onAnimationFinish={stopAnimation}
+                onPaymentOptionsShow={onPaymentOptionsShow}
+                onPaymentOptionsHide={onPaymentOptionsHide}
                 kycWallAnchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,

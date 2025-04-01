@@ -44,8 +44,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
-    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-    const isApproved = isReportApproved({report}) || !isApprovalEnabled;
+    const isApproved = isReportApproved({report});
     const isClosed = isClosedReport(report);
     const hasViolations = hasAnyViolations(report.reportID, violations);
     const isInvoice = isInvoiceReport(report);
@@ -85,17 +84,17 @@ function getReportPreviewAction(violations: OnyxCollection<TransactionViolation[
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
-    if (canExport(report, violations, policy)) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
+    if (canSubmit(report, violations, policy)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canPay(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
+    if (canExport(report, violations, policy)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
+    }
     if (canApprove(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
-    }
-    if (canSubmit(report, violations, policy)) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canReview(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
