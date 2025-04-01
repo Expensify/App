@@ -308,7 +308,7 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
             {
                 icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                 text: translate('iou.createExpense'),
-                shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
+                shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout,
                 onSelected: () =>
                     interceptAnonymousUser(() => {
                         if (shouldRedirectToExpensifyClassic) {
@@ -324,7 +324,7 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
                     }),
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -362,6 +362,7 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
                     text: quickActionTitle,
                     description: quickActionSubtitle,
                     onSelected,
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
                     shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
                 },
             ];
@@ -385,6 +386,7 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
                     icon: Expensicons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
                     description: getReportName(policyChatForActivePolicy),
+                    shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
                     shouldShowSubscriptRightAvatar: true,
                 },
@@ -406,6 +408,7 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
         quickActionReport,
         isValidReport,
         selectOption,
+        shouldUseNarrowLayout,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;
@@ -443,6 +446,7 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
                   {
                       icon: Expensicons.Document,
                       text: translate('report.newReport.createReport'),
+                      shouldCallAfterModalHide: shouldUseNarrowLayout,
                       onSelected: () => {
                           interceptAnonymousUser(() => {
                               if (shouldRedirectToExpensifyClassic) {
@@ -477,6 +481,7 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
         {
             icon: Expensicons.ChatBubble,
             text: translate('sidebarScreen.fabNewChat'),
+            shouldCallAfterModalHide: shouldUseNarrowLayout,
             onSelected: () => interceptAnonymousUser(startNewChat),
         },
         ...(canSendInvoice
@@ -484,7 +489,7 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
                   {
                       icon: Expensicons.InvoiceGeneric,
                       text: translate('workspace.invoices.sendInvoice'),
-                      shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
+                      shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout,
                       onSelected: () =>
                           interceptAnonymousUser(() => {
                               if (shouldRedirectToExpensifyClassic) {
@@ -540,6 +545,7 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
                       iconHeight: variables.h40,
                       text: translate('workspace.new.newWorkspace'),
                       description: translate('workspace.new.getTheExpensifyCardAndMore'),
+                      shouldCallAfterModalHide: shouldUseNarrowLayout,
                       onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
                   },
               ]
