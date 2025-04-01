@@ -37,6 +37,16 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     console.log(hasDomainFeed);
 
+    const feeds = Object.values(workspaceCardSettings)
+        .filter((value) => value?.preferredPolicy === policyID)
+        .map((value) => value?.marqetaBusinessToken);
+
+    console.log(feeds);
+
+    const [cardsList2] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${feeds[0] ?? ''}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+
+    console.log({cardsList2, cardsList});
+
     const fetchExpensifyCards = useCallback(() => {
         openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
@@ -61,7 +71,8 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
         if (!!paymentBankAccountID || hasDomainFeed) {
             return (
                 <WorkspaceExpensifyCardListPage
-                    cardsList={cardsList}
+                    cardsList={hasDomainFeed ? cardsList2 : cardsList}
+                    cardID={hasDomainFeed ? feeds[0] : workspaceAccountID}
                     route={route}
                 />
             );
