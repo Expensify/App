@@ -773,6 +773,7 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
+        GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND'
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

@@ -15,6 +15,7 @@ import TextLink from '@components/TextLink';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
@@ -66,6 +67,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
+    const {canUseGlobalReimbursementsOnND} = usePermissions();
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID;
     const styles = useThemeStyles();
@@ -75,7 +77,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
-    const hasUnsupportedCurrency = !isCurrencySupportedForDirectReimbursement(policyCurrency as CurrencyType);
+    const hasUnsupportedCurrency = !isCurrencySupportedForDirectReimbursement(policyCurrency as CurrencyType, canUseGlobalReimbursementsOnND ?? false);
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
 

@@ -62,6 +62,10 @@ function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
 }
 
+function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -76,4 +80,5 @@ export default {
     canUseTableReportView,
     canUseTalkToAISales,
     canUseProhibitedExpenses,
+    canUseGlobalReimbursementsOnND
 };
