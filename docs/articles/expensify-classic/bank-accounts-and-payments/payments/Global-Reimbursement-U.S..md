@@ -34,17 +34,17 @@ If you haven't already, follow the instructions to [connect a U.S. business bank
 6. Click **Enable global reimbursement** next to the connected U.S. bank account.
 7. Complete the Global Reimbursement DocuSign form.
 8. Our Compliance Team will review your form and contact you if additional documents are needed.
-
-**You may be asked to provide:**
-- Authorization letter
-- Proof of address and ID for reimburser and/or company directors
-- Certified documents (e.g., shareholder agreement from a lawyer, notary, or accountant)
+   **You may be asked to provide:**
+   - Authorization letter
+   - Proof of address and ID for reimburser and/or company directors
+   - Certified documents (e.g., shareholder agreement from a lawyer, notary, or accountant)
+9. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts. 
 
 ---
 
 # Step 3: Start Reimbursing Internationally
-Once your U.S. bank account is verified for global reimbursements:
 
+Once your U.S. bank account is verified for global reimbursements:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
 2. Select the verified bank account as the default reimbursement account.
 3. Ask your employees to:
