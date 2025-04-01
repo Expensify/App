@@ -25,8 +25,8 @@ if [[ -z "$CLI_PATH" ]]; then
   export CLI_PATH
 fi
 if [[ -z "$BUNDLE_COMMAND" ]]; then
-  # Default Expo CLI command for bundling
-  export BUNDLE_COMMAND="export:embed"
+  # CLI command for bundling
+  export BUNDLE_COMMAND="bundle"
 fi
 
 "$NODE_BINARY" --print "require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'"
