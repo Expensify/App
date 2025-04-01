@@ -1,6 +1,6 @@
 import {Dimensions} from 'react-native';
 
-function getBottomSuggestionPadding(bottom: number): number {    
+function getBottomSuggestionPadding(bottom: number): number {
     const {height} = Dimensions.get('window');
     const basePadding = 30;
 
@@ -20,7 +20,7 @@ function getBottomSuggestionPadding(bottom: number): number {
 
         // Interpolate the padding value based on the current screen height
         const padding = referencePaddingMin + (height - referenceHeightMin) * paddingRate;
-        
+
         // Clamp the padding value between -60 and -5 to prevent extreme values
         return Math.round(Math.max(-60, Math.min(-5, padding)));
     }
