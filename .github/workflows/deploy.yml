@@ -5,7 +5,7 @@ on:
     branches: [staging, production, andrew-web-desktop]
 
 env:
-  SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/andrew-web-desktop' }}
+  SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
   IS_APP_REPO: ${{ github.repository == 'Expensify/App' }}
 
 concurrency:
@@ -496,13 +496,13 @@ jobs:
 
       - name: Purge staging Cloudflare cache
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=[${{ vars.WEB_STAGING_HOST }}] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ vars.WEB_STAGING_HOST }}"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
       - name: Purge production Cloudflare cache
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=[${{ vars.WEB_PRODUCTION_HOST }}] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ vars.WEB_PRODUCTION_HOST }}"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
