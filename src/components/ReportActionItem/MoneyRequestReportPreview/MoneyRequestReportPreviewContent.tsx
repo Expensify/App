@@ -381,7 +381,7 @@ function MoneyRequestReportPreviewContent({
     const [lastVisibleIndex, setLastVisibleIndex] = useState(0);
     const carouselRef = useRef<FlatList<Transaction> | null>(null);
     const viewabilityConfig = useMemo(() => {
-        return {itemVisiblePercentThreshold: 50};
+        return {itemVisiblePercentThreshold: 90};
     }, []);
 
     // eslint-disable-next-line react-compiler/react-compiler
@@ -520,7 +520,7 @@ function MoneyRequestReportPreviewContent({
                                                         accessibilityLabel="button"
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex + 1)}
-                                                        disabled={lastVisibleIndex === Math.min(transactions.length - 1, 9)}
+                                                        disabled={lastVisibleIndex === Math.min(transactions.length - 1, 10)}
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
