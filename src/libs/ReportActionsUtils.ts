@@ -2209,7 +2209,7 @@ function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card)
 function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
     const policy = getPolicy(getOriginalMessage(reportAction)?.policyID);
     const userDetail = getPersonalDetailByEmail(getOriginalMessage(reportAction)?.email ?? '');
-    const userName = userDetail?.displayName ? `${userDetail.displayName} (${userDetail.login})` : userDetail?.login ?? getOriginalMessage(reportAction)?.email;
+    const userName = userDetail?.firstName ? `${userDetail.displayName} (${userDetail.login})` : userDetail?.login ?? getOriginalMessage(reportAction)?.email;
     return translateLocal('workspace.inviteMessage.joinRequest', {user: userName ?? '', workspaceName: policy?.name ?? ''});
 }
 
