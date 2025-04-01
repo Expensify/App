@@ -3,15 +3,15 @@ import useSidePane from '@hooks/useSidePane';
 import Help from './HelpModal';
 
 function SidePane() {
-    const {shouldHideSidePane, isPaneHidden, sidePaneTranslateX, shouldHideSidePaneBackdrop, closeSidePane} = useSidePane();
+    const {isSidePaneTransitionEnded, shouldHideSidePane, sidePaneTranslateX, shouldHideSidePaneBackdrop, closeSidePane} = useSidePane();
 
-    if (shouldHideSidePane) {
+    if (isSidePaneTransitionEnded && shouldHideSidePane) {
         return null;
     }
 
     return (
         <Help
-            isPaneHidden={isPaneHidden}
+            shouldHideSidePane={shouldHideSidePane}
             sidePaneTranslateX={sidePaneTranslateX}
             closeSidePane={closeSidePane}
             shouldHideSidePaneBackdrop={shouldHideSidePaneBackdrop}
