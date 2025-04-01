@@ -56,7 +56,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetail
 
     return (
         <>
-            {pan !== undefined && (
+            {pan?.length > 0 && (
                 <MenuItemWithTopDescription
                     description={translate('cardPage.cardDetails.cardNumber')}
                     title={pan}
@@ -76,21 +76,21 @@ function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetail
                     interactive={false}
                 />
             )}
-            {expiration !== undefined && (
+            {expiration?.length > 0 && (
                 <MenuItemWithTopDescription
                     description={translate('cardPage.cardDetails.expiration')}
                     title={expiration}
                     interactive={false}
                 />
             )}
-            {cvv !== undefined && (
+            {cvv?.length > 0 && (
                 <MenuItemWithTopDescription
                     description={translate('cardPage.cardDetails.cvv')}
                     title={cvv}
                     interactive={false}
                 />
             )}
-            {privatePersonalDetails !== undefined && (
+            {pan?.length > 0 && (
                 <>
                     <MenuItemWithTopDescription
                         description={translate('cardPage.cardDetails.address')}
