@@ -226,10 +226,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
                     const selectedIOUActions = iouActions.filter((action) => {
                         // I have no idea why this it's unsafe assignment
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        const IOUTransactionID = getOriginalMessage(action)?.IOUTransactionID;
+                        const IOUTransactionID = (getOriginalMessage(action) as OnyxTypes.OriginalMessageIOU)?.IOUTransactionID;
 
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                         return IOUTransactionID && selectedTransactionsID.includes(IOUTransactionID);
                     });
                     selectedIOUActions.forEach((action) => changeMoneyRequestHoldStatus(action));
@@ -272,12 +270,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
 
                     const transactionsWithActions = selectedTransactions.map((t) => ({
-                        transactionID: t.transactionID,
+                        transactionID: t?.transactionID,
                         action: iouActions.find((action) => {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                            const IOUTransactionID = getOriginalMessage(action)?.IOUTransactionID;
+                            const IOUTransactionID = (getOriginalMessage(action) as OnyxTypes.OriginalMessageIOU)?.IOUTransactionID;
 
-                            return t.transactionID === IOUTransactionID;
+                            return t?.transactionID === IOUTransactionID;
                         }),
                     }));
 
