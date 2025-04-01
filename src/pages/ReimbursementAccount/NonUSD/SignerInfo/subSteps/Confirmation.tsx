@@ -24,7 +24,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
-    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
 
     const currentUserDirector = values.directors.find((director) => director.directorID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);

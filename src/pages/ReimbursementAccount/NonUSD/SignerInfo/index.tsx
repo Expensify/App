@@ -42,7 +42,7 @@ const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORP
 const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, Occupation, DateOfBirth, Address, UploadDocuments, Confirmation];
 const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, Occupation, UploadDocuments, Confirmation];
 const userIsOwnerCadBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [UploadDocuments, Confirmation];
-const directorDetailsBodyContent: Array<ComponentType<DirectorDetailsFormProps>> = [Name, JobTitle, Occupation];
+const directorDetailsBodyContent: Array<ComponentType<DirectorDetailsFormProps>> = [Name, JobTitle, Occupation, UploadDocuments];
 
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const {translate} = useLocalize();
