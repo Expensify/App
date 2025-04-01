@@ -71,7 +71,6 @@ function Manual({onNext}: ManualProps) {
             validate={validate}
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
-            enabledWhenOffline
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('bankAccount.manuallyAdd')}</Text>
             <Text style={[styles.mb5, styles.textSupporting]}>{translate('bankAccount.checkHelpLine')}</Text>
