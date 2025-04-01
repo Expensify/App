@@ -37,12 +37,14 @@ If your business operates out of the U.K., you can enable global reimbursements 
 
 # Step 2: Verify for Global Reimbursement
 1. Complete the Global Reimbursement DocuSign form and provide all requested documents. 
-2. Our Compliance Team will review your submission and may request further documentation.
+   - Our Compliance Team will review your submission and may request further documentation.
+  
+2. Once the review is complete, our support team will contact you to confirm. 
 
 ---
 
 # Step 3: Start Reimbursing Internationally
-Once approved to use global reimbursement:
+Once the bank account is approved for global reimbursement:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
 2. Set the verified UK account as the default reimbursement method.
 3. Employees must:
@@ -57,9 +59,12 @@ Once approved to use global reimbursement:
 Yes. Once verified, any admin on the workspace can use the bank account to issue reimbursements.
 
 ## What is a signatory?
-A signatory is someone authorized to act on behalf of the business and is typically a director or senior finance admin.
+A signatory is someone authorized to act on behalf of the business, typically a director or senior finance admin.
 
 ## How long does verification take?
 Timing varies, but approval generally happens within a few days if all documents are correct.
+
+## Why are certified copies required in Jersey?
+This is a legal compliance requirement for businesses based in Jersey.
 
 </div>
