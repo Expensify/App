@@ -438,6 +438,7 @@ type MoneyRequestOptimisticParams = {
 };
 
 type BuildOnyxDataForMoneyRequestParams = {
+    isOptimisticUser?: boolean;
     isNewChatReport: boolean;
     shouldCreateNewMoneyRequestReport: boolean;
     isOneOnOneSplit?: boolean;
@@ -1192,6 +1193,7 @@ function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<On
 /** Builds the Onyx data for an expense */
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {
+        isOptimisticUser = false,
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
         isOneOnOneSplit = false,
@@ -1465,11 +1467,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
-                value: {
-                    participants: redundantParticipants,
-                    pendingFields: null,
-                    errorFields: null,
-                },
+                value: isOptimisticUser
+                    ? null /// Remove the report completely for optimistic users who have temporary accountIDs, such as in the case of a split bill when one device is offline and the other is online
+                    : {
+                          participants: redundantParticipants,
+                          pendingFields: null,
+                          errorFields: null,
+                      },
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -5899,6 +5903,7 @@ function createSplitsAndOnyxData({
 
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
+            isOptimisticUser: isOptimisticPersonalDetail(accountID),
             isNewChatReport: isNewOneOnOneChatReport,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
             isOneOnOneSplit: true,
