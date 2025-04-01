@@ -155,7 +155,16 @@ function AccessOrNotFoundWrapper({
         if (pendingField && !isOffline && !isFeatureEnabled) {
             return;
         }
+        // If tax feature is disabled, for instance from OD, we will navigate to the more features page.
+        if (!isFeatureEnabled && featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
+            Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+            return;
+        }
+
         setIsPolicyFeatureEnabled(isFeatureEnabled);
+        // We don't need to run the effect on policyID change as are only using it to get a route to navigate to.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingField, isOffline, isFeatureEnabled]);
 
     useEffect(() => {
