@@ -125,7 +125,7 @@ function AccountDetailsPage() {
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.dismissModal()}
                 shouldDisplayHelpButton={false}
             />
             <FormProvider
