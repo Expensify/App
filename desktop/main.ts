@@ -148,6 +148,33 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
+const verifyAndInstallLatestVersion = (): void => {
+    console.log('[dev] verifyAndInstallLatestVersion');
+
+    autoUpdater
+        .checkForUpdates()
+        .then((result) => {
+            console.log('[dev] verifyAndInstallLatestVersion: result', result);
+            console.log('[dev] verifyAndInstallLatestVersion: downloadedVersion', downloadedVersion);
+
+            if (result?.updateInfo.version === downloadedVersion) {
+                console.log('[dev] verifyAndInstallLatestVersion: if - versions match, installing');
+                return quitAndInstallWithUpdate();
+            }
+
+            console.log('[dev] verifyAndInstallLatestVersion: else - downloading new update');
+
+            return autoUpdater.downloadUpdate().then(() => {
+                console.log('[dev] verifyAndInstallLatestVersion: download complete, installing');
+                return quitAndInstallWithUpdate();
+            });
+        })
+        .catch((error) => {
+            console.log('[dev] verifyAndInstallLatestVersion: error', error);
+            log.error('Error during update check or download:', error);
+        });
+};
+
 /** Menu Item callback to trigger an update check */
 const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow) => {
     if (menuItem) {
@@ -244,33 +271,14 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
                 console.log('[dev] else');
-
-                autoUpdater
-                    .checkForUpdates()
-                    .then((result) => {
-                        console.log('[dev] result', result);
-                        if (result?.updateInfo.version === downloadedVersion) {
-                            console.log('[dev] if - versions match, installing');
-                            quitAndInstallWithUpdate();
-                        } else {
-                            console.log('[dev] else - downloading new update');
-                            return autoUpdater.downloadUpdate().then(() => {
-                                console.log('[dev] download complete, installing');
-                                quitAndInstallWithUpdate();
-                            });
-                        }
-                    })
-                    .catch((error) => {
-                        console.log('[dev] error', error);
-                        log.error('Error during update check or download:', error);
-                    });
+                verifyAndInstallLatestVersion();
             }
         });
 
         console.log('[dev] ipcMain.on(ELECTRON_EVENTS.START_UPDATE, quitAndInstallWithUpdate)');
         ipcMain.on(ELECTRON_EVENTS.START_UPDATE, () => {
             console.log('[dev] ELECTRON_EVENTS.START_UPDATE');
-            quitAndInstallWithUpdate();
+            verifyAndInstallLatestVersion();
         });
         autoUpdater.checkForUpdates().then((result) => {
             console.log('[dev] update result 1: ', result);
@@ -418,7 +426,12 @@ const mainWindow = (): Promise<void> => {
                         label: translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
                         submenu: [
                             {id: 'about', role: 'about'},
-                            {id: 'update', label: translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
+                            {
+                                id: 'update',
+                                label: translate(preferredLocale, `desktopApplicationMenu.update`),
+                                click: verifyAndInstallLatestVersion,
+                                visible: false,
+                            },
                             {id: 'checkForUpdates', label: translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
                             {
                                 id: 'viewShortcuts',
