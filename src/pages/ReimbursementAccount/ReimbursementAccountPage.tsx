@@ -79,7 +79,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     const {isDevelopment} = useEnvironment();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // shouldUseNarrowLayout cannot be used here because this page is displayed in a RHP
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     // TODO once nonUSD flow is complete update the flags below to reflect all supported currencies, this will be updated in - https://github.com/Expensify/App/issues/50912
     // TODO remove isDevelopment and isDebugModeEnabled flags once nonUSD flow is complete, this will be updated in - https://github.com/Expensify/App/issues/50912
@@ -403,7 +405,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 <TextLink
                     style={styles.link}
                     onPress={() => {
-                        const routeToNavigate = shouldUseNarrowLayout
+                        const routeToNavigate = isSmallScreenWidth
                             ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
                             : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
                         Navigation.goBack(routeToNavigate);
