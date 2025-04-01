@@ -163,8 +163,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                 }
                 return;
             }
-            // mamy sciezke zapisana do settings splita (1szego navigatora)
-            // po prostu navigate mozemy bo tylko jeden split
+            // if we have saved path to settings we navigate to it
             if (lastVisitedSettingsPath !== '' && !getIsNarrowLayout()) {
                 Navigation.navigate(lastVisitedSettingsPath as Route);
                 return;
