@@ -101,6 +101,9 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 pauseVideo();
             }
 
+            // Used for /attachment route
+            const reportIDFromParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID') ?? undefined;
+
             const topMostReport = getReportOrDraftReport(Navigation.getTopmostReportId());
             const {reportID, chatReportID, parentReportID} = topMostReport ?? {};
 
@@ -116,7 +119,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             const isUrlInTopMostReportAttachments = isUrlInAnyReportMessagesAttachments(url, reportID);
             const chatThreadID = isUrlInTopMostReportAttachments ? reportID : chatReportID ?? parentReportID;
 
-            setCurrentlyPlayingURLReportID(isTopMostReportAChatThread ? chatThreadID : currentReportID);
+            setCurrentlyPlayingURLReportID(isTopMostReportAChatThread ? chatThreadID : currentReportID ?? reportIDFromParams);
             setCurrentlyPlayingURL(url);
         },
         [currentlyPlayingURL, currentReportID, pauseVideo],
