@@ -50,7 +50,7 @@
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
     "prettier": "prettier --write .",
-    "prettier-watch": "onchange \"**/*.{js,ts,tsx}\" -- prettier --write --ignore-unknown {{changed}}",
+    "prettier-watch": "onchange \"**/*.{js,mjs,ts,tsx}\" -- prettier --write --ignore-unknown {{changed}}",
     "print-version": "echo $npm_package_version",
     "storybook": "storybook dev -p 6006",
     "storybook-build": "ENV=production storybook build -o dist/docs",
