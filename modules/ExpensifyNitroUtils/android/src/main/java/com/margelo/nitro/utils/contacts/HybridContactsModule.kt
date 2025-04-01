@@ -10,17 +10,16 @@ import com.facebook.react.uimanager.ThemedReactContext
 import com.margelo.nitro.NitroModules
 import com.margelo.nitro.core.Promise
 
-class HybridContactsModule(val context: ThemedReactContext) : HybridContactsModuleSpec() {
+class HybridContactsModule : HybridContactsModuleSpec() {
     @Volatile
     private var estimatedMemorySize: Long = 0
+    private val context = NitroModules.applicationContext!!
 
     override val memorySize: Long
         get() = estimatedMemorySize
 
-    private val reactContext: ReactApplicationContext? = NitroModules.applicationContext
-
     private fun requestContactPermission(): Boolean {
-        val currentActivity = context?.currentActivity
+        val currentActivity = context.currentActivity
         return if (currentActivity != null) {
             ActivityCompat.requestPermissions(
                 currentActivity, arrayOf(REQUIRED_PERMISSION), PERMISSION_REQUEST_CODE
@@ -32,7 +31,8 @@ class HybridContactsModule(val context: ThemedReactContext) : HybridContactsModu
     }
 
     private fun hasPhoneContactsPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
+        val result = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
+        return result
     }
 
     override fun getAll(keys: Array<ContactFields>): Promise<Array<Contact>> {
@@ -43,7 +43,7 @@ class HybridContactsModule(val context: ThemedReactContext) : HybridContactsModu
                 return@parallel emptyArray()
             }
 
-            context.getApplicationContext().contentResolver?.let { resolver ->
+            context.contentResolver?.let { resolver ->
                 val projection = arrayOf(
                     ContactsContract.Data.MIMETYPE,
                     ContactsContract.Data.CONTACT_ID,
