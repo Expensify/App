@@ -5,8 +5,11 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import type {View} from 'react-native';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import usePrevious from '@hooks/usePrevious';
+import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllReportActions, getReportActionHtml} from '@libs/ReportActionsUtils';
+import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
@@ -19,6 +22,14 @@ type SearchRoute = Omit<Route<string>, 'key'> | undefined;
 type MoneyRequestReportState = {
     params: SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT];
 } & SearchRoute;
+
+function isUrlInAnyReportMessagesAttachments(url: string | null, reportID?: string): boolean {
+    const reportActions = getAllReportActions(reportID);
+    return Object.values(reportActions).some((action) => {
+        const {sourceURL, previewSourceURL} = getAttachmentDetails(getReportActionHtml(action));
+        return sourceURL === url || previewSourceURL === url;
+    });
+}
 
 function isMoneyRequestReportRouteWithReportIDInParams(route: SearchRoute): route is MoneyRequestReportState {
     return !!route && !!route.params && route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT && 'reportID' in route.params;
@@ -71,7 +82,11 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const updateCurrentPlayingReportID = useCallback(
         (state: NavigationState) => {
             const focusedRoute = findFocusedRoute(state);
-            const reportID = isMoneyRequestReportRouteWithReportIDInParams(focusedRoute) ? focusedRoute.params.reportID : Navigation.getTopmostReportId(state);
+            let {reportID} = getReportOrDraftReport(Navigation.getTopmostReportId()) ?? {};
+
+            if (isMoneyRequestReportRouteWithReportIDInParams(focusedRoute)) {
+                reportID = focusedRoute.params.reportID;
+            }
 
             setCurrentReportID(reportID);
         },
@@ -83,7 +98,15 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 pauseVideo();
             }
-            setCurrentlyPlayingURLReportID(currentReportID);
+
+            const topMostReport = getReportOrDraftReport(Navigation.getTopmostReportId());
+            const {reportID, chatReportID, parentReportID} = topMostReport ?? {};
+
+            const isTopMostReportAChatThread = isChatThread(topMostReport);
+            const isAttachmentInTopMostReport = isUrlInAnyReportMessagesAttachments(url, reportID);
+            const chatThreadID = isAttachmentInTopMostReport ? reportID : chatReportID ?? parentReportID;
+
+            setCurrentlyPlayingURLReportID(isTopMostReportAChatThread ? chatThreadID : currentReportID);
             setCurrentlyPlayingURL(url);
         },
         [currentlyPlayingURL, currentReportID, pauseVideo],
