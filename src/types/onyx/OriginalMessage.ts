@@ -497,7 +497,7 @@ type OriginalMessageModifiedExpense = {
     oldAttendees?: Attendee[];
 
     /** The list of attendees */
-    attendees?: Attendee[];
+    newAttendees?: Attendee[];
 };
 
 /** Model of the `deleted transaction` report action */

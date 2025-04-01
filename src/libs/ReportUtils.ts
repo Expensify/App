@@ -4204,7 +4204,7 @@ function getModifiedExpenseOriginalMessage(
     }
     if ('attendees' in transactionChanges) {
         originalMessage.oldAttendees = getAttendees(oldTransaction);
-        originalMessage.attendees = transactionChanges?.attendees;
+        originalMessage.newAttendees = transactionChanges?.attendees;
     }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
