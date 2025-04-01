@@ -1,0 +1,26 @@
+diff --git a/node_modules/react-native-reanimated/lib/module/animation/util.js b/node_modules/react-native-reanimated/lib/module/animation/util.js
+index 4572f70..ea8bea1 100644
+--- a/node_modules/react-native-reanimated/lib/module/animation/util.js
++++ b/node_modules/react-native-reanimated/lib/module/animation/util.js
+@@ -350,7 +350,7 @@ export function cancelAnimation(sharedValue) {
+   'worklet';
+ 
+   // setting the current value cancels the animation if one is currently running
+-  if (_WORKLET) {
++  if (_WORKLET || SHOULD_BE_USE_WEB) {
+     sharedValue.value = sharedValue.value; // eslint-disable-line no-self-assign
+   } else {
+     runOnUI(() => {
+diff --git a/node_modules/react-native-reanimated/src/animation/util.ts b/node_modules/react-native-reanimated/src/animation/util.ts
+index 2c7dd01..29e1281 100644
+--- a/node_modules/react-native-reanimated/src/animation/util.ts
++++ b/node_modules/react-native-reanimated/src/animation/util.ts
+@@ -551,7 +551,7 @@ export function defineAnimation<
+ export function cancelAnimation<T>(sharedValue: SharedValue<T>): void {
+   'worklet';
+   // setting the current value cancels the animation if one is currently running
+-  if (_WORKLET) {
++  if (_WORKLET || SHOULD_BE_USE_WEB) {
+     sharedValue.value = sharedValue.value; // eslint-disable-line no-self-assign
+   } else {
+     runOnUI(() => {

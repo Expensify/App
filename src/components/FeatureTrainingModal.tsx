@@ -115,6 +115,12 @@ type FeatureTrainingModalSVGProps = {
 
     /** Determines how the image should be resized to fit its container */
     contentFitImage?: ImageContentFit;
+
+    /** The width of the image */
+    imageWidth?: number;
+
+    /** The height of the image */
+    imageHeight?: number;
 };
 
 // This page requires either an icon or a video/animation, but not both
@@ -143,6 +149,8 @@ function FeatureTrainingModal({
     contentInnerContainerStyles,
     contentOuterContainerStyles,
     modalInnerContainerStyle,
+    imageWidth,
+    imageHeight,
     isModalDisabled = true,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
@@ -211,6 +219,8 @@ function FeatureTrainingModal({
                     <ImageSVG
                         src={image}
                         contentFit={contentFitImage}
+                        width={imageWidth}
+                        height={imageHeight}
                     />
                 )}
                 {!!videoURL && videoStatus === 'video' && (
@@ -241,6 +251,8 @@ function FeatureTrainingModal({
         );
     }, [
         image,
+        imageHeight,
+        imageWidth,
         contentFitImage,
         illustrationAspectRatio,
         styles.w100,

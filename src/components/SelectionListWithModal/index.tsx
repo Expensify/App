@@ -1,18 +1,18 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef, useState} from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {CheckSquare, EmptySquare} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
-import type {BaseSelectionListProps, ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
 
-type SelectionListWithModalProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
+type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
     onTurnOnSelectionMode?: (item: TItem | null) => void;
     isSelected?: (item: TItem) => boolean;
@@ -116,9 +116,10 @@ function SelectionListWithModal<TItem extends ListItem>(
                 shouldPreventScrollOnFocus
             >
                 <MenuItem
-                    title={translate('common.select')}
-                    icon={Expensicons.Checkmark}
+                    title={longPressedItem?.isSelected ? translate('common.deselect') : translate('common.select')}
+                    icon={longPressedItem?.isSelected ? EmptySquare : CheckSquare}
                     onPress={turnOnSelectionMode}
+                    pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
                 />
             </Modal>
         </>

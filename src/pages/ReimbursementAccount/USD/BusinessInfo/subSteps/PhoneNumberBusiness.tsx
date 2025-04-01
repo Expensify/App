@@ -1,15 +1,11 @@
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
-import TextInput from '@components/TextInput';
+import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidUSPhone} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -17,9 +13,8 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 const COMPANY_PHONE_NUMBER_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_PHONE;
 const STEP_FIELDS = [COMPANY_PHONE_NUMBER_KEY];
 
-function PhoneNumberBusiness({onNext, isEditing}: SubStepProps) {
+function PhoneNumberBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
@@ -27,9 +22,9 @@ function PhoneNumberBusiness({onNext, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
+            if (values.companyPhone && !isValidUSPhone(values.companyPhone, true)) {
                 errors.companyPhone = translate('bankAccount.error.phoneNumber');
             }
 
@@ -46,28 +41,21 @@ function PhoneNumberBusiness({onNext, isEditing}: SubStepProps) {
     });
 
     return (
-        <FormProvider
+        <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+            formTitle={translate('businessInfoStep.enterYourCompanysPhoneNumber')}
             validate={validate}
             onSubmit={handleSubmit}
-            style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.mb0]}
-        >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterYourCompanysPhoneNumber')}</Text>
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={COMPANY_PHONE_NUMBER_KEY}
-                label={translate('common.phoneNumber')}
-                aria-label={translate('common.phoneNumber')}
-                role={CONST.ROLE.PRESENTATION}
-                inputMode={CONST.INPUT_MODE.TEL}
-                placeholder={translate('common.phoneNumberPlaceholder')}
-                defaultValue={defaultCompanyPhoneNumber}
-                shouldSaveDraft={!isEditing}
-                containerStyles={[styles.mt6]}
-            />
-        </FormProvider>
+            inputId={COMPANY_PHONE_NUMBER_KEY}
+            inputMode={CONST.INPUT_MODE.TEL}
+            inputLabel={translate('common.phoneNumber')}
+            defaultValue={defaultCompanyPhoneNumber}
+            shouldShowHelpLinks={false}
+            placeholder={translate('common.phoneNumberPlaceholder')}
+        />
     );
 }
 
