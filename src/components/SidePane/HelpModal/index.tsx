@@ -56,7 +56,7 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
 
     return (
         <ModalPortal>
-            <FocusTrapForModal active>
+            <FocusTrapForModal active={!isExtraLargeScreenWidth}>
                 <View style={styles.sidePaneContainer}>
                     <View>
                         {!shouldHideSidePaneBackdrop && (
