@@ -262,6 +262,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {reportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
 
@@ -430,8 +431,17 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
+        const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
+        const transactionID: string | undefined = route.params?.transactionID;
+
+        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the trasaction thread created yet
+        // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
+        if (moneyRequestReportActionID && transactionID && currentUserEmail) {
+            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID);
+            return;
+        }
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [reportIDFromRoute, reportActionIDFromRoute]);
+    }, [route.params?.moneyRequestReportActionID, route.params?.transactionID, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
@@ -498,6 +508,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         fetchReport();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
+
+    const prevReportActions = usePrevious(reportActions);
+    useEffect(() => {
+        if (prevReportActions.length !== 0 || reportActions.length === 0) {
+            return;
+        }
+        fetchReport();
+    }, [prevReportActions, reportActions, fetchReport]);
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
@@ -724,7 +742,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {!!report && !isLoadingApp ? (
+                                {!report ? (
+                                    <ReportActionsSkeletonView />
+                                ) : (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -734,8 +754,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
-                                ) : (
-                                    <ReportActionsSkeletonView />
                                 )}
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter

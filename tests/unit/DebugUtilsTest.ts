@@ -1072,6 +1072,7 @@ describe('DebugUtils', () => {
                     amount: -100,
                     currency: CONST.CURRENCY.USD,
                     reportID: '2',
+                    merchant: 'test merchant',
                 },
                 [ONYXKEYS.SESSION]: {
                     accountID: 12345,

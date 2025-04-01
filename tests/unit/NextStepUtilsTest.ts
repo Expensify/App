@@ -573,6 +573,69 @@ describe('libs/NextStepUtils', () => {
                     expect(result).toMatchObject(optimisticNextStep);
                 });
             });
+
+            test('approval mode enabled', () => {
+                report.managerID = strangeAccountID;
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: ownerEmail,
+                        type: 'strong',
+                        clickToCopyText: ownerEmail,
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'approve',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ];
+
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                }).then(() => {
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
+            });
+
+            test('advanced approval mode enabled', () => {
+                report.managerID = strangeAccountID;
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: strangeEmail,
+                        type: 'strong',
+                        clickToCopyText: strangeEmail,
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'approve',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ];
+
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                }).then(() => {
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
+            });
         });
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {

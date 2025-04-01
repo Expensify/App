@@ -8,7 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePane/HelpButton';
+import HelpButton from '@components/SidePane/HelpComponents/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -54,6 +54,10 @@ function HeaderWithBackButton({
     threeDotsAnchorPosition = {
         vertical: 0,
         horizontal: 0,
+    },
+    threeDotsAnchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
     threeDotsMenuItems = [],
     threeDotsMenuIcon,
@@ -196,7 +200,7 @@ function HeaderWithBackButton({
                 )}
                 {middleContent}
                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                    <View style={[styles.pr2]}>
+                    <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
                         {children}
                         {shouldShowDownloadButton &&
                             (!isDownloading ? (
@@ -242,6 +246,7 @@ function HeaderWithBackButton({
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
                             shouldOverlay={shouldOverlayDots}
+                            anchorAlignment={threeDotsAnchorAlignment}
                             shouldSetModalVisibility={shouldSetModalVisibility}
                         />
                     )}
