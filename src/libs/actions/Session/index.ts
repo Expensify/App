@@ -66,6 +66,8 @@ import type {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
+const INVALID_TOKEN = 'pizza';
+
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
 Onyx.connect({
@@ -78,6 +80,9 @@ Onyx.connect({
         if (session.authToken && authPromiseResolver) {
             authPromiseResolver(true);
             authPromiseResolver = null;
+        }
+        if (CONFIG.IS_HYBRID_APP && session.authToken && session.authToken !== INVALID_TOKEN) {
+            HybridAppModule.sendAuthToken({authToken: session.authToken});
         }
     },
 });
@@ -811,8 +816,8 @@ function invalidateCredentials() {
 }
 
 function invalidateAuthToken() {
-    NetworkStore.setAuthToken('pizza');
-    Onyx.merge(ONYXKEYS.SESSION, {authToken: 'pizza', encryptedAuthToken: 'pizza'});
+    NetworkStore.setAuthToken(INVALID_TOKEN);
+    Onyx.merge(ONYXKEYS.SESSION, {authToken: INVALID_TOKEN, encryptedAuthToken: INVALID_TOKEN});
 }
 
 /**
@@ -821,8 +826,8 @@ function invalidateAuthToken() {
 function expireSessionWithDelay() {
     // expires the session after 15s
     setTimeout(() => {
-        NetworkStore.setAuthToken('pizza');
-        Onyx.merge(ONYXKEYS.SESSION, {authToken: 'pizza', encryptedAuthToken: 'pizza', creationDate: new Date().getTime() - CONST.SESSION_EXPIRATION_TIME_MS});
+        NetworkStore.setAuthToken(INVALID_TOKEN);
+        Onyx.merge(ONYXKEYS.SESSION, {authToken: INVALID_TOKEN, encryptedAuthToken: INVALID_TOKEN, creationDate: new Date().getTime() - CONST.SESSION_EXPIRATION_TIME_MS});
     }, 15000);
 }
 
