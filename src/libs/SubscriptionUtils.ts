@@ -581,15 +581,14 @@ function getSubscriptionPlanInfo(
     privateSubscriptionType: SubscriptionType | undefined,
     preferredCurrency: PreferredCurrency,
 ): SubscriptionPlanInfo {
-    const price = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType);
+    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType);
+    const price = convertToShortDisplayString(priceValue, preferredCurrency);
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
         return {
             title: translateLocal('subscription.yourPlan.collect.title'),
-            subtitle: isNewSubscription
-                ? translateLocal('subscription.yourPlan.perMemberMonth', {price: convertToShortDisplayString(price, preferredCurrency)})
-                : translateLocal('subscription.yourPlan.customPricing'),
-            note: isNewSubscription ? undefined : translateLocal('subscription.yourPlan.asLowAs', {price: convertToShortDisplayString(price, preferredCurrency)}),
+            subtitle: isNewSubscription ? translateLocal('subscription.yourPlan.perMemberMonth', {price}) : translateLocal('subscription.yourPlan.customPricing'),
+            note: isNewSubscription ? undefined : translateLocal('subscription.yourPlan.asLowAs', {price}),
             benefits: [
                 translateLocal('subscription.yourPlan.collect.benefit1'),
                 translateLocal('subscription.yourPlan.collect.benefit2'),
@@ -608,7 +607,7 @@ function getSubscriptionPlanInfo(
     return {
         title: translateLocal('subscription.yourPlan.control.title'),
         subtitle: translateLocal('subscription.yourPlan.customPricing'),
-        note: translateLocal('subscription.yourPlan.asLowAs', {price: convertToShortDisplayString(price, preferredCurrency)}),
+        note: translateLocal('subscription.yourPlan.asLowAs', {price}),
         benefits: [
             translateLocal('subscription.yourPlan.control.benefit1'),
             translateLocal('subscription.yourPlan.control.benefit2'),
