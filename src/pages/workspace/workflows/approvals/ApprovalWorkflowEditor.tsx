@@ -149,7 +149,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             : undefined;
 
                     return (
-                        <OfflineWithFeedback pendingAction={getApprovalPendingAction(approverIndex)}>
+                        <OfflineWithFeedback
+                            key={`offline-feedback-${approver?.email}-${approverIndex}`}
+                            pendingAction={getApprovalPendingAction(approverIndex)}
+                        >
                             <MenuItemWithTopDescription
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`approver-${approver?.email}-${approverIndex}`}
