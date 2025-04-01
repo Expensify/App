@@ -21,7 +21,7 @@ import CardSection from './CardSection/CardSection';
 import ReducedFunctionalityMessage from './ReducedFunctionalityMessage';
 import SubscriptionPlan from './SubscriptionPlan';
 
-type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.ROOT>;
+type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT>;
 
 function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const backTo = route?.params?.backTo;
