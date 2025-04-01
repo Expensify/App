@@ -270,6 +270,10 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
+function holdMoneyRequestOnMoneyRequestReport(transactionIDList: string[], comment: string) {
+    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash: -1, transactionIDList, comment}, {});
+}
+
 function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: SearchPolicy[], transactionIDList?: string[]) {
     const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
         {
@@ -413,6 +417,7 @@ export {
     search,
     updateSearchResultsWithTransactionThreadReportID,
     deleteMoneyRequestOnSearch,
+    holdMoneyRequestOnMoneyRequestReport,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
     exportSearchItemsToCSV,

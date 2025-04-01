@@ -19,6 +19,7 @@ const defaultMoneyRequestReportContext = {
 
 const Context = React.createContext<TMoneyRequestReportContext>(defaultMoneyRequestReportContext);
 
+// TODO merge it with SearchContext in follow-up - https://github.com/Expensify/App/issues/59431
 function MoneyRequestReportContextProvider({children}: ChildrenProps) {
     const [selectedTransactionsForReport, setSelectedTransactionsForReport] = useState<Record<string, string[]>>({});
 

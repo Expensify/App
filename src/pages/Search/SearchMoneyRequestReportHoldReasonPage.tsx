@@ -7,7 +7,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import {clearErrorFields, clearErrors} from '@userActions/FormActions';
-import {holdMoneyRequestOnSearch} from '@src/libs/actions/Search';
+import {holdMoneyRequestOnMoneyRequestReport} from '@src/libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
@@ -31,9 +31,7 @@ function SearchMoneyRequestReportHoldReasonPage({route}: SearchMoneyRequestRepor
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(reportID);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        // I'm using search API because it's simpler. Alternative solution is to interate over selected transactions
-        // and find transaction thread report for each transaction and then call `putOnHold`.
-        holdMoneyRequestOnSearch(-1, selectedTransactionsID, values.comment);
+        holdMoneyRequestOnMoneyRequestReport(selectedTransactionsID, values.comment);
         setSelectedTransactionsID([...selectedTransactionsID]); // It's needed so the actions in header are recalculated
 
         Navigation.goBack();
