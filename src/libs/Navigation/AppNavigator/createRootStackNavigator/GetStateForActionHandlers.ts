@@ -43,7 +43,7 @@ function handleOpenWorkspaceSplitAction(
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
     const actionToPushSettingsSplitNavigator = StackActions.push(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {
-        screen: SCREENS.SETTINGS.WORKSPACES,
+        screen: SCREENS.WORKSPACE_HUB.WORKSPACES,
     });
 
     const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {

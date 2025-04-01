@@ -216,7 +216,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             {
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Buildings,
-                screenName: SCREENS.SETTINGS.WORKSPACES,
+                screenName: SCREENS.WORKSPACE_HUB.WORKSPACES,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 action: navigateToWorkspacesSettings,
                 shouldRenderTooltip: shouldShowWorkspaceSettingsTooltip,
@@ -239,7 +239,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             items.splice(1, 0, {
                 translationKey: 'allSettingsScreen.subscription',
                 icon: Expensicons.CreditCard,
-                screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
+                screenName: SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT,
                 brickRoadIndicator: !!privateSubscription?.errors || hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 badgeText: freeTrialText,
                 badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
