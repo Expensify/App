@@ -44,12 +44,14 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
-    const isApproved = isReportApproved({report});
+    const isProcessing = isProcessingReport(report);
+    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+    const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessing;
+    const isApproved = isReportApproved({report}) || isSubmittedWithoutApprovalsEnabled;
     const isClosed = isClosedReport(report);
     const hasViolations = hasAnyViolations(report.reportID, violations);
     const isInvoice = isInvoiceReport(report);
     const isIOU = isIOUReport(report);
-    const isProcessing = isProcessingReport(report);
 
     if (!isReportPayer) {
         return false;
