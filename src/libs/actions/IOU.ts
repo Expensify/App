@@ -59,7 +59,17 @@ import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@lib
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getPerDiemCustomUnit, getPolicy, getSubmitToAccountID, hasDependentTags, isControlPolicy, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
+import {
+    getPerDiemCustomUnit,
+    getPersonalPolicy,
+    getPolicy,
+    getSubmitToAccountID,
+    hasDependentTags,
+    isControlPolicy,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isSubmitAndClose,
+} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getIOUReportIDFromReportActionPreview,
@@ -754,8 +764,10 @@ function initMoneyRequest(
     newIouRequestType: IOURequestType,
 ) {
     // Generate a brand new transactionID
+    const personalPolicy = getPolicy(getPersonalPolicy()?.id);
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const currency = policy?.outputCurrency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
+    const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
+
     // Disabling this line since currentDate can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
@@ -9266,18 +9278,16 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
     }
 
-    completeOnboarding(
-        onboardingPurpose,
-        CONST.ONBOARDING_MESSAGES[onboardingPurpose],
-        personalDetails?.firstName ?? '',
-        personalDetails?.lastName ?? '',
+    completeOnboarding({
+        engagementChoice: onboardingPurpose,
+        onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurpose],
+        firstName: personalDetails?.firstName,
+        lastName: personalDetails?.lastName,
         adminsChatReportID,
         onboardingPolicyID,
         paymentSelected,
-        undefined,
-        undefined,
-        true,
-    );
+        wasInvited: true,
+    });
 }
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
