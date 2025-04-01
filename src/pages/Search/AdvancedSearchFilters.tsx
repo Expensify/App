@@ -136,6 +136,11 @@ const baseFilterConfig = {
         description: 'common.in' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
     },
+    policyID: {
+        getTitle: getFilterWorkspaceDisplayTitle,
+        description: 'workspace.common.workspace' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_WORKSPACE,
+    },
 };
 
 /**
@@ -144,7 +149,7 @@ const baseFilterConfig = {
  */
 const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -166,7 +171,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -187,7 +192,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -208,10 +213,26 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.IN],
+        [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+        ],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
+
+function getFilterWorkspaceDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, policies: OnyxCollection<Policy>) {
+    const workspaceFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
+
+    if (!policies) {
+        return '';
+    }
+
+    return policies[`${ONYXKEYS.COLLECTION.POLICY}${workspaceFilter}`]?.name;
+}
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList, translate: LocaleContextProps['translate']) {
     const cardIdsFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
@@ -527,6 +548,8 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, policies);
                     }
                     return {
                         key,

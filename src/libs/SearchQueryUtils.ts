@@ -251,7 +251,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
     if (query.policyID) {
-        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${query.policyID} `;
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${query.policyID} `;
     }
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
@@ -305,6 +305,10 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
         }
     }
 
+    if (queryJSON?.policyID) {
+        queryParts.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${queryJSON.policyID}`);
+    }
+
     if (!queryJSON) {
         return queryParts.join(' ');
     }
@@ -345,7 +349,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     if (policyID) {
         const sanitizedPolicyID = sanitizeSearchValue(policyID);
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${sanitizedPolicyID}`);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${sanitizedPolicyID}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
