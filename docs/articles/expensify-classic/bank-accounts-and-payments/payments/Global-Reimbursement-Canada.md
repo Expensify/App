@@ -1,0 +1,69 @@
+---
+title: Global Reimbursement - Canada
+description: Learn how to enable international reimbursements if your business bank account is in Canada.
+keywords: [Expensify Classic, global reimbursement, Canada, CAD, international payments, direct deposit, DocuSign, compliance]
+---
+<div id="expensify-classic" markdown="1">
+
+If your business bank account is based in Canada, you can send global reimbursements to employees worldwide. This guide explains how to set up and verify your Canadian account in Expensify.
+
+---
+
+## Prerequisites
+- A verified Canadian business bank account
+- Workspace currency set to **CAD**
+
+---
+
+## Canada Document Requirements
+- ✅ Partner Application Form
+- ✅ Address verification document
+- ✅ Bank statement for direct debit
+- ✅ Proof of Beneficial Ownership
+
+---
+
+# Step 1: Connect Your Canadian Bank Account
+1. Go to **Settings > Workspaces > [Workspace Name] > Reports**.
+2. Confirm the workspace currency is set to **CAD**.
+3. Click the **Reimbursements** tab.
+4. Set the reimbursement method to **Direct**.
+5. Click **Add business bank account**.
+6. Click **Switch country** and set the **currency** to CAD.
+7. Enter your Canadian bank account details and click **Save & Continue**.
+
+---
+
+# Step 2: Verify for Global Reimbursement
+1. Complete the Global Reimbursement DocuSign form.
+2. Our Compliance Team will review your form and contact you if additional information is required.
+   **You may be asked to upload:**
+   - Voided check
+   - Bank statement showing the business name
+   - Bank letter confirming account details
+3. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts. 
+
+---
+
+# Step 3: Start Reimbursing Internationally
+After the account is verified:
+1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
+2. Select the verified Canadian account as the default reimbursement method.
+3. Ask your employees to:
+   - Go to **Settings > Account > Wallet**.
+   - Click **Add deposit-only bank account** and enter their non-CAD account details.
+
+**Timeline:** ⏳ The account is typically set up to issue global reimbursements within two business days after onboarding is complete and the bank account is verified.
+
+---
+
+# FAQ
+
+## Can more than one person send reimbursements?
+Yes. Once the bank account is verified, it can be shared with other workspace admins so they can also issue global reimbursements.
+
+## What is required for “Proof of Beneficial Ownership”?
+This typically includes a shareholder register or declaration showing who owns 25% or more of the business.
+
+</div>
+
