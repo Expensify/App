@@ -162,6 +162,20 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     return isLegacyDeletedComment || !!message.at(0)?.deleted;
 }
 
+/**
+ * This function will add attachment ID attribute on img and video HTML tags inside the passed html content
+ * of a report action. This attachment id is the reportActionID concatenated with the order index that the attachment
+ * appears inside the report action message so as to identify attachments with identical source inside a report action.
+ */
+function getHtmlWithAttachmentID(html: string, reportActionID: string | undefined) {
+    if (!reportActionID) {
+        return html;
+    }
+
+    let attachmentID = 0;
+    return html.replace(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
+}
+
 function getReportActionMessage(reportAction: PartialReportAction) {
     return Array.isArray(reportAction?.message) ? reportAction.message.at(0) : reportAction?.message;
 }
@@ -718,6 +732,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
     ];
     if (deprecatedOldDotReportActions.includes(reportAction.actionName)) {
         Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
@@ -1130,6 +1145,7 @@ function isTagModificationAction(actionName: string): boolean {
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_ENABLED ||
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_NAME ||
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG_LIST ||
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG
     );
 }
@@ -1666,11 +1682,18 @@ function getIOUActionForReportID(reportID: string | undefined, transactionID: st
     }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportActions = getAllReportActions(report?.reportID);
-    const action = Object.values(reportActions ?? {})?.find((reportAction) => {
+
+    return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
+}
+
+/**
+ * Get the IOU action for a transactionID from given reportActions
+ */
+function getIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string): OnyxEntry<ReportAction> {
+    return reportActions.find((reportAction) => {
         const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
         return IOUTransactionID === transactionID;
     });
-    return action;
 }
 
 /**
@@ -1943,6 +1966,12 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
         return translateLocal('workspaceActions.deleteTag', {
             tagListName,
             tagName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG_LIST && tagListName) {
+        return translateLocal('workspaceActions.deleteTagList', {
+            tagListName,
         });
     }
 
@@ -2260,6 +2289,9 @@ function getReportActions(report: Report) {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
 }
 
+/**
+ * @private
+ */
 function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale): boolean {
     // The user has never gone offline or never come back online
     if (!lastOfflineAt || !lastOnlineAt) {
@@ -2282,17 +2314,29 @@ function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, 
     return false;
 }
 
+/**
+ * Whether a message is NOT from the active user, and it was received while the user was offline.
+ */
+function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale) {
+    const wasByCurrentUser = wasActionTakenByCurrentUser(action);
+    const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, locale);
+
+    return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
     formatLastMessageText,
     isReportActionUnread,
+    getHtmlWithAttachmentID,
     getActionableMentionWhisperMessage,
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
     getFirstVisibleReportActionID,
     getIOUActionForReportID,
+    getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
     getLastVisibleAction,
@@ -2396,7 +2440,7 @@ export {
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
     getReportActionsLength,
-    wasActionCreatedWhileOffline,
+    wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
