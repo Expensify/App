@@ -8,6 +8,8 @@ const NotificationType = {
     TRANSACTION: 'transaction',
 } as const;
 
+type NotificationTypes = ValueOf<typeof NotificationType>;
+
 type NotificationDataMap = {
     [NotificationType.REPORT_ACTION]: ReportActionPushNotificationData;
     [NotificationType.REPORT_COMMENT]: ReportActionPushNotificationData;
@@ -43,4 +45,4 @@ type TransactionPushNotificationData = BasePushNotificationData & {
  * types of push notifications sent by our API.
  */
 export default NotificationType;
-export type {NotificationDataMap, PushNotificationData, ReportActionPushNotificationData, TransactionPushNotificationData};
+export type {NotificationTypes, NotificationDataMap, PushNotificationData, ReportActionPushNotificationData, TransactionPushNotificationData};
