@@ -84,6 +84,8 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             const focusedRoute = findFocusedRoute(state);
             let {reportID} = getReportOrDraftReport(Navigation.getTopmostReportId()) ?? {};
 
+            // We need to handle a case where a report is selected via search and is therefore not a topmost report,
+            // but we still want to be able to play videos in it
             if (isMoneyRequestReportRouteWithReportIDInParams(focusedRoute)) {
                 reportID = focusedRoute.params.reportID;
             }
@@ -103,8 +105,16 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             const {reportID, chatReportID, parentReportID} = topMostReport ?? {};
 
             const isTopMostReportAChatThread = isChatThread(topMostReport);
-            const isAttachmentInTopMostReport = isUrlInAnyReportMessagesAttachments(url, reportID);
-            const chatThreadID = isAttachmentInTopMostReport ? reportID : chatReportID ?? parentReportID;
+
+            /*
+            This code solves the problem of 2 types of videos in a chat thread:
+            - video that is in a first message of thread, which makes it have a reportID equal to topmost report parent ID
+            - any other video in chat thread that has a reportID equal to topmost report ID
+            we need to find out which reportID is assigned to the video
+            and do that by checking if selected url is in topmost report messages attachments (then we use said report)
+            or if it is a first message, then we take parent report ID since it is associated with parent */
+            const isUrlInTopMostReportAttachments = isUrlInAnyReportMessagesAttachments(url, reportID);
+            const chatThreadID = isUrlInTopMostReportAttachments ? reportID : chatReportID ?? parentReportID;
 
             setCurrentlyPlayingURLReportID(isTopMostReportAChatThread ? chatThreadID : currentReportID);
             setCurrentlyPlayingURL(url);
