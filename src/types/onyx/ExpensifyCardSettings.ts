@@ -28,6 +28,9 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the request was successful */
     isSuccess?: boolean;
+
+    /** The preferred policy for the domain card */
+    preferredPolicy?: string;
 }>;
 
 export default ExpensifyCardSettings;
