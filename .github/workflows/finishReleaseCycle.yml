@@ -106,7 +106,7 @@ jobs:
 
   # Update the staging branch to trigger a staging deploy
   updateStaging:
-    needs: [updateProduction, createNewPatchVersion]
+    needs: [cleanupDeployBlockers, createNewPatchVersion]
     uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:
