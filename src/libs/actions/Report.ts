@@ -130,6 +130,7 @@ import {
     getReportLastVisibleActionCreated,
     getReportMetadata,
     getReportNotificationPreference,
+    getReportPreviewMessage,
     getReportTransactions,
     getReportViolations,
     getRouteFromLink,
@@ -2468,10 +2469,11 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
+    const message = getReportPreviewMessage(optimisticReportData);
     const createReportActionMessage = [
         {
-            html: `${policy?.name} owes ${policy?.outputCurrency} 0.00`,
-            text: `${policy?.name} owes ${policy?.outputCurrency} 0.00`,
+            html: message,
+            text: message,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         },
     ];
@@ -2484,7 +2486,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         childType: CONST.REPORT.TYPE.EXPENSE,
         created: timeOfCreation,
         shouldShow: true,
-        actorAccountID: accountID,
+        childOwnerAccountID: accountID,
         automatic: false,
         avatar: creatorPersonalDetails.avatar,
         isAttachmentOnly: false,

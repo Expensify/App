@@ -301,6 +301,7 @@ type OptimisticNewReport = Pick<
     | 'reportName'
     | 'stateNum'
     | 'statusNum'
+    | 'currency'
     | 'total'
     | 'nonReimbursableTotal'
     | 'parentReportID'
@@ -5418,6 +5419,7 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         reportID,
         policyID: policy?.id,
         type: CONST.REPORT.TYPE.EXPENSE,
+        currency: policy?.outputCurrency,
         ownerAccountID: accountID,
         stateNum,
         statusNum,
