@@ -242,32 +242,41 @@ function ExpensifyCardPage({
                                 )}
                             </>
                         ))}
-                        {virtualCards.map((card) => (
+                        {travelCards.map((card) => (
                             <>
-                                <>
-                                    <MenuItemWithTopDescription
-                                        description={'Travel Card CVV'}
-                                        title={'•••'}
-                                        interactive={false}
-                                        titleStyle={styles.walletCardNumber}
-                                        shouldShowRightComponent
-                                        rightComponent={
-                                            !isSignedInAsdelegate ? (
-                                                <Button
-                                                    text={translate('Reveal CVV')}
-                                                    onPress={() => openValidateCodeModal(card.cardID)}
-                                                    isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
-                                                    isLoading={isCardDetailsLoading[card.cardID]}
-                                                />
-                                            ) : undefined
-                                        }
+                                {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
+                                    <CardDetails
+                                        pan={cardsDetails[card.cardID]?.pan}
+                                        expiration={formatCardExpiration(cardsDetails[card.cardID]?.expiration ?? '')}
+                                        cvv={cardsDetails[card.cardID]?.cvv}
+                                        domain={domain}
                                     />
-                                    <DotIndicatorMessage
-                                        messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
-                                        type="error"
-                                        style={[styles.ph5]}
-                                    />
-                                </>
+                                ) : (
+                                    <>
+                                        <MenuItemWithTopDescription
+                                            description={'Travel Card CVV'}
+                                            title={'•••'}
+                                            interactive={false}
+                                            titleStyle={styles.walletCardNumber}
+                                            shouldShowRightComponent
+                                            rightComponent={
+                                                !isSignedInAsdelegate ? (
+                                                    <Button
+                                                        text={'Reveal CVV'}
+                                                        onPress={() => openValidateCodeModal(card.cardID)}
+                                                        isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
+                                                        isLoading={isCardDetailsLoading[card.cardID]}
+                                                    />
+                                                ) : undefined
+                                            }
+                                        />
+                                        <DotIndicatorMessage
+                                            messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
+                                            type="error"
+                                            style={[styles.ph5]}
+                                        />
+                                    </>
+                                )}
                                 {!isSignedInAsdelegate && (
                                     <MenuItemWithTopDescription
                                         title={'Report travel card fraud'}

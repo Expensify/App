@@ -56,46 +56,56 @@ function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetail
 
     return (
         <>
-            <MenuItemWithTopDescription
-                description={translate('cardPage.cardDetails.cardNumber')}
-                title={pan}
-                shouldShowRightComponent
-                rightComponent={
-                    <View style={styles.justifyContentCenter}>
-                        <PressableWithDelayToggle
-                            tooltipText={translate('reportActionContextMenu.copyToClipboard')}
-                            tooltipTextChecked={translate('reportActionContextMenu.copied')}
-                            icon={Expensicons.Copy}
-                            onPress={handleCopyToClipboard}
-                            accessible={false}
-                            text=""
-                        />
-                    </View>
-                }
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                description={translate('cardPage.cardDetails.expiration')}
-                title={expiration}
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                description={translate('cardPage.cardDetails.cvv')}
-                title={cvv}
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                description={translate('cardPage.cardDetails.address')}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
-                interactive={false}
-            />
-            <TextLink
-                style={[styles.link, styles.mh5, styles.mb3]}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain))}
-            >
-                {translate('cardPage.cardDetails.updateAddress')}
-            </TextLink>
+            {pan !== undefined && (
+                <MenuItemWithTopDescription
+                    description={translate('cardPage.cardDetails.cardNumber')}
+                    title={pan}
+                    shouldShowRightComponent
+                    rightComponent={
+                        <View style={styles.justifyContentCenter}>
+                            <PressableWithDelayToggle
+                                tooltipText={translate('reportActionContextMenu.copyToClipboard')}
+                                tooltipTextChecked={translate('reportActionContextMenu.copied')}
+                                icon={Expensicons.Copy}
+                                onPress={handleCopyToClipboard}
+                                accessible={false}
+                                text=""
+                            />
+                        </View>
+                    }
+                    interactive={false}
+                />
+            )}
+            {expiration !== undefined && (
+                <MenuItemWithTopDescription
+                    description={translate('cardPage.cardDetails.expiration')}
+                    title={expiration}
+                    interactive={false}
+                />
+            )}
+            {cvv !== undefined && (
+                <MenuItemWithTopDescription
+                    description={translate('cardPage.cardDetails.cvv')}
+                    title={cvv}
+                    interactive={false}
+                />
+            )}
+            {privatePersonalDetails !== undefined && (
+                <>
+                    <MenuItemWithTopDescription
+                        description={translate('cardPage.cardDetails.address')}
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
+                        interactive={false}
+                    />
+                    <TextLink
+                        style={[styles.link, styles.mh5, styles.mb3]}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain))}
+                    >
+                        {translate('cardPage.cardDetails.updateAddress')}
+                    </TextLink>
+                </>
+            )}
         </>
     );
 }
