@@ -92,7 +92,7 @@ jobs:
             --json number \
             --jq '.[].number' \
             | xargs -L1 --max-procs=4 gh issue edit "$1" --remove-label DeployBlockerCash
-        with:
+        env:
           GITHUB_TOKEN: ${{ github.token }}
 
   # Create a new patch version to prep for next release cycle
