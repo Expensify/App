@@ -67,7 +67,7 @@ react {
     // Added by install-expo-modules
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", rootDir.getAbsoluteFile().getParentFile().getAbsolutePath(), "android", "absolute"].execute(null, rootDir).text.trim())
     cliFile = file("../../node_modules/@rnef/cli/src/bin.js")
-    bundleCommand = "export:embed"
+    bundleCommand = "bundle"
 }
 
 project.ext.envConfigFiles = [
