@@ -27,7 +27,6 @@ import shouldReplayVideo from './shouldReplayVideo';
 import type {VideoPlayerProps, VideoWithOnFullScreenUpdate} from './types';
 import useHandleNativeVideoControls from './useHandleNativeVideoControls';
 import * as VideoUtils from './utils';
-import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
 
 function BaseVideoPlayer({
@@ -77,7 +76,6 @@ function BaseVideoPlayer({
     const [isLoading, setIsLoading] = useState(true);
     const [isEnded, setIsEnded] = useState(false);
     const [isBuffering, setIsBuffering] = useState(true);
-    const [hasError, setHasError] = useState(false);
     // we add "#t=0.001" at the end of the URL to skip first milisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -503,17 +501,11 @@ function BaseVideoPlayer({
                                             }}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
-                                            onError={() => {
-                                                setHasError(true);
-                                            }}
                                         />
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-                            {hasError && !isBuffering && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
-                            {((isLoading && !isOffline && !hasError) || (isBuffering && !isPlaying && !hasError)) && (
-                                <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
-                            )}
+                            {((isLoading && !isOffline) || (isBuffering && !isPlaying)) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
                                 <VideoPlayerControls
