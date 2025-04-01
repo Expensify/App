@@ -32,7 +32,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
         if (currentURL && new URL(currentURL).pathname.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
-            return undefined;
+            return '';
         }
         const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
         if (reportIdFromPath) {
