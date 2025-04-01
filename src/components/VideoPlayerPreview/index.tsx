@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoDimensions = {
@@ -55,7 +56,10 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
     const renderRoute = useRef<string | null>(null);
     const navigation = useNavigation();
-    const isFocused = () => Navigation.getActiveRouteWithoutParams() === renderRoute.current;
+    const isFocused = () => {
+        const currentRoute = Navigation.getActiveRouteWithoutParams();
+        return currentRoute === `/${ROUTES.ATTACHMENTS.route}` || currentRoute === renderRoute.current;
+    };
 
     // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
