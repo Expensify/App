@@ -150,12 +150,11 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
                     return (
                         <OfflineWithFeedback
-                            key={`offline-feedback-${approver?.email}`}
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`approver-${approver?.email}-${approverIndex}`}
                             pendingAction={getApprovalPendingAction(approverIndex)}
                         >
                             <MenuItemWithTopDescription
-                                // eslint-disable-next-line react/no-array-index-key
-                                key={`approver-${approver?.email}-${approverIndex}`}
                                 title={approver?.displayName}
                                 titleStyle={styles.textNormalThemeText}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
