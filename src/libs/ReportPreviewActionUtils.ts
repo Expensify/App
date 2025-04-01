@@ -89,14 +89,14 @@ function getReportPreviewAction(violations: OnyxCollection<TransactionViolation[
     if (canSubmit(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
+    if (canApprove(report, violations, policy)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
+    }
     if (canPay(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
-    }
-    if (canApprove(report, violations, policy)) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
     if (canReview(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
