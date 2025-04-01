@@ -8,7 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePane/HelpButton';
+import HelpButton from '@components/SidePane/HelpComponents/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -54,6 +54,10 @@ function HeaderWithBackButton({
     threeDotsAnchorPosition = {
         vertical: 0,
         horizontal: 0,
+    },
+    threeDotsAnchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
     threeDotsMenuItems = [],
     threeDotsMenuIcon,
@@ -108,6 +112,7 @@ function HeaderWithBackButton({
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
                 subTitleLink={subTitleLink}
+                numberOfTitleLines={1}
             />
         );
     }, [
@@ -143,12 +148,12 @@ function HeaderWithBackButton({
                 // progressBarPercentage can be 0 which would
                 // be falsey, hence using !== undefined explicitly
                 progressBarPercentage !== undefined && styles.pl0,
-                shouldShowBackButton && [styles.pl2, styles.pr2],
+                shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFillObject,
                 style,
             ]}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
@@ -194,42 +199,44 @@ function HeaderWithBackButton({
                     />
                 )}
                 {middleContent}
-                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
-                    {children}
-                    {shouldShowDownloadButton &&
-                        (!isDownloading ? (
-                            <Tooltip text={translate('common.download')}>
-                                <PressableWithoutFeedback
-                                    onPress={(event) => {
-                                        // Blur the pressable in case this button triggers a Growl notification
-                                        // We do not want to overlap Growl with the Tooltip (#15271)
-                                        (event?.currentTarget as HTMLElement)?.blur();
+                <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
+                        {children}
+                        {shouldShowDownloadButton &&
+                            (!isDownloading ? (
+                                <Tooltip text={translate('common.download')}>
+                                    <PressableWithoutFeedback
+                                        onPress={(event) => {
+                                            // Blur the pressable in case this button triggers a Growl notification
+                                            // We do not want to overlap Growl with the Tooltip (#15271)
+                                            (event?.currentTarget as HTMLElement)?.blur();
 
-                                        if (!isDownloadButtonActive) {
-                                            return;
-                                        }
+                                            if (!isDownloadButtonActive) {
+                                                return;
+                                            }
 
-                                        onDownloadButtonPress();
-                                        temporarilyDisableDownloadButton();
-                                    }}
+                                            onDownloadButtonPress();
+                                            temporarilyDisableDownloadButton();
+                                        }}
+                                        style={[styles.touchableButtonImage]}
+                                        role="button"
+                                        accessibilityLabel={translate('common.download')}
+                                    >
+                                        <Icon
+                                            src={Expensicons.Download}
+                                            fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                        />
+                                    </PressableWithoutFeedback>
+                                </Tooltip>
+                            ) : (
+                                <ActivityIndicator
                                     style={[styles.touchableButtonImage]}
-                                    role="button"
-                                    accessibilityLabel={translate('common.download')}
-                                >
-                                    <Icon
-                                        src={Expensicons.Download}
-                                        fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
-                                    />
-                                </PressableWithoutFeedback>
-                            </Tooltip>
-                        ) : (
-                            <ActivityIndicator
-                                style={[styles.touchableButtonImage]}
-                                size="small"
-                                color={theme.spinner}
-                            />
-                        ))}
-                    {shouldShowPinButton && !!report && <PinButton report={report} />}
+                                    size="small"
+                                    color={theme.spinner}
+                                />
+                            ))}
+                        {shouldShowPinButton && !!report && <PinButton report={report} />}
+                    </View>
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
                             icon={threeDotsMenuIcon}
@@ -239,6 +246,7 @@ function HeaderWithBackButton({
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
                             shouldOverlay={shouldOverlayDots}
+                            anchorAlignment={threeDotsAnchorAlignment}
                             shouldSetModalVisibility={shouldSetModalVisibility}
                         />
                     )}
@@ -259,7 +267,7 @@ function HeaderWithBackButton({
                     )}
                 </View>
                 {shouldDisplayHelpButton && <HelpButton />}
-                {shouldDisplaySearchRouter && <SearchButton style={styles.mr5} />}
+                {shouldDisplaySearchRouter && <SearchButton />}
             </View>
         </View>
     );

@@ -258,7 +258,7 @@ function logObject(object: Record<string, unknown>) {
 
 ### Prop Types
 
-Don't use `ComponentProps` to grab a component's prop types. Go to the source file for the component and export prop types from there. Import and use the exported prop types. 
+Don't use `ComponentProps` to grab a component's prop types. Go to the source file for the component and export prop types from there. Import and use the exported prop types.
 
 > Why? Importing prop type from the component file is more common and readable. Using `ComponentProps` might cause problems in some cases (see [related GitHub issue](https://github.com/piotrwitek/react-redux-typescript-guide/issues/170)). Each component with props has it's prop  type defined in the file anyway, so it's easy to export it when required.
 
@@ -419,7 +419,7 @@ The example above results in the most narrow type possible, also the values are 
 
 Always use the `type` keyword when importing/exporting types
 
-> Why? In order to improve code clarity and consistency and reduce bundle size after typescript transpilation, we enforce the all type imports/exports to contain the `type` keyword. This way, TypeScript can automatically remove those imports from the transpiled JavaScript bundle 
+> Why? In order to improve code clarity and consistency and reduce bundle size after typescript transpilation, we enforce the all type imports/exports to contain the `type` keyword. This way, TypeScript can automatically remove those imports from the transpiled JavaScript bundle
 
 Imports:
 ```ts
@@ -439,7 +439,7 @@ import someVariable from './a'
 // BAD
 export {SomeType}
 export someVariable
-// or 
+// or
 export {someVariable, SomeOtherType}
 
 // GOOD
@@ -451,7 +451,7 @@ export someVariable
 
 Avoid using HTML elements while declaring refs. Please use React Native components where possible. React Native Web handles the references on its own. It also extends React Native components with [Interaction API](https://necolas.github.io/react-native-web/docs/interactions/) which should be used to handle Pointer and Mouse events. Exception of this rule is when we explicitly need to use functions available only in DOM and not in React Native, e.g. `getBoundingClientRect`. Then please declare ref type as `union` of React Native component and HTML element. When passing it to React Native component assert it as soon as possible using utility methods declared in `src/types/utils`.
 
-Normal usage: 
+Normal usage:
 ```tsx
 const ref = useRef<View>();
 
@@ -605,7 +605,7 @@ type Data = {
 
 function foo(param1: string, param2: Data) {...};
 
-// GOOD 
+// GOOD
 type Callback = (value: string) => void
 
 function foo(param1: string, param2: Callback) {...};
@@ -768,8 +768,8 @@ You can still use arrow function for declarations or simple logics to keep them 
 randomList.push({
      onSelected: Utils.checkIfAllowed(function checkTask() { return Utils.canTeamUp(people); }),
 });
-routeList.filter(function checkIsActive(route) { 
-    return route.isActive; 
+routeList.filter(function checkIsActive(route) {
+    return route.isActive;
 });
 
 // Good
@@ -813,6 +813,21 @@ if (someCondition) {
     array.push('addValue1');
 }
 ```
+
+## Function Parameters
+- When a function has 5 or less parameters it’s best to pass them directly instead of nesting them into an object, for simplicity.
+- When a function has more than 5 parameters, consider refactoring it to use a parameter object. Doing so makes it easy to re-order parameters, add new parameters, and document the structure and relationships in the data.
+- When there are 10+ parameters, the function must be refactored to use a parameter object.
+  - These numbers are arbitrary but provide a helpful and consistent standard.
+
+### When using a parameter object keep the following points in mind:
+- Group parameters into sensible sub-objects and leave any other fields at the top level.
+- Sub-fields should not have the same prefix as the object name, except that it should match the column name in the backend database.
+  - For example: `params.chat.reportActionID` instead of `params.chat.chatReportActionID` because we shouldn't use the same prefix as the object name, and `params.report.reportID` instead of `params.report.id` because `reportID` matches the column name.
+  - Ask an Expensify engineer with a dev environment to check the column name if needed.
+
+#### Example
+Check out [ConvertTrackedExpenseToRequestParams](https://github.com/Expensify/App/blob/b3ac1398b65d9c030919e643f731910f88657864/src/libs/actions/IOU.ts#L4510-L4540)
 
 ## Object / Array Methods
 
@@ -863,7 +878,7 @@ const name = user?.name ?? "default name";
 
 - Omit comments that are redundant with TypeScript. Do not declare types in `@param` or `@return` blocks. Do not write `@implements`, `@enum`, `@private`, `@override`. eslint: [`jsdoc/no-types`](https://github.com/gajus/eslint-plugin-jsdoc/blob/main/.README/rules/no-types.md)
 - Only document params/return values if their names are not enough to fully understand their purpose. Not all parameters or return values need to be listed in the JSDoc comment. If there is no comment accompanying the parameter or return value, omit it.
-- When specifying a return value use `@returns` instead of `@return`. 
+- When specifying a return value use `@returns` instead of `@return`.
 - Avoid descriptions that don't add any additional information. Method descriptions should only be added when it's behavior is unclear.
 - Do not use block tags other than `@param` and `@returns` (e.g. `@memberof`, `@constructor`, etc).
 - Do not document default parameters. They are already documented by adding them to a declared function's arguments.
@@ -1142,7 +1157,7 @@ export default React.forwardRef(FancyInput)
 
 If the ref handle is not available (e.g. `useImperativeHandle` is used) you can define a custom handle type above the component.
 
-```tsx 
+```tsx
 import type {ForwarderRef} from 'react';
 import {useImperativeHandle} from 'react';
 
@@ -1257,9 +1272,9 @@ The correct approach is avoid using `ScrollView`. You can add props like `listHe
 ### Correct Approach (Using `SelectionList`)
 
 ```jsx
-<SelectionList 
-    sections={[{item}]} 
-    ListItem={RadioListItem} 
+<SelectionList
+    sections={[{item}]}
+    ListItem={RadioListItem}
     onSelectRow={handleSelect}
     listHeaderComponent={<Text>Header Content</Text>}
     listFooterComponent={<Button title="Submit" onPress={handleSubmit} />}
