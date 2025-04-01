@@ -46,6 +46,10 @@ const getMergeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESUL
         return CONST.MERGE_ACCOUNT_RESULTS.ERR_SMART_SCANNER;
     }
 
+    if (err.includes('405 Cannot merge into unvalidated account')) {
+        return CONST.MERGE_ACCOUNT_RESULTS.ACCOUNT_UNVALIDATED;
+    }
+
     if (err.includes('413')) {
         return CONST.MERGE_ACCOUNT_RESULTS.ERR_ACCOUNT_LOCKED;
     }

@@ -1464,6 +1464,9 @@ const translations = {
             heading: 'Try again later',
             description: 'There were too many attempts to merge accounts. Please try again later.',
         },
+        mergeFailureUnvalidatedAccount: {
+            description: "You can't merge into other accounts because it's not validated. Please validate the account and try again.",
+        },
         mergeFailureGenericHeading: 'Can’t merge accounts',
     },
     passwordPage: {

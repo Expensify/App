@@ -4982,6 +4982,7 @@ const CONST = {
         ERR_SAML_NOT_SUPPORTED: 'err_saml_not_supported',
         ERR_ACCOUNT_LOCKED: 'err_account_locked',
         TOO_MANY_ATTEMPTS: 'too_many_attempts',
+        ACCOUNT_UNVALIDATED: 'account_unvalidated',
     },
     DELEGATE_ROLE: {
         ALL: 'all',
