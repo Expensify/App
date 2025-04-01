@@ -194,7 +194,7 @@ function SearchFiltersCardPage() {
                             onChangeText={(value) => {
                                 setSearchTerm(value);
                             }}
-                            showLoadingPlaceholder={isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata) && !didScreenTransitionEnd}
+                            showLoadingPlaceholder={isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata) || !didScreenTransitionEnd}
                         />
                     </View>
                 </>
