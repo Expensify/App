@@ -1,21 +1,17 @@
 {
-  "cxxNamespace": ["utils"],
-  "ios": {
-    "iosModuleName": "UtilsModule"
-  },
-  "android": {
-    "androidNamespace": ["utils"],
-    "androidCxxLibName": "UtilsModule"
-  },
-  "autolinking": {
-    "ContactsModule": {
-      "swift": "HybridContactsModule",
-      "kotlin": "HybridContactsModule"
+    "cxxNamespace": ["utils"],
+    "ios": {
+        "iosModuleName": "UtilsModule"
     },
-    "UtilsModule": {
-      "swift": "HybridUtilsModule",
-      "kotlin": "HybridUtilsModule"
-    }
-  },
-  "ignorePaths": ["node_modules"]
+    "android": {
+        "androidNamespace": ["utils"],
+        "androidCxxLibName": "UtilsModule"
+    },
+    "autolinking": {
+        "ContactsModule": {
+            "swift": "HybridContactsModule",
+            "kotlin": "HybridContactsModule"
+        }
+    },
+    "ignorePaths": ["node_modules"]
 }

@@ -9,7 +9,6 @@
 
 // Include C++ implementation defined types
 #include "HybridContactsModuleSpecSwift.hpp"
-#include "HybridUtilsModuleSpecSwift.hpp"
 #include "UtilsModule-Swift-Cxx-Umbrella.hpp"
 
 namespace margelo::nitro::utils::bridge::swift {
@@ -43,22 +42,6 @@ namespace margelo::nitro::utils::bridge::swift {
     }
   #endif
     UtilsModule::HybridContactsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
-    return swiftPart.toUnsafe();
-  }
-  
-  // pragma MARK: std::shared_ptr<margelo::nitro::utils::HybridUtilsModuleSpec>
-  std::shared_ptr<margelo::nitro::utils::HybridUtilsModuleSpec> create_std__shared_ptr_margelo__nitro__utils__HybridUtilsModuleSpec_(void* _Nonnull swiftUnsafePointer) {
-    UtilsModule::HybridUtilsModuleSpec_cxx swiftPart = UtilsModule::HybridUtilsModuleSpec_cxx::fromUnsafe(swiftUnsafePointer);
-    return std::make_shared<margelo::nitro::utils::HybridUtilsModuleSpecSwift>(swiftPart);
-  }
-  void* _Nonnull get_std__shared_ptr_margelo__nitro__utils__HybridUtilsModuleSpec_(std__shared_ptr_margelo__nitro__utils__HybridUtilsModuleSpec_ cppType) {
-    std::shared_ptr<margelo::nitro::utils::HybridUtilsModuleSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridUtilsModuleSpecSwift>(cppType);
-  #ifdef NITRO_DEBUG
-    if (swiftWrapper == nullptr) [[unlikely]] {
-      throw std::runtime_error("Class \"HybridUtilsModuleSpec\" is not implemented in Swift!");
-    }
-  #endif
-    UtilsModule::HybridUtilsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
 

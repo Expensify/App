@@ -14,22 +14,17 @@ namespace margelo::nitro::utils { enum class ContactFields; }
 namespace margelo::nitro::utils { struct Contact; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
-// Forward declaration of `HybridUtilsModuleSpec` to properly resolve imports.
-namespace margelo::nitro::utils { class HybridUtilsModuleSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
 
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace UtilsModule { class HybridContactsModuleSpec_cxx; }
-// Forward declaration of `HybridUtilsModuleSpec_cxx` to properly resolve imports.
-namespace UtilsModule { class HybridUtilsModuleSpec_cxx; }
 
 // Include C++ defined types
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "HybridContactsModuleSpec.hpp"
-#include "HybridUtilsModuleSpec.hpp"
 #include "StringHolder.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
@@ -174,17 +169,5 @@ namespace margelo::nitro::utils::bridge::swift {
   inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::exception_ptr& error) {
     return Result<std::shared_ptr<Promise<std::vector<Contact>>>>::withError(error);
   }
-  
-  // pragma MARK: std::shared_ptr<margelo::nitro::utils::HybridUtilsModuleSpec>
-  /**
-   * Specialized version of `std::shared_ptr<margelo::nitro::utils::HybridUtilsModuleSpec>`.
-   */
-  using std__shared_ptr_margelo__nitro__utils__HybridUtilsModuleSpec_ = std::shared_ptr<margelo::nitro::utils::HybridUtilsModuleSpec>;
-  std::shared_ptr<margelo::nitro::utils::HybridUtilsModuleSpec> create_std__shared_ptr_margelo__nitro__utils__HybridUtilsModuleSpec_(void* _Nonnull swiftUnsafePointer);
-  void* _Nonnull get_std__shared_ptr_margelo__nitro__utils__HybridUtilsModuleSpec_(std__shared_ptr_margelo__nitro__utils__HybridUtilsModuleSpec_ cppType);
-  
-  // pragma MARK: std::weak_ptr<margelo::nitro::utils::HybridUtilsModuleSpec>
-  using std__weak_ptr_margelo__nitro__utils__HybridUtilsModuleSpec_ = std::weak_ptr<margelo::nitro::utils::HybridUtilsModuleSpec>;
-  inline std__weak_ptr_margelo__nitro__utils__HybridUtilsModuleSpec_ weakify_std__shared_ptr_margelo__nitro__utils__HybridUtilsModuleSpec_(const std::shared_ptr<margelo::nitro::utils::HybridUtilsModuleSpec>& strong) { return strong; }
 
 } // namespace margelo::nitro::utils::bridge::swift

@@ -16,7 +16,6 @@
 #include <NitroModules/HybridObjectRegistry.hpp>
 
 #include "JHybridContactsModuleSpec.hpp"
-#include "JHybridUtilsModuleSpec.hpp"
 #include <NitroModules/JNISharedPtr.hpp>
 #include <NitroModules/DefaultConstructableObject.hpp>
 
@@ -30,7 +29,6 @@ int initialize(JavaVM* vm) {
   return facebook::jni::initialize(vm, [] {
     // Register native JNI methods
     margelo::nitro::utils::JHybridContactsModuleSpec::registerNatives();
-    margelo::nitro::utils::JHybridUtilsModuleSpec::registerNatives();
 
     // Register Nitro Hybrid Objects
     HybridObjectRegistry::registerHybridObjectConstructor(
@@ -40,15 +38,6 @@ int initialize(JavaVM* vm) {
         auto instance = object.create();
         auto globalRef = jni::make_global(instance);
         return JNISharedPtr::make_shared_from_jni<JHybridContactsModuleSpec>(globalRef);
-      }
-    );
-    HybridObjectRegistry::registerHybridObjectConstructor(
-      "UtilsModule",
-      []() -> std::shared_ptr<HybridObject> {
-        static DefaultConstructableObject<JHybridUtilsModuleSpec::javaobject> object("com/margelo/nitro/utils/HybridUtilsModule");
-        auto instance = object.create();
-        auto globalRef = jni::make_global(instance);
-        return JNISharedPtr::make_shared_from_jni<JHybridUtilsModuleSpec>(globalRef);
       }
     );
   });

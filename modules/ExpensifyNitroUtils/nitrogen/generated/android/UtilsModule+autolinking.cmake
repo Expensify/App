@@ -28,10 +28,8 @@ target_sources(
   ../nitrogen/generated/android/UtilsModuleOnLoad.cpp
   # Shared Nitrogen C++ sources
   ../nitrogen/generated/shared/c++/HybridContactsModuleSpec.cpp
-  ../nitrogen/generated/shared/c++/HybridUtilsModuleSpec.cpp
   # Android-specific Nitrogen C++ sources
   ../nitrogen/generated/android/c++/JHybridContactsModuleSpec.cpp
-  ../nitrogen/generated/android/c++/JHybridUtilsModuleSpec.cpp
 )
 
 # Define a flag to check if we are building properly

@@ -11,7 +11,6 @@
 #import <type_traits>
 
 #include "HybridContactsModuleSpecSwift.hpp"
-#include "HybridUtilsModuleSpecSwift.hpp"
 
 @interface UtilsModuleAutolinking : NSObject
 @end
@@ -26,13 +25,6 @@
     "ContactsModule",
     []() -> std::shared_ptr<HybridObject> {
       std::shared_ptr<margelo::nitro::utils::HybridContactsModuleSpec> hybridObject = UtilsModule::UtilsModuleAutolinking::createContactsModule();
-      return hybridObject;
-    }
-  );
-  HybridObjectRegistry::registerHybridObjectConstructor(
-    "UtilsModule",
-    []() -> std::shared_ptr<HybridObject> {
-      std::shared_ptr<margelo::nitro::utils::HybridUtilsModuleSpec> hybridObject = UtilsModule::UtilsModuleAutolinking::createUtilsModule();
       return hybridObject;
     }
   );

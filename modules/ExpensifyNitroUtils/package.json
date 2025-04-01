@@ -37,6 +37,8 @@
   "homepage": "https://github.com/mrousavy/nitro#readme",
   "keywords": ["react-native", "nitro"],
   "devDependencies": {
+    "react": "*",
+    "react-native": "*",
     "react-native-nitro-modules": "*"
   },
   "peerDependencies": {

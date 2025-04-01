@@ -1,4 +1,4 @@
-package com.margelo.nitro.utils.contacts
+package com.margelo.nitro.utils
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -20,12 +20,12 @@ class HybridContactsModule(val context: ThemedReactContext) : HybridContactsModu
     private val reactContext: ReactApplicationContext? = NitroModules.applicationContext
 
     private fun requestContactPermission(): Boolean {
-        val currentActivity = context.getCurrentActivity()
+        val currentActivity = context?.currentActivity
         return if (currentActivity != null) {
             ActivityCompat.requestPermissions(
                 currentActivity, arrayOf(REQUIRED_PERMISSION), PERMISSION_REQUEST_CODE
-            )qe
-            truedfed
+            )
+            true
         } else {
             false
         }

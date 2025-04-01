@@ -14,8 +14,6 @@ namespace margelo::nitro::utils { enum class ContactFields; }
 namespace margelo::nitro::utils { struct Contact; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
-// Forward declaration of `HybridUtilsModuleSpec` to properly resolve imports.
-namespace margelo::nitro::utils { class HybridUtilsModuleSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
 
@@ -23,7 +21,6 @@ namespace margelo::nitro::utils { struct StringHolder; }
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "HybridContactsModuleSpec.hpp"
-#include "HybridUtilsModuleSpec.hpp"
 #include "StringHolder.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>
@@ -44,8 +41,6 @@ namespace margelo::nitro::utils { struct StringHolder; }
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace UtilsModule { class HybridContactsModuleSpec_cxx; }
-// Forward declaration of `HybridUtilsModuleSpec_cxx` to properly resolve imports.
-namespace UtilsModule { class HybridUtilsModuleSpec_cxx; }
 
 // Include Swift defined types
 #if __has_include("UtilsModule-Swift.h")
