@@ -30,7 +30,6 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getButtonRole} from './Button/utils';
-import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import {FallbackAvatar} from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
@@ -78,7 +77,6 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
     const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
-    const isSingleTransactionView = isTrackExpenseReport(report);
     const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
@@ -156,27 +154,14 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
                         </View>
                     </PressableWithoutFeedback>
                     <View style={[styles.flex1, styles.flexColumn]}>
-                        {isSingleTransactionView ? (
-                            <CaretWrapper>
-                                <DisplayNames
-                                    fullTitle={title}
-                                    displayNamesWithTooltips={displayNamesWithTooltips}
-                                    tooltipEnabled
-                                    numberOfLines={1}
-                                    textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                                    shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
-                                />
-                            </CaretWrapper>
-                        ) : (
-                            <DisplayNames
-                                fullTitle={title}
-                                displayNamesWithTooltips={displayNamesWithTooltips}
-                                tooltipEnabled
-                                numberOfLines={1}
-                                textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                                shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
-                            />
-                        )}
+                        <DisplayNames
+                            fullTitle={title}
+                            displayNamesWithTooltips={displayNamesWithTooltips}
+                            tooltipEnabled
+                            numberOfLines={1}
+                            textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
+                            shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
+                        />
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
