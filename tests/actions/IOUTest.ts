@@ -3664,6 +3664,9 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
+            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
+
             return waitForBatchedUpdates()
                 .then(() => {
                     createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
@@ -3733,13 +3736,12 @@ describe('actions/IOU', () => {
                                         statusNum: 0,
                                         stateNum: 0,
                                     });
+                                    resolve();
 
                                     expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, true)).toBe(true);
                                     expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(true);
                                     expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
                                     expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
-
-                                    resolve();
                                 },
                             });
                         }),
@@ -3754,6 +3756,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
+                                    resolve();
                                     // Verify report is a draft
                                     expect(expenseReport?.stateNum).toBe(0);
                                     expect(expenseReport?.statusNum).toBe(0);
@@ -3762,8 +3765,6 @@ describe('actions/IOU', () => {
                                     expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(false);
                                     expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
                                     expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
-
-                                    resolve();
                                 },
                             });
                         }),
@@ -3784,6 +3785,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
+                                    resolve();
                                     // Report is closed since the default policy settings is Submit and Close
                                     expect(expenseReport?.stateNum).toBe(2);
                                     expect(expenseReport?.statusNum).toBe(2);
@@ -3792,7 +3794,6 @@ describe('actions/IOU', () => {
                                     expect(canIOUBePaid(expenseReport, chatReport, policy, [], true, undefined, undefined, false)).toBe(true);
                                     expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, true)).toBe(false);
                                     expect(canIOUBePaid(expenseReport, chatReport, policy, [], false, undefined, undefined, false)).toBe(false);
-                                    resolve();
                                 },
                             });
                         }),
@@ -3830,6 +3831,9 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
+            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
+
             return waitForBatchedUpdates()
                 .then(() => {
                     createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
