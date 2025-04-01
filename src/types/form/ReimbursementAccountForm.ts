@@ -59,11 +59,6 @@ const INPUT_IDS = {
         SIGNER_STATE: 'signer_state',
         SIGNER_ZIP_CODE: 'signer_zipCode',
         SIGNER_COUNTRY: 'signer_nationality',
-        SIGNER_PROOF_OF_DIRECTORS: 'signer_proofOfDirectors',
-        SIGNER_ADDRESS_PROOF: 'signer_addressProof',
-        SIGNER_COPY_OF_ID: 'signer_copyOfID',
-        SIGNER_CODICE_FISCALE: 'signer_codiceFiscaleTaxID',
-        SIGNER_PRD_AND_SFG: 'signer_PRDAndFSG',
         SECOND_SIGNER_EMAIL: 'secondSignerEmail',
         DIRECTOR_OCCUPATION: 'occupation',
         DIRECTOR_FULL_NAME: 'fullName',
@@ -147,11 +142,6 @@ const INPUT_IDS = {
             SIGNER_JOB_TITLE: 'signerJobTitle',
             SIGNER_EMAIL: 'signerEmail',
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
-            SIGNER_PROOF_OF_DIRECTORS: 'proofOfDirectors',
-            SIGNER_ADDRESS_PROOF: 'addressProof',
-            SIGNER_COPY_OF_ID: 'copyOfID',
-            SIGNER_CODICE_FISCALE: 'codiceFiscaleTaxID',
-            SIGNER_PRD_AND_SFG: 'PRDAndFSG',
             SECOND_SIGNER_EMAIL: 'secondSignerEmail',
         },
     },
@@ -239,16 +229,11 @@ type SignerInfoStepBaseProps = {
     [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_STATE]: string;
     [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_ZIP_CODE]: string;
     [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COUNTRY]: string;
-    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_PROOF_OF_DIRECTORS]: FileObject[];
-    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_ADDRESS_PROOF]: FileObject[];
-    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COPY_OF_ID]: FileObject[];
-    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_CODICE_FISCALE]: FileObject[];
-    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_PRD_AND_SFG]: FileObject[];
     [INPUT_IDS.SIGNER_INFO_STEP.SECOND_SIGNER_EMAIL]: FileObject[];
 };
 
 type SignerInfoDirectorDataKey = `director_${string}_${string}`;
-type SignerInfoStepExtraProps = Record<SignerInfoDirectorDataKey, string>;
+type SignerInfoStepExtraProps = Record<SignerInfoDirectorDataKey, string | FileObject[]>;
 
 type SignerInfoStepProps = SignerInfoStepBaseProps & SignerInfoStepExtraProps;
 
@@ -408,21 +393,6 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Signer complete residential address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
-
-    /** Signer copy of ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID]: FileObject[];
-
-    /** Signer address proof */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_ADDRESS_PROOF]: FileObject[];
-
-    /** Signer proof of directors */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PROOF_OF_DIRECTORS]: FileObject[];
-
-    /** Signer PRD and SFG */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PRD_AND_SFG]: FileObject[];
-
-    /** Signer Codice Fiscale TAX ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_CODICE_FISCALE]: FileObject[];
 
     /** Provide truthful information */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION]: boolean;

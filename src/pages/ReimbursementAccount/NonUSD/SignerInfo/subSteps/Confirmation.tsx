@@ -27,6 +27,8 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
 
+    const currentUserDirector = values.directors.find((director) => director.directorID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
+
     const summaryItems = [
         {
             title: values.jobTitle,
@@ -46,9 +48,9 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         },
     ];
 
-    if (isDocumentNeededStatus.isCopyOfIDNeeded && values.copyOfId.length > 0) {
+    if (isDocumentNeededStatus.isCopyOfIDNeeded && currentUserDirector?.copyOfId && currentUserDirector.copyOfId.length > 0) {
         summaryItems.push({
-            title: values.copyOfId.map((id) => id.name).join(', '),
+            title: currentUserDirector.copyOfId.map((id) => id.name).join(', '),
             description: translate('signerInfoStep.id'),
             shouldShowRightIcon: true,
             onPress: () => {
@@ -57,9 +59,9 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
     }
 
-    if (isDocumentNeededStatus.isAddressProofNeeded && values.addressProof.length > 0) {
+    if (isDocumentNeededStatus.isAddressProofNeeded && currentUserDirector?.addressProof && currentUserDirector.addressProof.length > 0) {
         summaryItems.push({
-            title: values.addressProof.map((proof) => proof.name).join(', '),
+            title: currentUserDirector.addressProof.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOf'),
             shouldShowRightIcon: true,
             onPress: () => {
@@ -68,9 +70,9 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
     }
 
-    if (isDocumentNeededStatus.isProofOfDirecorsNeeded && values.proofOfDirectors.length > 0) {
+    if (isDocumentNeededStatus.isProofOfDirecorsNeeded && currentUserDirector?.proofOfDirectors && currentUserDirector.proofOfDirectors.length > 0) {
         summaryItems.push({
-            title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
+            title: currentUserDirector.proofOfDirectors.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOfDirectors'),
             shouldShowRightIcon: true,
             onPress: () => {
@@ -79,9 +81,9 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
     }
 
-    if (isDocumentNeededStatus.isCodiceFiscaleNeeded && values.codiceFisclaleTaxID.length > 0) {
+    if (isDocumentNeededStatus.isCodiceFiscaleNeeded && currentUserDirector?.codiceFisclaleTaxID && currentUserDirector.codiceFisclaleTaxID.length > 0) {
         summaryItems.push({
-            title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
+            title: currentUserDirector.proofOfDirectors.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.codiceFiscale'),
             shouldShowRightIcon: true,
             onPress: () => {

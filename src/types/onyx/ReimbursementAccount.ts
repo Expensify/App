@@ -91,16 +91,6 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL]: string;
     /** Signer full address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
-    /** URL to uploaded copy of signer ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID]: FileObject[];
-    /** URL to uploaded proof of signer address */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_ADDRESS_PROOF]: FileObject[];
-    /** URL to proof of directors */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PROOF_OF_DIRECTORS]: FileObject[];
-    /** URL to codice fiscale proof */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_CODICE_FISCALE]: FileObject[];
-    /** URL to PRD and SFG */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PRD_AND_SFG]: FileObject[];
     /** Checkbox - provided truthful information */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION]: boolean;
     /** Checkbox - agrees to terms and conditions */

@@ -8,6 +8,11 @@ type SignerInfoDirector = {
     fullName: string;
     jobTitle: string;
     occupation: string;
+    proofOfDirectors: FileObject[];
+    copyOfId: FileObject[];
+    addressProof: FileObject[];
+    codiceFisclaleTaxID: FileObject[];
+    PRDandFSG: FileObject[];
 };
 
 type SignerInfoValues = {
@@ -19,11 +24,6 @@ type SignerInfoValues = {
     street: string;
     zipCode: string;
     directors: SignerInfoDirector[];
-    proofOfDirectors: FileObject[];
-    copyOfId: FileObject[];
-    addressProof: FileObject[];
-    codiceFisclaleTaxID: FileObject[];
-    PRDandFSG: FileObject[];
 };
 
 function getValuesForSignerInfo(directorIDs: string[], reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>): SignerInfoValues {
@@ -37,16 +37,10 @@ function getValuesForSignerInfo(directorIDs: string[], reimbursementAccountDraft
             street: '',
             zipCode: '',
             directors: [],
-            proofOfDirectors: [],
-            copyOfId: [],
-            addressProof: [],
-            codiceFisclaleTaxID: [],
-            PRDandFSG: [],
         };
     }
 
     const directorsPrefix = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA.DIRECTOR_PREFIX;
-    const signerPrefix = 'signer';
     const signerInfoKeys = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
     return {
@@ -64,13 +58,13 @@ function getValuesForSignerInfo(directorIDs: string[], reimbursementAccountDraft
                     fullName: reimbursementAccountDraft[`${directorsPrefix}_${directorID}_${signerInfoKeys.DIRECTOR_FULL_NAME}`] ?? '',
                     jobTitle: reimbursementAccountDraft[`${directorsPrefix}_${directorID}_${signerInfoKeys.DIRECTOR_JOB_TITLE}`] ?? '',
                     occupation: reimbursementAccountDraft[`${directorsPrefix}_${directorID}_${signerInfoKeys.DIRECTOR_OCCUPATION}`] ?? '',
+                    proofOfDirectors: reimbursementAccountDraft[`${directorsPrefix}_${directorID}_${signerInfoKeys.PROOF_OF_DIRECTORS}`] ?? [],
+                    copyOfId: reimbursementAccountDraft[`${directorsPrefix}_${directorID}_${signerInfoKeys.COPY_OF_ID}`] ?? [],
+                    addressProof: reimbursementAccountDraft[`${directorsPrefix}_${directorID}_${signerInfoKeys.ADDRESS_PROOF}`] ?? [],
+                    codiceFisclaleTaxID: reimbursementAccountDraft[`${directorsPrefix}_${directorID}_${signerInfoKeys.CODICE_FISCALE}`] ?? [],
+                    PRDandFSG: reimbursementAccountDraft[`${directorsPrefix}_${directorID}_${signerInfoKeys.PRD_AND_SFG}`] ?? [],
                 } as SignerInfoDirector),
         ),
-        proofOfDirectors: reimbursementAccountDraft[`${signerPrefix}_${signerInfoKeys.PROOF_OF_DIRECTORS}`] ?? [],
-        copyOfId: reimbursementAccountDraft[`${signerPrefix}_${signerInfoKeys.COPY_OF_ID}`] ?? [],
-        addressProof: reimbursementAccountDraft[`${signerPrefix}_${signerInfoKeys.ADDRESS_PROOF}`] ?? [],
-        codiceFisclaleTaxID: reimbursementAccountDraft[`${signerPrefix}_${signerInfoKeys.CODICE_FISCALE}`] ?? [],
-        PRDandFSG: reimbursementAccountDraft[`${signerPrefix}_${signerInfoKeys.PRD_AND_SFG}`] ?? [],
     } as SignerInfoValues;
 }
 
