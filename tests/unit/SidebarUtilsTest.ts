@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import DateUtils from '@libs/DateUtils';
 import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -699,46 +700,87 @@ describe('SidebarUtils', () => {
     });
 
     describe('getOrderedReportIds', () => {
-        const accountID = 12345;
-        const mockedReports = createCollection<Report>(
-            (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-            (index) => ({
-                ...createRandomReport(index),
-                type: 'chat',
-                lastMessageText: index === 0 ? 'hello' : undefined,
-                participants: {
-                    '12345': {
-                        notificationPreference: 'daily',
-                        role: 'admin',
+        function createReportsMock(lastAction?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>) {
+            return createCollection<Report>(
+                (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
+                (index) => ({
+                    ...createRandomReport(index),
+                    lastActionType: index === 0 ? CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT : lastAction,
+                    isPinned: false,
+                    type: 'chat',
+                    participants: {
+                        '12345': {
+                            notificationPreference: 'daily',
+                            role: 'admin',
+                        },
                     },
-                },
-            }),
-            2,
-        );
+                }),
+                2,
+            );
+        }
+
+        const accountID = 12345;
         const mockedBetas = Object.values(CONST.BETAS);
         const mockedPolicies = createCollection<Policy>(
             (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
             (index) => createRandomPolicy(index),
-            1,
+            2,
         );
         const mockedTransactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 
-        it('does not return a chat report if it has no messages and is not the current report', async () => {
+        it('does not return report if last action is "CREATED" and it is not the current report', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {
                 accountID,
             });
 
-            const result = SidebarUtils.getOrderedReportIDs(undefined, mockedReports, mockedBetas, mockedPolicies, CONST.PRIORITY_MODE.DEFAULT, mockedTransactionViolations);
+            const result = SidebarUtils.getOrderedReportIDs(
+                undefined,
+                createReportsMock(CONST.REPORT.ACTIONS.TYPE.CREATED),
+                mockedBetas,
+                mockedPolicies,
+                CONST.PRIORITY_MODE.DEFAULT,
+                mockedTransactionViolations,
+            );
 
             expect(result).toEqual(['0']);
         });
 
-        it('returns a chat report if it has no message, but is the current report', async () => {
+        it('returns report if the last action is "CREATED", but is the current report', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {
                 accountID,
             });
 
-            const result = SidebarUtils.getOrderedReportIDs('1', mockedReports, mockedBetas, mockedPolicies, CONST.PRIORITY_MODE.DEFAULT, mockedTransactionViolations);
+            const result = SidebarUtils.getOrderedReportIDs(
+                '1',
+                createReportsMock(CONST.REPORT.ACTIONS.TYPE.CREATED),
+                mockedBetas,
+                mockedPolicies,
+                CONST.PRIORITY_MODE.DEFAULT,
+                mockedTransactionViolations,
+            );
+
+            /* Since this test is creating random reports 
+            and the sorting order can vary depending on some aspects,
+            expecting the exact result here can make the test flaky */
+            expect(result).toEqual(expect.arrayContaining(['0', '1']));
+        });
+
+        it('does not return report if last action is undefined and it is not the current report', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                accountID,
+            });
+
+            const result = SidebarUtils.getOrderedReportIDs(undefined, createReportsMock(), mockedBetas, mockedPolicies, CONST.PRIORITY_MODE.DEFAULT, mockedTransactionViolations);
+
+            expect(result).toEqual(['0']);
+        });
+
+        it('returns report if the last action is undefined, but is the current report', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                accountID,
+            });
+
+            const result = SidebarUtils.getOrderedReportIDs('1', createReportsMock(), mockedBetas, mockedPolicies, CONST.PRIORITY_MODE.DEFAULT, mockedTransactionViolations);
 
             /* Since this test is creating random reports 
             and the sorting order can vary depending on some aspects,

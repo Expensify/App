@@ -85,7 +85,6 @@ import {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReportWithID,
-    isChatReport,
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
@@ -218,6 +217,7 @@ function getOrderedReportIDs(
         const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
         const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
         const isHidden = isHiddenForCurrentUser(report);
+        const isLastActionCreatedOrUndefined = report.lastActionType === undefined || report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CREATED;
         const isFocused = report.reportID === currentReportId;
         const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
         const isReportInAccessible = report?.errorFields?.notFound;
@@ -240,13 +240,11 @@ function getOrderedReportIDs(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
             requiresAttentionFromCurrentUser(report, parentReportAction);
-        if (isHidden && !shouldOverrideHidden) {
+
+        if ((isHidden || isLastActionCreatedOrUndefined) && !shouldOverrideHidden) {
             return;
         }
-        // Ensures that an empty chat report only shows on sidebar if it is selected
-        if (isChatReport(report) && !report.lastMessageText && !isFocused) {
-            return;
-        }
+
         if (
             shouldReportBeInOptionList({
                 report,
