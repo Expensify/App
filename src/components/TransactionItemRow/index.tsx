@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Hoverable from '@components/Hoverable';
+import type {TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,12 +22,14 @@ function TransactionItemRow({
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
+    dateColumnSize,
     shouldShowChatBubbleComponent = false,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
+    dateColumnSize: TableColumnSize;
     shouldShowChatBubbleComponent?: boolean;
 }) {
     const styles = useThemeStyles();
@@ -34,6 +37,8 @@ function TransactionItemRow({
 
     const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
+
+    const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
     return (
         <View style={styles.flex1}>
@@ -102,7 +107,7 @@ function TransactionItemRow({
             ) : (
                 <Hoverable>
                     {(hovered) => (
-                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius, styles.gap2]}>
+                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p3, styles.expenseWidgetRadius, styles.gap2]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                                     <ReceiptCell
@@ -117,7 +122,7 @@ function TransactionItemRow({
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide)]}>
                                     <DateCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
