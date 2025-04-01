@@ -25,7 +25,7 @@ function SearchFiltersCardPage() {
     const illustrations = useThemeIllustrations();
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [workspaceCardFeeds, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const personalDetails = usePersonalDetails();
@@ -166,34 +166,38 @@ function SearchFiltersCardPage() {
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('common.card')}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                }}
-            />
-            <View style={[styles.flex1]}>
-                <SelectionList<CardFilterItem>
-                    sections={sections}
-                    onSelectRow={updateNewCards}
-                    footerContent={footerContent}
-                    headerMessage={headerMessage}
-                    shouldStopPropagation
-                    shouldShowTooltips
-                    canSelectMultiple
-                    shouldPreventDefaultFocusOnSelectRow={false}
-                    shouldKeepFocusedItemAtTopOfViewableArea={false}
-                    shouldScrollToFocusedIndex={false}
-                    ListItem={CardListItem}
-                    shouldShowTextInput={shouldShowSearchInput}
-                    textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
-                    textInputValue={searchTerm}
-                    onChangeText={(value) => {
-                        setSearchTerm(value);
-                    }}
-                    showLoadingPlaceholder
-                />
-            </View>
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('common.card')}
+                        onBackButtonPress={() => {
+                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                        }}
+                    />
+                    <View style={[styles.flex1]}>
+                        <SelectionList<CardFilterItem>
+                            sections={sections}
+                            onSelectRow={updateNewCards}
+                            footerContent={footerContent}
+                            headerMessage={headerMessage}
+                            shouldStopPropagation
+                            shouldShowTooltips
+                            canSelectMultiple
+                            shouldPreventDefaultFocusOnSelectRow={false}
+                            shouldKeepFocusedItemAtTopOfViewableArea={false}
+                            shouldScrollToFocusedIndex={false}
+                            ListItem={CardListItem}
+                            shouldShowTextInput={shouldShowSearchInput}
+                            textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
+                            textInputValue={searchTerm}
+                            onChangeText={(value) => {
+                                setSearchTerm(value);
+                            }}
+                            showLoadingPlaceholder={fetchStatus.status === 'loading' && !didScreenTransitionEnd}
+                        />
+                    </View>
+                </>
+            )}
         </ScreenWrapper>
     );
 }
