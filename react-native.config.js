@@ -1,9 +1,7 @@
-const {exec} = require('child_process');
-
 const iosSourceDir = process.env.PROJECT_ROOT_PATH ? process.env.PROJECT_ROOT_PATH + 'ios' : 'ios';
 const androidSourceDir = process.env.PROJECT_ROOT_PATH ? process.env.PROJECT_ROOT_PATH + 'android' : 'android';
+const isHybridAppBuild = process.env.PROJECT_ROOT_PATH == 'Mobile-Expensify/';
 
-// Define your configuration object
 const config = {
     project: {
         ios: {sourceDir: iosSourceDir},
@@ -13,19 +11,12 @@ const config = {
     dependencies: {},
 };
 
-exec(`scripts/is-hybrid-app.sh`, (error, stdout, stderr) => {
-    if (error || stderr) {
-        console.error('react-native.config.js', stderr);
-        return;
-    }
+if (!isHybridAppBuild) {
+    config.dependencies['@expensify/react-native-wallet'] = {
+        platforms: {
+            android: null,
+        },
+    };
+}
 
-    if (stdout.trim() === 'false') {
-        config.dependencies['@expensify/react-native-wallet'] = {
-            platforms: {
-                android: null,
-            },
-        };
-    }
-
-    module.exports = config;
-});
+module.exports = config;
