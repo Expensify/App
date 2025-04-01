@@ -27,4 +27,17 @@ Global reimbursement allows companies to send payments to employees in different
 
 **Note:** Each country has its own requirements for identity verification, compliance, and onboarding. Use the guides above to ensure you're submitting the correct documentation.
 
+---
+
+# Requirements
+
+| Country         | Required Documents                                                                 | Direct Debit Setup Time             |
+|----------------|--------------------------------------------------------------------------------------|-------------------------------------|
+| **U.S.**        | Partner form, address verification, bank statement                                 | ⏳ 1 day post-verification           |
+| **Canada**      | Partner form, address verification, bank statement, proof of beneficial ownership  | ⏳ 1 day post-verification           |
+| **UK**          | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ After onboarding          |
+| **EU**          | Partner form, address verification, bank statement, proof of beneficial ownership, certified ID copies | ⏳ After onboarding<br>🇮🇹 Italy: Requires Tax ID<br>🇪🇸 Spain: No driver's license as ID |
+| **Australia**   | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1 day post-verification           |
+| **Singapore**   | Partner form, address verification, proof of beneficial ownership, board resolution, M&A, certified ID copies | ⏳ ~3 weeks<br>💡Pre-funding recommended |
+
 </div>
