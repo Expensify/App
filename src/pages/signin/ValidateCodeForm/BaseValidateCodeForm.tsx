@@ -239,7 +239,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (account?.isLoading || hybridApp?.readyToShowAuthScreens || hybridApp?.newDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.STARTED || session?.authToken) {
+        if (account?.isLoading || hybridApp?.readyToShowAuthScreens || session?.authToken) {
             return;
         }
         if (CONFIG.IS_HYBRID_APP) {
