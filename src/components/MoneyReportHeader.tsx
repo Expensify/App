@@ -14,7 +14,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
     canBeExported,
     canDeleteCardTransactionByLiabilityType,
@@ -208,7 +208,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 icon: Expensicons.Stopwatch,
                 value: CONST.REPORT.SECONDARY_ACTIONS.HOLD,
                 onSelected: () => {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.getRoute({reportID: moneyRequestReport?.reportID ?? ''}));
+                    if (!moneyRequestReport?.reportID) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.getRoute({reportID: moneyRequestReport.reportID}));
                 },
             });
         }
@@ -251,7 +254,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
         const canAllSelectedTransactionsBeRemoved = selectedTransactionsID.every((transactionID) => {
             const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transactionID);
-            const action = getIOUActionForTransactionID(reportActions, transactionID ?? '');
+            const action = getIOUActionForTransactionID(reportActions, transactionID);
             const isActionDeleted = isDeletedAction(action);
             const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
 
@@ -266,11 +269,16 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 icon: Expensicons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
                 onSelected: () => {
-                    const iouActions = reportActions.filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU));
+                    const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
 
                     const transactionsWithActions = selectedTransactions.map((t) => ({
                         transactionID: t.transactionID,
-                        action: iouActions.find((action) => action?.originalMessage?.IOUTransactionID === t.transactionID),
+                        action: iouActions.find((action) => {
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                            const IOUTransactionID = getOriginalMessage(action)?.IOUTransactionID;
+
+                            return t.transactionID === IOUTransactionID;
+                        }),
                     }));
 
                     transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));

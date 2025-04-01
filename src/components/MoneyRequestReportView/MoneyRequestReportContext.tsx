@@ -5,7 +5,7 @@ type TMoneyRequestReportContext = {
     selectedTransactionsID: Record<string, string[]>;
     setSelectedTransactionsID: (reportID: string) => (transactionsID: string[]) => void;
     toggleTransaction: (reportID: string) => (transactionID: string) => void;
-    removeTransaction: (reportID: string) => (transactionID: string) => void;
+    removeTransaction: (reportID: string) => (transactionID?: string) => void;
     isTransactionSelected: (reportID: string) => (transactionID: string) => boolean;
 };
 
@@ -44,7 +44,7 @@ function MoneyRequestReportContextProvider({children}: ChildrenProps) {
     );
 
     const removeTransaction = useCallback(
-        (reportID: string) => (transactionID: string) => {
+        (reportID: string) => (transactionID?: string) => {
             setSelectedTransactionsForReport((prev) => {
                 const prevTransactions = prev[reportID] ?? [];
                 return {...prev, [reportID]: prevTransactions.filter((t) => t !== transactionID)};

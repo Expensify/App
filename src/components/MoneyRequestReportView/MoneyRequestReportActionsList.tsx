@@ -73,8 +73,11 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 
 function selectTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Transaction>, reportID: string, reportActions: OnyxTypes.ReportAction[]) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
-        const action = getIOUActionForTransactionID(reportActions, transaction?.transactionID ?? '');
-        return transaction?.reportID === reportID && !isDeletedParentAction(action);
+        if (!transaction) {
+            return false;
+        }
+        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        return transaction.reportID === reportID && !isDeletedParentAction(action);
     });
 }
 

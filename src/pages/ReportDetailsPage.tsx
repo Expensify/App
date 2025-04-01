@@ -958,7 +958,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, isSingleTransactionView);
         } else {
             deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
-            removeTransaction(iouTransactionID ?? '');
+            removeTransaction(iouTransactionID);
         }
     }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, removeTransaction, report, requestParentReportAction]);
 
