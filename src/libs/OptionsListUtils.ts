@@ -1521,7 +1521,7 @@ function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
  * Whether the report is a Manager McTest report
  */
 function isManagerMcTestReport(report: SearchOption<Report>): boolean {
-    return report.accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST;
+    return report.participantsList?.some((participant) => participant.accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST) ?? false;
 }
 
 /**
@@ -1605,7 +1605,7 @@ function getValidOptions(
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
         // Exclude Manager McTest if selection is made from Create or Submit flow
-        [CONST.EMAIL.MANAGER_MCTEST]: !(!getIsUserSubmittedExpenseOrScannedReceipt() || userHasReportWithManagerMcTest) || !Permissions.canUseManagerMcTest(config.betas),
+        [CONST.EMAIL.MANAGER_MCTEST]: (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) || !Permissions.canUseManagerMcTest(config.betas),
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
