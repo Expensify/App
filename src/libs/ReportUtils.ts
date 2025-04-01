@@ -5553,7 +5553,7 @@ function getUnreportedTransactionMessage(action: ReportAction) {
     const unreportedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>) ?? {};
     const {oldReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
     const message = translateLocal('iou.unreportedTransaction', {
-        reportID: oldReportID ?? '',
+        reportID: oldReportID,
     });
     return message;
 }

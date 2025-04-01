@@ -125,7 +125,7 @@ type MovedTransactionParams = {
 };
 
 type UnreportedTransactionParams = {
-    reportID: string;
+    reportID?: string;
 };
 
 type SettleExpensifyCardParams = {
