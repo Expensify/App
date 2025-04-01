@@ -794,7 +794,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
         shouldStopPropagation,
         shouldPreventDefault,
-        isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
+        isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused && focusedIndex >= 0,
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */

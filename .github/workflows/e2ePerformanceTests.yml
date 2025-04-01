@@ -215,17 +215,29 @@ jobs:
 
       - name: Print AWS Device Farm run results
         if: always()
-        run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
+        run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output1.md"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label
         id: checkIfRegressionDetected
         run: |
-          if grep -q '🔴' "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"; then
+          if grep -q '🔴' "./Host_Machine_Files/\$WORKING_DIRECTORY/output1.md"; then
             # Create an output to the GH action that the test failed:
             echo "performanceRegressionDetected=true" >> "$GITHUB_OUTPUT"
 
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
-            gh pr comment ${{ inputs.PR_NUMBER }} -F "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
+
+            # Check if there are any split files
+            if ls "./Host_Machine_Files/\$WORKING_DIRECTORY"/output2.md 1> /dev/null 2>&1; then
+              # Post each split file as a separate comment
+              for file in "./Host_Machine_Files/\$WORKING_DIRECTORY/output"*; do
+                if [ -f "$file" ]; then
+                  gh pr comment ${{ inputs.PR_NUMBER }} -F "$file"
+                fi
+              done
+            else
+              gh pr comment ${{ inputs.PR_NUMBER }} -F "./Host_Machine_Files/\$WORKING_DIRECTORY/output1.md"
+            fi
+
             gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
           else
             echo "performanceRegressionDetected=false" >> "$GITHUB_OUTPUT"
@@ -237,7 +249,7 @@ jobs:
       - name: Check if test has skipped tests
         id: checkIfSkippedTestsDetected
         run: |
-          if grep -q '⚠️' "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"; then
+          if grep -q '⚠️' "./Host_Machine_Files/\$WORKING_DIRECTORY/output1.md"; then
             # Create an output to the GH action that the tests were skipped:
             echo "skippedTestsDetected=true" >> "$GITHUB_OUTPUT"
           else
