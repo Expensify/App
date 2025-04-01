@@ -94,14 +94,14 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 }
 
                 if (isPrivateDomainAndHasAccesiblePolicies && personalDetailsForm?.firstName && personalDetailsForm?.lastName) {
-                    completeOnboarding(
-                        choice,
-                        CONST.ONBOARDING_MESSAGES[choice],
-                        personalDetailsForm.firstName,
-                        personalDetailsForm.lastName,
-                        onboardingAdminsChatReportID ?? undefined,
+                    completeOnboarding({
+                        engagementChoice: choice,
+                        onboardingMessage: CONST.ONBOARDING_MESSAGES[choice],
+                        firstName: personalDetailsForm.firstName,
+                        lastName: personalDetailsForm.lastName,
+                        adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
                         onboardingPolicyID,
-                    );
+                    });
                     return;
                 }
 

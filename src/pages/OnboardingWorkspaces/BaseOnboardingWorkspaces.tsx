@@ -59,12 +59,12 @@ function BaseOnboardingWorkspaces({route}: BaseOnboardingWorkspacesProps) {
             } else {
                 askToJoinPolicy(policy.policyID);
             }
-            completeOnboarding(
-                CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-                CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
-                onboardingPersonalDetails?.firstName ?? '',
-                onboardingPersonalDetails?.lastName ?? '',
-            );
+            completeOnboarding({
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                onboardingMessage: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+                firstName: onboardingPersonalDetails?.firstName ?? '',
+                lastName: onboardingPersonalDetails?.lastName ?? '',
+            });
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policy.policyID);
 
