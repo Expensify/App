@@ -26,6 +26,7 @@ import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListAc
 import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
+import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
@@ -34,6 +35,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -317,6 +319,12 @@ type PureReportActionItemProps = {
     reportAutomaticallyForwardedMessage?: string;
 };
 
+// This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
+// If the child was rendered using RenderHTML and an empty html string, it has an empty prop called html
+// If we render an empty component/fragment, this does not apply
+const emptyHTML = <RenderHTML html="" />;
+const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean => typeof html === 'string' && html.length === 0;
+
 /**
  * This is a pure version of ReportActionItem, used in ReportActionList and Search result chat list items.
  * Since the search result has a separate Onyx key under the 'snapshot_' prefix, we should not connect this component with Onyx.
@@ -378,6 +386,7 @@ function PureReportActionItem({
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
+    const {canUseTableReportView} = usePermissions();
 
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
@@ -745,6 +754,11 @@ function PureReportActionItem({
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
+
+            // Table Report View does not display these components as separate messages
+            if (canUseTableReportView) {
+                children = emptyHTML;
+            }
         } else if (isTripPreview(action)) {
             children = (
                 <TripRoomPreview
@@ -756,10 +770,26 @@ function PureReportActionItem({
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                 />
             );
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
+            children = <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && canUseTableReportView) {
+            children = (
+                <MoneyRequestReportPreview
+                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                    iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                    policyID={report?.policyID}
+                    chatReportID={reportID}
+                    action={action}
+                    contextMenuAnchor={popoverAnchorRef.current}
+                    isHovered={hovered}
+                    isWhisper={isWhisper}
+                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
+                    onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
+                />
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-            children = isClosedExpenseReportWithNoExpenses ? (
-                <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />
-            ) : (
+            children = (
                 <ReportPreview
                     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                     iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
@@ -895,6 +925,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={getDismissedViolationMessageText(getOriginalMessage(action))} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES)) {
+            children = <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
             children = <ReportActionItemBasicMessage message={getWorkspaceNameUpdatedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION) {
@@ -1035,7 +1067,7 @@ function PureReportActionItem({
                 .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
         const draftMessageRightAlign = draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {};
 
-        return (
+        const itemContent = (
             <>
                 {children}
                 {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
@@ -1081,6 +1113,8 @@ function PureReportActionItem({
                 )}
             </>
         );
+
+        return isEmptyHTML(children) ? emptyHTML : itemContent;
     };
 
     /**
@@ -1093,6 +1127,10 @@ function PureReportActionItem({
 
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
+
+        if (canUseTableReportView && isEmptyHTML(content)) {
+            return content;
+        }
 
         if (draftMessage !== undefined) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;

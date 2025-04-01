@@ -7,9 +7,9 @@ Direct feeds are a quick and reliable way to import company card expenses. Conne
 
 # Prerequisites for enabling a direct feed 
 If you haven't already, you need to create a workspace before setting up a direct feed. Go to **Settings > Workspaces > New workspace** to create one.
-Additionally, you’ll need to enable company cards on your workspace by navigating to **Settings > Workspaces > [your workspace] > More features**, and toggling on **Company cards**. Note that upgrading to the Control plan is required to access this feature.
+You can add one direct or [commercial feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds) on the Collect plan. Upgrading to the Control plan allows you to add unlimited company cards. 
 # How to set up a direct feed
-After creating a Control workspace, you can add a direct feed by going to **Settings > Workspaces > [your workspace] > Company cards** and selecting **Add cards**. 
+After creating a workspace, you can add a direct feed by going to **Settings > Workspaces > [your workspace] > Company cards** and selecting **Add cards**. 
 
 ![Click add cards to add a card feed]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_01.png){:width="100%"}
 
@@ -71,7 +71,7 @@ Make sure you used your bank's master credentials when connecting. Also, note th
 Direct bank connections are a great option if Expensify supports your bank. For enhanced stability and added functionality, consider setting up a [commercial feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds) with your bank or using the [Expensify Card](https://use.expensify.com/company-credit-card).
 
 ## Is there an extra fee for using direct feeds? 
-No, direct feeds are included with the Control plan at no additional cost.
+No, the Collect plan includes one direct feed. You can add additional direct feeds by upgrading to the Control plan.
 
 ## What’s the difference between a direct feed and commercial feed? 
 Direct feeds use login credentials for quick setup, but can require re-authentication from time to time. Commercial feeds require bank involvement for setup but offer the most reliable connection.
