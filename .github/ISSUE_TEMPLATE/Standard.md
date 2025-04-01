@@ -31,18 +31,32 @@ Describe what actually happened
 Can the user still use Expensify without this being fixed? Have you informed them of the workaround?
 
 ## Platforms:
-<!---
-Check off any platforms that are affected by this issue
---->
-On which of our officially supported platforms was this issue tested and **confirmed**?
+Select the officially supported platforms where the issue was reproduced:
 - [ ] Android: Standalone
 - [ ] Android: HybridApp
 - [ ] Android: mWeb Chrome
 - [ ] iOS: Standalone
 - [ ] iOS: HybridApp
 - [ ] iOS: mWeb Safari
+- [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
 - [ ] MacOS: Desktop
+
+<details>
+  <summary>Platforms Tested:</summary>
+On which of our officially supported platforms was this issue tested:
+
+- [ ] Android: Standalone
+- [ ] Android: HybridApp
+- [ ] Android: mWeb Chrome
+- [ ] iOS: Standalone
+- [ ] iOS: HybridApp
+- [ ] iOS: mWeb Safari
+- [ ] Windows: Chrome
+- [ ] MacOS: Chrome / Safari
+- [ ] MacOS: Desktop
+
+</details>
 
 ## Screenshots/Videos
 
