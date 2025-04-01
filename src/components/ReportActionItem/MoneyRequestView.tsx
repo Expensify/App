@@ -33,7 +33,7 @@ import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getAddWorkspaceRoomOrChatReportErrors,
+    getCreationReportErrors,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
@@ -489,7 +489,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             return;
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            if (chatReport?.reportID && getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
+            if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
                 navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
                 return;
             }

@@ -309,7 +309,7 @@ type OptimisticNewReport = Pick<
     | 'parentReportActionID'
     | 'participants'
     | 'managerID'
-    | 'pendingAction'
+    | 'pendingFields'
 > & {reportName: string};
 
 type BuildOptimisticIOUReportActionParams = {
@@ -5427,7 +5427,7 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         nonReimbursableTotal: 0,
         participants: {},
         lastVisibleActionCreated: timeOfCreation,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         parentReportID,
     };
 
@@ -8130,12 +8130,12 @@ function isValidReportIDFromPath(reportIDFromPath: string | undefined): boolean 
 }
 
 /**
- * Return the errors we have when creating a chat or a workspace room
+ * Return the errors we have when creating a chat, a workspace room, or a new empty report
  */
-function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Errors | null | undefined {
-    // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to have errors for the same report at the same time, so
+function getCreationReportErrors(report: OnyxEntry<Report>): Errors | null | undefined {
+    // We are either adding a workspace room, creating a chat, or we're creating a report, it isn't possible for all of these to have errors for the same report at the same time, so
     // simply looking up the first truthy value will get the relevant property if it's set.
-    return report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat;
+    return report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat ?? report?.errorFields?.createReport;
 }
 
 /**
@@ -8152,7 +8152,7 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
 }
 
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
-    const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
+    const reportErrors = getCreationReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further write action.
     if (isMoneyRequestReportPendingDeletion(report)) {
@@ -8191,9 +8191,8 @@ function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
  */
 function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): ReportOfflinePendingActionAndErrors {
     // It shouldn't be possible for all of these actions to be pending (or to have errors) for the same report at the same time, so just take the first that exists
-    const reportPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.reimbursed;
-
-    const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
+    const reportPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.reimbursed ?? report?.pendingFields?.createReport;
+    const reportErrors = getCreationReportErrors(report);
     return {reportPendingAction, reportErrors};
 }
 
@@ -9584,7 +9583,7 @@ export {
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
-    getAddWorkspaceRoomOrChatReportErrors,
+    getCreationReportErrors,
     getAllAncestorReportActionIDs,
     getAllAncestorReportActions,
     getAllHeldTransactions,

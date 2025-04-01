@@ -2533,12 +2533,12 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {errorFields: {create: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}},
+            value: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {[reportActionID]: {errorFields: {create: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
+            value: {[reportActionID]: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -2552,8 +2552,12 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingAction: null,
-                errorFields: null,
+                pendingFields: {
+                    createReport: null,
+                },
+                errorFields: {
+                    createReport: null,
+                },
             },
         },
         {
@@ -2561,6 +2565,16 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
+                    pendingAction: null,
+                    errorFields: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+            value: {
+                [reportPreviewReportActionID]: {
                     pendingAction: null,
                     errorFields: null,
                 },

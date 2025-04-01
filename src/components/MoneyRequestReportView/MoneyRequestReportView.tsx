@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -43,7 +44,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const reportID = report?.reportID;
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false});
-    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
+    const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
 
     const {
         reportActions,
@@ -65,35 +66,44 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     return (
         <View style={styles.flex1}>
-            <HeaderGap />
-            <MoneyReportHeader
-                report={report}
-                policy={policy}
-                reportActions={[]}
-                transactionThreadReportID={undefined}
-                shouldDisplayBackButton
-                onBackButtonPress={() => {
-                    Navigation.goBack();
-                }}
-            />
-            <MoneyRequestReportActionsList
-                report={report}
-                reportActions={reportActions}
-                hasOlderActions={hasOlderActions}
-                hasNewerActions={hasNewerActions}
-            />
-            {shouldDisplayReportFooter ? (
-                <ReportFooter
-                    onComposerFocus={noOp}
-                    onComposerBlur={noOp}
+            <OfflineWithFeedback
+                pendingAction={reportPendingAction}
+                errors={reportErrors}
+                needsOffscreenAlphaCompositing
+                style={styles.flex1}
+                contentContainerStyle={styles.flex1}
+                errorRowStyles={[styles.ph5, styles.mv2]}
+            >
+                <HeaderGap />
+                <MoneyReportHeader
                     report={report}
-                    reportMetadata={reportMetadata}
                     policy={policy}
-                    pendingAction={reportPendingAction}
-                    isComposerFullSize={!!isComposerFullSize}
-                    lastReportAction={lastReportAction}
+                    reportActions={[]}
+                    transactionThreadReportID={undefined}
+                    shouldDisplayBackButton
+                    onBackButtonPress={() => {
+                        Navigation.goBack();
+                    }}
                 />
-            ) : null}
+                <MoneyRequestReportActionsList
+                    report={report}
+                    reportActions={reportActions}
+                    hasOlderActions={hasOlderActions}
+                    hasNewerActions={hasNewerActions}
+                />
+                {shouldDisplayReportFooter ? (
+                    <ReportFooter
+                        onComposerFocus={noOp}
+                        onComposerBlur={noOp}
+                        report={report}
+                        reportMetadata={reportMetadata}
+                        policy={policy}
+                        pendingAction={reportPendingAction}
+                        isComposerFullSize={!!isComposerFullSize}
+                        lastReportAction={lastReportAction}
+                    />
+                ) : null}
+            </OfflineWithFeedback>
         </View>
     );
 }
