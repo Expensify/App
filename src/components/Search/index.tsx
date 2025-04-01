@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -190,8 +190,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         transactions,
         previousTransactions,
         queryJSON,
-        // Set offset to 0 to retrieve the most recent chat messages.
-        offset: 0,
+        offset,
         reportActions,
         previousReportActions,
     });
@@ -331,6 +330,23 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         [canUseTableReportView, hash],
     );
 
+    const onViewableItemsChanged = useCallback(
+        ({viewableItems}: {viewableItems: ViewToken[]}) => {
+            const isFirstItemVisible = viewableItems.at(0)?.index === 1;
+            // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
+            if (shouldShowLoadingState || !isFirstItemVisible) {
+                return;
+            }
+
+            // This line makes sure the app refreshes the search results when the user scrolls to the top.
+            // The backend sends items in parts based on the offset, with a limit on the number of items sent (pagination).
+            // As a result, it skips some items, for example, if the offset is 100, it sends the next items without the first ones.
+            // Therefore, when the user scrolls to the top, we need to refresh the search results.
+            setOffset(0);
+        },
+        [shouldShowLoadingState],
+    );
+
     if (shouldShowLoadingState) {
         return (
             <SearchRowSkeleton
@@ -454,6 +470,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             onCheckboxPress={toggleTransaction}
             onAllCheckboxPress={toggleAllTransactions}
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
+            shouldPreventLongPressRow={isChat}
             SearchTableHeader={
                 !isLargeScreenWidth ? undefined : (
                     <SearchTableHeader
@@ -481,6 +498,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     />
                 ) : undefined
             }
+            onViewableItemsChanged={onViewableItemsChanged}
         />
     );
 }
