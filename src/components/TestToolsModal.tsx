@@ -7,7 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
-import toggleTestToolsModal, {shouldShowProfileTool, closeTestToolsModal} from '@userActions/TestTool';
+import toggleTestToolsModal, {closeTestToolsModal, shouldShowProfileTool} from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
