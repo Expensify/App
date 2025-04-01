@@ -1029,10 +1029,6 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return syncSuccessfulDate;
 }
 
-function getNSQSCompanyID(policy: Policy) {
-    return policy.connections?.netsuiteQuickStart?.config?.credentials?.companyID;
-}
-
 function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
     const currentEntityID = policy?.connections?.intacct?.config?.entity;
     if (!currentEntityID) {
@@ -1385,7 +1381,6 @@ function isPrefferedExporter(policy: Policy) {
     const exporters = [
         policy.connections?.intacct?.config?.export?.exporter,
         policy.connections?.netsuite?.options?.config?.exporter,
-        policy.connections?.netsuiteQuickStart?.config?.exporter,
         policy.connections?.quickbooksDesktop?.config?.export?.exporter,
         policy.connections?.quickbooksOnline?.config?.export?.exporter,
         policy.connections?.xero?.config?.export?.exporter,
@@ -1479,7 +1474,6 @@ export {
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
-    getNSQSCompanyID,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,

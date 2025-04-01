@@ -30,7 +30,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
-import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
@@ -76,7 +75,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseNetSuiteUSATax, canUseNSQS} = usePermissions();
+    const {canUseNetSuiteUSATax} = usePermissions();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -95,12 +94,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
-    const accountingIntegrations = Object.values(connectionNames).filter((integration) => {
-        if (integration === CONST.POLICY.CONNECTIONS.NAME.NSQS && !canUseNSQS) {
-            return false;
-        }
-        return true;
-    });
+    const accountingIntegrations = Object.values(connectionNames);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
@@ -286,14 +280,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         return undefined;
                     }
 
-                    const designatedDisplayConnection = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[integration];
-
-                    // The multi connector is currently only used for NSQS (which is behind beta)
-                    const shouldUseMultiConnectionSelector = !!canUseNSQS && !!designatedDisplayConnection;
-                    if (shouldUseMultiConnectionSelector && designatedDisplayConnection !== integration) {
-                        return;
-                    }
-
                     const iconProps = integrationData?.icon
                         ? {
                               icon: integrationData.icon,
@@ -309,15 +295,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         title: integrationData?.title,
                         rightComponent: (
                             <Button
-                                onPress={() => {
-                                    if (shouldUseMultiConnectionSelector) {
-                                        Navigation.navigate(
-                                            ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(designatedDisplayConnection)),
-                                        );
-                                        return;
-                                    }
-                                    startIntegrationFlow({name: integration});
-                                }}
+                                onPress={() => startIntegrationFlow({name: integration})}
                                 text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
                                 small
@@ -462,7 +440,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         popoverAnchorRefs,
         canUseNetSuiteUSATax,
         shouldShowCardReconciliationOption,
-        canUseNSQS,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -479,17 +456,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     return undefined;
                 }
 
-                const designatedDisplayConnection = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[integration];
-                const otherLinkedConnections = designatedDisplayConnection
-                    ? CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING_INVERTED[designatedDisplayConnection]?.filter((connection) => connection !== connectedIntegration) ?? []
-                    : [];
-
-                // The multi connector is currently only used for NSQS (which is behind beta)
-                const shouldUseMultiConnectionSelector = !!canUseNSQS && !!designatedDisplayConnection && otherLinkedConnections.length > 1;
-                if (shouldUseMultiConnectionSelector && designatedDisplayConnection !== integration) {
-                    return;
-                }
-
                 const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
                 return {
@@ -497,18 +463,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     title: integrationData?.title,
                     rightComponent: (
                         <Button
-                            onPress={() => {
-                                const shouldDisconnect = true;
-                                if (shouldUseMultiConnectionSelector) {
-                                    Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(designatedDisplayConnection)));
-                                    return;
-                                }
+                            onPress={() =>
                                 startIntegrationFlow({
                                     name: integration,
                                     integrationToDisconnect: connectedIntegration,
-                                    shouldDisconnectIntegrationBeforeConnecting: shouldDisconnect,
-                                });
-                            }}
+                                    shouldDisconnectIntegrationBeforeConnecting: true,
+                                })
+                            }
                             text={translate('workspace.accounting.setup')}
                             style={styles.justifyContentCenter}
                             small
@@ -540,7 +501,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
-        canUseNSQS,
     ]);
 
     const [chatTextLink, chatReportID] = useMemo(() => {
