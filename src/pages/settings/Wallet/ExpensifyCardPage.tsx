@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {AddToWalletButton} from '@expensify/react-native-wallet';
+// import {AddToWalletButton} from '@expensify/react-native-wallet';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -29,12 +29,12 @@ import handleAddCardToWallet from '@libs/Wallet';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {revealVirtualCardDetails} from '@userActions/Card';
 import {openOldDotLink} from '@userActions/Link';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card} from '@src/types/onyx';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import RedDotCardSection from './RedDotCardSection';
 import CardDetails from './WalletPage/CardDetails';
@@ -145,6 +145,21 @@ function ExpensifyCardPage({
     const primaryLogin = account?.primaryLogin ?? '';
     const loginData = loginList?.[primaryLogin];
     const isSignedInAsdelegate = !!account?.delegatedAccess?.delegate || false;
+
+    const loadWallet = () => {
+        try {
+            const {AddToWalletButton} = import('@expensify/react-native-wallet');
+            return (
+                <AddToWalletButton
+                    buttonStyle={{alignSelf: 'center'}}
+                    locale="pl"
+                    onPress={() => handleAddCardToWallet(cardToAdd, primaryLogin)}
+                />
+            );
+        } catch (error) {
+            console.error('E: ', error);
+        }
+    };
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
@@ -283,13 +298,7 @@ function ExpensifyCardPage({
                         />
                     </>
                 )}
-                {cardToAdd !== undefined && (
-                    <AddToWalletButton
-                        buttonStyle={{alignSelf: 'center'}}
-                        locale="pl"
-                        onPress={() => handleAddCardToWallet(cardToAdd, primaryLogin)}
-                    />
-                )}
+                {cardToAdd !== undefined && CONFIG.IS_HYBRID_APP && loadWallet()}
             </ScrollView>
             {physicalCards?.some((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED) && (
                 <Button
