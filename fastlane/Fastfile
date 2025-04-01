@@ -184,19 +184,6 @@ platform :android do
     })
   end
 
-  desc "Upload app to Google Play for internal testing"
-  lane :upload_google_play_internal do
-    # Google is very unreliable, so we retry a few times
-    ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
-    upload_to_play_store(
-      package_name: "com.expensify.chat",
-      json_key: './android/app/android-fastlane-json-key.json',
-      aab: ENV[KEY_GRADLE_AAB_PATH],
-      track: 'internal',
-      rollout: '1.0'
-    )
-  end
-
   desc "Upload HybridApp to Google Play draft mode"
   lane :upload_google_play_draft_hybrid do
     # Google is very unreliable, so we retry a few times
@@ -239,7 +226,6 @@ platform :android do
       track_promote_to: 'Internal Testers',
       skip_upload_aab: true
     )
-
   end
 
   desc "Deploy app to Google Play production"
@@ -355,41 +341,6 @@ def setupIOSSigningCertificate()
 end
 
 platform :ios do
-  desc "Build an iOS production build"
-  lane :build do
-    ENV["ENVFILE"]=".env.production"
-
-    setupIOSSigningCertificate()
-
-    install_provisioning_profile(
-      path: "./NewApp_AppStore.mobileprovision"
-    )
-
-    install_provisioning_profile(
-      path: "./NewApp_AppStore_Notification_Service.mobileprovision"
-    )
-
-    install_provisioning_profile(
-      path: "./NewApp_AppStore_Share_Extension.mobileprovision"
-    )
-
-    build_app(
-      workspace: "./ios/NewExpensify.xcworkspace",
-      scheme: "New Expensify",
-      output_name: "New Expensify.ipa",
-      export_options: {
-        provisioningProfiles: {
-          "com.chat.expensify.chat" => "(NewApp) AppStore",
-          "com.chat.expensify.chat.NotificationServiceExtension" => "(NewApp) AppStore: Notification Service",
-          "com.chat.expensify.chat.ShareViewController" => "(NewApp) AppStore: Share Extension",
-        },
-        manageAppVersionAndBuildNumber: false
-      }
-    )
-
-    setIOSBuildOutputsInEnv()
-  end
-
   desc "Build an iOS HybridApp production build"
   lane :build_hybrid do
     ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.ios"
@@ -409,27 +360,27 @@ platform :ios do
     )
 
     update_code_signing_settings(
-       path: "Mobile-Expensify/iOS/Expensify.xcodeproj",
-       profile_name: ENV["APPLE_STORE_PROVISIONING_PROFILE_NAME"],
-       targets: "Expensify",
-       bundle_identifier: ENV["APPLE_ID"],
-       build_configurations: "Release"
+      path: "Mobile-Expensify/iOS/Expensify.xcodeproj",
+      profile_name: ENV["APPLE_STORE_PROVISIONING_PROFILE_NAME"],
+      targets: "Expensify",
+      bundle_identifier: ENV["APPLE_ID"],
+      build_configurations: "Release"
     )
 
     update_code_signing_settings(
-       path: "Mobile-Expensify/iOS/Expensify.xcodeproj",
-       profile_name: ENV["APPLE_SHARE_PROVISIONING_PROFILE_NAME"],
-       targets: "SmartScanExtension",
-       bundle_identifier: ENV["APPLE_ID"] + ".SmartScanExtension",
-       build_configurations: "Release"
+      path: "Mobile-Expensify/iOS/Expensify.xcodeproj",
+      profile_name: ENV["APPLE_SHARE_PROVISIONING_PROFILE_NAME"],
+      targets: "SmartScanExtension",
+      bundle_identifier: ENV["APPLE_ID"] + ".SmartScanExtension",
+      build_configurations: "Release"
     )
 
     update_code_signing_settings(
-       path: "Mobile-Expensify/iOS/Expensify.xcodeproj",
-       profile_name: ENV["APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME"],
-       targets: "NotificationServiceExtension",
-       bundle_identifier: ENV["APPLE_ID"] + ".NotificationServiceExtension",
-       build_configurations: "Release"
+      path: "Mobile-Expensify/iOS/Expensify.xcodeproj",
+      profile_name: ENV["APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME"],
+      targets: "NotificationServiceExtension",
+      bundle_identifier: ENV["APPLE_ID"] + ".NotificationServiceExtension",
+      build_configurations: "Release"
     )
 
     build_app(
@@ -476,9 +427,9 @@ platform :ios do
       export_options: {
         manageAppVersionAndBuildNumber: false,
         provisioningProfiles: {
-            "com.expensify.expensifylite.adhoc" => "(OldApp) AdHoc",
-            "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AdHoc: Share Extension",
-            "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AdHoc: Notification Service",
+          "com.expensify.expensifylite.adhoc" => "(OldApp) AdHoc",
+          "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AdHoc: Share Extension",
+          "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AdHoc: Notification Service",
         }
       }
     )
@@ -490,13 +441,13 @@ platform :ios do
   lane :build_unsigned do
     ENV["ENVFILE"]=".env.production"
     build_app(
-        workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "New Expensify",
-        configuration: "Debug",
-        sdk: "iphonesimulator",
-        skip_codesigning: true,
-        skip_archive: true,
-        export_method: "development"
+      workspace: "./ios/NewExpensify.xcworkspace",
+      scheme: "New Expensify",
+      configuration: "Debug",
+      sdk: "iphonesimulator",
+      skip_codesigning: true,
+      skip_archive: true,
+      export_method: "development"
     )
     setIOSBuildOutputsInEnv()
   end
@@ -505,13 +456,13 @@ platform :ios do
   lane :build_unsigned_hybrid do
     ENV["ENVFILE"]="./Mobile-Expensify/.env.production.hybridapp.ios"
     build_app(
-        workspace: "./Mobile-Expensify/iOS/Expensify.xcworkspace",
-        scheme: "Expensify",
-        configuration: "Debug",
-        sdk: "iphonesimulator",
-        skip_codesigning: true,
-        skip_archive: true,
-        export_method: "development"
+      workspace: "./Mobile-Expensify/iOS/Expensify.xcworkspace",
+      scheme: "Expensify",
+      configuration: "Debug",
+      sdk: "iphonesimulator",
+      skip_codesigning: true,
+      skip_archive: true,
+      export_method: "development"
     )
     setIOSBuildOutputsInEnv()
   end
@@ -566,38 +517,16 @@ platform :ios do
     sh("echo '{\"ipa_path\": \"#{lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../ios_paths.json")
   end
 
-  desc "Upload app to TestFlight"
-  lane :upload_testflight do
-    upload_to_testflight(
-      app_identifier: "com.chat.expensify.chat",
-      api_key_path: "./ios-fastlane-json-key.json",
-      distribute_external: true,
-      notify_external_testers: true,
-      changelog: "Thank you for beta testing New Expensify, this version includes bug fixes and improvements.",
-      groups: ["Beta"],
-      demo_account_required: true,
-      beta_app_review_info: {
-        contact_email: ENV["APPLE_CONTACT_EMAIL"],
-        contact_first_name: "Andrew",
-        contact_last_name: "Gable",
-        contact_phone: ENV["APPLE_CONTACT_PHONE"],
-        demo_account_name: ENV["APPLE_DEMO_EMAIL"],
-        demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
-        notes: "1. In the Expensify app, enter the email 'appletest.expensify@proton.me'. This will trigger a sign-in link to be sent to 'appletest.expensify@proton.me'\n                2. Navigate to https://account.proton.me/login, log into Proton Mail using 'appletest.expensify@proton.me' as email and the password associated with 'appletest.expensify@proton.me', provided above\n                3. Once logged into Proton Mail, navigate to your inbox and locate the email triggered in step 1. The email subject should be 'Your magic sign-in link for Expensify'\n                4. Open the email and copy the 6-digit sign-in code provided within\n                5. Return to the Expensify app and enter the copied 6-digit code in the designated login field"
-      }
+  desc "Upload DSYMs to Firebase for HybridApp"
+  lane :upload_dsyms do
+    puts "dsym path: #{ENV[KEY_DSYM_PATH]}"
+    upload_symbols_to_crashlytics(
+      app_id: "1:921154746561:ios:216bd10ccc947659027c40",
+      dsym_path: ENV[KEY_DSYM_PATH],
+      gsp_path: "./ios/GoogleService-Info.plist",
+      binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"
     )
   end
-
- desc "Upload DSYMs to Firebase for HybridApp"
- lane :upload_dsyms do
-   puts "dsym path: #{ENV[KEY_DSYM_PATH]}"
-   upload_symbols_to_crashlytics(
-     app_id: "1:921154746561:ios:216bd10ccc947659027c40",
-     dsym_path: ENV[KEY_DSYM_PATH],
-     gsp_path: "./ios/GoogleService-Info.plist",
-     binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"
-   )
- end
 
   desc "Upload HybridApp to TestFlight"
   lane :upload_testflight_hybrid do
@@ -622,88 +551,23 @@ platform :ios do
     )
   end
 
- desc "Upload DSYMs to Firebase for HybridApp"
- lane :upload_dsyms_hybrid do
-   puts "dsym path: #{ENV[KEY_DSYM_PATH]}"
-   upload_symbols_to_crashlytics(
-     app_id: ENV["FIREBASE_HYBRID_APP_ID"],
-     dsym_path: ENV[KEY_DSYM_PATH],
-     gsp_path: "./ios/GoogleService-Info.plist",
-     # Assuming we are running this from the react-native submodule directory for HybridApp
-     binary_path: "./Mobile-Expensify/iOS/Pods/FirebaseCrashlytics/upload-symbols"
-   )
- end
-
-  desc "Submit app for production App Store Review"
-  lane :submit_for_review do
-    deliver(
-      app_identifier: "com.chat.expensify.chat",
-      api_key_path: "./ios-fastlane-json-key.json",
-
-      # Skip HTMl report verification
-      force: true,
-
-      # VERSION will be set to the full build_number e.g. '1.0.92.0'
-      build_number: ENV["VERSION"],
-
-      # app_version needs to be set to the short version, without the last digit e.g. '1.0.92'
-      app_version: ENV["VERSION"].rpartition(".")[0],
-
-      # We want to submit the version for Apple to review
-      submit_for_review: true,
-
-      # We want to release the app as soon as it's approved
-      automatic_release: true,
-
-      # We need to upload metadata to upload the release notes which is required for rach new version
-      skip_metadata: false,
-
-      # We do not want to upload any screenshots
-      skip_screenshots: true,
-
-      # We do not have any binary to upload as it's already in TestFlight
-      skip_binary_upload: true,
-
-      # Reject the current build if there is one in review
-      reject_if_possible: true,
-
-      # We do not want to reset the ratings
-      reset_ratings: false,
-
-      # Precheck cannot check for in app purchases with the API key we use
-      precheck_include_in_app_purchases: false,
-      submission_information: {
-        # We currently do not use idfa: https://developer.apple.com/app-store/user-privacy-and-data-use/
-        add_id_info_uses_idfa: false,
-
-        # We do not need any additional compliance
-        export_compliance_compliance_required: false,
-
-        # We do not use any encrpytion
-        export_compliance_encryption_updated: false,
-        export_compliance_app_type: nil,
-        export_compliance_uses_encryption: false,
-        export_compliance_is_exempt: false,
-        export_compliance_contains_third_party_cryptography: false,
-        export_compliance_contains_proprietary_cryptography: false,
-
-        # We do not show any third party content
-        content_rights_contains_third_party_content: false,
-
-        # Indicate that our key has admin permissions
-        content_rights_has_rights: true
-      },
-      release_notes: {
-        'en-US' => "Improvements and bug fixes"
-      }
+  desc "Upload DSYMs to Firebase for HybridApp"
+  lane :upload_dsyms_hybrid do
+    puts "dsym path: #{ENV[KEY_DSYM_PATH]}"
+    upload_symbols_to_crashlytics(
+      app_id: ENV["FIREBASE_HYBRID_APP_ID"],
+      dsym_path: ENV[KEY_DSYM_PATH],
+      gsp_path: "./ios/GoogleService-Info.plist",
+      # Assuming we are running this from the react-native submodule directory for HybridApp
+      binary_path: "./Mobile-Expensify/iOS/Pods/FirebaseCrashlytics/upload-symbols"
     )
   end
 
   desc "Submit HybridApp to 100% rollout on App Store"
   lane :complete_hybrid_rollout do
     # Local path is different when using Spaceship::ConnectAPI::Token.from_json_file,
-    # the working directory is: /Users/runner/work/App/App/Mobile-Expensify/react-native/fastlane
-    api_token = Spaceship::ConnectAPI::Token.from_json_file("../ios/ios-fastlane-json-key.json")
+    # the working directory is: /Users/runner/work/App/App/fastlane
+    api_token = Spaceship::ConnectAPI::Token.from_json_file("../ios-fastlane-json-key.json")
     Spaceship::ConnectAPI.token = api_token
 
     app = Spaceship::ConnectAPI::App.find(ENV["APPLE_ID"])
@@ -742,7 +606,7 @@ platform :ios do
       # We want to enable a slow rollout
       phased_release: true,
 
-      # We need to upload metadata to upload the release notes which is required for rach new version
+      # We need to upload metadata to upload the release notes which is required for each new version
       skip_metadata: false,
 
       # We do not want to upload any screenshots

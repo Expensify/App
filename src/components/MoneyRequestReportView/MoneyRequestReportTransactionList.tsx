@@ -1,3 +1,4 @@
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
@@ -14,6 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
@@ -25,6 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
+import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 import {setActiveTransactionReportIDs} from './TransactionReportIDRepository';
 
 type MoneyRequestReportTransactionListProps = {
@@ -126,15 +129,9 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
             const backTo = Navigation.getActiveRoute();
 
-            // Single transaction report will open in RHP, and we need to find every other report ID for every sibling to `activeTransaction`
-            // we use this data to display prev/next arrows in RHP for navigating between transactions
-            const sortedSiblingTransactionReportIDs = sortedData.transactions
-                .map((transaction) => {
-                    const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-                    return action?.childReportID;
-                })
-                .filter((reportID): reportID is string => !!reportID);
-
+            // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
+            // to display prev/next arrows in RHP for navigating between transactions
+            const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedData.transactions);
             setActiveTransactionReportIDs(sortedSiblingTransactionReportIDs);
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
@@ -147,16 +144,12 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     }, [transactions]);
 
-    if (sortedData.transactions.length === 0) {
-        return;
-    }
-
     const pressableStyle = [styles.overflowHidden];
 
     const listHorizontalPadding = styles.ph5;
 
-    return (
-        <View style={[styles.flex1]}>
+    return !isEmpty(transactions) ? (
+        <>
             {!displayNarrowVersion && (
                 <View style={[styles.dFlex, styles.flexRow, styles.ph5]}>
                     <View style={[styles.p2, StyleUtils.getPaddingLeft(variables.w12)]}>
@@ -255,7 +248,9 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                     </Text>
                 </View>
             </View>
-        </View>
+        </>
+    ) : (
+        <SearchMoneyRequestReportEmptyState />
     );
 }
 

@@ -443,6 +443,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSmall,
         },
 
+        textSupportingNormal: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+        },
+
         textExtraSmallSupporting: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -3738,12 +3744,6 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        searchInputStyle: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
-        },
-
         searchRouterTextInputContainer: {
             borderRadius: variables.componentBorderRadiusSmall,
             borderWidth: 1,
@@ -5364,6 +5364,13 @@ const styles = (theme: ThemeColors) =>
         emptyStateCardIllustration: {
             width: 164,
             height: 190,
+        },
+
+        emptyStateMoneyRequestReport: {
+            maxHeight: 85,
+            minHeight: 85,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
         },
 
         pendingStateCardIllustration: {

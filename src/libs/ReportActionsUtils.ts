@@ -162,6 +162,20 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     return isLegacyDeletedComment || !!message.at(0)?.deleted;
 }
 
+/**
+ * This function will add attachment ID attribute on img and video HTML tags inside the passed html content
+ * of a report action. This attachment id is the reportActionID concatenated with the order index that the attachment
+ * appears inside the report action message so as to identify attachments with identical source inside a report action.
+ */
+function getHtmlWithAttachmentID(html: string, reportActionID: string | undefined) {
+    if (!reportActionID) {
+        return html;
+    }
+
+    let attachmentID = 0;
+    return html.replace(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
+}
+
 function getReportActionMessage(reportAction: PartialReportAction) {
     return Array.isArray(reportAction?.message) ? reportAction.message.at(0) : reportAction?.message;
 }
@@ -614,8 +628,9 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], a
 
     if (isSubmittedAction(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
-
-        return currentActionAdminAccountID === previousAction.actorAccountID || currentActionAdminAccountID === previousAction.adminAccountID;
+        return typeof currentActionAdminAccountID === 'number'
+            ? currentActionAdminAccountID === previousAction.actorAccountID
+            : currentAction.actorAccountID === previousAction.actorAccountID;
     }
 
     if (isSubmittedAction(previousAction)) {
@@ -718,6 +733,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
     ];
     if (deprecatedOldDotReportActions.includes(reportAction.actionName)) {
         Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
@@ -1130,6 +1146,7 @@ function isTagModificationAction(actionName: string): boolean {
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_ENABLED ||
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_NAME ||
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG_LIST ||
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG
     );
 }
@@ -1953,6 +1970,12 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
         });
     }
 
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG_LIST && tagListName) {
+        return translateLocal('workspaceActions.deleteTagList', {
+            tagListName,
+        });
+    }
+
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_ENABLED && tagListName && tagName) {
         return translateLocal('workspaceActions.updateTagEnabled', {
             tagListName,
@@ -2307,6 +2330,7 @@ export {
     extractLinksFromMessageHtml,
     formatLastMessageText,
     isReportActionUnread,
+    getHtmlWithAttachmentID,
     getActionableMentionWhisperMessage,
     getAllReportActions,
     getCombinedReportActions,

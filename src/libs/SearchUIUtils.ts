@@ -46,6 +46,7 @@ import {
     isClosedReport,
     isInvoiceReport,
     isMoneyRequestReport,
+    isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
@@ -282,8 +283,10 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         .filter(isTransactionEntry)
         .map((key) => {
             const transactionItem = data[key];
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+            const shouldShowBlankTo = isOpenExpenseReport(report);
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -293,7 +296,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 from,
                 to,
                 formattedFrom,
-                formattedTo,
+                formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
                 date,
@@ -482,9 +485,11 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+            const shouldShowBlankTo = isOpenExpenseReport(report);
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -494,7 +499,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 from,
                 to,
                 formattedFrom,
-                formattedTo,
+                formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
                 date,
