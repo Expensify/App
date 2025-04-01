@@ -16,6 +16,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
@@ -78,6 +79,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     const {isDevelopment} = useEnvironment();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // TODO once nonUSD flow is complete update the flags below to reflect all supported currencies, this will be updated in - https://github.com/Expensify/App/issues/50912
     // TODO remove isDevelopment and isDebugModeEnabled flags once nonUSD flow is complete, this will be updated in - https://github.com/Expensify/App/issues/50912
@@ -400,7 +402,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 {translate('bankAccount.hasCurrencyError.phrase1')}
                 <TextLink
                     style={styles.link}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policyIDParam ?? '', Navigation.getActiveRoute()))}
+                    onPress={() => {
+                        const routeToNavigate = shouldUseNarrowLayout
+                            ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
+                            : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
+                        Navigation.goBack(routeToNavigate);
+                    }}
                 >
                     {translate('bankAccount.hasCurrencyError.link')}
                 </TextLink>

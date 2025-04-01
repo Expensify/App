@@ -5,8 +5,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import mapCurrencyToCountry from '@pages/ReimbursementAccount/utils/mapCurrencyToCountry';
 import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
@@ -14,20 +12,18 @@ import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 import {updateGeneralSettings} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-type WorkspaceOverviewCurrencyPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CURRENCY>;
+type WorkspaceOverviewCurrencyPageProps = WithPolicyAndFullscreenLoadingProps;
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
-function WorkspaceOverviewCurrencyPage({policy, route}: WorkspaceOverviewCurrencyPageProps) {
+function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPageProps) {
     const {translate} = useLocalize();
-    const backTo = route.params.backTo;
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
@@ -37,7 +33,7 @@ function WorkspaceOverviewCurrencyPage({policy, route}: WorkspaceOverviewCurrenc
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: mapCurrencyToCountry(item.currencyCode)});
         updateGeneralSettings(policy.id, policy?.name ?? '', item.currencyCode);
         clearCorpayBankAccountFields();
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backTo));
+        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
     return (
@@ -52,7 +48,7 @@ function WorkspaceOverviewCurrencyPage({policy, route}: WorkspaceOverviewCurrenc
             >
                 <HeaderWithBackButton
                     title={translate('workspace.editor.currencyInputLabel')}
-                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
 
                 <CurrencySelectionList

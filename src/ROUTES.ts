@@ -937,7 +937,7 @@ const ROUTES = {
     },
     WORKSPACE_OVERVIEW_CURRENCY: {
         route: 'settings/workspaces/:policyID/overview/currency',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/overview/currency` as const, backTo),
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/overview/currency` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
