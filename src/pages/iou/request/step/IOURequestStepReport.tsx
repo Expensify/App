@@ -7,7 +7,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,14 +67,14 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         // Get the IOU report action for this transaction
-        const iouAction = ReportActionsUtils.getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-        if (!iouAction) {
+        const iouAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+        if (!iouAction || !iouAction.childReportID) {
             return;
         }
 
         // Create the mapping of transaction ID to report action and thread data
         const transactionIDToReportActionAndThreadData = {
-            [transaction.transactionID]: iouAction.childReportID ?? '',
+            [transaction.transactionID]: iouAction.childReportID,
         };
 
         changeTransactionsReport([transaction.transactionID], item.value, transactionIDToReportActionAndThreadData);
