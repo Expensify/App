@@ -280,7 +280,7 @@ function PaymentMethodList({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: isTravelCard ? 'Expensify Travel Card' : card?.nameValuePairs?.cardTitle || card.bank,
-                    description: getDescriptionForPolicyDomainCard(card.domainName),
+                    description: isTravelCard ? 'Expensify Travel Card' : getDescriptionForPolicyDomainCard(card.domainName),
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
