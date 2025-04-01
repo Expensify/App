@@ -4,7 +4,7 @@ import {pluginMetro} from '@rnef/plugin-metro';
 
 export default {
     remoteCacheProvider: null,
-    plugins: [pluginMetro()],
+    bundler: pluginMetro(),
     platforms: {
         ios: platformIOS(),
         android: platformAndroid(),
