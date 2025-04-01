@@ -496,7 +496,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
-        keyForList: String(detail?.accountID),
+        keyForList: String(detail?.accountID ?? login),
         login,
         accountID: detail?.accountID,
         text: displayName,
