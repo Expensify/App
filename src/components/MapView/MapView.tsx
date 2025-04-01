@@ -26,6 +26,8 @@ import PendingMapView from './PendingMapView';
 import responder from './responder';
 import utils from './utils';
 
+const isTokenSet: Record<string, boolean> = {};
+
 const MapView = forwardRef<MapViewHandle, MapViewProps>(
     ({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true, distanceInMeters, unit}, ref) => {
         const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
@@ -40,7 +42,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
         const currentPosition = userLocation ?? initialLocation;
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const shouldInitializeCurrentPosition = useRef(true);
-        const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
+        const [isAccessTokenSet, setIsAccessTokenSet] = useState(isTokenSet[accessToken] ?? false);
 
         const [distanceUnit, setDistanceUnit] = useState(unit);
         useEffect(() => {
@@ -161,10 +163,14 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
         }, [navigation]);
 
         useEffect(() => {
+            if (isTokenSet[accessToken]) {
+                return;
+            }
             setAccessToken(accessToken).then((token) => {
                 if (!token) {
                     return;
                 }
+                isTokenSet[accessToken] = true;
                 setIsAccessTokenSet(true);
             });
         }, [accessToken]);

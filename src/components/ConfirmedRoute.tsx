@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MapboxAccessToken, Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
-import DistanceMapView from './DistanceMapView';
+import MapView from './MapView';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import type {WayPoint} from './MapView/MapViewTypes';
@@ -105,7 +105,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
     const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;
 
     return !isOffline && !!mapboxAccessToken?.token && shouldDisplayMap ? (
-        <DistanceMapView
+        <MapView
             interactive={interactive}
             accessToken={mapboxAccessToken?.token ?? ''}
             mapPadding={CONST.MAPBOX.PADDING}
@@ -118,7 +118,6 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
             style={[styles.mapView, shouldHaveBorderRadius && styles.br4]}
             waypoints={waypointMarkers}
             styleURL={CONST.MAPBOX.STYLE_URL}
-            requireRouteToDisplayMap={requireRouteToDisplayMap}
         />
     ) : (
         <PendingMapView
