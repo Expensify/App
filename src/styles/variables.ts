@@ -48,6 +48,7 @@ export default {
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
+    fontSizeXXSmall: 7,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),
@@ -113,6 +114,7 @@ export default {
     lineHeightXXXLarge: getValueUsingPixelRatio(32, 37),
     lineHeightSizeh1: getValueUsingPixelRatio(28, 32),
     lineHeightSizeh2: getValueUsingPixelRatio(24, 28),
+    lineHeighTaskTitle: getValueUsingPixelRatio(26, 30),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
     inputHeightSmall: 28,
@@ -239,6 +241,7 @@ export default {
     menuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
+    transactionPreviewSkeletonHeight: 66,
 
     distanceScrollEventThrottle: 16,
 
@@ -287,6 +290,7 @@ export default {
     h28: 28,
     h36: 36,
     h40: 40,
+    h70: 70,
     h112: 112,
     h172: 172,
     w20: 20,
