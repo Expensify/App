@@ -1,7 +1,8 @@
+import {useNavigation} from '@react-navigation/native';
 import type {VideoReadyForDisplayEvent} from 'expo-av';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
@@ -10,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoDimensions = {
@@ -51,6 +53,9 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
+    const renderRoute = useRef<string | null>(null);
+    const navigation = useNavigation();
+    const isFocused = () => Navigation.getActiveRouteWithoutParams() === renderRoute.current;
 
     // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
@@ -65,8 +70,17 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
         }
     };
 
+    // We want to play the video only when the user is on the page where it was rendered
     useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
+        renderRoute.current = Navigation.getActiveRouteWithoutParams();
+    }, []);
+
+    useEffect(() => {
+        return navigation.addListener('blur', () => !isFocused() && setIsThumbnail(true));
+    }, [navigation]);
+
+    useEffect(() => {
+        if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID || !isFocused()) {
             return;
         }
         setIsThumbnail(false);
