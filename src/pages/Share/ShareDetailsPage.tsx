@@ -105,6 +105,7 @@ function ShareDetailsPage({
                 KeyboardUtils.dismiss();
             }}
             accessible={false}
+            style={styles.flex1}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
