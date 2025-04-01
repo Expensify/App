@@ -59,6 +59,10 @@ After the account is verified:
 
 # FAQ
 
+## Who are the “Authorized User” and the “User” on the International Reimbursement DocuSign form?
+- **Authorized User:** The person who will process international reimbursements. The Authorized User should be the same person who manages the bank account connection in Expensify.
+- **User:** Expensify (leave blank).
+
 ## Can more than one person send reimbursements?
 Yes. Once the bank account is verified, it can be shared with other workspace admins so they can also issue global reimbursements.
 
@@ -66,4 +70,3 @@ Yes. Once the bank account is verified, it can be shared with other workspace ad
 This typically includes a shareholder register or declaration showing who owns 25% or more of the business.
 
 </div>
-
