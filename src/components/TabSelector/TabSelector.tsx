@@ -24,13 +24,13 @@ type TabSelectorProps = MaterialTopTabBarProps & {
     shouldShowLabelWhenInactive?: boolean;
 };
 
-type IconAndTitle = {
+type IconTitleAndTestID = {
     icon: IconAsset;
     title: string;
     testID?: string;
 };
 
-function getIconAndTitle(route: string, translate: LocaleContextProps['translate']): IconAndTitle {
+function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
@@ -75,7 +75,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                     const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
-                    const {icon, title, testID} = getIconAndTitle(route.name, translate);
+                    const {icon, title, testID} = getIconTitleAndTestID(route.name, translate);
                     const onPress = () => {
                         if (isActive) {
                             return;
