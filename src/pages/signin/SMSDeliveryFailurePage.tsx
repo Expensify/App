@@ -44,7 +44,9 @@ function SMSDeliveryFailurePage() {
     }, [SMSDeliveryFailureMessage]);
 
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
-    const [hasClickedReset, setHasClickedReset] = useState(false);
+
+    // We need to show two different messages after clicking validate button, based on API response for hasSMSDeliveryFailure.
+    const [hasClickedValidate, setHasClickedValidate] = useState(false);
 
     const errorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
     const shouldShowError = !!errorText;
@@ -56,7 +58,7 @@ function SMSDeliveryFailurePage() {
         Keyboard.dismiss();
     }, [isKeyboardShown]);
 
-    if (hasSMSDeliveryFailure && hasClickedReset) {
+    if (hasSMSDeliveryFailure && hasClickedValidate) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
@@ -86,7 +88,7 @@ function SMSDeliveryFailurePage() {
         );
     }
 
-    if (!hasSMSDeliveryFailure && hasClickedReset) {
+    if (!hasSMSDeliveryFailure && hasClickedValidate) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
@@ -127,7 +129,7 @@ function SMSDeliveryFailurePage() {
                     isLoading={account?.smsDeliveryFailureStatus?.isLoading}
                     onSubmit={() => {
                         resetSMSDeliveryFailureStatus(login);
-                        setHasClickedReset(true);
+                        setHasClickedValidate(true);
                     }}
                     message={errorText}
                     isAlertVisible={shouldShowError}
