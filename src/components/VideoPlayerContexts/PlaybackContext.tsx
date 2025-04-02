@@ -12,6 +12,7 @@ import {getAllReportActions, getReportActionHtml} from '@libs/ReportActionsUtils
 import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext, StatusCallback} from './types';
@@ -90,9 +91,11 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 reportID = focusedRoute.params.reportID;
             }
 
+            reportID = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}` ? prevCurrentReportID : reportID;
+
             setCurrentReportID(reportID);
         },
-        [setCurrentReportID],
+        [setCurrentReportID, prevCurrentReportID],
     );
 
     const updateCurrentlyPlayingURL = useCallback(
@@ -103,6 +106,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
             // Used for /attachment route
             const reportIDFromParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID') ?? undefined;
+            const attachmentReportID = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}` ? prevCurrentReportID : reportIDFromParams;
 
             const topMostReport = getReportOrDraftReport(Navigation.getTopmostReportId());
             const {reportID, chatReportID, parentReportID} = topMostReport ?? {};
@@ -119,10 +123,12 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             const isUrlInTopMostReportAttachments = isUrlInAnyReportMessagesAttachments(url, reportID);
             const chatThreadID = isUrlInTopMostReportAttachments ? reportID : chatReportID ?? parentReportID;
 
-            setCurrentlyPlayingURLReportID(isTopMostReportAChatThread ? chatThreadID : currentReportID ?? reportIDFromParams);
+            const currentPlayReportID = isTopMostReportAChatThread ? chatThreadID : currentReportID ?? attachmentReportID;
+
+            setCurrentlyPlayingURLReportID(currentPlayReportID);
             setCurrentlyPlayingURL(url);
         },
-        [currentlyPlayingURL, currentReportID, pauseVideo],
+        [currentlyPlayingURL, currentReportID, prevCurrentReportID, pauseVideo],
     );
 
     const shareVideoPlayerElements = useCallback(
