@@ -254,13 +254,39 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                         {translate('common.reports')}
                     </Text>
                 </PressableWithFeedback>
+                <View style={[styles.flex1, styles.bottomTabBarItem]}>
+                    <BottomTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
+                </View>
+                <PressableWithFeedback
+                    onPress={navigateToSearch}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.workspaces')}
+                    style={styles.bottomTabBarItem}
+                >
+                    <View>
+                        <Icon
+                            src={Expensicons.Buildings}
+                            fill={theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                    </View>
+                    <Text
+                        style={[
+                            styles.textSmall,
+                            styles.textAlignCenter,
+                            styles.mt1Half,
+                            selectedTab === BOTTOM_TABS.WORKSPACES ? styles.textBold : styles.textSupporting,
+                            styles.bottomTabBarLabel,
+                        ]}
+                    >
+                        {translate('common.workspaces')}
+                    </Text>
+                </PressableWithFeedback>
                 <BottomTabAvatar
                     isSelected={selectedTab === BOTTOM_TABS.SETTINGS}
                     onPress={showSettingsPage}
                 />
-                <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                    <BottomTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
-                </View>
             </View>
         </>
     );
