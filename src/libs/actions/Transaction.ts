@@ -5,7 +5,7 @@ import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams} from '@libs/API/parameters';
+import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams, TransactionThreadInfo} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -584,12 +584,21 @@ function getAllTransactions() {
     return Object.keys(allTransactions ?? {}).length;
 }
 
-function changeTransactionsReport(transactionIDs: string[], reportID: string, transactionIDToReportActionAndThreadData: Record<string, string>) {
+function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
     const newPolicyID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID;
+    const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
+
+    // Get all transactions and their IOU actions upfront
+    const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
+
+    const transactionsReportActions = currentTransactions.map((transaction) => ({
+        transaction,
+        iouAction: ReportActionsUtils.getIOUActionForReportID(transaction.reportID, transaction.transactionID),
+    }));
 
     // 1. Optimistically change the reportID on the passed transactions
     const optimisticDataTransactions: OnyxUpdate[] = transactionIDs.map((transactionID) => ({
@@ -600,61 +609,61 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, tr
         },
     }));
 
-    const failureDataTransactions: OnyxUpdate[] = transactionIDs.map((transactionID) => {
+    const failureDataTransactions: OnyxUpdate[] = [];
+    transactionIDs.forEach((transactionID) => {
         const transaction = allTransactions?.[transactionID];
-        return {
+        if (!transaction) {
+            return;
+        }
+        failureDataTransactions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 reportID: transaction?.reportID,
             },
-        };
+        });
     });
 
     optimisticData.push(...optimisticDataTransactions);
     failureData.push(...failureDataTransactions);
 
     // 2. Optimistically update the IOU report action reportID
-    const optimisticDataReportActions: OnyxUpdate[] = Object.values(transactionIDToReportActionAndThreadData).map((reportActionID) => ({
+    const optimisticDataReportActions: OnyxUpdate[] = transactionsReportActions.map(({iouAction}) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction?.reportActionID}`,
         value: {
             reportID,
         },
     }));
 
-    const failureDataReportActions: OnyxUpdate[] = Object.entries(transactionIDToReportActionAndThreadData).map(([transactionID, reportActionID]) => {
-        const transaction = allTransactions?.[transactionID];
-        return {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionID}`,
-            value: {
-                reportID: transaction?.reportID,
-            },
-        };
-    });
+    const failureDataReportActions: OnyxUpdate[] = transactionsReportActions.map(({transaction, iouAction}) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction?.reportActionID}`,
+        value: {
+            reportID: transaction.reportID,
+        },
+    }));
 
     optimisticData.push(...optimisticDataReportActions);
     failureData.push(...failureDataReportActions);
 
     // 3. Optimistically update the transaction thread and all threads in the transaction thread
-    const optimisticDataThreadReports: OnyxUpdate[] = Object.values(transactionIDToReportActionAndThreadData).map((threadReportID) => ({
+    const optimisticDataThreadReports: OnyxUpdate[] = transactionsReportActions.map(({iouAction}) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouAction?.childReportID}`,
         value: {
             parentReportID: reportID,
             policyID: reportID !== CONST.REPORT.UNREPORTED_REPORTID ? newPolicyID : CONST.POLICY.ID_FAKE,
         },
     }));
 
-    const failureDataThreadReports: OnyxUpdate[] = Object.entries(transactionIDToReportActionAndThreadData).map(([transactionID, threadReportID]) => {
-        const transaction = allTransactions?.[transactionID];
-        const report = transaction?.reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] : undefined;
+    const failureDataThreadReports: OnyxUpdate[] = transactionsReportActions.map(({transaction, iouAction}) => {
+        const report = transaction.reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] : undefined;
         return {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouAction?.childReportID}`,
             value: {
-                parentReportID: transaction?.reportID,
+                parentReportID: transaction.reportID,
                 policyID: report?.policyID,
             },
         };
@@ -663,35 +672,40 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, tr
     optimisticData.push(...optimisticDataThreadReports);
     failureData.push(...failureDataThreadReports);
 
-    // 4 & 5. Optimistically add new MOVEDTRANSACTION or UNREPORTEDTRANSACTION report actions
-    const optimisticDataNewReportActions: OnyxUpdate[] = Object.entries(transactionIDToReportActionAndThreadData).map(([transactionID, threadReportID]) => {
-        const transaction = allTransactions?.[transactionID];
+    // 4 & 5. Add MOVEDTRANSACTION or UNREPORTEDTRANSACTION report actions
+    const optimisticDataNewReportActions: OnyxUpdate[] = transactionsReportActions.map(({transaction, iouAction}) => {
         const originalReportID = transaction.reportID;
         const reportAction =
             reportID === CONST.REPORT.UNREPORTED_REPORTID
-                ? buildOptimisticUnreportedTransactionAction(originalReportID, reportID, transactionID)
-                : buildOptimisticMovedTransactionAction(originalReportID, reportID, transactionID);
+                ? buildOptimisticUnreportedTransactionAction(originalReportID, reportID, transaction.transactionID)
+                : buildOptimisticMovedTransactionAction(originalReportID, reportID, transaction.transactionID);
+
+        // Store the thread information
+        transactionIDToReportActionAndThreadData[transaction.transactionID] = {
+            transactionThreadReportID: iouAction?.childReportID,
+            transactionThreadCreatedReportActionID: reportAction.created,
+            movedReportActionID: reportAction.reportActionID,
+        };
 
         return {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction?.childReportID}`,
             value: {
                 [reportAction.reportActionID]: reportAction,
             },
         };
     });
 
-    const failureDataNewReportActions: OnyxUpdate[] = Object.entries(transactionIDToReportActionAndThreadData).map(([transactionID, threadReportID]) => {
-        const transaction = allTransactions?.[transactionID];
+    const failureDataNewReportActions: OnyxUpdate[] = transactionsReportActions.map(({transaction, iouAction}) => {
         const originalReportID = transaction.reportID;
         const reportAction =
             reportID === CONST.REPORT.UNREPORTED_REPORTID
-                ? buildOptimisticUnreportedTransactionAction(originalReportID, reportID, transactionID)
-                : buildOptimisticMovedTransactionAction(originalReportID, reportID, transactionID);
+                ? buildOptimisticUnreportedTransactionAction(originalReportID, reportID, transaction.transactionID)
+                : buildOptimisticMovedTransactionAction(originalReportID, reportID, transaction.transactionID);
 
         return {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction?.childReportID}`,
             value: {
                 [reportAction.reportActionID]: null,
             },
@@ -704,7 +718,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, tr
     const parameters: ChangeTransactionsReportParams = {
         transactionList: transactionIDs.join(','),
         reportID,
-        reportActionIDToThreadReportIDMap: transactionIDToReportActionAndThreadData,
+        transactionIDToReportActionAndThreadData,
     };
 
     API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
