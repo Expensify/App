@@ -1551,6 +1551,7 @@ const translations = {
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
+        expensifyTravelCard: 'Expensify Travel Card',
         availableSpend: 'Remaining limit',
         smartLimit: {
             name: 'Smart limit',
@@ -1566,9 +1567,11 @@ const translations = {
                 `You can spend up to ${formattedLimit} on this card per month. The limit will reset on the 1st day of each calendar month.`,
         },
         virtualCardNumber: 'Virtual card number',
+        travelCardCvv: 'Travel card CVV',
         physicalCardNumber: 'Physical card number',
         getPhysicalCard: 'Get physical card',
         reportFraud: 'Report virtual card fraud',
+        reportTravelFraud: 'Report travel card fraud',
         reviewTransaction: 'Review transaction',
         suspiciousBannerTitle: 'Suspicious transaction',
         suspiciousBannerDescription: 'We noticed suspicious transactions on your card. Tap below to review.',
@@ -1579,6 +1582,7 @@ const translations = {
             cvv: 'CVV',
             address: 'Address',
             revealDetails: 'Reveal details',
+            revealCvv: 'Reveal CVV',
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },

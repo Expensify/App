@@ -74,7 +74,7 @@ function ExpensifyCardPage({
     const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
     const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
-    const expensifyCardTitle = isTravelCard ? 'Expensify Travel Card' : translate('cardPage.expensifyCard');
+    const expensifyCardTitle = isTravelCard ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
     const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle;
 
     const [isNotFound, setIsNotFound] = useState(false);
@@ -254,7 +254,7 @@ function ExpensifyCardPage({
                                 ) : (
                                     <>
                                         <MenuItemWithTopDescription
-                                            description={'Travel Card CVV'}
+                                            description={translate('cardPage.travelCardCvv')}
                                             title={'•••'}
                                             interactive={false}
                                             titleStyle={styles.walletCardNumber}
@@ -262,7 +262,7 @@ function ExpensifyCardPage({
                                             rightComponent={
                                                 !isSignedInAsdelegate ? (
                                                     <Button
-                                                        text={'Reveal CVV'}
+                                                        text={translate('cardPage.cardDetails.revealCvv')}
                                                         onPress={() => openValidateCodeModal(card.cardID)}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
@@ -279,7 +279,7 @@ function ExpensifyCardPage({
                                 )}
                                 {!isSignedInAsdelegate && (
                                     <MenuItemWithTopDescription
-                                        title={'Report travel card fraud'}
+                                        title={translate('cardPage.reportTravelFraud')}
                                         titleStyle={styles.walletCardMenuItem}
                                         icon={Expensicons.Flag}
                                         shouldShowRightIcon
