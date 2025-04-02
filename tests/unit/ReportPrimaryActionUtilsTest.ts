@@ -46,7 +46,7 @@ describe('getPrimaryAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getReportPrimaryAction(report, [], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+        expect(getReportPrimaryAction(report, [{} as Transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
 
     it('should return Approve for report being processed', async () => {

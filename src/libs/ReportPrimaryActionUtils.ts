@@ -37,13 +37,13 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from './TransactionUtils';
 
-function isSubmitAction(report: Report, policy?: Policy) {
+function isSubmitAction(report: Report, reportTransaction: Transaction[], policy?: Policy) {
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpenReport = isOpenReportUtils(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
-    return isExpenseReport && isReportSubmitter && isOpenReport && isManualSubmitEnabled && report.total !== 0;
+    return isExpenseReport && isReportSubmitter && isOpenReport && isManualSubmitEnabled && reportTransaction.length !== 0;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
@@ -213,7 +213,7 @@ function getReportPrimaryAction(
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
-    if (isSubmitAction(report, policy)) {
+    if (isSubmitAction(report, reportTransactions, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
