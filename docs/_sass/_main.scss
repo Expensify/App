@@ -595,6 +595,10 @@ button {
             background: url('/assets/images/play-button.svg') no-repeat center center;
             background-size: contain;
         }
+
+        .media-controls.inline.ios:not(.audio) {
+            background-color: transparent;
+        }
     }
 }
 
