@@ -5918,7 +5918,7 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
  * Builds an optimistic MOVED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
-function buildOptimisticMovedTransactionAction(oldReportID: string, toReportID: string, transactionID: string): ReportAction {
+function buildOptimisticMovedTransactionAction(oldReportID: string | undefined, toReportID: string, transactionID: string): ReportAction {
     const originalMessage = {
         oldReportID,
         toReportID,
@@ -5957,7 +5957,7 @@ function buildOptimisticMovedTransactionAction(oldReportID: string, toReportID: 
  * Builds an optimistic UNREPORTED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we unreport a transaction.
  */
-function buildOptimisticUnreportedTransactionAction(oldReportID: string, toReportID: string, transactionID: string): ReportAction {
+function buildOptimisticUnreportedTransactionAction(oldReportID: string | undefined, toReportID: string, transactionID: string): ReportAction {
     const originalMessage = {
         oldReportID,
         toReportID,
@@ -9932,13 +9932,13 @@ export {
     getMovedTransactionMessage,
     getUnreportedTransactionMessage,
     getExpenseReportStateAndStatus,
-    buildOptimisticResolvedDuplicatesReportAction,
     populateOptimisticReportFormula,
+    buildOptimisticUnreportedTransactionAction,
+    buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
     getReportFieldsByPolicyID,
     getGroupChatDraft,
     buildOptimisticMovedTransactionAction,
-    buildOptimisticUnreportedTransactionAction,
 };
 
 export type {

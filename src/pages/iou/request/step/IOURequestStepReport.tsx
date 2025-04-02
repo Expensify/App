@@ -3,10 +3,12 @@ import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -24,9 +26,11 @@ type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM>;
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
+    // TODO: hasForwardedAction
     const {translate} = useLocalize();
-    const {transactionID, backTo} = route.params;
+    const {backTo} = route.params;
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
@@ -45,28 +49,36 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((item) => item !== undefined)
+            .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .map((report) => ({
                 text: report.reportName,
                 value: report.reportID,
                 keyForList: report.reportID,
             }));
-    }, [allReports]);
+    }, [allReports, debouncedSearchValue]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
     const selectReport = (item: ReportListItem) => {
-        const newParticipants = (transaction?.participants ?? []).filter((participant) => participant.accountID);
+        if (!transaction) {
+            return;
+        }
 
-        newParticipants.push({
-            policyID: item.value,
-            isSender: true,
-            selected: false,
-        });
+        // Get the IOU report action for this transaction
+        const iouAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+        if (!iouAction || !iouAction.childReportID) {
+            return;
+        }
 
-        setMoneyRequestParticipants(transactionID, newParticipants);
-        navigateBack();
+        // Create the mapping of transaction ID to report action and thread data
+        const transactionIDToReportActionAndThreadData = {
+            [transaction.transactionID]: iouAction.childReportID,
+        };
+
+        changeTransactionsReport([transaction.transactionID], item.value, transactionIDToReportActionAndThreadData);
+        Navigation.goBack(backTo);
     };
 
     return (
@@ -80,6 +92,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             <SelectionList
                 sections={[{data: reportOptions}]}
                 onSelectRow={selectReport}
+                textInputValue={searchValue}
+                onChangeText={setSearchValue}
+                textInputLabel={reportOptions.length > 8 ? translate('common.search') : undefined}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
             />
