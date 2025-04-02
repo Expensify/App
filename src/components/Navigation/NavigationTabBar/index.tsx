@@ -114,7 +114,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     }, [selectedTab]);
 
     const showWorkspaces = useCallback(() => {
-        if (selectedTab === BOTTOM_TABS.WORKSPACES) {
+        if (selectedTab === NAVIGATION_TABS.WORKSPACES) {
             return;
         }
 
@@ -430,7 +430,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                     <View>
                         <Icon
                             src={Expensicons.Buildings}
-                            fill={theme.icon}
+                            fill={selectedTab === NAVIGATION_TABS.WORKSPACES ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
