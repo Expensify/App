@@ -6,6 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
+const minModalHeight = 380;
+
 function SearchMoneyRequestReportEmptyState() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -22,6 +24,7 @@ function SearchMoneyRequestReportEmptyState() {
                 headerStyles={[styles.emptyStateMoneyRequestReport]}
                 lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                 headerContentStyles={styles.emptyStateFolderWebStyles}
+                minModalHeight={minModalHeight}
             />
         </View>
     );
