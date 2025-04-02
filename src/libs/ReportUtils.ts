@@ -5958,13 +5958,13 @@ function buildOptimisticMovedTransactionAction(transactionThreadReportID: string
  * Builds an optimistic UNREPORTED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we unreport a transaction.
  */
-function buildOptimisticUnreportedTransactionAction(fromReportID: string | undefined, reportName: string): ReportAction {
+function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: string | undefined, fromReportID: string | undefined, reportName: string): ReportAction {
     const originalMessage = {
         fromReportID,
         reportName,
     };
 
-    const changePolicyReportActionMessage = [
+    const unreportedTransactionMessage = [
         {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             text: `removed this expense from <a href="${CONST.NEW_EXPENSIFY_URL}r/${fromReportID}">${reportName}</a>`,
@@ -5973,12 +5973,12 @@ function buildOptimisticUnreportedTransactionAction(fromReportID: string | undef
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-        reportID: fromReportID,
+        reportID: transactionThreadReportID,
         actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         originalMessage,
-        message: changePolicyReportActionMessage,
+        message: unreportedTransactionMessage,
         person: [
             {
                 style: 'strong',
