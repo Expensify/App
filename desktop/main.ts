@@ -145,28 +145,18 @@ const quitAndInstallWithUpdate = () => {
 };
 
 const verifyAndInstallLatestVersion = (): void => {
-    console.log('[dev] verifyAndInstallLatestVersion');
-
     autoUpdater
         .checkForUpdates()
         .then((result) => {
-            console.log('[dev] verifyAndInstallLatestVersion: result', result);
-            console.log('[dev] verifyAndInstallLatestVersion: downloadedVersion', downloadedVersion);
-
             if (result?.updateInfo.version === downloadedVersion) {
-                console.log('[dev] verifyAndInstallLatestVersion: if - versions match, installing');
                 return quitAndInstallWithUpdate();
             }
 
-            console.log('[dev] verifyAndInstallLatestVersion: else - downloading new update');
-
             return autoUpdater.downloadUpdate().then(() => {
-                console.log('[dev] verifyAndInstallLatestVersion: download complete, installing');
                 return quitAndInstallWithUpdate();
             });
         })
         .catch((error) => {
-            console.log('[dev] verifyAndInstallLatestVersion: error', error);
             log.error('Error during update check or download:', error);
         });
 };
