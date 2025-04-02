@@ -2,7 +2,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useIsNewSubscription from '@hooks/useIsNewSubscription';
@@ -14,6 +13,7 @@ import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import AddMembersButton from './AddMembersButton';
 import type {PersonalPolicyTypeExludedProps} from './SubscriptionPlanCard';
 
 type SubscriptionPlanCardActionButtonProps = {
@@ -33,7 +33,6 @@ type SubscriptionPlanCardActionButtonProps = {
 function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected, closeComparisonModal}: SubscriptionPlanCardActionButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const isNewSubscription = useIsNewSubscription();
     const currentUserAccountID = getCurrentUserAccountID();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -81,14 +80,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             );
         }
         if (isNewSubscription) {
-            return (
-                <Button
-                    text={translate('subscription.yourPlan.addMembers')}
-                    style={styles.ph5}
-                    icon={Expensicons.UserPlus}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID))}
-                />
-            );
+            return <AddMembersButton />;
         }
     }
 
