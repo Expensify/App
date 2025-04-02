@@ -31,6 +31,7 @@ import {
     isInvoiceReport,
     isReportApproved,
     isReportOwner,
+    isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
     navigateBackOnDeleteTransaction,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
@@ -363,10 +364,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         (!!statusBarProps || shouldShowNextStep);
 
     // The submit button should be success green colour only if the user is the submitter and the policy does not have Scheduled Submit turned on
-    const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled,
-        [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
-    );
+    const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
 
     const shouldDuplicateButtonBeSuccess = useMemo(
         () => isDuplicate && !shouldShowSettlementButton && !shouldShowExportIntegrationButton && !shouldShowSubmitButton && !shouldShowMarkAsCashButton,

@@ -20,6 +20,9 @@ type ReportActionItemFragmentProps = {
     /** Users accountID */
     accountID: number;
 
+    /** The report action's id */
+    reportActionID?: string;
+
     /** The message fragment needing to be displayed */
     fragment: Message | undefined;
 
@@ -76,6 +79,7 @@ const MUTED_ACTIONS = [
 ] as ReportActionName[];
 
 function ReportActionItemFragment({
+    reportActionID,
     pendingAction,
     actionName,
     fragment,
@@ -116,6 +120,7 @@ function ReportActionItemFragment({
             if (isReportMessageAttachment(fragment)) {
                 return (
                     <AttachmentCommentFragment
+                        reportActionID={reportActionID}
                         source={source}
                         html={fragment?.html ?? ''}
                         addExtraMargin={!displayAsGroup}
@@ -126,6 +131,7 @@ function ReportActionItemFragment({
 
             return (
                 <TextCommentFragment
+                    reportActionID={reportActionID}
                     source={source}
                     fragment={fragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}

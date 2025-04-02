@@ -17,7 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout staging branch
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -142,7 +143,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: "Announces a CP failure in the #announce Slack room"
-        uses: 8398a7/action-slack@v3
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         if: ${{ failure() }}
         with:
           status: custom

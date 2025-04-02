@@ -1,18 +1,24 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
+import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {removeReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReportFooter from '@pages/home/report/ReportFooter';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
+import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
 
@@ -29,9 +35,20 @@ type MoneyRequestReportViewProps = {
     /** Whether Report footer (that includes Composer) should be displayed */
     shouldDisplayReportFooter: boolean;
 
-    /** Calback for dismissing report error, that removes this report and navigates back. */
-    dismissReportCreationError: () => void;
+    /** The `backTo` route that should be used when clicking back button */
+    backToRoute: Route | undefined;
 };
+
+function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
+    return (
+        <View style={[styles.flex1]}>
+            <View style={[styles.appContentHeader, styles.borderBottom]}>
+                <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
+            </View>
+            <ReportActionsSkeletonView />
+        </View>
+    );
+}
 
 function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
     if (!parentReportActions || !parentReportActionID) {
@@ -40,21 +57,16 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-const noOp = () => {};
-
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, dismissReportCreationError}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const reportID = report?.reportID;
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false});
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
 
-    const {
-        reportActions,
-        hasNewerActions,
-        hasOlderActions,
-        // sortedAllReportActions,
-    } = usePaginatedReportActions(reportID);
+    const {reportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
@@ -62,6 +74,20 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     });
 
     const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
+    const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
+
+    const dismissReportCreationError = useCallback(() => {
+        Navigation.goBack(backToRoute);
+        removeReport(reportID);
+    }, [backToRoute, reportID]);
+
+    if (isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) {
+        return <InitialLoadingSkeleton styles={styles} />;
+    }
+
+    if (reportActions.length === 0) {
+        return <ReportActionsSkeletonView shouldAnimate={false} />;
+    }
 
     if (!report) {
         return;
@@ -79,26 +105,32 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 errorRowStyles={[styles.ph5, styles.mv2]}
             >
                 <HeaderGap />
-                <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    reportActions={[]}
-                    transactionThreadReportID={undefined}
-                    shouldDisplayBackButton
-                    onBackButtonPress={() => {
-                        Navigation.goBack();
-                    }}
-                />
-                <MoneyRequestReportActionsList
-                    report={report}
-                    reportActions={reportActions}
-                    hasOlderActions={hasOlderActions}
-                    hasNewerActions={hasNewerActions}
-                />
+                {!isLoadingApp ? (
+                    <MoneyReportHeader
+                        report={report}
+                        policy={policy}
+                        reportActions={[]}
+                        transactionThreadReportID={undefined}
+                        shouldDisplayBackButton
+                        onBackButtonPress={() => {
+                            Navigation.goBack(backToRoute);
+                        }}
+                    />
+                ) : (
+                    <ReportHeaderSkeletonView />
+                )}
+                {!isLoadingApp ? (
+                    <MoneyRequestReportActionsList
+                        report={report}
+                        reportActions={reportActions}
+                        hasOlderActions={hasOlderActions}
+                        hasNewerActions={hasNewerActions}
+                    />
+                ) : (
+                    <ReportActionsSkeletonView />
+                )}
                 {shouldDisplayReportFooter ? (
                     <ReportFooter
-                        onComposerFocus={noOp}
-                        onComposerBlur={noOp}
                         report={report}
                         reportMetadata={reportMetadata}
                         policy={policy}
