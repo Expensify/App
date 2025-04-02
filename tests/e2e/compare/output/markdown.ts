@@ -54,6 +54,7 @@ const buildDetailsTable = (entries: Entry[], numberOfTables = 1) => {
         return [''];
     }
 
+    // We always need at least one table
     const safeNumberOfTables = numberOfTables === 0 ? 1 : numberOfTables;
 
     const entriesPerTable = Math.floor(entries.length / safeNumberOfTables);
@@ -128,7 +129,9 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
     mainFile += `\n${buildSummaryTable(data.significance)}`;
     mainFile += `\n${buildDetailsTable(data.significance, 1).at(0)}`;
 
-    const meaninglessDetailsTables = buildDetailsTable(data.meaningless, nExtraFiles === 0 ? 1 : nExtraFiles);
+    // We always need at least one table
+    const numberOfMeaninglessDetailsTables = nExtraFiles === 0 ? 1 : nExtraFiles;
+    const meaninglessDetailsTables = buildDetailsTable(data.meaningless, numberOfMeaninglessDetailsTables);
 
     if (nExtraFiles === 0) {
         mainFile += '\n\n### Meaningless Changes To Duration';
