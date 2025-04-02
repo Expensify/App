@@ -51,6 +51,7 @@ import {
 } from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
+import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -226,9 +227,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
     for (const key in data) {
         if (isTransactionEntry(key)) {
             const item = data[key];
-            const date = getTransactionCreatedDate(item);
-
-            if (DateUtils.doesDateBelongToAPastYear(date)) {
+            if (shouldShowTransactionYear(item)) {
                 return true;
             }
         } else if (isReportActionEntry(key)) {
@@ -778,14 +777,14 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
     return typeMenuItems;
 }
 
-function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, hash: number): SavedSearchMenuItem {
+function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, isFocused: boolean): SavedSearchMenuItem {
     return {
         key,
         title,
         hash: key,
         query: item.query,
         shouldShowRightComponent: true,
-        focused: Number(key) === hash,
+        focused: isFocused,
         pendingAction: item.pendingAction,
         disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         shouldIconUseAutoWidthStyle: true,
