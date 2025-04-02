@@ -244,50 +244,51 @@ function ExpensifyCardPage({
                                 )}
                             </>
                         ))}
-                        {isTravelCard && travelCards.map((card) => (
-                            <>
-                                {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
-                                    <CardDetails
-                                        cvv={cardsDetails[card.cardID]?.cvv}
-                                        domain={domain}
-                                    />
-                                ) : (
-                                    <>
+                        {isTravelCard &&
+                            travelCards.map((card) => (
+                                <>
+                                    {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
+                                        <CardDetails
+                                            cvv={cardsDetails[card.cardID]?.cvv}
+                                            domain={domain}
+                                        />
+                                    ) : (
+                                        <>
+                                            <MenuItemWithTopDescription
+                                                description={translate('cardPage.travelCardCvv')}
+                                                title={'•••'}
+                                                interactive={false}
+                                                titleStyle={styles.walletCardNumber}
+                                                shouldShowRightComponent
+                                                rightComponent={
+                                                    !isSignedInAsdelegate ? (
+                                                        <Button
+                                                            text={translate('cardPage.cardDetails.revealCvv')}
+                                                            onPress={() => openValidateCodeModal(card.cardID)}
+                                                            isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
+                                                            isLoading={isCardDetailsLoading[card.cardID]}
+                                                        />
+                                                    ) : undefined
+                                                }
+                                            />
+                                            <DotIndicatorMessage
+                                                messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
+                                                type="error"
+                                                style={[styles.ph5]}
+                                            />
+                                        </>
+                                    )}
+                                    {!isSignedInAsdelegate && (
                                         <MenuItemWithTopDescription
-                                            description={translate('cardPage.travelCardCvv')}
-                                            title={'•••'}
-                                            interactive={false}
-                                            titleStyle={styles.walletCardNumber}
-                                            shouldShowRightComponent
-                                            rightComponent={
-                                                !isSignedInAsdelegate ? (
-                                                    <Button
-                                                        text={translate('cardPage.cardDetails.revealCvv')}
-                                                        onPress={() => openValidateCodeModal(card.cardID)}
-                                                        isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
-                                                        isLoading={isCardDetailsLoading[card.cardID]}
-                                                    />
-                                                ) : undefined
-                                            }
+                                            title={translate('cardPage.reportTravelFraud')}
+                                            titleStyle={styles.walletCardMenuItem}
+                                            icon={Expensicons.Flag}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
                                         />
-                                        <DotIndicatorMessage
-                                            messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
-                                            type="error"
-                                            style={[styles.ph5]}
-                                        />
-                                    </>
-                                )}
-                                {!isSignedInAsdelegate && (
-                                    <MenuItemWithTopDescription
-                                        title={translate('cardPage.reportTravelFraud')}
-                                        titleStyle={styles.walletCardMenuItem}
-                                        icon={Expensicons.Flag}
-                                        shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
-                                    />
-                                )}
-                            </>
-                        ))}
+                                    )}
+                                </>
+                            ))}
                         {physicalCards.map((card) => {
                             if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
                                 return null;
