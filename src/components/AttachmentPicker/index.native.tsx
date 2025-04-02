@@ -200,6 +200,10 @@ function AttachmentPicker({
                                                     height: manipResult.height,
                                                 };
                                                 return resolve([convertedAsset]);
+                                            })
+                                            .catch(() => {
+                                                manipulateContext?.release();
+                                                resolve(response.assets ?? []);
                                             }),
                                     );
                                 }
