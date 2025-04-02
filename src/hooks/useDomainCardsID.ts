@@ -1,13 +1,33 @@
-import {useOnyx} from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
+import { useOnyx } from 'react-native-onyx';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 
 function useDomainCardsID(policyID: string | undefined) {
-    const [domainCardsSettings] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
-        selector: (cardSettings) => Object.values(cardSettings ?? {}).find((settings) => settings?.preferredPolicy && settings.preferredPolicy === policyID),
-    });
+    const [domainCardsID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
+        selector: (cardSettings) => {
+            const matchingEntry = Object.entries(cardSettings ?? {}).find(
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                ([_, settings]) => settings?.preferredPolicy && settings.preferredPolicy === policyID
+            );
 
-    const domainCardsID = domainCardsSettings?.marqetaBusinessToken ?? CONST.DEFAULT_NUMBER_ID;
+            if (!matchingEntry) {
+                return CONST.DEFAULT_NUMBER_ID;
+            }
+
+            const key = matchingEntry[0];
+            const prefix = ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
+
+            if (!key.startsWith(prefix)) {
+                return CONST.DEFAULT_NUMBER_ID;
+            }
+
+            const accountIDStr = key.substring(prefix.length);
+
+            const accountID = Number(accountIDStr);
+            return Number.isNaN(accountID) ? CONST.DEFAULT_NUMBER_ID : accountID;
+        },
+    });
 
     return domainCardsID;
 }
