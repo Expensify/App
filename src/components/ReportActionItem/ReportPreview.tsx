@@ -55,6 +55,7 @@ import {
     hasNoticeTypeViolations,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
+    hasReceiptErrors,
     hasReportViolations,
     hasUpdatedTotal,
     hasViolations,
@@ -235,7 +236,8 @@ function ReportPreview({
         hasNoticeTypeViolations(iouReportID, violations, true) ||
         hasWarningTypeViolations(iouReportID, violations, true) ||
         (isReportOwner(iouReport) && hasReportViolations(iouReportID)) ||
-        hasActionsWithErrors(iouReportID);
+        hasActionsWithErrors(iouReportID) ||
+        hasReceiptErrors(iouReportID);
     const lastThreeTransactions = transactions?.slice(-3) ?? [];
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);

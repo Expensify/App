@@ -80,6 +80,7 @@ import {
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
     getWorkspaceNameUpdatedMessage,
+    hasReceiptErrors,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
     isAnnounceRoom,
@@ -366,6 +367,12 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     if (hasViolations) {
         return {
             reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
+        };
+    }
+
+    if (isExpenseReport(report) && hasReceiptErrors(report.reportID)) {
+        return {
+            reason: CONST.RBR_REASONS.HAS_ERRORS,
         };
     }
 
