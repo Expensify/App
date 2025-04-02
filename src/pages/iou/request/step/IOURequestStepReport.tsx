@@ -53,8 +53,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 text: report.reportName,
                 value: report.reportID,
                 keyForList: report.reportID,
+                isSelected: report.reportID === transaction?.reportID,
             }));
-    }, [allReports, debouncedSearchValue]);
+    }, [allReports, debouncedSearchValue, transaction?.reportID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
