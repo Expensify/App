@@ -7,6 +7,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllReportActions} from '@libs/ReportActionsUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,8 +25,15 @@ type ReportListItem = ListItem & {
 type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM>;
 
+/**
+ * Check if a report has any forwarded actions
+ */
+function hasForwardedAction(reportID: string): boolean {
+    const reportActions = getAllReportActions(reportID);
+    return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+}
+
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
-    // TODO: hasForwardedAction
     const {translate} = useLocalize();
     const {backTo} = route.params;
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -42,7 +50,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 report?.stateNum &&
                 report?.statusNum &&
                 report?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
-                report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED,
+                report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
+                !hasForwardedAction(report.reportID),
         );
 
         return expenseReports
