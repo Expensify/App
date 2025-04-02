@@ -1,50 +1,37 @@
+import type { NavigationState, PartialState } from '@react-navigation/native';
+import { findFocusedRoute } from '@react-navigation/native';
 /* eslint-disable @typescript-eslint/naming-convention */
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import CONST from '@src/CONST';
+import type { Route } from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 
-const workspaceScreenNames: Record<string, string> = {
-    default: SCREENS.WORKSPACE.INITIAL,
-    overview: SCREENS.WORKSPACE.PROFILE,
-    members: SCREENS.WORKSPACE.MEMBERS,
-    'distance-rates': SCREENS.WORKSPACE.DISTANCE_RATES,
-    'expensify-card': SCREENS.WORKSPACE.EXPENSIFY_CARD,
-    'company-cards': SCREENS.WORKSPACE.COMPANY_CARDS,
-    'per-diem': SCREENS.WORKSPACE.PER_DIEM,
-    workflows: SCREENS.WORKSPACE.WORKFLOWS,
-    rules: SCREENS.WORKSPACE.RULES,
-    invoices: SCREENS.WORKSPACE.INVOICES,
-    categories: SCREENS.WORKSPACE.CATEGORIES,
-    tags: SCREENS.WORKSPACE.TAGS,
-    taxes: SCREENS.WORKSPACE.TAXES,
-    reportFields: SCREENS.WORKSPACE.REPORT_FIELDS,
-    accounting: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
-    'more-features': SCREENS.WORKSPACE.MORE_FEATURES,
-};
-
-function savePathToSessionStorage(url: string) {
+function saveSettingsStatePathToSessionStorage(url: string) {
     sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH, url);
 }
 
-function getWorkspaceScreenNameKey(url: string): string {
-    const parts = url.split('/');
-    return parts.filter(Boolean).pop() ?? '';
-}
 
-function getLastVisitedSettingsPath(): string {
+function getSettingsTabStateFromSessionStorage(): PartialState<NavigationState> | undefined{
     const lastVisitedSettingsPath = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH);
-    return lastVisitedSettingsPath ?? '';
+    if (!lastVisitedSettingsPath) {
+        return undefined;
+    }
+    return getStateFromPath(lastVisitedSettingsPath as Route);
 }
 
-function getWorkspaceScreenName(key: string): string {
-    return workspaceScreenNames[key] ?? '';
+
+function getWorkspaceScreenNameFromState(state?: PartialState<NavigationState>) {
+    return state.routes.at(-1)?.state?.routes.at(-1).name ?? undefined;
+}
+
+function getLastVisitedSettingsPath(state?: PartialState<NavigationState> | undefined): Route | undefined{
+    return state ? findFocusedRoute(state)?.path as Route : undefined;
 }
 
 function getLastVisitedWorkspaceScreen() {
-    const lastVisitedSettingsPath = getLastVisitedSettingsPath();
-    const key = getWorkspaceScreenNameKey(lastVisitedSettingsPath);
-    const workspaceScreenName = getWorkspaceScreenName(key);
-    return !getIsNarrowLayout() && workspaceScreenName ? workspaceScreenName : SCREENS.WORKSPACE.INITIAL;
+    const settingsState = getSettingsTabStateFromSessionStorage();
+    const workspaceScreenName = getWorkspaceScreenNameFromState(settingsState);
+    return workspaceScreenName ?? SCREENS.WORKSPACE.INITIAL;
 }
 
-export {getLastVisitedWorkspaceScreen, savePathToSessionStorage, getLastVisitedSettingsPath};
+export {getLastVisitedWorkspaceScreen, getLastVisitedSettingsPath, saveSettingsStatePathToSessionStorage, getSettingsTabStateFromSessionStorage};
