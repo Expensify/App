@@ -1,8 +1,8 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
-import {isApprover as isApprovedMember} from './actions/Policy/Member';
+import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
 import {
@@ -30,13 +30,13 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     return isExpense && isSubmitter && isOpen && isManualSubmitEnabled && !hasViolations;
 }
 
-function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
-    const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
+    const isApprover = isApproverMember(policy, getCurrentUserAccountID());
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const hasViolations = hasAnyViolations(report.reportID, violations);
-    const reportTransactions = getReportTransactions(report?.reportID);
+    const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
     return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasViolations && reportTransactions.length > 0;
 }
 
@@ -77,19 +77,24 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
 function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
     const hasViolations = hasAnyViolations(report.reportID, violations);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
-    const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
+    const isApprover = isApproverMember(policy, getCurrentUserAccountID());
     const areWorkflowsEnabled = policy ? policy.areWorkflowsEnabled : false;
     return hasViolations && (isSubmitter || isApprover) && areWorkflowsEnabled;
 }
 
-function getReportPreviewAction(violations: OnyxCollection<TransactionViolation[]>, report?: Report, policy?: Policy): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
+function getReportPreviewAction(
+    violations: OnyxCollection<TransactionViolation[]>,
+    report?: Report,
+    policy?: Policy,
+    transactions?: Transaction[],
+): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
     if (canSubmit(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (canApprove(report, violations, policy)) {
+    if (canApprove(report, violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
     if (canPay(report, violations, policy)) {
