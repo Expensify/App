@@ -3051,10 +3051,10 @@ function getReimbursementQueuedActionMessage({
 }
 
 /**
- * Returns the preview message for `REIMBURSEMENT_DEQUEUED` action
+ * Returns the preview message for `REIMBURSEMENT_DEQUEUED` or `REIMBURSEMENT_ACH_CANCELED` action
  */
-function getReimbursementDeQueuedActionMessage(
-    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
+function getReimbursementDeQueuedOrCanceledActionMessage(
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
     reportOrID: OnyxEntry<Report> | string | SearchReport,
     isLHNPreview = false,
 ): string {
@@ -3063,7 +3063,7 @@ function getReimbursementDeQueuedActionMessage(
     const amount = originalMessage?.amount;
     const currency = originalMessage?.currency;
     const formattedAmount = convertToDisplayString(amount, currency);
-    if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
+    if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN || originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.USER) {
         const payerOrApproverName = report?.managerID === currentUserAccountID || !isLHNPreview ? '' : getDisplayNameForParticipant({accountID: report?.managerID, shouldUseShortForm: true});
         return translateLocal('iou.adminCanceledRequest', {manager: payerOrApproverName, amount: formattedAmount});
     }
@@ -9616,7 +9616,7 @@ export {
     getPolicyExpenseChatName,
     getPolicyName,
     getPolicyType,
-    getReimbursementDeQueuedActionMessage,
+    getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
     getReportDescription,
