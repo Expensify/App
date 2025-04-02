@@ -2944,7 +2944,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
-            if (typeof iouReport.total === 'number') {
+            if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 iouReport.total -= amount;
             }
 
@@ -3195,7 +3195,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
-            if (typeof iouReport.total === 'number') {
+            if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 iouReport.total -= amount;
             }
 
@@ -3403,7 +3403,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             iouReport = {...iouReport};
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             if (iouReport?.currency === currency) {
-                if (typeof iouReport.total === 'number' && typeof iouReport.nonReimbursableTotal === 'number') {
+                if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined && typeof iouReport.nonReimbursableTotal === 'number') {
                     iouReport.total -= amount;
                     iouReport.nonReimbursableTotal -= amount;
                 }
@@ -3711,7 +3711,7 @@ function getUpdateMoneyRequestParams(
     let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
     if (!iouReport) {
         updatedMoneyRequestReport = null;
-    } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && typeof iouReport.total === 'number') {
+    } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
         // For expense report, the amount is negative, so we should subtract total from diff
         updatedMoneyRequestReport = {
             ...iouReport,
