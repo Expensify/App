@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -14,10 +14,11 @@ import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {openReport} from '@userActions/Report';
+import {openReport, removeReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
@@ -41,7 +42,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
-    const {reportID} = route.params;
+    const {reportID, backTo} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
@@ -53,6 +54,11 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
     useEffect(() => {
         openReport(reportID);
     }, [reportID]);
+
+    const dismissReportCreationError = useCallback(() => {
+        Navigation.goBack(backTo);
+        removeReport(reportID);
+    }, [backTo, reportID]);
 
     if (shouldUseNarrowLayout) {
         return (
@@ -67,6 +73,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                     reportMetadata={reportMetadata}
                     policy={policy}
                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                    dismissReportCreationError={dismissReportCreationError}
                 />
             </ScreenWrapper>
         );
@@ -99,6 +106,7 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
                                 reportMetadata={reportMetadata}
                                 policy={policy}
                                 shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                dismissReportCreationError={dismissReportCreationError}
                             />
                         </View>
                         <PortalHost name="suggestions" />

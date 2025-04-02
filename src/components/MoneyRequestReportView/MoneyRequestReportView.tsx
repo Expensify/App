@@ -28,6 +28,9 @@ type MoneyRequestReportViewProps = {
 
     /** Whether Report footer (that includes Composer) should be displayed */
     shouldDisplayReportFooter: boolean;
+
+    /** Calback for dismissing report error, that removes this report and navigates back. */
+    dismissReportCreationError: () => void;
 };
 
 function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
@@ -39,7 +42,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 
 const noOp = () => {};
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, dismissReportCreationError}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
 
     const reportID = report?.reportID;
@@ -69,6 +72,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}
                 errors={reportErrors}
+                onClose={dismissReportCreationError}
                 needsOffscreenAlphaCompositing
                 style={styles.flex1}
                 contentContainerStyle={styles.flex1}

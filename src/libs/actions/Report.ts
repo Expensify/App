@@ -2612,6 +2612,15 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
     return optimisticReportID;
 }
 
+/**
+ * Removes report, it's related report actions and next step from Onyx.
+ */
+function removeReport(reportID: string | undefined) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+    Onyx.set(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, null);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
+}
+
 /** Add a policy report (workspace room) optimistically and navigate to it. */
 function addPolicyReport(policyReport: OptimisticChatReport) {
     const createdReportAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
@@ -5419,4 +5428,5 @@ export {
     moveIOUReportToPolicy,
     dismissChangePolicyModal,
     changeReportPolicy,
+    removeReport,
 };
