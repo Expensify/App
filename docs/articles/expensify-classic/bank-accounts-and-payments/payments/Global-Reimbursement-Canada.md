@@ -41,7 +41,8 @@ If your business bank account is based in Canada, you can send global reimbursem
    - Voided check
    - Bank statement showing the business name
    - Bank letter confirming account details
-3. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts. 
+3. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts.
+4. Once the test deposit amounts are confirmed, the bank account is verified to use for global reimbursement. 
 
 ---
 
@@ -53,7 +54,7 @@ After the account is verified:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** and enter their non-CAD account details.
 
-**Timeline:** ⏳ The account is typically set up to issue global reimbursements within two business days after onboarding is complete and the bank account is verified.
+**Timeline:** ⏳ From the time you submit all requested documentation, you can expect to start using global reimbursement within one to two weeks. Once the verification is complete, the account is typically ready to reimburse within two business days
 
 ---
 
