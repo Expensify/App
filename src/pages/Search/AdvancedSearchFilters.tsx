@@ -350,8 +350,8 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
     }
 
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
-        const filterArray = filters[nonDateFilterKey] ?? [];
-        return filterArray.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`)).join(', ');
+        const filterValue = filters[nonDateFilterKey];
+        return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`) : undefined;
     }
 
     const filterValue = filters[nonDateFilterKey];

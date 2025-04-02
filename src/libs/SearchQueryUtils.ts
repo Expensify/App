@@ -504,7 +504,7 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
             const validBooleanTypes = new Set(Object.values(CONST.SEARCH.BOOLEAN));
-            filtersForm[filterKey] = filterValues.filter((value) => validBooleanTypes.has(value as ValueOf<typeof CONST.SEARCH.BOOLEAN>));
+            filtersForm[filterKey] = filterValues.filter((value) => validBooleanTypes.has(value as ValueOf<typeof CONST.SEARCH.BOOLEAN>)).at(0);
         }
     }
 

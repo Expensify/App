@@ -1,9 +1,13 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,8 +16,11 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SearchMultipleSelectionPicker from './SearchMultipleSelectionPicker';
 import type {SearchBooleanFilterKeys} from './types';
+
+type BooleanFilterItem = ListItem & {
+    value: ValueOf<typeof CONST.SEARCH.BOOLEAN>;
+};
 
 type SearchBooleanFilterBaseProps = {
     /** Key used for the boolean filter */
@@ -27,27 +34,37 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
+    const initialSelection = useMemo(() => {
+        return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey] === value) ?? null;
+    }, [booleanKey, searchAdvancedFiltersForm, booleanValues]);
+
+    const [selectedItem, setSelectedItem] = useState<ValueOf<typeof CONST.SEARCH.BOOLEAN> | null>(initialSelection);
 
     const items = useMemo(() => {
-        return booleanValues.map((value) => {
-            const name = translate(`common.${value}`);
-            return {name, value};
-        });
-    }, [booleanValues, translate]);
+        return booleanValues.map((value) => ({
+            value,
+            keyForList: value,
+            text: translate(`common.${value}`),
+            isSelected: selectedItem === value,
+        }));
+    }, [selectedItem, translate, booleanValues]);
 
-    const initiallySelectedItems = useMemo(() => {
-        return searchAdvancedFiltersForm?.[booleanKey]
-            ?.filter((value) => booleanValues.includes(value as ValueOf<typeof CONST.SEARCH.BOOLEAN>))
-            .map((value) => {
-                const name = translate(`common.${value as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`);
-                return {name, value};
-            });
-    }, [booleanKey, searchAdvancedFiltersForm, translate, booleanValues]);
+    const updateFilter = useCallback((selectedFilter: BooleanFilterItem) => {
+        if (selectedFilter.isSelected) {
+            setSelectedItem(null);
+            return;
+        }
 
-    const updateFilter = useCallback((values: string[]) => updateAdvancedFilters({[booleanKey]: values}), [booleanKey]);
+        setSelectedItem(selectedFilter.value);
+    }, []);
+
+    const saveChanges = useCallback(() => {
+        updateAdvancedFilters({[booleanKey]: selectedItem});
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+    }, [booleanKey, selectedItem]);
 
     return (
         <ScreenWrapper
@@ -64,12 +81,21 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    disableSort
-                    items={items}
-                    shouldShowTextInput={false}
-                    initiallySelectedItems={initiallySelectedItems}
-                    onSaveSelection={updateFilter}
+                <SelectionList
+                    sections={[{data: items}]}
+                    ListItem={RadioListItem}
+                    onSelectRow={updateFilter}
+                    initiallyFocusedOptionKey={initialSelection}
+                    footerContent={
+                        <Button
+                            success
+                            style={[styles.mt4]}
+                            text={translate('common.save')}
+                            pressOnEnter
+                            onPress={saveChanges}
+                            large
+                        />
+                    }
                 />
             </View>
         </ScreenWrapper>

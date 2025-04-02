@@ -84,8 +84,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.FROM]: string[];
         [FILTER_KEYS.TO]: string[];
         [FILTER_KEYS.IN]: string[];
-        [FILTER_KEYS.REIMBURSABLE]: string[];
-        [FILTER_KEYS.BILLABLE]: string[];
+        [FILTER_KEYS.REIMBURSABLE]: string;
+        [FILTER_KEYS.BILLABLE]: string;
     }
 >;
 
