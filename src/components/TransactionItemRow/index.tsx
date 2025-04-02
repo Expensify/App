@@ -130,7 +130,7 @@ function TransactionItemRow({
                                         isChecked={isSelected}
                                     />
                                 </View>
-                            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
                                         isSelected={isSelected}
