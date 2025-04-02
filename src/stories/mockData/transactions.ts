@@ -211,7 +211,7 @@ const transaction: Transaction = {
 
 const fakeTransaction456: Transaction = {
     amount,
-    transactionID: 'trsx456',
+    transactionID: 'tx456',
     bank: '',
     billable: false,
     cardID: 0,
@@ -271,7 +271,7 @@ const originalMessage: OriginalMessageIOU = {
 
 const fakeOriginalMessage456: OriginalMessageIOU = {
     IOUReportID: 'rep456',
-    IOUTransactionID: 'trsx456',
+    IOUTransactionID: 'tx456',
     amount,
     comment: '',
     currency,
