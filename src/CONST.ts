@@ -984,7 +984,6 @@ const CONST = {
         AUD: 'AUD',
         CAD: 'CAD',
         GBP: 'GBP',
-        NZD: 'NZD',
         EUR: 'EUR',
     },
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
