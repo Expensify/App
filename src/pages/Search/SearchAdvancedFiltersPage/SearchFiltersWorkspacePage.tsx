@@ -1,6 +1,5 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-const updateWorkspaceFilter = (policyID: string | undefined) => {
+const updateWorkspaceFilter = (policyID: string | null) => {
     updateAdvancedFilters({
         policyID,
     });
@@ -37,28 +36,13 @@ function SearchFiltersWorkspacePage() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
-    const [selectedPolicyID, setSelectedPolicyID] = useState(searchAdvancedFiltersForm?.policyID);
-
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
-        selectedPolicyID,
+        selectedPolicyID: searchAdvancedFiltersForm?.policyID,
         searchTerm: debouncedSearchTerm,
     });
-
-    const footerContent = (
-        <Button
-            success
-            text={translate('common.save')}
-            pressOnEnter
-            onPress={() => {
-                updateWorkspaceFilter(selectedPolicyID);
-                Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-            }}
-            large
-        />
-    );
 
     return (
         <ScreenWrapper
@@ -82,14 +66,19 @@ function SearchFiltersWorkspacePage() {
                         <SelectionList<WorkspaceListItem>
                             ListItem={UserListItem}
                             sections={sections}
-                            onSelectRow={(option) => setSelectedPolicyID(option.policyID)}
+                            onSelectRow={(option) => {
+                                if (option.policyID === searchAdvancedFiltersForm?.policyID || !option.policyID) {
+                                    updateWorkspaceFilter(null);
+                                    return;
+                                }
+                                updateWorkspaceFilter(option.policyID);
+                            }}
                             textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
                             textInputValue={searchTerm}
                             onChangeText={setSearchTerm}
                             headerMessage={shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : ''}
                             initiallyFocusedOptionKey={searchAdvancedFiltersForm?.policyID}
                             showLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
-                            footerContent={footerContent}
                         />
                     )}
                 </>
