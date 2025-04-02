@@ -1910,6 +1910,7 @@ const styles = (theme: ThemeColors) =>
         popoverInnerContainer: {
             paddingTop: 0, // adjusting this because the mobile modal adds additional padding that we don't need for our layout
             maxHeight: '95%',
+            backgroundColor: theme.modalBackground,
         },
 
         menuItemTextContainer: {
