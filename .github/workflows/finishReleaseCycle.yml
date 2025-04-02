@@ -81,6 +81,21 @@ jobs:
     with:
       TARGET_BRANCH: production
 
+  # Remove DeployBlockerCash label from issues that had it since we just deployed production
+  cleanupDeployBlockers:
+    needs: updateProduction
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          gh issue list \
+            --state all \
+            --label DeployBlockerCash \
+            --json number \
+            --jq '.[].number' \
+            | xargs -L1 --max-procs=4 gh issue edit "$1" --remove-label DeployBlockerCash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
   # Create a new patch version to prep for next release cycle
   createNewPatchVersion:
     needs: validate
@@ -92,7 +107,7 @@ jobs:
 
   # Update the staging branch to trigger a staging deploy
   updateStaging:
-    needs: [updateProduction, createNewPatchVersion]
+    needs: [cleanupDeployBlockers, createNewPatchVersion]
     uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:

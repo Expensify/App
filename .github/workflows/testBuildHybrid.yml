@@ -187,15 +187,6 @@ jobs:
           submodules: true
           ref: ${{ needs.getNewDotRef.outputs.REF || 'main' }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          # fetch-depth: 0 is required in order to fetch the correct submodule branch
-          fetch-depth: 0
-
-      - name: Update submodule to match main
-        run: |
-          git submodule update --init --remote
-          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}" ]]; then
-            echo "Building from Mobile-Expensify main branch"
-          fi
 
       - name: Checkout Old Dot to author specified branch or commit
         if: ${{ needs.getOldDotRef.outputs.OLD_DOT_REF != '' }}
@@ -311,15 +302,6 @@ jobs:
           submodules: true
           ref: ${{ needs.getNewDotRef.outputs.REF || 'main'}}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          # fetch-depth: 0 is required in order to fetch the correct submodule branch
-          fetch-depth: 0
-
-      - name: Update submodule to match main
-        run: |
-          git submodule update --init --remote
-          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}" ]]; then
-            echo "Building from Mobile-Expensify main branch"
-          fi
 
       - name: Checkout Old Dot to author specified branch or commit
         if: ${{ needs.getOldDotRef.outputs.OLD_DOT_REF != '' }}
