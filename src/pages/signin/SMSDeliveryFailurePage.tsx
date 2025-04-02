@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -44,6 +44,7 @@ function SMSDeliveryFailurePage() {
     }, [SMSDeliveryFailureMessage]);
 
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
+    const [hasClickedReset, setHasClickedReset] = useState(false);
 
     const errorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
     const shouldShowError = !!errorText;
@@ -55,7 +56,7 @@ function SMSDeliveryFailurePage() {
         Keyboard.dismiss();
     }, [isKeyboardShown]);
 
-    if (hasSMSDeliveryFailure) {
+    if (hasSMSDeliveryFailure && hasClickedReset) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
@@ -85,7 +86,7 @@ function SMSDeliveryFailurePage() {
         );
     }
 
-    if (!hasSMSDeliveryFailure) {
+    if (!hasSMSDeliveryFailure && hasClickedReset) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
@@ -124,7 +125,10 @@ function SMSDeliveryFailurePage() {
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.validate')}
                     isLoading={account?.smsDeliveryFailureStatus?.isLoading}
-                    onSubmit={() => resetSMSDeliveryFailureStatus(login)}
+                    onSubmit={() => {
+                        resetSMSDeliveryFailureStatus(login);
+                        setHasClickedReset(true);
+                    }}
                     message={errorText}
                     isAlertVisible={shouldShowError}
                     containerStyles={[styles.w100, styles.mh0]}
