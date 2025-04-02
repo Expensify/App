@@ -62,6 +62,9 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
+
+    /** Whether to prevent long press of options */
+    shouldPreventLongPressRow?: boolean;
 };
 
 function SearchList(
@@ -80,6 +83,7 @@ function SearchList(
         containerStyle,
         ListFooterComponent,
         shouldPreventDefaultFocusOnSelectRow,
+        shouldPreventLongPressRow,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -143,13 +147,13 @@ function SearchList(
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (!isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
+            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
                 return;
             }
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isFocused, isSmallScreenWidth],
+        [isFocused, isSmallScreenWidth, shouldPreventLongPressRow],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -295,7 +299,7 @@ function SearchList(
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {canSelectMultiple && (
-                <View style={[styles.searchListHeaderContainerStyle]}>
+                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
                     <Checkbox
                         accessibilityLabel={translate('workspace.people.selectAll')}
                         isChecked={selectedItemsLength === data.length}
