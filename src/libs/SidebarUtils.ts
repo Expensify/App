@@ -58,7 +58,6 @@ import {
     isRenamedAction,
     isTagModificationAction,
     isTaskAction,
-    isTransactionThread,
     shouldReportActionBeVisibleAsLastAction,
 } from './ReportActionsUtils';
 import type {OptionData} from './ReportUtils';
@@ -81,7 +80,6 @@ import {
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
     getWorkspaceNameUpdatedMessage,
-    hasReceiptError,
     hasReceiptErrors,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
@@ -117,7 +115,6 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
-import {getTransaction, getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; phrase4?: string; messageText?: string; messageHtml?: string};
 
@@ -372,10 +369,8 @@ function getReasonAndReportActionThatHasRedBrickRoad(
             reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
         };
     }
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionID = getTransactionID(report.reportID);
-    const transaction = getTransaction(transactionID);
-    if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
+
+    if (isExpenseReport(report) && hasReceiptErrors(report.reportID)) {
         return {
             reason: CONST.RBR_REASONS.HAS_ERRORS,
         };
