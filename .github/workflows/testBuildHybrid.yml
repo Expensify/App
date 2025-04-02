@@ -57,7 +57,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Validate that user is an Expensify employee
         if: github.event.inputs.DISPATCHED_MANUALLY
@@ -87,7 +88,8 @@ jobs:
       REF: ${{ steps.getHeadRef.outputs.REF }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Check if pull request number is correct
         id: getHeadRef
@@ -115,7 +117,8 @@ jobs:
     steps:
       - name: Check if author specifed Old Dot PR
         id: old-dot-pr
-        uses: actions/github-script@v7
+        # v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
         with:
           github-token: ${{ github.token }}
           result-encoding: string
@@ -143,7 +146,8 @@ jobs:
         OLD_DOT_REF: ${{ steps.getHeadRef.outputs.REF }}
       steps:
         - name: Checkout
-          uses: actions/checkout@v4
+          # v4
+          uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
         - name: Check if pull request number is correct
           id: getHeadRef
@@ -177,20 +181,12 @@ jobs:
       S3_APK_PATH: ${{ steps.exportAndroidS3Path.outputs.S3_APK_PATH }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: true
           ref: ${{ needs.getNewDotRef.outputs.REF || 'main' }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          # fetch-depth: 0 is required in order to fetch the correct submodule branch
-          fetch-depth: 0
-
-      - name: Update submodule to match main
-        run: |
-          git submodule update --init --remote
-          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}" ]]; then
-            echo "Building from Mobile-Expensify main branch"
-          fi
 
       - name: Checkout Old Dot to author specified branch or commit
         if: ${{ needs.getOldDotRef.outputs.OLD_DOT_REF != '' }}
@@ -221,18 +217,21 @@ jobs:
             echo "PULL_REQUEST_NUMBER=${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" >> .env.adhoc
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        # v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'oracle'
           java-version: '17'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
+        # v1.190.0
+        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854
         with:
           bundler-cache: true
 
       - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
+        # v1
+        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
 
       - name: Load files from 1Password
         env:
@@ -246,7 +245,8 @@ jobs:
 
       - name: Load Android upload keystore credentials from 1Password
         id: load-credentials
-        uses: 1password/load-secrets-action@v2
+        # v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
         with:
           export-env: false
         env:
@@ -264,7 +264,8 @@ jobs:
         run: bundle exec fastlane android build_adhoc_hybrid
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        # v4
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -295,20 +296,12 @@ jobs:
       IOS_PATH: ${{ steps.export-ios-path.outputs.IOS_PATH }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: true
           ref: ${{ needs.getNewDotRef.outputs.REF || 'main'}}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          # fetch-depth: 0 is required in order to fetch the correct submodule branch
-          fetch-depth: 0
-
-      - name: Update submodule to match main
-        run: |
-          git submodule update --init --remote
-          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}" ]]; then
-            echo "Building from Mobile-Expensify main branch"
-          fi
 
       - name: Checkout Old Dot to author specified branch or commit
         if: ${{ needs.getOldDotRef.outputs.OLD_DOT_REF != '' }}
@@ -334,7 +327,8 @@ jobs:
           echo "PULL_REQUEST_NUMBER=${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" >> .env.adhoc
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.204.0
+        # v1.204.0
+        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854
         with:
           bundler-cache: true
 
@@ -342,7 +336,8 @@ jobs:
         run: bundle install
 
       - name: Cache Pod dependencies
-        uses: actions/cache@v4
+        # v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
         id: pods-cache
         with:
           path: Mobile-Expensify/iOS/Pods
@@ -361,7 +356,8 @@ jobs:
           command: npm run pod-install
 
       - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
+        # v1
+        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
 
       - name: Load files from 1Password
         env:
@@ -376,7 +372,8 @@ jobs:
         run: bundle exec fastlane ios build_adhoc_hybrid
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        # v4
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -407,7 +404,8 @@ jobs:
     needs: [getNewDotRef, getOldDotPR, androidHybrid, iosHybrid]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           ref: ${{ needs.getNewDotRef.outputs.REF }}
 
