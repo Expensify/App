@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -149,7 +150,7 @@ const baseFilterConfig = {
  */
 const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -171,7 +172,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -192,7 +193,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -213,13 +214,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-        ],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.IN],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
@@ -423,7 +418,26 @@ function AdvancedSearchFilters() {
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
+    const {canUseLeftHandBar} = usePermissions();
 
+    // If users have access to the leftHandBar beta, then the workspace filter is displyed in the first section of the advanced search filters
+    const typeFiltersKeysWithPermissionCheck = useMemo(
+        () =>
+            canUseLeftHandBar
+                ? Object.fromEntries(
+                      Object.entries(typeFiltersKeys).map(([key, arrays]) => {
+                          const firstArray = arrays.at(0);
+                          if (!firstArray) {
+                              return [key, arrays];
+                          }
+
+                          const modifiedFirstArray = [...firstArray, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
+                          return [key, [modifiedFirstArray, ...arrays.slice(1)]];
+                      }),
+                  )
+                : typeFiltersKeys,
+        [canUseLeftHandBar],
+    );
     const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: (policyCategories) =>
@@ -461,7 +475,7 @@ function AdvancedSearchFilters() {
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    if (!Object.keys(typeFiltersKeys).includes(currentType)) {
+    if (!Object.keys(typeFiltersKeysWithPermissionCheck).includes(currentType)) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
@@ -493,7 +507,7 @@ function AdvancedSearchFilters() {
         applyFiltersAndNavigate();
     };
 
-    const filters = typeFiltersKeys[currentType]
+    const filters = typeFiltersKeysWithPermissionCheck[currentType]
         .map((section) => {
             return section
                 .map((key) => {
