@@ -16,6 +16,10 @@ const HybridAppModule: HybridAppModuleType = {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `switchAccount` should never be called on web');
     },
+    sendAuthToken() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `sendAuthToken` should never be called on web');
+    },
 };
 
 export default HybridAppModule;

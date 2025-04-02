@@ -156,6 +156,12 @@ const webViewStyles = (theme: ThemeColors) =>
                 fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
             },
 
+            strong: {
+                // We set fontFamily and fontWeight directly in order to avoid overriding fontStyle.
+                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+                fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+            },
+
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
@@ -435,6 +441,12 @@ const styles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightSmall,
+        },
+
+        textSupportingNormal: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
         },
 
         textExtraSmallSupporting: {
@@ -3732,12 +3744,6 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        searchInputStyle: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
-        },
-
         searchRouterTextInputContainer: {
             borderRadius: variables.componentBorderRadiusSmall,
             borderWidth: 1,
@@ -3775,8 +3781,6 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             ...userSelect.userSelectNone,
             paddingBottom: 12,
-            paddingHorizontal: 32,
-            paddingTop: 12,
             backgroundColor: theme.appBG,
             justifyContent: 'flex-start',
         },
@@ -4313,18 +4317,20 @@ const styles = (theme: ThemeColors) =>
             ...writingDirection.ltr,
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh2,
+            lineHeight: variables.lineHeighTaskTitle,
             maxWidth: '100%',
             ...wordBreak.breakWord,
+            textUnderlineOffset: -1,
         },
 
         taskTitleMenuItemItalic: {
             ...writingDirection.ltr,
             ...headlineItalicFont,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh2,
+            lineHeight: variables.lineHeighTaskTitle,
             maxWidth: '100%',
             ...wordBreak.breakWord,
+            textUnderlineOffset: -1,
         },
 
         taskDescriptionMenuItem: {
@@ -4748,6 +4754,10 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             borderRadius: variables.componentBorderRadiusLarge,
             height: 180,
+            maxWidth: '100%',
+        },
+
+        expenseViewImage: {
             maxWidth: 360,
         },
 
@@ -4882,6 +4892,11 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 12,
             paddingVertical: 12,
             borderRadius: 8,
+        },
+
+        listTableHeader: {
+            paddingVertical: 12,
+            paddingHorizontal: 32,
         },
 
         cardItemSecondaryIconStyle: {
@@ -5353,6 +5368,13 @@ const styles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        emptyStateMoneyRequestReport: {
+            maxHeight: 85,
+            minHeight: 85,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
         pendingStateCardIllustration: {
             width: 233,
             height: 162,
@@ -5543,6 +5565,21 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
+        reportPreviewCarouselDots: {
+            borderRadius: 50,
+            width: 8,
+            height: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        reportPreviewArrowButton: {
+            borderRadius: 50,
+            width: 28,
+            height: 28,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 4,
+        },
 
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,

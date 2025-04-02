@@ -212,7 +212,7 @@ function IOURequestStepConfirmation({
             : transaction?.reportID === reportID;
 
         // Exit if the transaction already exists and is associated with the current report
-        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && isCurrentReportID) {
+        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && (isCurrentReportID || isMovingTransactionFromTrackExpense)) {
             return;
         }
 
@@ -223,7 +223,7 @@ function IOURequestStepConfirmation({
             generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction, reportID]);
+    }, [isLoadingTransaction, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
         if (!transaction?.category) {
@@ -384,7 +384,7 @@ function IOURequestStepConfirmation({
                 action,
                 transactionParams: {
                     amount: transaction.amount,
-                    attendees: transaction.attendees,
+                    attendees: transaction.comment?.attendees,
                     currency: transaction.currency,
                     created: transaction.created,
                     merchant: transaction.merchant,
@@ -927,7 +927,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouAttendees={transaction?.attendees ?? []}
+                        iouAttendees={transaction?.comment?.attendees ?? []}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}
@@ -939,7 +939,7 @@ function IOURequestStepConfirmation({
                         receiptFilename={receiptFilename}
                         iouType={iouType}
                         reportID={reportID}
-                        shouldDisplayReceipt
+                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && !isDistanceRequest && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={getIOURequestPolicyID(transaction, report)}
                         bankAccountRoute={getBankAccountRoute(report)}
@@ -953,6 +953,7 @@ function IOURequestStepConfirmation({
                         shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
+                        isReceiptEditable
                     />
                 </View>
             </DragAndDropProvider>

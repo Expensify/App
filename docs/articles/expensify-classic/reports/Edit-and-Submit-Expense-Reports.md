@@ -135,6 +135,8 @@ Some workspaces automatically submit or approve reports, removing the need for m
    - **Memo**: Additional notes.
    - **Attach PDF**: Attach a report copy (optional).
 5. Click **Send**.
+   
+**Note:** The **CC field** is *sticky*—Expensify remembers the last manually entered value and automatically applies it to future reports. To stop CCing someone automatically, remove their email from the **CC** field the next time you submit a report.
 
 **On Mobile:**
 1. Tap the ☰ **menu** icon in the top left.
@@ -147,6 +149,8 @@ Some workspaces automatically submit or approve reports, removing the need for m
    - **Memo**: Additional notes.
    - **Attach PDF**: Attach a report copy (optional).
 6. Tap **Submit**.
+
+**Note:** The **CC field** is *sticky*—Expensify remembers the last manually entered value and automatically applies it to future reports. To stop CCing someone automatically, remove their email from the **CC** field the next time you submit a report.
 
 ## Submit via Guided Review (web-only)
 
