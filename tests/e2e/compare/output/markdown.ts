@@ -141,10 +141,10 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
     const extraFiles: string[] = [];
     for (let i = 0; i < nExtraFiles; i++) {
         let extraFile = '## Performance Comparison Report 📊';
-        extraFile += nExtraFiles > 0 ? ` (${i + 2}/${nExtraFiles + 1})` : '';
+        extraFile += ` (${i + 2}/${nExtraFiles + 1})`;
 
         extraFile += '\n\n### Meaningless Changes To Duration';
-        extraFile += nExtraFiles > 1 ? ` (${i + 1}/${nExtraFiles})` : '';
+        extraFile += nExtraFiles >= 2 ? ` (${i + 1}/${nExtraFiles})` : '';
 
         extraFile += `\n${buildSummaryTable(data.meaningless, true)}`;
         extraFile += `\n${meaninglessDetailsTables.at(i)}`;
