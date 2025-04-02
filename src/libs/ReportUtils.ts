@@ -5542,18 +5542,20 @@ function getDeletedTransactionMessage(action: ReportAction) {
 
 function getMovedTransactionMessage(action: ReportAction) {
     const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
-    const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+    const {toReportID, reportName} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
     const message = translateLocal('iou.movedTransaction', {
-        reportID: toReportID,
+        toReportID,
+        reportName,
     });
     return message;
 }
 
 function getUnreportedTransactionMessage(action: ReportAction) {
     const unreportedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>) ?? {};
-    const {oldReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+    const {fromReportID, reportName} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
     const message = translateLocal('iou.unreportedTransaction', {
-        reportID: oldReportID,
+        fromReportID,
+        reportName,
     });
     return message;
 }
@@ -5918,28 +5920,27 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
  * Builds an optimistic MOVED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
-function buildOptimisticMovedTransactionAction(oldReportID: string | undefined, toReportID: string, transactionID: string): ReportAction {
+function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, toReportID: string, reportName: string): ReportAction {
     const originalMessage = {
-        oldReportID,
         toReportID,
-        transactionID,
+        reportName,
     };
 
-    const changePolicyReportActionMessage = [
+    const movedTransactionMessage = [
         {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            text: `moved this expense to [Expense Report ${toReportID}]`,
+            text: `moved this expense to <a href="${CONST.NEW_EXPENSIFY_URL}r/${toReportID}">${reportName}</a>`,
         },
     ];
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-        reportID: oldReportID,
+        reportID: transactionThreadReportID,
         actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         originalMessage,
-        message: changePolicyReportActionMessage,
+        message: movedTransactionMessage,
         person: [
             {
                 style: 'strong',
@@ -5957,23 +5958,22 @@ function buildOptimisticMovedTransactionAction(oldReportID: string | undefined, 
  * Builds an optimistic UNREPORTED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we unreport a transaction.
  */
-function buildOptimisticUnreportedTransactionAction(oldReportID: string | undefined, toReportID: string, transactionID: string): ReportAction {
+function buildOptimisticUnreportedTransactionAction(fromReportID: string | undefined, reportName: string): ReportAction {
     const originalMessage = {
-        oldReportID,
-        toReportID,
-        transactionID,
+        fromReportID,
+        reportName,
     };
 
     const changePolicyReportActionMessage = [
         {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            text: `removed this expense from [Expense Report ${oldReportID}]`,
+            text: `removed this expense from <a href="${CONST.NEW_EXPENSIFY_URL}r/${fromReportID}">${reportName}</a>`,
         },
     ];
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-        reportID: oldReportID,
+        reportID: fromReportID,
         actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
