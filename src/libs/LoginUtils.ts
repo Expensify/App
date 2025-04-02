@@ -92,8 +92,8 @@ function postSAMLLogin(body: FormData): Promise<Response | void> {
     });
 }
 
-function handleSAMLLoginError(errorMessage: string, cleanSignInData: boolean) {
-    if (cleanSignInData) {
+function handleSAMLLoginError(errorMessage: string, shouldClearSignInData: boolean) {
+    if (shouldClearSignInData) {
         clearSignInData();
     }
 
