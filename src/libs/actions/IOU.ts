@@ -16,6 +16,7 @@ import type {
     CreateWorkspaceParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
+    MergeDuplicatesParams,
     PayInvoiceParams,
     PayMoneyRequestParams,
     ReplaceReceiptParams,
@@ -29,7 +30,6 @@ import type {
     StartSplitBillParams,
     SubmitReportParams,
     TrackExpenseParams,
-    TransactionMergeParams,
     UnapproveExpenseReportParams,
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
@@ -59,7 +59,17 @@ import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@lib
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getPerDiemCustomUnit, getPolicy, getSubmitToAccountID, hasDependentTags, isControlPolicy, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
+import {
+    getPerDiemCustomUnit,
+    getPersonalPolicy,
+    getPolicy,
+    getSubmitToAccountID,
+    hasDependentTags,
+    isControlPolicy,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isSubmitAndClose,
+} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getIOUReportIDFromReportActionPreview,
@@ -96,6 +106,7 @@ import {
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticResolvedDuplicatesReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
     buildOptimisticUnHoldReportAction,
@@ -753,8 +764,10 @@ function initMoneyRequest(
     newIouRequestType: IOURequestType,
 ) {
     // Generate a brand new transactionID
+    const personalPolicy = getPolicy(getPersonalPolicy()?.id);
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const currency = policy?.outputCurrency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
+    const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
+
     // Disabling this line since currentDate can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
@@ -773,7 +786,9 @@ function initMoneyRequest(
         return;
     }
 
-    const comment: Comment = {};
+    const comment: Comment = {
+        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
+    };
     let requestCategory: string | null = null;
 
     // Add initial empty waypoints when starting a distance expense
@@ -808,7 +823,6 @@ function initMoneyRequest(
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
         amount: 0,
-        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
         comment,
         created,
         currency,
@@ -882,7 +896,7 @@ function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraf
 }
 
 function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {attendees});
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {attendees}});
 }
 
 function setMoneyRequestPendingFields(transactionID: string, pendingFields: OnyxTypes.Transaction['pendingFields']) {
@@ -3843,6 +3857,10 @@ function getUpdateMoneyRequestParams(
         }
     }
 
+    if (Array.isArray(params?.attendees)) {
+        params.attendees = JSON.stringify(params?.attendees);
+    }
+
     // Clear out the error fields and loading states on success
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -4887,6 +4905,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 createdReportActionIDForThread,
                 reimbursible,
                 description: parsedComment,
+                attendees: attendees ? JSON.stringify(attendees) : undefined,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
@@ -9255,18 +9274,16 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
     }
 
-    completeOnboarding(
-        onboardingPurpose,
-        CONST.ONBOARDING_MESSAGES[onboardingPurpose],
-        personalDetails?.firstName ?? '',
-        personalDetails?.lastName ?? '',
+    completeOnboarding({
+        engagementChoice: onboardingPurpose,
+        onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurpose],
+        firstName: personalDetails?.firstName,
+        lastName: personalDetails?.lastName,
         adminsChatReportID,
         onboardingPolicyID,
         paymentSelected,
-        undefined,
-        undefined,
-        true,
-    );
+        wasInvited: true,
+    });
 }
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
@@ -9982,6 +9999,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     transactionID: string,
     reportID: string,
     receiptType: string | undefined,
+    onFailureCallback?: () => void,
 ) {
     if (!receiptFilename || !receiptPath) {
         return;
@@ -9990,6 +10008,10 @@ function navigateToStartStepIfScanFileCannotBeRead(
     const onFailure = () => {
         setMoneyRequestReceipt(transactionID, '', '', true);
         if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+            if (onFailureCallback) {
+                onFailureCallback();
+                return;
+            }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
             return;
         }
@@ -10026,7 +10048,7 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
 }
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
-function mergeDuplicates(params: TransactionMergeParams) {
+function mergeDuplicates(params: MergeDuplicatesParams) {
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
     const optimisticTransactionData: OnyxUpdate = {
@@ -10155,6 +10177,25 @@ function mergeDuplicates(params: TransactionMergeParams) {
         }, {}),
     };
 
+    const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
+
+    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
+    const optimisticReportActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [optimisticReportAction.reportActionID]: optimisticReportAction,
+        },
+    };
+
+    const failureReportActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [optimisticReportAction.reportActionID]: null,
+        },
+    };
+
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
@@ -10164,10 +10205,18 @@ function mergeDuplicates(params: TransactionMergeParams) {
         ...optimisticTransactionViolations,
         expenseReportOptimisticData,
         expenseReportActionsOptimisticData,
+        optimisticReportActionData,
     );
-    failureData.push(failureTransactionData, ...failureTransactionDuplicatesData, ...failureTransactionViolations, expenseReportFailureData, expenseReportActionsFailureData);
+    failureData.push(
+        failureTransactionData,
+        ...failureTransactionDuplicatesData,
+        ...failureTransactionViolations,
+        expenseReportFailureData,
+        expenseReportActionsFailureData,
+        failureReportActionData,
+    );
 
-    API.write(WRITE_COMMANDS.TRANSACTION_MERGE, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.MERGE_DUPLICATES, {...params, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, failureData});
 }
 
 function updateLastLocationPermissionPrompt() {
@@ -10175,7 +10224,7 @@ function updateLastLocationPermissionPrompt() {
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
-function resolveDuplicates(params: TransactionMergeParams) {
+function resolveDuplicates(params: MergeDuplicatesParams) {
     if (!params.transactionID) {
         return;
     }
