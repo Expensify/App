@@ -920,8 +920,8 @@ const translations = {
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
-        movedTransaction: ({reportID}: MovedTransactionParams) => `movió este gasto a [Gasto ${reportID}]`,
-        unreportedTransaction: ({reportID}: UnreportedTransactionParams) => `eliminó este gasto de [Gasto ${reportID}]`,
+        movedTransaction: ({toReportID, reportName}: MovedTransactionParams) => `movió este gasto a <a href="${CONST.NEW_EXPENSIFY_URL}r/${toReportID}">${reportName}</a>`,
+        unreportedTransaction: ({fromReportID, reportName}: UnreportedTransactionParams) => `eliminó este gasto de <a href="${CONST.NEW_EXPENSIFY_URL}r/${fromReportID}">${reportName}</a>`,
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
             other: 'Problemas encontrados',
