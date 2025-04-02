@@ -150,18 +150,6 @@ const webViewStyles = (theme: ThemeColors) =>
         // styles from the renderer, just pass the "style" prop to the underlying
         // component.
         tagStyles: {
-            em: {
-                // We set fontFamily and fontStyle directly in order to avoid overriding fontWeight.
-                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontFamily,
-                fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
-            },
-
-            strong: {
-                // We set fontFamily and fontWeight directly in order to avoid overriding fontStyle.
-                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
-                fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
-            },
-
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
@@ -229,8 +217,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 marginBottom: 0,
             },
             h1: {
-                fontSize: undefined,
-                fontWeight: undefined,
                 marginBottom: 8,
             },
         },
@@ -287,6 +273,11 @@ const styles = (theme: ThemeColors) =>
         strong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
             fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+        },
+
+        em: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontFamily,
+            fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
         },
 
         autoCompleteSuggestionContainer: {
@@ -4576,6 +4567,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 16,
             margin: 20,
             overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: theme.border,
         },
 
         reportPreviewBox: {
@@ -4748,8 +4741,8 @@ const styles = (theme: ThemeColors) =>
             ...spacing.mh5,
             ...spacing.mv3,
             overflow: 'hidden',
-            borderWidth: 2,
-            borderColor: theme.cardBG,
+            borderWidth: 1,
+            borderColor: theme.border,
             borderRadius: variables.componentBorderRadiusLarge,
             height: 180,
             maxWidth: '100%',
@@ -5563,6 +5556,21 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
+        reportPreviewCarouselDots: {
+            borderRadius: 50,
+            width: 8,
+            height: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        reportPreviewArrowButton: {
+            borderRadius: 50,
+            width: 28,
+            height: 28,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 4,
+        },
 
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
