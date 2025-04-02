@@ -264,7 +264,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true);
             }
         },
         [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport, startAnimation],
