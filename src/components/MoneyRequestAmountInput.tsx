@@ -3,16 +3,15 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
-import * as Browser from '@libs/Browser';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {isMobileSafari} from '@libs/Browser';
+import {convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import {replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
 import CONST from '@src/CONST';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
-import type {TextInputWithCurrencySymbolProps} from './TextInputWithCurrencySymbol/types';
 
 type CurrentMoney = {amount: string; currency: string};
 
@@ -92,7 +91,7 @@ type MoneyRequestAmountInputProps = {
 
     /** The width of inner content */
     contentWidth?: number;
-} & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
+};
 
 type Selection = {
     start: number;
@@ -107,7 +106,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const defaultOnFormatAmount = (amount: number, currency?: string) => CurrencyUtils.convertToFrontendAmountAsString(amount, currency ?? CONST.CURRENCY.USD);
+const defaultOnFormatAmount = (amount: number, currency?: string) => convertToFrontendAmountAsString(amount, currency ?? CONST.CURRENCY.USD);
 
 function MoneyRequestAmountInput(
     {
@@ -127,7 +126,6 @@ function MoneyRequestAmountInput(
         hideFocusedState = true,
         shouldKeepUserInput = false,
         autoGrow = true,
-        autoGrowExtraSpace,
         contentWidth,
         ...props
     }: MoneyRequestAmountInputProps,
@@ -139,7 +137,7 @@ function MoneyRequestAmountInput(
 
     const amountRef = useRef<string | undefined>(undefined);
 
-    const decimals = CurrencyUtils.getCurrencyDecimals(currency);
+    const decimals = getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? onFormatAmount(amount, currency) : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
@@ -161,13 +159,11 @@ function MoneyRequestAmountInput(
         (newAmount: string) => {
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
-            const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
-            const finalAmount = newAmountWithoutSpaces.includes('.')
-                ? MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces)
-                : MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
+            const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
+            const finalAmount = newAmountWithoutSpaces.includes('.') ? stripCommaFromAmount(newAmountWithoutSpaces) : replaceCommasWithPeriod(newAmountWithoutSpaces);
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!MoneyRequestUtils.validateAmount(finalAmount, decimals)) {
+            if (!validateAmount(finalAmount, decimals)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
@@ -176,7 +172,7 @@ function MoneyRequestAmountInput(
 
             willSelectionBeUpdatedManually.current = true;
             let hasSelectionBeenSet = false;
-            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(finalAmount);
+            const strippedAmount = stripCommaFromAmount(finalAmount);
             amountRef.current = strippedAmount;
             setCurrentAmount((prevAmount) => {
                 const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
@@ -233,12 +229,12 @@ function MoneyRequestAmountInput(
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
         // If the changed currency supports decimals, we can return
-        if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
+        if (validateAmount(currentAmount, decimals)) {
             return;
         }
 
         // If the changed currency doesn't support decimals, we can strip the decimals
-        setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
+        setNewAmount(stripDecimalsFromAmount(currentAmount));
 
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -249,7 +245,7 @@ function MoneyRequestAmountInput(
      */
     const textInputKeyPress = ({nativeEvent}: NativeSyntheticEvent<KeyboardEvent>) => {
         const key = nativeEvent?.key.toLowerCase();
-        if (Browser.isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
+        if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
             // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessiblity keyboard is being
             // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
             forwardDeletePressedRef.current = true;
@@ -276,7 +272,7 @@ function MoneyRequestAmountInput(
         });
     }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
-    const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
+    const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
 
     const {setMouseDown, setMouseUp} = useMouseContext();
     const handleMouseDown = (e: React.MouseEvent<Element, MouseEvent>) => {
@@ -291,7 +287,6 @@ function MoneyRequestAmountInput(
     return (
         <TextInputWithCurrencySymbol
             autoGrow={autoGrow}
-            autoGrowExtraSpace={autoGrowExtraSpace}
             disableKeyboard={disableKeyboard}
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}

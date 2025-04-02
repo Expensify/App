@@ -49,7 +49,6 @@ function BaseTextInput(
         autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
-        autoGrowExtraSpace = 0,
         autoGrowHeight = false,
         maxAutoGrowHeight,
         hideFocusedState = false,
@@ -256,7 +255,6 @@ function BaseTextInput(
         styles.textInputContainer,
         textInputContainerStyles,
         !!contentWidth && StyleUtils.getWidthStyle(textInputWidth),
-        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
@@ -351,8 +349,8 @@ function BaseTextInput(
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
-                                    styles.flex1,
-                                    styles.w100,
+                                    !autoGrow && styles.flex1,
+                                    !autoGrow && styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     inputPaddingLeft,
@@ -462,32 +460,6 @@ function BaseTextInput(
                         {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
                     </Text>
                 </View>
-            )}
-            {/*
-                 Text input component doesn't support auto grow by default.
-                 This text view is used to calculate width or height of the input value given textStyle in this component.
-                 This Text component is intentionally positioned out of the screen.
-             */}
-            {(!!autoGrow || autoGrowHeight) && !isAutoGrowHeightMarkdown && (
-                <Text
-                    style={[
-                        inputStyle,
-                        autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
-                        styles.hiddenElementOutsideOfWindow,
-                        styles.visibilityHidden,
-                    ]}
-                    onLayout={(e) => {
-                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
-                            return;
-                        }
-                        // Add +2 to width so that cursor is not cut off / covered at the end of text content
-                        setTextInputWidth(e.nativeEvent.layout.width + 2);
-                        setTextInputHeight(e.nativeEvent.layout.height);
-                    }}
-                >
-                    {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
-                    {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
-                </Text>
             )}
         </>
     );
