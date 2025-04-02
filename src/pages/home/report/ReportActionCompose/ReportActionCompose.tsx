@@ -49,6 +49,7 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
+import toggleTestToolsModal from '@libs/actions/TestTool';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -338,6 +339,8 @@ function ReportActionCompose({
         clear: (() => void) | undefined;
     }>({clear: undefined});
     const handleSendMessage = useCallback(() => {
+        toggleTestToolsModal()
+        return
         'worklet';
 
         const clearComposer = composerRefShared.get().clear;
