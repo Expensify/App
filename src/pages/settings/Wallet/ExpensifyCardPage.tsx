@@ -71,7 +71,8 @@ function ExpensifyCardPage({
     const {translate} = useLocalize();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const [currentCardID, setCurrentCardID] = useState<number>(-1);
-    const shouldDisplayCardDomain = !cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual;
+    const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
+    const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
     const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
 
@@ -242,7 +243,7 @@ function ExpensifyCardPage({
                                 )}
                             </>
                         ))}
-                        {travelCards.map((card) => (
+                        {isTravelCard && travelCards.map((card) => (
                             <>
                                 {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
                                     <CardDetails
