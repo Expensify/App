@@ -553,6 +553,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.ENTER_SAGE_INTACCT_CREDENTIALS]: {
         policyID: string;
@@ -685,39 +686,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_SETUP]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_PROJECTS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_PROJECTS_DISPLAYED_AS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PREFERRED_EXPORTER]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PAYMENT_ACCOUNT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: {
         policyID: string;
     };
@@ -787,10 +755,6 @@ type SettingsNavigatorParamList = {
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {
-        policyID: string;
-        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING.MULTI_CONNECTION_SELECTOR]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
     };
@@ -1617,6 +1581,8 @@ type ReportsSplitNavigatorParamList = {
         openOnAdminRoom?: boolean;
         referrer?: string;
         backTo?: string;
+        moneyRequestReportActionID?: string;
+        transactionID?: string;
     };
 };
 
@@ -1799,6 +1765,12 @@ type SharedScreensParamList = {
     };
 };
 
+type ShareNavigatorParamList = {
+    [SCREENS.SHARE.ROOT]: undefined;
+    [SCREENS.SHARE.SHARE_DETAILS]: {reportOrAccountID: string};
+    [SCREENS.SHARE.SUBMIT_DETAILS]: {reportOrAccountID: string};
+};
+
 type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.UNLINK_LOGIN]: {
         accountID?: string;
@@ -1818,6 +1790,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.SUBMIT_EXPENSE]: undefined;
     [SCREENS.ATTACHMENTS]: {
         reportID: string;
+        attachmentID?: string;
         source: string;
         type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
         accountID: string;
@@ -1858,8 +1831,11 @@ type AuthScreensParamList = SharedScreensParamList & {
         transactionID: string;
         readonly?: string;
         isFromReviewDuplicates?: string;
+        action?: IOUAction;
+        iouType?: IOUType;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
+    [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
 };
 
@@ -1891,6 +1867,7 @@ type SearchFullscreenNavigatorParamList = {
     };
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
         reportID: string;
+        backTo?: Routes;
     };
 };
 
@@ -2002,6 +1979,7 @@ export type {
     ReportSettingsNavigatorParamList,
     ReportsSplitNavigatorParamList,
     RestrictedActionParamList,
+    ShareNavigatorParamList,
     RightModalNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootNavigatorParamList,

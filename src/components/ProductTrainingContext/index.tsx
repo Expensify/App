@@ -263,6 +263,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             onPress={() => {
                                 hideTooltip(true);
                             }}
+                            shouldUseAutoHitSlop
                             accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                             role={CONST.ROLE.BUTTON}
                         >

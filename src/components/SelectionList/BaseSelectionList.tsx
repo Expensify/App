@@ -116,7 +116,6 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldIgnoreFocus = false,
         scrollEventThrottle,
         contentContainerStyle,
-        shouldHighlightSelectedItem = false,
         shouldKeepFocusedItemAtTopOfViewableArea = false,
         shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
@@ -575,7 +574,6 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                     wrapperStyle={listItemWrapperStyle}
                     titleStyles={listItemTitleStyles}
-                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                 />
@@ -796,7 +794,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
         shouldStopPropagation,
         shouldPreventDefault,
-        isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused,
+        isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused && focusedIndex >= 0,
     });
 
     /** Calls confirm action when pressing CTRL (CMD) + Enter */

@@ -24,6 +24,7 @@ import createReportActionContextMenuStyleUtils from './generators/ReportActionCo
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
+import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
 import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
@@ -635,7 +636,7 @@ function getCodeFontSize(isInsideH1: boolean, isInsideTaskTitle?: boolean) {
         return 15;
     }
     if (isInsideTaskTitle) {
-        return 19;
+        return 18;
     }
     return 13;
 }
@@ -1209,6 +1210,7 @@ const staticStyleUtils = {
     getHorizontalStackedAvatarBorderStyle,
     getHorizontalStackedAvatarStyle,
     getHorizontalStackedOverlayAvatarStyle,
+    getMoneyRequestReportPreviewStyle,
     getReportWelcomeBackgroundImageStyle,
     getReportWelcomeBackgroundContainerStyle,
     getBaseAutoCompleteSuggestionContainerStyle,

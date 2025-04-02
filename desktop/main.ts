@@ -19,8 +19,6 @@ import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueu
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
-console.log('[dev] main');
-
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
 const port = process.env.PORT ?? 8082;
@@ -139,13 +137,28 @@ const preferredLocale: Locale = CONST.LOCALES.DEFAULT;
 const appProtocol = CONST.DEEPLINK_BASE_URL.replace('://', '');
 
 const quitAndInstallWithUpdate = () => {
-    console.log('[dev] quitAndInstallWithUpdate');
     if (!downloadedVersion) {
-        console.log('[dev] !downloadedVersion');
         return;
     }
     hasUpdate = true;
     autoUpdater.quitAndInstall();
+};
+
+const verifyAndInstallLatestVersion = (): void => {
+    autoUpdater
+        .checkForUpdates()
+        .then((result) => {
+            if (result?.updateInfo.version === downloadedVersion) {
+                return quitAndInstallWithUpdate();
+            }
+
+            return autoUpdater.downloadUpdate().then(() => {
+                return quitAndInstallWithUpdate();
+            });
+        })
+        .catch((error) => {
+            log.error('Error during update check or download:', error);
+        });
 };
 
 /** Menu Item callback to trigger an update check */
@@ -155,16 +168,13 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
         // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
         menuItem.enabled = false;
     }
-    console.log('[dev] manuallyCheckForUpdates');
     autoUpdater
         .checkForUpdates()
         .catch((error: unknown) => {
-            console.log('[dev] manuallyCheckForUpdates: catch');
             isSilentUpdating = false;
             return {error};
         })
         .then((result) => {
-            console.log('[dev] manuallyCheckForUpdates: then');
             const downloadPromise = result && 'downloadPromise' in result ? result.downloadPromise : undefined;
 
             if (!browserWindow) {
@@ -219,12 +229,7 @@ const showKeyboardShortcutsPage = (browserWindow: BrowserWindow) => {
 /** Actual auto-update listeners */
 const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater => ({
     init: () => {
-        console.log('[dev] electronUpdater.init');
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
-            console.log('[dev] ELECTRON_EVENTS.UPDATE_DOWNLOADED');
-            console.log('[dev] info:', info);
-            console.log('[dev] isSilentUpdating:', isSilentUpdating);
-
             const systemMenu = Menu.getApplicationMenu();
             const updateMenuItem = systemMenu?.getMenuItemById(`update`);
             const checkForUpdatesMenuItem = systemMenu?.getMenuItemById(`checkForUpdates`);
@@ -232,54 +237,25 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
             downloadedVersion = info.version;
 
             if (updateMenuItem) {
-                console.log('[dev] updateMenuItem', updateMenuItem);
                 updateMenuItem.visible = true;
             }
             if (checkForUpdatesMenuItem) {
-                console.log('[dev] checkForUpdatesMenuItem', checkForUpdatesMenuItem);
                 checkForUpdatesMenuItem.visible = false;
             }
             if (browserWindow.isVisible() && !isSilentUpdating) {
-                console.log('[dev] browserWindow.isVisible() && !isSilentUpdating');
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
-                console.log('[dev] else');
-
-                autoUpdater
-                    .checkForUpdates()
-                    .then((result) => {
-                        console.log('[dev] result', result);
-                        if (result?.updateInfo.version === downloadedVersion) {
-                            console.log('[dev] if - versions match, installing');
-                            quitAndInstallWithUpdate();
-                        } else {
-                            console.log('[dev] else - downloading new update');
-                            return autoUpdater.downloadUpdate().then(() => {
-                                console.log('[dev] download complete, installing');
-                                quitAndInstallWithUpdate();
-                            });
-                        }
-                    })
-                    .catch((error) => {
-                        console.log('[dev] error', error);
-                        log.error('Error during update check or download:', error);
-                    });
+                verifyAndInstallLatestVersion();
             }
         });
 
-        console.log('[dev] ipcMain.on(ELECTRON_EVENTS.START_UPDATE, quitAndInstallWithUpdate)');
         ipcMain.on(ELECTRON_EVENTS.START_UPDATE, () => {
-            console.log('[dev] ELECTRON_EVENTS.START_UPDATE');
-            quitAndInstallWithUpdate();
+            verifyAndInstallLatestVersion();
         });
-        autoUpdater.checkForUpdates().then((result) => {
-            console.log('[dev] update result 1: ', result);
-        });
+        autoUpdater.checkForUpdates();
     },
     update: () => {
-        autoUpdater.checkForUpdates().then((result) => {
-            console.log('[dev] update result 2:', result);
-        });
+        autoUpdater.checkForUpdates();
     },
 });
 
@@ -306,7 +282,7 @@ const mainWindow = (): Promise<void> => {
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
-        console.log('CONFIG: ', CONFIG);
+        console.debug('CONFIG: ', CONFIG);
         app.dock.setIcon(`${__dirname}/../icon-dev.png`);
         app.setName('New Expensify Dev');
     }
@@ -406,6 +382,7 @@ const mainWindow = (): Promise<void> => {
                     }
                     callback({responseHeaders: details.responseHeaders});
                 });
+                /* eslint-enable */
 
                 // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
                 if (__DEV__) {
@@ -418,7 +395,12 @@ const mainWindow = (): Promise<void> => {
                         label: translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
                         submenu: [
                             {id: 'about', role: 'about'},
-                            {id: 'update', label: translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
+                            {
+                                id: 'update',
+                                label: translate(preferredLocale, `desktopApplicationMenu.update`),
+                                click: verifyAndInstallLatestVersion,
+                                visible: false,
+                            },
                             {id: 'checkForUpdates', label: translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
                             {
                                 id: 'viewShortcuts',
@@ -661,11 +643,8 @@ const mainWindow = (): Promise<void> => {
                     browserWindow.show();
                 });
 
-                console.log('[dev] expectedUpdateVersion:', expectedUpdateVersion);
-                console.log('[dev] app.getVersion():', app.getVersion());
                 // Hide the app if we expected to upgrade to a new version but never did.
                 if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
-                    console.log('[dev] expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion');
                     browserWindow.hide();
                     app.hide();
                 }
@@ -713,7 +692,6 @@ const mainWindow = (): Promise<void> => {
 
                 // Automatically check for and install the latest version in the background
                 ipcMain.on(ELECTRON_EVENTS.SILENT_UPDATE, () => {
-                    console.log('[dev] ELECTRON_EVENTS.SILENT_UPDATE');
                     if (isSilentUpdating) {
                         return;
                     }
@@ -744,7 +722,6 @@ const mainWindow = (): Promise<void> => {
                     return;
                 }
 
-                console.log('[dev] checkForUpdates(electronUpdater(browserWindowRef));');
                 checkForUpdates(electronUpdater(browserWindowRef));
             })
     );
