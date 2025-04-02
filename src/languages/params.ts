@@ -663,6 +663,10 @@ type PolicyExpenseChatNameParams = {
     displayName: string;
 };
 
+type ReviewParams = {
+    amount: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -901,4 +905,5 @@ export type {
     YourPlanPriceValueParams,
     NeedCategoryForExportToIntegrationParams,
     SubscriptionSettingsSummaryParams,
+    ReviewParams,
 };

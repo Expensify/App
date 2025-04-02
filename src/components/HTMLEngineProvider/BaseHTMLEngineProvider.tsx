@@ -1,12 +1,11 @@
 import React, {useMemo} from 'react';
 import type {TextProps} from 'react-native';
 import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
-import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import FontUtils from '@styles/utils/FontUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
+import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
@@ -62,7 +61,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'comment',
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.islarge === undefined) {
-                        return {whiteSpace: 'pre'};
+                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
                     }
                     return {whiteSpace: 'pre', ...styles.onlyEmojisText};
                 },
@@ -80,17 +79,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             strong: HTMLElementModel.fromCustomModel({
                 tagName: 'strong',
-                getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.strong),
-                contentModel: HTMLContentModel.textual,
-            }),
-            em: HTMLElementModel.fromCustomModel({
-                tagName: 'em',
-                getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? styles.taskTitleMenuItemItalic : styles.em),
-                contentModel: HTMLContentModel.textual,
-            }),
-            h1: HTMLElementModel.fromCustomModel({
-                tagName: 'h1',
-                getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.h1),
+                mixedUAStyles: {whiteSpace: 'pre'},
                 contentModel: HTMLContentModel.textual,
             }),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
@@ -137,10 +126,6 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.onlyEmojisText,
             styles.onlyEmojisTextLineHeight,
             styles.taskTitleMenuItem,
-            styles.taskTitleMenuItemItalic,
-            styles.em,
-            styles.strong,
-            styles.h1,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
@@ -167,7 +152,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 defaultTextProps={defaultTextProps}
                 defaultViewProps={defaultViewProps}
                 renderers={htmlRenderers}
-                computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
+                computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
                 enableExperimentalBRCollapsing={enableExperimentalBRCollapsing}
             >
                 {children}
