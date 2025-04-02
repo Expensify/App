@@ -37,11 +37,11 @@ type WorkspaceExpensifyCardListPageProps = {
     /** List of Expensify cards */
     cardsList: OnyxEntry<WorkspaceCardsList>;
 
-    /** Card ID */
-    cardID: string;
+    /** Cards ID */
+    cardsID: number;
 };
 
-function WorkspaceExpensifyCardListPage({route, cardsList, cardID}: WorkspaceExpensifyCardListPageProps) {
+function WorkspaceExpensifyCardListPage({route, cardsList, cardsID}: WorkspaceExpensifyCardListPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -51,9 +51,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, cardID}: WorkspaceExp
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
-
-    // TODO: change cardID to more descriptive name(?)
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardsID}`);
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
@@ -121,7 +119,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList, cardID}: WorkspaceExp
         [personalDetails, policyCurrency, policyID, workspaceAccountID, styles],
     );
 
-    const renderListHeader = useCallback(() => <WorkspaceCardListHeader policyID={policyID} cardSettings={cardSettings} />, [policyID, cardSettings]);
+    const renderListHeader = useCallback(
+        () => (
+            <WorkspaceCardListHeader
+                policyID={policyID}
+                cardSettings={cardSettings}
+            />
+        ),
+        [policyID, cardSettings],
+    );
 
     return (
         <ScreenWrapper

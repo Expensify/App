@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import useDomainCardsID from '@hooks/useDomainCardsID';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,31 +26,16 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const [workspaceCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}`);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const domainCardsID = useDomainCardsID(policyID);
 
-    console.log(workspaceCardFeeds, workspaceCardSettings);
-
-    // TODO: move to getExpensifyCardFeeds
-    const hasDomainFeed = Object.values(workspaceCardSettings).some((value) => Boolean(value?.preferredPolicy) && value?.preferredPolicy === policyID);
-
-    console.log(hasDomainFeed);
-
-    const feeds = Object.values(workspaceCardSettings)
-        .filter((value) => value?.preferredPolicy === policyID)
-        .map((value) => value?.marqetaBusinessToken);
-
-    console.log(feeds);
-
-    const [cardsList2] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${feeds[0] ?? ''}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
-
-    console.log({cardsList2, cardsList});
+    // TODO: add logic for choosing between the domain and workspace feed when both available
+    const cardsID = domainCardsID ?? workspaceAccountID;
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardsID}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardsID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
     const fetchExpensifyCards = useCallback(() => {
-        openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
-    }, [policyID, workspaceAccountID]);
+        openPolicyExpensifyCardsPage(policyID, cardsID);
+    }, [policyID, cardsID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 
@@ -59,7 +45,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
 
     const renderContent = () => {
-        if (!!isLoading && !paymentBankAccountID && !hasDomainFeed) {
+        if (!!isLoading && !paymentBankAccountID && !domainCardsID) {
             return (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -68,11 +54,11 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 />
             );
         }
-        if (!!paymentBankAccountID || hasDomainFeed) {
+        if (!!paymentBankAccountID || domainCardsID) {
             return (
                 <WorkspaceExpensifyCardListPage
-                    cardsList={hasDomainFeed ? cardsList2 : cardsList}
-                    cardID={hasDomainFeed ? feeds[0] : workspaceAccountID}
+                    cardsList={cardsList}
+                    cardsID={cardsID}
                     route={route}
                 />
             );
