@@ -22,47 +22,31 @@ type SearchMultipleSelectionPickerProps = {
     pickerTitle?: string;
     onSaveSelection: (values: string[]) => void;
     shouldShowTextInput?: boolean;
-    disableSort?: boolean;
 };
 
-function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, disableSort, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
+function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
 
-    const sortOptionsWithEmptyValue = useCallback(
-        (a: SearchMultipleSelectionPickerItem, b: SearchMultipleSelectionPickerItem) => {
-            // If we want to prevent the default sort behavior, then we should show all items in the order that they were passed
-            if (disableSort) {
-                return 0;
-            }
-
-            // Always show `No category` and `No tag` as the first option
-            if (a.value === CONST.SEARCH.EMPTY_VALUE) {
-                return -1;
-            }
-            if (b.value === CONST.SEARCH.EMPTY_VALUE) {
-                return 1;
-            }
-            return localeCompare(a.name, b.name);
-        },
-        [disableSort],
-    );
+    const sortOptionsWithEmptyValue = (a: SearchMultipleSelectionPickerItem, b: SearchMultipleSelectionPickerItem) => {
+        // Always show `No category` and `No tag` as the first option
+        if (a.value === CONST.SEARCH.EMPTY_VALUE) {
+            return -1;
+        }
+        if (b.value === CONST.SEARCH.EMPTY_VALUE) {
+            return 1;
+        }
+        return localeCompare(a.name, b.name);
+    };
 
     useEffect(() => {
         setSelectedItems(initiallySelectedItems ?? []);
     }, [initiallySelectedItems]);
 
     const {sections, noResultsFound} = useMemo(() => {
-        const allItems = items.map((item) => ({
-            text: item.name,
-            keyForList: item.name,
-            isSelected: selectedItems.some((selectedItem) => selectedItem.value === item.value),
-            value: item.value,
-        }));
-
         const selectedItemsSection = selectedItems
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a, b))
@@ -72,7 +56,6 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 isSelected: true,
                 value: item.value,
             }));
-
         const remainingItemsSection = items
             .filter((item) => selectedItems.some((selectedItem) => selectedItem.value === item.value) === false && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a, b))
@@ -83,23 +66,6 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 value: item.value,
             }));
         const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
-
-        // If we want to prevent the default sort behavior, then we should show all items in
-        // the order that they were passed, without any sections jumping to the top
-        if (disableSort) {
-            return {
-                sections: isEmpty
-                    ? []
-                    : [
-                          {
-                              title: pickerTitle,
-                              data: allItems,
-                              shouldShow: true,
-                          },
-                      ],
-            };
-        }
-
         return {
             sections: isEmpty
                 ? []
@@ -117,7 +83,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                   ],
             noResultsFound: isEmpty,
         };
-    }, [items, selectedItems, disableSort, pickerTitle, debouncedSearchTerm, sortOptionsWithEmptyValue]);
+    }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {
