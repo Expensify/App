@@ -786,7 +786,9 @@ function initMoneyRequest(
         return;
     }
 
-    const comment: Comment = {};
+    const comment: Comment = {
+        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
+    };
     let requestCategory: string | null = null;
 
     // Add initial empty waypoints when starting a distance expense
@@ -821,7 +823,6 @@ function initMoneyRequest(
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
         amount: 0,
-        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
         comment,
         created,
         currency,
@@ -895,7 +896,7 @@ function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraf
 }
 
 function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {attendees});
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {attendees}});
 }
 
 function setMoneyRequestPendingFields(transactionID: string, pendingFields: OnyxTypes.Transaction['pendingFields']) {
@@ -2943,7 +2944,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
-            if (typeof iouReport.total === 'number') {
+            if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 iouReport.total -= amount;
             }
 
@@ -3194,7 +3195,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
-            if (typeof iouReport.total === 'number') {
+            if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 iouReport.total -= amount;
             }
 
@@ -3402,7 +3403,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             iouReport = {...iouReport};
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             if (iouReport?.currency === currency) {
-                if (typeof iouReport.total === 'number' && typeof iouReport.nonReimbursableTotal === 'number') {
+                if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined && typeof iouReport.nonReimbursableTotal === 'number') {
                     iouReport.total -= amount;
                     iouReport.nonReimbursableTotal -= amount;
                 }
@@ -3710,7 +3711,7 @@ function getUpdateMoneyRequestParams(
     let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
     if (!iouReport) {
         updatedMoneyRequestReport = null;
-    } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && typeof iouReport.total === 'number') {
+    } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
         // For expense report, the amount is negative, so we should subtract total from diff
         updatedMoneyRequestReport = {
             ...iouReport,
@@ -3864,6 +3865,10 @@ function getUpdateMoneyRequestParams(
                 value: violations?.filter((violation) => violation.name !== 'overLimit') ?? [],
             });
         }
+    }
+
+    if (Array.isArray(params?.attendees)) {
+        params.attendees = JSON.stringify(params?.attendees);
     }
 
     // Clear out the error fields and loading states on success
@@ -4910,6 +4915,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 createdReportActionIDForThread,
                 reimbursible,
                 description: parsedComment,
+                attendees: attendees ? JSON.stringify(attendees) : undefined,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
