@@ -74,7 +74,8 @@ function ExpensifyCardPage({
     const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
     const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
-    const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
+    const expensifyCardTitle = isTravelCard ? 'Expensify Travel Card' : translate('cardPage.expensifyCard');
+    const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle;
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
