@@ -54,7 +54,7 @@ After the account is verified:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** and enter their non-CAD account details.
 
-**Timeline:** ⏳ From the time you submit all requested documentation, you can expect to start using global reimbursement within one to two weeks. Once the verification is complete, the account is typically ready to reimburse within two business days
+**Timeline:** ⏳ From the time you submit all requested documentation, you can expect to start using global reimbursement within one to two weeks. Once the verification is complete, the bank account is typically ready to go within two business days
 
 ---
 
