@@ -3,7 +3,7 @@ import type {FetchBlobResponse} from 'react-native-blob-util';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import CONST from '@src/CONST';
-import * as FileUtils from './FileUtils';
+import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 import type {FileDownload} from './types';
 
 /**
@@ -42,7 +42,7 @@ function handleDownload(url: string, fileName?: string, successMessage?: string,
         // Android files will download to Download directory
         const path = dirs.DownloadDir;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
-        const attachmentName = FileUtils.appendTimeToFileName(fileName || FileUtils.getFileName(url));
+        const attachmentName = appendTimeToFileName(fileName || getFileName(url));
 
         const isLocalFile = url.startsWith('file://');
 
@@ -87,10 +87,10 @@ function handleDownload(url: string, fileName?: string, successMessage?: string,
                 if (attachmentPath && shouldUnlink) {
                     RNFetchBlob.fs.unlink(attachmentPath);
                 }
-                FileUtils.showSuccessAlert(successMessage);
+                showSuccessAlert(successMessage);
             })
             .catch(() => {
-                FileUtils.showGeneralErrorAlert();
+                showGeneralErrorAlert();
             })
             .finally(() => resolve());
     });
@@ -114,14 +114,14 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
             return response.text();
         })
         .then((fileData) => {
-            const finalFileName = FileUtils.appendTimeToFileName(fileName ?? 'Expensify');
+            const finalFileName = appendTimeToFileName(fileName ?? 'Expensify');
             const downloadPath = `${RNFS.DownloadDirectoryPath}/${finalFileName}`;
             return RNFS.writeFile(downloadPath, fileData, 'utf8').then(() => downloadPath);
         })
         .then((downloadPath) =>
             RNFetchBlob.MediaCollection.copyToMediaStore(
                 {
-                    name: FileUtils.getFileName(downloadPath),
+                    name: getFileName(downloadPath),
                     parentFolder: 'Expensify',
                     mimeType: null,
                 },
@@ -131,11 +131,11 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
         )
         .then((downloadPath) => {
             RNFetchBlob.fs.unlink(downloadPath);
-            FileUtils.showSuccessAlert();
+            showSuccessAlert();
         })
         .catch(() => {
             if (!onDownloadFailed) {
-                FileUtils.showGeneralErrorAlert();
+                showGeneralErrorAlert();
             }
             onDownloadFailed?.();
         });
@@ -154,10 +154,10 @@ const fileDownload: FileDownload = (url, fileName, successMessage, _, formData, 
                     }
                     return handleDownload(url, fileName, successMessage, shouldUnlink);
                 }
-                FileUtils.showPermissionErrorAlert();
+                showPermissionErrorAlert();
             })
             .catch(() => {
-                FileUtils.showPermissionErrorAlert();
+                showPermissionErrorAlert();
             })
             .finally(() => resolve());
     });
