@@ -778,6 +778,7 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
+        LEFT_HAND_BAR: 'leftHandBar',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
