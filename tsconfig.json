@@ -23,8 +23,7 @@
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"],
             "expensify-nitro-utils": ["modules/ExpensifyNitroUtils"],
-            "expensify-nitro-utils/*": ["modules/ExpensifyNitroUtils/*"],
-            "*": ["node_modules/*"]
+            "expensify-nitro-utils/*": ["modules/ExpensifyNitroUtils/*"]
         }
     },
     "include": [
@@ -42,11 +41,8 @@
         ".storybook/**/*",
         "scripts",
         "modules",
-        "modules/index.ts",
         "**/*.nitro/*.ts",
-        "**/*.nitro/*.tsx",
-        "modules/ExpensifyNitroUtils/lib/**/*",
-        "modules/ExpensifyNitroUtils/lib/*.d.ts"
+        "**/*.nitro/*.tsx"
     ],
-    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*", "node_modules", "lib"]
+    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
 }
