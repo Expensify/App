@@ -360,12 +360,8 @@ window.addEventListener('DOMContentLoaded', function () {
         const playButton = playWrapper.querySelector('.play-button');
 
         playButton.addEventListener('click', () => {
-            video.play();
             playWrapper.style.display = 'none';
-        });
-
-        video.addEventListener('pause', () => {
-            playWrapper.style.display = 'block';
+            video.play();
         });
 
         video.addEventListener('play', () => {
