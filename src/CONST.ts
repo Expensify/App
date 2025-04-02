@@ -677,7 +677,7 @@ const CONST = {
     },
     NON_USD_BANK_ACCOUNT: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
-        FILE_LIMIT: 10,
+        FILE_LIMIT: 1,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         STEP: {
@@ -773,7 +773,7 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
-        GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND'
+        GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

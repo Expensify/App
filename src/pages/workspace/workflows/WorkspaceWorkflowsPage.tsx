@@ -301,16 +301,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         translate,
         preferredLocale,
         onPressAutoReportingFrequency,
+        isSmartLimitEnabled,
         approvalWorkflows,
         addApprovalAction,
-        isSmartLimitEnabled,
         isOffline,
         theme.spinner,
         isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
-        setIsUpdateWorkspaceCurrencyModalOpen,
+        canUseGlobalReimbursementsOnND,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (

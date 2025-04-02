@@ -108,7 +108,7 @@ function UploadFile({
             <AttachmentPicker
                 acceptedFileTypes={acceptedFileTypes}
                 fileLimit={fileLimit}
-                allowMultiple={!!fileLimit}
+                allowMultiple={fileLimit > 1}
             >
                 {({openPicker}) => (
                     <Button

@@ -80,5 +80,5 @@ export default {
     canUseTableReportView,
     canUseTalkToAISales,
     canUseProhibitedExpenses,
-    canUseGlobalReimbursementsOnND
+    canUseGlobalReimbursementsOnND,
 };
