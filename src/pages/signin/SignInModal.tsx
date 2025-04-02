@@ -30,7 +30,7 @@ function SignInModal() {
             // This ensures that any communication gaps between the client and server during OpenReport processing do not cause the queue to pause,
             // which would prevent us from processing or clearing the queue.
             waitForIdle().then(() => {
-                App.openApp();
+                App.openApp(true);
             });
         }
     }, [session?.authTokenType]);
