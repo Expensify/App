@@ -652,6 +652,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DOWNGRADE]: {
                             path: ROUTES.WORKSPACE_DOWNGRADE.route,
                         },
+                        [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: {
+                            path: ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.route,
+                        },
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
                         },
