@@ -82,7 +82,6 @@ import {
     getReportSubtitlePrefix,
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
-    hasReceiptErrors,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
     isAnnounceRoom,
