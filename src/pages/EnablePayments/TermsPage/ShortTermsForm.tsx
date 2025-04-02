@@ -100,7 +100,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                         </Text>
                     </View>
                     <View style={styles.flex1}>
-                        <Text style={styles.label}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
+                        <Text>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
                     </View>
                 </View>
 
