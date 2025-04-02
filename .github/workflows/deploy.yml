@@ -504,18 +504,18 @@ jobs:
 
       - name: Purge Cloudflare cache
         run: |
-          HOST=${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
           /home/runner/.local/bin/cli4 --verbose --delete hosts=["$HOST"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
           SHOULD_DEPLOY_PRODUCTION: ${{ env.SHOULD_DEPLOY_PRODUCTION }}
+          HOST: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
       - name: Verify deploy
         run: |
-          HOST=${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
           ./.github/scripts/verifyDeploy.sh "$HOST" "${{ needs.prep.outputs.APP_VERSION }}"
         env:
           SHOULD_DEPLOY_PRODUCTION: ${{ env.SHOULD_DEPLOY_PRODUCTION }}
+          HOST: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
       - name: Upload web sourcemaps artifact
         # v4
