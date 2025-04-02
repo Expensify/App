@@ -61,7 +61,8 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           ref: ${{ inputs.ref }}
 
@@ -72,21 +73,25 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        # v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: oracle
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        # v4
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
+        # v1.190.0
+        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854
         with:
           bundler-cache: true
 
       - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
+        # v1
+        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
 
       - name: Load files from 1Password
         working-directory: android/app
@@ -126,7 +131,8 @@ jobs:
           fi
 
       - name: Build Android app (retryable)
-        uses: nick-fields/retry@v3
+        # v3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
         id: build
         env:
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
@@ -172,7 +178,8 @@ jobs:
       - name: Upload Android AAB artifact
         if: ${{ steps.build.outputs.AAB_PATH != '' }}
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ${{ inputs.artifact-prefix }}android-aab-artifact
           path: ${{ steps.build.outputs.AAB_PATH }}
@@ -180,7 +187,8 @@ jobs:
       - name: Upload Android APK artifact
         if: ${{ steps.build.outputs.APK_PATH != '' }}
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ${{ steps.build.outputs.APK_ARTIFACT_NAME }}
           path: ${{ steps.build.outputs.APK_PATH }}
@@ -188,7 +196,8 @@ jobs:
       - name: Upload Android sourcemaps artifact
         if: ${{ steps.build.outputs.SHOULD_UPLOAD_SOURCEMAPS == 'true' }}
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ${{ inputs.artifact-prefix }}android-sourcemaps-artifact
           path: ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
