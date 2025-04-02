@@ -559,7 +559,7 @@ type OriginalMessageUnreportedTransaction = {
     fromReportID: string | undefined;
 
     /** Name of the report */
-    reportName: string;
+    reportName: string | undefined;
 };
 
 /** Model of `MOVEDTRANSACTION` report action */
@@ -568,7 +568,7 @@ type OriginalMessageMovedTransaction = {
     toReportID: string;
 
     /** Name of the report */
-    reportName: string;
+    reportName: string | undefined;
 };
 
 /** Model of `moved` report action */

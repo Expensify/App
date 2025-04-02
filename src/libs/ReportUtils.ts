@@ -5920,7 +5920,7 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
  * Builds an optimistic MOVED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
-function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, toReportID: string, reportName: string): ReportAction {
+function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, toReportID: string, reportName: string | undefined): ReportAction {
     const originalMessage = {
         toReportID,
         reportName,
@@ -5929,7 +5929,8 @@ function buildOptimisticMovedTransactionAction(transactionThreadReportID: string
     const movedTransactionMessage = [
         {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            text: `moved this expense to <a href="${CONST.NEW_EXPENSIFY_URL}r/${toReportID}">${reportName}</a>`,
+            html: `moved this expense to <a href='${CONST.NEW_EXPENSIFY_URL}r/${toReportID}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
+            text: `moved this expense to ${reportName}`,
         },
     ];
 
@@ -5958,7 +5959,7 @@ function buildOptimisticMovedTransactionAction(transactionThreadReportID: string
  * Builds an optimistic UNREPORTED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we unreport a transaction.
  */
-function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: string | undefined, fromReportID: string | undefined, reportName: string): ReportAction {
+function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: string | undefined, fromReportID: string | undefined, reportName: string | undefined): ReportAction {
     const originalMessage = {
         fromReportID,
         reportName,
@@ -5967,7 +5968,8 @@ function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: s
     const unreportedTransactionMessage = [
         {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            text: `removed this expense from <a href="${CONST.NEW_EXPENSIFY_URL}r/${fromReportID}">${reportName}</a>`,
+            html: `removed this expense from <a href='${CONST.NEW_EXPENSIFY_URL}r/${fromReportID}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
+            text: `removed this expense from ${reportName}`,
         },
     ];
 

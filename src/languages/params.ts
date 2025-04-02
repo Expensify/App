@@ -122,11 +122,11 @@ type DeleteTransactionParams = {
 
 type MovedTransactionParams = {
     toReportID: string;
-    reportName: string;
+    reportName?: string;
 };
 
 type UnreportedTransactionParams = {
-    reportName: string;
+    reportName?: string;
     fromReportID?: string;
 };
 

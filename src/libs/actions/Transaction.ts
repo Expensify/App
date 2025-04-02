@@ -675,10 +675,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     // 4 & 5. Add MOVEDTRANSACTION or UNREPORTEDTRANSACTION report actions
     const optimisticDataNewReportActions: OnyxUpdate[] = transactionsReportActions.map(({transaction, iouAction}) => {
         const originalReportID = transaction.reportID;
+        const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`]?.reportName;
+
         const reportAction =
             reportID === CONST.REPORT.UNREPORTED_REPORTID
-                ? buildOptimisticUnreportedTransactionAction(originalReportID, reportID, transaction.transactionID)
-                : buildOptimisticMovedTransactionAction(originalReportID, reportID, transaction.transactionID);
+                ? buildOptimisticUnreportedTransactionAction(originalReportID, reportID, reportName)
+                : buildOptimisticMovedTransactionAction(originalReportID, reportID, reportName);
 
         // Store the thread information
         transactionIDToReportActionAndThreadData[transaction.transactionID] = {
@@ -698,10 +700,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 
     const failureDataNewReportActions: OnyxUpdate[] = transactionsReportActions.map(({transaction, iouAction}) => {
         const originalReportID = transaction.reportID;
+        const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`]?.reportName;
+
         const reportAction =
             reportID === CONST.REPORT.UNREPORTED_REPORTID
-                ? buildOptimisticUnreportedTransactionAction(originalReportID, reportID, transaction.transactionID)
-                : buildOptimisticMovedTransactionAction(originalReportID, reportID, transaction.transactionID);
+                ? buildOptimisticUnreportedTransactionAction(originalReportID, reportID, reportName)
+                : buildOptimisticMovedTransactionAction(originalReportID, reportID, reportName);
 
         return {
             onyxMethod: Onyx.METHOD.MERGE,
