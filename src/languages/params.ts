@@ -659,6 +659,10 @@ type PolicyExpenseChatNameParams = {
     displayName: string;
 };
 
+type ReviewParams = {
+    amount: string;
+};
+
 type CurrencyInputDisabledTextParams = {
     currency: string;
 };
@@ -899,5 +903,6 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
+    ReviewParams,
     CurrencyInputDisabledTextParams,
 };

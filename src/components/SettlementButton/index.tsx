@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -97,6 +97,15 @@ function SettlementButton({
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
     const {canUseGlobalReimbursementsOnND} = usePermissions();
+    const lastPaymentMethodRef = useRef(lastPaymentMethod);
+
+    useEffect(() => {
+        if (isLoadingLastPaymentMethod) {
+            return;
+        }
+        lastPaymentMethodRef.current = lastPaymentMethod;
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isLoadingLastPaymentMethod]);
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
     const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions;
@@ -210,7 +219,7 @@ function SettlementButton({
         }
 
         // Put the preferred payment method to the front of the array, so it's shown as default. We assume their last payment method is their preferred.
-        if (lastPaymentMethod) {
+        if (lastPaymentMethodRef.current) {
             return buttonOptions.sort((method) => (method.value === lastPaymentMethod ? -1 : 0));
         }
         return buttonOptions;

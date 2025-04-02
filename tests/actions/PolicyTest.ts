@@ -83,9 +83,12 @@ describe('actions/Policy', () => {
             expect(policy?.type).toBe(CONST.POLICY.TYPE.TEAM);
             expect(policy?.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policy?.owner).toBe(ESH_EMAIL);
+            expect(policy?.areWorkflowsEnabled).toBe(true);
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+            expect(policy?.approver).toBe(ESH_EMAIL);
             expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
+            expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {email: ESH_EMAIL, submitsTo: ESH_EMAIL, errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
             expect(policy?.mccGroup).toBeDefined();
 
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
@@ -221,6 +224,52 @@ describe('actions/Policy', () => {
             workspaceReportActions.forEach((reportAction) => {
                 expect(reportAction.pendingAction).toBeFalsy();
             });
+        });
+
+        it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to MANAGE_TEAM
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the policy should have approval mode set to BASIC
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+        });
+
+        it('creates a new workspace with OPTIONAL approval mode if the introSelected is TRACK_WORKSPACE', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to TRACK_WORKSPACE
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the policy should have approval mode set to OPTIONAL
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
         });
 
         it('create a new workspace fails will reset hasCompletedGuidedSetupFlow to the correct value', async () => {
