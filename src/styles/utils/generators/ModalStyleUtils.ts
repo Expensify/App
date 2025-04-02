@@ -209,6 +209,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     paddingTop: variables.componentBorderRadiusLarge,
                     justifyContent: 'center',
                     overflow: 'hidden',
+                    boxShadow: theme.shadow,
                 };
 
                 shouldAddBottomSafeAreaPadding = true;
