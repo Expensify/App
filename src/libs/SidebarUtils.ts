@@ -239,7 +239,8 @@ function getOrderedReportIDs(
             isSystemChat ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
-            requiresAttentionFromCurrentUser(report, parentReportAction);
+            requiresAttentionFromCurrentUser(report, parentReportAction) ||
+            isSelfDM(report);
 
         if ((isHidden || isLastActionCreatedOrUndefined) && !shouldOverrideHidden) {
             return;
