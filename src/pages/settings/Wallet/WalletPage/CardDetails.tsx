@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
@@ -95,7 +95,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetail
                     <MenuItemWithTopDescription
                         description={translate('cardPage.cardDetails.address')}
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
+                        title={getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
                         interactive={false}
                     />
                     <TextLink

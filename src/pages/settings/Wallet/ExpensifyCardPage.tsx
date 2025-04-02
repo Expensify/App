@@ -256,7 +256,7 @@ function ExpensifyCardPage({
                                         <>
                                             <MenuItemWithTopDescription
                                                 description={translate('cardPage.travelCardCvv')}
-                                                title={'•••'}
+                                                title="•••"
                                                 interactive={false}
                                                 titleStyle={styles.walletCardNumber}
                                                 shouldShowRightComponent

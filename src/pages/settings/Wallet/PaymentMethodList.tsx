@@ -363,6 +363,7 @@ function PaymentMethodList({
         isLoadingBankAccountList,
         isLoadingCardList,
         illustrations,
+        translate,
     ]);
 
     /**
