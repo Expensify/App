@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
@@ -27,12 +26,7 @@ const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
     ],
 };
 
-type CardDetailsOnyxProps = {
-    /** User's private personal details */
-    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-};
-
-type CardDetailsProps = CardDetailsOnyxProps & {
+type CardDetailsProps = {
     /** Card number */
     pan?: string;
 
@@ -46,9 +40,10 @@ type CardDetailsProps = CardDetailsOnyxProps & {
     domain: string;
 };
 
-function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetails, domain}: CardDetailsProps) {
+function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     const handleCopyToClipboard = () => {
         Clipboard.setString(pan);
@@ -112,8 +107,4 @@ function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetail
 
 CardDetails.displayName = 'CardDetails';
 
-export default withOnyx<CardDetailsProps, CardDetailsOnyxProps>({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-})(CardDetails);
+export default CardDetails;
