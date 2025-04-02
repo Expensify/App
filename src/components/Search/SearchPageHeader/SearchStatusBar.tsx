@@ -9,7 +9,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryJSON, TripSearchStatus} from '@components/Search/types';
+import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryJSON, TaskSearchStatus, TripSearchStatus} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -152,6 +152,27 @@ const chatOptions: Array<{type: SearchDataTypes; status: ChatSearchStatus; icon:
     },
 ];
 
+const taskOptions: Array<{type: SearchDataTypes; status: TaskSearchStatus; icon: IconAsset; text: TranslationPaths}> = [
+    {
+        type: CONST.SEARCH.DATA_TYPES.TASK,
+        status: CONST.SEARCH.STATUS.TASK.ALL,
+        icon: Expensicons.All,
+        text: 'common.all',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.TASK,
+        status: CONST.SEARCH.STATUS.TASK.OUTSTANDING,
+        icon: Expensicons.Hourglass,
+        text: 'common.outstanding',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.TASK,
+        status: CONST.SEARCH.STATUS.TASK.COMPLETED,
+        icon: Expensicons.Checkbox,
+        text: 'search.filters.completed',
+    },
+];
+
 function getOptions(type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -160,6 +181,8 @@ function getOptions(type: SearchDataTypes) {
             return tripOptions;
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return chatOptions;
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return taskOptions;
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
             return expenseOptions;

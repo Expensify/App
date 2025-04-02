@@ -6420,6 +6420,11 @@ const CONST = {
                 LINKS: 'links',
                 PINNED: 'pinned',
             },
+            TASK: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                COMPLETED: 'completed',
+            },
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -6475,6 +6480,9 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'createdBy',
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {

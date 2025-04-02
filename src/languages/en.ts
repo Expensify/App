@@ -5030,6 +5030,7 @@ const translations = {
             link: 'Link',
             pinned: 'Pinned',
             unread: 'Unread',
+            completed: 'Completed',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,

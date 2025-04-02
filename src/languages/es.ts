@@ -5083,6 +5083,7 @@ const translations = {
             link: 'Enlace',
             pinned: 'Fijado',
             unread: 'No leído',
+            completed: 'Completado',
             card: {
                 expensify: 'Expensify',
                 individualCards: 'Tarjetas individuales',
