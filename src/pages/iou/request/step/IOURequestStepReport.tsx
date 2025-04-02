@@ -7,7 +7,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,18 +65,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
 
-        // Get the IOU report action for this transaction
-        const iouAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-        if (!iouAction || !iouAction.childReportID) {
-            return;
-        }
-
-        // Create the mapping of transaction ID to report action and thread data
-        const transactionIDToReportActionAndThreadData = {
-            [transaction.transactionID]: iouAction.childReportID,
-        };
-
-        changeTransactionsReport([transaction.transactionID], item.value, transactionIDToReportActionAndThreadData);
+        changeTransactionsReport([transaction.transactionID], item.value);
         Navigation.goBack(backTo);
     };
 
@@ -94,7 +82,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 onSelectRow={selectReport}
                 textInputValue={searchValue}
                 onChangeText={setSearchValue}
-                textInputLabel={reportOptions.length > 8 ? translate('common.search') : undefined}
+                textInputLabel={reportOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
             />
