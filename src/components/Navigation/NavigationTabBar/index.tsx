@@ -289,6 +289,32 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 {translate('common.reports')}
                             </Text>
                         </PressableWithFeedback>
+                        <PressableWithFeedback
+                            onPress={navigateToSearch}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.workspaces')}
+                            style={styles.leftNavigationTabBarItem}
+                        >
+                            <View>
+                                <Icon
+                                    src={Expensicons.Buildings}
+                                    fill={theme.icon}
+                                    width={variables.iconBottomBar}
+                                    height={variables.iconBottomBar}
+                                />
+                            </View>
+                            <Text
+                                style={[
+                                    styles.textSmall,
+                                    styles.textAlignCenter,
+                                    styles.mt1Half,
+                                    selectedTab === NAVIGATION_TABS.WORKSPACES ? styles.textBold : styles.textSupporting,
+                                    styles.navigationTabBarLabel,
+                                ]}
+                            >
+                                {translate('common.workspaces')}
+                            </Text>
+                        </PressableWithFeedback>
                         <NavigationTabBarAvatar
                             style={styles.leftNavigationTabBarItem}
                             isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
@@ -383,14 +409,41 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                         {translate('common.reports')}
                     </Text>
                 </PressableWithFeedback>
+                <View style={[styles.flex1, styles.navigationTabBarItem]}>
+                    <NavigationTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
+                </View>
+                <PressableWithFeedback
+                    onPress={navigateToSearch}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.workspaces')}
+                    wrapperStyle={styles.flex1}
+                    style={styles.navigationTabBarItem}
+                >
+                    <View>
+                        <Icon
+                            src={Expensicons.Buildings}
+                            fill={theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                    </View>
+                    <Text
+                        style={[
+                            styles.textSmall,
+                            styles.textAlignCenter,
+                            styles.mt1Half,
+                            selectedTab === NAVIGATION_TABS.WORKSPACES ? styles.textBold : styles.textSupporting,
+                            styles.navigationTabBarLabel,
+                        ]}
+                    >
+                        {translate('common.workspaces')}
+                    </Text>
+                </PressableWithFeedback>
                 <NavigationTabBarAvatar
                     style={styles.navigationTabBarItem}
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={showSettingsPage}
                 />
-                <View style={[styles.flex1, styles.navigationTabBarItem]}>
-                    <NavigationTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
-                </View>
             </View>
         </>
     );
