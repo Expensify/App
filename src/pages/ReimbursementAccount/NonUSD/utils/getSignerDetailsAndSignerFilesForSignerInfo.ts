@@ -130,13 +130,15 @@ function getSignerDetailsAndSignerFilesForSignerInfo(
     }
 
     signerFilesFields.forEach((fieldName) => {
-        const key = `signer_${fieldName}` as keyof SignerInfoStepProps;
+        directorIDs.forEach((directorID) => {
+            const key = `${DIRECTOR_PREFIX}_${directorID}_${fieldName}` as keyof SignerInfoStepProps;
 
-        if (!reimbursementAccountDraft?.[key]) {
-            return;
-        }
+            if (!reimbursementAccountDraft?.[key]) {
+                return;
+            }
 
-        signerFiles[fieldName] = reimbursementAccountDraft?.[key][0];
+            signerFiles[key] = reimbursementAccountDraft?.[key][0];
+        });
     });
 
     return {signerDetails, signerFiles};
