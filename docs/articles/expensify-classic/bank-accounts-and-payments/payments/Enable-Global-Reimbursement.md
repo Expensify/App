@@ -1,11 +1,21 @@
 ---
 title: Send Payments Internationally with Global Reimbursement
-description: Choose your bank location to get started with setting up global reimbursements in Expensify.
+description: Choose your bank location to set up global reimbursements in Expensify.
 keywords: [Expensify Classic, foreign bank validation, global reimbursement, United States, Canada, Europe, Singapore, Australia, United Kingdom, international reimbursements]
 ---
 <div id="expensify-classic" markdown="1">
 
-Expensify makes it easy to reimburse employees worldwide. To get started, select the location of your business bank account, and follow the step-by-step instructions tailored to your currency and country requirements.
+Expensify makes it easy to reimburse employees worldwide using global reimbursement.
+
+**Expensify supports direct reimbursements from business bank accounts in:**
+- United States (USD)
+- Canada (CAD)
+- United Kingdom (GBP)
+- European Union (EUR)
+- Australia (AUD)
+- Singapore (SGD)
+
+To get started, you can just select from the instructions below. Setup steps vary by currency and country, so please choose the correct location.
 
 ---
 
@@ -25,7 +35,7 @@ Expensify makes it easy to reimburse employees worldwide. To get started, select
 
 Global reimbursement allows companies to send payments to employees in different countries using Expensify. Once your business bank account is verified and connected, employees can add their international deposit-only accounts and receive payments directly.
 
-**Note:** Each country has its own requirements for identity verification, compliance, and onboarding. Use the guides above to ensure you're submitting the correct documentation.
+**Note:** Each country has specific identity verification, compliance, and onboarding requirements. Use the guides above to ensure you're submitting the correct documentation.
 
 ---
 
