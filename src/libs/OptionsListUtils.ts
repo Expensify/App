@@ -40,13 +40,14 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import Performance from './Performance';
 import Permissions from './Permissions';
-import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {canSendInvoiceFromWorkspace, getSubmitToAccountID} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
+    getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -645,6 +646,10 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
     return getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastAction))?.reportID;
 }
 
+function hasHiddenDisplayNames(accountIDs: number[]) {
+    return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => getDisplayNameOrDefault(personalDetail) === translateLocal('common.hidden'));
+}
+
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
@@ -763,6 +768,11 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     if (reportID && !isArchivedReport(reportNameValuePairs) && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
+
+    if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
+        lastMessageTextFromReport = Parser.htmlToText(report?.lastMessageHtml ?? '');
+    }
+
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
