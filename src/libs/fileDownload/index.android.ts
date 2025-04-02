@@ -35,7 +35,7 @@ function hasAndroidPermission(): Promise<boolean> {
 /**
  * Handling the download
  */
-function handleDownload(url: string, fileName?: string, successMessage?: string): Promise<void> {
+function handleDownload(url: string, fileName?: string, successMessage?: string, shouldUnlink = true): Promise<void> {
     return new Promise((resolve) => {
         const dirs = RNFetchBlob.fs.dirs;
 
@@ -84,7 +84,7 @@ function handleDownload(url: string, fileName?: string, successMessage?: string)
                 );
             })
             .then(() => {
-                if (attachmentPath) {
+                if (attachmentPath && shouldUnlink) {
                     RNFetchBlob.fs.unlink(attachmentPath);
                 }
                 FileUtils.showSuccessAlert(successMessage);
@@ -144,7 +144,7 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
 /**
  * Checks permission and downloads the file for Android
  */
-const fileDownload: FileDownload = (url, fileName, successMessage, _, formData, requestType, onDownloadFailed) =>
+const fileDownload: FileDownload = (url, fileName, successMessage, _, formData, requestType, onDownloadFailed, shouldUnlink) =>
     new Promise((resolve) => {
         hasAndroidPermission()
             .then((hasPermission) => {
@@ -152,7 +152,7 @@ const fileDownload: FileDownload = (url, fileName, successMessage, _, formData, 
                     if (requestType === CONST.NETWORK.METHOD.POST) {
                         return postDownloadFile(url, fileName, formData, onDownloadFailed);
                     }
-                    return handleDownload(url, fileName, successMessage);
+                    return handleDownload(url, fileName, successMessage, shouldUnlink);
                 }
                 FileUtils.showPermissionErrorAlert();
             })
