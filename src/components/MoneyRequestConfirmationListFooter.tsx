@@ -280,7 +280,7 @@ function MoneyRequestConfirmationListFooter({
                 isExpenseReport(report) &&
                 report?.stateNum &&
                 report?.statusNum &&
-                report?.policyID === senderWorkspace?.id &&
+                report?.policyID === selectedParticipants?.at(0)?.policyID &&
                 report?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
                 report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED,
         )
