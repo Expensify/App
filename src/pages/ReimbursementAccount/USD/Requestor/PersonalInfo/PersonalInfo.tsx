@@ -32,9 +32,9 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
     const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID);
     const submit = useCallback(
         (isConfirmPage: boolean) => {
             updatePersonalInformationForBankAccount(bankAccountID, {...values}, policyID, isConfirmPage);

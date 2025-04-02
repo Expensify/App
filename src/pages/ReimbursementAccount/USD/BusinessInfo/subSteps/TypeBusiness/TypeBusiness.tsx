@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -26,7 +26,7 @@ function TypeBusiness({onNext, isEditing}: SubStepProps) {
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
-        ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+        getFieldRequiredErrors(values, STEP_FIELDS);
 
     const defaultIncorporationType = reimbursementAccount?.achData?.incorporationType ?? '';
 
