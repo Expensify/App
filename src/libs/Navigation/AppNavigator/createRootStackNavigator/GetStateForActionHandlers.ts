@@ -55,7 +55,7 @@ function handleOpenWorkspaceSplitAction(
     });
 
     const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
-        screen: getLastVisitedWorkspaceScreen(),
+        screen: getLastVisitedWorkspaceScreen(), // add a comment explaining what it does
         params: {
             policyID: action.payload.policyID,
         },
@@ -83,6 +83,7 @@ function handleOpenWorkspaceSplitAction(
         // To make it feel like bottom tab navigator.
         workspaceSplitsWithoutEnteringAnimation.add(lastFullScreenRoute.key);
     }
+
     return stateWithWorkspaceSplitNavigator;
 }
 

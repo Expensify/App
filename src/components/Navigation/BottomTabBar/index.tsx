@@ -16,12 +16,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {getLastVisitedSettingsPath} from '@libs/Navigation/helpers/getLastVisitedWorkspace';
-import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import {getLastVisitedSettingsPath, getLastVisitedWorkspaceScreen, getSettingsTabStateFromSessionStorage} from '@libs/Navigation/helpers/getLastVisitedWorkspace';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -35,7 +33,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import BOTTOM_TABS from './BOTTOM_TABS';
@@ -137,39 +134,51 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         }
 
         interceptAnonymousUser(() => {
-            const lastVisitedSettingsPath = getLastVisitedSettingsPath();
-            const settingsState = getStateFromPath(lastVisitedSettingsPath as Route);
-            const lastSettingsOrWorkspaceNavigatorRoute = settingsState
-                ? settingsState.routes.findLast((settingsRoute) => settingsRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || settingsRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR)
-                : rootState.routes.findLast((rootRoute) => rootRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || rootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+            const state = getSettingsTabStateFromSessionStorage() ?? rootState;
+            const lastSettingsOrWorkspaceNavigatorRoute = state.routes.findLast(
+                (route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+            );
             // If there is no settings or workspace navigator route, then we should open the settings navigator.
             if (!lastSettingsOrWorkspaceNavigatorRoute) {
                 Navigation.navigate(ROUTES.SETTINGS);
                 return;
             }
-            const state = lastSettingsOrWorkspaceNavigatorRoute.state ?? getPreservedNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key ?? ''); // given so that eslint doesn't throw errors
+
+            // might comment later
+            let settingsTabState = lastSettingsOrWorkspaceNavigatorRoute.state;
+            if (!settingsTabState && lastSettingsOrWorkspaceNavigatorRoute.key) {
+                settingsTabState = getPreservedNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key);
+            }
+
+            // state = lastSettingsOrWorkspaceNavigatorRoute.state ?? getPreservedNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key ?? ''); // given so that eslint doesn't throw errors
             // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
             if (lastSettingsOrWorkspaceNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                const params = state?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
+                const params = settingsTabState?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
                 // Screens of this navigator should always have policyID
                 if (params.policyID) {
+                    const workspaceScreenName = !shouldUseNarrowLayout ? getLastVisitedWorkspaceScreen() : SCREENS.WORKSPACE.INITIAL;
                     // This action will put settings split under the workspace split to make sure that we can swipe back to settings split.
                     navigationRef.dispatch({
                         type: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT,
                         payload: {
                             policyID: params.policyID,
+                            screenName: workspaceScreenName,
                         },
                     });
                 }
                 return;
             }
-            // if we have saved path to settings we navigate to it
-            if (lastVisitedSettingsPath !== '' && !getIsNarrowLayout()) {
-                Navigation.navigate(lastVisitedSettingsPath as Route);
+
+            // If we have saved path and we don't navigate to workspace screen and we are on widescreen we just navigate to this url
+            if (settingsTabState && !shouldUseNarrowLayout) {
+                const lastVisitedSettingsRoute = getLastVisitedSettingsPath(settingsTabState);
+                if (lastVisitedSettingsRoute) {
+                    Navigation.navigate(lastVisitedSettingsRoute);
+                }
                 return;
             }
             // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
-            if (state?.routes?.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES) {
+            if (settingsTabState?.routes?.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES) {
                 Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
                 return;
             }
