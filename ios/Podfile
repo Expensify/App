@@ -58,6 +58,14 @@ def __modify_react_native_settings_for_debug_build(installer)
         end
       end
     end
+
+    if ['hermes-engine', 'React-hermes', 'React-jsinspector', 'React-RuntimeHermes'].any? { |name| target.name.include?(name) }
+      target.build_configurations.each do |config|
+        if config.name.downcase.include?("debug")
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= '$(inherited) DEBUG=1 HERMES_ENABLE_DEBUGGER=1'
+        end
+      end
+    end
   end
 end
 
