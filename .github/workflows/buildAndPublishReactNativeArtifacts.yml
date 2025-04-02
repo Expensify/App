@@ -117,3 +117,26 @@ jobs:
               echo "NEW_VERSION=$VERSION-0" >> $GITHUB_ENV
               echo "NEW_VERSION=$VERSION-0" >> $GITHUB_OUTPUT
             fi
+        - name: Build and publish artifacts
+          env:
+            GH_PUBLISH_ACTOR: ${{ github.actor }}
+            GH_PUBLISH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            RN_VERSION: ${{ env.NEW_VERSION }}
+            PATCHES_HASH: ${{ needs.prepare-build.outputs.patches_hash }}
+            COMMIT_HASH: ${{ needs.prepare-build.outputs.commit_hash }}
+            PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          run: |
+            cd ${{ env.TEMP_REACT_NATIVE_DIR }} 
+            yarn install --non-interactive
+            export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
+
+            echo "Starting build and publication process for ${{ env.NEW_VERSION }}"
+            echo "PR Number: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}"
+            echo "Commit Hash: ${{ needs.prepare-build-metadata.outputs.COMMIT_HASH }}"
+            echo "Patches Hash: ${{ needs.prepare-build-prepare-build-metadata.outputs.PATCHES_HASH }}"
+
+            ./gradlew packages:react-native:ReactAndroid:build -x :react-native_oss-library-example:build -x :packages:rn-tester:android:app:build -x :react-native_popup-menu-android:build -x lint -x test -x check
+            ./gradlew :packages:react-native:ReactAndroid:publishAllPublicationsToMavenTempLocalRepository
+
+            echo "Build and publication process completed successfully"
+            
