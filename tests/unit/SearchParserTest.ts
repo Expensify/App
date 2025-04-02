@@ -565,6 +565,28 @@ const keywordTests = [
             },
         },
     },
+    {
+        query: 'from:““Rag” Dog”,"Bag ”Dog“",email@gmail.com,1605423 to:"""Unruly"" “““Glad””” """Dog"""',
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'and',
+                left: {
+                    operator: 'eq',
+                    left: 'from',
+                    right: ['“Rag” Dog', 'Bag ”Dog“', 'email@gmail.com', '1605423'],
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'to',
+                    right: '""Unruly"" “““Glad””” """Dog""',
+                },
+            },
+        },
+    },
 ];
 
 describe('search parser', () => {

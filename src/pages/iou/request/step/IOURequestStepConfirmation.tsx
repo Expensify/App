@@ -384,7 +384,7 @@ function IOURequestStepConfirmation({
                 action,
                 transactionParams: {
                     amount: transaction.amount,
-                    attendees: transaction.attendees,
+                    attendees: transaction.comment?.attendees,
                     currency: transaction.currency,
                     created: transaction.created,
                     merchant: transaction.merchant,
@@ -927,7 +927,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouAttendees={transaction?.attendees ?? []}
+                        iouAttendees={transaction?.comment?.attendees ?? []}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}
@@ -939,6 +939,7 @@ function IOURequestStepConfirmation({
                         receiptFilename={receiptFilename}
                         iouType={iouType}
                         reportID={reportID}
+                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && !isDistanceRequest && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={getIOURequestPolicyID(transaction, report)}
                         bankAccountRoute={getBankAccountRoute(report)}
@@ -952,6 +953,7 @@ function IOURequestStepConfirmation({
                         shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
+                        isReceiptEditable
                     />
                 </View>
             </DragAndDropProvider>

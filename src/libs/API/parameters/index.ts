@@ -279,14 +279,6 @@ export type {default as RequestExpensifyCardLimitIncreaseParams} from './Request
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
 export type {default as CancelBillingSubscriptionParams} from './CancelBillingSubscriptionParams';
 export type {default as UpdateNetSuiteCustomFormIDParams} from './UpdateNetSuiteCustomFormIDParams';
-export type {default as ConnectPolicyToNSQSParams} from './ConnectPolicyToNSQSParams';
-export type {default as SyncPolicyToNSQSParams} from './SyncPolicyToNSQSParams';
-export type {default as UpdateNSQSCustomersMappingParams} from './UpdateNSQSCustomersMappingParams';
-export type {default as UpdateNSQSProjectsMappingParams} from './UpdateNSQSProjectsMappingParams';
-export type {default as UpdateNSQSExporterParams} from './UpdateNSQSExporterParams';
-export type {default as UpdateNSQSExportDateParams} from './UpdateNSQSExportDateParams';
-export type {default as UpdateNSQSAutoSyncParams} from './UpdateNSQSAutoSyncParams';
-export type {default as UpdateNSQSPaymentAccountParams} from './UpdateNSQSPaymentAccountParams';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
@@ -382,6 +374,7 @@ export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboar
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
+export type {default as MoveIOUReportToPolicyAndInviteSubmitterParams} from './MoveIOUReportToPolicyAndInviteSubmitterParams';
 export type {default as MoveIOUReportToExistingPolicyParams} from './MoveIOUReportToExistingPolicyParams';
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
 export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';

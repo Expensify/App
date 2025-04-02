@@ -31,10 +31,14 @@ type BookTravelButtonProps = {
     text: string;
 };
 
-const navigateToAcceptTerms = (domain: string) => {
+const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
     // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
-    Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+    if (isUserValidated) {
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+        return;
+    }
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
 };
 
 function BookTravelButton({text}: BookTravelButtonProps) {
@@ -42,6 +46,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
@@ -122,13 +127,25 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                     // Spotnana requires an address anytime an entity is created for a policy
                     Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
                 } else {
-                    navigateToAcceptTerms(domain);
+                    navigateToAcceptTerms(domain, !!isUserValidated);
                 }
             } else {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled, isBlockedFromSpotnanaTravel, StyleUtils, styles]);
+    }, [
+        isBlockedFromSpotnanaTravel,
+        primaryContactMethod,
+        policy,
+        travelSettings?.hasAcceptedTerms,
+        styles.flexRow,
+        styles.link,
+        StyleUtils,
+        translate,
+        wasNewDotLaunchedJustForTravel,
+        setRootStatusBarEnabled,
+        isUserValidated,
+    ]);
 
     return (
         <>

@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Comment} from '@src/types/onyx/Transaction';
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -1073,6 +1074,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 comment: 'string',
                 hold: 'string',
                 waypoints: 'object',
+                attendees: 'array',
                 isLoading: 'boolean',
                 type: CONST.TRANSACTION.TYPE,
                 customUnit: 'object',
@@ -1082,21 +1084,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splits: 'array',
                 dismissedViolations: 'object',
             });
-        case 'attendees':
-            return validateArray<ArrayElement<Transaction, 'attendees'>>(value, {
-                email: 'string',
-                displayName: 'string',
-                avatarUrl: 'string',
-                accountID: 'number',
-                text: 'string',
-                login: 'string',
-                searchText: 'string',
-                selected: 'boolean',
-                iouType: CONST.IOU.TYPE,
-                reportID: 'string',
-            });
         case 'modifiedAttendees':
-            return validateArray<ArrayElement<Transaction, 'attendees'>>(value, {
+            return validateArray<ArrayElement<Comment, 'attendees'>>(value, {
                 email: 'string',
                 displayName: 'string',
                 avatarUrl: 'string',

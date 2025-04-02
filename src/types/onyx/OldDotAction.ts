@@ -28,7 +28,7 @@ type OldDotOriginalMessageActionName =
     | 'MARKREIMBURSEDFROMINTEGRATION'
     | 'OUTDATEDBANKACCOUNT'
     | 'REIMBURSEMENTACHBOUNCE'
-    | 'REIMBURSEMENTACHCANCELLED'
+    | 'REIMBURSEMENTACHCANCELED'
     | 'REIMBURSEMENTACCOUNTCHANGED'
     | 'REIMBURSEMENTDELAYED'
     | 'SELECTEDFORRANDOMAUDIT'
@@ -209,7 +209,7 @@ type OriginalMessageReimbursementACHCancelled = {
     /**
      *
      */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED;
     /**
      *
      */
@@ -371,7 +371,7 @@ type OldDotOriginalMessageMap = {
     /**
      *
      */
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: OriginalMessageReimbursementACHCancelled;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED]: OriginalMessageReimbursementACHCancelled;
     /**
      *
      */

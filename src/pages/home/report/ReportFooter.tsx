@@ -62,10 +62,10 @@ type ReportFooterProps = {
     isComposerFullSize?: boolean;
 
     /** A method to call when the input is focus */
-    onComposerFocus: () => void;
+    onComposerFocus?: () => void;
 
     /** A method to call when the input is blur */
-    onComposerBlur: () => void;
+    onComposerBlur?: () => void;
 };
 
 function ReportFooter({

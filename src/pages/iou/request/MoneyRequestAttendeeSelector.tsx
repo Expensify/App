@@ -10,6 +10,7 @@ import {usePersonalDetails, useSession} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import type {SectionListDataType} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,6 +18,7 @@ import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {Option} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
@@ -29,8 +31,8 @@ import {
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
-import type {Section} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
 import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -64,7 +66,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const session = useSession();
-    const isCurrentUserAttendee = attendees.some((attendee) => attendee.accountID === session?.accountID);
+    const isCurrentUserAttendee = attendees.some((attendee) => attendee.email === session?.email);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
@@ -74,7 +76,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
+    const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyFn(policy), [policy]);
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
     useEffect(() => {
@@ -148,7 +150,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
      * Returns the sections needed for the OptionsSelector
      */
     const [sections, header] = useMemo(() => {
-        const newSections: Section[] = [];
+        const newSections: Array<SectionListDataType<Option>> = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
@@ -158,7 +160,13 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         const formatResults = formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            attendees.map((attendee) => ({...attendee, reportID: attendee.reportID})),
+            attendees.map((attendee) => ({
+                ...attendee,
+                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+                selected: true,
+                login: attendee.email,
+                ...getPersonalDetailByEmail(attendee.email),
+            })),
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
@@ -214,9 +222,13 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     ]);
 
     const addAttendeeToSelection = useCallback(
-        (option: Attendee) => {
+        (option: Option) => {
             const isOptionSelected = (selectedOption: Attendee) => {
                 if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
+                    return true;
+                }
+
+                if (selectedOption.email && selectedOption.email === option?.login) {
                     return true;
                 }
 
@@ -228,15 +240,20 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             if (isOptionInList) {
                 newSelectedOptions = lodashReject(attendees, isOptionSelected);
             } else {
+                const iconSource = option.icons?.[0]?.source;
+                const icon = typeof iconSource === 'function' ? '' : iconSource?.toString() ?? '';
                 newSelectedOptions = [
                     ...attendees,
                     {
                         accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         login: option.login || option.text,
-                        displayName: option.text,
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        email: option.login || (option.text ?? ''),
+                        displayName: option.text ?? '',
                         selected: true,
                         searchText: option.searchText,
+                        avatarUrl: option.avatarUrl ?? icon,
                         iouType,
                     },
                 ];
@@ -250,7 +267,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const shouldShowErrorMessage = attendees.length < 1;
 
     const handleConfirmSelection = useCallback(
-        (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Attendee) => {
+        (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Option) => {
             if (shouldShowErrorMessage || (!attendees.length && !option)) {
                 return;
             }
