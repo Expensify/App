@@ -122,6 +122,7 @@ function UploadDocuments({onNext, isEditing, directorID}: UploadDocumentsProps) 
                         setError={(error) => {
                             setUploadError(error, copyOfIDInputID);
                         }}
+                        fileLimit={1}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
                     {(isDocumentNeededStatus.isAddressProofNeeded ||
@@ -149,6 +150,7 @@ function UploadDocuments({onNext, isEditing, directorID}: UploadDocumentsProps) 
                         setError={(error) => {
                             setUploadError(error, addressProofInputID);
                         }}
+                        fileLimit={1}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
                     {(isDocumentNeededStatus.isProofOfDirecorsNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && (
@@ -175,6 +177,7 @@ function UploadDocuments({onNext, isEditing, directorID}: UploadDocumentsProps) 
                         setError={(error) => {
                             setUploadError(error, directorsProofInputID);
                         }}
+                        fileLimit={1}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.proofOfDirectorsDescription')}</Text>
                     {(isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
@@ -199,6 +202,7 @@ function UploadDocuments({onNext, isEditing, directorID}: UploadDocumentsProps) 
                         setError={(error) => {
                             setUploadError(error, codiceFiscaleInputID);
                         }}
+                        fileLimit={1}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.codiceFiscaleDescription')}</Text>
                     {isDocumentNeededStatus.isPRDandFSGNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
