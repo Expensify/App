@@ -1536,10 +1536,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
             screens: {
                 [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
-                [SCREENS.WORKSPACE_HUB.WORKSPACES]: {
-                    path: ROUTES.SETTINGS_WORKSPACES.route,
-                    exact: true,
-                },
                 [SCREENS.SETTINGS.PROFILE.ROOT]: {
                     path: ROUTES.SETTINGS_PROFILE,
                     exact: true,
@@ -1561,11 +1557,24 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
-                [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT]: {path: ROUTES.SETTINGS_SUBSCRIPTION.route},
                 [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
                     path: ROUTES.SETTINGS_PREFERENCES,
                     // exact: true,
                 },
+            },
+        },
+
+        [NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR]: {
+            screens: {
+                [SCREENS.WORKSPACE_HUB.ROOT]: {
+                    path: ROUTES.WORKSPACE_HUB_INITIAL,
+                    exact: true,
+                },
+                [SCREENS.WORKSPACE_HUB.WORKSPACES]: {
+                    path: ROUTES.SETTINGS_WORKSPACES.route,
+                    exact: true,
+                },
+                [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT]: {path: ROUTES.SETTINGS_SUBSCRIPTION.route},
             },
         },
 

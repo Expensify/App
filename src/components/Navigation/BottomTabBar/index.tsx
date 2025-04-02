@@ -107,6 +107,15 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         });
     }, [activeWorkspaceID, selectedTab]);
 
+    const showWorkspaces = useCallback(() => {
+        if (selectedTab === BOTTOM_TABS.WORKSPACES) {
+            return;
+        }
+
+        hideProductTrainingTooltip();
+        Navigation.navigate(ROUTES.WORKSPACE_HUB_INITIAL);
+    }, [hideProductTrainingTooltip, selectedTab]);
+
     /**
      * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.
      * If the user opens this tab from another tab, it is necessary to check whether it has not been opened before.
@@ -258,7 +267,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     <BottomTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
                 </View>
                 <PressableWithFeedback
-                    onPress={navigateToSearch}
+                    onPress={showWorkspaces}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.workspaces')}
                     style={styles.bottomTabBarItem}
