@@ -643,10 +643,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, tr
         key: `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`,
         value: {
             parentReportID: reportID,
-            // If reportID is unreported, we don't need to update policyID
-            ...(reportID !== CONST.REPORT.UNREPORTED_REPORTID && {
-                policyID: newPolicyID,
-            }),
+            policyID: reportID !== CONST.REPORT.UNREPORTED_REPORTID ? newPolicyID : CONST.POLICY.ID_FAKE,
         },
     }));
 
