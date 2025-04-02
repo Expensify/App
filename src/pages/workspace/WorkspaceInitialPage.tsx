@@ -12,13 +12,13 @@ import {
     Car,
     Coins,
     CreditCard,
+    Document,
     ExpensifyAppIcon,
     ExpensifyCard,
     Feed,
     Folder,
     Gear,
     InvoiceGeneric,
-    Pencil,
     Sync,
     Tag,
     Users,
@@ -262,16 +262,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             });
         }
 
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.reportFields',
-                icon: Pencil,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.REPORT_FIELDS,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
-            });
-        }
-
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.workflows',
@@ -326,6 +316,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
                 brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.MEMBERS,
+            },
+            {
+                translationKey: 'common.reports',
+                icon: Document,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.REPORT_FIELDS,
             },
             ...(isPaidGroupPolicy(policy) && shouldShowProtectedItems ? protectedMenuItems : []),
         ];

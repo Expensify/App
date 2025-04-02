@@ -281,32 +281,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 enablePolicyTaxes(policyID, isEnabled);
             },
         },
-        {
-            icon: Illustrations.Pencil,
-            titleTranslationKey: 'workspace.moreFeatures.reportFields.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.reportFields.subtitle',
-            isActive: policy?.areReportFieldsEnabled ?? false,
-            disabled: hasAccountingConnection,
-            pendingAction: policy?.pendingFields?.areReportFieldsEnabled,
-            disabledAction: onDisabledOrganizeSwitchPress,
-            action: (isEnabled: boolean) => {
-                if (!policyID) {
-                    return;
-                }
-                if (isEnabled) {
-                    if (!isControlPolicy(policy)) {
-                        Navigation.navigate(
-                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                        );
-                        return;
-                    }
-
-                    enablePolicyReportFields(policyID, true, true);
-                    return;
-                }
-                setIsReportFieldsWarningModalOpen(true);
-            },
-        },
     ];
 
     const integrateItems: Item[] = [

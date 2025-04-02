@@ -1,59 +1,44 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import type {ListRenderItemInfo} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
+import FlatList from '@components/FlatList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Plus, Trashcan} from '@components/Icon/Expensicons';
-import {Pencil} from '@components/Icon/Illustrations';
-import LottieAnimations from '@components/LottieAnimations';
+import {Plus} from '@components/Icon/Expensicons';
+import {ReportReceipt} from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
-import TableListItem from '@components/SelectionList/TableListItem';
+import Section from '@components/Section';
 import type {ListItem} from '@components/SelectionList/types';
-import SelectionListWithModal from '@components/SelectionListWithModal';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isConnectionInProgress} from '@libs/actions/connections';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {enablePolicyReportFields, setPolicyPreventMemberCreatedTitle} from '@libs/actions/Policy/Policy';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
-import {getReportFieldKey} from '@libs/ReportUtils';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {deleteReportFields, openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyReportField} from '@src/types/onyx/Policy';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ReportFieldForList = ListItem & {
-    value: string;
     fieldID: string;
-    orderWeight?: number;
+    rightLabel: string;
+    isDisabled: boolean;
 };
 
 type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
@@ -65,14 +50,11 @@ function WorkspaceReportFieldsPage({
 }: WorkspaceReportFieldsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const isFocused = useIsFocused();
-    const {environmentURL} = useEnvironment();
     const policy = usePolicy(policyID);
-    const {selectionMode} = useMobileSelectionMode();
     const filteredPolicyFieldList = useMemo(() => {
         if (!policy?.fieldList) {
             return {};
@@ -80,16 +62,6 @@ function WorkspaceReportFieldsPage({
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy]);
-    const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
-    const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
-    const hasReportAccountingConnections = hasAccountingConnections(policy);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
-    const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
-    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const currentConnectionName = getCurrentConnectionName(policy);
-
-    const canSelectMultiple = !hasReportAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);
@@ -97,146 +69,58 @@ function WorkspaceReportFieldsPage({
 
     const {isOffline} = useNetwork({onReconnect: fetchReportFields});
 
-    const hasVisibleReportField = Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
-
     useFocusEffect(fetchReportFields);
-
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        setSelectedReportFields([]);
-    }, [isFocused]);
 
     const reportFieldsSections = useMemo(() => {
         if (!policy) {
-            return [{data: [], isDisabled: true}];
+            return [];
         }
 
-        return [
-            {
-                data: Object.values(filteredPolicyFieldList)
-                    .sort((a, b) => localeCompare(a.name, b.name))
-                    .map((reportField) => ({
-                        value: reportField.name,
-                        fieldID: reportField.fieldID,
-                        keyForList: String(reportField.fieldID),
-                        orderWeight: reportField.orderWeight,
-                        pendingAction: reportField.pendingAction,
-                        isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined && canSelectMultiple,
-                        isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                        text: reportField.name,
-                        rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))} />,
-                    })),
-                isDisabled: false,
-            },
-        ];
-    }, [filteredPolicyFieldList, policy, selectedReportFields, canSelectMultiple, translate]);
+        return Object.values(filteredPolicyFieldList)
+            .sort((a, b) => localeCompare(a.name, b.name))
+            .map((reportField) => ({
+                text: reportField.name,
+                keyForList: String(reportField.fieldID),
+                fieldID: reportField.fieldID,
+                pendingAction: reportField.pendingAction,
+                isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type))),
+            }));
+    }, [filteredPolicyFieldList, policy, translate]);
 
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(reportFieldsSections.at(0)?.data ?? ([] as ListItem[]));
-
-    const updateSelectedReportFields = (item: ReportFieldForList) => {
-        const fieldKey = getReportFieldKey(item.fieldID);
-        const updatedReportFields = selectedReportFields.find((selectedReportField) => selectedReportField.name === item.value)
-            ? selectedReportFields.filter((selectedReportField) => selectedReportField.name !== item.value)
-            : [...selectedReportFields, filteredPolicyFieldList[fieldKey]];
-        setSelectedReportFields(updatedReportFields);
-    };
-
-    const toggleAllReportFields = () => {
-        const availableReportFields = Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const isAllSelected = availableReportFields.length === selectedReportFields.length;
-        setSelectedReportFields(isAllSelected ? [] : availableReportFields);
-    };
-
-    const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
-        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
-    };
-
-    const handleDeleteReportFields = () => {
-        const reportFieldKeys = selectedReportFields.map((selectedReportField) => getReportFieldKey(selectedReportField.fieldID));
-        setSelectedReportFields([]);
-        deleteReportFields(policyID, reportFieldKeys);
-        setDeleteReportFieldsConfirmModalVisible(false);
-    };
+    const navigateToReportFieldsSettings = useCallback(
+        (reportField: ReportFieldForList) => {
+            Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
+        },
+        [policyID],
+    );
 
     const isLoading = !isOffline && policy === undefined;
-    const shouldShowEmptyState =
-        !Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline) && !isLoading;
 
-    const getHeaderButtons = () => {
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-
-        if (shouldUseNarrowLayout ? canSelectMultiple : selectedReportFields.length > 0) {
-            options.push({
-                icon: Trashcan,
-                text: translate(selectedReportFields.length === 1 ? 'workspace.reportFields.delete' : 'workspace.reportFields.deleteFields'),
-                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setDeleteReportFieldsConfirmModalVisible(true),
-            });
-
-            return (
-                <ButtonWithDropdownMenu
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedReportFields.length})}
-                    options={options}
-                    isSplitButton={false}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    isDisabled={!selectedReportFields.length}
+    const renderItem = useCallback(
+        ({item}: ListRenderItemInfo<ReportFieldForList>) => (
+            <OfflineWithFeedback pendingAction={item.pendingAction}>
+                <MenuItem
+                    onPress={() => navigateToReportFieldsSettings(item)}
+                    description={item.text}
+                    disabled={item.isDisabled}
+                    shouldShowRightIcon={!item.isDisabled}
+                    interactive={!item.isDisabled}
+                    rightLabel={item.rightLabel}
+                    descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
                 />
-            );
-        }
-        return (
-            <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                <Button
-                    success
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
-                    icon={Plus}
-                    text={translate('workspace.reportFields.addField')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
-                />
-            </View>
-        );
-    };
+            </OfflineWithFeedback>
+        ),
 
-    const getCustomListHeader = () => {
-        return (
-            <CustomListHeader
-                canSelectMultiple={canSelectMultiple}
-                leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('common.type')}
-            />
-        );
-    };
-
-    const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {!hasSyncError && isConnectedToAccounting ? (
-                <Text>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.reportFields.importedFromAccountingSoftware')} `}</Text>
-                    <TextLink
-                        style={[styles.textNormal, styles.link]}
-                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                    >
-                        {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                    </TextLink>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                </Text>
-            ) : (
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.reportFields.subtitle')}</Text>
-            )}
-        </View>
+        [styles.popoverMenuText, styles.textStrong, navigateToReportFieldsSettings],
     );
-    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+
+    const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -246,33 +130,11 @@ function WorkspaceReportFieldsPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={!selectionModeHeader ? Pencil : undefined}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.reportFields')}
+                    icon={ReportReceipt}
+                    title={translate('common.reports')}
+                    shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={() => {
-                        if (selectionModeHeader) {
-                            setSelectedReportFields([]);
-                            turnOffMobileSelectionMode();
-                            return;
-                        }
-                        Navigation.goBack();
-                    }}
-                >
-                    {!shouldUseNarrowLayout && !hasReportAccountingConnections && getHeaderButtons()}
-                </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{!hasReportAccountingConnections && getHeaderButtons()}</View>}
-                <ConfirmModal
-                    isVisible={deleteReportFieldsConfirmModalVisible}
-                    onConfirm={handleDeleteReportFields}
-                    onCancel={() => setDeleteReportFieldsConfirmModalVisible(false)}
-                    title={translate(selectedReportFields.length === 1 ? 'workspace.reportFields.delete' : 'workspace.reportFields.deleteFields')}
-                    prompt={translate(selectedReportFields.length === 1 ? 'workspace.reportFields.deleteConfirmation' : 'workspace.reportFields.deleteFieldsConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
-                {(!shouldUseNarrowLayout || !hasVisibleReportField || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -280,37 +142,87 @@ function WorkspaceReportFieldsPage({
                         color={theme.spinner}
                     />
                 )}
-                {shouldShowEmptyState && (
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                        <EmptyStateComponent
-                            title={translate('workspace.reportFields.emptyReportFields.title')}
-                            subtitle={translate('workspace.reportFields.emptyReportFields.subtitle')}
-                            SkeletonComponent={TableListItemSkeleton}
-                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                            headerMedia={LottieAnimations.GenericEmptyState}
-                            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                            headerContentStyles={styles.emptyStateFolderWebStyles}
+                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        isCentralPane
+                        title={translate('workspace.common.reportTitle')}
+                        renderSubtitle={() => (
+                            <Text style={[styles.textNormal, styles.colorMuted]}>
+                                {translate('workspace.rules.expenseReportRules.customReportNamesSubtitle')}
+                                <TextLink
+                                    style={[styles.link]}
+                                    href={CONST.CUSTOM_REPORT_NAME_HELP_URL}
+                                >
+                                    {translate('workspace.rules.expenseReportRules.customNameDescriptionLink')}
+                                </TextLink>
+                            </Text>
+                        )}
+                        titleStyles={[styles.accountSettingsSectionTitle, styles.mb3]}
+                    >
+                        <OfflineWithFeedback pendingAction={reportTitlePendingFields.defaultValue}>
+                            <MenuItemWithTopDescription
+                                description={translate('workspace.rules.expenseReportRules.customNameTitle')}
+                                title={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue}
+                                shouldShowRightIcon
+                                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}
+                            />
+                        </OfflineWithFeedback>
+                        <ToggleSettingOptionRow
+                            pendingAction={reportTitlePendingFields.deletable}
+                            title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
+                            switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
+                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
+                            titleStyle={styles.pv2}
+                            isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
+                            onToggle={(isEnabled) => {
+                                if (isEnabled && !isControlPolicy(policy)) {
+                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, undefined));
+                                    return;
+                                }
+
+                                setPolicyPreventMemberCreatedTitle(policyID, isEnabled);
+                            }}
                         />
-                    </ScrollView>
-                )}
-                {!shouldShowEmptyState && !isLoading && (
-                    <SelectionListWithModal
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={!hasReportAccountingConnections}
-                        onTurnOnSelectionMode={(item) => item && updateSelectedReportFields(item)}
-                        sections={reportFieldsSections}
-                        onCheckboxPress={updateSelectedReportFields}
-                        onSelectRow={navigateToReportFieldsSettings}
-                        onSelectAll={toggleAllReportFields}
-                        ListItem={TableListItem}
-                        customListHeader={getCustomListHeader()}
-                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        showScrollIndicator={false}
-                    />
-                )}
+                    </Section>
+                    <Section
+                        isCentralPane
+                        title={translate('workspace.common.reportFields')}
+                        renderSubtitle={() => (
+                            <ToggleSettingOptionRow
+                                pendingAction={policy?.pendingFields?.areReportFieldsEnabled}
+                                title={translate('workspace.reportFields.subtitle')}
+                                switchAccessibilityLabel={translate('workspace.reportFields.subtitle')}
+                                wrapperStyle={[styles.mt2, styles.mb8]}
+                                titleStyle={[styles.textNormal, styles.colorMuted, styles.mr3]}
+                                isActive={!!policy?.areReportFieldsEnabled}
+                                onToggle={(isEnabled) => {
+                                    if (isEnabled && !isControlPolicy(policy)) {
+                                        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias));
+                                        return;
+                                    }
+                                    enablePolicyReportFields(policyID, isEnabled, true);
+                                }}
+                            />
+                        )}
+                        titleStyles={[styles.accountSettingsSectionTitle, styles.mb3]}
+                    >
+                        {!!policy?.areReportFieldsEnabled && (
+                            <>
+                                <FlatList
+                                    data={reportFieldsSections}
+                                    renderItem={renderItem}
+                                />
+                                <MenuItem
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
+                                    title={translate('workspace.reportFields.addField')}
+                                    icon={Plus}
+                                    wrapperStyle={[styles.paymentMethod]}
+                                />
+                            </>
+                        )}
+                    </Section>
+                </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
