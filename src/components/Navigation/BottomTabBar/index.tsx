@@ -270,12 +270,13 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     onPress={showWorkspaces}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.workspaces')}
+                    wrapperStyle={styles.flex1}
                     style={styles.bottomTabBarItem}
                 >
                     <View>
                         <Icon
                             src={Expensicons.Buildings}
-                            fill={theme.icon}
+                            fill={selectedTab === BOTTOM_TABS.WORKSPACES ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
