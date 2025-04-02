@@ -1856,6 +1856,12 @@ type SearchReportParamList = {
         /** Hash that includes info about what is searched for */
         searchHash?: number;
     };
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
+        /** Link to previous page */
+        backTo: Routes;
+        /** Selected transactions' report ID  */
+        reportID: string;
+    };
 };
 
 type SearchFullscreenNavigatorParamList = {

@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {exportReportToCSV} from '@libs/actions/Report';
+import {unholdMoneyRequestOnMoneyRequestReport} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
@@ -19,7 +20,6 @@ import {
     canBeExported,
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
-    changeMoneyRequestHoldStatus,
     getArchiveReason,
     getBankAccountRoute,
     getMoneyRequestSpendBreakdown,
@@ -189,7 +189,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [moneyRequestReport, chatReport, policy, transaction],
     );
 
-    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
+    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(moneyRequestReport?.reportID);
 
@@ -223,16 +223,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 icon: Expensicons.Stopwatch,
                 value: 'UNHOLD',
                 onSelected: () => {
-                    const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
-
-                    const selectedIOUActions = iouActions.filter((action) => {
-                        // I have no idea why this it's unsafe assignment
-                        const IOUTransactionID = (getOriginalMessage(action) as OnyxTypes.OriginalMessageIOU)?.IOUTransactionID;
-
-                        return IOUTransactionID && selectedTransactionsID.includes(IOUTransactionID);
-                    });
-                    selectedIOUActions.forEach((action) => changeMoneyRequestHoldStatus(action));
-                    setSelectedTransactionsID([...selectedTransactionsID]); // it's needed in order to recalculate options
+                    unholdMoneyRequestOnMoneyRequestReport(selectedTransactionsID);
+                    // it's needed in order to recalculate options
+                    setSelectedTransactionsID([...selectedTransactionsID]);
                 },
             });
         }
@@ -246,7 +239,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     return;
                 }
                 exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: selectedTransactionsID}, () => {
-                    setDownloadErrorModalVisible(true);
+                    setIsDownloadErrorModalVisible(true);
                 });
             },
         });
@@ -715,10 +708,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
                 isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
                 secondOptionText={translate('common.buttonConfirm')}
-                isVisible={downloadErrorModalVisible}
-                onClose={() => setDownloadErrorModalVisible(false)}
+                isVisible={isDownloadErrorModalVisible}
+                onClose={() => setIsDownloadErrorModalVisible(false)}
             />
         </View>
     );

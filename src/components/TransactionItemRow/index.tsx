@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
-import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import type {TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -26,7 +25,7 @@ function TransactionItemRow({
     shouldShowTooltip,
     dateColumnSize,
     shouldShowChatBubbleComponent = false,
-    reportID,
+    onCheckboxPress,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
@@ -34,11 +33,10 @@ function TransactionItemRow({
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
     shouldShowChatBubbleComponent?: boolean;
-    reportID: string;
+    onCheckboxPress: (transactionID: string) => void;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {toggleTransaction, isTransactionSelected} = useMoneyRequestReportContext(reportID);
 
     const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
@@ -52,19 +50,19 @@ function TransactionItemRow({
                     {(hovered) => (
                         <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3]}>
                             <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
-                                <View style={[styles.mr3, styles.justifyContentCenter]}>
+                                <View style={[styles.mr1, styles.justifyContentCenter]}>
                                     <Checkbox
                                         onPress={() => {
-                                            toggleTransaction(transactionItem.transactionID);
+                                            onCheckboxPress(transactionItem.transactionID);
                                         }}
                                         accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                        isChecked={isTransactionSelected(transactionItem.transactionID)}
+                                        isChecked={isSelected}
                                     />
                                 </View>
                                 <View style={[styles.mr3]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
-                                        isSelected
+                                        isSelected={isSelected}
                                     />
                                 </View>
                                 <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
@@ -123,19 +121,19 @@ function TransactionItemRow({
                     {(hovered) => (
                         <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p3, styles.expenseWidgetRadius, styles.gap2]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                                <View style={[styles.mr3]}>
+                                <View style={[styles.mr1]}>
                                     <Checkbox
                                         onPress={() => {
-                                            toggleTransaction(transactionItem.transactionID);
+                                            onCheckboxPress(transactionItem.transactionID);
                                         }}
                                         accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                        isChecked={isTransactionSelected(transactionItem.transactionID)}
+                                        isChecked={isSelected}
                                     />
                                 </View>
-                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
+                            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
-                                        isSelected
+                                        isSelected={isSelected}
                                     />
                                 </View>
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>

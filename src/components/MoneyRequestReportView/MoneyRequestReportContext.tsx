@@ -72,16 +72,16 @@ function MoneyRequestReportContextProvider({children}: ChildrenProps) {
     return <Context.Provider value={context}>{children}</Context.Provider>;
 }
 
-function useMoneyRequestReportContext(reportID = '') {
+function useMoneyRequestReportContext(reportID?: string) {
     const context = useContext(Context);
 
     return useMemo(
         () => ({
-            selectedTransactionsID: context.selectedTransactionsID[reportID] ?? [],
-            setSelectedTransactionsID: context.setSelectedTransactionsID(reportID),
-            toggleTransaction: context.toggleTransaction(reportID),
-            isTransactionSelected: context.isTransactionSelected(reportID),
-            removeTransaction: context.removeTransaction(reportID),
+            selectedTransactionsID: reportID ? context.selectedTransactionsID[reportID] ?? [] : [],
+            setSelectedTransactionsID: reportID ? context.setSelectedTransactionsID(reportID) : () => {},
+            toggleTransaction: reportID ? context.toggleTransaction(reportID) : () => {},
+            isTransactionSelected: reportID ? context.isTransactionSelected(reportID) : () => false,
+            removeTransaction: reportID ? context.removeTransaction(reportID) : () => {},
         }),
         [context, reportID],
     );

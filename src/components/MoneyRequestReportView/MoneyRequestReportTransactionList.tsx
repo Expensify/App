@@ -80,7 +80,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
 
@@ -92,7 +91,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
-    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(report.reportID);
+    const {selectedTransactionsID, setSelectedTransactionsID, toggleTransaction, isTransactionSelected} = useMoneyRequestReportContext(report.reportID);
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
@@ -164,8 +163,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     return !isEmpty(transactions) ? (
         <>
             {!displayNarrowVersion && (
-                <View style={[styles.dFlex, styles.flexRow, styles.ph5]}>
-                    <View style={[styles.p2, StyleUtils.getPaddingLeft(variables.w12)]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <View style={[styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
                                 if (selectedTransactionsID.length === transactions.length) {
@@ -214,17 +213,15 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
                         >
-                            <View style={[styles.mb2]}>
-                                <TransactionItemRow
-                                    transactionItem={transaction}
-                                    isSelected={false}
-                                    shouldShowTooltip
-                                    dateColumnSize={dateColumnSize}
-                                    shouldUseNarrowLayout={displayNarrowVersion}
-                                    shouldShowChatBubbleComponent
-                                    reportID={report.reportID}
-                                />
-                            </View>
+                            <TransactionItemRow
+                                transactionItem={transaction}
+                                isSelected={isTransactionSelected(transaction.transactionID)}
+                                shouldShowTooltip
+                                dateColumnSize={dateColumnSize}
+                                shouldUseNarrowLayout={displayNarrowVersion}
+                                shouldShowChatBubbleComponent
+                                onCheckboxPress={toggleTransaction}
+                            />
                         </PressableWithFeedback>
                     );
                 })}

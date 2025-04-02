@@ -3,36 +3,26 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchReportParamList} from '@libs/Navigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import {clearErrorFields, clearErrors} from '@userActions/FormActions';
 import {holdMoneyRequestOnMoneyRequestReport} from '@src/libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
-type SearchMoneyRequestReportHoldReasonPageRouteParams = {
-    /** Link to previous page */
-    backTo: Route;
-
-    reportID: string;
-};
-
-type SearchMoneyRequestReportHoldReasonPageProps = {
-    /** Navigation route context info provided by react navigation */
-    route: PlatformStackRouteProp<{params?: SearchMoneyRequestReportHoldReasonPageRouteParams}>;
-};
-
-function SearchMoneyRequestReportHoldReasonPage({route}: SearchMoneyRequestReportHoldReasonPageProps) {
+function SearchMoneyRequestReportHoldReasonPage({route}: PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>) {
     const {translate} = useLocalize();
 
-    const {backTo = '', reportID = ''} = route.params ?? {};
+    const {backTo, reportID} = route.params;
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(reportID);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         holdMoneyRequestOnMoneyRequestReport(selectedTransactionsID, values.comment);
-        setSelectedTransactionsID([...selectedTransactionsID]); // It's needed so the actions in header are recalculated
+        // It's needed so the actions in header are recalculated
+        setSelectedTransactionsID([...selectedTransactionsID]);
 
         Navigation.goBack();
     };

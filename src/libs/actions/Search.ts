@@ -359,6 +359,10 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
+function unholdMoneyRequestOnMoneyRequestReport(transactionIDList: string[]) {
+    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash: -1, transactionIDList}, {});
+}
+
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
@@ -419,6 +423,7 @@ export {
     deleteMoneyRequestOnSearch,
     holdMoneyRequestOnMoneyRequestReport,
     holdMoneyRequestOnSearch,
+    unholdMoneyRequestOnMoneyRequestReport,
     unholdMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     updateAdvancedFilters,
