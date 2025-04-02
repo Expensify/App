@@ -2,7 +2,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -82,20 +81,15 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
             />
             <View style={[styles.flex1]}>
                 <SelectionList
+                    showConfirmButton
+                    shouldUpdateFocusedIndex
+                    shouldSingleExecuteRowSelect
                     sections={[{data: items}]}
                     ListItem={RadioListItem}
-                    onSelectRow={updateFilter}
                     initiallyFocusedOptionKey={initialSelection}
-                    footerContent={
-                        <Button
-                            success
-                            style={[styles.mt4]}
-                            text={translate('common.save')}
-                            pressOnEnter
-                            onPress={saveChanges}
-                            large
-                        />
-                    }
+                    confirmButtonText={translate('common.save')}
+                    onConfirm={saveChanges}
+                    onSelectRow={updateFilter}
                 />
             </View>
         </ScreenWrapper>
