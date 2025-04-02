@@ -20,5 +20,3 @@ To assign a role to a travel member,
     - View analytics and metrics 
     - Use the Safety feature
 6. Click **Save**. 
-
-</div>
