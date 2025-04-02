@@ -70,6 +70,7 @@ import {
     isReportOwner,
     isSettled,
     isTripRoom as isTripRoomReportUtils,
+    isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
@@ -254,10 +255,7 @@ function ReportPreview({
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
-    const isWaitingForSubmissionFromCurrentUser = useMemo(
-        () => chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled,
-        [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
-    );
+    const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
 
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
