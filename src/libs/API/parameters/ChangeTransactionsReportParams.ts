@@ -4,9 +4,9 @@
  * transactionThreadReportID and transactionThreadCreatedReportActionID
  */
 type TransactionThreadInfo = {
+    movedReportActionID: string;
     transactionThreadReportID?: string;
     transactionThreadCreatedReportActionID?: string;
-    movedReportActionID: string;
 };
 type ChangeTransactionsReportParams = {
     transactionList: string;
@@ -14,4 +14,4 @@ type ChangeTransactionsReportParams = {
     transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo>; // A map of transactionID to TransactionThreadInfo
 };
 
-export default ChangeTransactionsReportParams;
+export type {ChangeTransactionsReportParams, TransactionThreadInfo};
