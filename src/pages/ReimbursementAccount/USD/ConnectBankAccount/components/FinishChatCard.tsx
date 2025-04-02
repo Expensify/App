@@ -1,14 +1,17 @@
 import React from 'react';
-import Button from '@components/Button';
+import {Concierge, Pencil, RotateLeft} from '@components/Icon/Expensicons';
 import {ConciergeBubble} from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import {requestResetBankAccount} from '@userActions/BankAccounts';
+import {goToWithdrawalAccountSetupStep, requestResetBankAccount, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {navigateToConciergeChat} from '@userActions/Report';
+import CONST from '@src/CONST';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import Enable2FACard from './Enable2FACard';
 
@@ -26,6 +29,7 @@ type FinishChatCardProps = {
 function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBankAccountStep}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policyID = reimbursementAccount?.achData?.policyID;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
@@ -39,17 +43,31 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                 titleStyles={[styles.mb3]}
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
-                <Button
-                    text={translate('workspace.bankAccount.noLetsStartOver')}
-                    onPress={requestResetBankAccount}
-                    style={styles.mb3}
-                    large
-                />
-                <Button
-                    text={translate('connectBankAccountStep.letsChatCTA')}
+                <MenuItem
+                    icon={Concierge}
+                    title={translate('workspace.bankAccount.finishInChat')}
                     onPress={handleNavigateToConciergeChat}
-                    large
-                    success
+                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                    shouldShowRightIcon
+                />
+                <MenuItem
+                    icon={Pencil}
+                    title={translate('workspace.bankAccount.updateDetails')}
+                    onPress={() => {
+                        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+                            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                        });
+                    }}
+                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                    shouldShowRightIcon
+                />
+                <MenuItem
+                    icon={RotateLeft}
+                    title={translate('workspace.bankAccount.startOver')}
+                    onPress={requestResetBankAccount}
+                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                    shouldShowRightIcon
                 />
             </Section>
             {!requiresTwoFactorAuth && <Enable2FACard policyID={policyID} />}

@@ -5,6 +5,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import BankAccount from '@libs/models/BankAccount';
 import getInitialSubStepForPersonalInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForPersonalInfo';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {updatePersonalInformationForBankAccount} from '@userActions/BankAccounts';
@@ -40,7 +41,8 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
         },
         [values, bankAccountID, policyID],
     );
-    const startFrom = useMemo(() => getInitialSubStepForPersonalInfo(values), [values]);
+    const isBankAccountVerifying = reimbursementAccount?.achData?.state === BankAccount.STATE.VERIFYING;
+    const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForPersonalInfo(values)), [values, isBankAccountVerifying]);
 
     const {
         componentToRender: SubStep,

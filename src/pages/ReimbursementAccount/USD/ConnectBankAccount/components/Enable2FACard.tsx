@@ -33,7 +33,6 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
                     },
                     icon: Expensicons.Shield,
                     shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
                     outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                 },
             ]}
