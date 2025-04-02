@@ -750,6 +750,16 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
                 return ROUTES.SEARCH_ROOT.getRoute({query});
             },
         },
+        {
+            translationPath: 'common.tasks',
+            type: CONST.SEARCH.DATA_TYPES.TASK,
+            icon: Expensicons.Task,
+            getRoute: (policyID?: string) => {
+                // JACK_TODO: Change the status
+                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TASK, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                return ROUTES.SEARCH_ROOT.getRoute({query});
+            },
+        },
     ];
 
     if (canSendInvoice(allPolicies, email) || hasInvoiceReports()) {
