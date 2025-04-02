@@ -1150,6 +1150,8 @@ const CONST = {
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            REOPEN: 'reopen',
+            RETRACT: 'retract',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
