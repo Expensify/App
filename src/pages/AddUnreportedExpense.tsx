@@ -1,16 +1,15 @@
 import React, {useRef} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
-import {buildOptimisticMovedTransactionAction} from '@libs/ReportUtils';
-import navigation from '@navigation/Navigation';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import {moveUnreportedTransactionToReport} from '@userActions/Report';
 import {getAllTransactions} from '@userActions/Transaction';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -35,10 +34,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             data: unreportedExpensesList,
         },
     ];
-    const reportId = route.params.reportID;
-    const selectedIds = new Set();
-
-    Array.from(selectedIds).map((value) => buildOptimisticMovedTransactionAction(0, reportId, value.transactionId));
+    const reportID = route.params.reportID;
+    const selectedIds = new Set<Transaction>();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     return (
         <ScreenWrapper
@@ -52,7 +50,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         >
             <HeaderWithBackButton
                 title="Add unreported expanse"
-                onBackButtonPress={navigation.goBack}
+                onBackButtonPress={Navigation.goBack}
             />
             <SelectionList<Transaction & ListItem>
                 ref={selectionListRef}
@@ -71,29 +69,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 showConfirmButton
                 confirmButtonText="Add to report"
                 onConfirm={() => {
-                    const result = Array.from(selectedIds).reduce((acc, value) => {
-                        console.log('Processing transactionID:', value.transactionID); // log transactionID
-                        const action = buildOptimisticMovedTransactionAction('0', reportId, value.transactionID);
-                        console.log('Action created:', action); // log action
-                        acc[value.transactionID] = action;
-                        return acc;
-                    }, {});
-
-                    debugger;
-
-                    const resultStringArray = Array.from(selectedIds).map(
-                        (element) => element.transactionID,
-                        // `{${Object.entries(element)
-                        //     .map(([key, value]) => `${key}: ${value}`)
-                        //     .join(', ')}}`,
-                    );
-
-                    Navigation.goBack(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportId, backTo: Navigation.getActiveRoute()}));
-                    API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, {
-                        transactionList: resultStringArray.join("', '"),
-                        reportID: reportId,
-                        reportActionIDToThreadReportIDMap: JSON.stringify(result),
-                    });
+                    moveUnreportedTransactionToReport(report, selectedIds);
+                    Navigation.goBack(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
                 }}
             />
         </ScreenWrapper>

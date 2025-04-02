@@ -4,7 +4,7 @@ import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
@@ -52,6 +52,7 @@ import type {
     UpdateReportWriteCapabilityParams,
     UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
+import type {TransactionThreadInfo} from '@libs/API/parameters/ChangeTransactionsReportParams';
 import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVParams';
 import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -101,6 +102,7 @@ import {
     buildOptimisticCreatedReportAction,
     buildOptimisticExportIntegrationAction,
     buildOptimisticGroupChatReport,
+    buildOptimisticMovedTransactionAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
     buildOptimisticRoomDescriptionUpdatedReportAction,
@@ -5630,6 +5632,285 @@ function changeReportPolicy(reportID: string, policyID: string) {
     }
 }
 
+// function moveUnreportedReportOptimisticData(
+//     policy: OnyxEntry<Policy>,
+//     reportID: string,
+//     reportActionID: string,
+//     creatorPersonalDetails: PersonalDetails,
+//     reportPreviewReportActionID: string,
+// ) {
+//     const reportId = '';
+//     const transactionIds = new Set<string>();
+//
+//     const {accountID, login} = creatorPersonalDetails;
+//     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
+//     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
+//     const timeOfCreation = DateUtils.getDBTime();
+//     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
+//     const optimisticDataValue: OptimisticNewReport = {
+//         reportID,
+//         policyID: policy?.id,
+//         type: CONST.REPORT.TYPE.EXPENSE,
+//         ownerAccountID: accountID,
+//         stateNum,
+//         statusNum,
+//         total: 0,
+//         nonReimbursableTotal: 0,
+//         participants: {},
+//         lastVisibleActionCreated: timeOfCreation,
+//         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+//         parentReportID: parentReport?.reportID,
+//     };
+//
+//     const optimisticReportName = populateOptimisticReportFormula(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, optimisticDataValue, policy);
+//     optimisticDataValue.reportName = optimisticReportName;
+//
+//     if (accountID) {
+//         optimisticDataValue.participants = {
+//             [accountID]: {
+//                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+//             },
+//         };
+//         optimisticDataValue.ownerAccountID = accountID;
+//     }
+//
+//     const optimisticCreateAction = {
+//         action: CONST.REPORT.ACTIONS.TYPE.CREATED,
+//         accountEmail: login,
+//         accountID,
+//         created: timeOfCreation,
+//         message: {
+//             isNewDot: true,
+//             lastModified: timeOfCreation,
+//         },
+//         reportActionID,
+//         reportID,
+//         sequenceNumber: 0,
+//         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+//     };
+//
+//     const createReportActionMessage = [
+//         {
+//             html: `${policy?.name} owes ${policy?.outputCurrency} 0.00`,
+//             text: `${policy?.name} owes ${policy?.outputCurrency} 0.00`,
+//             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+//         },
+//     ];
+//
+//     const optimisticReportPreview = {
+//         action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+//         actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+//         childReportName: optimisticReportName,
+//         childReportID: reportID,
+//         childType: CONST.REPORT.TYPE.EXPENSE,
+//         created: timeOfCreation,
+//         shouldShow: true,
+//         actorAccountID: accountID,
+//         automatic: false,
+//         avatar: creatorPersonalDetails.avatar,
+//         isAttachmentOnly: false,
+//         reportActionID: reportPreviewReportActionID,
+//         message: createReportActionMessage,
+//         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+//     };
+//
+//     const optimisticNextStep = buildNextStep(optimisticDataValue, CONST.REPORT.STATUS_NUM.OPEN);
+//
+//     const optimisticData: OnyxUpdate[] = [
+//         {
+//             onyxMethod: Onyx.METHOD.SET,
+//             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+//             value: optimisticDataValue,
+//         },
+//         {
+//             onyxMethod: Onyx.METHOD.SET,
+//             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+//             value: {[reportActionID]: optimisticCreateAction},
+//         },
+//         {
+//             onyxMethod: Onyx.METHOD.MERGE,
+//             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+//             value: {[reportPreviewReportActionID]: optimisticReportPreview},
+//         },
+//         {
+//             onyxMethod: Onyx.METHOD.SET,
+//             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+//             value: optimisticNextStep,
+//         },
+//         {
+//             onyxMethod: Onyx.METHOD.SET,
+//             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+//             value: {
+//                 action: CONST.QUICK_ACTIONS.CREATE_REPORT,
+//                 chatReportID: parentReport?.reportID,
+//                 isFirstQuickAction: isEmptyObject(quickAction),
+//             },
+//         },
+//     ];
+//
+//     const failureData: OnyxUpdate[] = [
+//         {
+//             onyxMethod: Onyx.METHOD.MERGE,
+//             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+//             value: {errorFields: {create: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}},
+//         },
+//         {
+//             onyxMethod: Onyx.METHOD.MERGE,
+//             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+//             value: {[reportActionID]: {errorFields: {create: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
+//         },
+//         {
+//             onyxMethod: Onyx.METHOD.SET,
+//             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+//             value: quickAction ?? null,
+//         },
+//     ];
+//
+//     const successData: OnyxUpdate[] = [
+//         {
+//             onyxMethod: Onyx.METHOD.MERGE,
+//             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+//             value: {
+//                 pendingAction: null,
+//                 errorFields: null,
+//             },
+//         },
+//         {
+//             onyxMethod: Onyx.METHOD.MERGE,
+//             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+//             value: {
+//                 [reportActionID]: {
+//                     pendingAction: null,
+//                     errorFields: null,
+//                 },
+//             },
+//         },
+//         {
+//             onyxMethod: Onyx.METHOD.MERGE,
+//             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+//             value: {[reportActionID]: {pendingAction: null}},
+//         },
+//     ];
+//
+//     return {optimisticReportName, optimisticData, successData, failureData};
+// }
+
+const a = {
+    onyxData: [
+        {
+            key: 'reportActions_5300846086253803',
+            onyxMethod: 'merge',
+            value: {
+                '5149899773148488193': {
+                    childCanHold: true,
+                    childCanUnhold: false,
+                    childCommenterCount: 0,
+                    childLastActorAccountID: 0,
+                    childLastMoneyRequestComment: '',
+                    childLastReceiptTransactionIDs: '',
+                    childLastVisibleActionCreated: '',
+                    childManagerAccountID: 18634575,
+                    childMoneyRequestCount: 0,
+                    childOldestFourAccountIDs: '',
+                    childOwnerAccountID: 18634575,
+                    childRecentReceiptTransactionIDs: {},
+                    childReportID: '2478467889476967',
+                    childReportName: 'Expense Report 2025-04-01',
+                    childStateNum: 1,
+                    childStatusNum: 1,
+                    childType: 'expense',
+                    childVisibleActionCount: 0,
+                    message: [
+                        {
+                            html: "Swmansion's Workspace owes z\u01427,777.00",
+                            text: "Swmansion's Workspace owes z\u01427,777.00",
+                            type: 'COMMENT',
+                            whisperedTo: [],
+                        },
+                    ],
+                    originalMessage: {
+                        isNewDot: true,
+                        lastModified: '2025-04-01 13:00:26.752',
+                        linkedReportID: '2478467889476967',
+                    },
+                },
+            },
+        },
+        {
+            key: 'report_2478467889476967',
+            onyxMethod: 'merge',
+            value: {
+                chatType: '',
+                lastActorAccountID: 18634575,
+                lastMessageText: '',
+                lastVisibleActionCreated: '2025-04-01 13:00:26.749',
+                managerID: 18634575,
+                nonReimbursableTotal: -777700,
+                ownerAccountID: 18634575,
+                parentReportActionID: '5149899773148488193',
+                parentReportID: '5300846086253803',
+                policyID: 'EA215F435A9F1489',
+                reportID: '2478467889476967',
+                reportName: 'Expense Report 2025-04-01',
+                stateNum: 1,
+                statusNum: 1,
+                total: '-777700',
+                type: 'expense',
+                visibility: '',
+            },
+        },
+    ],
+};
+
+function buildMoveTransactionOptimisticData(reportID: string, transactionsId: string[], report: OnyxEntry<Report>, transactions: Set<Transaction>) {
+    const reportActionIDToThreadReportIDMap = Array.from(transactionsId).reduce((transactionActions: Record<string, string>, transactionId: string) => {
+        transactionActions[transactionId] = buildOptimisticMovedTransactionAction(CONST.REPORT.UNREPORTED_REPORTID, reportID, transactionId).reportActionID;
+        return transactionActions;
+    }, {});
+
+    const timeOfMove = DateUtils.getDBTime();
+
+    const sumOfTransactionsAmount = [...transactions].reduce((sum, transaction) => sum + transaction.amount, 0);
+    const optimisticDataValue = {
+        total: (report?.total ?? 0) + sumOfTransactionsAmount,
+        lastVisibleActionCreated: timeOfMove,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        ...report,
+    };
+
+    const optymisticReportId = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: optimisticDataValue,
+    };
+}
+
+function moveUnreportedTransactionToReport(report: OnyxEntry<Report>, transactionsId: Set<Transaction>) {
+    const reportID = report?.reportID ?? '0';
+
+    const reportActionIDToThreadReportIDMap = Array.from(transactionsId)
+        .map((transaction) => transaction.transactionID)
+        .reduce((transactionActions: Record<string, TransactionThreadInfo>, transactionId: string) => {
+            transactionActions[transactionId] = {
+                movedReportActionID: buildOptimisticMovedTransactionAction(CONST.REPORT.UNREPORTED_REPORTID, reportID, transactionId).reportActionID,
+            };
+            return transactionActions;
+        }, {});
+
+    const transactionList = Array.from(transactionsId)
+        .map((transaction) => transaction.transactionID)
+        .join(',');
+
+    // const {optimisticData, successData, failureData} = buildMoveTransactionOptimisticData();
+    debugger;
+
+    API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, {
+        transactionList,
+        reportID,
+        transactionIDToReportActionAndThreadData: JSON.stringify(reportActionIDToThreadReportIDMap),
+    });
+}
+
 export type {Video};
 
 export {
@@ -5678,6 +5959,7 @@ export {
     leaveRoom,
     markAsManuallyExported,
     markCommentAsUnread,
+    moveUnreportedTransactionToReport,
     navigateToAndOpenChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
