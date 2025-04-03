@@ -1,14 +1,13 @@
-import { useOnyx } from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
 
 function useDomainCardsID(policyID: string | undefined) {
     const [domainCardsID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
         selector: (cardSettings) => {
             const matchingEntry = Object.entries(cardSettings ?? {}).find(
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                ([_, settings]) => settings?.preferredPolicy && settings.preferredPolicy === policyID
+                ([_, settings]) => settings?.preferredPolicy && settings.preferredPolicy === policyID,
             );
 
             if (!matchingEntry) {
