@@ -30,6 +30,9 @@ import TextLink from './TextLink';
 
 type BookTravelButtonProps = {
     text: string;
+
+    /** Whether to render the error message below the button */
+    shouldRenderErrorMessageBelowButton?: boolean;
 };
 
 const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
@@ -42,7 +45,7 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
     Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
 };
 
-function BookTravelButton({text}: BookTravelButtonProps) {
+function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -159,7 +162,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
 
     return (
         <>
-            {!!errorMessage && (
+            {!shouldRenderErrorMessageBelowButton && !!errorMessage && (
                 <DotIndicatorMessage
                     style={styles.mb1}
                     messages={{error: errorMessage}}
@@ -174,6 +177,13 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 success
                 large
             />
+            {shouldRenderErrorMessageBelowButton && !!errorMessage && (
+                <DotIndicatorMessage
+                    style={[styles.mb1, styles.pt3]}
+                    messages={{error: errorMessage}}
+                    type="error"
+                />
+            )}
             <ConfirmModal
                 title={translate('travel.blockedFeatureModal.title')}
                 titleStyles={styles.textHeadlineH1}
