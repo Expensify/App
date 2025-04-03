@@ -275,7 +275,10 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
 function holdMoneyRequestOnMoneyRequestReport(transactionIDList: string[], comment: string, reportActions: ReportAction[]) {
     transactionIDList.forEach((transactionID) => {
         const action = getIOUActionForTransactionID(reportActions, transactionID);
-        putOnHold(transactionID, comment, action?.childReportID ?? '');
+        if (!action?.childReportID) {
+            return;
+        }
+        putOnHold(transactionID, comment, action?.childReportID);
     });
 }
 
@@ -367,7 +370,10 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 function unholdMoneyRequestOnMoneyRequestReport(transactionIDList: string[], reportActions: ReportAction[]) {
     transactionIDList.forEach((transactionID) => {
         const action = getIOUActionForTransactionID(reportActions, transactionID);
-        unholdRequest(transactionID, action?.childReportID ?? '');
+        if (!action?.childReportID) {
+            return;
+        }
+        unholdRequest(transactionID, action?.childReportID);
     });
 }
 
