@@ -51,16 +51,24 @@ jobs:
     steps:
       - name: Comment on forks
         run: |
+          PR_URL="${{ github.event.pull_request.html_url }}"
           COMMENT=":warning: This PR is possibly changing native code and/or updating libraries, it may cause problems with HybridApp. \
           Please check if any patch updates are required in the HybridApp repo and run an AdHoc build to verify that HybridApp will not break. \
           Ask Contributor Plus for help if you are not sure how to handle this. :warning:"
-          PR_URL="${{ github.event.pull_request.html_url }}"
-          if ! gh pr view "$PR_URL" --comments --json comments \
-            --jq '.comments[] | select(.author = "github-actions") | .body' \
-            | grep -q "$COMMENT"; then
-              gh pr comment "$PR_URL" --body "$COMMENT"
+
+          # Fetch existing comments from author github-actions
+          EXISTING_COMMENTS="$(\
+            gh pr view "$PR_URL" \
+              --comments \
+              --json comments \
+              --jq '.comments[] | select(.author = "github-actions") | .body' \
+          )"
+
+          # Leave the comment only if it's not already present
+          if grep -q "$COMMENT" <(echo "$EXISTING_COMMENTS"); then
+            echo "Comment already exists, not posting again."
           else
-              echo "Comment already exists, not posting again."
+            gh pr comment "$PR_URL" --body "$COMMENT"
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
