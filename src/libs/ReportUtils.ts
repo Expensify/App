@@ -7338,6 +7338,13 @@ function reasonForReportToBeInOptionList({
     ) {
         return null;
     }
+    
+    // Hide reports that have a total of 0 and are in a submitted state since they are not actionable
+    if (report?.total === 0 &&
+        report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED &&
+        report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        return null;
+    }
 
     // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
     // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
@@ -7440,7 +7447,7 @@ function reasonForReportToBeInOptionList({
     // Hide chat threads where the parent message is pending removal
     if (!isEmptyObject(parentReportAction) && isPendingRemove(parentReportAction) && isThreadParentMessage(parentReportAction, report?.reportID)) {
         return null;
-    }
+    } 
 
     return CONST.REPORT_IN_LHN_REASONS.DEFAULT;
 }
