@@ -1,4 +1,5 @@
 import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -11,7 +12,7 @@ import {isValidIndustryCode} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import IndustryCodeSelector from './IndustryCode/IndustryCodeSelector';
-import { useOnyx } from 'react-native-onyx';
+
 const COMPANY_INCORPORATION_CODE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_CODE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_CODE_KEY];
 
