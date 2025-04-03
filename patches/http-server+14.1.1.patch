@@ -5,8 +5,7 @@ index dfe4c47..b1c3089 100644
 @@ -98,6 +98,8 @@ function HttpServer(options) {
      });
    }
- 
-+  this.headers['Document-Policy'] = 'js-profiling';
+
 +
    if (options.cors) {
      this.headers['Access-Control-Allow-Origin'] = '*';

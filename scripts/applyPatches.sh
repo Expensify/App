@@ -61,16 +61,22 @@ if [ "$EXIT_CODE" -eq 0 ]; then
     exit 0
   fi
 else
-  FAILED_PACKAGES=$(echo "$FAILED_PATCHES" | awk '/The patches for/ {print $4}' | sort -u)
+  ERROR_PATCHES_HAVE_FAILED=$(echo "$FAILED_PATCHES" | awk '/The patches for/ {print $4}' | sort -u)
+  ERROR_FAILED_TO_APPLY_PATCH=$(echo "$FAILED_PATCHES" | awk '/Failed to apply patch for package/ {print $8}' | sort -u)
 
-  if [ -n "$FAILED_PACKAGES" ]; then
+  echo "Failed packages:"
+  echo 🌸 FP "$ERROR_PATCHES_HAVE_FAILED"
+  echo 🐸 other err "$ERROR_FAILED_TO_APPLY_PATCH"
+
+  if [ -n "$ERROR_PATCHES_HAVE_FAILED" ] || [ -n "$ERROR_FAILED_TO_APPLY_PATCH" ]; then
       error "patch-package failed to apply a patch, cleaning failed package and trying once again."
 
-
     # Pass the failed package(s) to cleanFailedPatch.sh
-    for PACKAGE in $FAILED_PACKAGES; do
+    for PACKAGE in $ERROR_PATCHES_HAVE_FAILED $ERROR_FAILED_TO_APPLY_PATCH; do
+      if [ -n "$PACKAGE" ]; then
       echo "Detected patch change for package: $PACKAGE. Reinstalling $PACKAGE..."
       ./scripts/cleanFailedPatch.sh "$PACKAGE"
+      fi
     done
 
   else
