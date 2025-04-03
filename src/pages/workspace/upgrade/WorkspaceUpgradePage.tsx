@@ -46,9 +46,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const feature = useMemo(
         () =>
-            Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find(
-                (f) => f.alias === featureNameAlias && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias,
-            ),
+            Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
+                .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
+                .find((f) => f.alias === featureNameAlias),
         [featureNameAlias],
     );
     const {translate} = useLocalize();
