@@ -26,6 +26,7 @@ import {
     getCardIssuedMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
+    getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
@@ -372,6 +373,16 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
+    if (transactionThreadReportID) {
+        const transactionID = getTransactionID(transactionThreadReportID);
+        const transaction = getTransaction(transactionID);
+        if (hasReceiptError(transaction)) {
+            return {
+                reason: CONST.RBR_REASONS.HAS_ERRORS,
+            };
+        }
+    }
     const transactionID = getTransactionID(report.reportID);
     const transaction = getTransaction(transactionID);
     if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
