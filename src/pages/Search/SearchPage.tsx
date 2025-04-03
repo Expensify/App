@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -18,6 +18,7 @@ import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHead
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {PaymentData} from '@components/Search/types';
+import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -31,6 +32,7 @@ import {
     exportSearchItemsToCSV,
     getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
+    queueExportSearchItemsToCSV,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,6 +40,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import {getContactMethod} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,6 +68,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
+    const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
 
     const {q, name} = route.params;
 
@@ -99,6 +103,42 @@ function SearchPage({route}: SearchPageProps) {
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
+
+        const downloadButtonOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: Expensicons.Download,
+            text: translate('common.download'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+
+                if (selectionMode?.exportAll) {
+                    setIsDownloadExportModalVisible(true);
+                    return;
+                }
+
+                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                exportSearchItemsToCSV(
+                    {
+                        query: status,
+                        jsonQuery: JSON.stringify(queryJSON),
+                        reportIDList,
+                        transactionIDList: selectedTransactionsKeys,
+                        policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
+                    },
+                    () => {
+                        setIsDownloadErrorModalVisible(true);
+                    },
+                );
+            },
+        };
+
+        if (selectionMode?.exportAll) {
+            return [downloadButtonOption];
+        }
 
         const shouldShowApproveOption =
             !isOffline &&
@@ -192,32 +232,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        options.push({
-            icon: Expensicons.Download,
-            text: translate('common.download'),
-            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
-            shouldCloseModalOnSelect: true,
-            onSelected: () => {
-                if (isOffline) {
-                    setIsOfflineModalVisible(true);
-                    return;
-                }
-
-                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                exportSearchItemsToCSV(
-                    {
-                        query: status,
-                        jsonQuery: JSON.stringify(queryJSON),
-                        reportIDList,
-                        transactionIDList: selectedTransactionsKeys,
-                        policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
-                    },
-                    () => {
-                        setIsDownloadErrorModalVisible(true);
-                    },
-                );
-            },
-        });
+        options.push(downloadButtonOption);
 
         const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
@@ -296,15 +311,16 @@ function SearchPage({route}: SearchPageProps) {
         return options;
     }, [
         selectedTransactionsKeys,
+        status,
+        hash,
         selectedTransactions,
+        translate,
+        selectionMode?.exportAll,
         isOffline,
         selectedReports,
-        translate,
-        hash,
-        lastPaymentMethods,
-        status,
         queryJSON,
         activeWorkspaceID,
+        lastPaymentMethods,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
@@ -325,6 +341,22 @@ function SearchPage({route}: SearchPageProps) {
             clearSelectedTransactions();
         });
     };
+
+    const handleExportAll = useCallback(() => {
+        if (selectedTransactionsKeys.length === 0 || !status || !hash) {
+            return [];
+        }
+
+        setIsDownloadExportModalVisible(false);
+        const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+        queueExportSearchItemsToCSV({
+            query: status,
+            jsonQuery: JSON.stringify(queryJSON),
+            reportIDList,
+            transactionIDList: selectedTransactionsKeys,
+            policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
+        });
+    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, activeWorkspaceID]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
@@ -452,6 +484,23 @@ function SearchPage({route}: SearchPageProps) {
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
+                />
+                <ConfirmModal
+                    isVisible={isDownloadExportModalVisible}
+                    onConfirm={handleExportAll}
+                    onCancel={() => {
+                        setIsDownloadExportModalVisible(false);
+                    }}
+                    title={translate('search.exportSearchResults.title')}
+                    prompt={
+                        <Text>
+                            {translate('search.exportSearchResults.description1')}
+                            <Text style={styles.textStrong}>{getContactMethod()}</Text>
+                            {translate('search.exportSearchResults.description2')}
+                        </Text>
+                    }
+                    confirmText={translate('search.exportSearchResults.title')}
+                    cancelText={translate('common.cancel')}
                 />
                 <DecisionModal
                     title={translate('common.youAppearToBeOffline')}

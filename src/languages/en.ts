@@ -5064,6 +5064,15 @@ const translations = {
         searchIn: 'Search in',
         searchPlaceholder: 'Search for something',
         suggestions: 'Suggestions',
+        exportSearchResults: {
+            title: 'Send download link',
+            description1: "Whoa, that's a lot of items! We'll bundle them up and send a link to ",
+            description2: 'shortly.',
+        },
+        exportAll: {
+            selectAllMatchingItems: 'Select all matching items',
+            allMatchingItemsSelected: 'All matching items selected',
+        }
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

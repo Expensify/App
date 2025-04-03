@@ -17,6 +17,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOnExportAllMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -187,22 +188,33 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
         return <SearchStatusSkeleton shouldAnimate />;
     }
 
+    const selectionButtonText = selectionMode?.exportAll ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
+
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchStatusBarContainer]}>
             {shouldShowSelectedDropdown ? (
-                <ButtonWithDropdownMenu
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
-                    options={headerButtonsOptions}
-                    isSplitButton={false}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
-                />
+                <View style={styles.flexRow}>
+                    <ButtonWithDropdownMenu
+                        onPress={() => null}
+                        shouldAlwaysShowDropdownMenu
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        customText={selectionButtonText}
+                        options={headerButtonsOptions}
+                        isSplitButton={false}
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
+                        popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
+                    />
+                    {!selectionMode?.exportAll && (
+                        <Button
+                            link
+                            text={translate('search.exportAll.selectAllMatchingItems')}
+                            onPress={turnOnExportAllMode}
+                        />
+                    )}
+                </View>
             ) : (
                 <ScrollView
                     style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}

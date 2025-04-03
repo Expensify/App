@@ -5117,6 +5117,15 @@ const translations = {
         searchIn: 'Buscar en',
         searchPlaceholder: 'Busca algo',
         suggestions: 'Sugerencias',
+        exportSearchResults: {
+            title: 'Enviar enlace de descarga',
+            description1: "¡Vaya, eso es un montón de elementos! Los agruparemos y enviaremos un enlace a ",
+            description2: 'en breve.',
+        },
+        exportAll: {
+            selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
+            allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+        }
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
