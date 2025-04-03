@@ -233,6 +233,8 @@ function getOnyxDataForRouteRequest(transactionID: string, transactionState: Tra
                     },
                     errorFields: {
                         route: null,
+                        routes: null,
+                        waypoints: null,
                     },
                 },
             },
@@ -310,7 +312,6 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
         default:
             throw new Error('Invalid route type');
     }
-
     API.read(command, parameters, getOnyxDataForRouteRequest(transactionID, routeType));
 }
 /**
@@ -473,8 +474,22 @@ function abandonReviewDuplicateTransactions() {
     Onyx.set(ONYXKEYS.REVIEW_DUPLICATES, null);
 }
 
-function clearError(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
+function clearError(transactionID: string, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
+    let keyPrefix;
+    switch (transactionState) {
+        case CONST.TRANSACTION.STATE.DRAFT:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
+            break;
+        case CONST.TRANSACTION.STATE.BACKUP:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_BACKUP;
+            break;
+        case CONST.TRANSACTION.STATE.CURRENT:
+        default:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION;
+            break;
+    }
+
+    Onyx.merge(`${keyPrefix}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
 }
 
 function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpense | undefined {
