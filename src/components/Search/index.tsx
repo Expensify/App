@@ -501,6 +501,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     />
                 ) : undefined
             }
+            queryJSONHash={hash}
             onViewableItemsChanged={onViewableItemsChanged}
         />
     );

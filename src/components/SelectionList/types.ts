@@ -358,7 +358,9 @@ type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     onSelectRow: (item: TItem, isOpenedAsReport?: boolean) => void;
 };
 
-type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    queryJSONHash?: number;
+};
 
 type ValidListItem =
     | typeof RadioListItem
