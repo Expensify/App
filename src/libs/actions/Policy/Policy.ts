@@ -2081,7 +2081,7 @@ function buildPolicyData(
         file: clonedFile,
     };
 
-    if (!introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
+    if (introSelected !== undefined && !introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
         const onboardingData = ReportUtils.prepareOnboardingOnyxData(engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
