@@ -85,14 +85,19 @@ Onyx.connect({
     callback: (value) => (billingStatus = value),
 });
 
-let isNewSubscription: OnyxEntry<boolean>;
+let firstPolicyDate: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_DATE,
     callback: (value) => {
-        if (!value) {
-            return;
-        }
-        isNewSubscription = differenceInDays(value, CONST.SUBSCRIPTION.NEW_PRICING_START_DATE) >= 0;
+        firstPolicyDate = value;
+    },
+});
+
+let isTeamPricing2025: OnyxEntry<boolean>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIVATE_TEAM_PRICING_2025,
+    callback: (value) => {
+        isTeamPricing2025 = value;
     },
 });
 
@@ -564,10 +569,24 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
+function checkIfNewSubscription() {
+    if (isTeamPricing2025) {
+        return true;
+    }
+
+    if (!firstPolicyDate) {
+        return false;
+    }
+
+    return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.NEW_PRICING_START_DATE) >= 0;
+}
+
 function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {
     if (!privateSubscriptionType || !plan) {
         return 0;
     }
+
+    const isNewSubscription = checkIfNewSubscription();
 
     if (isNewSubscription && plan === CONST.POLICY.TYPE.TEAM) {
         return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.NEW_PRICE_2025];
@@ -583,6 +602,7 @@ function getSubscriptionPlanInfo(
 ): SubscriptionPlanInfo {
     const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
+    const isNewSubscription = checkIfNewSubscription();
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
         return {

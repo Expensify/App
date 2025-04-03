@@ -5,6 +5,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function useIsNewSubscription(): boolean {
     const [firstPolicyDate] = useOnyx(ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_DATE);
+    const [isTeamPricing2025] = useOnyx(ONYXKEYS.NVP_PRIVATE_TEAM_PRICING_2025);
+
+    if (isTeamPricing2025) {
+        return true;
+    }
 
     if (!firstPolicyDate) {
         return false;
