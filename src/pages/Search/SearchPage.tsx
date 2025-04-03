@@ -355,6 +355,7 @@ function SearchPage({route}: SearchPageProps) {
             policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
         });
         toggleExportMode(false);
+        clearSelectedTransactions();
     }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, activeWorkspaceID, toggleExportMode]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));

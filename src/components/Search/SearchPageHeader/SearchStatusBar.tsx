@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryJSON, TripSearchStatus} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -207,11 +208,9 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
                         popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
                     />
                     {!isExportMode && (
-                        <Button
-                            link
-                            text={translate('search.exportAll.selectAllMatchingItems')}
-                            onPress={() => toggleExportMode(true)}
-                        />
+                        <View style={[styles.button, styles.bgTransparent]}>
+                            <TextLink onPress={() => toggleExportMode(true)}>{translate('search.exportAll.selectAllMatchingItems')}</TextLink>
+                        </View>
                     )}
                 </View>
             ) : (
