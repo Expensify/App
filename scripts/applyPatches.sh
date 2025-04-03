@@ -40,6 +40,7 @@ TEMP_OUTPUT="$(mktemp)"
 patchPackage 2>&1 | tee "$TEMP_OUTPUT"
 EXIT_CODE=${PIPESTATUS[0]}
 OUTPUT="$(cat "$TEMP_OUTPUT")"
+FAILED_PATCHES=$(cat "$TEMP_OUTPUT" | sed 's/\x1b\[[0-9;]*m//g')
 rm -f "$TEMP_OUTPUT"
 
 # Check if the output contains a warning message
@@ -60,7 +61,21 @@ if [ "$EXIT_CODE" -eq 0 ]; then
     exit 0
   fi
 else
-  # patch-package failed
-  error "patch-package failed to apply a patch"
-  exit "$EXIT_CODE"
+  FAILED_PACKAGES=$(echo "$FAILED_PATCHES" | awk '/The patches for/ {print $4}' | sort -u)
+
+  if [ -n "$FAILED_PACKAGES" ]; then
+      error "patch-package failed to apply a patch, cleaning failed package and trying once again."
+
+
+    # Pass the failed package(s) to cleanFailedPatch.sh
+    for PACKAGE in $FAILED_PACKAGES; do
+      echo "Detected patch change for package: $PACKAGE. Reinstalling $PACKAGE..."
+      ./scripts/cleanFailedPatch.sh "$PACKAGE"
+    done
+
+  else
+    # patch-package failed
+    error "patch-package failed to apply a patch"
+    exit "$EXIT_CODE"
+  fi
 fi

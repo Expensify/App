@@ -14,7 +14,7 @@ index bd6419e..029762c 100644
          scrollOffsetMax: number;
          scrollHorizontal: boolean;
          statusBarTranslucent: boolean;
-+        navigationBarTranslucent: boolean;
+# +        navigationBarTranslucent: boolean;
          supportedOrientations: ("landscape" | "portrait" | "portrait-upside-down" | "landscape-left" | "landscape-right")[];
      };
      state: State;
