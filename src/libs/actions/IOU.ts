@@ -1333,15 +1333,14 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     if (isMoneyRequestToManagerMcTest) {
         const date = new Date();
-        const isTestReceipt = transaction.filename?.includes(CONST.TEST_RECEIPT.FILENAME) && isScanRequest;
         const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
         const optimisticIOUReportAction = buildOptimisticIOUReportAction({
-            type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-            amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total ?? 0,
-            currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency ?? '',
+            type: isScanRequest ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            amount: iou.report?.total ?? 0,
+            currency: iou.report?.currency ?? '',
             comment: '',
             participants: [managerMcTestParticipant],
-            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            paymentType: isScanRequest ? undefined : CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             iouReportID: iou.report.reportID,
             transactionID: transaction.transactionID,
         });
@@ -1357,22 +1356,16 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
                 value: {
                     ...iou.report,
-                    total: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total,
-                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency,
-                    lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
-                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    ...(!isScanRequest ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
                     hasOutstandingChildRequest: false,
-                    pendingFields: {
-                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
+                    lastActorAccountID: currentUserPersonalDetails?.accountID,
                 },
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
                 value: {
-                    [optimisticIOUReportAction.reportActionID]: {
+                    [iou.action.reportActionID]: {
                         ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
                     },
                 },
@@ -1382,9 +1375,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                 value: {
                     ...transaction,
-                    amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
-                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
-                    receipt: {...transaction.receipt, state: CONST.IOU.RECEIPT_STATE.SCANCOMPLETE},
                 },
             },
         );
@@ -2946,7 +2936,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
-            if (typeof iouReport.total === 'number') {
+            if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 iouReport.total -= amount;
             }
 
@@ -3197,7 +3187,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
-            if (typeof iouReport.total === 'number') {
+            if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 iouReport.total -= amount;
             }
 
@@ -3405,7 +3395,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             iouReport = {...iouReport};
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             if (iouReport?.currency === currency) {
-                if (typeof iouReport.total === 'number' && typeof iouReport.nonReimbursableTotal === 'number') {
+                if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined && typeof iouReport.nonReimbursableTotal === 'number') {
                     iouReport.total -= amount;
                     iouReport.nonReimbursableTotal -= amount;
                 }
@@ -3713,7 +3703,7 @@ function getUpdateMoneyRequestParams(
     let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
     if (!iouReport) {
         updatedMoneyRequestReport = null;
-    } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && typeof iouReport.total === 'number') {
+    } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
         // For expense report, the amount is negative, so we should subtract total from diff
         updatedMoneyRequestReport = {
             ...iouReport,
