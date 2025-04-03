@@ -113,7 +113,7 @@
     "@rnmapbox/maps": "10.1.33",
     "@shopify/flash-list": "1.7.1",
     "@types/pako": "^2.0.3",
-    "@ua/react-native-airship": "19.2.1",
+    "@ua/react-native-airship": "23.0.0",
     "awesome-phonenumber": "^5.4.0",
     "babel-polyfill": "^6.26.0",
     "canvas-size": "^1.2.6",
