@@ -3543,7 +3543,7 @@ const CONST = {
     TEST_RECEIPT: {
         AMOUNT: 1800,
         CURRENCY: 'USD',
-        MERCHANT: 'Taco Todd\'s',
+        MERCHANT: "Taco Todd's",
         FILENAME: 'test_receipt',
         FILE_TYPE: 'image/png',
     },
