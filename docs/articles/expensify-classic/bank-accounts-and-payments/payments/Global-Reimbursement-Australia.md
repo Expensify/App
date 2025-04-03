@@ -37,7 +37,7 @@ If your company’s business bank account is located in Australia, you can enabl
 
 # Step 2: Complete DocuSign and Submit Documents
 1. Complete the Global Reimbursement DocuSign form.
-2. Upload required documentation:
+2. **Upload required documentation:**
      - Address verification document
      - Bank statement or voided check
      - Proof of Beneficial Ownership
@@ -47,12 +47,16 @@ If your company’s business bank account is located in Australia, you can enabl
 
 ---
 
-**Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts.
-5. Once the test deposit amounts are confirmed, the bank account is verified to use for global reimbursement.
+# Step 3: Confirm Test Transactions
+1. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts.
+2. Once the test deposit amounts are confirmed, the bank account is verified to use for global reimbursement.
    
 ---
 
-# Step 3: Start Sending International Payments
+# Step 4: Start Sending Global Reimbursements
+
+⏳**Timeline:** From the time you submit all requested documentation, you can expect to start using global reimbursement within one to two weeks. Once the verification is complete, the bank account is typically ready to go within two business days
+
 Once the bank account is approved for global reimbursement:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
 2. Set the verified AUD account as the default reimbursement method.
