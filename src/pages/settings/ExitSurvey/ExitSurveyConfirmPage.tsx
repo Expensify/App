@@ -4,7 +4,6 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components//Icon';
 import Button from '@components/Button';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {MushroomTopHat} from '@components/Icon/Illustrations';
@@ -17,8 +16,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import * as ExitSurvey from '@userActions/ExitSurvey';
-import * as Link from '@userActions/Link';
+import {switchToOldDot} from '@userActions/ExitSurvey';
+import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -61,42 +60,40 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
 
     return (
         <ScreenWrapper testID={ExitSurveyConfirmPage.displayName}>
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
-                    title={translate(shouldShowQuickTips ? 'exitSurvey.goToExpensifyClassic' : 'exitSurvey.header')}
-                    onBackButtonPress={() => Navigation.goBack()}
+            <HeaderWithBackButton
+                title={translate(shouldShowQuickTips ? 'exitSurvey.goToExpensifyClassic' : 'exitSurvey.header')}
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.mh5]}>
+                {isOffline && <ExitSurveyOffline />}
+                {!isOffline && (
+                    <>
+                        <Icon
+                            src={MushroomTopHat}
+                            width={variables.mushroomTopHatWidth}
+                            height={variables.mushroomTopHatHeight}
+                        />
+                        <Text style={[styles.headerAnonymousFooter, styles.mt5, styles.textAlignCenter]}>
+                            {translate(shouldShowQuickTips ? 'exitSurvey.quickTip' : 'exitSurvey.thankYou')}
+                        </Text>
+                        <Text style={[styles.mt2, styles.textAlignCenter]}>{translate(shouldShowQuickTips ? 'exitSurvey.quickTipSubTitle' : 'exitSurvey.thankYouSubtitle')}</Text>
+                    </>
+                )}
+            </View>
+            <FixedFooter>
+                <Button
+                    success
+                    large
+                    text={translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}
+                    pressOnEnter
+                    onPress={() => {
+                        switchToOldDot();
+                        Navigation.dismissModal();
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                    }}
+                    isDisabled={isOffline}
                 />
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.mh5]}>
-                    {isOffline && <ExitSurveyOffline />}
-                    {!isOffline && (
-                        <>
-                            <Icon
-                                src={MushroomTopHat}
-                                width={variables.mushroomTopHatWidth}
-                                height={variables.mushroomTopHatHeight}
-                            />
-                            <Text style={[styles.headerAnonymousFooter, styles.mt5, styles.textAlignCenter]}>
-                                {translate(shouldShowQuickTips ? 'exitSurvey.quickTip' : 'exitSurvey.thankYou')}
-                            </Text>
-                            <Text style={[styles.mt2, styles.textAlignCenter]}>{translate(shouldShowQuickTips ? 'exitSurvey.quickTipSubTitle' : 'exitSurvey.thankYouSubtitle')}</Text>
-                        </>
-                    )}
-                </View>
-                <FixedFooter>
-                    <Button
-                        success
-                        large
-                        text={translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}
-                        pressOnEnter
-                        onPress={() => {
-                            ExitSurvey.switchToOldDot();
-                            Navigation.dismissModal();
-                            Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-                        }}
-                        isDisabled={isOffline}
-                    />
-                </FixedFooter>
-            </DelegateNoAccessWrapper>
+            </FixedFooter>
         </ScreenWrapper>
     );
 }
