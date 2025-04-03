@@ -41,14 +41,14 @@ Global reimbursement allows companies to send payments to employees in different
 
 # Requirements
 
-| Country         | Required Documents                                                                 | Direct Debit Setup Time             |
-|----------------|--------------------------------------------------------------------------------------|-------------------------------------|
-| **U.S.**        | Partner form, address verification, bank statement                                 | ⏳ 1 day post-verification           |
-| **Canada**      | Partner form, address verification, bank statement, proof of beneficial ownership  | ⏳ 1 day post-verification           |
-| **UK**          | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ After onboarding          |
-| **EU**          | Partner form, address verification, bank statement, proof of beneficial ownership, certified ID copies | ⏳ After onboarding<br>🇮🇹 Italy: Requires Tax ID<br>🇪🇸 Spain: No driver's license as ID |
-| **Australia**   | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1 day post-verification           |
-| **Singapore**   | Partner form, address verification, proof of beneficial ownership, board resolution, M&A, certified ID copies | ⏳ ~3 weeks<br>💡Pre-funding recommended |
+| Country         | Required Documents                                                                 | Direct Debit Setup Time             | Special Requirements |
+|----------------|--------------------------------------------------------------------------------------|-------------------------------------|---------------------
+| **U.S.**        | Partner form, address verification, bank statement                                 | ⏳ 1-2 business days post-verification| None |
+| **Canada**      | Partner form, address verification, bank statement, proof of beneficial ownership  | ⏳ 1-2 business days post-verification | None |
+| **UK**          | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1-2 weeks post-verification| None|
+| **EU**          | Partner form, address verification, bank statement, proof of beneficial ownership, certified ID copies | ⏳ 1-2 weeks post-verification | <br>🇮🇹 **Italy:** Requires Tax ID<br>🇪🇸 **Spain:** No driver's license as ID |
+| **Australia**   | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1-2 business days post-verification | None |
+| **Singapore**   | Partner form, address verification, proof of beneficial ownership, board resolution, M&A, certified ID copies | ⏳ ~3 weeks post-verification | <br>💡Pre-funding recommended |
 
 ---
 
