@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {forwardRef, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -7,13 +7,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {ALL_NAICS, NAICS, NAICS_MAPPING_WITH_ID} from '@src/NAICS';
 
 type IndustryCodeSelectorProps = {
-    defaultValue?: string;
     onInputChange?: (value: string | undefined) => void;
+    value?: string;
 };
 
-function IndustryCodeSelector({defaultValue, onInputChange}: IndustryCodeSelectorProps) {
+function IndustryCodeSelector({onInputChange, value}: IndustryCodeSelectorProps) {
     const styles = useThemeStyles();
-    const [searchValue, setSearchValue] = useState<string | undefined>(defaultValue);
+    const [searchValue, setSearchValue] = useState<string | undefined>(value);
+
     const [shouldDisplayChildItems, setShouldDisplayChildItems] = useState(false);
     const {translate} = useLocalize();
 
@@ -59,6 +60,10 @@ function IndustryCodeSelector({defaultValue, onInputChange}: IndustryCodeSelecto
         ];
     }, [searchValue, shouldDisplayChildItems]);
 
+    useEffect(() => {
+        setSearchValue(value);
+    }, [value]);
+
     return (
         <View style={styles.flexGrow1}>
             <SelectionList
@@ -84,4 +89,4 @@ function IndustryCodeSelector({defaultValue, onInputChange}: IndustryCodeSelecto
 
 IndustryCodeSelector.displayName = 'IndustryCodeSelector';
 
-export default IndustryCodeSelector;
+export default forwardRef(IndustryCodeSelector);
