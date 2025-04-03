@@ -90,6 +90,8 @@ jobs:
           # After being CP'd to staging, the version bump will have a new SHA
           echo "VERSION_BUMP_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
+          git push origin staging
+
       - name: Cherry-pick the version-bump to staging
         run: |
           git switch staging
