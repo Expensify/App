@@ -119,9 +119,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.isemojisonly === undefined) {
-                        return;
+                        return isChildOfTaskTitle(tnode as TNode) ? {} : styles.blockquote;
                     }
-                    return styles.onlyEmojisTextLineHeight;
+                    return isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
         }),
@@ -141,6 +141,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.em,
             styles.strong,
             styles.h1,
+            styles.blockquote,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
