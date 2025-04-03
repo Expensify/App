@@ -5,7 +5,6 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
-import {prepareOnboardingOnyxData} from '@libs/actions/Report';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -78,6 +77,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {prepareOnboardingOnyxData} from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -2083,7 +2083,7 @@ function buildPolicyData(
     };
 
     if (!introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
-        const onboardingData = prepareOnboardingOnyxData(engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
+        const onboardingData = prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }

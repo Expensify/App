@@ -7,17 +7,23 @@ import MoneyReportHeader from '@components/MoneyReportHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReportFooter from '@pages/home/report/ReportFooter';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
@@ -38,6 +44,24 @@ type MoneyRequestReportViewProps = {
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
 };
+
+function goBackFromSearchMoneyRequest(policyID: string | undefined) {
+    const rootState = navigationRef.getRootState();
+    const lastRoute = rootState.routes.at(-1);
+
+    if (lastRoute?.name !== NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+        Log.hmmm('[goBackFromSearchMoneyRequest()] goBackFromSearchMoneyRequest was called from a different navigator than SearchFullscreenNavigator.');
+        return;
+    }
+
+    if (rootState.routes.length > 1) {
+        Navigation.goBack();
+        return;
+    }
+
+    const query = buildCannedSearchQuery({policyID});
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query}));
+}
 
 function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
     return (
@@ -60,6 +84,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -77,9 +102,9 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
 
     const dismissReportCreationError = useCallback(() => {
-        Navigation.goBack(backToRoute);
+        goBackFromSearchMoneyRequest(activeWorkspaceID);
         removeReport(reportID);
-    }, [backToRoute, reportID]);
+    }, [activeWorkspaceID, reportID]);
 
     if (isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) {
         return <InitialLoadingSkeleton styles={styles} />;
@@ -113,6 +138,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         transactionThreadReportID={undefined}
                         shouldDisplayBackButton
                         onBackButtonPress={() => {
+                            if (!backToRoute) {
+                                goBackFromSearchMoneyRequest(activeWorkspaceID);
+                                return;
+                            }
                             Navigation.goBack(backToRoute);
                         }}
                     />
