@@ -155,6 +155,7 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
                     onSubmit={handleValidateMagicCode}
                     submitButtonText={translate('common.add')}
                     style={[styles.flexGrow1, styles.mh5]}
+                    shouldHideFixErrorsAlert
                 >
                     <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
                     <View style={styles.mb6}>
