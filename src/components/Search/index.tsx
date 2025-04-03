@@ -386,7 +386,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
-    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type)) {
+    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type) && isFocused) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
