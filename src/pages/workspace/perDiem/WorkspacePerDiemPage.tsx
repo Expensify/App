@@ -30,7 +30,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
@@ -117,9 +117,9 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {translate} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [selectedPerDiem, setSelectedPerDiem] = useState<SubRateData[]>([]);
@@ -218,13 +218,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, !canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]]}>
             <View style={styles.flex3}>
-                <Text style={[styles.searchInputStyle, styles.alignSelfStart]}>{translate('common.destination')}</Text>
+                <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.destination')}</Text>
             </View>
             <View style={styles.flex2}>
-                <Text style={[styles.searchInputStyle, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
+                <Text style={[styles.textMicroSupporting, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
             </View>
             <View style={styles.flex2}>
-                <Text style={[styles.searchInputStyle, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
+                <Text style={[styles.textMicroSupporting, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
             </View>
         </View>
     );
@@ -386,7 +386,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     }}
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
@@ -411,7 +411,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 )}
 
                 {!hasVisibleSubRates && !isLoading && (
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             SkeletonComponent={TableListItemSkeleton}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}

@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import type {TextProps} from 'react-native';
 import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
+import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import FontUtils from '@styles/utils/FontUtils';
@@ -85,6 +86,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
+            'mention-short': HTMLElementModel.fromCustomModel({tagName: 'mention-short', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
@@ -107,9 +109,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.isemojisonly === undefined) {
-                        return;
+                        return HTMLEngineUtils.isChildOfTaskTitle(tnode as TNode) ? {} : styles.blockquote;
                     }
-                    return styles.onlyEmojisTextLineHeight;
+                    return HTMLEngineUtils.isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
         }),
@@ -125,6 +127,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.onlyEmojisText,
             styles.onlyEmojisTextLineHeight,
             styles.taskTitleMenuItem,
+            styles.blockquote,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
