@@ -3300,10 +3300,10 @@ const CONST = {
     },
     SUBSCRIPTION: {
         NEW_PRICING_START_DATE: new Date(2025, 3, 1),
+        NEW_PRICE_2025: 'newPrice2025',
         TYPE: {
             ANNUAL: 'yearly2018',
             PAYPERUSE: 'monthly2018',
-            PAYPERUSE_2025: 'monthly2025',
         },
     },
     get SUBSCRIPTION_PRICES() {
@@ -3312,48 +3312,44 @@ const CONST = {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 900,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1800,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE_2025]: 500,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE_2025]: 1000,
+                    [this.SUBSCRIPTION.NEW_PRICE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.AUD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1500,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 3000,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE_2025]: 800,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE_2025]: 1400,
+                    [this.SUBSCRIPTION.NEW_PRICE_2025]: 800,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.GBP]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE_2025]: 500,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 800,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE_2025]: 800,
+                    [this.SUBSCRIPTION.NEW_PRICE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.NZD]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 1600,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 3200,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE_2025]: 900,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE_2025]: 1600,
+                    [this.SUBSCRIPTION.NEW_PRICE_2025]: 900,
                 },
             },
         };

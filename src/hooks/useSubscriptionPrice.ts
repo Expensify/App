@@ -10,14 +10,14 @@ function useSubscriptionPrice(): number {
     const subscriptionPlan = useSubscriptionPlan();
     const isNewSubscription = useIsNewSubscription();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    let subscriptionType = privateSubscription?.type;
+    const subscriptionType = privateSubscription?.type;
 
     if (!subscriptionPlan || !subscriptionType) {
         return 0;
     }
 
-    if (subscriptionType === CONST.SUBSCRIPTION.TYPE.PAYPERUSE && isNewSubscription) {
-        subscriptionType = CONST.SUBSCRIPTION.TYPE.PAYPERUSE_2025;
+    if (isNewSubscription && subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
+        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][subscriptionPlan][CONST.SUBSCRIPTION.NEW_PRICE_2025];
     }
 
     return CONST.SUBSCRIPTION_PRICES[preferredCurrency][subscriptionPlan][subscriptionType];

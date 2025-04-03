@@ -569,8 +569,8 @@ function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps | null, prefe
         return 0;
     }
 
-    if (privateSubscriptionType === CONST.SUBSCRIPTION.TYPE.PAYPERUSE && isNewSubscription) {
-        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.TYPE.PAYPERUSE_2025];
+    if (isNewSubscription && plan === CONST.POLICY.TYPE.TEAM) {
+        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.NEW_PRICE_2025];
     }
 
     return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][privateSubscriptionType];
