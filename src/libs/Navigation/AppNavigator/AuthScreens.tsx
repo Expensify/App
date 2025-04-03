@@ -297,7 +297,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             App.setAppLoading(false);
                         })
                         .finally(() => {
-                            setIsDelegatorFromOldDotIsReady?.(true);
+                            setIsDelegatorFromOldDotIsReady(true);
                         });
                 } else {
                     App.openApp();
