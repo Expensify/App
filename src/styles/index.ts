@@ -1751,6 +1751,16 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        topBarHeight: {
+            height: variables.contentHeaderDesktopHeight,
+        },
+
+        topBarLabel: {
+            color: theme.text,
+            fontSize: variables.fontSizeXLarge,
+            ...headlineFont,
+        },
+
         breadcrumsContainer: {
             minHeight: 24,
         },
