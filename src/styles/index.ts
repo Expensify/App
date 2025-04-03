@@ -1751,10 +1751,6 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
-        topBarHeight: {
-            height: variables.contentHeaderDesktopHeight,
-        },
-
         topBarLabel: {
             color: theme.text,
             fontSize: variables.fontSizeXLarge,
@@ -2665,9 +2661,9 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 12,
         },
 
-        headerBarDesktopHeight: {
-            height: variables.contentHeaderDesktopHeight,
-        },
+        headerBarDesktopHeight: (canUseLeftHandBar: boolean | undefined) => ({
+            height: canUseLeftHandBar ? variables.contentHeaderHeight : variables.contentHeaderDesktopHeight,
+        }),
 
         imageViewContainer: {
             width: '100%',
