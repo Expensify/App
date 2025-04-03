@@ -5071,7 +5071,7 @@ const translations = {
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
             allMatchingItemsSelected: 'All matching items selected',
-        }
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

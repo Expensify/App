@@ -58,7 +58,9 @@ function getReportsFromSelectedTransactions(data: TransactionListItemType[] | Re
 }
 
 function SearchContextProvider({children}: ChildrenProps) {
-    const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode' | 'selectedReports' | 'isExportMode'>>({
+    const [searchContextData, setSearchContextData] = useState<
+        Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode' | 'selectedReports' | 'isExportMode'>
+    >({
         currentSearchHash: defaultSearchContext.currentSearchHash,
         selectedTransactions: defaultSearchContext.selectedTransactions,
         shouldTurnOffSelectionMode: false,
