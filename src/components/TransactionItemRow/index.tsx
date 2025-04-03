@@ -50,15 +50,6 @@ function TransactionItemRow({
                     {(hovered) => (
                         <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3]}>
                             <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
-                                <View style={[styles.mr1, styles.justifyContentCenter]}>
-                                    <Checkbox
-                                        onPress={() => {
-                                            onCheckboxPress(transactionItem.transactionID);
-                                        }}
-                                        accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                        isChecked={isSelected}
-                                    />
-                                </View>
                                 <View style={[styles.mr3]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
