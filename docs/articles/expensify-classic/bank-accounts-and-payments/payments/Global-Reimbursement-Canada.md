@@ -37,24 +37,31 @@ If your business bank account is based in Canada, you can send global reimbursem
 # Step 2: Verify for Global Reimbursement
 1. Complete the Global Reimbursement DocuSign form.
 2. Our Compliance Team will review your form and contact you if additional information is required.
-   **You may be asked to upload:**
+   **Upload required documents:**
    - Voided check
    - Bank statement showing the business name
    - Bank letter confirming account details
-3. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts.
-4. Once the test deposit amounts are confirmed, the bank account is verified to use for global reimbursement. 
+3. Our Compliance Team will review your form and contact you if additional information is required.
+4. Once the review is complete, our support team will send a message confirming.
+   
+---
+
+# Step 3: Confirm Test Transactions
+1. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts.
+2. Once the test deposit amounts are confirmed, the bank account is verified to use for global reimbursement.
 
 ---
 
-# Step 3: Start Reimbursing Internationally
+# Step 4: Start Reimbursing Internationally
+
+⏳**Timeline:** From the time you submit all requested documentation, you can expect to start using global reimbursement within one to two weeks. Once the verification is complete, the bank account is typically ready to go within two business days
+
 After the account is verified:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
 2. Select the verified Canadian account as the default reimbursement method.
 3. Ask your employees to:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** and enter their non-CAD account details.
-
-**Timeline:** ⏳ From the time you submit all requested documentation, you can expect to start using global reimbursement within one to two weeks. Once the verification is complete, the bank account is typically ready to go within two business days
 
 ---
 
