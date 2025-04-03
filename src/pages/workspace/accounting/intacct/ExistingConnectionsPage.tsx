@@ -5,6 +5,7 @@ import {LinkCopy} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -63,22 +64,24 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <View style={[styles.flex1]}>
-                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT})}</Text>
-                <MenuItem
-                    title={translate('workspace.common.createNewConnection')}
-                    icon={LinkCopy}
-                    iconFill={theme.white}
-                    iconStyles={{borderRadius: variables.componentBorderRadiusNormal, backgroundColor: theme.icon}}
-                    shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID, Navigation.getActiveRoute()))}
-                />
-                <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>
-                <MenuItemList
-                    menuItems={menuItems}
-                    shouldUseSingleExecution
-                />
-            </View>
+            <ScrollView>
+                <View style={[styles.flex1]}>
+                    <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT})}</Text>
+                    <MenuItem
+                        title={translate('workspace.common.createNewConnection')}
+                        icon={LinkCopy}
+                        iconFill={theme.white}
+                        iconStyles={{borderRadius: variables.componentBorderRadiusNormal, backgroundColor: theme.icon}}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID, Navigation.getActiveRoute()))}
+                    />
+                    <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>
+                    <MenuItemList
+                        menuItems={menuItems}
+                        shouldUseSingleExecution
+                    />
+                </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }
