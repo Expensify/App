@@ -2,6 +2,7 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react'
 import {View} from 'react-native';
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import ReactNativeModal from 'react-native-modal';
+import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -94,7 +95,7 @@ function BaseModal(
     const sidePaneStyle = shouldApplySidePaneOffset && !isSmallScreenWidth ? {paddingRight: sidePaneOffset.current} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
-    const safeAreaInsets = useSafeAreaInsets();
+    const insets = useSafeAreaInsets();
 
     const isVisibleRef = useRef(isVisible);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>();
@@ -211,34 +212,30 @@ function BaseModal(
         [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
-    const {
-        paddingTop: safeAreaPaddingTop,
-        paddingBottom: safeAreaPaddingBottom,
-        paddingLeft: safeAreaPaddingLeft,
-        paddingRight: safeAreaPaddingRight,
-    } = StyleUtils.getPlatformSafeAreaPadding(safeAreaInsets);
-
-    const modalPaddingStyles = shouldUseModalPaddingStyle
-        ? StyleUtils.getModalPaddingStyles({
-              safeAreaPaddingTop,
-              safeAreaPaddingBottom,
-              safeAreaPaddingLeft,
-              safeAreaPaddingRight,
-              shouldAddBottomSafeAreaMargin,
-              shouldAddTopSafeAreaMargin,
-              // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
-              shouldAddBottomSafeAreaPadding: !enableEdgeToEdgeBottomSafeAreaPadding && (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
-              shouldAddTopSafeAreaPadding,
-              modalContainerStyleMarginTop: modalContainerStyle.marginTop,
-              modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
-              modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
-              modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
-              insets: safeAreaInsets,
-          })
-        : {
-              paddingLeft: safeAreaPaddingLeft ?? 0,
-              paddingRight: safeAreaPaddingRight ?? 0,
-          };
+    const modalPaddingStyles = useMemo(() => {
+        const paddings = StyleUtils.getModalPaddingStyles({
+            shouldAddBottomSafeAreaMargin,
+            shouldAddTopSafeAreaMargin,
+            // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
+            shouldAddBottomSafeAreaPadding: !enableEdgeToEdgeBottomSafeAreaPadding && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
+            shouldAddTopSafeAreaPadding,
+            modalContainerStyle,
+            insets,
+        });
+        return shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
+    }, [
+        StyleUtils,
+        avoidKeyboard,
+        enableEdgeToEdgeBottomSafeAreaPadding,
+        insets,
+        keyboardStateContextValue.isKeyboardActive,
+        modalContainerStyle,
+        shouldAddBottomSafeAreaMargin,
+        shouldAddBottomSafeAreaPadding,
+        shouldAddTopSafeAreaMargin,
+        shouldAddTopSafeAreaPadding,
+        shouldUseModalPaddingStyle,
+    ]);
 
     const modalContextValue = useMemo(
         () => ({
@@ -307,12 +304,12 @@ function BaseModal(
                             initialFocus={initialFocus}
                             shouldPreventScroll={shouldPreventScrollOnFocus}
                         >
-                            <View
+                            <Animated.View
                                 style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
                                 ref={ref}
                             >
                                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                            </View>
+                            </Animated.View>
                         </FocusTrapForModal>
                     </ModalContent>
                     {!keyboardStateContextValue?.isKeyboardShown && <NavigationBar />}
