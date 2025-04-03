@@ -2,7 +2,6 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react'
 import {View} from 'react-native';
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import ReactNativeModal from 'react-native-modal';
-import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -304,12 +303,12 @@ function BaseModal(
                             initialFocus={initialFocus}
                             shouldPreventScroll={shouldPreventScrollOnFocus}
                         >
-                            <Animated.View
+                            <View
                                 style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
                                 ref={ref}
                             >
                                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                            </Animated.View>
+                            </View>
                         </FocusTrapForModal>
                     </ModalContent>
                     {!keyboardStateContextValue?.isKeyboardShown && <NavigationBar />}
