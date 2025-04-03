@@ -16,7 +16,7 @@ import {canModifyPlan, getPerDiemCustomUnit, isControlPolicy} from '@libs/Policy
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
-import {enableCompanyCards, enablePolicyReportFields, enablePolicyRules, upgradeToCorporate} from '@src/libs/actions/Policy/Policy';
+import {enableCompanyCards, enablePolicyReportFields, enablePolicyRules, setPolicyPreventMemberCreatedTitle, upgradeToCorporate} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -44,7 +44,13 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
 
-    const feature = useMemo(() => Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((f) => f.alias === featureNameAlias), [featureNameAlias]);
+    const feature = useMemo(
+        () =>
+            Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find(
+                (f) => f.alias === featureNameAlias && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias,
+            ),
+        [featureNameAlias],
+    );
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -57,11 +63,11 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const categoryId = route.params?.categoryId;
 
     const goBack = useCallback(() => {
-        if (!feature || !policyID) {
+        if ((!feature && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) || !policyID) {
             Navigation.dismissModal();
             return;
         }
-        switch (feature.id) {
+        switch (feature?.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
                 Navigation.goBack();
                 if (route.params.backTo) {
@@ -89,7 +95,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
-    }, [feature, policyID, route.params?.backTo, route.params?.featureName]);
+    }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
 
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
@@ -100,7 +106,13 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     };
 
     const confirmUpgrade = useCallback(() => {
-        if (!feature || !policyID) {
+        if (!policyID) {
+            return;
+        }
+        if (!feature) {
+            if (featureNameAlias === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) {
+                setPolicyPreventMemberCreatedTitle(policyID, true);
+            }
             return;
         }
         switch (feature.id) {
@@ -154,6 +166,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
         route.params?.featureName,
+        featureNameAlias,
     ]);
 
     useFocusEffect(

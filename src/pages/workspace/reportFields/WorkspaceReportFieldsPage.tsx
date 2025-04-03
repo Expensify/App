@@ -177,7 +177,13 @@ function WorkspaceReportFieldsPage({
                             isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
                             onToggle={(isEnabled) => {
                                 if (isEnabled && !isControlPolicy(policy)) {
-                                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, undefined));
+                                    Navigation.navigate(
+                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                            policyID,
+                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias,
+                                            ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID),
+                                        ),
+                                    );
                                     return;
                                 }
 
@@ -198,7 +204,13 @@ function WorkspaceReportFieldsPage({
                                 isActive={!!policy?.areReportFieldsEnabled}
                                 onToggle={(isEnabled) => {
                                     if (isEnabled && !isControlPolicy(policy)) {
-                                        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias));
+                                        Navigation.navigate(
+                                            ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                                policyID,
+                                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias,
+                                                ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID),
+                                            ),
+                                        );
                                         return;
                                     }
                                     enablePolicyReportFields(policyID, isEnabled, true);
