@@ -261,9 +261,12 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     </Text>
                     {!tooltip?.shouldRenderActionButtons && (
                         <PressableWithoutFeedback
-                            onPress={() => {
-                                hideTooltip(true);
-                            }}
+                            onPress={getPlatform() !== CONST.PLATFORM.ANDROID
+                                ? () => {
+                                      hideTooltip(true);
+                                  }
+                                : undefined
+                            }
                             onPressIn={
                                 getPlatform() === CONST.PLATFORM.ANDROID
                                     ? () => {
