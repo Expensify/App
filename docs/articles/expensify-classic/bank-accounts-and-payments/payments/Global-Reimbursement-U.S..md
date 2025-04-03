@@ -7,6 +7,8 @@ keywords: [Expensify Classic, global reimbursement, U.S., USD, international pay
 
 If your business bank account is based in the U.S., you can enable global reimbursements to pay team members in nearly any country. This guide walks you through setting that up in Expensify.
 
+---
+
 ## Prerequisites
 - A verified U.S. business bank account
 - Workspace currency set to **USD**
@@ -14,7 +16,7 @@ If your business bank account is based in the U.S., you can enable global reimbu
 ---
 
 ## U.S. Document Requirements
-- ✅ Partner Application Form
+- ✅ Global Reimbursement Application Form
 - ✅ Address verification document (e.g., utility bill)
 - ✅ Bank statement for direct debit setup
 
@@ -33,25 +35,30 @@ If you haven't already, follow the instructions to [connect a U.S. business bank
 5. Go to **Settings > Account > Wallet**.
 6. Click **Enable global reimbursement** next to the connected U.S. bank account.
 7. Complete the Global Reimbursement DocuSign form.
-8. Our Compliance Team will review your form and contact you if additional documents are needed.
-   **You may be asked to provide:**
-   - Authorization letter
-   - Proof of address and ID for reimburser and/or company directors
-   - Certified documents (e.g., shareholder agreement from a lawyer, notary, or accountant)
-9. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts. 
+8. **Upload required documents:**
+   - Address Verification Document (e.g., utility bill, lease agreement)
+   - Bank Statement for Direct Debit Setup
+9. Our Compliance Team will review your form and contact you if additional information is required.
+10. Once the review is complete, our support team will send a message confirming.
 
 ---
 
-# Step 3: Start Reimbursing Internationally
+# Step 3: Confirm Test Transactions
+1. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts.
+2. Once the test deposit amounts are confirmed, the bank account is verified to use for global reimbursement.
+
+---
+
+# Step 4: Start Reimbursing Internationally
+
+⏳**Timeline:** The account is typically set up to issue global reimbursements within two business days after onboarding is complete and the bank account is verified.
 
 Once your U.S. bank account is verified for global reimbursements:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
-2. Select the verified bank account as the default reimbursement account.
+2. Select the verified bank account as the default reimbursement bank account.
 3. Ask your employees to:
    - Go to **Settings > Account > Wallet**.
-   - Click **Add deposit-only bank account** to enter their international account details.
-
-**Timeline:** ⏳ The account is typically set up to issue global reimbursements within two business days after onboarding is complete and the bank account is verified.
+   - Click **Add deposit-only bank account** to enter their deposit account details.
 
 ---
 
