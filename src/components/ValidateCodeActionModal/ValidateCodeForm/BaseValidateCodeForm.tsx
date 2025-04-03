@@ -74,7 +74,7 @@ type ValidateCodeFormProps = {
     isLoading?: boolean;
 
     /** Whether to allow auto submit again after the previous attempt fails */
-    autoSubmitAfterFailure?: boolean;
+    allowResubmit?: boolean;
 };
 
 function BaseValidateCodeForm({
@@ -90,7 +90,7 @@ function BaseValidateCodeForm({
     buttonStyles,
     hideSubmitButton,
     isLoading,
-    autoSubmitAfterFailure,
+    allowResubmit,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -239,7 +239,7 @@ function BaseValidateCodeForm({
                 hasError={canShowError ? !isEmptyObject(validateError) : false}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
-                autoSubmitAfterFailure={autoSubmitAfterFailure}
+                allowResubmit={allowResubmit}
             />
             {shouldShowTimer && (
                 <Text style={[styles.mt5]}>

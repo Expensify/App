@@ -29,7 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 import type {BaseOnboardingWorkspacesProps} from './types';
 
-function BaseOnboardingWorkspaces({route}: BaseOnboardingWorkspacesProps) {
+function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboardingWorkspacesProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -116,7 +116,7 @@ function BaseOnboardingWorkspaces({route}: BaseOnboardingWorkspacesProps) {
 
     const handleBackButtonPress = useCallback(() => {
         if (isValidated) {
-            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
+            Navigation.goBack(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
             return;
         }
         Navigation.goBack();
@@ -127,7 +127,7 @@ function BaseOnboardingWorkspaces({route}: BaseOnboardingWorkspacesProps) {
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID="BaseOnboardingWorkspaces"
-            style={[styles.defaultModalContainer]}
+            style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
                 shouldShowBackButton
@@ -150,7 +150,6 @@ function BaseOnboardingWorkspaces({route}: BaseOnboardingWorkspacesProps) {
                 }
                 footerContent={
                     <Button
-                        isDisabled={isOffline}
                         success={false}
                         large
                         text={translate('common.skip')}

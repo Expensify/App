@@ -71,9 +71,8 @@ function OnboardingModalNavigator() {
                         style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
                     >
                         <Stack.Navigator screenOptions={defaultScreenOptions}>
-                            {/* The OnboardingPurpose screen is not shown as the first screen
-                                if the user is on a private domain and has accessible policies
-                            */}
+                            {/* The OnboardingPurpose screen is shown after the workspace step when the user is on a private domain and has accessible policies.
+                             */}
                             {!isOnPrivateDomainAndHasAccessiblePolicies && (
                                 <Stack.Screen
                                     name={SCREENS.ONBOARDING.PURPOSE}
@@ -92,9 +91,8 @@ function OnboardingModalNavigator() {
                                 name={SCREENS.ONBOARDING.WORKSPACES}
                                 component={OnboardingWorkspaces}
                             />
-                            {/* The OnboardingPurpose screen is shown after workspaces are chose
-                                if the user is on a private domain and has accessible policies
-                            */}
+                            {/* The OnboardingPurpose screen is only shown after the workspace step when the user is on a private domain and has accessible policies
+                             */}
                             {!!isOnPrivateDomainAndHasAccessiblePolicies && (
                                 <Stack.Screen
                                     name={SCREENS.ONBOARDING.PURPOSE}

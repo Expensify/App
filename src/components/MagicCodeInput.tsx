@@ -62,7 +62,7 @@ type MagicCodeInputProps = {
     testID?: string;
 
     /** Whether to allow auto submit again after the previous attempt fails */
-    autoSubmitAfterFailure?: boolean;
+    allowResubmit?: boolean;
 };
 
 type MagicCodeInputHandle = {
@@ -112,7 +112,7 @@ function MagicCodeInput(
         autoComplete,
         hasError = false,
         testID = '',
-        autoSubmitAfterFailure = false,
+        allowResubmit = false,
     }: MagicCodeInputProps,
     ref: ForwardedRef<MagicCodeInputHandle>,
 ) {
@@ -183,7 +183,7 @@ function MagicCodeInput(
     const validateAndSubmit = () => {
         const numbers = decomposeString(value, maxLength);
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        if ((wasSubmitted && !autoSubmitAfterFailure) || !shouldSubmitOnComplete || numbers.filter((n) => isNumeric(n)).length !== maxLength || isOffline) {
+        if ((wasSubmitted && !allowResubmit) || !shouldSubmitOnComplete || numbers.filter((n) => isNumeric(n)).length !== maxLength || isOffline) {
             return;
         }
         if (!wasSubmitted) {
