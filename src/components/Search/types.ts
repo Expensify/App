@@ -73,6 +73,8 @@ type SearchContext = {
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
+    isExportMode: boolean;
+    toggleExportMode: (on: boolean) => void;
 };
 
 type ASTNode = {

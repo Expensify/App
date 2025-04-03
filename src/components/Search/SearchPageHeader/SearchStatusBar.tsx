@@ -17,7 +17,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOnExportAllMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -174,7 +173,7 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions} = useSearchContext();
+    const {selectedTransactions, toggleExportMode, isExportMode} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const options = getOptions(queryJSON.type);
     const scrollRef = useRef<RNScrollView>(null);
@@ -188,7 +187,7 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
         return <SearchStatusSkeleton shouldAnimate />;
     }
 
-    const selectionButtonText = selectionMode?.exportAll ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
+    const selectionButtonText = isExportMode ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
 
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchStatusBarContainer]}>
@@ -207,11 +206,11 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
                         }}
                         popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
                     />
-                    {!selectionMode?.exportAll && (
+                    {!isExportMode && (
                         <Button
                             link
                             text={translate('search.exportAll.selectAllMatchingItems')}
-                            onPress={turnOnExportAllMode}
+                            onPress={() => toggleExportMode(true)}
                         />
                     )}
                 </View>
