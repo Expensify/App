@@ -135,6 +135,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                 style={[styles.flexGrow1, styles.ph5]}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <Text style={[styles.mb5]}>
                     {translate(
