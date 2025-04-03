@@ -21,7 +21,6 @@ import Confirmation from './subSteps/Confirmation';
 import DateOfBirth from './subSteps/DateOfBirth';
 import JobTitle from './subSteps/JobTitle';
 import Name from './subSteps/Name';
-import Occupation from './subSteps/Occupation';
 import UploadDocuments from './subSteps/UploadDocuments';
 
 type SignerInfoProps = {
@@ -39,10 +38,10 @@ type DirectorDetailsFormProps = SubStepProps & {directorID?: string; isDirectorF
 const SUBSTEP: Record<string, number> = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUBSTEP;
 const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, Occupation, DateOfBirth, Address, UploadDocuments, Confirmation];
-const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, Occupation, UploadDocuments, Confirmation];
+const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, Address, UploadDocuments, Confirmation];
+const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
 const userIsOwnerCadBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [UploadDocuments, Confirmation];
-const directorDetailsBodyContent: Array<ComponentType<DirectorDetailsFormProps>> = [Name, JobTitle, Occupation, UploadDocuments];
+const directorDetailsBodyContent: Array<ComponentType<DirectorDetailsFormProps>> = [Name, JobTitle, UploadDocuments];
 
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const {translate} = useLocalize();
