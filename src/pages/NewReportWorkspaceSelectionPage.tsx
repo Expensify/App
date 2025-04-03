@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,18 +35,22 @@ function NewReportWorkspaceSelectionPage() {
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
-    const selectPolicy = useCallback(
-        (policyID?: string) => {
-            if (!policyID) {
+    const navigateToNewReport = useCallback(
+        (optimisticReportID: string) => {
+            if (shouldUseNarrowLayout) {
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}), {forceReplace: true});
+                });
                 return;
             }
-            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+            // On wide screens we use dismissModal instead of forceReplace to avoid performance issues
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.dismissModal();
             });
@@ -53,7 +58,18 @@ function NewReportWorkspaceSelectionPage() {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}));
             });
         },
-        [currentUserPersonalDetails],
+        [shouldUseNarrowLayout],
+    );
+
+    const selectPolicy = useCallback(
+        (policyID?: string) => {
+            if (!policyID) {
+                return;
+            }
+            const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+            navigateToNewReport(optimisticReportID);
+        },
+        [currentUserPersonalDetails, navigateToNewReport],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
