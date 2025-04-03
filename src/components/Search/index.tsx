@@ -289,18 +289,26 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     );
 
     const openReport = useCallback(
-        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
+        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType, isOpenedAsReport?: boolean) => {
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
-            let reportID = isTransactionListItemType(item) && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
+            const isTransactionItem = isTransactionListItemType(item);
+
+            let reportID = isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
 
             if (!reportID) {
                 return;
             }
 
             const backTo = Navigation.getActiveRoute();
+            const shouldHandleTransactionAsReport = isReportListItemType(item) || (isTransactionItem && isOpenedAsReport);
+
+            if (canUseTableReportView && shouldHandleTransactionAsReport) {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                return;
+            }
 
             // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
+            if (isTransactionItem && reportID === '0' && item.moneyRequestReportActionID) {
                 reportID = generateReportID();
                 updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, reportID);
                 Navigation.navigate(
@@ -311,11 +319,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         transactionID: item.transactionID,
                     }),
                 );
-                return;
-            }
-
-            if (canUseTableReportView && isReportListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
                 return;
             }
 
