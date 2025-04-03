@@ -30,6 +30,16 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
 
+jest.mock('@hooks/usePermissions', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actualPermissions = jest.requireActual('@hooks/usePermissions');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actualPermissions,
+        canUseLeftHandBar: () => true,
+    };
+});
+
 TestHelper.setupApp();
 
 async function signInAndGetApp(): Promise<void> {
