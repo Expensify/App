@@ -50,4 +50,14 @@ Global reimbursement allows companies to send payments to employees in different
 | **Australia**   | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1 day post-verification           |
 | **Singapore**   | Partner form, address verification, proof of beneficial ownership, board resolution, M&A, certified ID copies | ⏳ ~3 weeks<br>💡Pre-funding recommended |
 
+---
+
+# FAQ
+
+## Can other admins send global reimbursements?
+Yes. Once verified, the reimbursement account can be shared with other workspace admins.
+
+## How long does it take to verify an account for global reimbursement?
+The verification process can take anywhere from a few business days to several weeks, depending on the information provided in the DocuSign form and if additional information is required for compliance.
+
 </div>
