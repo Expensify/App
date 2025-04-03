@@ -150,7 +150,6 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
-    allHaveRTERViolation,
     buildOptimisticTransaction,
     getAmount,
     getCategoryTaxCodeAndAmount,
@@ -161,6 +160,7 @@ import {
     getUpdatedTransaction,
     hasDuplicateTransactions,
     hasReceipt as hasReceiptTransactionUtils,
+    hasRTERWithoutViolation,
     isAmountMissing,
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -8588,7 +8588,7 @@ function canSubmitReport(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
-    const hasAllRTEViolations = allHaveRTERViolation(transactionIDList, allViolations);
+    const isRTERWithoutViolation = hasRTERWithoutViolation(transactionIDList, allViolations);
     const hasOnlyPendingCardOrScanFailTransactions =
         transactions.length > 0 &&
         transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || isReceiptBeingScannedTransactionUtils(t));
@@ -8599,7 +8599,7 @@ function canSubmitReport(
         !isArchived &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
-        !hasAllRTEViolations &&
+        isRTERWithoutViolation &&
         (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID)
     );
 }

@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
-import {allHaveRTERViolation} from '@src/libs/TransactionUtils';
+import {hasRTERWithoutViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -182,8 +182,8 @@ describe('isValidMoneyRequestType', () => {
     });
 });
 
-describe('allHaveRTERViolation', () => {
-    test('Return false if there is rter violation in all transactionViolations with given transactionIDs.', async () => {
+describe('hasRTERWithoutViolation', () => {
+    test('Return true if there is at least one rter without violation in transactionViolations with given transactionIDs.', async () => {
         const transactionIDWithViolation = 1;
         const transactionIDWithoutViolation = 2;
         const currentReportId = '';
@@ -218,10 +218,10 @@ describe('allHaveRTERViolation', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(allHaveRTERViolation([String(transactionIDWithoutViolation), String(transactionIDWithViolation)], violations)).toBe(false);
+        expect(hasRTERWithoutViolation([String(transactionIDWithoutViolation), String(transactionIDWithViolation)], violations)).toBe(true);
     });
 
-    test('Return true if there is rter violation in all transactionViolations with given transactionIDs.', async () => {
+    test('Return false if there is no rter without violation in all transactionViolations with given transactionIDs.', async () => {
         const transactionIDWithViolation = 1;
         const currentReportId = '';
         const transactionWithViolation: Transaction = {
@@ -247,7 +247,7 @@ describe('allHaveRTERViolation', () => {
         };
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-        expect(allHaveRTERViolation([String(transactionIDWithViolation)], violations)).toBe(true);
+        expect(hasRTERWithoutViolation([String(transactionIDWithViolation)], violations)).toBe(false);
     });
 });
 
