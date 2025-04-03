@@ -24,16 +24,37 @@ type MoneyRequestReportState = {
     params: SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT];
 } & SearchRoute;
 
-function isUrlInAnyReportMessagesAttachments(url: string | null, reportID?: string): boolean {
-    const reportActions = getAllReportActions(reportID);
-    return Object.values(reportActions).some((action) => {
-        const {sourceURL, previewSourceURL} = getAttachmentDetails(getReportActionHtml(action));
-        return sourceURL === url || previewSourceURL === url;
-    });
-}
-
 function isMoneyRequestReportRouteWithReportIDInParams(route: SearchRoute): route is MoneyRequestReportState {
     return !!route && !!route.params && route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT && 'reportID' in route.params;
+}
+
+function findUrlInReportOrAncestorAttachments(url: string | null, reportID: string | undefined): string | undefined {
+    const reportFromParams = getReportOrDraftReport(reportID);
+    if (!isChatThread(reportFromParams)) {
+        return undefined;
+    }
+
+    function searchReportAndAncestors(currentID: string | undefined): string | undefined {
+        const {parentReportID} = getReportOrDraftReport(currentID) ?? {};
+
+        const reportActions = getAllReportActions(currentID);
+        const hasUrlInAttachments = Object.values(reportActions).some((action) => {
+            const {sourceURL, previewSourceURL} = getAttachmentDetails(getReportActionHtml(action));
+            return sourceURL === url || previewSourceURL === url;
+        });
+
+        if (hasUrlInAttachments) {
+            return currentID;
+        }
+
+        if (parentReportID) {
+            return searchReportAndAncestors(parentReportID);
+        }
+
+        return undefined;
+    }
+
+    return searchReportAndAncestors(reportID);
 }
 
 function PlaybackContextProvider({children}: ChildrenProps) {
@@ -105,25 +126,14 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             }
 
             // Used for /attachment route
-            const reportIDFromParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID') ?? undefined;
-            const attachmentReportID = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}` ? prevCurrentReportID : reportIDFromParams;
+            const reportIDFromUrlParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID') ?? undefined;
+            const attachmentReportID = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}` ? prevCurrentReportID : reportIDFromUrlParams;
+            const reportIDWithUrl = findUrlInReportOrAncestorAttachments(url, Navigation.getTopmostReportId());
 
-            const topMostReport = getReportOrDraftReport(Navigation.getTopmostReportId());
-            const {reportID, chatReportID, parentReportID} = topMostReport ?? {};
-
-            const isTopMostReportAChatThread = isChatThread(topMostReport);
-
-            /*
-            This code solves the problem of 2 types of videos in a chat thread:
-            - video that is in a first message of thread, which makes it have a reportID equal to topmost report parent ID
-            - any other video in chat thread that has a reportID equal to topmost report ID
-            we need to find out which reportID is assigned to the video
-            and do that by checking if selected url is in topmost report messages attachments (then we use said report)
-            or if it is a first message, then we take parent report ID since it is associated with parent */
-            const isUrlInTopMostReportAttachments = isUrlInAnyReportMessagesAttachments(url, reportID);
-            const chatThreadID = isUrlInTopMostReportAttachments ? reportID : chatReportID ?? parentReportID;
-
-            const currentPlayReportID = isTopMostReportAChatThread ? chatThreadID : currentReportID ?? attachmentReportID;
+            // - if it is a chat thread, use chat thread ID or any ascentor ID since the video could have originally been sent on report many levels up
+            // - report ID in which we are currently, if it is not a chat thread
+            // - if it is an attachment route, then we take report ID from the URL params
+            const currentPlayReportID = [reportIDWithUrl, currentReportID, attachmentReportID].find((id) => id !== undefined);
 
             setCurrentlyPlayingURLReportID(currentPlayReportID);
             setCurrentlyPlayingURL(url);
