@@ -18,7 +18,6 @@ import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHead
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {PaymentData} from '@components/Search/types';
-import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -40,7 +39,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
-import {getContactMethod} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -342,7 +340,7 @@ function SearchPage({route}: SearchPageProps) {
         });
     };
 
-    const handleExportAll = useCallback(() => {
+    const createExportAll = useCallback(() => {
         if (selectedTransactionsKeys.length === 0 || !status || !hash) {
             return [];
         }
@@ -487,18 +485,12 @@ function SearchPage({route}: SearchPageProps) {
                 />
                 <ConfirmModal
                     isVisible={isDownloadExportModalVisible}
-                    onConfirm={handleExportAll}
+                    onConfirm={createExportAll}
                     onCancel={() => {
                         setIsDownloadExportModalVisible(false);
                     }}
                     title={translate('search.exportSearchResults.title')}
-                    prompt={
-                        <Text>
-                            {translate('search.exportSearchResults.description1')}
-                            <Text style={styles.textStrong}>{getContactMethod()}</Text>
-                            {translate('search.exportSearchResults.description2')}
-                        </Text>
-                    }
+                    prompt={translate('search.exportSearchResults.description')}
                     confirmText={translate('search.exportSearchResults.title')}
                     cancelText={translate('common.cancel')}
                 />

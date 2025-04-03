@@ -5118,9 +5118,8 @@ const translations = {
         searchPlaceholder: 'Busca algo',
         suggestions: 'Sugerencias',
         exportSearchResults: {
-            title: 'Enviar enlace de descarga',
-            description1: "¡Vaya, eso es un montón de elementos! Los agruparemos y enviaremos un enlace a ",
-            description2: ' en breve.',
+            title: 'Crear exportación',
+            description: "¡Vaya, eso es un montón de elementos! Los agruparemos y Concierge te enviará un archivo en breve.",
         },
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
