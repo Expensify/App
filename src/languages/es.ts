@@ -5120,7 +5120,7 @@ const translations = {
         exportSearchResults: {
             title: 'Enviar enlace de descarga',
             description1: "¡Vaya, eso es un montón de elementos! Los agruparemos y enviaremos un enlace a ",
-            description2: 'en breve.',
+            description2: ' en breve.',
         },
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',

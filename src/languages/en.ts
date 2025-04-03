@@ -5067,7 +5067,7 @@ const translations = {
         exportSearchResults: {
             title: 'Send download link',
             description1: "Whoa, that's a lot of items! We'll bundle them up and send a link to ",
-            description2: 'shortly.',
+            description2: ' shortly.',
         },
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
