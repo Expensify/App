@@ -29,7 +29,8 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const domainCardsID = useDomainCardsID(policyID);
 
     // TODO: add logic for choosing between the domain and workspace feed when both available
-    const cardsID = domainCardsID ?? workspaceAccountID;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const cardsID = domainCardsID || workspaceAccountID;
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardsID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardsID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
@@ -43,6 +44,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
+
 
     const renderContent = () => {
         if (!!isLoading && !paymentBankAccountID && !domainCardsID) {

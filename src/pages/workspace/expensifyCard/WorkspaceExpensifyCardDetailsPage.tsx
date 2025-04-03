@@ -47,7 +47,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const domainCardsID = useDomainCardsID(policyID);
 
-    const cardsID = domainCardsID ?? workspaceAccountID;
+    // TODO: add logic for choosing between the domain and workspace feed when both available
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const cardsID = domainCardsID || workspaceAccountID;
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
