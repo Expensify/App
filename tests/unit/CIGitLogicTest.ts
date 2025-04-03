@@ -170,7 +170,7 @@ function mergePR(num: number) {
     Log.success(`Merged PR #${num} to main`);
 }
 
-function cherryPickPR(num: number, resolveVersionBumpConflicts: () => void = () => {}, resolveMergeCommitConflicts: () => void = () => {}) {
+function cherryPickPRToStaging(num: number, resolveVersionBumpConflicts: () => void = () => {}, resolveMergeCommitConflicts: () => void = () => {}) {
     Log.info(`Cherry-picking PR ${num} to staging...`);
     mergePR(num);
     const prMergeCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
@@ -300,7 +300,7 @@ describe('CIGitLogic', () => {
 
     test('Merge a pull request with the checklist locked and CP it to staging', async () => {
         createBasicPR(3);
-        cherryPickPR(3);
+        cherryPickPRToStaging(3);
 
         // Verify output for checklist
         await assertPRsMergedBetween('1.0.0-0', '1.0.0-2', [1, 3]);
@@ -389,7 +389,7 @@ Appended content
         console.log('RORY_DEBUG AFTER:', fs.readFileSync('myFile.txt', {encoding: 'utf8'}));
         exec('git add myFile.txt');
         exec('git commit -m "Revert append and prepend"');
-        cherryPickPR(9);
+        cherryPickPRToStaging(9);
 
         Log.info('Verifying that the revert is present on staging, but the unrelated change is not');
         expect(fs.readFileSync('myFile.txt', {encoding: 'utf8'})).toBe(initialFileContent);
@@ -479,12 +479,12 @@ Appended content
         Log.success('Created manual version bump in PR #14 in branch pr-14');
 
         const packageJSONBefore = fs.readFileSync('package.json', {encoding: 'utf-8'});
-        cherryPickPR(
+        cherryPickPRToStaging(
             14,
             () => {
                 fs.writeFileSync('package.json', packageJSONBefore);
                 exec('git add package.json');
-                exec('git cherry-pick --continue');
+                exec('git cherry-pick --no-edit --continue');
             },
             () => {
                 exec('git commit --no-edit --allow-empty');
