@@ -323,7 +323,6 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            // When a new workspace is created with introSelected set to MANAGE_TEAM
             Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
             await waitForBatchedUpdates();
 
