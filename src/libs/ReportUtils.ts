@@ -74,6 +74,7 @@ import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
+import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -819,6 +820,9 @@ Onyx.connect({
         conciergeChatReportID = value;
     },
 });
+
+let environmentURL: string;
+getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 Onyx.connect({
@@ -5980,7 +5984,7 @@ function buildOptimisticMovedTransactionAction(transactionThreadReportID: string
     const movedTransactionMessage = [
         {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            html: `moved this expense to <a href='${CONST.NEW_EXPENSIFY_URL}r/${toReportID}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
+            html: `moved this expense to <a href='${environmentURL}r/${toReportID}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
             text: `moved this expense to ${reportName}`,
         },
     ];
@@ -6019,7 +6023,7 @@ function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: s
     const unreportedTransactionMessage = [
         {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            html: `removed this expense from <a href='${CONST.NEW_EXPENSIFY_URL}r/${fromReportID}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
+            html: `removed this expense from <a href='${environmentURL}r/${fromReportID}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
             text: `removed this expense from ${reportName}`,
         },
     ];
