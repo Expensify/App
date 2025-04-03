@@ -2,6 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import useLocalize from '@hooks/useLocalize';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchReportParamList} from '@libs/Navigation/types';
@@ -18,9 +19,10 @@ function SearchMoneyRequestReportHoldReasonPage({route}: PlatformStackScreenProp
 
     const {backTo, reportID} = route.params;
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(reportID);
+    const {reportActions} = usePaginatedReportActions(reportID);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        holdMoneyRequestOnMoneyRequestReport(selectedTransactionsID, values.comment);
+        holdMoneyRequestOnMoneyRequestReport(selectedTransactionsID, values.comment, reportActions);
         // It's needed so the actions in header are recalculated
         setSelectedTransactionsID([...selectedTransactionsID]);
 

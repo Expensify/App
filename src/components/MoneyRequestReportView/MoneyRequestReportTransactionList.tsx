@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
@@ -54,7 +54,6 @@ const sortableColumnNames = [
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
 
 type SortedTransactions = {
-    transactions: OnyxTypes.Transaction[];
     sortBy: SortableColumnName;
     sortOrder: SortOrder;
 };
@@ -64,16 +63,6 @@ const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sort
 const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
     const dateKey = transaction.modifiedCreated ? 'modifiedCreated' : 'created';
     return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
-};
-
-const areTransactionValuesEqual = (transactions: OnyxTypes.Transaction[], key: SortableColumnName) => {
-    const firstValidTransaction = transactions.find((transaction) => transaction !== undefined);
-    if (!firstValidTransaction) {
-        return true;
-    }
-
-    const keyOfFirstValidTransaction = getTransactionKey(firstValidTransaction, key);
-    return transactions.every((transaction) => transaction[getTransactionKey(transaction, key)] === firstValidTransaction[keyOfFirstValidTransaction]);
 };
 
 function MoneyRequestReportTransactionList({report, transactions, reportActions, hasComments}: MoneyRequestReportTransactionListProps) {
@@ -99,37 +88,16 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         setMouseUp();
     };
 
-    const transactionsMap = useMemo(
-        () =>
-            transactions.reduce((acc, curr) => {
-                acc[curr.transactionID] = curr;
-                return acc;
-            }, {} as Record<string, OnyxTypes.Transaction>),
-        [transactions],
-    );
-
-    const [sortedData, setSortedData] = useState<SortedTransactions>({
-        transactions,
+    const [sortConfig, setSortConfig] = useState<SortedTransactions>({
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
         sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
     });
 
-    const {sortBy, sortOrder} = sortedData;
+    const {sortBy, sortOrder} = sortConfig;
 
-    useEffect(() => {
-        if (areTransactionValuesEqual(transactions, sortBy) && sortedData.transactions.length === transactions.length) {
-            setSortedData((prevState) => ({
-                ...prevState,
-                transactions: prevState.transactions.map((prevTransaction) => transactionsMap[prevTransaction.transactionID]),
-            }));
-            return;
-        }
-
-        setSortedData((prevState) => ({
-            ...prevState,
-            transactions: [...transactions].sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy)),
-        }));
-    }, [sortBy, sortOrder, sortedData.transactions, transactions, transactionsMap]);
+    const sortedTransactions = useMemo(() => {
+        return [...transactions].sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy));
+    }, [sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
@@ -143,12 +111,12 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigating between transactions
-            const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedData.transactions);
+            const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionReportIDs(sortedSiblingTransactionReportIDs);
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
         },
-        [reportActions, sortedData.transactions],
+        [reportActions, sortedTransactions],
     );
 
     const dateColumnSize = useMemo(() => {
@@ -187,13 +155,13 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 return;
                             }
 
-                            setSortedData((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
+                            setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                         }}
                     />
                 </View>
             )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4, displayNarrowVersion && styles.pt4]}>
-                {sortedData.transactions.map((transaction) => {
+                {sortedTransactions.map((transaction) => {
                     return (
                         <PressableWithFeedback
                             onPress={(e) => {

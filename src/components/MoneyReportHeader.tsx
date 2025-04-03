@@ -223,7 +223,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 icon: Expensicons.Stopwatch,
                 value: 'UNHOLD',
                 onSelected: () => {
-                    unholdMoneyRequestOnMoneyRequestReport(selectedTransactionsID);
+                    unholdMoneyRequestOnMoneyRequestReport(selectedTransactionsID, reportActions);
                     // it's needed in order to recalculate options
                     setSelectedTransactionsID([...selectedTransactionsID]);
                 },
