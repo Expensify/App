@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -71,6 +71,12 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** is policy defualt */
     isDefault?: boolean;
+
+    /** Whether the bill is loading */
+    isLoadingBill?: boolean;
+
+    /** Function to call when the modal is hidden */
+    onHideModal?: () => void;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -115,6 +121,8 @@ function WorkspacesListRow({
     isJoinRequestPending,
     policyID,
     isDefault,
+    isLoadingBill,
+    onHideModal,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -123,6 +131,17 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
+    const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
+
+    useEffect(() => {
+        if (!!isLoadingBill || !threeDotsMenuRef.current?.isPopupMenuVisible) {
+            return;
+        }
+        threeDotsMenuRef?.current?.hidePopoverMenu();
+        onHideModal?.();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoadingBill]);
 
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
@@ -189,6 +208,7 @@ function WorkspacesListRow({
                             shouldOverlay
                             disabled={shouldDisableThreeDotsMenu}
                             isNested
+                            threeDotsMenuRef={threeDotsMenuRef}
                         />
                     </View>
                 </View>
