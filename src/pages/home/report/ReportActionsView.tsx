@@ -85,6 +85,8 @@ function ReportActionsView({
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
+    const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
+    const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
 
@@ -136,7 +138,6 @@ function ReportActionsView({
             actions.push(optimisticCreatedAction);
         }
 
-        const reportPreviewAction = getReportPreviewAction(report.chatReportID, report.reportID);
         const moneyRequestActions = allReportActions.filter((action) => {
             const originalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
             return (
@@ -171,7 +172,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [allReportActions, report, transactionThreadReport]);
+    }, [allReportActions, report, transactionThreadReport, reportPreviewAction]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
@@ -271,7 +272,7 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if ((isLoadingInitialReportActions && !isOffline) ?? isLoadingApp) {
+    if ((isLoadingInitialReportActions && (isSingleExpenseReport || visibleReportActions.length === 0) && !isOffline) ?? isLoadingApp) {
         return <ReportActionsSkeletonView />;
     }
 
