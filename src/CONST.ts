@@ -774,6 +774,7 @@ const CONST = {
         TABLE_REPORT_VIEW: 'tableReportView',
         HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
+        LEFT_HAND_BAR: 'leftHandBar',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
