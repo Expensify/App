@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isValidWebsite} from '@libs/ValidationUtils';
 import getInitialSubStepForBusinessInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForBusinessInfo';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {updateCompanyInformationForBankAccount} from '@userActions/BankAccounts';
@@ -56,20 +56,20 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
         [reimbursementAccount, reimbursementAccountDraft],
     );
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
     const values = useMemo(() => getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(
         (isConfirmPage: boolean) => {
             const companyWebsite = Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
             updateCompanyInformationForBankAccount(
-                Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
+                Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID),
                 {
                     ...values,
                     ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
                     companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
                     companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
-                    website: ValidationUtils.isValidWebsite(companyWebsite) ? companyWebsite : undefined,
+                    website: isValidWebsite(companyWebsite) ? companyWebsite : undefined,
                 },
                 policyID,
                 isConfirmPage,
@@ -109,7 +109,6 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('businessInfoStep.businessInfo')}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={3}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}

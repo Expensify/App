@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -36,21 +36,21 @@ import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 
 type SearchTypeMenuProps = {
-    queryJSON: SearchQueryJSON;
-    shouldGroupByReports?: boolean;
+    queryJSON: SearchQueryJSON | undefined;
 };
 
-function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) {
-    const {type, hash} = queryJSON;
+function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
+    const {type, groupBy, hash} = queryJSON ?? {};
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const {isOffline} = useNetwork();
     const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
+    const isFocused = useIsFocused();
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
-        shouldShowSavedSearchesMenuItemTitle,
+        shouldShowSavedSearchesMenuItemTitle && isFocused,
     );
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -63,8 +63,8 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
     const taxRates = getAllTaxRates();
     const {clearSelectedTransactions} = useSearchContext();
     const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
-    }, [translate, workspaceCardFeeds, userCardList]);
+        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
+    }, [translate, workspaceCardFeeds]);
 
     const typeMenuItems: SearchTypeMenuItem[] = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
 
@@ -77,7 +77,9 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
                 title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
             }
 
-            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, hash);
+            const isItemFocused = Number(key) === hash;
+            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
+
             return {
                 ...baseMenuItem,
                 onPress: () => {
@@ -168,11 +170,11 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
         [styles],
     );
 
-    const isCannedQuery = isCannedSearchQuery(queryJSON);
+    const isCannedQuery = queryJSON ? isCannedSearchQuery(queryJSON) : false;
     const activeItemIndex = isCannedQuery
         ? typeMenuItems.findIndex((item) => {
-              if (shouldGroupByReports) {
-                  return item.translationPath === 'common.expenseReports';
+              if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+                  return item.translationPath === 'common.expenseReports' && item.type === type;
               }
               return item.type === type;
           })
@@ -189,7 +191,7 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
                     const onPress = singleExecution(() => {
                         clearAllFilters();
                         clearSelectedTransactions();
-                        Navigation.navigate(item.getRoute(queryJSON.policyID));
+                        Navigation.navigate(item.getRoute(queryJSON?.policyID));
                     });
 
                     return (

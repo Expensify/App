@@ -145,6 +145,7 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-import-type-side-effects': 'error',
         '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
+        '@typescript-eslint/max-params': ['error', {max: 10}],
         '@typescript-eslint/naming-convention': [
             'error',
             {
@@ -243,6 +244,13 @@ module.exports = {
                 object: 'Image',
                 property: 'getSize',
                 message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
+            },
+            // Disallow direct HybridAppModule.isHybridApp() usage, because it requires a native call
+            // Use CONFIG.IS_HYBRID_APP, which keeps cached value instead
+            {
+                object: 'HybridAppModule',
+                property: 'isHybridApp',
+                message: 'Use CONFIG.IS_HYBRID_APP instead.',
             },
         ],
         'no-restricted-imports': [

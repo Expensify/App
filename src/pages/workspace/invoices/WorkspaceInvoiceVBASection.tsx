@@ -205,7 +205,16 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 anchorRef={paymentMethodButtonRef as RefObject<View>}
             >
                 {!showConfirmDeleteModal && (
-                    <View style={[styles.mv5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}>
+                    <View
+                        style={[
+                            !shouldUseNarrowLayout
+                                ? {
+                                      ...styles.sidebarPopover,
+                                      ...styles.pv4,
+                                  }
+                                : styles.pt5,
+                        ]}
+                    >
                         {isPopoverBottomMount && (
                             <MenuItem
                                 title={paymentMethod.formattedSelectedPaymentMethod.title}
@@ -222,7 +231,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                         {shouldShowMakeDefaultButton && (
                             <MenuItem
                                 title={translate('walletPage.setDefaultConfirmation')}
-                                icon={Expensicons.Mail}
+                                icon={Expensicons.Star}
                                 onPress={() => {
                                     makeDefaultPaymentMethod();
                                     setShouldShowDefaultDeleteMenu(false);

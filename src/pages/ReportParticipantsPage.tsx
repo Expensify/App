@@ -266,11 +266,11 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         const header = (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
                 <View>
-                    <Text style={[styles.searchInputStyle, canSelectMultiple ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
+                    <Text style={[styles.textMicroSupporting, canSelectMultiple ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
                 </View>
                 {isGroupChat && (
                     <View style={[StyleUtils.getMinimumWidth(60)]}>
-                        <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('common.role')}</Text>
                     </View>
                 )}
             </View>
@@ -398,7 +398,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
