@@ -925,11 +925,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
-            children = (
-                <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getDeletedTransactionMessage(action)}</muted-text></comment>`} />
-                </ReportActionItemBasicMessage>
-            );
+            children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
             children = (
                 <ReportActionItemBasicMessage message="">
