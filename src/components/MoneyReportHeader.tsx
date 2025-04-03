@@ -29,6 +29,7 @@ import {
     isAllowedToSubmitDraftExpenseReport,
     isArchivedReportWithID,
     isInvoiceReport,
+    isProcessingReport,
     isReportApproved,
     isReportOwner,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
@@ -331,7 +332,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
 
         if (hasDuplicates) {
-            return {icon: getStatusIcon(Expensicons.Exclamation), description: translate('iou.duplicateTransaction')};
+            return {icon: getStatusIcon(Expensicons.Exclamation), description: translate('iou.duplicateTransaction', {isSubmitted: isProcessingReport(moneyRequestReport)})};
         }
 
         if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
