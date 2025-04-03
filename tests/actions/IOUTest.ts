@@ -10,6 +10,7 @@ import {
     canIOUBePaid,
     canUnapproveIOU,
     deleteMoneyRequest,
+    initMoneyRequest,
     payMoneyRequest,
     putOnHold,
     requestMoney,
@@ -68,6 +69,7 @@ import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collec
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
@@ -5090,6 +5092,134 @@ describe('actions/IOU', () => {
             };
 
             expect(calculateDiffAmount(fakeReport, updatedTransaction, fakeTransaction)).toBeNull();
+        });
+    });
+
+    describe('initMoneyRequest', () => {
+        const fakeReport: Report = {
+            ...createRandomReport(0),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: '1',
+            managerID: CARLOS_ACCOUNT_ID,
+        };
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(1),
+            type: 'team',
+            outputCurrency: 'USD',
+        };
+        const fakePersonalPolicy: Policy = {
+            ...createRandomPolicy(2),
+            type: 'personal',
+            outputCurrency: 'NZD',
+        };
+        beforeEach(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, null);
+            await Onyx.merge(`${ONYXKEYS.CURRENT_DATE}`, '2025-04-01');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}0`, fakeReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}2`, fakePersonalPolicy);
+            return waitForBatchedUpdates();
+        });
+
+        it('should merge transaction draft onyx value', () => {
+            return waitForBatchedUpdates()
+                .then(() => {
+                    return initMoneyRequest('0', fakePolicy, true, undefined, 'manual');
+                })
+                .then(async () => {
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`)).toStrictEqual({
+                        amount: 0,
+                        comment: {
+                            attendees: [
+                                {
+                                    email: 'rory@expensifail.com',
+                                    login: 'rory@expensifail.com',
+                                    accountID: 3,
+                                    text: 'rory@expensifail.com',
+                                    selected: true,
+                                    reportID: '0',
+                                    avatarUrl: '',
+                                    displayName: '',
+                                },
+                            ],
+                        },
+                        created: '2025-04-01',
+                        currency: 'USD',
+                        iouRequestType: 'manual',
+                        reportID: '0',
+                        transactionID: '1',
+                        isFromGlobalCreate: true,
+                        merchant: '(none)',
+                        splitPayerAccountIDs: [3],
+                    });
+                });
+        });
+
+        it('should modify transaction draft when currentIouRequestType is different', () => {
+            return waitForBatchedUpdates()
+                .then(() => {
+                    return initMoneyRequest('0', fakePolicy, true, 'manual', 'scan');
+                })
+                .then(async () => {
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`)).toStrictEqual({
+                        amount: 0,
+                        comment: {
+                            attendees: [
+                                {
+                                    email: 'rory@expensifail.com',
+                                    login: 'rory@expensifail.com',
+                                    accountID: 3,
+                                    text: 'rory@expensifail.com',
+                                    selected: true,
+                                    reportID: '0',
+                                    avatarUrl: '',
+                                    displayName: '',
+                                },
+                            ],
+                        },
+                        created: '2025-04-01',
+                        currency: 'USD',
+                        iouRequestType: 'scan',
+                        reportID: '0',
+                        transactionID: '1',
+                        isFromGlobalCreate: true,
+                        merchant: '(none)',
+                        splitPayerAccountIDs: [3],
+                    });
+                });
+        });
+        it('should return personal currency when policy is missing', () => {
+            return waitForBatchedUpdates()
+                .then(() => {
+                    return initMoneyRequest('0', undefined, true, undefined, 'manual');
+                })
+                .then(async () => {
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`)).toStrictEqual({
+                        amount: 0,
+                        comment: {
+                            attendees: [
+                                {
+                                    email: 'rory@expensifail.com',
+                                    login: 'rory@expensifail.com',
+                                    accountID: 3,
+                                    text: 'rory@expensifail.com',
+                                    selected: true,
+                                    reportID: '0',
+                                    avatarUrl: '',
+                                    displayName: '',
+                                },
+                            ],
+                        },
+                        created: '2025-04-01',
+                        currency: 'NZD',
+                        iouRequestType: 'manual',
+                        reportID: '0',
+                        transactionID: '1',
+                        isFromGlobalCreate: true,
+                        merchant: '(none)',
+                        splitPayerAccountIDs: [3],
+                    });
+                });
         });
     });
 });
