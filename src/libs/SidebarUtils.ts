@@ -239,9 +239,6 @@ function getOrderedReportIDs(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
             requiresAttentionFromCurrentUser(report, parentReportAction);
-        if (!report.lastMessageText && !isSelfDM(report) && !shouldOverrideHidden) {
-            return;
-        }
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
