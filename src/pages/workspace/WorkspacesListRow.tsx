@@ -1,5 +1,5 @@
-import React, {useCallback, useRef} from 'react';
 import {Str} from 'expensify-common';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
