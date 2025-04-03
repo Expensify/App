@@ -6,7 +6,15 @@ const turnOnMobileSelectionMode = () => {
 };
 
 const turnOffMobileSelectionMode = () => {
-    Onyx.merge(ONYXKEYS.MOBILE_SELECTION_MODE, {isEnabled: false});
+    Onyx.merge(ONYXKEYS.MOBILE_SELECTION_MODE, {isEnabled: false, exportAll: false});
 };
 
-export {turnOnMobileSelectionMode, turnOffMobileSelectionMode};
+const turnOnExportAllMode = () => {
+    Onyx.merge(ONYXKEYS.MOBILE_SELECTION_MODE, {exportAll: true});
+};
+
+const turnOffExportAllMode = () => {
+    Onyx.merge(ONYXKEYS.MOBILE_SELECTION_MODE, {exportAll: false});
+};
+
+export {turnOnMobileSelectionMode, turnOffMobileSelectionMode, turnOnExportAllMode, turnOffExportAllMode};
