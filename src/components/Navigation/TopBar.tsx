@@ -46,7 +46,12 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
     return (
         <View style={[styles.w100, styles.zIndex10]}>
             <View
-                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, canUseLeftHandBar ? [styles.topBarHeight, styles.mh5] : [styles.ml5, styles.mr3, styles.mv5]]}
+                style={[
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.justifyContentBetween,
+                    canUseLeftHandBar ? [styles.mh5, styles.headerBarDesktopHeight(true)] : [styles.ml5, styles.mr3, styles.mv5],
+                ]}
                 dataSet={{dragArea: true}}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.pr2]}>
