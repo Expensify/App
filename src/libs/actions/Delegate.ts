@@ -75,13 +75,8 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.IS_SIDEBAR_LOADED,
 ];
 
-/**
- * @param email - The email of the user for whom the connection is being established.
- * @param setIsDelegatorFromOldDotIsReady - An optional callback function that is called
- * when the delegator is authenticated (used in case of switching from OldDot to NewDot).
- */
-function connect(email: string, setIsDelegatorFromOldDotIsReady?: (isReady: boolean) => void) {
-    if (!delegatedAccess?.delegators && !setIsDelegatorFromOldDotIsReady) {
+function connect(email: string, isFromOldDot = false) {
+    if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
 
@@ -140,56 +135,41 @@ function connect(email: string, setIsDelegatorFromOldDotIsReady?: (isReady: bool
 
     // We need to access the authToken directly from the response to update the session
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE, {to: email}, {optimisticData, successData, failureData})
-        .then((response) => {
-            if (!response?.restrictedToken || !response?.encryptedAuthToken) {
-                Log.alert('[Delegate] No auth token returned while connecting as a delegate');
-                Onyx.update(failureData);
-                return;
-            }
-            if (!activePolicyID && CONFIG.IS_HYBRID_APP) {
-                Log.alert('[Delegate] Unable to access activePolicyID');
-                Onyx.update(failureData);
-                return;
-            }
-            const restrictedToken = response.restrictedToken;
-            const policyID = activePolicyID;
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE, {to: email}, {optimisticData, successData, failureData}).then((response) => {
+        if (!response?.restrictedToken || !response?.encryptedAuthToken) {
+            Log.alert('[Delegate] No auth token returned while connecting as a delegate');
+            Onyx.update(failureData);
+            return;
+        }
+        if (!activePolicyID && CONFIG.IS_HYBRID_APP) {
+            Log.alert('[Delegate] Unable to access activePolicyID');
+            Onyx.update(failureData);
+            return;
+        }
+        const restrictedToken = response.restrictedToken;
+        const policyID = activePolicyID;
 
-            return SequentialQueue.waitForIdle()
-                .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
-                .then(() => {
-                    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-                    updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
+        return SequentialQueue.waitForIdle()
+            .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
+            .then(() => {
+                // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
+                updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
 
-                    NetworkStore.setAuthToken(response?.restrictedToken ?? null);
-                    confirmReadyToOpenApp();
-                    openApp().then(() => {
-                        if (!CONFIG.IS_HYBRID_APP || !policyID) {
-                            return;
-                        }
-                        HybridAppModule.switchAccount({
-                            newDotCurrentAccountEmail: email,
-                            authToken: restrictedToken,
-                            policyID,
-                            accountID: String(previousAccountID),
-                        });
+                NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                confirmReadyToOpenApp();
+                openApp().then(() => {
+                    if (!CONFIG.IS_HYBRID_APP || !policyID) {
+                        return;
+                    }
+                    HybridAppModule.switchAccount({
+                        newDotCurrentAccountEmail: email,
+                        authToken: restrictedToken,
+                        policyID,
+                        accountID: String(previousAccountID),
                     });
                 });
-        })
-        .then(() => {
-            if (!setIsDelegatorFromOldDotIsReady) {
-                return;
-            }
-            Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
-        })
-        .catch((error) => {
-            Log.alert('[Delegate] Error connecting as delegate', {error});
-            Onyx.update(failureData);
-            Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
-        })
-        .finally(() => {
-            setIsDelegatorFromOldDotIsReady?.(true);
-        });
+            });
+    });
 }
 
 function disconnect() {

@@ -208,6 +208,10 @@ function setSidebarLoaded() {
     Timing.end(CONST.TIMING.SIDEBAR_LOADED);
 }
 
+function setAppLoading(isLoading: boolean) {
+    Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
+}
+
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
@@ -617,6 +621,7 @@ export {
     setUpPoliciesAndNavigate,
     redirectThirdPartyDesktopSignIn,
     openApp,
+    setAppLoading,
     reconnectApp,
     confirmReadyToOpenApp,
     handleRestrictedEvent,
