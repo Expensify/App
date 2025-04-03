@@ -5,7 +5,7 @@ keywords: [Expensify Classic, global reimbursement, Australia, AUD, internationa
 ---
 <div id="expensify-classic" markdown="1">
 
-If your company’s business bank account is located in Australia, you can enable global reimbursements to send payments abroad. This guide walks you through setup and verification in Expensify.
+If your company’s business bank account is located in Australia, you can enable global reimbursements to send payments directly. This guide walks you through setting up global reimbursement in Expensify.
 
 ---
 
@@ -37,13 +37,19 @@ If your company’s business bank account is located in Australia, you can enabl
 
 # Step 2: Complete DocuSign and Submit Documents
 1. Complete the Global Reimbursement DocuSign form.
-2. Upload required documentation if prompted:
-   - Bank statement or voided check
-   - Proof of Beneficial Ownership
-   - Certified ID & address for all signatories
-3. Expensify's Compliance Team will send a PDS FSG to your company directors.
-4. The team will review your submission and contact you with next steps.
+2. Upload required documentation:
+     - Address verification document
+     - Bank statement or voided check
+     - Proof of Beneficial Ownership
+     - Certified ID & address for all signatories
+3. Expensify's Compliance Team will send the **PDS FSG paperwork** to your company's directors (the same company directors who are listed as signors on `Page 3` of the Partner Application Form).
+4. Our Compliance Team will review your form and contact you if additional information is required.
 
+---
+
+**Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts.
+5. Once the test deposit amounts are confirmed, the bank account is verified to use for global reimbursement.
+   
 ---
 
 # Step 3: Start Sending International Payments
@@ -59,12 +65,12 @@ Once the bank account is approved for global reimbursement:
 # FAQ
 
 ## What is a PDS FSG?
-It stands for Product Disclosure Statement & Financial Services Guide, a legal document sent to directors during onboarding.
+It stands for Product Disclosure Statement & Financial Services Guide, a legal document sent to the company's directors. The **Corpay PDS FSG** paperwork must be sent to company directors for signing before onboarding begins.
 
-## Can other admins send reimbursements?
+## Can other admins send global reimbursements?
 Yes. Once verified, the reimbursement account can be shared with other workspace admins.
 
-## How long does the full process take?
-If documents are complete, setup is usually done in 1–3 business days.
+## How long does the full verification process take?
+The verification process can take anywhere from a few business days to several weeks, depending on the information provided in the DocuSign form and if additional information is required for compliance.
 
 </div>
