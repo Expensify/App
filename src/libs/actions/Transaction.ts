@@ -17,7 +17,7 @@ import {
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
 } from '@libs/ReportUtils';
-import {getTransaction, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {getAmount, getTransaction, waypointHasValidAddress} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReportActions, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
@@ -607,6 +607,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 
     const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
+    const updatedReportTotals: Record<string, number> = {};
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -618,7 +619,9 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             return;
         }
 
-        const newIOUAction = {...oldIOUAction, reportID};
+        const newIOUAction = {...oldIOUAction};
+        const oldReportID = transaction.reportID;
+        const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
 
         // 1. Optimistically change the reportID on the passed transactions
         optimisticData.push({
@@ -637,7 +640,16 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             },
         });
 
-        // 2. Optimistically update the IOU report action reportID
+        // 2. Keep track of the new report totals
+        const transactionAmount = getAmount(transaction);
+        if (oldReportID) {
+            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : oldReport?.total ?? 0) + transactionAmount;
+        }
+        if (reportID) {
+            updatedReportTotals[reportID] = (updatedReportTotals[reportID] ? updatedReportTotals[reportID] : newReport.total ?? 0) - transactionAmount;
+        }
+
+        // 3. Optimistically update the IOU action reportID
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -648,7 +660,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldIOUAction.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,
                 value: {[oldIOUAction.reportActionID]: null},
             },
         );
@@ -663,12 +675,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldIOUAction.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,
                 value: {[oldIOUAction.reportActionID]: oldIOUAction},
             },
         );
 
-        // 3. Optimistically update the transaction thread and all threads in the transaction thread
+        // 4. Optimistically update the transaction thread and all threads in the transaction thread
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
@@ -682,12 +694,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.childReportID}`,
             value: {
-                parentReportID: oldIOUAction.reportID,
-                policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.reportID}`]?.policyID,
+                parentReportID: oldReportID,
+                policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`]?.policyID,
             },
         });
 
-        // 4. (Optional) Create transactionThread if it doesn't exist
+        // 5. (Optional) Create transactionThread if it doesn't exist
         let transactionThreadReportID = newIOUAction.childReportID;
         let transactionThreadCreatedReportActionID;
         if (!transactionThreadReportID) {
@@ -710,7 +722,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newIOUAction.reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                     value: {[newIOUAction.reportActionID]: {childReportID: optimisticTransactionThread.reportID}},
                 },
             );
@@ -741,13 +753,13 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newIOUAction.reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                     value: {[newIOUAction.reportActionID]: {childReportID: null}},
                 },
             );
         }
 
-        // 5. Add MOVEDTRANSACTION or UNREPORTEDTRANSACTION report actions
+        // 6. Add MOVEDTRANSACTION or UNREPORTEDTRANSACTION report actions
         const movedAction =
             reportID === CONST.REPORT.UNREPORTED_REPORTID
                 ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, transaction.reportID ?? '')
@@ -774,6 +786,21 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                       transactionThreadCreatedReportActionID,
                   }),
         };
+    });
+
+    // 7. Update the report totals
+    Object.entries(updatedReportTotals).forEach(([reportIDToUpdate, total]) => {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {total},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {total: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
+        });
     });
 
     const parameters: ChangeTransactionsReportParams = {
