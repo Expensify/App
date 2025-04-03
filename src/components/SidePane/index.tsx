@@ -1,34 +1,21 @@
 import React from 'react';
-import {View} from 'react-native';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSidePane from '@hooks/useSidePane';
-import NAVIGATORS from '@src/NAVIGATORS';
-import Help from './Help';
-import SidePaneOverlay from './SidePaneOverlay';
+import Help from './HelpModal';
 
 function SidePane() {
-    const {shouldHideSidePane, sidePaneTranslateX, shouldHideSidePaneBackdrop, closeSidePane} = useSidePane();
-    const isInNarrowPaneModal = useRootNavigationState((state) => state?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    const {isSidePaneTransitionEnded, shouldHideSidePane, sidePaneTranslateX, shouldHideSidePaneBackdrop, closeSidePane} = useSidePane();
 
-    if (shouldHideSidePane) {
+    if (isSidePaneTransitionEnded && shouldHideSidePane) {
         return null;
     }
 
     return (
-        <>
-            <View>
-                {!shouldHideSidePaneBackdrop && (
-                    <SidePaneOverlay
-                        onBackdropPress={closeSidePane}
-                        isInNarrowPaneModal={isInNarrowPaneModal}
-                    />
-                )}
-            </View>
-            <Help
-                sidePaneTranslateX={sidePaneTranslateX}
-                closeSidePane={closeSidePane}
-            />
-        </>
+        <Help
+            shouldHideSidePane={shouldHideSidePane}
+            sidePaneTranslateX={sidePaneTranslateX}
+            closeSidePane={closeSidePane}
+            shouldHideSidePaneBackdrop={shouldHideSidePaneBackdrop}
+        />
     );
 }
 
