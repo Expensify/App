@@ -220,6 +220,7 @@ function BottomDockedModal({
                     behavior="padding"
                     pointerEvents="box-none"
                     enabled={avoidKeyboard}
+                    style={[styles.flex1, styles.justifyContentEnd]}
                 >
                     {isVisibleState && containerView}
                 </KeyboardAvoidingView>
