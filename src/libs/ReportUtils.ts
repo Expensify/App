@@ -12,7 +12,7 @@ import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
-import {FallbackAvatar, IntacctSquare, NetSuiteSquare, NSQSSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
+import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -26,6 +26,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     Beta,
+    NewGroupChatDraft,
     OnyxInputOrEntry,
     PersonalDetails,
     PersonalDetailsList,
@@ -176,7 +177,6 @@ import {
     getCategory,
     getCurrency,
     getDescription,
-    getFormattedAttendees,
     getFormattedCreated,
     getFormattedPostedDate,
     getMCCGroup,
@@ -208,6 +208,7 @@ import {
     isPending,
     isPerDiemRequest,
     isReceiptBeingScanned,
+    isScanRequest as isScanRequestTransactionUtils,
 } from './TransactionUtils';
 import {addTrailingForwardSlash} from './Url';
 import type {AvatarSource} from './UserUtils';
@@ -308,6 +309,7 @@ type OptimisticNewReport = Pick<
     | 'parentReportActionID'
     | 'participants'
     | 'managerID'
+    | 'pendingAction'
 >;
 
 type BuildOptimisticIOUReportActionParams = {
@@ -602,7 +604,7 @@ type OptimisticTaskReport = SetRequired<
 type TransactionDetails = {
     created: string;
     amount: number;
-    attendees: Attendee[];
+    attendees: Attendee[] | string;
     taxAmount?: number;
     taxCode?: string;
     currency: string;
@@ -997,6 +999,12 @@ let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
+});
+
+let newGroupChatDraft: OnyxEntry<NewGroupChatDraft>;
+Onyx.connect({
+    key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
+    callback: (value) => (newGroupChatDraft = value),
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
@@ -1796,7 +1804,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 
     // Filter out the system chat (Expensify chat) because the composer is disabled in it,
     // and it prompts the user to use the Concierge chat instead.
-    reportsValues = reportsValues.filter((report) => !isSystemChat(report)) ?? [];
+    reportsValues = reportsValues.filter((report) => !isSystemChat(report) && !isArchivedReportWithID(report?.reportID)) ?? [];
 
     // At least two reports remain: self DM and Concierge chat.
     // Return the most recently visited report. Get the last read report from the report metadata.
@@ -3043,10 +3051,10 @@ function getReimbursementQueuedActionMessage({
 }
 
 /**
- * Returns the preview message for `REIMBURSEMENT_DEQUEUED` action
+ * Returns the preview message for `REIMBURSEMENT_DEQUEUED` or `REIMBURSEMENT_ACH_CANCELED` action
  */
-function getReimbursementDeQueuedActionMessage(
-    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
+function getReimbursementDeQueuedOrCanceledActionMessage(
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
     reportOrID: OnyxEntry<Report> | string | SearchReport,
     isLHNPreview = false,
 ): string {
@@ -3055,7 +3063,7 @@ function getReimbursementDeQueuedActionMessage(
     const amount = originalMessage?.amount;
     const currency = originalMessage?.currency;
     const formattedAmount = convertToDisplayString(amount, currency);
-    if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
+    if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN || originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.USER) {
         const payerOrApproverName = report?.managerID === currentUserAccountID || !isLHNPreview ? '' : getDisplayNameForParticipant({accountID: report?.managerID, shouldUseShortForm: true});
         return translateLocal('iou.adminCanceledRequest', {manager: payerOrApproverName, amount: formattedAmount});
     }
@@ -3670,8 +3678,8 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
         return false;
     }
 
-    // Admin & managers can always edit coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
-    if ((isAdmin || isManager) && !isOpenExpenseReport(moneyRequestReport)) {
+    // Admin & managers can always edit coding fields such as tag, category, billable, etc.
+    if (isAdmin || isManager) {
         return true;
     }
 
@@ -4196,7 +4204,8 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.merchant = transactionChanges?.merchant;
     }
     if ('attendees' in transactionChanges) {
-        [originalMessage.oldAttendees, originalMessage.attendees] = getFormattedAttendees(transactionChanges?.attendees, getAttendees(oldTransaction));
+        originalMessage.oldAttendees = getAttendees(oldTransaction);
+        originalMessage.newAttendees = transactionChanges?.attendees;
     }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
@@ -4496,6 +4505,12 @@ function getSearchReportName(props: GetReportNameParams): string {
     return getReportNameInternal(props);
 }
 
+function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
+    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+    const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
+    return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
+}
+
 function getReportNameInternal({
     report,
     policy,
@@ -4566,7 +4581,7 @@ function getReportNameInternal({
     }
 
     if (isTaskReport(report)) {
-        return Parser.htmlToText(report?.reportName ?? '');
+        return Parser.htmlToText(report?.reportName ?? '').trim();
     }
 
     if (isChatThread(report)) {
@@ -4644,9 +4659,7 @@ function getReportNameInternal({
     }
 
     if (isInvoiceReport(report)) {
-        const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
-        const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
-        formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
+        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
@@ -5208,7 +5221,6 @@ function buildOptimisticIOUReport(
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
     const policyID = chatReportID ? getReport(chatReportID, allReports)?.policyID : undefined;
     const policy = getPolicy(policyID);
-    const isTestMoneyRequest = isSelectedManagerMcTest(payerEmail);
 
     const participants: Participants = {
         [payeeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
@@ -5223,8 +5235,8 @@ function buildOptimisticIOUReport(
         ownerAccountID: payeeAccountID,
         participants,
         reportID: generateReportID(),
-        stateNum: isSendingMoney || isTestMoneyRequest ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
-        statusNum: isSendingMoney || isTestMoneyRequest ? CONST.REPORT.STATUS_NUM.REIMBURSED : CONST.REPORT.STATE_NUM.SUBMITTED,
+        stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
+        statusNum: isSendingMoney ? CONST.REPORT.STATUS_NUM.REIMBURSED : CONST.REPORT.STATE_NUM.SUBMITTED,
         total,
         unheldTotal: total,
         nonReimbursableTotal: 0,
@@ -5942,6 +5954,7 @@ function buildOptimisticReportPreview(
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
     const isTestTransaction = isTestTransactionReport(iouReport);
+    const isScanRequest = transaction ? isScanRequestTransactionUtils(transaction) : false;
     return {
         reportActionID: reportActionID ?? rand64(),
         reportID: chatReport?.reportID,
@@ -5968,7 +5981,7 @@ function buildOptimisticReportPreview(
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
-        ...(isTestTransaction && {childStateNum: 2, childStatusNum: 4}),
+        ...(isTestTransaction && !isScanRequest && {childStateNum: 2, childStatusNum: 4}),
     };
 }
 
@@ -6712,6 +6725,32 @@ function buildOptimisticDismissedViolationReportAction(
             },
         ],
         originalMessage,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+    };
+}
+
+function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedViolationReportAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: translateLocal('violations.resolvedDuplicates'),
+            },
+        ],
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         person: [
             {
@@ -7839,6 +7878,10 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     const policyOwnerAccountID = getPolicy(report?.policyID)?.ownerAccountID;
     const isPolicyOwnedByExpensifyAccounts = policyOwnerAccountID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID) : false;
     if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts) {
+        // Allow create expense option for Manager McTest report
+        if (reportParticipants.some((accountID) => accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST) && Permissions.canUseManagerMcTest(allBetas)) {
+            return [CONST.IOU.TYPE.SUBMIT];
+        }
         return [];
     }
 
@@ -9288,9 +9331,6 @@ function getIntegrationIcon(connectionName?: ConnectionName) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
         return NetSuiteSquare;
     }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NSQS) {
-        return NSQSSquare;
-    }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
         return IntacctSquare;
     }
@@ -9445,6 +9485,25 @@ function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
     return isSelectedManagerMcTest(persionalDetails?.login);
 }
 
+function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
+    return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
+}
+
+function getGroupChatDraft() {
+    return newGroupChatDraft;
+}
+
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined): string {
+    if (report && isInvoiceReport(report)) {
+        const properInvoiceReport = report;
+        properInvoiceReport.chatReportID = report.parentReportID;
+
+        return getInvoiceReportName(properInvoiceReport);
+    }
+
+    return action?.reportName ?? '';
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -9468,6 +9527,7 @@ export {
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedReportAction,
+    buildOptimisticChangePolicyReportAction,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticRoomDescriptionUpdatedReportAction,
@@ -9576,7 +9636,7 @@ export {
     getPolicyExpenseChatName,
     getPolicyName,
     getPolicyType,
-    getReimbursementDeQueuedActionMessage,
+    getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
     getReportDescription,
@@ -9713,6 +9773,7 @@ export {
     isValidReport,
     isValidReportIDFromPath,
     isWaitingForAssigneeToCompleteAction,
+    isWaitingForSubmissionFromCurrentUser,
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
@@ -9790,9 +9851,15 @@ export {
     isSelectedManagerMcTest,
     isTestTransactionReport,
     getReportSubtitlePrefix,
-    buildOptimisticChangePolicyReportAction,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    buildOptimisticResolvedDuplicatesReportAction,
+    populateOptimisticReportFormula,
+    getTitleReportField,
+    getReportFieldsByPolicyID,
+    getGroupChatDraft,
+    getInvoiceReportName,
+    getChatListItemReportName,
 };
 
 export type {
