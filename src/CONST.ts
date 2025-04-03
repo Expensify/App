@@ -6927,7 +6927,7 @@ const CONST = {
 
     ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 
-    OFFLINE_INDICATOR_HEIGHT: 25
+    OFFLINE_INDICATOR_HEIGHT: 25,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
