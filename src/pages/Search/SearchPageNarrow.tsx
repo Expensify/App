@@ -94,16 +94,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
         },
     });
 
-    const onContentSizeChange = useCallback(
-        (w: number, h: number) => {
-            if (windowHeight <= h) {
-                return;
-            }
-            topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
-        },
-        [windowHeight, topBarOffset, StyleUtils.searchHeaderDefaultOffset],
-    );
-
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
     const shouldDisplayCancelSearch = shouldUseNarrowLayout && ((!!queryJSON && !isCannedSearchQuery(queryJSON)) || searchRouterListVisible);
@@ -137,7 +127,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
             testID={SearchPageNarrow.displayName}
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
-            bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
+            bottomContent={!searchRouterListVisible && <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
             shouldShowOfflineIndicator={!!searchResults}
         >
@@ -187,6 +177,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
                         <HeaderWithBackButton
                             title={translate('common.selectMultiple')}
                             onBackButtonPress={() => {
+                                topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                                 clearSelectedTransactions();
                                 turnOffMobileSelectionMode();
                             }}
@@ -206,8 +197,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
                             key={queryJSON.hash}
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}
-                            onContentSizeChange={onContentSizeChange}
-                            contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
+                            contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentContainerStyles : undefined}
                         />
                     </View>
                 )}
