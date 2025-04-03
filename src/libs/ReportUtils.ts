@@ -5598,7 +5598,7 @@ function getMovedTransactionMessage(action: ReportAction) {
     const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
     const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`]?.reportName ?? '';
     const message = translateLocal('iou.movedTransaction', {
-        toReportID,
+        reportUrl: `${environmentURL}/r/${toReportID}`,
         reportName,
     });
     return message;
@@ -5609,7 +5609,7 @@ function getUnreportedTransactionMessage(action: ReportAction) {
     const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
     const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`]?.reportName ?? '';
     const message = translateLocal('iou.unreportedTransaction', {
-        fromReportID,
+        reportUrl: `${environmentURL}/r/${fromReportID}`,
         reportName,
     });
     return message;

@@ -121,13 +121,13 @@ type DeleteTransactionParams = {
 };
 
 type MovedTransactionParams = {
-    toReportID: string;
+    reportUrl: string;
     reportName?: string;
 };
 
 type UnreportedTransactionParams = {
+    reportUrl: string;
     reportName?: string;
-    fromReportID?: string;
 };
 
 type SettleExpensifyCardParams = {

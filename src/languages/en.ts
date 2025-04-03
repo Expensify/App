@@ -923,9 +923,8 @@ const translations = {
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense on this report, ${merchant} - ${amount}`,
-        movedTransaction: ({toReportID, reportName}: MovedTransactionParams) => `moved this expense to <a href="${CONST.NEW_EXPENSIFY_URL}r/${toReportID}">${reportName}</a>`,
-        unreportedTransaction: ({fromReportID, reportName}: UnreportedTransactionParams) =>
-            `removed this expense from <a href="${CONST.NEW_EXPENSIFY_URL}r/${fromReportID}">${reportName}</a>`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense to <a href="${reportUrl}">${reportName}</a>`,
+        unreportedTransaction: ({reportUrl, reportName}: UnreportedTransactionParams) => `removed this expense from <a href="${reportUrl}">${reportName}</a>`,
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
