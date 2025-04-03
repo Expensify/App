@@ -129,7 +129,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
-    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, shouldTurnOffSelectionMode, setShouldShowStatusBarLoading, lastSearchType} =
+    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, shouldTurnOffSelectionMode, setShouldShowStatusBarLoading, lastSearchType, isExportMode, toggleExportMode} =
         useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
@@ -228,7 +228,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 if (!Object.hasOwn(transaction, 'transactionID') || !('transactionID' in transaction)) {
                     return;
                 }
-                if (!Object.keys(selectedTransactions).includes(transaction.transactionID)) {
+                if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !isExportMode) {
                     return;
                 }
                 newTransactionList[transaction.transactionID] = {
@@ -236,7 +236,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     canHold: transaction.canHold,
                     isHeld: isOnHold(transaction),
                     canUnhold: transaction.canUnhold,
-                    isSelected: selectedTransactions[transaction.transactionID].isSelected,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
                     canDelete: transaction.canDelete,
                     reportID: transaction.reportID,
                     policyID: transaction.policyID,
@@ -249,7 +250,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     return;
                 }
                 report.transactions.forEach((transaction) => {
-                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID)) {
+                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !isExportMode) {
                         return;
                     }
                     newTransactionList[transaction.transactionID] = {
@@ -257,7 +258,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         canHold: transaction.canHold,
                         isHeld: isOnHold(transaction),
                         canUnhold: transaction.canUnhold,
-                        isSelected: selectedTransactions[transaction.transactionID].isSelected,
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
                         reportID: transaction.reportID,
                         policyID: transaction.policyID,
@@ -268,7 +270,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
         setSelectedTransactions(newTransactionList, data);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions]);
+    }, [data, setSelectedTransactions, isExportMode]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -403,7 +405,12 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 return;
             }
 
-            setSelectedTransactions(prepareTransactionsList(item, selectedTransactions), data);
+            const newTransactionsList = prepareTransactionsList(item, selectedTransactions);
+            if (Object.keys(newTransactionsList).length !== Object.keys(selectedTransactions).length) {
+                toggleExportMode(false);
+            }
+            console.debug('one export');
+            setSelectedTransactions(newTransactionsList, data);
             return;
         }
 
@@ -413,7 +420,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             item.transactions.forEach((transaction) => {
                 delete reducedSelectedTransactions[transaction.keyForList];
             });
-
+            console.debug('all export');
+            toggleExportMode(false);
             setSelectedTransactions(reducedSelectedTransactions, data);
             return;
         }

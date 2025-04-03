@@ -61,7 +61,7 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
 
@@ -115,7 +115,7 @@ function SearchPage({route}: SearchPageProps) {
                     return;
                 }
 
-                if (selectionMode?.exportAll) {
+                if (isExportMode) {
                     setIsDownloadExportModalVisible(true);
                     return;
                 }
@@ -136,7 +136,7 @@ function SearchPage({route}: SearchPageProps) {
             },
         };
 
-        if (selectionMode?.exportAll) {
+        if (isExportMode) {
             return [downloadButtonOption];
         }
 
@@ -315,7 +315,7 @@ function SearchPage({route}: SearchPageProps) {
         hash,
         selectedTransactions,
         translate,
-        selectionMode?.exportAll,
+        isExportMode,
         isOffline,
         selectedReports,
         queryJSON,
