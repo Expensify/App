@@ -108,14 +108,17 @@ import {
     chatIncludesConcierge,
     getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
+    getDowngradeWorkspaceMessage,
     getIconsForParticipants,
     getIOUApprovedMessage,
     getIOUForwardedMessage,
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
     getPolicyChangeMessage,
+    getRejectedReportMessage,
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallySubmittedMessage,
+    getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
     isArchivedNonExpenseReport,
@@ -907,11 +910,11 @@ function PureReportActionItem({
                 children = <ReportActionItemBasicMessage message={getIOUForwardedMessage(action, report)} />;
             }
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
-            children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
+            children = <ReportActionItemBasicMessage message={getRejectedReportMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
-            children = <ReportActionItemBasicMessage message={translate('workspaceActions.upgradedWorkspace')} />;
+            children = <ReportActionItemBasicMessage message={getUpgradeWorkspaceMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
-            children = <ReportActionItemBasicMessage message={translate('workspaceActions.downgradedWorkspace')} />;
+            children = <ReportActionItemBasicMessage message={getDowngradeWorkspaceMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {

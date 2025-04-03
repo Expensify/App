@@ -1877,12 +1877,6 @@ function isPolicyChangeLogDeleteMemberMessage(
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE);
 }
 
-function getWorkspaceNameUpdatedMessage(action: ReportAction) {
-    const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
-    const message = oldName && newName ? translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : getReportActionText(action);
-    return message;
-}
-
 function getWorkspaceDescriptionUpdatedMessage(action: ReportAction) {
     const {oldDescription, newDescription} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION>) ?? {};
     const message =
@@ -2464,7 +2458,6 @@ export {
     getJoinRequestMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
-    getWorkspaceNameUpdatedMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
