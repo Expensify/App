@@ -318,6 +318,7 @@ type OptimisticNewReport = Pick<
     | 'participants'
     | 'managerID'
     | 'pendingFields'
+    | 'chatReportID'
 > & {reportName: string};
 
 type BuildOptimisticIOUReportActionParams = {
@@ -5451,6 +5452,7 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         lastVisibleActionCreated: timeOfCreation,
         pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         parentReportID,
+        chatReportID: parentReportID,
     };
 
     const optimisticReportName = populateOptimisticReportFormula(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, optimisticEmptyReport, policy);
