@@ -786,9 +786,7 @@ function initMoneyRequest(
         return;
     }
 
-    const comment: Comment = {
-        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
-    };
+    const comment: Comment = {};
     let requestCategory: string | null = null;
 
     // Add initial empty waypoints when starting a distance expense
@@ -823,6 +821,7 @@ function initMoneyRequest(
     // Use set() here so that there is no way that data will be leaked between objects when it gets reset
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
         amount: 0,
+        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
         comment,
         created,
         currency,
@@ -896,7 +895,7 @@ function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraf
 }
 
 function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {attendees}});
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {attendees});
 }
 
 function setMoneyRequestPendingFields(transactionID: string, pendingFields: OnyxTypes.Transaction['pendingFields']) {
@@ -3859,10 +3858,6 @@ function getUpdateMoneyRequestParams(
         }
     }
 
-    if (Array.isArray(params?.attendees)) {
-        params.attendees = JSON.stringify(params?.attendees);
-    }
-
     // Clear out the error fields and loading states on success
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -4907,7 +4902,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 createdReportActionIDForThread,
                 reimbursible,
                 description: parsedComment,
-                attendees: attendees ? JSON.stringify(attendees) : undefined,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);

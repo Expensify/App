@@ -256,7 +256,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
     const transactionID = existingTransactionID ?? NumberUtils.rand64();
 
-    const commentJSON: Comment = {comment, attendees};
+    const commentJSON: Comment = {comment};
     if (source) {
         commentJSON.source = source;
     }
@@ -294,6 +294,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         taxAmount,
         billable,
         reimbursable,
+        attendees,
         inserted: DateUtils.getDBTime(),
     };
 }
@@ -325,10 +326,10 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
-    // return false;
+    return false;
     // To be renabled once feature is complete: https://github.com/Expensify/App/issues/44725
     // Keep this disabled for per diem expense
-    return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
+    // return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
 }
 
 /**
@@ -658,7 +659,7 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
  * Return the list of modified attendees if present otherwise list of attendees
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
-    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.comment?.attendees ?? [];
+    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.attendees ?? [];
 }
 
 /**

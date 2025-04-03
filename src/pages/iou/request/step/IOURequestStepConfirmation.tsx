@@ -390,7 +390,7 @@ function IOURequestStepConfirmation({
                 action,
                 transactionParams: {
                     amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
-                    attendees: transaction.comment?.attendees,
+                    attendees: transaction.attendees,
                     currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
                     created: transaction.created,
                     merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : transaction.merchant,
@@ -933,7 +933,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouAttendees={transaction?.comment?.attendees ?? []}
+                        iouAttendees={transaction?.attendees ?? []}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}
