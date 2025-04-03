@@ -35,22 +35,47 @@ If your business operates out of the U.K., you can enable global reimbursements 
 
 ---
 
-# Step 2: Verify for Global Reimbursement
-1. Complete the Global Reimbursement DocuSign form and provide all requested documents. 
-   - Our Compliance Team will review your submission and may request further documentation.
-  
-2. Once the review is complete, our support team will contact you to confirm. 
+# Step 2: Submit the DocuSign Form
+1. Complete the Global Reimbursement DocuSign form.
+   - Our Compliance Team will review your form and may request additional documentation.
+2. **Upload required documentation:**
+     - Address verification document
+     - Bank statement or voided check
+     - Proof of Beneficial Ownership
+     - Copy of ID & Address for Signatories
+3. Our Compliance Team will review your form and contact you if additional information is required.
+4. Once the review is complete, our support team will contact you to confirm. 
 
 ---
 
-# Step 3: Start Reimbursing Internationally
+# Step 3: Sign Direct Debit Authorization Mandate
+
+This is a signed document authorizing a client’s bank to pull payments via direct debit.
+
+1. Expensify will send you a **Direct Debit Authorization** form to sign.
+3. Send the signed authorization form to your bank.
+4. Return the signed authorization form to Expensify.
+5. Once the account is set up for direct debits (typically takes 10 to 12 business days to complete), confirm the setup is complete with Expensify support.
+Expensify confirms setup with Corpay.
+
+---
+
+# Step 4: Confirm Test Payment
+1. **Expensify will send a test payment to the bank account:** Once sent, our support team will ask you to verify the payment amount.
+2. Once the test payment is confirmed, the bank account is verified to use for global reimbursement.
+
+---
+
+# Step 5: Reimburse Internationally
+
+⏳**Timeline:** After the executed mandate (authorization form) is signed and sent to your bank, it takes 10–12 business days for the bank account to be set up for direct debits.
+
 Once the bank account is approved for global reimbursement:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
-2. Set the verified UK account as the default reimbursement method.
-3. Employees must:
+2. Choose your verified EU account as the default reimbursement method.
+3. Employees should:
    - Go to **Settings > Account > Wallet**.
-   - Click **Add deposit-only bank account** to input their bank account information.
-
+   - Click **Add deposit-only bank account** and input their account details.
 ---
 
 # FAQ
@@ -60,11 +85,5 @@ Yes. Once verified, any admin on the workspace can use the bank account to issue
 
 ## What is a signatory?
 A signatory is someone authorized to act on behalf of the business, typically a director or senior finance admin.
-
-## How long does verification take?
-Timing varies, but approval generally happens within a few days if all documents are correct.
-
-## Why are certified copies required in Jersey?
-This is a legal compliance requirement for businesses based in Jersey.
 
 </div>
