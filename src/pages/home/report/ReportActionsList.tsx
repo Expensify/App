@@ -707,7 +707,12 @@ function ReportActionsList({
             return;
         }
 
-        return <ReportActionsSkeletonView shouldAnimate={false} />;
+        return (
+            <ReportActionsSkeletonView
+                shouldAnimate={false}
+                possibleVisibleContentItems={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 10}
+            />
+        );
     }, [shouldShowSkeleton]);
 
     const onStartReached = useCallback(() => {
