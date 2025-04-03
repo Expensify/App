@@ -468,6 +468,7 @@ function MoneyRequestReportPreviewContent({
                                 (isHovered || isScanning || isWhisper) && styles.reportPreviewBoxHoverBorder,
                             ]}
                         >
+                            {/* cokolwiek */}
                             <View style={[reportPreviewStyles.wrapperStyle]}>
                                 <View style={[reportPreviewStyles.contentContainerStyle]}>
                                     <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
