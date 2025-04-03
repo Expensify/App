@@ -217,7 +217,6 @@ function getOrderedReportIDs(
         const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
         const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
         const isHidden = isHiddenForCurrentUser(report);
-        const isLastActionCreatedOrUndefined = report.lastActionType === undefined || report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CREATED;
         const isFocused = report.reportID === currentReportId;
         const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, doesReportHaveViolations, transactionViolations);
         const isReportInAccessible = report?.errorFields?.notFound;
@@ -239,10 +238,11 @@ function getOrderedReportIDs(
             isSystemChat ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
-            requiresAttentionFromCurrentUser(report, parentReportAction) ||
-            isSelfDM(report);
-
-        if ((isHidden || isLastActionCreatedOrUndefined) && !shouldOverrideHidden) {
+            requiresAttentionFromCurrentUser(report, parentReportAction);
+        if (!report.lastMessageText && !isSelfDM(report) && !shouldOverrideHidden) {
+            return;
+        }
+        if (isHidden && !shouldOverrideHidden) {
             return;
         }
 
