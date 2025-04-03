@@ -581,6 +581,9 @@ const ONYXKEYS = {
         /** Currently displaying feed */
         LAST_SELECTED_FEED: 'lastSelectedFeed_',
 
+        /** Currently displaying Expensify feed */
+        LAST_SELECTED_EXPENSIFY_FEED: 'lastSelectedExpensifyFeed_',
+
         /**  Whether the bank account chosen for Expensify Card in on verification waitlist */
         NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist_',
 
