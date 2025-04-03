@@ -109,6 +109,7 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
                 }}
                 shouldValidateOnBlur
                 shouldValidateOnChange
+                shouldHideFixErrorsAlert
             >
                 {isOffline && <ExitSurveyOffline />}
                 {!isOffline && (
