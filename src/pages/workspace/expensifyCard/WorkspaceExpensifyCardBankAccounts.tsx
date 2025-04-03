@@ -43,7 +43,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
-    const [cardBankAccountSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_BANK_ACCOUNT_SETTINGS}${workspaceAccountID}`);
+    const [cardBankAccountSettings] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_SETTINGS}${workspaceAccountID}`);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
 
     const getVerificationState = () => {
