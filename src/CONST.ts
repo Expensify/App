@@ -3543,7 +3543,9 @@ const CONST = {
     TEST_RECEIPT: {
         AMOUNT: 1800,
         CURRENCY: 'USD',
+        MERCHANT: 'Taco Todd\'s',
         FILENAME: 'test_receipt',
+        FILE_TYPE: 'image/png',
     },
 
     AVATAR_CROP_MODAL: {
