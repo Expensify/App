@@ -60,4 +60,10 @@ Yes. Once verified, the reimbursement account can be shared with other workspace
 ## How long does it take to verify an account for global reimbursement?
 The verification process can take anywhere from a few business days to several weeks, depending on the information provided in the DocuSign form and if additional information is required for compliance.
 
+## Who is the "Authorized User" on the DocuSign form?
+This is the person who manages reimbursements and bank setup in Expensify.
+
+## Why can't my employee add a deposit account?
+Make sure your employee's default workspace is set to the one linked to the bank you're using for global payments. They can confirm their default workspace by following [these steps](https://help.expensify.com/articles/expensify-classic/workspaces/Navigate-multiple-workspaces).
+
 </div>
