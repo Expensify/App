@@ -34,7 +34,7 @@ jest.mock('@hooks/usePermissions', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualPermissions,
-        canUseLeftHandBar: () => true,
+        canUseLeftHandBar: false,
     };
 });
 
