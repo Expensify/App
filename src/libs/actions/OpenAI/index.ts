@@ -94,23 +94,21 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
 
                 const audioTrack = stream.getAudioTracks().at(0);
                 if (!audioTrack) {
-                    reject(new Error('Failed to get audio track'));
-                    return;
+                    throw new Error('Failed to get audio track');
                 }
 
                 pc.addTrack(audioTrack);
 
                 const dc = pc.createDataChannel('openai-control');
                 dc.onerror = () => {
-                    reject(new Error(`Data channel error`));
+                    throw new Error('Data channel error');
                 };
                 dataChannel = dc;
 
                 // eslint-disable-next-line rulesdir/prefer-early-return
                 pc.oniceconnectionstatechange = () => {
                     if (pc.iceConnectionState === 'failed') {
-                        reject(new Error('ICE connection failed'));
-                        stopConnection();
+                        throw new Error('ICE connection failed');
                     }
                 };
 
@@ -119,9 +117,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                     if (event.track.kind === 'audio') {
                         const audioStream = event.streams.at(0);
                         if (!audioStream) {
-                            reject(new Error('Failed to get stream'));
-                            stopConnection();
-                            return;
+                            throw new Error('Failed to get stream');
                         }
                         playStreamSound(audioStream);
                     }
