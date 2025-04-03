@@ -3,14 +3,20 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributes} from '@src/types/onyx';
 
+/**
+ * This derived value is used to get the report attributes for the report.
+ * Dependency on ONYXKEYS.PERSONAL_DETAILS_LIST is to ensure that the report attributes are updated when the personal details are updated.
+ */
+
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.PERSONAL_DETAILS_LIST],
-    compute: ([reports], {currentValue, sourceValues}) => {
-        const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
-        if (!reports) {
+    compute: ([reports, personalDetails], {currentValue, sourceValues}) => {
+        if (!reports || !personalDetails) {
             return {};
         }
+
+        const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
 
         return Object.values(reportUpdates ?? reports).reduce<Record<string, ReportAttributes>>(
             (acc, report) => {
