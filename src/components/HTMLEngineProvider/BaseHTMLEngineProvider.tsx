@@ -91,7 +91,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             h1: HTMLElementModel.fromCustomModel({
                 tagName: 'h1',
                 getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.h1),
-                contentModel: HTMLContentModel.textual,
+                contentModel: HTMLContentModel.block,
             }),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
