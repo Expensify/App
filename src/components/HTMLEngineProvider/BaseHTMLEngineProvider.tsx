@@ -61,7 +61,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'comment',
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.islarge === undefined) {
-                        return {whiteSpace: 'pre'};
+                        if (tnode.attributes.center === undefined) {
+                            return {whiteSpace: 'pre'};
+                        }
+                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
                     }
                     return {whiteSpace: 'pre', ...styles.onlyEmojisText};
                 },
