@@ -5542,7 +5542,8 @@ function getDeletedTransactionMessage(action: ReportAction) {
 
 function getMovedTransactionMessage(action: ReportAction) {
     const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
-    const {toReportID, reportName} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+    const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+    const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`]?.reportName ?? '';
     const message = translateLocal('iou.movedTransaction', {
         toReportID,
         reportName,
@@ -5552,7 +5553,8 @@ function getMovedTransactionMessage(action: ReportAction) {
 
 function getUnreportedTransactionMessage(action: ReportAction) {
     const unreportedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>) ?? {};
-    const {fromReportID, reportName} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+    const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+    const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`]?.reportName ?? '';
     const message = translateLocal('iou.unreportedTransaction', {
         fromReportID,
         reportName,
@@ -5920,12 +5922,12 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
  * Builds an optimistic MOVED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
-function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, toReportID: string, reportName: string | undefined): ReportAction {
+function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, toReportID: string): ReportAction {
     const originalMessage = {
         toReportID,
-        reportName,
     };
 
+    const reportName = allReports?.[toReportID]?.reportName;
     const movedTransactionMessage = [
         {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -5959,12 +5961,12 @@ function buildOptimisticMovedTransactionAction(transactionThreadReportID: string
  * Builds an optimistic UNREPORTED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we unreport a transaction.
  */
-function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: string | undefined, fromReportID: string | undefined, reportName: string | undefined): ReportAction {
+function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: string | undefined, fromReportID: string): ReportAction {
     const originalMessage = {
         fromReportID,
-        reportName,
     };
 
+    const reportName = allReports?.[fromReportID]?.reportName;
     const unreportedTransactionMessage = [
         {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
