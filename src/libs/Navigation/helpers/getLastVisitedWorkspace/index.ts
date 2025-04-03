@@ -1,17 +1,17 @@
-import type { NavigationState, PartialState } from '@react-navigation/native';
-import { findFocusedRoute } from '@react-navigation/native';
+import type {NavigationState, PartialState} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '@src/CONST';
-import type { Route } from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 
 function saveSettingsStatePathToSessionStorage(url: string) {
     sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH, url);
 }
 
-
-function getSettingsTabStateFromSessionStorage(): PartialState<NavigationState> | undefined{
+function getSettingsTabStateFromSessionStorage(): PartialState<NavigationState> | undefined {
     const lastVisitedSettingsPath = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH);
     if (!lastVisitedSettingsPath) {
         return undefined;
@@ -19,13 +19,12 @@ function getSettingsTabStateFromSessionStorage(): PartialState<NavigationState> 
     return getStateFromPath(lastVisitedSettingsPath as Route);
 }
 
-
 function getWorkspaceScreenNameFromState(state?: PartialState<NavigationState>) {
-    return state.routes.at(-1)?.state?.routes.at(-1).name ?? undefined;
+    return state?.routes.at(-1)?.state?.routes.at(-1)?.name ?? undefined;
 }
 
-function getLastVisitedSettingsPath(state?: PartialState<NavigationState> | undefined): Route | undefined{
-    return state ? findFocusedRoute(state)?.path as Route : undefined;
+function getLastVisitedSettingsPath(state?: NavigationState | PartialState<NavigationState> | undefined): Route | undefined {
+    return state ? (findFocusedRoute(state)?.path as Route) : undefined;
 }
 
 function getLastVisitedWorkspaceScreen() {

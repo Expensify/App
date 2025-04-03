@@ -2,7 +2,6 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
 import Log from '@libs/Log';
-import {getLastVisitedWorkspaceScreen} from '@libs/Navigation/helpers/getLastVisitedWorkspace';
 import getPolicyIDFromState from '@libs/Navigation/helpers/getPolicyIDFromState';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
@@ -45,7 +44,7 @@ function handleOpenWorkspaceSplitAction(
     });
 
     const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
-        screen: getLastVisitedWorkspaceScreen(), // add a comment explaining what it does
+        screen: action.payload.screenName,
         params: {
             policyID: action.payload.policyID,
         },
