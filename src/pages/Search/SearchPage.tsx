@@ -356,7 +356,7 @@ function SearchPage({route}: SearchPageProps) {
         });
         toggleExportMode(false);
         clearSelectedTransactions();
-    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, activeWorkspaceID, toggleExportMode]);
+    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, activeWorkspaceID, toggleExportMode, clearSelectedTransactions]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
