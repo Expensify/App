@@ -28,7 +28,7 @@ function DatePicker({
     shouldSaveDraft = false,
     formID,
     autoFocus = false,
-    shouldAlwaysShowClearButton = false,
+    shouldAlwaysShowClearButton = true,
 }: DateInputWithPickerProps) {
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
