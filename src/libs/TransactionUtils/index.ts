@@ -327,7 +327,7 @@ function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boole
     // return false;
     // To be renabled once feature is complete: https://github.com/Expensify/App/issues/44725
     // Keep this disabled for per diem expense
-    return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
+    return (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.INVOICE) && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
 }
 
 /**
