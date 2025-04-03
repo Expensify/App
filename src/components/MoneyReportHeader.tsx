@@ -300,7 +300,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
 
         if (hasDuplicates) {
-            return {icon: getStatusIcon(Expensicons.Exclamation), description: translate('iou.duplicateTransaction')};
+            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.duplicateTransaction')};
         }
 
         if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
