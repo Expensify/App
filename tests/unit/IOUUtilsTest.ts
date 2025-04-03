@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
-import {hasRTERWithoutViolation} from '@src/libs/TransactionUtils';
+import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -218,7 +218,7 @@ describe('hasRTERWithoutViolation', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(hasRTERWithoutViolation([String(transactionIDWithoutViolation), String(transactionIDWithViolation)], violations)).toBe(true);
+        expect(hasAnyTransactionWithoutRTERViolation([String(transactionIDWithoutViolation), String(transactionIDWithViolation)], violations)).toBe(true);
     });
 
     test('Return false if there is no rter without violation in all transactionViolations with given transactionIDs.', async () => {
@@ -247,7 +247,7 @@ describe('hasRTERWithoutViolation', () => {
         };
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-        expect(hasRTERWithoutViolation([String(transactionIDWithViolation)], violations)).toBe(false);
+        expect(hasAnyTransactionWithoutRTERViolation([String(transactionIDWithViolation)], violations)).toBe(false);
     });
 });
 

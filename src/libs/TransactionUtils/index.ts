@@ -921,12 +921,12 @@ function allHavePendingRTERViolation(transactionIds: string[], transactionViolat
 }
 
 /**
- * Check if there is rter without violation in all transactionViolations with given transactionIDs.
+ * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
-function hasRTERWithoutViolation(transactionIds: string[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+function hasAnyTransactionWithoutRTERViolation(transactionIds: string[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     return (
         transactionIds.length > 0 &&
-        !!transactionIds.find((transactionId) => {
+        transactionIds.some((transactionId) => {
             return !hasBrokenConnectionViolation(transactionId, transactionViolations);
         })
     );
@@ -1551,7 +1551,7 @@ export {
     getOriginalAmount,
     getFormattedAttendees,
     getMerchant,
-    hasRTERWithoutViolation,
+    hasAnyTransactionWithoutRTERViolation,
     getMerchantOrDescription,
     getMCCGroup,
     getCreated,

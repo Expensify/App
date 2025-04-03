@@ -160,7 +160,7 @@ import {
     getUpdatedTransaction,
     hasDuplicateTransactions,
     hasReceipt as hasReceiptTransactionUtils,
-    hasRTERWithoutViolation,
+    hasAnyTransactionWithoutRTERViolation,
     isAmountMissing,
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -8588,7 +8588,7 @@ function canSubmitReport(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
-    const isRTERWithoutViolation = hasRTERWithoutViolation(transactionIDList, allViolations);
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactionIDList, allViolations);
     const hasOnlyPendingCardOrScanFailTransactions =
         transactions.length > 0 &&
         transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || isReceiptBeingScannedTransactionUtils(t));
@@ -8599,7 +8599,7 @@ function canSubmitReport(
         !isArchived &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
-        isRTERWithoutViolation &&
+        hasTransactionWithoutRTERViolation &&
         (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID)
     );
 }
