@@ -1183,10 +1183,17 @@ const styles = (theme: ThemeColors) =>
 
         calendarDayRoot: {
             flex: 1,
-            height: 45,
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT,
             justifyContent: 'center',
             alignItems: 'center',
             ...userSelect.userSelectNone,
+        },
+
+        calendarBodyContainer: {
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT * 6,
+        },
+        calendarWeekContainer: {
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT,
         },
 
         calendarDayContainer: {

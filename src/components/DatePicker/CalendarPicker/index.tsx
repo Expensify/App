@@ -219,11 +219,11 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            <View style={webOnlyMarginStyle}>
+            <View style={[webOnlyMarginStyle, themeStyles.calendarBodyContainer]}>
                 {calendarDaysMatrix?.map((week) => (
                     <View
                         key={`week-${week.toString()}`}
-                        style={[themeStyles.flexRow]}
+                        style={[themeStyles.flexRow, themeStyles.calendarWeekContainer]}
                     >
                         {week.map((day, index) => {
                             const currentDate = new Date(currentYearView, currentMonthView, day);
