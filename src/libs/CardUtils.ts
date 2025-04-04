@@ -198,7 +198,7 @@ function maskCardNumber(cardName: string | undefined, feed: string | undefined):
     const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
 
     if (hasSpace) {
-        return cardName.replace(/-\s*\d{4}/, '');
+        return cardName.replace(/ - \d{4}$/, '');
     }
 
     if (isAmexBank && maskedString.length === 15) {

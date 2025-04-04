@@ -111,7 +111,6 @@ type PaymentMethodListProps = {
 type PaymentMethodItem = PaymentMethod & {
     key?: string;
     title?: string;
-    hintText?: string;
     description: string;
     onPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
     isGroupedCardDomain?: boolean;
@@ -227,8 +226,7 @@ function PaymentMethodList({
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         title: maskCardNumber(card.cardName, card.bank),
-                        description: lastFourNumbersFromCardName(card.cardName),
-                        hintText: getDescriptionForPolicyDomainCard(card.domainName),
+                        description: `${lastFourNumbersFromCardName(card.cardName)} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`,
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         canDismissError: false,
@@ -281,7 +279,7 @@ function PaymentMethodList({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: card?.nameValuePairs?.cardTitle || card.bank,
-                    description: getDescriptionForPolicyDomainCard(card.domainName),
+                    description: `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,
@@ -419,7 +417,6 @@ function PaymentMethodList({
                     onPress={item.onPress}
                     title={item.title}
                     description={item.description}
-                    hintText={item.hintText}
                     icon={item.icon}
                     disabled={item.disabled}
                     displayInDefaultIconColor

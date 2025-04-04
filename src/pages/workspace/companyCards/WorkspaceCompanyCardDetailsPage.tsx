@@ -18,13 +18,7 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    filterInactiveCards,
-    getCardFeedIcon,
-    getDefaultCardName,
-    lastFourNumbersFromCardName,
-    maskCardNumber,
-} from '@libs/CardUtils';
+import {filterInactiveCards, getCardFeedIcon, getDefaultCardName, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
