@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
