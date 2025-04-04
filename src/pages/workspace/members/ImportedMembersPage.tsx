@@ -130,6 +130,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
+                shouldHandleNavigationBack
             />
         </ScreenWrapper>
     );
