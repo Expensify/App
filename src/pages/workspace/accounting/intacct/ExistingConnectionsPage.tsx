@@ -68,8 +68,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
                 <MenuItem
                     title={translate('workspace.common.createNewConnection')}
                     icon={LinkCopy}
-                    iconFill={theme.white}
-                    iconStyles={{borderRadius: variables.componentBorderRadiusNormal, backgroundColor: theme.icon}}
+                    iconStyles={{borderRadius: variables.componentBorderRadiusNormal}}
                     shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID, Navigation.getActiveRoute()))}
                 />
