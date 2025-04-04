@@ -1599,13 +1599,16 @@ function getValidOptions(
     }: GetOptionsConfig = {},
 ): Options {
     const userHasReportWithManagerMcTest = canShowManagerMcTest && Object.values(options.reports).some((report) => isManagerMcTestReport(report));
+    // If user has a workspace that he doesn't own, it means he was invited to it.
+    const isUserInvitedToWorkspace = Object.values(policies ?? {}).some((policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled);
 
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
         // Exclude Manager McTest if selection is made from Create or Submit flow
-        [CONST.EMAIL.MANAGER_MCTEST]: (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) || !Permissions.canUseManagerMcTest(config.betas),
+        [CONST.EMAIL.MANAGER_MCTEST]:
+            (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) || !Permissions.canUseManagerMcTest(config.betas) || isUserInvitedToWorkspace,
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
