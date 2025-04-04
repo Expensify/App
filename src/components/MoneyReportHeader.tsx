@@ -652,6 +652,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         return;
                     }
                     cancelPayment(moneyRequestReport, chatReport);
+                    setIsCancelPaymentModalVisible(false);
                 }}
                 onCancel={() => setIsCancelPaymentModalVisible(false)}
                 prompt={translate('iou.cancelPaymentConfirmation')}
