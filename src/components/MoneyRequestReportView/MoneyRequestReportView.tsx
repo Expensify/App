@@ -1,4 +1,5 @@
-import React from 'react';
+/* eslint-disable no-nested-ternary */
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -10,10 +11,12 @@ import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
@@ -65,6 +68,17 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
 
     const {reportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
+    const shouldUseSingleTransactionView = useMemo(
+        () =>
+            reportActions.reduce((acc, action) => {
+                if (action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                    return acc + 1;
+                }
+                return acc;
+            }, 0) === 1,
+        [reportActions],
+    );
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
@@ -86,32 +100,56 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         return;
     }
 
+    if (isLoadingApp) {
+        return (
+            <View style={styles.flex1}>
+                <HeaderGap />
+                <ReportHeaderSkeletonView />
+                <ReportActionsSkeletonView />
+                {shouldDisplayReportFooter ? (
+                    <ReportFooter
+                        report={report}
+                        reportMetadata={reportMetadata}
+                        policy={policy}
+                        pendingAction={reportPendingAction}
+                        isComposerFullSize={!!isComposerFullSize}
+                        lastReportAction={lastReportAction}
+                    />
+                ) : null}
+            </View>
+        );
+    }
+
     return (
         <View style={styles.flex1}>
             <HeaderGap />
-            {!isLoadingApp ? (
-                <MoneyReportHeader
+            <MoneyReportHeader
+                report={report}
+                policy={policy}
+                reportActions={[]}
+                transactionThreadReportID={undefined}
+                shouldDisplayBackButton
+                onBackButtonPress={() => {
+                    Navigation.goBack(backToRoute);
+                }}
+            />
+            {shouldUseSingleTransactionView ? (
+                <ReportActionsView
                     report={report}
-                    policy={policy}
-                    reportActions={[]}
-                    transactionThreadReportID={undefined}
-                    shouldDisplayBackButton
-                    onBackButtonPress={() => {
-                        Navigation.goBack(backToRoute);
-                    }}
+                    reportActions={reportActions}
+                    isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                    hasNewerActions={hasNewerActions}
+                    hasOlderActions={hasOlderActions}
+                    parentReportAction={parentReportAction}
+                    transactionThreadReportID={transactionThreadReportID}
                 />
             ) : (
-                <ReportHeaderSkeletonView />
-            )}
-            {!isLoadingApp ? (
                 <MoneyRequestReportActionsList
                     report={report}
                     reportActions={reportActions}
                     hasOlderActions={hasOlderActions}
                     hasNewerActions={hasNewerActions}
                 />
-            ) : (
-                <ReportActionsSkeletonView />
             )}
             {shouldDisplayReportFooter ? (
                 <ReportFooter
