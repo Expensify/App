@@ -1,7 +1,7 @@
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
+import type {ScrollView as RNScrollView, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -11,7 +11,6 @@ import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryJSON, TripSearchStatus} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -209,7 +208,13 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
                     />
                     {!isExportMode && (
                         <View style={[styles.button, styles.bgTransparent]}>
-                            <TextLink onPress={() => toggleExportMode(true)}>{translate('search.exportAll.selectAllMatchingItems')}</TextLink>
+                            <Button
+                                link
+                                shouldUseDefaultHover={false}
+                                innerStyles={[styles.p0, StyleUtils.getResetStyle<ViewStyle>(['height', 'minHeight'])]}
+                                onPress={() => toggleExportMode(true)}
+                                text={translate('search.exportAll.selectAllMatchingItems')}
+                            />
                         </View>
                     )}
                 </View>
