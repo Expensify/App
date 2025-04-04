@@ -1,5 +1,5 @@
-import type {NavigationState} from '@react-navigation/native';
 import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -28,6 +28,7 @@ import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
+import {saveSettingsStatePathToSessionStorage} from './helpers/getLastVisitedWorkspace';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
@@ -72,6 +73,10 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     Navigation.setIsNavigationReady();
+
+    if (state.routes.at(-1)?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || state.routes.at(-1)?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+        saveSettingsStatePathToSessionStorage(currentPath);
+    }
 
     // Fullstory Page navigation tracking
     const focusedRouteName = focusedRoute?.name;
