@@ -131,7 +131,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                         </UserDetailsTooltip>
                     )}
                     <View style={[styles.alignSelfCenter, styles.flex1]}>
-                        <RenderHTML html={`<comment>${taskTitleWithoutImage}</comment>`} />
+                        <RenderHTML html={`<comment center>${taskTitleWithoutImage}</comment>`} />
                     </View>
                 </View>
                 {shouldShowGreenDotIndicator && (
