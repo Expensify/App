@@ -772,6 +772,7 @@ const CONST = {
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
+        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
     },
@@ -2316,6 +2317,7 @@ const CONST = {
         '_brazil',
         '_bulgaria',
         '_canada',
+        '_chile',
         '_china',
         '_costaRica',
         '_croatia',
@@ -3544,7 +3546,9 @@ const CONST = {
     TEST_RECEIPT: {
         AMOUNT: 1800,
         CURRENCY: 'USD',
+        MERCHANT: "Taco Todd's",
         FILENAME: 'test_receipt',
+        FILE_TYPE: 'image/png',
     },
 
     AVATAR_CROP_MODAL: {

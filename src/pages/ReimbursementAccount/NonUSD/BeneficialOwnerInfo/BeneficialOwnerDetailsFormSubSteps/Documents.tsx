@@ -87,6 +87,14 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
         shouldSaveDraft: isEditing,
     });
 
+    const testForShouldHideFixErrorsAlert =
+        [
+            isDocumentNeededStatus.isProofOfOwnershipNeeded,
+            isDocumentNeededStatus.isCopyOfIDNeeded,
+            isDocumentNeededStatus.isProofOfAddressNeeded,
+            isDocumentNeededStatus.isCodiceFiscaleNeeded,
+        ].filter(Boolean).length <= 1;
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -95,6 +103,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
+            shouldHideFixErrorsAlert={testForShouldHideFixErrorsAlert}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('ownershipInfoStep.uploadDocuments')}</Text>
             <Text style={[styles.textSupporting, styles.mb5]}>{translate('ownershipInfoStep.pleaseUpload')}</Text>
