@@ -718,25 +718,6 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         );
 
         lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
-
-        // If lastIOUMoneyReportAction is empty, format the message with the actor's display name
-        if (!lastIOUMoneyReportAction) {
-            // Get the actor's display name instead of using email
-            const actorAccountID = lastReportAction?.actorAccountID;
-            const actorDetails = actorAccountID ? allPersonalDetails?.[actorAccountID] : null;
-
-            if (actorDetails) {
-                const actorDisplayName = getLastActorDisplayName(actorDetails);
-                const actorLastName = getLastActorLastName(actorDetails);
-
-                const actorName = actorLastName ? `${actorDisplayName} ${actorLastName}` : actorDisplayName;
-
-                // Format the message with the display name if available
-                if (actorDisplayName && actorDetails.login) {
-                    lastMessageTextFromReport = lastMessageTextFromReport.replace(actorDetails.login, actorName);
-                }
-            }
-        }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
     } else if (isReimbursementDeQueuedAction(lastReportAction)) {
