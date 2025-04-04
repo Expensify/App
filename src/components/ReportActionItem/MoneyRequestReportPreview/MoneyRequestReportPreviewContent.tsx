@@ -564,6 +564,7 @@ function MoneyRequestReportPreviewContent({
                                             viewabilityConfig={viewabilityConfig}
                                             ListFooterComponent={<View style={styles.pl2} />}
                                             ListHeaderComponent={<View style={styles.pr2} />}
+                                            key={JSON.stringify(reportPreviewStyles)}
                                         />
                                     </View>
                                     {shouldUseNarrowLayout && transactions.length > 1 && (
