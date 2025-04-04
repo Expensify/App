@@ -334,8 +334,6 @@ function MoneyRequestReportPreviewContent({
         }
         return {
             supportText: translate('iou.expenseCount', {
-                scanningReceipts: numberOfScanningReceipts,
-                pendingReceipts: numberOfPendingRequests,
                 count: numberOfRequests,
             }),
         };
