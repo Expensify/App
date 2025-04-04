@@ -158,7 +158,7 @@ function CalendarPicker({
         const rowCount = calendarDaysMatrix?.length || 6;
         const newHeight = rowCount * CONST.CALENDAR_PICKER_DAY_HEIGHT;
 
-        heightValue.set(withTiming(newHeight, {duration: 100}));
+        heightValue.set(withTiming(newHeight, {duration: 50}));
     }, [calendarDaysMatrix, heightValue, isSmallScreenWidth]);
 
     const animatedStyle = useAnimatedStyle(() => {
