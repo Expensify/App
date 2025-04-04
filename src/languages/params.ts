@@ -303,7 +303,7 @@ type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
 type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
 
-type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean, count?: string};
+type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
 
