@@ -22,6 +22,7 @@ type ReportAttachmentsProps = PlatformStackScreenProps<AuthScreensParamList, typ
 
 function ReportAttachments({route}: ReportAttachmentsProps) {
     const reportID = route.params.reportID;
+    const attachmentID = route.params.attachmentID;
     const type = route.params.type;
     const accountID = route.params.accountID;
     const isAuthTokenRequired = route.params.isAuthTokenRequired;
@@ -77,6 +78,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
         (attachment: Attachment) => {
             const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(
                 reportID,
+                attachment.attachmentID,
                 type,
                 String(attachment.source),
                 Number(accountID),
@@ -98,6 +100,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
             report={report}
             isLoading={isLoading}
             source={attachmentSource}
+            attachmentID={attachmentID}
             onModalClose={() => {
                 Navigation.dismissModal();
                 // This enables Composer refocus when the attachments modal is closed by the browser navigation
