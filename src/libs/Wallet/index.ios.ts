@@ -1,6 +1,7 @@
 import {addCardToAppleWallet} from '@expensify/react-native-wallet';
 import type {IOSCardData} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
 import {issuerEncryptPayloadCallback} from '@libs/actions/Wallet';
+import Log from '@libs/Log';
 import type {Card} from '@src/types/onyx';
 
 export default function handleAddCardToWallet(card: Card, cardHolderName: string) {
@@ -12,8 +13,8 @@ export default function handleAddCardToWallet(card: Card, cardHolderName: string
     } as IOSCardData;
 
     addCardToAppleWallet(data, issuerEncryptPayloadCallback)
-        .then(() => console.log('DONE'))
-        .catch((e) => {
-            console.log('ADD ERROR: ', e);
+        .then(() => Log.info('[info] addCardToAppleWallet DONE'))
+        .catch((error) => {
+            Log.warn(`addCardToAppleWallet ERROR: ${error}`);
         });
 }
