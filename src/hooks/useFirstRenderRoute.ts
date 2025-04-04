@@ -14,7 +14,7 @@ function useFirstRenderRoute(focusExceptionRoutes?: string[]) {
             const allRoutesToConsider = [initialRoute.current, ...(focusExceptionRoutes ?? [])];
             return allRoutesToConsider.includes(activeRoute);
         },
-        get firstRenderRoute() {
+        get value() {
             return initialRoute.current;
         },
     };
