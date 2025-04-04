@@ -87,7 +87,6 @@ jobs:
 
       - name: Cherry-pick the Mobile-Expensify version bump to Mobile-Expensify staging
         working-directory: Mobile-Expensify
-        id: cherryPickMobileExpensifyVersionBump
         run: |
           git switch staging
           git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getMobileExpensifyVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
