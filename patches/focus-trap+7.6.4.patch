@@ -40,6 +40,7 @@ index a7fb3be..6e85116 100644
       * the event that triggered the focus trap activation.
       */
 -    delayInitialFocus?: boolean;
++    delayInitialFocus?: boolean | number;
      /**
       * Default: `window.document`. Document where the focus trap will be active.
       * This allows to use FocusTrap in an iFrame context.
