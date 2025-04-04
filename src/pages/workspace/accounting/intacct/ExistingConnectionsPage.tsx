@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {LinkCopy} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
