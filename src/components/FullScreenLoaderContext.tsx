@@ -3,7 +3,13 @@ import type {ReactNode} from 'react';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
 type FullScreenLoaderContextType = {
+    /**
+     * Whether the full screen loader is visible.
+     */
     isLoaderVisible: boolean;
+    /**
+     * Set the full screen loader visibility.
+     */
     setIsLoaderVisible: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
@@ -13,6 +19,9 @@ const FullScreenLoaderContext = createContext<FullScreenLoaderContextType>({
 });
 
 type FullScreenLoaderContextProviderProps = {
+    /**
+     * The children of the full screen loader context provider.
+     */
     children: ReactNode;
 };
 
