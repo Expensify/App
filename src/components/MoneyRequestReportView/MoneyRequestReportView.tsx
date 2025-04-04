@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
@@ -11,7 +11,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {removeReport} from '@libs/actions/Report';
+import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -103,7 +103,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest(activeWorkspaceID);
-        removeReport(reportID);
+        InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
     }, [activeWorkspaceID, reportID]);
 
     if (isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) {

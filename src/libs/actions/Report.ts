@@ -2647,9 +2647,9 @@ function createNewReport(creatorPersonalDetails: PersonalDetails, policyID?: str
 }
 
 /**
- * Removes report, it's related report actions and next step from Onyx.
+ * Removes the report after failure to create. Also removes it's related report actions and next step from Onyx.
  */
-function removeReport(reportID: string | undefined) {
+function removeFailedReport(reportID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
     Onyx.set(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, null);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
@@ -5188,5 +5188,5 @@ export {
     moveIOUReportToPolicyAndInviteSubmitter,
     dismissChangePolicyModal,
     changeReportPolicy,
-    removeReport,
+    removeFailedReport,
 };
