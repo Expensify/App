@@ -23,6 +23,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getContactMethod} from '@libs/UserUtils';
+import VerifyAccountPage from '@pages/settings/Wallet/VerifyAccountPage';
 import {
     addNewContactMethod as addNewContactMethodUser,
     addPendingContactMethod,
@@ -41,7 +42,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-function NewContactMethodPage({route}: NewContactMethodPageProps) {
+function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
     const contactMethod = getContactMethod();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -51,6 +52,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
 
@@ -127,6 +129,15 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 
+    if (!isUserValidated) {
+        return (
+            <VerifyAccountPage
+                route={route}
+                navigation={navigation}
+            />
+        );
+    }
+
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => loginInputRef.current?.focus()}
@@ -145,6 +156,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                     onSubmit={handleValidateMagicCode}
                     submitButtonText={translate('common.add')}
                     style={[styles.flexGrow1, styles.mh5]}
+                    shouldHideFixErrorsAlert
                 >
                     <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
                     <View style={styles.mb6}>
