@@ -4015,10 +4015,10 @@ function getReportPreviewMessage(
     const reportActionMessage = getReportActionHtml(iouReportAction);
 
     if (isEmptyObject(report) || !report?.reportID) {
-        // The IOU report associated with this action might not be loaded into the 'allReports'
-        // Alternatively, settled IOU reports might not be returned by the backend's OpenApp command.
-        // In either case, we lack the full report details needed for rich formatting,
-        // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
+        // This iouReport may be unavailable for one of the following reasons:
+        // 1. After SignIn, the OpenApp API won't return iouReports if they're settled.
+        // 2. The iouReport exists in local storage but hasn't been loaded into the allReports. It will be loaded automatically when the user opens the iouReport.
+        // Until we know how to solve this the best, we just display the report action message.
         return reportActionMessage;
     }
 
