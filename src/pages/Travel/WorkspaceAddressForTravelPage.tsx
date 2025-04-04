@@ -19,6 +19,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const policy = usePolicy(activePolicyID);
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         if (!policy) {
@@ -31,6 +32,10 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
             zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
             country: values.country,
         });
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.TRAVEL_MY_TRIPS, ROUTES.TRAVEL_TCS.getRoute(route.params.domain) ?? CONST.TRAVEL.DEFAULT_DOMAIN));
+            return;
+        }
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN), {forceReplace: true});
     };
 
