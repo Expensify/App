@@ -1588,7 +1588,7 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
     }
 
     // Since most kinds of report actions should not mark a chat unread, we only update the lastVisibleActionCreate when
-    // a new report action should mark it unread. If we have access to the lVAC time, then let's use that.
+    // a new report action should mark it unread. If we have access to that, then use that instead.
     if (report && report.lastVisibleActionCreated) {
         return !!(lastReadTime && lastReadTime < report.lastVisibleActionCreated);
     }
