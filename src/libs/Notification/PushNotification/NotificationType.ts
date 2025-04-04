@@ -4,7 +4,6 @@ import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 const NotificationType = {
     REPORT_ACTION: 'reportAction',
     REPORT_COMMENT: 'reportComment',
-    MONEY_REQUEST: 'moneyRequest',
     TRANSACTION: 'transaction',
 } as const;
 
@@ -13,7 +12,6 @@ type NotificationTypes = ValueOf<typeof NotificationType>;
 type NotificationDataMap = {
     [NotificationType.REPORT_ACTION]: ReportActionPushNotificationData;
     [NotificationType.REPORT_COMMENT]: ReportActionPushNotificationData;
-    [NotificationType.MONEY_REQUEST]: ReportActionPushNotificationData;
     [NotificationType.TRANSACTION]: TransactionPushNotificationData;
 };
 
