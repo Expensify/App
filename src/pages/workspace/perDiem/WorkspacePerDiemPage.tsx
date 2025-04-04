@@ -388,7 +388,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             Navigation.goBack(backTo);
                             return;
                         }
-                        
+
                         goBackFromWorkspaceCentralScreen(policyID);
                     }}
                     shouldShowThreeDotsButton
