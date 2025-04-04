@@ -3,6 +3,7 @@ import {findFocusedRoute} from '@react-navigation/native';
 import type {AVPlaybackStatus, AVPlaybackStatusToSet} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import usePrevious from '@hooks/usePrevious';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
@@ -14,6 +15,7 @@ import Visibility from '@libs/Visibility';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext, StatusCallback} from './types';
 
@@ -28,33 +30,25 @@ function isMoneyRequestReportRouteWithReportIDInParams(route: SearchRoute): rout
     return !!route && !!route.params && route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT && 'reportID' in route.params;
 }
 
-function findUrlInReportOrAncestorAttachments(url: string | null, reportID: string | undefined): string | undefined {
-    const reportFromParams = getReportOrDraftReport(reportID);
-    if (!isChatThread(reportFromParams)) {
-        return undefined;
+function findUrlInReportOrAncestorAttachments(currentReport: OnyxEntry<Report>, url: string | null): string | undefined {
+    const {parentReportID, reportID} = currentReport ?? {};
+
+    const reportActions = getAllReportActions(reportID);
+    const hasUrlInAttachments = Object.values(reportActions).some((action) => {
+        const {sourceURL, previewSourceURL} = getAttachmentDetails(getReportActionHtml(action));
+        return sourceURL === url || previewSourceURL === url;
+    });
+
+    if (hasUrlInAttachments) {
+        return reportID;
     }
 
-    function searchReportAndAncestors(currentID: string | undefined): string | undefined {
-        const {parentReportID} = getReportOrDraftReport(currentID) ?? {};
-
-        const reportActions = getAllReportActions(currentID);
-        const hasUrlInAttachments = Object.values(reportActions).some((action) => {
-            const {sourceURL, previewSourceURL} = getAttachmentDetails(getReportActionHtml(action));
-            return sourceURL === url || previewSourceURL === url;
-        });
-
-        if (hasUrlInAttachments) {
-            return currentID;
-        }
-
-        if (parentReportID) {
-            return searchReportAndAncestors(parentReportID);
-        }
-
-        return undefined;
+    if (parentReportID) {
+        const parentReport = getReportOrDraftReport(parentReportID);
+        return findUrlInReportOrAncestorAttachments(parentReport, url);
     }
 
-    return searchReportAndAncestors(reportID);
+    return undefined;
 }
 
 function PlaybackContextProvider({children}: ChildrenProps) {
@@ -126,9 +120,10 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             }
 
             // Used for /attachment route
+            const topMostReport = getReportOrDraftReport(Navigation.getTopmostReportId());
             const reportIDFromUrlParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID') ?? undefined;
             const attachmentReportID = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}` ? prevCurrentReportID : reportIDFromUrlParams;
-            const reportIDWithUrl = findUrlInReportOrAncestorAttachments(url, Navigation.getTopmostReportId());
+            const reportIDWithUrl = isChatThread(topMostReport) ? findUrlInReportOrAncestorAttachments(topMostReport, url) : undefined;
 
             // - if it is a chat thread, use chat thread ID or any ascentor ID since the video could have originally been sent on report many levels up
             // - report ID in which we are currently, if it is not a chat thread

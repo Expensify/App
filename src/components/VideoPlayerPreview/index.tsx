@@ -1,17 +1,17 @@
 import {useNavigation} from '@react-navigation/native';
 import type {VideoReadyForDisplayEvent} from 'expo-av';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
-import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
@@ -54,12 +54,10 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
-    const renderRoute = useRef<string | null>(null);
     const navigation = useNavigation();
-    const isFocused = () => {
-        const currentRoute = Navigation.getActiveRouteWithoutParams();
-        return currentRoute === `/${ROUTES.ATTACHMENTS.route}` || currentRoute === renderRoute.current;
-    };
+
+    // We want to play the video only when the user is on the page where it was rendered
+    const firstRenderRoute = useFirstRenderRoute([`/${ROUTES.ATTACHMENTS.route}`]);
 
     // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
@@ -74,21 +72,16 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
         }
     };
 
-    // We want to play the video only when the user is on the page where it was rendered
     useEffect(() => {
-        renderRoute.current = Navigation.getActiveRouteWithoutParams();
-    }, []);
+        return navigation.addListener('blur', () => !firstRenderRoute.isFocused && setIsThumbnail(true));
+    }, [navigation, firstRenderRoute]);
 
     useEffect(() => {
-        return navigation.addListener('blur', () => !isFocused() && setIsThumbnail(true));
-    }, [navigation]);
-
-    useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID || !isFocused()) {
+        if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID || !firstRenderRoute.isFocused) {
             return;
         }
         setIsThumbnail(false);
-    }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID]);
+    }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID, firstRenderRoute]);
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
