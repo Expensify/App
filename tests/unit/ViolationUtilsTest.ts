@@ -78,9 +78,10 @@ describe('getViolationsOnyxData', () => {
     beforeEach(() => {
         transaction = {
             transactionID: '123',
+            attendees: [{email: 'text@expensify.com'}],
             reportID: '1234',
             amount: 100,
-            comment: {attendees: [{email: 'text@expensify.com', displayName: 'Test User', avatarUrl: ''}]},
+            comment: {},
             created: '2023-07-24 13:46:20',
             merchant: 'United Airlines',
             currency: 'USD',
