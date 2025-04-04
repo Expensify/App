@@ -129,9 +129,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
             const date = new Date();
             Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+                migratedUserWelcomeModal: DateUtils.getDBTime(date.valueOf()),
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -150,12 +148,8 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
-                [testTooltip]: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+                migratedUserWelcomeModal: DateUtils.getDBTime(date.valueOf()),
+                [testTooltip]: DateUtils.getDBTime(date.valueOf()),
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -170,9 +164,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
             const date = new Date();
             Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+                migratedUserWelcomeModal: DateUtils.getDBTime(date.valueOf()),
             });
             await waitForBatchedUpdatesWithAct();
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
@@ -247,9 +239,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const date = new Date();
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+                migratedUserWelcomeModal: DateUtils.getDBTime(date.valueOf()),
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -278,12 +268,8 @@ describe('ProductTrainingContextProvider', () => {
             const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
 
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
-                [highPriorityTooltip]: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+                migratedUserWelcomeModal: DateUtils.getDBTime(date.valueOf()),
+                [highPriorityTooltip]: DateUtils.getDBTime(date.valueOf()),
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -306,9 +292,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const date = new Date();
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+                migratedUserWelcomeModal: DateUtils.getDBTime(date.valueOf()),
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -329,9 +313,7 @@ describe('ProductTrainingContextProvider', () => {
 
             // When dismissing higher priority tooltip
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                [highPriorityTooltip]: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                },
+                [highPriorityTooltip]: DateUtils.getDBTime(date.valueOf()),
             });
             await waitForBatchedUpdatesWithAct();
 
