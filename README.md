@@ -884,7 +884,6 @@ Onyx derived values are special Onyx keys which contain values derived from othe
 
 2. **High-Frequency Updates**
    - The dependencies change very frequently
-   - The derived value would trigger too many re-renders
 
 3. **Component-Specific Logic**
    - The computation is specific to a single component's UI state
