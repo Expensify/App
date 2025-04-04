@@ -13,7 +13,7 @@ function goBackFromWorkspaceCentralScreen(policyID: string | undefined) {
     const lastRoute = rootState.routes.at(-1);
 
     if (lastRoute?.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-        Log.hmmm('[goBackFromWorkspaceCentralScreen(] goBackFromWorkspaceCentralScreen was called from a different navigator than WorkspaceSplitNavigator.');
+        Log.hmmm('[goBackFromWorkspaceCentralScreen] goBackFromWorkspaceCentralScreen was called from a different navigator than WorkspaceSplitNavigator.');
         return;
     }
 
