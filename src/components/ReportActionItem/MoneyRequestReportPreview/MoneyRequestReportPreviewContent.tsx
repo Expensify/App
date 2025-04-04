@@ -428,8 +428,8 @@ function MoneyRequestReportPreviewContent({
 
     const approvedOrSettledicon = (iouSettled || isApproved) && (
         <ImageSVG
-            src={isApproved ? Expensicons.Checkmark : Expensicons.ThumbsUp}
-            fill={isApproved ? theme.iconSuccessFill : theme.icon}
+            src={isApproved ? Expensicons.ThumbsUp : Expensicons.Checkmark}
+            fill={isApproved ? theme.icon : theme.iconSuccessFill}
             width={20}
             height={20}
             style={{transform: 'translateY(4px)'}}

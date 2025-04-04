@@ -94,7 +94,7 @@ import {
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
-    isReimbursementDeQueuedAction,
+    isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
     isTagModificationAction,
@@ -108,14 +108,17 @@ import {
     chatIncludesConcierge,
     getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
+    getDowngradeWorkspaceMessage,
     getIconsForParticipants,
     getIOUApprovedMessage,
     getIOUForwardedMessage,
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
     getPolicyChangeMessage,
+    getRejectedReportMessage,
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallySubmittedMessage,
+    getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
     isArchivedNonExpenseReport,
@@ -292,8 +295,8 @@ type PureReportActionItemProps = {
     /** What missing payment method does this report action indicate, if any? */
     missingPaymentMethod?: MissingPaymentMethod | undefined;
 
-    /** Returns the preview message for `REIMBURSEMENT_DEQUEUED` action */
-    reimbursementDeQueuedActionMessage?: string;
+    /** Returns the preview message for `REIMBURSEMENT_DEQUEUED` or `REIMBURSEMENT_ACH_CANCELED` action */
+    reimbursementDeQueuedOrCanceledActionMessage?: string;
 
     /** The report action message when expense has been modified. */
     modifiedExpenseMessage?: string;
@@ -369,7 +372,7 @@ function PureReportActionItem({
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant = () => false,
     missingPaymentMethod,
-    reimbursementDeQueuedActionMessage = '',
+    reimbursementDeQueuedOrCanceledActionMessage = '',
     modifiedExpenseMessage = '',
     getTransactionsWithReceipts = () => [],
     clearError = () => {},
@@ -882,15 +885,15 @@ function PureReportActionItem({
                     </>
                 </ReportActionItemBasicMessage>
             );
-        } else if (isReimbursementDeQueuedAction(action)) {
-            children = <ReportActionItemBasicMessage message={reimbursementDeQueuedActionMessage} />;
+        } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
+            children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = <ReportActionItemBasicMessage message={modifiedExpenseMessage} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
             const wasSubmittedViaHarvesting = getOriginalMessage(action)?.harvesting ?? false;
             if (wasSubmittedViaHarvesting) {
                 children = (
-                    <ReportActionItemBasicMessage message="">
+                    <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
@@ -901,7 +904,7 @@ function PureReportActionItem({
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoApproved) {
                 children = (
-                    <ReportActionItemBasicMessage message="">
+                    <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
@@ -914,7 +917,7 @@ function PureReportActionItem({
             const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {
                 children = (
-                    <ReportActionItemBasicMessage message="">
+                    <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${reportAutomaticallyForwardedMessage}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
@@ -922,11 +925,11 @@ function PureReportActionItem({
                 children = <ReportActionItemBasicMessage message={getIOUForwardedMessage(action, report)} />;
             }
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
-            children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
+            children = <ReportActionItemBasicMessage message={getRejectedReportMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
-            children = <ReportActionItemBasicMessage message={translate('workspaceActions.upgradedWorkspace')} />;
+            children = <ReportActionItemBasicMessage message={getUpgradeWorkspaceMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
-            children = <ReportActionItemBasicMessage message={translate('workspaceActions.downgradedWorkspace')} />;
+            children = <ReportActionItemBasicMessage message={getDowngradeWorkspaceMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
@@ -1397,7 +1400,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
         lodashIsEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
-        prevProps.reimbursementDeQueuedActionMessage === nextProps.reimbursementDeQueuedActionMessage &&
+        prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
         prevProps.reportAutomaticallyForwardedMessage === nextProps.reportAutomaticallyForwardedMessage
