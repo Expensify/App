@@ -663,6 +663,10 @@ type ReviewParams = {
     amount: string;
 };
 
+type CurrencyInputDisabledTextParams = {
+    currency: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -900,4 +904,5 @@ export type {
     PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
     ReviewParams,
+    CurrencyInputDisabledTextParams,
 };
