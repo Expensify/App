@@ -89,7 +89,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
                 />
                 <ConfirmationPage
-                    illustration={Illustrations.LaptopwithSecondScreenandHourglass}
+                    illustration={Illustrations.LaptopWithSecondScreenAndHourglass}
                     heading={translate('workspace.export.notReadyHeading')}
                     description={translate('workspace.export.notReadyDescription')}
                     shouldShowButton

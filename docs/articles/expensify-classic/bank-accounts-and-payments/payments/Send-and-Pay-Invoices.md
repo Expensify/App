@@ -129,7 +129,7 @@ No, invoices are included in the [Control Plan](https://help.expensify.com/artic
 ## Can invoices be revised after sending?
 Yes, click **Undo Send** to revoke an invoice. To add details, use [Report Comments](https://help.expensify.com/articles/expensify-classic/reports/Add-comments-and-attachments-to-a-report).
 
-## How do I communicate with the payor?
+## How do I communicate with the payer?
 Use [Report Comments](https://help.expensify.com/articles/expensify-classic/reports/Add-comments-and-attachments-to-a-report) for direct communication.
 
 ## What’s the difference between an invoice and an expense report?

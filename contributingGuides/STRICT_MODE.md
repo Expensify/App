@@ -2,7 +2,7 @@
 ## Concurrent react
 This App is rendered using react concurrent mode, which is the direction that React seems to be moving.
 
-Concurrent mode enables a lot of new behaviours in react, most importantly renders can be interrupted by React, re-run or run more than once. This is supposed to make react more performant and webapps more responsive to user actions.
+Concurrent mode enables a lot of new behaviors in react, most importantly renders can be interrupted by React, re-run or run more than once. This is supposed to make react more performant and webapps more responsive to user actions.
 
 Further reading:
  - [What is Concurrent React](https://react.dev/blog/2022/03/29/react-v18#what-is-concurrent-react)

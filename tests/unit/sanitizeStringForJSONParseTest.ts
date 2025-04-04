@@ -31,7 +31,7 @@ const validJSONData: Array<[string, string]> = [
     ['Hello\\\\world!', 'Hello\\\\world!'],
 ];
 
-describe('santizeStringForJSONParse', () => {
+describe('sanitizeStringForJSONParse', () => {
     describe.each(badInputs)('willDetectBadInputs', (input) => {
         test('sanitizeStringForJSONParse', () => {
             expect(() => sanitizeStringForJSONParse(input)).toThrow();

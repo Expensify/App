@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type CONST from '@src/CONST';
 
-type PersonalPolicyTypeExludedProps = Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>;
+type PersonalPolicyTypeExcludedProps = Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>;
 
 type SubscriptionPlanCardProps = {
     index: number;
@@ -23,10 +23,10 @@ type SubscriptionPlanCardProps = {
         benefits: string[];
         description: string;
         isSelected: boolean;
-        type: PersonalPolicyTypeExludedProps;
+        type: PersonalPolicyTypeExcludedProps;
     };
 
-    onPress: (type: PersonalPolicyTypeExludedProps) => void;
+    onPress: (type: PersonalPolicyTypeExcludedProps) => void;
 };
 function SubscriptionPlanCard({plan, index, onPress}: SubscriptionPlanCardProps) {
     const styles = useThemeStyles();
@@ -76,4 +76,4 @@ function SubscriptionPlanCard({plan, index, onPress}: SubscriptionPlanCardProps)
 SubscriptionPlanCard.displayName = 'SubscriptionPlanCard';
 
 export default SubscriptionPlanCard;
-export type {PersonalPolicyTypeExludedProps};
+export type {PersonalPolicyTypeExcludedProps};

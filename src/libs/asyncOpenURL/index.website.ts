@@ -23,7 +23,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic, s
                 (Linking.openURL as LinkingWeb['openURL'])(typeof url === 'string' ? url : url(params), shouldOpenInSameTab && canOpenURLInSameTab ? '_self' : undefined);
             })
             .catch(() => {
-                Log.warn('[asyncOpenURL] error occured while opening URL', {url});
+                Log.warn('[asyncOpenURL] error occurred while opening URL', {url});
             });
     } else {
         const windowRef = window.open();
@@ -36,7 +36,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic, s
             })
             .catch(() => {
                 windowRef?.close();
-                Log.warn('[asyncOpenURL] error occured while opening URL', {url});
+                Log.warn('[asyncOpenURL] error occurred while opening URL', {url});
             });
     }
 };

@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 
 describe('Test short mention regex', () => {
     it('Should concat the private domain to proper short mentions only', () => {
+        // cspell:disable
         const testTexts = [
             '`sd` `` g @short\n`sd` `` g @short `\n`jkl @short-mention `jk` \n`sd` g @short\n`jkl @short-mention`',
             '`jkl` ``sth @short-mention jk`\n`jkl` ``sth`@short-mention` jk`\n`jkl @short-mention jk\n`jkl @short-mention jk\nj`k`l @short-mention` jk',
@@ -13,6 +14,7 @@ describe('Test short mention regex', () => {
             '`jkl` ``sth @short-mention@test.co jk`\n`jkl` ``sth`@short-mention` jk`\n`jkl @short-mention@test.co jk\n`jkl @short-mention@test.co jk\nj`k`l @short-mention@test.co` jk',
             '`jk`l @short-mention@test.co`sd `g @short@test.co`jk`l @short-mention@test.co`sd g @short@test.co\n`jk`l `@short-mention`sd g @short@test.co`jk`l @short-mention@test.co`sd g @short ``\njkl @short-mention@test.co`sd `g @short@test.co`jk`l @short-mention@test.co`sd g @short@test.co\n`jkl @short-mention`sd `g @short`jk`l @short-mention`sd g @short@test.co',
         ];
+        // cspell:enable
 
         testTexts.forEach((text, i) =>
             expect(

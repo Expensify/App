@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import * as Link from '@userActions/Link';
+import {openExternalLink} from '@userActions/Link';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -57,7 +57,7 @@ function ExitSurveyBookCallPage() {
                         large
                         text={translate('exitSurvey.noThanks')}
                         onPress={() => {
-                            Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.getRoute(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route));
+                            Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.getRoute(ROUTES.SETTINGS_EXIT_SURVEY_BOOK_CALL.route));
                         }}
                         isDisabled={isOffline}
                     />
@@ -71,7 +71,7 @@ function ExitSurveyBookCallPage() {
                         pressOnEnter
                         onPress={() => {
                             Navigation.dismissModal();
-                            Link.openExternalLink(CONST.EXIT_SURVEY.BOOK_MEETING_LINK);
+                            openExternalLink(CONST.EXIT_SURVEY.BOOK_MEETING_LINK);
                         }}
                         isDisabled={isOffline}
                     />

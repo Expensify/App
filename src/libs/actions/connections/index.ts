@@ -189,7 +189,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExce
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
 /**
- * This method returns read command and stage in progres for a given accounting integration.
+ * This method returns read command and stage in progress for a given accounting integration.
  *
  * @param policyID - ID of the policy for which the sync is needed
  * @param connectionName - Name of the connection, QBO/Xero

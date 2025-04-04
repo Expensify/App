@@ -696,7 +696,7 @@ describe('actions/Report', () => {
                 reportAction = Object.values(reportActions).at(0);
 
                 if (reportAction) {
-                    // Add the same reaction to the same report action with a different skintone
+                    // Add the same reaction to the same report action with a different skin tone
                     Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
                 }
                 return waitForBatchedUpdates()
@@ -723,7 +723,7 @@ describe('actions/Report', () => {
                         const reportActionReactionEmoji = reportActionReaction?.[EMOJI.name];
                         expect(reportActionReactionEmoji?.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
-                        // Expect two different skintone reactions
+                        // Expect two different skin tone reactions
                         const reportActionReactionEmojiUserSkinTones = reportActionReactionEmoji?.users[TEST_USER_ACCOUNT_ID].skinTones;
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('-1');
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('2');
@@ -981,7 +981,7 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 1);
     });
 
-    it('should send DeleteComment request after AddComment is rollbacked', async () => {
+    it('should send DeleteComment request after AddComment is rollback', async () => {
         global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
 
         const mockedXhr = jest.fn();
@@ -998,7 +998,7 @@ describe('actions/Report', () => {
         await waitForNetworkPromises();
 
         expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll().at(0)?.isRollbacked).toBeTruthy();
+        expect(PersistedRequests.getAll().at(0)?.isRollback).toBeTruthy();
         const newComment = PersistedRequests.getAll().at(1);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);

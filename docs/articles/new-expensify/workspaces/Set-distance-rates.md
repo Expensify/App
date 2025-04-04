@@ -4,7 +4,7 @@ description: Set distance rates on your Expensify workspace
 ---
 <div id="new-expensify" markdown="1">
 
-# Set Distance eates 
+# Set Distance rates 
 
 Each Expensify workspace can be configured with one or more distance rates. Once distance rates are enabled on your workspace, employees will be able to choose between the available rates to create distance expenses. 
 

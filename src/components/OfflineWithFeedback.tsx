@@ -107,7 +107,7 @@ function OfflineWithFeedback({
      */
     const applyStrikeThrough = useCallback(
         (childrenProp: React.ReactNode): React.ReactNode => {
-            const strikedThroughChildren = mapChildrenFlat(childrenProp, (child) => {
+            const strikeThroughChildren = mapChildrenFlat(childrenProp, (child) => {
                 if (!React.isValidElement(child)) {
                     return child;
                 }
@@ -125,7 +125,7 @@ function OfflineWithFeedback({
                 return React.cloneElement(child, props);
             });
 
-            return strikedThroughChildren;
+            return strikeThroughChildren;
         },
         [StyleUtils, styles],
     );

@@ -15,10 +15,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
+import {removeFromGroupChat} from '@libs/actions/Report';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isGroupChatAdmin} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -42,17 +42,17 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1', route.params.backTo);
+    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, route.params.backTo);
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details));
-    const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details));
+    const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = useCallback(() => {
         setIsRemoveMemberConfirmModalVisible(false);
-        Report.removeFromGroupChat(report?.reportID, [accountID]);
+        removeFromGroupChat(report?.reportID, [accountID]);
         Navigation.goBack(backTo);
     }, [backTo, report, accountID]);
 
@@ -82,7 +82,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                         source={details.avatar}
                         avatarID={accountID}
                         type={CONST.ICON_TYPE_AVATAR}
-                        size={CONST.AVATAR_SIZE.XLARGE}
+                        size={CONST.AVATAR_SIZE.X_LARGE}
                         fallbackIcon={fallbackIcon}
                     />
                     {!!(displayName ?? '') && (

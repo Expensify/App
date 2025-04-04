@@ -9,16 +9,16 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Localize from '@libs/Localize';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {translate as translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getCorrectedAutoReportingFrequency, goBackFromInvalidPolicy, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearPolicyErrorField, setWorkspaceAutoReportingFrequency} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -39,22 +39,22 @@ type WorkspaceAutoReportingFrequencyPageItem = {
 type AutoReportingFrequencyDisplayNames = Record<AutoReportingFrequencyKey, string>;
 
 const getAutoReportingFrequencyDisplayNames = (locale: Locale): AutoReportingFrequencyDisplayNames => ({
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: Localize.translate(locale, 'workflowsPage.frequencies.monthly'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: Localize.translate(locale, 'workflowsPage.frequencies.daily'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: Localize.translate(locale, 'workflowsPage.frequencies.weekly'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: Localize.translate(locale, 'workflowsPage.frequencies.twiceAMonth'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: Localize.translate(locale, 'workflowsPage.frequencies.byTrip'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: Localize.translate(locale, 'workflowsPage.frequencies.manually'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: translateLocal(locale, 'workflowsPage.frequencies.monthly'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: translateLocal(locale, 'workflowsPage.frequencies.daily'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: translateLocal(locale, 'workflowsPage.frequencies.weekly'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: translateLocal(locale, 'workflowsPage.frequencies.twiceAMonth'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: translateLocal(locale, 'workflowsPage.frequencies.byTrip'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: translateLocal(locale, 'workflowsPage.frequencies.manually'),
 });
 
 function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoReportingFrequencyPageProps) {
-    const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
+    const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
 
     const {translate, preferredLocale, toLocaleOrdinal} = useLocalize();
     const styles = useThemeStyles();
 
     const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {
-        Policy.setWorkspaceAutoReportingFrequency(policy?.id ?? '-1', item.keyForList as AutoReportingFrequencyKey);
+        setWorkspaceAutoReportingFrequency(policy?.id, item.keyForList as AutoReportingFrequencyKey);
 
         if (item.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
             return;
@@ -80,8 +80,8 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     const monthlyFrequencyDetails = () => (
         <OfflineWithFeedback
             pendingAction={policy?.pendingFields?.autoReportingOffset}
-            errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
-            onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
+            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
+            onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
             errorRowStyles={[styles.ml7]}
         >
             <MenuItem
@@ -90,7 +90,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                 description={getDescriptionText()}
                 descriptionTextStyle={styles.textNormalThemeText}
                 wrapperStyle={styles.pr3}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.getRoute(policy?.id ?? ''))}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET.getRoute(policy?.id))}
                 shouldShowRightIcon
             />
         </OfflineWithFeedback>
@@ -113,9 +113,9 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                 testID={WorkspaceAutoReportingFrequencyPage.displayName}
             >
                 <FullPageNotFoundView
-                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                    shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !PolicyUtils.isPaidGroupPolicy(policy)}
+                    onBackButtonPress={goBackFromInvalidPolicy}
+                    onLinkPress={goBackFromInvalidPolicy}
+                    shouldShow={isEmptyObject(policy) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || !isPaidGroupPolicy(policy)}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
                     <HeaderWithBackButton
@@ -124,8 +124,8 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                     />
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingFields?.autoReportingFrequency}
-                        errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
-                        onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
+                        errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
+                        onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
                         style={styles.flex1}
                         contentContainerStyle={styles.flex1}
                     >
