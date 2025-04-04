@@ -21,13 +21,17 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
-function Confirmation({onNext}: SubStepProps) {
+type ConfirmationStepProps = {
+    /** ID of current policy */
+    policyID: string | undefined;
+} & SubStepProps;
+
+function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
 
@@ -78,6 +82,7 @@ function Confirmation({onNext}: SubStepProps) {
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.mh5, styles.pb0]}
             isSubmitDisabled={disableSubmit}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
             <MenuItemWithTopDescription

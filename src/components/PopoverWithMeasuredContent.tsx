@@ -10,6 +10,7 @@ import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUti
 import CONST from '@src/CONST';
 import type {AnchorDimensions, AnchorPosition} from '@src/styles';
 import * as ActionSheetAwareScrollView from './ActionSheetAwareScrollView';
+import type {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
 import type PopoverProps from './Popover/types';
 
@@ -76,6 +77,10 @@ function PopoverWithMeasuredContent({
 
     if (!prevIsVisible && isVisible && shouldEnableNewFocusManagement) {
         ComposerFocusManager.saveFocusState(modalId);
+    }
+
+    if (!prevIsVisible && isVisible && isContentMeasured) {
+        setIsContentMeasured(false);
     }
 
     /**
@@ -145,10 +150,17 @@ function PopoverWithMeasuredContent({
         anchorDimensions.height,
         shoudSwitchPositionIfOverflow,
     );
-    const shiftedAnchorPosition = {
+    const shiftedAnchorPosition: PopoverAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
-        bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift,
     };
+
+    if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
+        shiftedAnchorPosition.top = adjustedAnchorPosition.top;
+    }
+
+    if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
+        shiftedAnchorPosition.bottom = windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift;
+    }
 
     return isContentMeasured ? (
         <Popover

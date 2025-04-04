@@ -143,6 +143,7 @@ import type {
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
+    ReviewParams,
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
@@ -210,6 +211,7 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
+    ViolationsProhibitedExpenseParams,
     ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
@@ -253,6 +255,7 @@ const translations = {
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
+        deselect: 'Deseleccionar',
         selectMultiple: 'Seleccionar varios',
         next: 'Siguiente',
         create: 'Crear',
@@ -278,7 +281,7 @@ const translations = {
         wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
-        review: 'Revisar',
+        review: (reviewParams?: ReviewParams) => `Revisar${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'No',
         privacyPolicy: 'la Política de Privacidad de Expensify',
         addCardTermsOfService: 'Términos de Servicio',
@@ -377,6 +380,7 @@ const translations = {
             invalidRateError: 'Por favor, introduce una tarifa válida.',
             lowRateError: 'La tarifa debe ser mayor que 0.',
             email: 'Por favor, introduzca una dirección de correo electrónico válida.',
+            login: 'Se produjo un error al iniciar sesión. Por favor intente nuevamente.',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -490,6 +494,7 @@ const translations = {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
+        longID: 'ID largo',
         bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',
         dropTitle: 'Suéltalo',
@@ -519,6 +524,7 @@ const translations = {
         help: 'Ayuda',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
+        comments: 'Comentarios',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -813,7 +819,22 @@ const translations = {
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
         importCategoriesSuccessfullDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
-        importMembersSuccessfullDescription: ({members}: ImportMembersSuccessfullDescriptionParams) => (members > 1 ? `Se han agregado ${members} miembros.` : 'Se ha agregado 1 miembro.'),
+        importMembersSuccessfullDescription: ({added, updated}: ImportMembersSuccessfullDescriptionParams) => {
+            if (!added && !updated) {
+                return 'No se han añadido ni actualizado miembros.';
+            }
+
+            if (added && updated) {
+                const getPluralSuffix = (count: number) => (count > 1 ? 's' : '');
+                return `${added} miembro${getPluralSuffix(added)} añadido${getPluralSuffix(added)}, ${updated} miembro${getPluralSuffix(updated)} actualizado${getPluralSuffix(updated)}.`;
+            }
+
+            if (updated) {
+                return updated > 1 ? `${updated} miembros han sido actualizados.` : '1 miembro ha sido actualizado.';
+            }
+
+            return added > 1 ? `Se han agregado ${added} miembros` : 'Se ha agregado 1 miembro.';
+        },
         importTagsSuccessfullDescription: ({tags}: ImportTagsSuccessfullDescriptionParams) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importPerDiemRatesSuccessfullDescription: ({rates}: ImportPerDiemRatesSuccessfullDescriptionParams) =>
             rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.',
@@ -863,6 +884,7 @@ const translations = {
         header: 'Acción rápida',
         noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
         updateDestination: 'Actualiza el destino',
+        createReport: 'Crear informe',
     },
     iou: {
         amount: 'Importe',
@@ -909,6 +931,7 @@ const translations = {
         }),
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
+        duplicateTransaction: 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar el envío.',
         defaultRate: 'Tasa predeterminada',
         receiptMissingDetails: 'Recibo con campos vacíos',
         missingAmount: 'Falta importe',
@@ -1016,6 +1039,7 @@ const translations = {
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
+            invalidTagLength: 'La longitud de la etiqueta escogida excede el máximo permitido (255). Por favor, escoge otra etiqueta o acorta la etiqueta primero.',
             invalidAmount: 'Por favor, ingresa un importe válido antes de continuar.',
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
@@ -1029,10 +1053,10 @@ const translations = {
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
-            receiptFailureMessage: 'El recibo no se subió. ',
-            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
-            saveFileMessage: 'Guarda el archivo ',
-            loseFileMessage: 'o descarta este error y piérdelo.',
+            receiptFailureMessage: 'Hubo un error al cargar tu recibo. Por favor, ',
+            tryAgainMessage: 'inténtalo de nuevo ',
+            saveFileMessage: ' guarda el recibo',
+            uploadLaterMessage: ' para cargarlo más tarde.',
             genericDeleteFailureMessage: 'Error inesperado al eliminar este gasto. Por favor, inténtalo más tarde.',
             genericEditFailureMessage: 'Error inesperado al editar este gasto. Por favor, inténtalo más tarde.',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos.',
@@ -1046,6 +1070,8 @@ const translations = {
             invalidSubrateLength: 'Debe haber al menos una subtasa.',
             invalidRate: 'Tasa no válida para este espacio de trabajo. Por favor, selecciona una tasa disponible en el espacio de trabajo.',
         },
+        dismissReceiptError: 'Descartar error',
+        dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar billetera',
         holdExpense: 'Retener gasto',
@@ -1058,7 +1084,7 @@ const translations = {
         expenseWasPutOnHold: 'Este gasto está retenido',
         expenseOnHold: 'Este gasto está retenido. Revisa los comentarios para saber como proceder.',
         expensesOnHold: 'Todos los gastos están retenidos. Revisa los comentarios para saber como proceder.',
-        expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revisa los duplicados para eliminar la retención.',
+        expenseDuplicate: 'Este gasto tiene detalles similares a otro. Por favor, revisa los duplicados para continuar.',
         someDuplicatesArePaid: 'Algunos de estos duplicados ya han sido aprobados o pagados.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
@@ -1081,8 +1107,8 @@ const translations = {
         holdEducationalTitle: 'Esta solicitud está',
         holdEducationalText: 'retenida',
         whatIsHoldExplain: 'Retener es como "pausar" un gasto para solicitar más detalles antes de aprobarlo o pagarlo.',
-        holdIsLeftBehind: 'Si apruebas un informe, los gastos retenidos se quedan fuera de esa aprobación.',
-        unholdWhenReady: 'Desbloquea los gastos cuando estés listo para aprobarlos o pagarlos.',
+        holdIsLeftBehind: 'Los gastos retenidos se trasladan a otro informe tras su aprobación o pago.',
+        unholdWhenReady: 'Los aprobadores pueden desbloquear los gastos cuando estén listos para su aprobación o pago.',
         changePolicyEducational: {
             title: '¡Has movido este informe!',
             description: 'Revisa cuidadosamente estos elementos, que tienden a cambiar al trasladar informes a un nuevo espacio de trabajo.',
@@ -1133,6 +1159,10 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+    },
+    share: {
+        shareToExpensify: 'Compartir para Expensify',
+        messageInputLabel: 'Mensaje',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -1393,9 +1423,9 @@ const translations = {
         enableTwoFactorAuth: 'Activar la autenticación de dos factores',
         pleaseEnableTwoFactorAuth: 'Activa la autenticación de dos factores.',
         twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
-        twoFactorAuthIsRequiredForAdminsHeader: 'Se requiere autenticación de dos factores',
-        twoFactorAuthIsRequiredForAdminsTitle: 'Debes habilitar la autenticación de dos factores',
-        twoFactorAuthIsRequiredForAdminsDescription: 'La conexión contable con Xero requiere el uso de autenticación de dos factores. Para seguir usando Expensify, por favor, habilítala.',
+        twoFactorAuthIsRequiredForAdminsHeader: 'Autenticación de dos factores requerida',
+        twoFactorAuthIsRequiredForAdminsTitle: 'Por favor, habilita la autenticación de dos factores',
+        twoFactorAuthIsRequiredForAdminsDescription: 'Tu conexión de contabilidad con Xero requiere autenticación de dos factores. Por favor, habilítala para continuar.',
         twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
         twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
     },
@@ -1436,6 +1466,7 @@ const translations = {
         changePaymentCurrency: 'Cambiar moneda de facturación',
         changeBillingCurrency: 'Cambiar la moneda de pago',
         paymentCurrency: 'Moneda de pago',
+        paymentCurrencyDescription: 'Selecciona una moneda estándar a la que se deben convertir todos los gastos personales.',
         note: 'Nota: Cambiar tu moneda de pago puede afectar cuánto pagarás por Expensify. Consulta nuestra',
         noteLink: 'página de precios',
         noteDetails: 'para conocer todos los detalles.',
@@ -1939,8 +1970,8 @@ const translations = {
     },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
-            `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido durante 24 horas. Por favor, intenta validar tu número:`,
-        validationFailed: 'La validación falló porque no han pasado 24 horas desde tu último intento.',
+            `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido temporalmente. Por favor, intenta validar tu número:`,
+        validationFailed: 'La validación falló porque no ha pasado suficiente tiempo desde tu último intento.',
         validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
         pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
             if (!timeData) {
@@ -2082,8 +2113,11 @@ const translations = {
             phrase3: 'o',
             phrase4: 'verifica aquí tu cuenta',
         },
-        hasPhoneLoginError:
-            'Para añadir una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
+        hasPhoneLoginError: {
+            phrase1: 'Para añadir una cuenta bancaria verificada,',
+            link: 'asegúrate de que tu nombre de usuario principal sea un correo electrónico válido',
+            phrase2: ' y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
+        },
         hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         hasCurrencyError: '¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Por favor, configúrala en USD e inténtalo nuevamente.',
         error: {
@@ -2677,7 +2711,11 @@ const translations = {
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
-        phoneError: 'Para reservar viajes, tu método de contacto predeterminado debe ser un correo electrónico válido',
+        phoneError: {
+            phrase1: 'Para reservar viajes,',
+            link: 'añade una dirección de correo electrónico de trabajo',
+            phrase2: '.',
+        },
         domainSelector: {
             title: 'Dominio',
             subtitle: 'Elige un dominio para configurar Expensify Travel.',
@@ -2757,6 +2795,7 @@ const translations = {
             requested: 'Solicitado',
             distanceRates: 'Tasas de distancia',
             defaultDescription: 'Un solo lugar para todos tus recibos y gastos.',
+            descriptionHint: 'Comparte información sobre este espacio de trabajo con todos los miembros.',
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
             markAsExported: 'Marcar como introducido manualmente',
@@ -2774,9 +2813,12 @@ const translations = {
                     secondPart: 'para tu revisión.',
                 },
             },
+            connectTo: ({connectionName}: ConnectionNameParams) => `Conéctate a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             createNewConnection: 'Crear una nueva conexión',
             reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
+            existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
+                `Como ya te has conectado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} antes, puedes optar por reutilizar una conexión existente o crear una nueva.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
             authenticationError: ({connectionName}: AuthenticationErrorParams) => `No se puede conectar a ${connectionName} debido a un error de autenticación.`,
@@ -3041,6 +3083,16 @@ const translations = {
                     'La verificación no está disponible cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación diferente.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación diferente.',
+            },
+            exportDestinationAccountsMisconfigurationError: {
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Elige una cuenta válida para la exportación de facturas de proveedor.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Elige una cuenta válida para la exportación de asientos contables.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Elige una cuenta válida para la exportación de cheques.',
+            },
+            exportDestinationSetupAccountsInfo: {
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Para usar la exportación de facturas de proveedor, configura una cuenta receptora de pagos en QuickBooks Online.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Para usar la exportación de asientos contables, configura una cuenta contable en QuickBooks Online.',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Para usar la exportación de cheques, configura una cuenta bancaria en QuickBooks Online.',
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión.',
@@ -3488,69 +3540,6 @@ const translations = {
                 },
             },
         },
-        nsqs: {
-            setup: {
-                title: 'NSQS configuración',
-                description: 'Introduce tu ID de NSQS',
-                formInputs: {
-                    netSuiteAccountID: 'ID de Cuenta NSQS',
-                },
-            },
-            import: {
-                expenseCategories: 'Categorías de gastos',
-                expenseCategoriesDescription: 'Las categorías de gastos de NSQS se importan a Expensify como categorías.',
-                importTypes: {
-                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
-                        label: 'Etiquetas',
-                        description: 'Nivel de línea de pedido',
-                    },
-                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
-                        label: 'Campos de informe',
-                        description: 'Nivel de informe',
-                    },
-                },
-                importFields: {
-                    customers: {
-                        title: 'Clientes',
-                        subtitle: 'Elige cómo gestionar los *clientes* de NSQS en Expensify.',
-                    },
-                    projects: {
-                        title: 'Proyectos',
-                        subtitle: 'Elige cómo gestionar los *proyectos* de NSQS en Expensify.',
-                    },
-                },
-            },
-            export: {
-                description: 'Configura cómo se exportan los datos de Expensify a NSQS.',
-                exportDate: {
-                    label: 'Fecha de exportación',
-                    description: 'Usa esta fecha al exportar informe a NSQS.',
-                    values: {
-                        [CONST.NSQS_EXPORT_DATE.LAST_EXPENSE]: {
-                            label: 'Fecha del último gasto',
-                            description: 'Fecha del gasto mas reciente en el informe.',
-                        },
-                        [CONST.NSQS_EXPORT_DATE.EXPORTED]: {
-                            label: 'Fecha de exportación',
-                            description: 'Fecha de exportación del informe a NSQS.',
-                        },
-                        [CONST.NSQS_EXPORT_DATE.SUBMITTED]: {
-                            label: 'Fecha de envío',
-                            description: 'Fecha en la que el informe se envió para su aprobación.',
-                        },
-                    },
-                },
-                expense: 'Gasto',
-                reimbursableExpenses: 'Exportar gastos reembolsables como',
-                nonReimbursableExpenses: 'Exportar gastos no reembolsables como',
-                defaultPaymentAccount: 'Preferencia predeterminada de NSQS',
-                paymentAccount: 'Cuenta de pago',
-                paymentAccountDescription: 'Elige la cuenta que se utilizará como cuenta de pago para las transacciones NSQS.',
-            },
-            advanced: {
-                autoSyncDescription: 'Sincroniza NSQS y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
-            },
-        },
         intacct: {
             sageIntacctSetup: 'Sage Intacct configuración',
             prerequisitesTitle: 'Antes de conectar...',
@@ -3597,10 +3586,6 @@ const translations = {
                         return 'asignaciones';
                 }
             },
-        },
-        multiConnectionSelector: {
-            title: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} configuración`,
-            description: ({connectionName}: ConnectionNameParams) => `Selecciona tu versión de ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} para continuar.`,
         },
         type: {
             free: 'Gratis',
@@ -3959,6 +3944,12 @@ const translations = {
                 disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
             },
+            workflowWarningModal: {
+                featureEnabledTitle: 'No tan rápido...',
+                featureEnabledText:
+                    'Las Tarjetas Expensify de este espacio de trabajo dependen actualmente de la aprobación para definir sus Límites Inteligentes.\n\nPor favor, modifica los tipos de límite de cualquier Tarjeta Expensify con Límites Inteligentes antes de deshabilitar las flujos de trabajo.',
+                confirmText: 'Ir a Tarjeta Expensify',
+            },
             rules: {
                 title: 'Reglas',
                 subtitle: 'Solicita recibos, resalta gastos de alto importe y mucho más.',
@@ -4150,7 +4141,6 @@ const translations = {
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
-            nsqs: 'NSQS',
             intacct: 'Sage Intacct',
             talkYourOnboardingSpecialist: 'Chatea con tu especialista asignado.',
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
@@ -4164,8 +4154,6 @@ const translations = {
                         return 'Xero';
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return 'NetSuite';
-                    case CONST.POLICY.CONNECTIONS.NAME.NSQS:
-                        return 'NSQS';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
                     default: {
@@ -4199,8 +4187,6 @@ const translations = {
                         return 'No se puede conectar a Xero.';
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return 'No se puede conectar a NetSuite.';
-                    case CONST.POLICY.CONNECTIONS.NAME.NSQS:
-                        return 'No se puede conectar a NSQS.';
                     case CONST.POLICY.CONNECTIONS.NAME.QBD:
                         return 'No se puede conectar a QuickBooks Desktop.';
                     default: {
@@ -4328,7 +4314,6 @@ const translations = {
                         case 'netSuiteSyncData':
                             return 'Importando datos a Expensify';
                         case 'netSuiteSyncAccounts':
-                        case 'nsqsSyncAccounts':
                             return 'Sincronizando cuentas';
                         case 'netSuiteSyncCurrencies':
                             return 'Sincronizando divisas';
@@ -4349,16 +4334,6 @@ const translations = {
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Importando proveedores';
-                        case 'nsqsSyncConnection':
-                            return 'Iniciando conexión a NSQS';
-                        case 'nsqsSyncEmployees':
-                            return 'Sincronizando empleados';
-                        case 'nsqsSyncCustomers':
-                            return 'Sincronizando clientes';
-                        case 'nsqsSyncProjects':
-                            return 'Sincronizando proyectos';
-                        case 'nsqsSyncCurrency':
-                            return 'Sincronizando moneda';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
                         case 'netSuiteImportVendorsTitle':
@@ -4790,6 +4765,15 @@ const translations = {
                 eReceipts: 'Recibos electrónicos',
                 eReceiptsHint: 'Los recibos electrónicos se crean automáticamente',
                 eReceiptsHintLink: 'para la mayoría de las transacciones en USD',
+                prohibitedDefaultDescription:
+                    'Marque cualquier recibo donde aparezcan alcohol, apuestas u otros artículos restringidos. Los gastos con recibos que incluyan estos conceptos requerirán una revisión manual.',
+                prohibitedExpenses: 'Gastos prohibidos',
+                none: 'Ninguno',
+                alcohol: 'Alcohol',
+                hotelIncidentals: 'Gastos incidentales de hotel',
+                gambling: 'Juegos de azar',
+                tobacco: 'Tabaco',
+                adultEntertainment: 'Entretenimiento para adultos',
             },
             expenseReportRules: {
                 examples: 'Ejemplos:',
@@ -4933,6 +4917,7 @@ const translations = {
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
+        deleteMultipleTags: ({tagListName}: UpdatedPolicyTagParams) => `eliminó múltiples etiquetas de la lista "${tagListName}"`,
         updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
             if (oldValue) {
                 return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" cambiando el ${updatedField} a "${newValue}" (previamente "${oldValue}")`;
@@ -5121,6 +5106,10 @@ const translations = {
             exported: 'Exportado',
             posted: 'Contabilizado',
         },
+        moneyRequestReport: {
+            emptyStateTitle: 'Este informe no tiene gastos',
+            emptyStateSubtitle: 'Puedes añadir gastos a este informe usando el botón de arriba.',
+        },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
         expenseType: 'Tipo de gasto',
@@ -5243,8 +5232,9 @@ const translations = {
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
                 exportedToCSV: `exportó este informe a CSV`,
                 exportedToIntegration: {
-                    automaticOne: ({label}: ExportedToIntegrationParams) => `exportó automáticamente este informe a ${label} a través de la`,
-                    automaticTwo: 'configuración contable.',
+                    automatic: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}.`,
+                    automaticActionOne: ({label}: ExportedToIntegrationParams) => `exportó automáticamente este informe a ${label} a través de la`,
+                    automaticActionTwo: 'configuración contable.',
                     manual: ({label}: ExportedToIntegrationParams) => `marcó este informe como exportado manualmente a ${label}.`,
                     reimburseableLink: 'Ver los gastos por cuenta propia.',
                     nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
@@ -5994,6 +5984,23 @@ const translations = {
             }
             return message;
         },
+        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+            const preMessage = 'Gasto prohibido: ';
+            switch (prohibitedExpenseType) {
+                case 'alcohol':
+                    return `${preMessage} Alcohol`;
+                case 'gambling':
+                    return `${preMessage} Juego de apuestas`;
+                case 'tobacco':
+                    return `${preMessage} Tobacco`;
+                case 'adultEntertainment':
+                    return `${preMessage} Entretenimiento para adultos`;
+                case 'hotelIncidentals':
+                    return `${preMessage} Gastos adicionales de hotel`;
+                default:
+                    return `${preMessage}${prohibitedExpenseType}`;
+            }
+        },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
@@ -6035,6 +6042,7 @@ const translations = {
         confirmDetails: 'Confirma los detalles que conservas',
         confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
         hold: 'Retenido',
+        resolvedDuplicates: 'resolvió el duplicado',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} es obligatorio`,
@@ -6375,7 +6383,7 @@ const translations = {
         debug: 'Depuración',
         details: 'Detalles',
         JSON: 'JSON',
-        reportActions: 'Actions',
+        reportActions: 'Acciones',
         reportActionPreview: 'Previa',
         nothingToPreview: 'Nada que previsualizar',
         editJson: 'Editar JSON:',
@@ -6384,9 +6392,9 @@ const translations = {
         invalidProperty: ({propertyName, expectedType}: InvalidPropertyParams) => `Propiedad inválida: ${propertyName} - Esperado: ${expectedType}`,
         invalidValue: ({expectedValues}: InvalidValueParams) => `Valor inválido - Esperado: ${expectedValues}`,
         missingValue: 'Valor en falta',
-        createReportAction: 'Crear Report Action',
-        reportAction: 'Report Action',
-        report: 'Report',
+        createReportAction: 'Crear acción de informe',
+        reportAction: 'Acciones del informe',
+        report: 'Informe',
         transaction: 'Transacción',
         violations: 'Violaciones',
         transactionViolation: 'Violación de transacción',
@@ -6436,6 +6444,7 @@ const translations = {
             theresAReportWithErrors: 'Hay un informe con errores',
             theresAWorkspaceWithCustomUnitsErrors: 'Hay un espacio de trabajo con errores en las unidades personalizadas',
             theresAProblemWithAWorkspaceMember: 'Hay un problema con un miembro del espacio de trabajo',
+            theresAProblemWithAWorkspaceQBOExport: 'Hubo un problema con la configuración de exportación de la conexión del espacio de trabajo.',
             theresAProblemWithAContactMethod: 'Hay un problema con un método de contacto',
             aContactMethodRequiresVerification: 'Un método de contacto requiere verificación',
             theresAProblemWithAPaymentMethod: 'Hay un problema con un método de pago',
@@ -6466,6 +6475,8 @@ const translations = {
         },
     },
     productTrainingTooltip: {
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: {
             part1: '¡Comienza',
             part2: ' aquí!',
@@ -6473,19 +6484,6 @@ const translations = {
         saveSearchTooltip: {
             part1: 'Renombra tus búsquedas guardadas',
             part2: ' aquí',
-        },
-        quickActionButton: {
-            part1: '¡Acción rápida!',
-            part2: ' A solo un toque',
-        },
-        workspaceChatCreate: {
-            part1: 'Envía tus',
-            part2: ' gastos',
-            part3: ' aquí',
-        },
-        searchFilterButtonTooltip: {
-            part1: 'Personaliza tu búsqueda',
-            part2: ' aquí!',
         },
         bottomNavInboxTooltip: {
             part1: 'Tu lista de tareas',
@@ -6519,6 +6517,10 @@ const translations = {
         title: '¿Descartar cambios?',
         body: '¿Estás seguro de que quieres descartar los cambios que hiciste?',
         confirmText: 'Descartar cambios',
+    },
+    aiSales: {
+        talkWithSales: 'Habla con ventas',
+        hangUp: 'Colgar',
     },
 };
 

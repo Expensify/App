@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {exec} from 'child_process';
 import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
@@ -8,6 +9,7 @@ import {autoUpdater} from 'electron-updater';
 import {machineId} from 'node-machine-id';
 import checkForUpdates from '@libs/checkForUpdates';
 import {translate} from '@libs/Localize';
+import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -142,6 +144,23 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
+const verifyAndInstallLatestVersion = (): void => {
+    autoUpdater
+        .checkForUpdates()
+        .then((result) => {
+            if (result?.updateInfo.version === downloadedVersion) {
+                return quitAndInstallWithUpdate();
+            }
+
+            return autoUpdater.downloadUpdate().then(() => {
+                return quitAndInstallWithUpdate();
+            });
+        })
+        .catch((error) => {
+            log.error('Error during update check or download:', error);
+        });
+};
+
 /** Menu Item callback to trigger an update check */
 const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow) => {
     if (menuItem) {
@@ -149,7 +168,6 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
         // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
         menuItem.enabled = false;
     }
-
     autoUpdater
         .checkForUpdates()
         .catch((error: unknown) => {
@@ -227,11 +245,13 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
             if (browserWindow.isVisible() && !isSilentUpdating) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
-                quitAndInstallWithUpdate();
+                verifyAndInstallLatestVersion();
             }
         });
 
-        ipcMain.on(ELECTRON_EVENTS.START_UPDATE, quitAndInstallWithUpdate);
+        ipcMain.on(ELECTRON_EVENTS.START_UPDATE, () => {
+            verifyAndInstallLatestVersion();
+        });
         autoUpdater.checkForUpdates();
     },
     update: () => {
@@ -375,7 +395,12 @@ const mainWindow = (): Promise<void> => {
                         label: translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
                         submenu: [
                             {id: 'about', role: 'about'},
-                            {id: 'update', label: translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
+                            {
+                                id: 'update',
+                                label: translate(preferredLocale, `desktopApplicationMenu.update`),
+                                click: verifyAndInstallLatestVersion,
+                                visible: false,
+                            },
                             {id: 'checkForUpdates', label: translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
                             {
                                 id: 'viewShortcuts',
@@ -589,6 +614,17 @@ const mainWindow = (): Promise<void> => {
                 });
                 browserWindow.on(ELECTRON_EVENTS.BLUR, () => {
                     browserWindow.webContents.send(ELECTRON_EVENTS.BLUR);
+                });
+
+                // Handle renderer process crashes by relaunching the app
+                browserWindow.webContents.on('render-process-gone', (event, detailed) => {
+                    if (detailed.reason === 'crashed') {
+                        // relaunch app
+                        app.relaunch({args: process.argv.slice(1).concat(['--relaunch'])});
+                        app.exit(0);
+                    }
+                    Log.info('App crashed  render-process-gone');
+                    Log.info(JSON.stringify(detailed));
                 });
 
                 app.on('before-quit', () => {
