@@ -208,6 +208,12 @@ function maskCardNumber(cardName: string | undefined, feed: string | undefined):
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
 
+/**
+ * Returns last 4 number from company card name
+ *
+ * @param cardName - card name with dash in the middle and 4 numbers in the end.
+ * @returns - Last 4 numbers
+ */
 function lastFourNumbersFromCardName(cardName: string | undefined): string {
     const name = cardName ?? '';
     const hasSpace = /\s/.test(name);

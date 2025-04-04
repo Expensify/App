@@ -20,6 +20,7 @@ import {
     hasIssuedExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCardFullySetUp,
+    lastFourNumbersFromCardName,
     maskCardNumber,
 } from '@src/libs/CardUtils';
 import type {CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, Policy, WorkspaceCardsList} from '@src/types/onyx';
@@ -456,6 +457,23 @@ describe('CardUtils', () => {
             const companyCardNicknames = cardFeedsCollection.FAKE_ID_1?.settings?.companyCardNicknames;
             const feedName = getCustomOrFormattedFeedName(feed, companyCardNicknames);
             expect(feedName).toBe(undefined);
+        });
+    });
+
+    describe('lastFourNumbersFromCardName', () => {
+        it('Should return last 4 numbers from the card name', () => {
+            const lastFour = lastFourNumbersFromCardName('Business Card Cash - 3001');
+            expect(lastFour).toBe('3001');
+        });
+
+        it('Should return empty string if card number does not have space', () => {
+            const lastFour = lastFourNumbersFromCardName('480801XXXXXX2554');
+            expect(lastFour).toBe('');
+        });
+
+        it('Should return empty string if card number does not have number in the end with dash', () => {
+            const lastFour = lastFourNumbersFromCardName('Business Card Cash - Business');
+            expect(lastFour).toBe('');
         });
     });
 
