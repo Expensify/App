@@ -114,6 +114,7 @@ export default {
     lineHeightXXXLarge: getValueUsingPixelRatio(32, 37),
     lineHeightSizeh1: getValueUsingPixelRatio(28, 32),
     lineHeightSizeh2: getValueUsingPixelRatio(24, 28),
+    lineHeighTaskTitle: getValueUsingPixelRatio(26, 30),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
     inputHeightSmall: 28,
@@ -240,6 +241,7 @@ export default {
     menuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
+    transactionPreviewSkeletonHeight: 66,
 
     distanceScrollEventThrottle: 16,
 
@@ -284,10 +286,14 @@ export default {
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
 
+    errorPageIconWidth: 116,
+    errorPageIconHeight: 168,
+
     h20: 20,
     h28: 28,
     h36: 36,
     h40: 40,
+    h70: 70,
     h112: 112,
     h172: 172,
     w20: 20,

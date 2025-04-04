@@ -174,7 +174,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // Since the NAVIGATORS.REPORTS_SPLIT_NAVIGATOR url is "/" and it has to be used as an URL for SignInPage,
         // this navigator should be the only one in the navigation state after logout.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
-        if (!hasUserLoggedOut) {
+        if (!hasUserLoggedOut || !navigationRef.isReady()) {
             return;
         }
 

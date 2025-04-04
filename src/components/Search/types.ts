@@ -59,6 +59,7 @@ type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
 type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
 type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | Array<ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus>;
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
+type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 
 type SearchContext = {
     currentSearchHash: number;
@@ -162,4 +163,5 @@ export type {
     SearchAutocompleteResult,
     PaymentData,
     SearchAutocompleteQueryRange,
+    TableColumnSize,
 };
