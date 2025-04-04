@@ -206,12 +206,12 @@ function initializeOpenAIRealtime(adminsReportID: number) {
 }
 
 function handleFunctionCall(message: OpenAIRealtimeMessage) {
-    if (message.name === 'EndCall') {
+    if (message.name === CONST.OPEN_AI_TOOL_NAMES.END_CALL) {
         stopConnection();
         return;
     }
 
-    if (message.name === 'SendRecapInAdminsRoom') {
+    if (message.name === CONST.OPEN_AI_TOOL_NAMES.SEND_RECAP_IN_ADMINS_ROOM) {
         const parsedArguments: Recap = JSON.parse(message.arguments) as Recap;
         if (!parsedArguments.recap) {
             stopConnection();
