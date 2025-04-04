@@ -43,7 +43,7 @@ function getBillingStatus({translate, accountData, purchase}: GetBillingStatusPr
     const purchaseAmount = purchase?.message.billableAmount;
     const purchaseCurrency = purchase?.currency;
     const purchaseDate = purchase?.created;
-    const isBillingFailed = purchase?.message.billingType === 'failed_2018';
+    const isBillingFailed = purchase?.message.billingType === CONST.BILLING.TYPE_FAILED_2018;
     const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : undefined;
     const purchaseAmountWithCurrency = convertAmountToDisplayString(purchaseAmount, purchaseCurrency);
 

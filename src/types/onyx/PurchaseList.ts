@@ -1,39 +1,25 @@
+import type CONST from '@src/CONST';
+import type PrivateSubscription from './PrivateSubscription';
+
 /** Subscription type for a purchase */
-type Subscription = {
-    /** Whether new users are added automatically */
-    addNewUsersAutomatically?: boolean;
-
-    /** Whether the subscription auto-renews */
-    autoRenew?: boolean;
-
-    /** Date when auto-renew was last changed */
-    autoRenewLastChangedDate?: string;
-
-    /** End date of the subscription */
-    endDate?: string;
-
-    /** Start date of the subscription */
-    startDate?: string;
-
-    /** Type of subscription */
-    type?: string;
-
-    /** Number of users in the subscription */
-    userCount?: number;
-};
+type Subscription = Omit<PrivateSubscription, 'errors' | 'errorFields'>;
 
 /** Type for a billable policy */
 type BillablePolicy = {
-    /** List of actors in the policy */
+    /** Comma separated list of emails for members in the policy */
     actorList?: string;
-    /** Approved spend amounts by currency */
+
+    /** Amount spent, by currency */
     approvedSpend?: Record<string, number>;
+
     /** Whether the policy is corporate */
     corporate?: boolean;
+
     /** Expensify card spend by currency */
     expensifyCardSpend?: Record<string, number>;
-    /** Type of the policy */
-    type?: string;
+
+    /** Policy type */
+    type?: typeof CONST.POLICY.TYPE;
 };
 
 /** Message type for a purchase */
@@ -41,7 +27,7 @@ type Message = {
     /** Account manager account ID */
     accountManagerAccountID?: number;
 
-    /** List of approved accountant account IDs */
+    /** List of Approved Accountant account IDs */
     approvedAccountantAccountIDs?: number[];
 
     /** Approved spend amounts by currency */
@@ -71,20 +57,17 @@ type Message = {
     /** Chat only actor list */
     chatOnlyActorList?: string;
 
-    /** Corporate actor count */
+    /** Actor count for Corporate policy type */
     corporateActorCount?: number;
 
-    /** Corporate revenue */
+    /** Amount charged for Corporate policy type */
     corporateRevenue?: number;
 
-    /** Expensify card monthly spend */
+    /** Expensify Card monthly spend */
     expensifyCardMonthlySpend?: number;
 
-    /** Expensify card spend by currency */
+    /** Expensify Card spend by currency */
     expensifyCardSpend?: Record<string, number>;
-
-    /** Free actor count */
-    freeActorCount?: number;
 
     /** Free trial days */
     freeTrialDays?: number;
@@ -101,10 +84,10 @@ type Message = {
     /** Guide account ID */
     guideAccountID?: number;
 
-    /** Whether the user is an approved accountant */
+    /** Whether the user is an Approved Accountant */
     isApprovedAccountant?: boolean;
 
-    /** Whether the user is an approved accountant client */
+    /** Whether the user is an Approved Accountant client */
     isApprovedAccountantClient?: boolean;
 
     /** Paid actor count */
@@ -125,10 +108,10 @@ type Message = {
     /** Subscription details */
     subscription?: Subscription;
 
-    /** Team actor count */
+    /** Actor count for Team policy type */
     teamActorCount?: number;
 
-    /** Team revenue */
+    /** Amount charged for Team policy type */
     teamRevenue?: number;
 
     /** Total actor count */
@@ -180,7 +163,7 @@ type Purchase = {
     purchaseID: number;
 };
 
-/** Record of purchases, indexed by purchase ID */
+/** Array of purchases */
 type PurchaseList = Purchase[];
 
 export default PurchaseList;

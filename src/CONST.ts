@@ -6958,6 +6958,10 @@ const CONST = {
     ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 
     OFFLINE_INDICATOR_HEIGHT: 25,
+
+    BILLING: {
+        TYPE_FAILED_2018: 'typeFailed2018',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
