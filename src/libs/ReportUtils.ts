@@ -4014,19 +4014,15 @@ function getReportPreviewMessage(
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
 
-    if (!report?.reportID) {
+    if (isEmptyObject(report) || !report?.reportID) {
+        // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
+        // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
         return reportActionMessage;
     }
 
     const allReportTransactions = getReportTransactions(report.reportID);
     const transactionsWithReceipts = allReportTransactions.filter(hasReceiptTransactionUtils);
     const numberOfScanningReceipts = transactionsWithReceipts.filter(isReceiptBeingScanned).length;
-
-    if (isEmptyObject(report) || !report?.reportID) {
-        // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
-        // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
-        return reportActionMessage;
-    }
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
         // This covers group chats where the last action is a split expense action
@@ -4153,7 +4149,6 @@ function getReportPreviewMessage(
     // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest expense
     if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
         const amountToDisplay = convertToDisplayString(Math.abs(amount), currency);
-
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
             lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport}) : '';
