@@ -755,6 +755,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 source: 'string',
                 filename: 'string',
                 reservationList: 'string',
+                isTestReceipt: 'boolean',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -1061,6 +1062,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 state: CONST.IOU.RECEIPT_STATE,
                 receiptID: 'number',
                 reservationList: 'array',
+                isTestReceipt: 'boolean',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
