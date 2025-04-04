@@ -460,7 +460,7 @@ function ReportPreview({
                 count: numberOfRequests,
             }),
         };
-    }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
+    }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests]);
 
     /*
      * Manual export

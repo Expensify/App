@@ -337,7 +337,7 @@ function MoneyRequestReportPreviewContent({
                 count: numberOfRequests,
             }),
         };
-    }, [translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
+    }, [translate, numberOfRequests]);
 
     /*
      * Manual export
