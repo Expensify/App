@@ -51,10 +51,10 @@ jobs:
           git switch main
           VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
           if [ -z "$VERSION_BUMP_COMMIT" ]; then
-            echo "::error::❌ Could not find version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+            echo "::error::❌ Could not find E/App version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
             git log --oneline
           else
-            echo "::notice::👀 Found version bump commit $VERSION_BUMP_COMMIT"
+            echo "::notice::👀 Found E/App version bump commit $VERSION_BUMP_COMMIT"
           fi
           echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
 
@@ -65,10 +65,10 @@ jobs:
           git switch main
           VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
           if [ -z "$VERSION_BUMP_COMMIT" ]; then
-            echo "::error::❌ Could not find version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+            echo "::error::❌ Could not find Mobile-Expensify version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
             git log --oneline
           else
-            echo "::notice::👀 Found version bump commit $VERSION_BUMP_COMMIT"
+            echo "::notice::👀 Found Mobile-Expensify version bump commit $VERSION_BUMP_COMMIT"
           fi
           echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
 
@@ -86,11 +86,10 @@ jobs:
         run: |
           git switch staging
           git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getMobileExpensifyVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
-
-          # After being CP'd to staging, the version bump will have a new SHA
-          echo "VERSION_BUMP_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
           git push origin staging
+
+          # After being CP'd to staging, the version bump will have a new SHA. We'll need this to update the App submodule
+          echo "VERSION_BUMP_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Cherry-pick the version-bump to staging
         run: |
