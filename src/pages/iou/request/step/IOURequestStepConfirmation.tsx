@@ -350,7 +350,12 @@ function IOURequestStepConfirmation({
 
         const onSuccess = (file: File) => {
             const receipt: Receipt = file;
-            receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            if (transaction?.receipt?.isTestReceipt) {
+                receipt.isTestReceipt = true;
+                receipt.state = CONST.IOU.RECEIPT_STATE.SCANCOMPLETE;
+            } else {
+                receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            }
 
             setReceiptFile(receipt);
         };
@@ -368,6 +373,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
+            const isTestReceipt = receiptObj?.isTestReceipt ?? false;
             requestMoneyIOUActions({
                 report,
                 participantParams: {
@@ -383,11 +389,11 @@ function IOURequestStepConfirmation({
                 gpsPoints,
                 action,
                 transactionParams: {
-                    amount: transaction.amount,
-                    attendees: transaction.attendees,
-                    currency: transaction.currency,
+                    amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
+                    attendees: transaction.comment?.attendees,
+                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
                     created: transaction.created,
-                    merchant: transaction.merchant,
+                    merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : transaction.merchant,
                     comment: trimmedComment,
                     receipt: receiptObj,
                     category: transaction.category,
@@ -927,7 +933,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouAttendees={transaction?.attendees ?? []}
+                        iouAttendees={transaction?.comment?.attendees ?? []}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}

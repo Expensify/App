@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
@@ -11,7 +11,6 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import type {LayoutChangeEventWithTarget} from '@components/ThreeDotsMenu/types';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -118,11 +117,24 @@ function WorkspacesListRow({
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
+
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
+        if (shouldUseNarrowLayout) {
+            return Promise.resolve({horizontal: 0, vertical: 0});
+        }
+        return new Promise<AnchorPosition>((resolve) => {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                resolve({
+                    horizontal: x + width,
+                    vertical: y + height,
+                });
+            });
+        });
+    }, [shouldUseNarrowLayout]);
 
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
@@ -167,24 +179,10 @@ function WorkspacesListRow({
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
-                    <View
-                        ref={threeDotsMenuContainerRef}
-                        onLayout={(e: LayoutChangeEvent) => {
-                            if (shouldUseNarrowLayout) {
-                                return;
-                            }
-                            const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
-                            target?.measureInWindow((x, y, width) => {
-                                setThreeDotsMenuPosition({
-                                    horizontal: x + width,
-                                    vertical: y,
-                                });
-                            });
-                        }}
-                    >
+                    <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
+                            getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
                             menuItems={menuItems}
-                            anchorPosition={threeDotsMenuPosition}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                             shouldOverlay
                             disabled={shouldDisableThreeDotsMenu}
