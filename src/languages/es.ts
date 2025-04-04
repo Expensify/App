@@ -283,7 +283,7 @@ const translations = {
         wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
-        review: (reviewParams?: ReviewParams) => `Revisar${reviewParams?.amount && ' '}${reviewParams?.amount}}`,
+        review: (reviewParams?: ReviewParams) => `Revisar${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'No',
         privacyPolicy: 'la Política de Privacidad de Expensify',
         addCardTermsOfService: 'Términos de Servicio',
@@ -382,6 +382,7 @@ const translations = {
             invalidRateError: 'Por favor, introduce una tarifa válida.',
             lowRateError: 'La tarifa debe ser mayor que 0.',
             email: 'Por favor, introduzca una dirección de correo electrónico válida.',
+            login: 'Se produjo un error al iniciar sesión. Por favor intente nuevamente.',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -495,6 +496,7 @@ const translations = {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
+        longID: 'ID largo',
         bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',
         dropTitle: 'Suéltalo',
@@ -2652,6 +2654,8 @@ const translations = {
             travelTermsAndConditions: 'términos y condiciones',
             agree: 'Acepto los ',
             error: 'Debes aceptar los términos y condiciones de Expensify Travel para continuar',
+            defaultWorkspaceError:
+                'Debes establecer un espacio de trabajo predeterminado para habilitar Expensify Travel. Ve a Configuración > Espacios de trabajo > haz clic en los tres puntos verticales junto a un espacio de trabajo > Establecer como espacio de trabajo predeterminado y luego inténtalo de nuevo.',
         },
         flight: 'Vuelo',
         flightDetails: {

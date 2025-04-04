@@ -292,7 +292,7 @@ const translations = {
         wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
-        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount && ' '}${reviewParams?.amount}}`,
+        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Not',
         signIn: 'Sign in',
         signInWithGoogle: 'Sign in with Google',
@@ -391,6 +391,7 @@ const translations = {
             invalidRateError: 'Please enter a valid rate.',
             lowRateError: 'Rate must be greater than 0.',
             email: 'Please enter a valid email address.',
+            login: 'An error occurred while logging in. Please try again.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -502,6 +503,7 @@ const translations = {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
+        longID: 'Long ID',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         dropTitle: 'Let it go',
@@ -2629,6 +2631,8 @@ const translations = {
             travelTermsAndConditions: 'terms & conditions',
             agree: 'I agree to the ',
             error: 'You must agree to the Expensify Travel terms & conditions to continue',
+            defaultWorkspaceError:
+                'You need to set a default workspace to enable Expensify Travel. Go to Settings > Workspaces > click the three vertical dots next to a workspace > Set as default workspace, then try again!',
         },
         flight: 'Flight',
         flightDetails: {
