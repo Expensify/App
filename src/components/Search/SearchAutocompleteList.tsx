@@ -522,28 +522,32 @@ function SearchAutocompleteList(
     );
 
     return (
-        <SelectionList<OptionData | SearchQueryItem>
-            sections={sections}
-            onSelectRow={onListItemPress}
-            ListItem={SearchRouterItem}
-            containerStyle={[styles.mh100]}
-            sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
-            listItemWrapperStyle={[styles.pr0, styles.pl0]}
-            getItemHeight={getItemHeight}
-            onLayout={() => {
-                setPerformanceTimersEnd();
-                setIsInitialRender(false);
-            }}
-            showScrollIndicator={!shouldUseNarrowLayout}
-            sectionTitleStyles={styles.mhn2}
-            shouldSingleExecuteRowSelect
-            onArrowFocus={onArrowFocus}
-            ref={ref}
-            initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
-            shouldScrollToFocusedIndex={!isInitialRender}
-            shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
-            disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
-        />
+        // On page refresh, when the list is rendered before options are initialized the auto-focusing on initiallyFocusedOptionKey
+        // will fail because the list will be empty on first render so we only render after options are initialized.
+        areOptionsInitialized && (
+            <SelectionList<OptionData | SearchQueryItem>
+                sections={sections}
+                onSelectRow={onListItemPress}
+                ListItem={SearchRouterItem}
+                containerStyle={[styles.mh100]}
+                sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
+                listItemWrapperStyle={[styles.pr0, styles.pl0]}
+                getItemHeight={getItemHeight}
+                onLayout={() => {
+                    setPerformanceTimersEnd();
+                    setIsInitialRender(false);
+                }}
+                showScrollIndicator={!shouldUseNarrowLayout}
+                sectionTitleStyles={styles.mhn2}
+                shouldSingleExecuteRowSelect
+                onArrowFocus={onArrowFocus}
+                ref={ref}
+                initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
+                shouldScrollToFocusedIndex={!isInitialRender}
+                shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
+                disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
+            />
+        )
     );
 }
 
