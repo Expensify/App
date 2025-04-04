@@ -375,7 +375,7 @@ describe('CIGitLogic', () => {
         await assertPRsMergedBetween('1.0.0-0', '1.0.0-3', [1, 3, 4]);
 
         // Verify output for deploy comment
-        await assertPRsMergedBetween('1.0.0-1', '1.0.0-3', [4]);
+        await assertPRsMergedBetween('1.0.0-2', '1.0.0-3', [4]);
     });
 
     test('Close the checklist', async () => {
@@ -385,7 +385,7 @@ describe('CIGitLogic', () => {
         await assertPRsMergedBetween('1.0.0-0', '1.0.0-2', [1, 3]);
 
         // Verify output for new checklist and staging deploy comments
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-0', [2]);
+        await assertPRsMergedBetween('1.0.0-2', '1.0.1-0', [2, 4]);
     });
 
     test('Merging another pull request when the checklist is unlocked', async () => {
@@ -394,7 +394,7 @@ describe('CIGitLogic', () => {
         deployStaging();
 
         // Verify output for checklist
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-1', [2, 5]);
+        await assertPRsMergedBetween('1.0.0-2', '1.0.1-1', [2, 4, 5]);
 
         // Verify output for deploy comment
         await assertPRsMergedBetween('1.0.1-0', '1.0.1-1', [5]);
@@ -414,7 +414,7 @@ describe('CIGitLogic', () => {
         deployStaging();
 
         // Verify output for checklist
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-2', [2, 5, 6]);
+        await assertPRsMergedBetween('1.0.0-2', '1.0.1-2', [2, 4, 5, 6]);
 
         // Verify output for deploy comment
         await assertPRsMergedBetween('1.0.1-1', '1.0.1-2', [6]);
@@ -435,7 +435,7 @@ Appended content
         deployStaging();
 
         // Verify output for checklist
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-3', [2, 5, 6, 7]);
+        await assertPRsMergedBetween('1.0.0-2', '1.0.1-3', [2, 4, 5, 6, 7]);
 
         // Verify output for deploy comment
         await assertPRsMergedBetween('1.0.1-2', '1.0.1-3', [7]);
