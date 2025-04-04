@@ -141,6 +141,9 @@ const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
 
 const POLICY_CHANGE_LOG_ARRAY = Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
 
+/**
+ * The only actions that should ever allow a chat to be marked unread in the LHN.
+ */
 const ACTIONABLE_ACTIONS = [
     CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
     CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
@@ -1596,6 +1599,7 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
         return !isCreatedAction(reportAction);
     }
 
+    // Only a limited number of actions should ever cause a chat to be marked unread.
     if (reportAction && !ACTIONABLE_ACTIONS.includes(reportAction.actionName)) {
         return false;
     }
