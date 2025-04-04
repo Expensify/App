@@ -22,6 +22,9 @@ type ConfirmationPageProps = {
     /** Description of the confirmation page */
     description: React.ReactNode;
 
+    /** The text for the call to action */
+    cta?: React.ReactNode;
+
     /** The text for the primary button label */
     buttonText?: string;
 
@@ -49,6 +52,9 @@ type ConfirmationPageProps = {
     /** Additional style for the description */
     descriptionStyle?: TextStyle;
 
+    /** Additional style for the cta */
+    ctaStyle?: TextStyle;
+
     /** Additional style for the footer */
     footerStyle?: ViewStyle;
 
@@ -60,6 +66,7 @@ function ConfirmationPage({
     illustration = LottieAnimations.Fireworks,
     heading,
     description,
+    cta,
     buttonText = '',
     onButtonPress = () => {},
     shouldShowButton = false,
@@ -69,6 +76,7 @@ function ConfirmationPage({
     headingStyle,
     illustrationStyle,
     descriptionStyle,
+    ctaStyle,
     footerStyle,
     containerStyle,
 }: ConfirmationPageProps) {
@@ -99,6 +107,7 @@ function ConfirmationPage({
                 )}
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
                 <Text style={[styles.textAlignCenter, descriptionStyle]}>{description}</Text>
+                {cta ? <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text> : null}
             </View>
             {(shouldShowSecondaryButton || shouldShowButton) && (
                 <FixedFooter style={footerStyle}>

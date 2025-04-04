@@ -87,12 +87,13 @@ function MergeResultPage() {
                         <Text style={[styles.textStrong, styles.textSupporting]}>{login}</Text>
                         {translate('mergeAccountsPage.mergeFailure2FA.oldAccount2FAEnabled.beforeSecondEmail')}
                         <Text style={[styles.textStrong, styles.textSupporting]}>{login}</Text>
-                        {translate('mergeAccountsPage.mergeFailure2FA.oldAccount2FAEnabled.afterSecondEmail')}{' '}
-                        <Text style={[styles.textSupporting]}>
-                            <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>
-                        </Text>
+                        {translate('mergeAccountsPage.mergeFailure2FA.oldAccount2FAEnabled.afterSecondEmail')}
                     </>
                 ),
+                cta: (
+                    <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>
+                ),
+                ctaStyle: {...styles.mt2, ...styles.textSupporting},
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 buttonText: translate('common.buttonConfirm'),
                 illustration: Illustrations.LockClosedOrange,
@@ -242,6 +243,8 @@ function MergeResultPage() {
         secondaryButtonText,
         onSecondaryButtonPress,
         shouldShowSecondaryButton,
+        cta,
+        ctaStyle,
     } = results[result] || defaultResult;
 
     return (
@@ -271,6 +274,9 @@ function MergeResultPage() {
                 descriptionStyle={{...descriptionStyle, ...styles.textSupporting}}
                 illustration={illustration}
                 illustrationStyle={illustrationStyle}
+                cta={cta}
+                ctaStyle={ctaStyle}
+
             />
         </ScreenWrapper>
     );

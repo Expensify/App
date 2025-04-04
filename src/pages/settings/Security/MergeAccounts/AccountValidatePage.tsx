@@ -86,7 +86,7 @@ function AccountValidatePage() {
             if (!accountMerged || !email) {
                 return;
             }
-            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, 'success'));
+            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, 'success'), {forceReplace: true});
         }, [accountMerged, email]),
     );
 
@@ -95,7 +95,7 @@ function AccountValidatePage() {
             if (!errorKey || !email) {
                 return;
             }
-            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorKey));
+            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorKey), {forceReplace: true});
         }, [errorKey, email]),
     );
 
@@ -142,7 +142,7 @@ function AccountValidatePage() {
                 }}
                 skipInitialValidation
                 clearError={() => clearMergeWithValidateCode()}
-                validateError={mergeWithValidateCode?.errors}
+                validateError={!errorKey ? mergeWithValidateCode?.errors : undefined}
                 hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeSent}
                 submitButtonText={translate('mergeAccountsPage.mergeAccount')}
                 forwardedRef={validateCodeFormRef}
