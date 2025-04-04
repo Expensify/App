@@ -22,11 +22,11 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {getLastVisitedSettingsPath, getLastVisitedWorkspaceScreen, getSettingsTabStateFromSessionStorage} from '@libs/Navigation/helpers/getLastVisitedWorkspace';
+import {getLastVisitedWorkspacesTabPath, getLastVisitedWorkspaceTabScreen, getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/getLastVisitedWorkspaceTabScreen';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
-import {isFullScreenName, isSettingsTabScreenName} from '@navigation/helpers/isNavigatorName';
+import {isFullScreenName, isWorkspacesTabScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -113,14 +113,13 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         });
     }, [selectedTab]);
 
-    const showWorkspaces = useCallback(() => {
-        if (selectedTab === NAVIGATION_TABS.WORKSPACES) {
+    const navigateToSettings = useCallback(() => {
+        if (selectedTab === NAVIGATION_TABS.SETTINGS) {
             return;
         }
 
-        hideProductTrainingTooltip();
-        Navigation.navigate(ROUTES.WORKSPACE_HUB_INITIAL);
-    }, [hideProductTrainingTooltip, selectedTab]);
+        Navigation.navigate(ROUTES.SETTINGS);
+    }, [selectedTab]);
 
     /**
      * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.
@@ -128,7 +127,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
      * If so, all previously opened screens have be pushed to the navigation stack to maintain the order of screens within the tab.
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
-    const showSettingsPage = useCallback(() => {
+    const showWorkspaces = useCallback(() => {
         const rootState = navigationRef.getRootState();
         const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
         if (!topmostFullScreenRoute) {
@@ -148,25 +147,25 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         }
 
         interceptAnonymousUser(() => {
-            const state = getSettingsTabStateFromSessionStorage() ?? rootState;
-            const lastSettingsOrWorkspaceNavigatorRoute = state.routes.findLast((route) => isSettingsTabScreenName(route.name));
+            const state = getWorkspacesTabStateFromSessionStorage() ?? rootState;
+            const lastWorkspacesTabNavigatorRoute = state.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
             // If there is no settings or workspace navigator route, then we should open the settings navigator.
-            if (!lastSettingsOrWorkspaceNavigatorRoute) {
+            if (!lastWorkspacesTabNavigatorRoute) {
                 Navigation.navigate(ROUTES.SETTINGS);
                 return;
             }
 
-            let settingsTabState = lastSettingsOrWorkspaceNavigatorRoute.state;
-            if (!settingsTabState && lastSettingsOrWorkspaceNavigatorRoute.key) {
-                settingsTabState = getPreservedNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key);
+            let workspacesTabState = lastWorkspacesTabNavigatorRoute.state;
+            if (!workspacesTabState && lastWorkspacesTabNavigatorRoute.key) {
+                workspacesTabState = getPreservedNavigatorState(lastWorkspacesTabNavigatorRoute.key);
             }
 
             // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
-            if (lastSettingsOrWorkspaceNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                const params = settingsTabState?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
+            if (lastWorkspacesTabNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                const params = workspacesTabState?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
                 // Screens of this navigator should always have policyID
                 if (params.policyID) {
-                    const workspaceScreenName = !shouldUseNarrowLayout ? getLastVisitedWorkspaceScreen() : SCREENS.WORKSPACE.INITIAL;
+                    const workspaceScreenName = !shouldUseNarrowLayout ? getLastVisitedWorkspaceTabScreen() : SCREENS.WORKSPACE.INITIAL;
                     // This action will put settings split under the workspace split to make sure that we can swipe back to settings split.
                     navigationRef.dispatch({
                         type: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT,
@@ -181,21 +180,21 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
 
             // If the path stored in the session storage leads to a settings screen, we just navigate to it on a wide layout.
             // On a small screen, we want to go to the page containing the bottom tab bar (ROUTES.SETTINGS or ROUTES.SETTINGS_WORKSPACES) when changing tabs
-            if (settingsTabState && !shouldUseNarrowLayout) {
-                const lastVisitedSettingsRoute = getLastVisitedSettingsPath(settingsTabState);
+            if (workspacesTabState && !shouldUseNarrowLayout) {
+                const lastVisitedSettingsRoute = getLastVisitedWorkspacesTabPath(workspacesTabState);
                 if (lastVisitedSettingsRoute) {
                     Navigation.navigate(lastVisitedSettingsRoute);
                     return;
                 }
             }
             // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
-            if (settingsTabState?.routes?.at(-1)?.name === SCREENS.WORKSPACE_HUB.WORKSPACES) {
+            if (workspacesTabState?.routes?.at(-1)?.name === SCREENS.WORKSPACE_HUB.WORKSPACES) {
                 Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
                 return;
             }
 
-            // Otherwise we should simply open the settings navigator.
-            Navigation.navigate(ROUTES.SETTINGS);
+            // Otherwise we should simply open the workspace hub navigator.
+            Navigation.navigate(ROUTES.WORKSPACE_HUB_INITIAL);
         });
     }, [shouldUseNarrowLayout]);
 
@@ -296,7 +295,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             </Text>
                         </PressableWithFeedback>
                         <PressableWithFeedback
-                            onPress={navigateToSearch}
+                            onPress={showWorkspaces}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.workspaces')}
                             style={styles.leftNavigationTabBarItem}
@@ -324,7 +323,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                         <NavigationTabBarAvatar
                             style={styles.leftNavigationTabBarItem}
                             isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                            onPress={showSettingsPage}
+                            onPress={navigateToSettings}
                             isWebOrDesktop={isWebOrDesktop}
                             isTooltipAllowed={isTooltipAllowed}
                         />
@@ -450,7 +449,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 <NavigationTabBarAvatar
                     style={styles.navigationTabBarItem}
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                    onPress={showSettingsPage}
+                    onPress={navigateToSettings}
                     isWebOrDesktop={isWebOrDesktop}
                     isTooltipAllowed={isTooltipAllowed}
                 />
