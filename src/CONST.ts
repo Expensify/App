@@ -6360,6 +6360,7 @@ const CONST = {
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
+            TASK: 'task',
             TRIP: 'trip',
             CHAT: 'chat',
         },
@@ -6423,6 +6424,11 @@ const CONST = {
                 LINKS: 'links',
                 PINNED: 'pinned',
             },
+            TASK: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                COMPLETED: 'completed',
+            },
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -6478,6 +6484,9 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'createdBy',
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
@@ -6513,6 +6522,9 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'created-by',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',

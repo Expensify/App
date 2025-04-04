@@ -159,7 +159,13 @@ function SearchAutocompleteList(
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
-    const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
+    const statusAutocompleteList = Object.values({
+        ...CONST.SEARCH.STATUS.EXPENSE,
+        ...CONST.SEARCH.STATUS.INVOICE,
+        ...CONST.SEARCH.STATUS.CHAT,
+        ...CONST.SEARCH.STATUS.TRIP,
+        ...CONST.SEARCH.STATUS.TASK,
+    });
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -319,6 +325,30 @@ function SearchAutocompleteList(
                     text: participant.name,
                     autocompleteID: participant.accountID,
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE: {
+                const filteredParticipants = getParticipantsAutocompleteList()
+                    .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
+                    .slice(0, 10);
+
+                return filteredParticipants.map((participant) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ASSIGNEE,
+                    text: participant.name,
+                    autocompleteID: participant.accountID,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+                }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY: {
+                const filteredParticipants = getParticipantsAutocompleteList()
+                    .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
+                    .slice(0, 10);
+
+                return filteredParticipants.map((participant) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CREATED_BY,
+                    text: participant.name,
+                    autocompleteID: participant.accountID,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
