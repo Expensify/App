@@ -1770,11 +1770,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
 
-    getResetStyle: <K extends (TextStyle | ViewStyle)>(keys: Array<keyof K>) => keys.reduce((styleobj: Nullable<K>, key) => {
-        // eslint-disable-next-line no-param-reassign
-        styleobj[key] = null;
-        return styleobj;
-    }, {} as Nullable<K>) as K,
+    getResetStyle: <K extends TextStyle | ViewStyle>(keys: Array<keyof K>) =>
+        keys.reduce((styleobj: Nullable<K>, key) => {
+            // eslint-disable-next-line no-param-reassign
+            styleobj[key] = null;
+            return styleobj;
+        }, {} as Nullable<K>) as K,
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
