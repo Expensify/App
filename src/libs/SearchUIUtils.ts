@@ -8,7 +8,7 @@ import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -25,6 +25,7 @@ import type {
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
+    SearchTask,
     SearchTransaction,
     SearchTransactionAction,
 } from '@src/types/onyx/SearchResults';
@@ -191,15 +192,23 @@ function isReportListItemType(item: ListItem): item is ReportListItemType {
 /**
  * Type guard that checks if something is a TransactionListItemType
  */
-function isTransactionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType): item is TransactionListItemType {
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType): item is TransactionListItemType {
     const transactionListItem = item as TransactionListItemType;
     return transactionListItem.transactionID !== undefined;
 }
 
 /**
+ * Type guard that check if something is a TaskListItemType
+ */
+function isTaskListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType): item is TaskListItemType {
+    const taskListItem = item as TaskListItemType;
+    return taskListItem.reportID !== undefined;
+}
+
+/**
  * Type guard that checks if something is a ReportActionListItemType
  */
-function isReportActionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType): item is ReportActionListItemType {
+function isReportActionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType): item is ReportActionListItemType {
     const reportActionListItem = item as ReportActionListItemType;
     return reportActionListItem.reportActionID !== undefined;
 }
@@ -406,7 +415,27 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTaskSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {}
+function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemType[] {
+    return Object.keys(data)
+        .filter(isReportEntry)
+        .map((key) => {
+            const taskItem = data[key] as SearchTask;
+
+            const assignee = taskItem.managerID ? data.personalDetailsList?.[taskItem.managerID] : emptyPersonalDetails;
+            const createdBy = taskItem.accountID ? data.personalDetailsList?.[taskItem.accountID] : emptyPersonalDetails;
+            const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
+            const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
+
+            return {
+                ...taskItem,
+                assignee,
+                formattedAssignee,
+                createdBy,
+                formattedCreatedBy,
+                keyForList: taskItem.reportID,
+            };
+        });
+}
 
 /**
  * @private
@@ -555,7 +584,7 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
         return getReportActionsSections(data);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getReportActionsSections(data);
+        return getTaskSections(data);
     }
     if (!shouldGroupByReports) {
         return getTransactionsSections(data, metadata);
@@ -577,6 +606,9 @@ function getSortedSections(
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[]);
+    }
+    if (type === CONST.SEARCH.DATA_TYPES.TASK) {
+        return getSortedReportData(data as ReportListItemType[]);
     }
     if (!shouldGroupByReports) {
         return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
@@ -838,6 +870,7 @@ export {
     getOverflowMenu,
     isCorrectSearchUserName,
     isReportActionEntry,
+    isTaskListItemType,
     getAction,
     createTypeMenuItems,
     createBaseSavedSearchMenuItem,

@@ -1,14 +1,12 @@
 import React from 'react';
-import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/BaseListItem';
-import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, TaskListItemProps, TaskListItemType} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {handleActionButtonPress} from '@libs/actions/Search';
 import variables from '@styles/variables';
-import TransactionListItemRow from './TransactionListItemRow';
+import TaskListItemRow from './TaskListItemRow';
 
 function TaskListItem<TItem extends ListItem>({
     item,
@@ -17,18 +15,15 @@ function TaskListItem<TItem extends ListItem>({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
-    onCheckboxPress,
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    isLoading,
-}: TransactionListItemProps<TItem>) {
-    const transactionItem = item as unknown as TransactionListItemType;
+}: TaskListItemProps<TItem>) {
+    const taskItem = item as unknown as TaskListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {currentSearchHash} = useSearchContext();
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
@@ -72,18 +67,15 @@ function TaskListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
-            <TransactionListItemRow
-                item={transactionItem}
-                showTooltip={showTooltip}
-                onButtonPress={() => {
-                    handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
-                }}
-                onCheckboxPress={() => onCheckboxPress?.(item)}
-                isDisabled={!!isDisabled}
-                canSelectMultiple={!!canSelectMultiple}
-                isButtonSelected={item.isSelected}
-                shouldShowTransactionCheckbox={false}
-                isLoading={isLoading ?? transactionItem.isActionLoading}
+            <TaskListItemRow
+                item={taskItem}
+                // showTooltip={showTooltip}
+                // onButtonPress={() => {
+                //     // handleActionButtonPress(currentSearchHash, taskItem, () => onSelectRow(item));
+                // }}
+                // isDisabled={!!isDisabled}
+                // isButtonSelected={item.isSelected}
+                // isLoading={isLoading ?? taskItem.isActionLoading}
             />
         </BaseListItem>
     );

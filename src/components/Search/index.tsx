@@ -29,6 +29,7 @@ import {
     isReportActionListItemType,
     isReportListItemType,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
+    isTaskListItemType,
     isTransactionListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
@@ -80,6 +81,13 @@ function mapToItemWithSelectionInfo(
     canSelectMultiple: boolean,
     shouldAnimateInHighlight: boolean,
 ) {
+    if (isTaskListItemType(item)) {
+        return {
+            ...item,
+            shouldAnimateInHighlight,
+        };
+    }
+
     if (isReportActionListItemType(item)) {
         return {
             ...item,
