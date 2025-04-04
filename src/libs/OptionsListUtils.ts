@@ -61,7 +61,7 @@ import {
     isMoneyRequestAction,
     isOldDotReportAction,
     isPendingRemove,
-    isReimbursementDeQueuedAction,
+    isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isReportPreviewAction,
     isTaskAction,
@@ -86,7 +86,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
-    getReimbursementDeQueuedActionMessage,
+    getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
     getReportAutomaticallyApprovedMessage,
@@ -106,6 +106,7 @@ import {
     isArchivedReport,
     isChatThread,
     isDefaultRoom,
+    isDM,
     isDraftReport,
     isExpenseReport,
     isHiddenForCurrentUser,
@@ -496,7 +497,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
-        keyForList: String(detail?.accountID),
+        keyForList: String(detail?.accountID ?? login),
         login,
         accountID: detail?.accountID,
         text: displayName,
@@ -540,8 +541,8 @@ function uniqFast(items: string[]): string[] {
 /**
  * Get the last actor display name from last actor details.
  */
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
-    if (!hasMultipleParticipants || !lastActorDetails) {
+function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null) {
+    if (!lastActorDetails) {
         return '';
     }
 
@@ -549,6 +550,23 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
         : translateLocal('common.you');
+}
+
+/**
+ * Should show the last actor display name from last actor details.
+ */
+function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null) {
+    if (!lastActorDetails || reportUtilsIsSelfDM(report) || (isDM(report) && lastActorDetails.accountID !== currentUserAccountID)) {
+        return false;
+    }
+
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
+
+    if (!lastActorDisplayName) {
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -705,8 +723,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
-    } else if (isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementDeQueuedActionMessage(lastReportAction, report, true);
+    } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(lastReportAction, report, true);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -749,12 +767,14 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getUpgradeWorkspaceMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         lastMessageTextFromReport = getDowngradeWorkspaceMessage();
-    } else if (isActionableAddPaymentCard(lastReportAction)) {
+    } else if (isActionableAddPaymentCard(lastReportAction) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
+        lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
@@ -860,14 +880,17 @@ function createOption(
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
         subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
 
-        const lastActorDetails = report.lastActorAccountID ? personalDetailMap[report.lastActorAccountID] : null;
-        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
+        const lastActorDetails = report.lastActorAccountID ? personalDetails?.[report.lastActorAccountID] ?? null : null;
+        const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
 
         const lastAction = lastVisibleReportActions[report.reportID];
-        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
-
+        const shouldDisplayLastActorName =
+            lastAction &&
+            lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+            lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
+            shouldShowLastActorDisplayName(report, lastActorDetails);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
         }
@@ -1516,6 +1539,69 @@ function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
 }
 
 /**
+ * Whether the report is a Manager McTest report
+ */
+function isManagerMcTestReport(report: SearchOption<Report>): boolean {
+    return report.participantsList?.some((participant) => participant.accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST) ?? false;
+}
+
+/**
+ * Helper method to check if participant email is Manager McTest
+ */
+function isSelectedManagerMcTest(email: string | null | undefined): boolean {
+    return email === CONST.EMAIL.MANAGER_MCTEST;
+}
+
+function getValidPersonalDetailOptions(
+    options: OptionList['personalDetails'],
+    {
+        loginsToExclude = {},
+        includeDomainEmail = false,
+        shouldBoldTitleByDefault = false,
+        currentUserRef,
+    }: {
+        loginsToExclude?: Record<string, boolean>;
+        includeDomainEmail?: boolean;
+        shouldBoldTitleByDefault: boolean;
+        // If the current user is found in the options and you pass an object ref, it will be assigned
+        currentUserRef?: {
+            current?: OptionData;
+        };
+    },
+) {
+    const personalDetailsOptions: OptionData[] = [];
+    for (let i = 0; i < options.length; i++) {
+        // eslint-disable-next-line rulesdir/prefer-at
+        const detail = options[i];
+        if (
+            !detail?.login ||
+            !detail.accountID ||
+            !!detail?.isOptimisticPersonalDetail ||
+            (!includeDomainEmail && Str.isDomainEmail(detail.login)) ||
+            // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
+            detail?.login === CONST.SETUP_SPECIALIST_LOGIN
+        ) {
+            continue;
+        }
+
+        if (currentUserRef && !!currentUserLogin && detail.login === currentUserLogin) {
+            // eslint-disable-next-line no-param-reassign
+            currentUserRef.current = detail;
+        }
+
+        if (loginsToExclude[detail.login]) {
+            continue;
+        }
+
+        detail.isBold = shouldBoldTitleByDefault;
+
+        personalDetailsOptions.push(detail);
+    }
+
+    return personalDetailsOptions;
+}
+
+/**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
 function getValidOptions(
@@ -1533,12 +1619,14 @@ function getValidOptions(
         ...config
     }: GetOptionsConfig = {},
 ): Options {
+    const userHasReportWithManagerMcTest = canShowManagerMcTest && Object.values(options.reports).some((report) => isManagerMcTestReport(report));
+
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
-        // Exclude Manager McTest if user submitted expense or scanned receipt and when selection is made from Create or Submit flow
-        [CONST.EMAIL.MANAGER_MCTEST]: !(!getIsUserSubmittedExpenseOrScannedReceipt() && canShowManagerMcTest && Permissions.canUseManagerMcTest(config.betas)),
+        // Exclude Manager McTest if selection is made from Create or Submit flow
+        [CONST.EMAIL.MANAGER_MCTEST]: (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) || !Permissions.canUseManagerMcTest(config.betas),
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1585,8 +1673,10 @@ function getValidOptions(
     }
 
     // Get valid personal details and check if we can find the current user:
-    const personalDetailsOptions: OptionData[] = [];
-    let currentUserOption: OptionData | undefined;
+    let personalDetailsOptions: OptionData[] = [];
+    const currentUserRef = {
+        current: undefined as OptionData | undefined,
+    };
     if (includeP2P) {
         let personalDetailLoginsToExclude = loginsToExclude;
         if (currentUserLogin) {
@@ -1595,32 +1685,13 @@ function getValidOptions(
                 [currentUserLogin]: true,
             };
         }
-        for (let i = 0; i < options.personalDetails.length; i++) {
-            // eslint-disable-next-line rulesdir/prefer-at
-            const detail = options.personalDetails[i];
-            if (
-                !detail?.login ||
-                !detail.accountID ||
-                !!detail?.isOptimisticPersonalDetail ||
-                (!includeDomainEmail && Str.isDomainEmail(detail.login)) ||
-                // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
-                detail?.login === CONST.SETUP_SPECIALIST_LOGIN
-            ) {
-                continue;
-            }
 
-            if (!!currentUserLogin && detail.login === currentUserLogin) {
-                currentUserOption = detail;
-            }
-
-            if (personalDetailLoginsToExclude[detail.login]) {
-                continue;
-            }
-
-            detail.isBold = shouldBoldTitleByDefault;
-
-            personalDetailsOptions.push(detail);
-        }
+        personalDetailsOptions = getValidPersonalDetailOptions(options.personalDetails, {
+            loginsToExclude: personalDetailLoginsToExclude,
+            shouldBoldTitleByDefault,
+            includeDomainEmail,
+            currentUserRef,
+        });
     }
 
     if (excludeHiddenThreads) {
@@ -1630,7 +1701,7 @@ function getValidOptions(
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
-        currentUserOption,
+        currentUserOption: currentUserRef.current,
         // User to invite is generated by the search input of a user.
         // As this function isn't concerned with any search input yet, this is null (will be set when using filterOptions).
         userToInvite: null,
@@ -2211,6 +2282,7 @@ export {
     isCurrentUser,
     isPersonalDetailsReady,
     getValidOptions,
+    getValidPersonalDetailOptions,
     getSearchOptions,
     getShareDestinationOptions,
     getMemberInviteOptions,
@@ -2262,6 +2334,8 @@ export {
     filterReports,
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
+    isSelectedManagerMcTest,
+    shouldShowLastActorDisplayName,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};

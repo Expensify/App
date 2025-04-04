@@ -5,7 +5,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import type {UserWallet} from '@src/types/onyx';
 
@@ -35,7 +35,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                             <Text style={styles.mutedNormalTextLabel}>{translate('termsStep.monthlyFee')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
+                            <Text style={styles.shortTermsHeadline}>{convertToDisplayString(0, 'USD')}</Text>
                         </View>
                     </View>
                     <View style={[styles.flex2]}>
@@ -44,7 +44,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                                 <Text style={styles.mutedNormalTextLabel}>{translate('termsStep.shortTermsForm.perPurchase')}</Text>
                             </View>
                             <View style={styles.flexRow}>
-                                <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
+                                <Text style={styles.shortTermsHeadline}>{convertToDisplayString(0, 'USD')}</Text>
                             </View>
                         </View>
                     </View>
@@ -100,7 +100,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                         </Text>
                     </View>
                     <View style={styles.flex1}>
-                        <Text style={styles.label}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
+                        <Text>{convertToDisplayString(0, 'USD')}</Text>
                     </View>
                 </View>
 
@@ -112,7 +112,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                         </Text>
                     </View>
                     <View style={styles.flex1}>
-                        <Text>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
+                        <Text>{convertToDisplayString(0, 'USD')}</Text>
                     </View>
                 </View>
 
@@ -130,7 +130,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                     </View>
                     <View style={[styles.flex1, styles.termsCenterRight]}>
                         <Text style={styles.label}>{numberFormat(1.5)}%</Text>
-                        <Text style={styles.label}>{translate('termsStep.shortTermsForm.electronicFundsInstantFeeMin', {amount: CurrencyUtils.convertToDisplayString(25, 'USD')})}</Text>
+                        <Text style={styles.label}>{translate('termsStep.shortTermsForm.electronicFundsInstantFeeMin', {amount: convertToDisplayString(25, 'USD')})}</Text>
                     </View>
                 </View>
                 <View style={[styles.shortTermsBoldHeadingSection, styles.mb4]}>

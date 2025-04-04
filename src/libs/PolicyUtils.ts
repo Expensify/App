@@ -33,6 +33,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {translateLocal} from './Localize';
@@ -208,7 +209,13 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
 function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnectionInProgress: boolean): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-    if (shouldShowEmployeeListError(policy) || shouldShowCustomUnitsError(policy) || shouldShowPolicyErrorFields(policy) || shouldShowSyncError(policy, isConnectionInProgress)) {
+    if (
+        shouldShowEmployeeListError(policy) ||
+        shouldShowCustomUnitsError(policy) ||
+        shouldShowPolicyErrorFields(policy) ||
+        shouldShowSyncError(policy, isConnectionInProgress) ||
+        shouldShowQBOReimbursableExportDestinationAccountError(policy)
+    ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;
@@ -245,6 +252,10 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
             (shouldShowPendingDeletePolicy || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!getPolicyRole(policy, currentUserLogin))
     );
+}
+
+function isPolicyMember(currentUserLogin: string | undefined, policyID: string | undefined): boolean {
+    return !!currentUserLogin && !!policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin];
 }
 
 function isExpensifyTeam(email: string | undefined): boolean {
@@ -520,7 +531,7 @@ function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pi
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
+    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
 }
 
 /** Get a tax with given ID from policy */
@@ -1018,10 +1029,6 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return syncSuccessfulDate;
 }
 
-function getNSQSCompanyID(policy: Policy) {
-    return policy.connections?.netsuiteQuickStart?.config?.credentials?.companyID;
-}
-
 function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
     const currentEntityID = policy?.connections?.intacct?.config?.entity;
     if (!currentEntityID) {
@@ -1370,7 +1377,6 @@ function isPrefferedExporter(policy: Policy) {
     const exporters = [
         policy.connections?.intacct?.config?.export?.exporter,
         policy.connections?.netsuite?.options?.config?.exporter,
-        policy.connections?.netsuiteQuickStart?.config?.exporter,
         policy.connections?.quickbooksDesktop?.config?.export?.exporter,
         policy.connections?.quickbooksOnline?.config?.export?.exporter,
         policy.connections?.xero?.config?.export?.exporter,
@@ -1383,7 +1389,6 @@ function isAutoSyncEnabled(policy: Policy) {
     const values = [
         policy.connections?.intacct?.config?.autoSync?.enabled,
         policy.connections?.netsuite?.config?.autoSync?.enabled,
-        policy.connections?.netsuiteQuickStart?.config?.autoSync?.enabled,
         policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
         policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
         policy.connections?.xero?.config?.autoSync?.enabled,
@@ -1442,6 +1447,7 @@ export {
     isPolicyEmployee,
     isPolicyFeatureEnabled,
     isPolicyOwner,
+    isPolicyMember,
     arePaymentsEnabled,
     isSubmitAndClose,
     isTaxTrackingEnabled,
@@ -1476,7 +1482,6 @@ export {
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
-    getNSQSCompanyID,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
