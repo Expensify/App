@@ -8,3 +8,4 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
