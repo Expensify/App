@@ -676,13 +676,13 @@ describe('OptionsListUtils', () => {
         );
         expect(options.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
 
-        // Manager McTest shouldn't be included to recipients when its not an IOU action
+        // Manager McTest should be included to recipients when the user has already submitted an expense
         options = getValidOptions(
             {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
             {includeP2P: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
         );
 
-        expect(options.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+        expect(options.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
 
         return waitForBatchedUpdates()
             .then(() => Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: new Date() as unknown as string}))
