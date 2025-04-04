@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -37,12 +37,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
-    useEffect(() => {
-        if (!onboardingErrorMessage) {
-            return;
-        }
-    }, [onboardingErrorMessage]);
 
     useEffect(() => {
         if (onboardingValues?.isMergeAccountSuccessful === undefined) {
@@ -60,7 +54,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-    }, [onboardingValues]);
+    }, [onboardingValues, isVsb]);
 
     const sendValidateCode = useCallback(() => {
         if (!credentials?.login) {
@@ -131,7 +125,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         }}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
                         shouldShowSkipButton
-                        validateError={onboardingErrorMessage}
                         handleSkipButtonPress={() => {
                             if (isVsb) {
                                 Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());

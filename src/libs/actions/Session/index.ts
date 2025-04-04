@@ -28,7 +28,6 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import {translateLocal} from '@libs/Localize';
@@ -49,7 +48,6 @@ import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContex
 import {KEYS_TO_PRESERVE, openApp, reconnectApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
-import {openOldDotLink} from '@userActions/Link';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
@@ -116,12 +114,6 @@ let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val ?? null),
-});
-
-let onboarding: Onboarding | undefined;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (val) => (onboarding = val),
 });
 
 function isSupportAuthToken(): boolean {
@@ -1416,12 +1408,12 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         }
 
         return SequentialQueue.waitForIdle().then(() => {
-            if (response?.authToken && response?.encryptedAuthToken) {
-                // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-                updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
-
-                NetworkStore.setAuthToken(response?.authToken ?? null);
+            if (!response?.authToken || !response?.encryptedAuthToken) {
+                return;
             }
+
+            updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
+            NetworkStore.setAuthToken(response.authToken);
         });
     });
 }

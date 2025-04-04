@@ -42,6 +42,7 @@ function AutoEmailLink({text, style}: AutoEmailLinkProps) {
                 // Push email as a link
                 elements.push(
                     <TextLink
+                        // eslint-disable-next-line react/no-array-index-key
                         key={`email-${index}`}
                         href={`mailto:${email}`}
                         style={styles.link}
