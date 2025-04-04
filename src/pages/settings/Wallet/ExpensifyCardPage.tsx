@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // import {AddToWalletButton} from '@expensify/react-native-wallet';
+import {AddToWalletButton} from '@expensify/react-native-wallet';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -146,21 +147,6 @@ function ExpensifyCardPage({
     const loginData = loginList?.[primaryLogin];
     const isSignedInAsdelegate = !!account?.delegatedAccess?.delegate || false;
 
-    const loadWallet = () => {
-        try {
-            const {AddToWalletButton} = import('@expensify/react-native-wallet');
-            return (
-                <AddToWalletButton
-                    buttonStyle={{alignSelf: 'center'}}
-                    locale="pl"
-                    onPress={() => handleAddCardToWallet(cardToAdd, primaryLogin)}
-                />
-            );
-        } catch (error) {
-            console.error('E: ', error);
-        }
-    };
-
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
     }
@@ -298,7 +284,13 @@ function ExpensifyCardPage({
                         />
                     </>
                 )}
-                {cardToAdd !== undefined && CONFIG.IS_HYBRID_APP && loadWallet()}
+                {cardToAdd !== undefined && (
+                    <AddToWalletButton
+                        buttonStyle={{alignSelf: 'center'}}
+                        locale="pl"
+                        onPress={() => handleAddCardToWallet(cardToAdd, primaryLogin)}
+                    />
+                )}
             </ScrollView>
             {physicalCards?.some((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED) && (
                 <Button

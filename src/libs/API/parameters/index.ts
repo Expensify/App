@@ -380,4 +380,4 @@ export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyPara
 export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
 export type {default as SendRecapInAdminsRoomParams} from './SendRecapInAdminsRoomParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
-export type {default as CreateAppleDigitalWalletParams} from './CreateAppleDigitalWalletParams';
+export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';

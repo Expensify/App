@@ -1,29 +1,22 @@
-import {addCardToGoogleWallet} from '@expensify/react-native-wallet';
-import type {AndroidCardData, UserAddress} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
+import {addCardToGoogleWallet, checkWalletAvailability, getSecureWalletInfo} from '@expensify/react-native-wallet';
+import type {AndroidCardData, AndroidWalletData} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
+import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
+import Log from '@libs/Log';
 import type {Card} from '@src/types/onyx';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function handleAddCardToWallet(card: Card, cardHolderName: string) {
-    const address = {
-        name: cardHolderName,
-        addressOne: '123',
-        administrativeArea: '123',
-        locality: '123',
-        countryCode: '123',
-        postalCode: '123',
-        phoneNumber: '123 213 752',
-    } as UserAddress;
-
-    const data = {
-        lastDigits: card.lastFourPAN,
-        network: 'VISA',
-        opaquePaymentCard: '123 test',
-        cardHolderName,
-        userAddress: address,
-    } as AndroidCardData;
-
-    addCardToGoogleWallet(data)
-        .then(() => console.log('DONE'))
-        .catch((e) => {
-            console.log('ADD ERROR: ', e);
-        });
+    checkWalletAvailability()
+        .then(() =>
+            getSecureWalletInfo().then((data: AndroidWalletData) => {
+                createDigitalGoogleWallet(data)
+                    .then((cardData: AndroidCardData) => {
+                        addCardToGoogleWallet(cardData)
+                            .then(() => Log.info('addCardToWallet COMPLETE'))
+                            .catch((error) => Log.warn(`addCardToGoogleWallet error: ${error}`));
+                    })
+                    .catch((error) => Log.warn(`createDigitalWallet error: ${error}`));
+            }),
+        )
+        .catch((error) => Log.warn(`checkWalletAvailability error: ${error}`));
 }
