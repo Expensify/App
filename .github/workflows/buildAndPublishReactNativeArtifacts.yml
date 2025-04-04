@@ -88,3 +88,4 @@ jobs:
 
           cd android
           ./gradlew buildReactNativeArtifacts -x lint -x test -x check
+          ./gradlew publishReactNativeArtifacts
