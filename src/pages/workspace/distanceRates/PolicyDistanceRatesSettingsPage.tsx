@@ -155,7 +155,14 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     <View style={[styles.mh5]}>
                                         <Text style={styles.colorMuted}>
                                             {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
-                                            <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}>
+                                            <TextLink
+                                                onPress={() => {
+                                                    Navigation.dismissModal();
+                                                    Navigation.isNavigationReady().then(() => {
+                                                        Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                                                    });
+                                                }}
+                                            >
                                                 {translate('workspace.common.moreFeatures')}
                                             </TextLink>
                                             {translate('workspace.distanceRates.changePromptMessage')}
