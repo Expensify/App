@@ -176,6 +176,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const workspaceMenuItems: WorkspaceMenuItem[] = useMemo(() => {
         const protectedMenuItems: WorkspaceMenuItem[] = [];
 
+        protectedMenuItems.push({
+            translationKey: 'common.reports',
+            icon: Document,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
+            screenName: SCREENS.WORKSPACE.REPORT_FIELDS,
+        });
+
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
             protectedMenuItems.push({
                 translationKey: 'workspace.common.distanceRates',
@@ -316,12 +323,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
                 brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.MEMBERS,
-            },
-            {
-                translationKey: 'common.reports',
-                icon: Document,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.REPORT_FIELDS,
             },
             ...(isPaidGroupPolicy(policy) && shouldShowProtectedItems ? protectedMenuItems : []),
         ];
