@@ -1,7 +1,8 @@
 import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
@@ -56,10 +57,15 @@ function CalendarPicker({
     const StyleUtils = useStyleUtils();
     const {preferredLocale, translate} = useLocalize();
     const pressableRef = useRef<View>(null);
-
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
-
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
+    const isFirstRender = useRef(true);
+
+    const currentMonthView = currentDateView.getMonth();
+    const currentYearView = currentDateView.getFullYear();
+    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
+    const initialHeight = (calendarDaysMatrix?.length || 6) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
+    const heightValue = useSharedValue(initialHeight);
 
     const minYear = getYear(new Date(minDate));
     const maxYear = getYear(new Date(maxDate));
@@ -140,13 +146,29 @@ function CalendarPicker({
 
     const monthNames = DateUtils.getMonthNames(preferredLocale).map((month) => Str.recapitalize(month));
     const daysOfWeek = DateUtils.getDaysOfWeek(preferredLocale).map((day) => day.toUpperCase());
-    const currentMonthView = currentDateView.getMonth();
-    const currentYearView = currentDateView.getFullYear();
-    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
 
+    useEffect(() => {
+        if (isSmallScreenWidth || isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+
+        const rowCount = calendarDaysMatrix?.length || 6;
+        const newHeight = rowCount * CONST.CALENDAR_PICKER_DAY_HEIGHT;
+
+        heightValue.set(withTiming(newHeight, {duration: 100}));
+    }, [calendarDaysMatrix, heightValue, isSmallScreenWidth]);
+
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            height: heightValue.get(),
+        };
+    });
+
     const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
+    const calendarContainerStyle = isSmallScreenWidth ? [webOnlyMarginStyle, themeStyles.calendarBodyContainer] : [webOnlyMarginStyle, animatedStyle];
 
     return (
         <View style={[themeStyles.pb4]}>
@@ -219,7 +241,7 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            <View style={[webOnlyMarginStyle, themeStyles.calendarBodyContainer]}>
+            <Animated.View style={calendarContainerStyle}>
                 {calendarDaysMatrix?.map((week) => (
                     <View
                         key={`week-${week.toString()}`}
@@ -266,7 +288,7 @@ function CalendarPicker({
                         })}
                     </View>
                 ))}
-            </View>
+            </Animated.View>
             <YearPickerModal
                 isVisible={isYearPickerVisible}
                 years={years}
