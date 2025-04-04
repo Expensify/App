@@ -353,9 +353,14 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
 };
 
-type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Callback to fire when the item is pressed */
+    onSelectRow: (item: TItem, isOpenedAsReport?: boolean) => void;
+};
 
-type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    queryJSONHash?: number;
+};
 
 type ValidListItem =
     | typeof RadioListItem
