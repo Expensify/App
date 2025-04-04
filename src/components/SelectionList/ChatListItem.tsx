@@ -22,7 +22,9 @@ function ChatListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    queryJSONHash,
 }: ChatListItemProps<TItem>) {
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSONHash ?? CONST.DEFAULT_NUMBER_ID}`);
     const reportActionItem = item as unknown as ReportActionListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();

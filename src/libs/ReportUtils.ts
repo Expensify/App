@@ -128,11 +128,20 @@ import {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage as getReportActionMessageReportUtils,
     getReportActionMessageText,
     getReportActionText,
+    getWorkspaceCurrencyUpdateMessage,
+    getWorkspaceFrequencyUpdateMessage,
+    getWorkspaceReportFieldAddMessage,
+    getWorkspaceReportFieldDeleteMessage,
+    getWorkspaceReportFieldUpdateMessage,
+    getWorkspaceUpdateFieldMessage,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
@@ -177,7 +186,6 @@ import {
     getCategory,
     getCurrency,
     getDescription,
-    getFormattedAttendees,
     getFormattedCreated,
     getFormattedPostedDate,
     getMCCGroup,
@@ -209,6 +217,7 @@ import {
     isPending,
     isPerDiemRequest,
     isReceiptBeingScanned,
+    isScanRequest as isScanRequestTransactionUtils,
 } from './TransactionUtils';
 import {addTrailingForwardSlash} from './Url';
 import type {AvatarSource} from './UserUtils';
@@ -604,7 +613,7 @@ type OptimisticTaskReport = SetRequired<
 type TransactionDetails = {
     created: string;
     amount: number;
-    attendees: Attendee[];
+    attendees: Attendee[] | string;
     taxAmount?: number;
     taxCode?: string;
     currency: string;
@@ -3059,10 +3068,10 @@ function getReimbursementQueuedActionMessage({
 }
 
 /**
- * Returns the preview message for `REIMBURSEMENT_DEQUEUED` action
+ * Returns the preview message for `REIMBURSEMENT_DEQUEUED` or `REIMBURSEMENT_ACH_CANCELED` action
  */
-function getReimbursementDeQueuedActionMessage(
-    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>,
+function getReimbursementDeQueuedOrCanceledActionMessage(
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
     reportOrID: OnyxEntry<Report> | string | SearchReport,
     isLHNPreview = false,
 ): string {
@@ -3071,7 +3080,7 @@ function getReimbursementDeQueuedActionMessage(
     const amount = originalMessage?.amount;
     const currency = originalMessage?.currency;
     const formattedAmount = convertToDisplayString(amount, currency);
-    if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
+    if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN || originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.USER) {
         const payerOrApproverName = report?.managerID === currentUserAccountID || !isLHNPreview ? '' : getDisplayNameForParticipant({accountID: report?.managerID, shouldUseShortForm: true});
         return translateLocal('iou.adminCanceledRequest', {manager: payerOrApproverName, amount: formattedAmount});
     }
@@ -4212,7 +4221,8 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.merchant = transactionChanges?.merchant;
     }
     if ('attendees' in transactionChanges) {
-        [originalMessage.oldAttendees, originalMessage.attendees] = getFormattedAttendees(transactionChanges?.attendees, getAttendees(oldTransaction));
+        originalMessage.oldAttendees = getAttendees(oldTransaction);
+        originalMessage.newAttendees = transactionChanges?.attendees;
     }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
@@ -4512,6 +4522,12 @@ function getSearchReportName(props: GetReportNameParams): string {
     return getReportNameInternal(props);
 }
 
+function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
+    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+    const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
+    return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
+}
+
 function getReportNameInternal({
     report,
     policy,
@@ -4566,6 +4582,42 @@ function getReportNameInternal({
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         return getDowngradeWorkspaceMessage();
     }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
+        return getWorkspaceCurrencyUpdateMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
+        return getWorkspaceUpdateFieldMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
+        return translateLocal('systemMessage.mergedWithCashTransaction');
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
+        return Str.htmlDecode(getWorkspaceNameUpdatedMessage(parentReportAction));
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
+        return getWorkspaceFrequencyUpdateMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
+        return getWorkspaceReportFieldAddMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD) {
+        return getWorkspaceReportFieldUpdateMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_REPORT_FIELD) {
+        return getWorkspaceReportFieldDeleteMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
+        return getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
+        return getPolicyChangeLogDefaultBillableMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
+        return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
@@ -4582,7 +4634,7 @@ function getReportNameInternal({
     }
 
     if (isTaskReport(report)) {
-        return Parser.htmlToText(report?.reportName ?? '');
+        return Parser.htmlToText(report?.reportName ?? '').trim();
     }
 
     if (isChatThread(report)) {
@@ -4660,9 +4712,7 @@ function getReportNameInternal({
     }
 
     if (isInvoiceReport(report)) {
-        const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
-        const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
-        formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
+        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
@@ -5224,7 +5274,6 @@ function buildOptimisticIOUReport(
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
     const policyID = chatReportID ? getReport(chatReportID, allReports)?.policyID : undefined;
     const policy = getPolicy(policyID);
-    const isTestMoneyRequest = isSelectedManagerMcTest(payerEmail);
 
     const participants: Participants = {
         [payeeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
@@ -5239,8 +5288,8 @@ function buildOptimisticIOUReport(
         ownerAccountID: payeeAccountID,
         participants,
         reportID: generateReportID(),
-        stateNum: isSendingMoney || isTestMoneyRequest ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
-        statusNum: isSendingMoney || isTestMoneyRequest ? CONST.REPORT.STATUS_NUM.REIMBURSED : CONST.REPORT.STATE_NUM.SUBMITTED,
+        stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
+        statusNum: isSendingMoney ? CONST.REPORT.STATUS_NUM.REIMBURSED : CONST.REPORT.STATE_NUM.SUBMITTED,
         total,
         unheldTotal: total,
         nonReimbursableTotal: 0,
@@ -5958,6 +6007,7 @@ function buildOptimisticReportPreview(
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
     const isTestTransaction = isTestTransactionReport(iouReport);
+    const isScanRequest = transaction ? isScanRequestTransactionUtils(transaction) : false;
     return {
         reportActionID: reportActionID ?? rand64(),
         reportID: chatReport?.reportID,
@@ -5984,7 +6034,7 @@ function buildOptimisticReportPreview(
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
-        ...(isTestTransaction && {childStateNum: 2, childStatusNum: 4}),
+        ...(isTestTransaction && !isScanRequest && {childStateNum: 2, childStatusNum: 4}),
     };
 }
 
@@ -7881,6 +7931,10 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     const policyOwnerAccountID = getPolicy(report?.policyID)?.ownerAccountID;
     const isPolicyOwnedByExpensifyAccounts = policyOwnerAccountID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID) : false;
     if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts) {
+        // Allow create expense option for Manager McTest report
+        if (reportParticipants.some((accountID) => accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST) && Permissions.canUseManagerMcTest(allBetas)) {
+            return [CONST.IOU.TYPE.SUBMIT];
+        }
         return [];
     }
 
@@ -9484,8 +9538,23 @@ function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
     return isSelectedManagerMcTest(persionalDetails?.login);
 }
 
+function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
+    return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
+}
+
 function getGroupChatDraft() {
     return newGroupChatDraft;
+}
+
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined): string {
+    if (report && isInvoiceReport(report)) {
+        const properInvoiceReport = report;
+        properInvoiceReport.chatReportID = report.parentReportID;
+
+        return getInvoiceReportName(properInvoiceReport);
+    }
+
+    return action?.reportName ?? '';
 }
 
 export {
@@ -9620,7 +9689,7 @@ export {
     getPolicyExpenseChatName,
     getPolicyName,
     getPolicyType,
-    getReimbursementDeQueuedActionMessage,
+    getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
     getReportDescription,
@@ -9757,6 +9826,7 @@ export {
     isValidReport,
     isValidReportIDFromPath,
     isWaitingForAssigneeToCompleteAction,
+    isWaitingForSubmissionFromCurrentUser,
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
@@ -9841,6 +9911,8 @@ export {
     getTitleReportField,
     getReportFieldsByPolicyID,
     getGroupChatDraft,
+    getInvoiceReportName,
+    getChatListItemReportName,
 };
 
 export type {
