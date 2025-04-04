@@ -9,6 +9,7 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 import CONST from '@src/CONST';
 import type {AnchorDimensions, AnchorPosition} from '@src/styles';
+import type {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
 import type PopoverProps from './Popover/types';
 
@@ -80,6 +81,10 @@ function PopoverWithMeasuredContent({
         ComposerFocusManager.saveFocusState(modalId);
     }
 
+    if (!prevIsVisible && isVisible && isContentMeasured) {
+        setIsContentMeasured(false);
+    }
+
     /**
      * Measure the size of the popover's content.
      */
@@ -133,10 +138,19 @@ function PopoverWithMeasuredContent({
         anchorDimensions.height,
         shoudSwitchPositionIfOverflow,
     );
-    const shiftedAnchorPosition = {
+    const shiftedAnchorPosition: PopoverAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
-        ...(shouldMeasureAnchorPositionFromTop ? {top: adjustedAnchorPosition.top + verticalShift} : {bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift}),
+        // ...(shouldMeasureAnchorPositionFromTop ? {top: adjustedAnchorPosition.top + verticalShift} : {bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift}), // TODO:
+        ...(shouldMeasureAnchorPositionFromTop ? {top: adjustedAnchorPosition.top + verticalShift} : {}),
     };
+
+    if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
+        shiftedAnchorPosition.top = adjustedAnchorPosition.top;
+    }
+
+    if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
+        shiftedAnchorPosition.bottom = windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift;
+    }
 
     return isContentMeasured ? (
         <Popover
