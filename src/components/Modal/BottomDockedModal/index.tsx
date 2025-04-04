@@ -130,7 +130,7 @@ function BottomDockedModal({
             width: deviceWidthProp ?? deviceWidth,
             height: deviceHeightProp ?? deviceHeight,
             backgroundColor: backdropColor,
-            opacity: getPlatform() === CONST.PLATFORM.WEB ? backdropOpacity : 1,
+            ...(getPlatform() === CONST.PLATFORM.WEB ? {opacity: backdropOpacity} : {}),
         };
     }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor, backdropOpacity]);
 
