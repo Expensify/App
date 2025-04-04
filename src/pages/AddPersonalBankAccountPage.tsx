@@ -66,7 +66,7 @@ function AddPersonalBankAccountPage() {
             const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
             if (exitReportID) {
-                Navigation.dismissModal(exitReportID);
+                Navigation.dismissModalWithReport({reportID: exitReportID});
             } else if (shouldContinue && onSuccessFallbackRoute) {
                 continueSetup(onSuccessFallbackRoute);
             } else {
@@ -111,6 +111,7 @@ function AddPersonalBankAccountPage() {
                             onSubmit={submitBankAccountForm}
                             validate={validatePlaidSelection}
                             style={[styles.mh5, styles.flex1]}
+                            shouldHideFixErrorsAlert
                         >
                             <InputWrapper
                                 inputID={INPUT_IDS.BANK_INFO_STEP.SELECTED_PLAID_ACCOUNT_ID}
