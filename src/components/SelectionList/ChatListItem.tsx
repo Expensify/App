@@ -22,9 +22,7 @@ function ChatListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    queryJSONHash,
 }: ChatListItemProps<TItem>) {
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSONHash ?? CONST.DEFAULT_NUMBER_ID}`);
     const reportActionItem = item as unknown as ReportActionListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -46,7 +44,7 @@ function ChatListItem<TItem extends ListItem>({
         item.cursorStyle,
     ];
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
     return (
         <BaseListItem
             item={item}
