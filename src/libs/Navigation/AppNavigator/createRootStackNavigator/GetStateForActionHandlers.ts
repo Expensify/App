@@ -31,10 +31,10 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
 const workspaceSplitsWithoutEnteringAnimation = new Set();
 const reportsSplitsWithEnteringAnimation = new Set();
 
-let lastAccessedWorkspacePolicyID: OnyxEntry<string>;
+let lastAccessedWorkspaceSwitcherID: OnyxEntry<string>;
 Onyx.connect({
-    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
-    callback: (value) => (lastAccessedWorkspacePolicyID = value),
+    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_SWITCHER_ID,
+    callback: (value) => (lastAccessedWorkspaceSwitcherID = value),
 });
 
 /**
@@ -170,7 +170,7 @@ function handlePushReportSplitAction(
     } else if (policyIDFromState) {
         policyID = policyIDFromState;
     } else {
-        policyID = lastAccessedWorkspacePolicyID;
+        policyID = lastAccessedWorkspaceSwitcherID;
         setActiveWorkspaceID(policyID);
     }
 
