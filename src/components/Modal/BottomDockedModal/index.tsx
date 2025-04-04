@@ -217,7 +217,7 @@ function BottomDockedModal({
                 {isVisibleState && hasBackdrop && backdropView}
                 {avoidKeyboard ? (
                     <KeyboardAvoidingView
-                        behavior={getPlatform() === CONST.PLATFORM.IOS ? 'padding' : undefined}
+                        behavior="padding"
                         pointerEvents="box-none"
                         style={[style, {margin: 0}]}
                     >
