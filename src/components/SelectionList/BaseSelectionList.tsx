@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
@@ -147,6 +147,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const hasKeyBeenPressed = useRef(false);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
@@ -705,6 +706,17 @@ function BaseSelectionList<TItem extends ListItem>(
 
         innerTextInputRef.current.focus();
     }, []);
+
+    /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
+    useFocusEffect(
+        useCallback(() => {
+            if (textInputAutoFocus && shouldShowTextInput) {
+                focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
+            }
+
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, [shouldShowTextInput, textInputAutoFocus, focusTextInput]),
+    );
 
     const prevTextInputValue = usePrevious(textInputValue);
     const prevSelectedOptionsLength = usePrevious(flattenedSections.selectedOptions.length);
