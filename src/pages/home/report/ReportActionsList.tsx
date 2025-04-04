@@ -239,7 +239,7 @@ function ReportActionsList({
     const unreadMarkerReportActionID = useMemo(() => {
         const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = sortedVisibleReportActions.at(index + 1);
-            const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
+            const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime, report);
 
             // If the current message is the earliest message received while offline, we want to display the unread marker above this message.
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
@@ -252,7 +252,7 @@ function ReportActionsList({
                 return false;
             }
 
-            const isCurrentMessageUnread = isReportActionUnread(message, unreadMarkerTime);
+            const isCurrentMessageUnread = isReportActionUnread(message, unreadMarkerTime, report);
 
             // If the current message is read or the next message is unread, don't show the unread marker.
             if (!isCurrentMessageUnread || isNextMessageUnread) {
