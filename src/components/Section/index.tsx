@@ -180,7 +180,9 @@ function Section({
                             iconContainerStyles={[styles.flexGrow0, styles.justifyContentStart, iconContainerStyles]}
                         />
                     )}
-                    <View style={[styles.flexShrink1]}>{renderTitle ? renderTitle() : <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>}</View>
+                    <View style={[styles.flexShrink1, styles.w100]}>
+                        {renderTitle ? renderTitle() : <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>}
+                    </View>
                     {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
                         <IconSection
                             width={iconWidth}

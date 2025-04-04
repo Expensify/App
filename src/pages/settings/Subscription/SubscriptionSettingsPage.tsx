@@ -19,9 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import CardSection from './CardSection/CardSection';
 import ReducedFunctionalityMessage from './ReducedFunctionalityMessage';
-import SubscriptionDetails from './SubscriptionDetails';
 import SubscriptionPlan from './SubscriptionPlan';
-import SubscriptionSettings from './SubscriptionSettings';
 
 type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.ROOT>;
 
@@ -62,8 +60,6 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                     <ReducedFunctionalityMessage />
                     <CardSection />
                     <SubscriptionPlan />
-                    <SubscriptionDetails />
-                    <SubscriptionSettings />
                 </View>
             </ScrollView>
         </ScreenWrapper>
