@@ -46,12 +46,24 @@ function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
 }
 
-function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NSQS) || canUseAllBetas(betas);
-}
-
 function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
+}
+
+function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
+}
+
+function canUseHelpSidePanel(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.HELP_SIDE_PANEL) || canUseAllBetas(betas);
+}
+
+function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) || canUseAllBetas(betas);
+}
+
+function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
 }
 
 export default {
@@ -64,6 +76,9 @@ export default {
     canUseMergeAccounts,
     canUseManagerMcTest,
     canUseInternationalBankAccount,
-    canUseNSQS,
     canUseCustomRules,
+    canUseTableReportView,
+    canUseHelpSidePanel,
+    canUseTalkToAISales,
+    canUseProhibitedExpenses,
 };

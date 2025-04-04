@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -31,7 +31,7 @@ import {getActivePolicies} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
 import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
-import {addPolicyReport, clearNewRoomFormError} from '@userActions/Report';
+import {addPolicyReport, clearNewRoomFormError, setNewRoomFormLoading} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -92,25 +92,27 @@ function WorkspaceNewRoomPage() {
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
+        setNewRoomFormLoading();
         const participants = [session?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
-        const policyReport = buildOptimisticChatReport(
-            participants,
-            values.roomName,
-            CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+        const policyReport = buildOptimisticChatReport({
+            participantList: participants,
+            reportName: values.roomName,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             policyID,
-            CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
-            false,
-            '',
+            ownerAccountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
             visibility,
-            writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-            '',
-            '',
-            parsedDescription,
-        );
-        setNewRoomReportID(policyReport.reportID);
-        addPolicyReport(policyReport);
+            writeCapability: writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
+            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+            description: parsedDescription,
+        });
+
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                setNewRoomReportID(policyReport.reportID);
+                addPolicyReport(policyReport);
+            });
+        });
     };
 
     useEffect(() => {
@@ -135,7 +137,11 @@ function WorkspaceNewRoomPage() {
         if (!(((wasLoading && !isLoading) || (isOffline && isLoading)) && isEmptyObject(errorFields))) {
             return;
         }
-        Navigation.dismissModal(newRoomReportID);
+        if (!newRoomReportID) {
+            Navigation.dismissModal();
+            return;
+        }
+        Navigation.dismissModalWithReport({reportID: newRoomReportID});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want this to update on changing the form State
     }, [isLoading, errorFields]);
 

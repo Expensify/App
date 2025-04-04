@@ -84,14 +84,15 @@ function BaseTextInput(
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
+
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {hasError = false, markdownStyle: propsMarkdownStyle} = inputProps;
-    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles, propsMarkdownStyle);
+    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
+    const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
+    // Disabling this line for safeness as nullish coalescing works only if value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;

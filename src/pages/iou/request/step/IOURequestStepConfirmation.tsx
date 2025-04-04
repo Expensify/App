@@ -1,32 +1,38 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import type {FileObject} from '@components/AttachmentModal';
+import ConfirmModal from '@components/ConfirmModal';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import PDFThumbnail from '@components/PDFThumbnail';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
+import {isLocalFile as isLocalFileFileUtils, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {generateReportID, getBankAccountRoute} from '@libs/ReportUtils';
+import {generateReportID, getBankAccountRoute, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
+import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import type {GpsPoint} from '@userActions/IOU';
 import {
     createDistanceRequest as createDistanceRequestIOUActions,
@@ -38,6 +44,7 @@ import {
     sendMoneyWithWallet,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
+    setMoneyRequestReceipt,
     splitBill,
     splitBillAndOpenReport,
     startMoneyRequest,
@@ -48,6 +55,7 @@ import {
 } from '@userActions/IOU';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -89,10 +97,17 @@ function IOURequestStepConfirmation({
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
+    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
+    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
+    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [receiptFile, setReceiptFile] = useState<OnyxEntry<Receipt>>();
     const requestType = getRequestType(transaction);
@@ -110,6 +125,7 @@ function IOURequestStepConfirmation({
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+    const isTestTransaction = transaction?.participants?.some((participant) => isSelectedManagerMcTest(participant.login));
     const payeePersonalDetails = useMemo(() => {
         if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
             return personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1];
@@ -126,7 +142,7 @@ function IOURequestStepConfirmation({
         };
     }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
 
-    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile;
+    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 
@@ -156,6 +172,16 @@ function IOURequestStepConfirmation({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
+    const confirmModalPrompt = useMemo(() => {
+        if (!attachmentInvalidReason) {
+            return '';
+        }
+        if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
+            return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+        }
+        return translate(attachmentInvalidReason);
+    }, [attachmentInvalidReason, translate]);
+
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
@@ -175,9 +201,21 @@ function IOURequestStepConfirmation({
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
-        if (!!isLoadingTransaction || (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)))) {
+        // Exit early if the transaction is still loading
+        if (isLoadingTransaction) {
             return;
         }
+
+        // Check if the transaction belongs to the current report
+        const isCurrentReportID = transaction?.isFromGlobalCreate
+            ? transaction?.participants?.at(0)?.reportID === reportID || (!transaction?.participants?.at(0)?.reportID && transaction?.reportID === reportID)
+            : transaction?.reportID === reportID;
+
+        // Exit if the transaction already exists and is associated with the current report
+        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && (isCurrentReportID || isMovingTransactionFromTrackExpense)) {
+            return;
+        }
+
         startMoneyRequest(
             CONST.IOU.TYPE.CREATE,
             // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
@@ -185,7 +223,7 @@ function IOURequestStepConfirmation({
             generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction]);
+    }, [isLoadingTransaction, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
         if (!transaction?.category) {
@@ -207,6 +245,51 @@ function IOURequestStepConfirmation({
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [transactionID, requestType, defaultCategory, policy?.id]);
+
+    /**
+     * Sets the upload receipt error modal content when an invalid receipt is uploaded
+     */
+    const setUploadReceiptError = (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => {
+        setIsAttachmentInvalid(isInvalid);
+        setAttachmentInvalidReasonTitle(title);
+        setAttachmentValidReason(reason);
+        setPdfFile(null);
+    };
+
+    const hideReceiptModal = () => {
+        setIsAttachmentInvalid(false);
+    };
+
+    /**
+     * Sets the Receipt object when dragging and dropping a file
+     */
+    const setReceiptOnDrop = (originalFile: FileObject, isPdfValidated?: boolean) => {
+        validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
+            if (!isFileValid) {
+                return;
+            }
+
+            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
+            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
+                setPdfFile(originalFile);
+                setIsLoadingReceipt(true);
+                return;
+            }
+
+            // With the image size > 24MB, we use manipulateAsync to resize the image.
+            // It takes a long time so we should display a loading indicator while the resize image progresses.
+            if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                setIsLoadingReceipt(true);
+            }
+            resizeImageIfNeeded(originalFile).then((file) => {
+                setIsLoadingReceipt(false);
+                // Store the receipt on the transaction object in Onyx
+                const source = URL.createObjectURL(file as Blob);
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                setMoneyRequestReceipt(transactionID, source, file.name || '', true);
+            });
+        });
+    };
 
     const navigateBack = useCallback(() => {
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
@@ -267,12 +350,18 @@ function IOURequestStepConfirmation({
 
         const onSuccess = (file: File) => {
             const receipt: Receipt = file;
-            receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            if (transaction?.receipt?.isTestReceipt) {
+                receipt.isTestReceipt = true;
+                receipt.state = CONST.IOU.RECEIPT_STATE.SCANCOMPLETE;
+            } else {
+                receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            }
+
             setReceiptFile(receipt);
         };
 
         navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
-    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt]);
+    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt, report, transaction, participants]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: GpsPoint) => {
@@ -284,6 +373,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
+            const isTestReceipt = receiptObj?.isTestReceipt ?? false;
             requestMoneyIOUActions({
                 report,
                 participantParams: {
@@ -299,11 +389,11 @@ function IOURequestStepConfirmation({
                 gpsPoints,
                 action,
                 transactionParams: {
-                    amount: transaction.amount,
-                    attendees: transaction.attendees,
-                    currency: transaction.currency,
+                    amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
+                    attendees: transaction.comment?.attendees,
+                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
                     created: transaction.created,
-                    merchant: transaction.merchant,
+                    merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : transaction.merchant,
                     comment: trimmedComment,
                     receipt: receiptObj,
                     category: transaction.category,
@@ -623,7 +713,13 @@ function IOURequestStepConfirmation({
 
             if (receiptFile && !!transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-                if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
+                if (
+                    transaction.amount === 0 &&
+                    !isSharingTrackExpense &&
+                    !isCategorizingTrackExpense &&
+                    locationPermissionGranted &&
+                    !selectedParticipants.some((participant) => isSelectedManagerMcTest(participant.login))
+                ) {
                     if (userLocation) {
                         requestMoney(selectedParticipants, trimmedComment, receiptFile, {
                             lat: userLocation.latitude,
@@ -746,79 +842,127 @@ function IOURequestStepConfirmation({
         return <FullScreenLoadingIndicator />;
     }
 
+    const PDFThumbnailView = pdfFile ? (
+        <PDFThumbnail
+            style={styles.invisiblePDF}
+            previewSourceURL={pdfFile.uri ?? ''}
+            onLoadSuccess={() => {
+                setPdfFile(null);
+                setIsLoadingReceipt(false);
+                setReceiptOnDrop(pdfFile, true);
+            }}
+            onPassword={() => {
+                setIsLoadingReceipt(false);
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
+            }}
+            onLoadError={() => {
+                setIsLoadingReceipt(false);
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+            }}
+        />
+    ) : null;
+
+    const shouldShowThreeDotsButton =
+        requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense;
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
+            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
-            <View style={styles.flex1}>
-                <HeaderWithBackButton
-                    title={headerTitle}
-                    onBackButtonPress={navigateBack}
-                    shouldShowThreeDotsButton={
-                        requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense
-                    }
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Expensicons.Receipt,
-                            text: translate('receipt.addReceipt'),
-                            onSelected: navigateToAddReceipt,
-                        },
-                    ]}
-                />
-                {isLoading && <FullScreenLoadingIndicator />}
-                {!!gpsRequired && (
-                    <LocationPermissionModal
-                        startPermissionFlow={startLocationPermissionFlow}
-                        resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                        onGrant={() => {
-                            navigateAfterInteraction(() => {
-                                createTransaction(selectedParticipantList, true);
-                            });
-                        }}
-                        onDeny={() => {
-                            updateLastLocationPermissionPrompt();
-                            navigateAfterInteraction(() => {
-                                createTransaction(selectedParticipantList, false);
-                            });
-                        }}
-                        onInitialGetLocationCompleted={() => {
-                            setIsConfirming(false);
+            <DragAndDropProvider
+                setIsDraggingOver={setIsDraggingOver}
+                isDisabled={!shouldShowThreeDotsButton}
+            >
+                <View style={styles.flex1}>
+                    <HeaderWithBackButton
+                        title={headerTitle}
+                        onBackButtonPress={navigateBack}
+                        shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                        threeDotsAnchorPosition={threeDotsAnchorPosition}
+                        threeDotsMenuItems={[
+                            {
+                                icon: Expensicons.Receipt,
+                                text: translate('receipt.addReceipt'),
+                                onSelected: navigateToAddReceipt,
+                            },
+                        ]}
+                    />
+                    {(isLoading || isLoadingReceipt) && <FullScreenLoadingIndicator />}
+                    {PDFThumbnailView}
+                    <ReceiptDropUI
+                        onDrop={(e) => {
+                            const file = e?.dataTransfer?.files[0];
+                            if (file) {
+                                file.uri = URL.createObjectURL(file);
+                                setReceiptOnDrop(file);
+                            }
                         }}
                     />
-                )}
-                <MoneyRequestConfirmationList
-                    transaction={transaction}
-                    selectedParticipants={participants}
-                    iouAmount={Math.abs(transaction?.amount ?? 0)}
-                    iouAttendees={transaction?.attendees ?? []}
-                    iouComment={transaction?.comment?.comment ?? ''}
-                    iouCurrencyCode={transaction?.currency}
-                    iouIsBillable={transaction?.billable}
-                    onToggleBillable={setBillable}
-                    iouCategory={transaction?.category}
-                    onConfirm={onConfirm}
-                    onSendMoney={sendMoney}
-                    receiptPath={receiptPath}
-                    receiptFilename={receiptFilename}
-                    iouType={iouType}
-                    reportID={reportID}
-                    isPolicyExpenseChat={isPolicyExpenseChat}
-                    policyID={getIOURequestPolicyID(transaction, report)}
-                    bankAccountRoute={getBankAccountRoute(report)}
-                    iouMerchant={transaction?.merchant}
-                    iouCreated={transaction?.created}
-                    isDistanceRequest={isDistanceRequest}
-                    isPerDiemRequest={isPerDiemRequest}
-                    shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
-                    action={action}
-                    payeePersonalDetails={payeePersonalDetails}
-                    shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
-                    isConfirmed={isConfirmed}
-                    isConfirming={isConfirming}
-                />
-            </View>
+                    <ConfirmModal
+                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                        onConfirm={hideReceiptModal}
+                        onCancel={hideReceiptModal}
+                        isVisible={isAttachmentInvalid}
+                        prompt={confirmModalPrompt}
+                        confirmText={translate('common.close')}
+                        shouldShowCancelButton={false}
+                    />
+                    {!!gpsRequired && (
+                        <LocationPermissionModal
+                            startPermissionFlow={startLocationPermissionFlow}
+                            resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                            onGrant={() => {
+                                navigateAfterInteraction(() => {
+                                    createTransaction(selectedParticipantList, true);
+                                });
+                            }}
+                            onDeny={() => {
+                                updateLastLocationPermissionPrompt();
+                                navigateAfterInteraction(() => {
+                                    createTransaction(selectedParticipantList, false);
+                                });
+                            }}
+                            onInitialGetLocationCompleted={() => {
+                                setIsConfirming(false);
+                            }}
+                        />
+                    )}
+                    <MoneyRequestConfirmationList
+                        transaction={transaction}
+                        selectedParticipants={participants}
+                        iouAmount={Math.abs(transaction?.amount ?? 0)}
+                        iouAttendees={transaction?.comment?.attendees ?? []}
+                        iouComment={transaction?.comment?.comment ?? ''}
+                        iouCurrencyCode={transaction?.currency}
+                        iouIsBillable={transaction?.billable}
+                        onToggleBillable={setBillable}
+                        iouCategory={transaction?.category}
+                        onConfirm={onConfirm}
+                        onSendMoney={sendMoney}
+                        receiptPath={receiptPath}
+                        receiptFilename={receiptFilename}
+                        iouType={iouType}
+                        reportID={reportID}
+                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && !isDistanceRequest && !isPerDiemRequest}
+                        isPolicyExpenseChat={isPolicyExpenseChat}
+                        policyID={getIOURequestPolicyID(transaction, report)}
+                        bankAccountRoute={getBankAccountRoute(report)}
+                        iouMerchant={transaction?.merchant}
+                        iouCreated={transaction?.created}
+                        isDistanceRequest={isDistanceRequest}
+                        isPerDiemRequest={isPerDiemRequest}
+                        shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                        action={action}
+                        payeePersonalDetails={payeePersonalDetails}
+                        shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
+                        isConfirmed={isConfirmed}
+                        isConfirming={isConfirming}
+                        isReceiptEditable
+                    />
+                </View>
+            </DragAndDropProvider>
         </ScreenWrapper>
     );
 }

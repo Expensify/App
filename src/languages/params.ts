@@ -273,6 +273,8 @@ type ViolationsRterParams = {
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
 
+type ViolationsProhibitedExpenseParams = {prohibitedExpenseType: string};
+
 type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
 type PaySomeoneParams = {name?: string} | undefined;
@@ -293,7 +295,7 @@ type HeldRequestParams = {comment: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
-type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
+type ChangeReportPolicyParams = {fromPolicyName?: string; toPolicyName: string};
 
 type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: string};
 
@@ -301,7 +303,7 @@ type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
 type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
 
-type UpdatedPolicyTagParams = {tagListName: string; tagName: string; enabled?: boolean};
+type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean};
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
 
@@ -578,7 +580,8 @@ type ImportedTagsMessageParams = {
 };
 
 type ImportMembersSuccessfullDescriptionParams = {
-    members: number;
+    added: number;
+    updated: number;
 };
 
 type ImportPerDiemRatesSuccessfullDescriptionParams = {
@@ -654,6 +657,10 @@ type SettlementDateParams = {
 
 type PolicyExpenseChatNameParams = {
     displayName: string;
+};
+
+type ReviewParams = {
+    amount: string;
 };
 
 export type {
@@ -821,6 +828,7 @@ export type {
     ViolationsCustomRulesParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
+    ViolationsProhibitedExpenseParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,
@@ -829,7 +837,7 @@ export type {
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     ChangeFieldParams,
-    ChangePolicyParams,
+    ChangeReportPolicyParams,
     ChangeTypeParams,
     ExportedToIntegrationParams,
     DelegateSubmitParams,
@@ -891,4 +899,5 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
+    ReviewParams,
 };
