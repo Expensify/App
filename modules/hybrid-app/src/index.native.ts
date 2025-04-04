@@ -5,8 +5,8 @@ const HybridAppModule: HybridAppModuleType = {
     isHybridApp() {
         return ReactNativeHybridApp.isHybridApp();
     },
-    setHybridIsStaging(isStaging) {
-        ReactNativeHybridApp.setHybridIsStaging(isStaging);
+    shouldUseStaging(isStaging) {
+        ReactNativeHybridApp.shouldUseStaging(isStaging);
     },
     closeReactNativeApp({shouldSignOut, shouldSetNVP}) {
         ReactNativeHybridApp.closeReactNativeApp(shouldSignOut, shouldSetNVP);

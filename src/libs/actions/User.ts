@@ -1145,7 +1145,7 @@ function clearFocusModeNotification() {
 
 function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
     if (CONFIG.IS_HYBRID_APP) {
-        HybridAppModule.setHybridIsStaging(shouldUseStagingServer);
+        HybridAppModule.shouldUseStaging(shouldUseStagingServer);
     }
     Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
 }
