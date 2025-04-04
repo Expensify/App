@@ -141,6 +141,8 @@ const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
 
 const POLICY_CHANGE_LOG_ARRAY = Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
 
+const ACTIONABLE_ACTIONS = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT] as ReportActionName[];
+
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
@@ -1585,6 +1587,10 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
 function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime?: string) {
     if (!lastReadTime) {
         return !isCreatedAction(reportAction);
+    }
+
+    if (reportAction && !ACTIONABLE_ACTIONS.includes(reportAction.actionName)) {
+        return false;
     }
 
     return !!(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
