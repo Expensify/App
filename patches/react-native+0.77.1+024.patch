@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/ReactAndroid/publish.gradle b/node_modules/react-native/ReactAndroid/publish.gradle
-index 32287a7..e425c3d 100644
+index 32287a7..476ca42 100644
 --- a/node_modules/react-native/ReactAndroid/publish.gradle
 +++ b/node_modules/react-native/ReactAndroid/publish.gradle
 @@ -13,7 +13,9 @@ def signingKey = findProperty("SIGNING_KEY")
@@ -7,9 +7,9 @@ index 32287a7..e425c3d 100644
  
  def reactAndroidProjectDir = project(':packages:react-native:ReactAndroid').projectDir
 -def mavenTempLocalUrl = "file:///tmp/maven-local"
-+def mavenTempLocalUrl = "https://maven.pkg.github.com/mateuuszzzzz/App"
++def mavenURL = "https://maven.pkg.github.com/mateuuszzzzz/App"
 +
-+def rnVersion = System.getenv("RN_VERSION")
++def patchedVersion = System.getenv("PATCHED_VERSION")
  
  publishing {
      publications {
@@ -23,17 +23,17 @@ index 32287a7..e425c3d 100644
              // appending -SNAPSHOT if on nightly or prerelase.
              if (isSnapshot) {
 -                version = this.version + "-SNAPSHOT"
-+                version = rnVersion + "-SNAPSHOT"
++                version = patchedVersion + "-SNAPSHOT"
              } else {
 -                version = this.version
-+                version = rnVersion
++                version = patchedVersion
              }
  
              pom {
-@@ -39,6 +43,12 @@ publishing {
+@@ -39,10 +43,16 @@ publishing {
                  description = "A framework for building native apps with React"
                  url = "https://github.com/facebook/react-native"
-                 
+ 
 +                properties = [
 +                    "patchesHash": System.getenv("PATCHES_HASH"),
 +                    "commitHash": System.getenv("COMMIT_HASH"),
@@ -42,11 +42,20 @@ index 32287a7..e425c3d 100644
 +
                  developers {
                      developer {
-                         id = "facebook"
-@@ -67,6 +77,10 @@ publishing {
+-                        id = "facebook"
+-                        name = "Facebook"
++                        id = "example"
++                        name = "Example"
+                     }
+                 }
+ 
+@@ -65,8 +75,11 @@ publishing {
+ 
+     repositories {
          maven {
-             name = "mavenTempLocal"
-             url = mavenTempLocalUrl
+-            name = "mavenTempLocal"
+-            url = mavenTempLocalUrl
++            url = mavenURL
 +            credentials {
 +                username = System.getenv("GH_PUBLISH_ACTOR")
 +                password = System.getenv("GH_PUBLISH_TOKEN")

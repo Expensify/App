@@ -98,6 +98,34 @@ def enableProguardInReleaseBuilds = true
  */
 def jscFlavor = 'org.webkit:android-jsc:+'
 
+
+// def customVersion = System.getenv("PATCHED_VERSION")
+
+// if (customVersion != "") { 
+//     allprojects {
+//         configurations.all {
+//             resolutionStrategy {
+//                 if (patchedVersion != "") { 
+//                     dependencySubstitution {
+//                         substitute(module('com.facebook.react:react-native')).using(module("${group}:react-android:${patchedVersion}"))
+//                         substitute(module('com.facebook.react:react-android')).using(module("${group}:react-android:${patchedVersion}"))
+//                     }
+//                     force "${group}:react-android:${patchedVersion}"
+//                 }
+//             }
+//         }
+//         repositories {
+//             maven {
+//                 url "https://maven.pkg.github.com/mateuuszzzzz/rn-android-artifacts"
+//                 credentials {
+//                     username = System.getenv("GH_USERNAME")
+//                     password = System.getenv("GH_TOKEN")
+//                 }
+//             }
+//         }
+//     }
+// }
+
 android {
     androidResources {
       noCompress += ["bundle"]
