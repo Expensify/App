@@ -1,9 +1,8 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
-import {BackHandler, DeviceEventEmitter, Dimensions, InteractionManager, Modal, View} from 'react-native';
+import {BackHandler, DeviceEventEmitter, Dimensions, InteractionManager, KeyboardAvoidingView, Modal, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
-import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -216,14 +215,17 @@ function BottomDockedModal({
                 {...props}
             >
                 {isVisibleState && hasBackdrop && backdropView}
-                <KeyboardAvoidingView
-                    behavior="padding"
-                    pointerEvents="box-none"
-                    enabled={avoidKeyboard}
-                    style={[styles.flex1, styles.justifyContentEnd]}
-                >
-                    {isVisibleState && containerView}
-                </KeyboardAvoidingView>
+                {avoidKeyboard ? (
+                    <KeyboardAvoidingView
+                        behavior={getPlatform() === CONST.PLATFORM.IOS ? 'padding' : undefined}
+                        pointerEvents="box-none"
+                        style={[style, {margin: 0}]}
+                    >
+                        {isVisibleState && containerView}
+                    </KeyboardAvoidingView>
+                ) : (
+                    isVisibleState && containerView
+                )}
             </Modal>
         </LayoutAnimationConfig>
     );
