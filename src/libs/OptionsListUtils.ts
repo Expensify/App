@@ -106,6 +106,7 @@ import {
     isArchivedReport,
     isChatThread,
     isDefaultRoom,
+    isDM,
     isDraftReport,
     isExpenseReport,
     isHiddenForCurrentUser,
@@ -552,6 +553,23 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 }
 
 /**
+ * Should show the last actor display name from last actor details.
+ */
+function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null) {
+    if (!lastActorDetails || reportUtilsIsSelfDM(report) || (isDM(report) && lastActorDetails.accountID !== currentUserAccountID)) {
+        return false;
+    }
+
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
+
+    if (!lastActorDisplayName) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Update alternate text for the option when applicable
  */
 function getAlternateText(option: OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
@@ -873,8 +891,8 @@ function createOption(
             lastAction &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
-            !isArchivedNonExpenseReport(report, reportNameValuePairs);
-
+            !isArchivedNonExpenseReport(report, reportNameValuePairs) &&
+            shouldShowLastActorDisplayName(report, lastActorDetails);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
         }
@@ -2319,6 +2337,7 @@ export {
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
     isSelectedManagerMcTest,
+    shouldShowLastActorDisplayName,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};
