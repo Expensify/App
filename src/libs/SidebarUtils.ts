@@ -648,8 +648,7 @@ function getOptionData({
         }
         if ((isDM(report) && lastActorDisplayName !== translateLocal('common.you')) || isArchivedReport(reportNameValuePairs)) {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
-        }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails)) {
+        } else if (shouldShowLastActorDisplayName(report, lastActorDetails)) {
             result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`;
         } else {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
