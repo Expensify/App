@@ -321,6 +321,30 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE: {
+                const filteredParticipants = getParticipantsAutocompleteList()
+                    .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
+                    .slice(0, 10);
+
+                return filteredParticipants.map((participant) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ASSIGNEE,
+                    text: participant.name,
+                    autocompleteID: participant.accountID,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+                }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY: {
+                const filteredParticipants = getParticipantsAutocompleteList()
+                    .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
+                    .slice(0, 10);
+
+                return filteredParticipants.map((participant) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CREATED_BY,
+                    text: participant.name,
+                    autocompleteID: participant.accountID,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY,
+                }));
+            }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
                 const filteredChats = searchOptions.recentReports
                     .filter((chat) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase()))

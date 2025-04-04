@@ -136,6 +136,21 @@ const baseFilterConfig = {
         description: 'common.in' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
     },
+    title: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.title' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_TITLE,
+    },
+    assignee: {
+        getTitle: getFilterParticipantDisplayTitle,
+        description: 'common.assignee' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_ASSIGNEE,
+    },
+    createdBy: {
+        getTitle: getFilterParticipantDisplayTitle,
+        description: 'common.createdBy' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_CREATED_BY,
+    },
 };
 
 /**
@@ -212,7 +227,13 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
     [CONST.SEARCH.DATA_TYPES.TASK]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE, CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY],
+        [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY,
+        ],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
@@ -337,7 +358,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
             .join(', ');
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
         return filters[nonDateFilterKey];
     }
 
@@ -497,7 +518,8 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
                     ) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
@@ -527,7 +549,12 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
-                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+                    } else if (
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY
+                    ) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);

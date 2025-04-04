@@ -6518,6 +6518,9 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'created-by',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
