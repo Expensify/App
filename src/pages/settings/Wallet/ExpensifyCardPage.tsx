@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {AddToWalletButton} from '@expensify/react-native-wallet';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -25,8 +24,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import RNAddToWalletButton from '@libs/Wallet/AddToWalletButton';
 // powinno byc from '@libs/Wallet
-import handleAddCardToWallet from '@libs/Wallet/index.ios';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {revealVirtualCardDetails} from '@userActions/Card';
 import {openOldDotLink} from '@userActions/Link';
@@ -35,7 +34,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card} from '@src/types/onyx';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import RedDotCardSection from './RedDotCardSection';
 import CardDetails from './WalletPage/CardDetails';
@@ -285,10 +283,9 @@ function ExpensifyCardPage({
                     </>
                 )}
                 {cardToAdd !== undefined && (
-                    <AddToWalletButton
+                    <RNAddToWalletButton
+                        card={cardToAdd}
                         buttonStyle={{alignSelf: 'center'}}
-                        locale="pl"
-                        onPress={() => handleAddCardToWallet(cardToAdd, primaryLogin)}
                     />
                 )}
             </ScrollView>
