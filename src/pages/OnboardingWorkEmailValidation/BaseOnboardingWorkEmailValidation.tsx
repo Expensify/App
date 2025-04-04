@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
+import {openOldDotLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
@@ -42,6 +43,24 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
             return;
         }
     }, [onboardingErrorMessage]);
+
+    useEffect(() => {
+        if (onboardingValues?.isMergeAccountSuccessful === undefined) {
+            return;
+        }
+
+        if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+            return;
+        }
+
+        if (isVsb) {
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            return;
+        }
+
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+    }, [onboardingValues]);
 
     const sendValidateCode = useCallback(() => {
         if (!credentials?.login) {

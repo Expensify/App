@@ -1359,6 +1359,13 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
                 errorMessage: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {
+                isMergeAccountSuccessful: true,
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -1389,30 +1396,14 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
             return;
         }
 
-        return SequentialQueue.waitForIdle()
-            .then(() => {
-                if (response?.authToken && response?.encryptedAuthToken) {
-                    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-                    updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
+        return SequentialQueue.waitForIdle().then(() => {
+            if (response?.authToken && response?.encryptedAuthToken) {
+                // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
+                updateSessionAuthTokens(response?.authToken, response?.encryptedAuthToken);
 
-                    NetworkStore.setAuthToken(response?.authToken ?? null);
-                }
-            })
-            .then(() => {
-                if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && onboarding?.shouldRedirectToClassicAfterMerge) {
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-                    return;
-                }
-
-                const isVsb = onboarding && 'signupQualifier' in onboarding && onboarding.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-
-                if (isVsb) {
-                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
-                    return;
-                }
-
-                Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-            });
+                NetworkStore.setAuthToken(response?.authToken ?? null);
+            }
+        });
     });
 }
 
