@@ -4,9 +4,9 @@ import {useSession} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import {openApp} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
-import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import SignInPage from './SignInPage';
@@ -30,7 +30,7 @@ function SignInModal() {
             // This ensures that any communication gaps between the client and server during OpenReport processing do not cause the queue to pause,
             // which would prevent us from processing or clearing the queue.
             waitForIdle().then(() => {
-                App.openApp();
+                openApp(true);
             });
         }
     }, [session?.authTokenType]);
