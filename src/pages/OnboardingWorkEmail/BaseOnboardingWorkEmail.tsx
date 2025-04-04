@@ -43,7 +43,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    console.log('onboardingValues::::', onboardingValues);
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;

@@ -1304,11 +1304,6 @@ function AddWorkEmail(workEmail: string) {
                 isLoading: true,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: null,
-        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -1320,11 +1315,6 @@ function AddWorkEmail(workEmail: string) {
                 isLoading: false,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: null,
-        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -1335,12 +1325,6 @@ function AddWorkEmail(workEmail: string) {
                 onboardingWorkEmail: null,
                 isLoading: false,
             },
-        },
-
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: 'onboarding.error',
         },
     ];
 
