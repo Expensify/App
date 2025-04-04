@@ -17,6 +17,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
 import {
     getFirstVisibleReportActionID,
+    getIOUActionForTransactionID,
     getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
     hasNextActionMadeBySameActor,
@@ -70,9 +71,13 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function selectTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Transaction>, reportID: string) {
+function selectTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Transaction>, reportID: string, reportActions: OnyxTypes.ReportAction[]) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
-        return transaction?.reportID === reportID;
+        if (!transaction) {
+            return false;
+        }
+        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        return transaction.reportID === reportID && !isDeletedParentAction(action);
     });
 }
 
@@ -97,7 +102,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => selectTransactionsForReportID(allTransactions, reportID),
+        selector: (allTransactions): OnyxTypes.Transaction[] => selectTransactionsForReportID(allTransactions, reportID, reportActions),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});

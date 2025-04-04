@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {ChatBubbleCounter} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
@@ -7,34 +8,34 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {isChatThread} from '@libs/ReportUtils';
 import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
     lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
 
-/*
- * Child is retrieved because we want to get the unread status & messages count of the expense, not the report itself.
- * We can get the child's message count from the report, but we cannot get the child's unread info from there.
- */
-function getTransactionMessagesCountAndUnreadInfo(transaction: Transaction) {
-    const iouReportAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-    const childReport = iouReportAction ? getReportOrDraftReport(iouReportAction.childReportID) : undefined;
-
-    return {
-        count: (iouReportAction && iouReportAction.childVisibleActionCount) ?? 0,
-        isUnread: isChatThread(childReport) && isReportUnread(childReport),
-    };
-}
-
 function ChatBubbleCell({transaction}: {transaction: Transaction}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const threadMessages = useMemo(() => getTransactionMessagesCountAndUnreadInfo(transaction), [transaction]);
+    const [iouReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`, {
+        selector: (reportActions) => getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID),
+    });
+
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`);
+
+    const threadMessages = useMemo(
+        () => ({
+            count: (iouReportAction && iouReportAction?.childVisibleActionCount) ?? 0,
+            isUnread: isChatThread(transactionReport) && isReportUnread(transactionReport),
+        }),
+        [iouReportAction, transactionReport],
+    );
+
     const StyleUtils = useStyleUtils();
 
     const elementSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;

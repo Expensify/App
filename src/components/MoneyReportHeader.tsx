@@ -9,13 +9,15 @@ import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {exportReportToCSV} from '@libs/actions/Report';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
     canBeExported,
+    canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
     getArchiveReason,
     getBankAccountRoute,
@@ -38,6 +40,7 @@ import {
 import {
     allHavePendingRTERViolation,
     checkIfShouldShowMarkAsCashButton,
+    getTransaction,
     hasDuplicateTransactions,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
@@ -60,6 +63,7 @@ import {
     payInvoice,
     payMoneyRequest,
     submitReport,
+    unholdRequest,
 } from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -74,7 +78,9 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import ConfirmModal from './ConfirmModal';
+import DecisionModal from './DecisionModal';
 import DelegateNoAccessModal from './DelegateNoAccessModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -84,6 +90,7 @@ import LoadingBar from './LoadingBar';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import {useMoneyRequestReportContext} from './MoneyRequestReportView/MoneyRequestReportContext';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
@@ -182,6 +189,105 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [moneyRequestReport, chatReport, policy, transaction],
     );
 
+    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+
+    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(moneyRequestReport?.reportID);
+
+    const selectedTransactionsOptions = useMemo(() => {
+        if (!selectedTransactionsID.length) {
+            return [];
+        }
+        const options = [];
+        const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
+
+        const anyTransactionOnHold = selectedTransactions.some(isOnHoldTransactionUtils);
+        const allTransactionOnHold = selectedTransactions.every(isOnHoldTransactionUtils);
+
+        if (!anyTransactionOnHold && selectedTransactions.length === 1) {
+            options.push({
+                text: translate('iou.hold'),
+                icon: Expensicons.Stopwatch,
+                value: CONST.REPORT.SECONDARY_ACTIONS.HOLD,
+                onSelected: () => {
+                    if (!moneyRequestReport?.reportID) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.getRoute({reportID: moneyRequestReport.reportID}));
+                },
+            });
+        }
+
+        if (allTransactionOnHold && selectedTransactions.length === 1) {
+            options.push({
+                text: translate('iou.unhold'),
+                icon: Expensicons.Stopwatch,
+                value: 'UNHOLD',
+                onSelected: () => {
+                    selectedTransactionsID.forEach((transactionID) => {
+                        const action = getIOUActionForTransactionID(reportActions, transactionID);
+                        if (!action?.childReportID) {
+                            return;
+                        }
+                        unholdRequest(transactionID, action?.childReportID);
+                    });
+                    // it's needed in order to recalculate options
+                    setSelectedTransactionsID([...selectedTransactionsID]);
+                },
+            });
+        }
+
+        options.push({
+            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD,
+            text: translate('common.download'),
+            icon: Expensicons.Download,
+            onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
+                exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: selectedTransactionsID}, () => {
+                    setIsDownloadErrorModalVisible(true);
+                });
+            },
+        });
+
+        const canAllSelectedTransactionsBeRemoved = selectedTransactionsID.every((transactionID) => {
+            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transactionID);
+            const action = getIOUActionForTransactionID(reportActions, transactionID);
+            const isActionDeleted = isDeletedAction(action);
+            const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
+
+            return canRemoveTransaction && isIOUActionOwner && !isActionDeleted;
+        });
+
+        const canRemoveReportTransaction = canDeleteTransaction(moneyRequestReport);
+
+        if (canRemoveReportTransaction && canAllSelectedTransactionsBeRemoved) {
+            options.push({
+                text: translate('common.delete'),
+                icon: Expensicons.Trashcan,
+                value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
+                onSelected: () => {
+                    const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
+
+                    const transactionsWithActions = selectedTransactions.map((t) => ({
+                        transactionID: t?.transactionID,
+                        action: iouActions.find((action) => {
+                            const IOUTransactionID = (getOriginalMessage(action) as OnyxTypes.OriginalMessageIOU)?.IOUTransactionID;
+
+                            return t?.transactionID === IOUTransactionID;
+                        }),
+                    }));
+
+                    transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
+                    setSelectedTransactionsID([]);
+                },
+            });
+        }
+        return options;
+    }, [moneyRequestReport, reportActions, selectedTransactionsID, session?.accountID, setSelectedTransactionsID, translate]);
+
+    const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length;
+
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
     const canIOUBePaidAndApproved = useMemo(() => getCanIOUBePaid(false, false), [getCanIOUBePaid]);
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
@@ -206,6 +312,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton =
+        !shouldShowSelectedTransactionsButton &&
         !shouldShowSubmitButton &&
         (shouldShowPayButton || shouldShowApproveButton) &&
         !shouldShowRTERViolationMessage(transactions) &&
@@ -228,6 +335,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowNextStep = isFromPaidPolicy && !!optimisticNextStep?.message?.length && !shouldShowStatusBar;
     const shouldShowAnyButton =
+        shouldShowSelectedTransactionsButton ||
         isDuplicate ||
         shouldShowSettlementButton ||
         shouldShowApproveButton ||
@@ -402,7 +510,18 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
             >
-                {isDuplicate && !shouldUseNarrowLayout && (
+                {shouldShowSelectedTransactionsButton && !shouldUseNarrowLayout && (
+                    <View>
+                        <ButtonWithDropdownMenu
+                            onPress={() => null}
+                            options={selectedTransactionsOptions}
+                            customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
+                            isSplitButton={false}
+                            shouldAlwaysShowDropdownMenu
+                        />
+                    </View>
+                )}
+                {!shouldShowSelectedTransactionsButton && isDuplicate && !shouldUseNarrowLayout && (
                     <View style={[shouldDuplicateButtonBeSuccess ? styles.ml2 : styles.mh2]}>
                         <Button
                             success={shouldDuplicateButtonBeSuccess}
@@ -414,7 +533,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
-                {shouldShowSettlementButton && !shouldUseNarrowLayout && (
+                {!shouldShowSelectedTransactionsButton && shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <AnimatedSettlementButton
                             isPaidAnimationRunning={isPaidAnimationRunning}
@@ -440,7 +559,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
-                {!!shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
+                {!shouldShowSelectedTransactionsButton && !!shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <ExportWithDropdownMenu
                             policy={policy}
@@ -449,7 +568,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
-                {!!moneyRequestReport && shouldShowSubmitButton && !shouldUseNarrowLayout && (
+                {!shouldShowSelectedTransactionsButton && !!moneyRequestReport && shouldShowSubmitButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <Button
                             success={isWaitingForSubmissionFromCurrentUser}
@@ -460,7 +579,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
-                {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
+                {!shouldShowSelectedTransactionsButton && shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <Button
                             success
@@ -474,7 +593,18 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             {!!isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>
                     <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
-                        {isDuplicate && shouldUseNarrowLayout && (
+                        {shouldShowSelectedTransactionsButton && shouldUseNarrowLayout && (
+                            <ButtonWithDropdownMenu
+                                onPress={() => null}
+                                options={selectedTransactionsOptions}
+                                customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
+                                isSplitButton={false}
+                                shouldAlwaysShowDropdownMenu
+                                wrapperStyle={styles.w100}
+                            />
+                        )}
+
+                        {!shouldShowSelectedTransactionsButton && isDuplicate && shouldUseNarrowLayout && (
                             <Button
                                 success={shouldDuplicateButtonBeSuccess}
                                 text={translate('iou.reviewDuplicates')}
@@ -484,7 +614,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 }}
                             />
                         )}
-                        {shouldShowSettlementButton && shouldUseNarrowLayout && (
+                        {!shouldShowSelectedTransactionsButton && shouldShowSettlementButton && shouldUseNarrowLayout && (
                             <AnimatedSettlementButton
                                 isPaidAnimationRunning={isPaidAnimationRunning}
                                 isApprovedAnimationRunning={isApprovedAnimationRunning}
@@ -508,14 +638,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 isLoading={!isOffline && !canAllowSettlement}
                             />
                         )}
-                        {!!shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
+                        {!shouldShowSelectedTransactionsButton && !!shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
                             <ExportWithDropdownMenu
                                 policy={policy}
                                 report={moneyRequestReport}
                                 connectionName={connectedIntegration}
                             />
                         )}
-                        {!!moneyRequestReport && shouldShowSubmitButton && shouldUseNarrowLayout && (
+                        {!shouldShowSelectedTransactionsButton && !!moneyRequestReport && shouldShowSubmitButton && shouldUseNarrowLayout && (
                             <Button
                                 success={isWaitingForSubmissionFromCurrentUser}
                                 text={translate('common.submit')}
@@ -524,7 +654,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 isDisabled={shouldDisableSubmitButton}
                             />
                         )}
-                        {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
+                        {!shouldShowSelectedTransactionsButton && shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
                             <Button
                                 success
                                 text={translate('iou.markAsCash')}
@@ -579,6 +709,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 cancelText={translate('common.cancel')}
                 danger
                 shouldEnableNewFocusManagement
+            />
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isDownloadErrorModalVisible}
+                onClose={() => setIsDownloadErrorModalVisible(false)}
             />
         </View>
     );

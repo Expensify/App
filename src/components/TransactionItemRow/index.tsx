@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import type {TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
@@ -24,6 +25,7 @@ function TransactionItemRow({
     shouldShowTooltip,
     dateColumnSize,
     shouldShowChatBubbleComponent = false,
+    onCheckboxPress,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
@@ -31,6 +33,7 @@ function TransactionItemRow({
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
     shouldShowChatBubbleComponent?: boolean;
+    onCheckboxPress: (transactionID: string) => void;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -50,7 +53,7 @@ function TransactionItemRow({
                                 <View style={[styles.mr3]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
-                                        isSelected
+                                        isSelected={isSelected}
                                     />
                                 </View>
                                 <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
@@ -109,10 +112,19 @@ function TransactionItemRow({
                     {(hovered) => (
                         <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p3, styles.expenseWidgetRadius, styles.gap2]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                                <View style={[styles.mr1]}>
+                                    <Checkbox
+                                        onPress={() => {
+                                            onCheckboxPress(transactionItem.transactionID);
+                                        }}
+                                        accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                        isChecked={isSelected}
+                                    />
+                                </View>
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
-                                        isSelected
+                                        isSelected={isSelected}
                                     />
                                 </View>
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
