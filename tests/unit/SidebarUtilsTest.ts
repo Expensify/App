@@ -570,6 +570,7 @@ describe('SidebarUtils', () => {
                     policyID: policy.id,
                     policyName: policy.name,
                     type: CONST.REPORT.TYPE.CHAT,
+                    lastActorAccountID: 1,
                 };
                 const reportNameValuePairs = {
                     private_isArchived: DateUtils.getDBTime(),
@@ -581,7 +582,7 @@ describe('SidebarUtils', () => {
                     report,
                     reportNameValuePairs,
                     reportActions: {},
-                    personalDetails: {},
+                    personalDetails: LHNTestUtils.fakePersonalDetails,
                     preferredLocale,
                     policy,
                     parentReportAction: undefined,

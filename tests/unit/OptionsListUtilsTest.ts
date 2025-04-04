@@ -25,6 +25,7 @@ import {
 import type {OptionList, Options} from '@src/libs/OptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
+import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
@@ -1306,14 +1307,16 @@ describe('OptionsListUtils', () => {
     });
 
     describe('Alternative text', () => {
-        it("The text should not contain the last actor's name at prefix if the report is archived.", () => {
-            return waitForBatchedUpdates()
-                .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN))
-                .then(() => {
-                    const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
-                    const archivedReport = reports.find((report) => report.reportID === '10');
-                    expect(archivedReport?.lastMessageText).toBe('This chat room has been archived.'); // Default archived reason
-                });
+        it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.EN,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}10` as const]: {
+                    '1': getFakeAdvancedReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
+                },
+            });
+            const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+            const archivedReport = reports.find((report) => report.reportID === '10');
+            expect(archivedReport?.lastMessageText).toBe('This chat room has been archived.'); // Default archived reason
         });
     });
 
