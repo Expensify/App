@@ -50,7 +50,7 @@ jobs:
           cd Mobile-Expensify
           git fetch origin main staging --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
 
-      - name: Get version bump commit
+      - name: Get E/App version bump commit
         id: getVersionBumpCommit
         run: |
           git switch main
@@ -77,7 +77,7 @@ jobs:
           fi
           echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
 
-      - name: Get merge commit for pull request to CP
+      - name: Get merge commit for E/App pull request to CP
         id: getCPMergeCommit
         uses: ./.github/actions/javascript/getPullRequestDetails
         with:
@@ -93,21 +93,15 @@ jobs:
           git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getMobileExpensifyVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
           git push origin staging
 
-          # After being CP'd to staging, the version bump will have a new SHA. We'll need this to update the App submodule
-          echo "VERSION_BUMP_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Update the Mobile-Expensify submodule on E/App staging
+        run: |
+          git add Mobile-Expensify
+          git commit -m "Update Mobile-Expensify submodule version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
 
-      - name: Cherry-pick the version-bump to staging
+      - name: Cherry-pick the E/App version-bump to staging
         run: |
           git switch staging
           git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
-
-      - name: Update the Mobile-Expensify submodule on E/App staging
-        run: |
-          cd Mobile-Expensify
-          git checkout ${{ steps.cherryPickMobileExpensifyVersionBump.outputs.VERSION_BUMP_SHA }}
-          cd ..
-          git add Mobile-Expensify
-          git commit -m "Update Mobile-Expensify submodule version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
 
       - name: Cherry-pick the merge commit of target PR
         id: cherryPick
