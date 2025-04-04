@@ -10,6 +10,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import DisplayNames from '@components/DisplayNames';
+import FixedFooter from '@components/FixedFooter';
 import Header from '@components/Header';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -27,6 +28,7 @@ import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import TextWithCopy from '@components/TextWithCopy';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -34,6 +36,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getBase62ReportID from '@libs/getBase62ReportID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -206,6 +209,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMUtil(parentReport);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report), [report]);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
+    const base62ReportID = getBase62ReportID(Number(report.reportID));
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => {
         const subtitle = getChatRoomSubtitle(report);
@@ -860,7 +864,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     title={translate('common.details')}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
-                <ScrollView style={[styles.flex1]}>
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
                         {isExpenseReport && (!shouldShowTitleField || !titleField) && nameSectionExpenseIOU}
@@ -914,6 +918,23 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             onPress={() => setIsDeleteModalVisible(true)}
                         />
                     )}
+
+                    <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.pt5]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                            <TextWithCopy
+                                copyValue={base62ReportID}
+                                style={styles.textMicroSupporting}
+                            >
+                                {`${translate('common.reportID')}: ${base62ReportID}`}
+                            </TextWithCopy>
+                            <TextWithCopy
+                                copyValue={report.reportID}
+                                style={styles.textMicroSupporting}
+                            >
+                                {`${translate('common.longID')}: ${report.reportID}`}
+                            </TextWithCopy>
+                        </View>
+                    </FixedFooter>
                 </ScrollView>
                 <ConfirmModal
                     danger
