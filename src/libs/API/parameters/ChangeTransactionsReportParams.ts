@@ -5,6 +5,7 @@
  */
 type TransactionThreadInfo = {
     movedReportActionID: string;
+    moneyRequestPreviewReportActionID: string;
     transactionThreadReportID?: string;
     transactionThreadCreatedReportActionID?: string;
 };

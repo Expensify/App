@@ -8,7 +8,9 @@ import * as API from '@libs/API';
 import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams, TransactionThreadInfo} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import DateUtils from '@libs/DateUtils';
 import * as NumberUtils from '@libs/NumberUtils';
+import {rand64} from '@libs/NumberUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isModifiedExpenseAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -619,7 +621,6 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             return;
         }
 
-        const newIOUAction = {...oldIOUAction};
         const oldReportID = transaction.reportID;
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
 
@@ -650,6 +651,8 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         }
 
         // 3. Optimistically update the IOU action reportID
+        const optimisticMoneyRequestReportActionID = rand64();
+        const newIOUAction = {...oldIOUAction, reportActionID: optimisticMoneyRequestReportActionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -661,9 +664,31 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,
-                value: {[oldIOUAction.reportActionID]: null},
+                value: {
+                    [oldIOUAction.reportActionID]: {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            deleted: DateUtils.getDBTime(),
+                        },
+                        message: [
+                            {
+                                deleted: DateUtils.getDBTime(),
+                                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                                text: '',
+                            },
+                        ],
+                    },
+                },
             },
         );
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [newIOUAction.reportActionID]: {pendingAction: null},
+            },
+        });
 
         failureData.push(
             {
@@ -686,6 +711,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
             value: {
                 parentReportID: reportID,
+                parentReportActionID: optimisticMoneyRequestReportActionID,
                 policyID: reportID !== CONST.REPORT.UNREPORTED_REPORTID ? newReport.policyID : CONST.POLICY.ID_FAKE,
             },
         });
@@ -695,6 +721,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.childReportID}`,
             value: {
                 parentReportID: oldReportID,
+                optimisticMoneyRequestReportActionID: oldIOUAction.reportActionID,
                 policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`]?.policyID,
             },
         });
@@ -771,6 +798,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             value: {[movedAction?.reportActionID]: movedAction},
         });
 
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {[movedAction?.reportActionID]: {pendingAction: null}},
+        });
+
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
@@ -779,6 +812,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 
         transactionIDToReportActionAndThreadData[transaction.transactionID] = {
             movedReportActionID: movedAction.reportActionID,
+            moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
             ...(oldIOUAction.childReportID
                 ? {}
                 : {
