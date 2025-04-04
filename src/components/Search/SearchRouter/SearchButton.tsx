@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import type {Insets, StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
