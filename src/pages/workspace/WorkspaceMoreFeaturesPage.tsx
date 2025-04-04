@@ -11,7 +11,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {filterInactiveCards, getAllCardsForWorkspace, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
@@ -75,7 +74,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const stylesutils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const {translate} = useLocalize();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
@@ -431,7 +429,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             policyID={route.params.policyID}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceMoreFeaturesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -443,7 +441,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     shouldShowBackButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
+                <ScrollView>
                     <Text style={[styles.ph5, styles.mb5, styles.mt3, styles.textSupporting, styles.workspaceSectionMobile]}>{translate('workspace.moreFeatures.subtitle')}</Text>
                     {sections.map(renderSection)}
                 </ScrollView>
