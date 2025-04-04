@@ -110,6 +110,11 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
+type RequestCountParams = {
+    scanningReceipts: number;
+    pendingReceipts: number;
+};
+
 type DeleteTransactionParams = {
     amount: string;
     merchant: string;
@@ -783,6 +788,7 @@ export type {
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
+    RequestCountParams,
     DeleteTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,

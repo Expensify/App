@@ -139,6 +139,7 @@ import type {
     ReportArchiveReasonsRemovedFromPolicyParams,
     ReportPolicyNameParams,
     RequestAmountParams,
+    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -946,6 +947,20 @@ const translations = {
         yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
+        // TODO: This key should be deprecated
+        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+            const statusText: string[] = [];
+            if (scanningReceipts > 0) {
+                statusText.push(`${scanningReceipts} escaneando`);
+            }
+            if (pendingReceipts > 0) {
+                statusText.push(`${pendingReceipts} pendiente`);
+            }
+            return {
+                one: statusText.length > 0 ? `1 gasto (${statusText.join(', ')})` : `1 gasto`,
+                other: (count: number) => (statusText.length > 0 ? `${count} gastos (${statusText.join(', ')})` : `${count} gastos`),
+            };
+        },
         expenseCount: () => {
             return {
                 one: '1 gasto',
