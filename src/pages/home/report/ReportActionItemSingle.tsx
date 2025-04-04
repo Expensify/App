@@ -118,8 +118,6 @@ function ReportActionItemSingle({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = isTripRoomReportUtils(report);
-
-    const icons = getIcons(iouReport ?? null, personalDetails);
     const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report);
 
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
