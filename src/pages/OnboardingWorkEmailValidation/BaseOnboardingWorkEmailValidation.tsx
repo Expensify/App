@@ -85,7 +85,13 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
             <HeaderWithBackButton
                 shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
                 progressBarPercentage={40}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute())}
+                onBackButtonPress={() => {
+                    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                        shouldValidate: false,
+                    });
+
+                    Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
+                }}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
@@ -103,6 +109,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         style={[styles.mb5]}
                         text={translate('common.buttonConfirm')}
                         onPress={() => {
+                            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, null);
                             if (isVsb) {
                                 Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
                                 return;

@@ -1349,6 +1349,14 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
                 errorMessage: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+                loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
+            },
+        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -1366,13 +1374,24 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
                 isMergeAccountSuccessful: true,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                loadingForm: null,
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: 'onboarding.error',
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                loadingForm: null,
+            },
         },
     ];
 
