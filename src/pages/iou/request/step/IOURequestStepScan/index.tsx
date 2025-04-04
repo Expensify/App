@@ -318,7 +318,7 @@ function IOURequestStepScan({
                     },
                     transactionParams: {
                         amount: 0,
-                        attendees: transaction?.attendees,
+                        attendees: transaction?.comment?.attendees,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
                         merchant: '',
@@ -327,7 +327,7 @@ function IOURequestStepScan({
                 });
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.comment?.attendees, transaction?.created, transaction?.currency],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -421,7 +421,7 @@ function IOURequestStepScan({
                                         },
                                         transactionParams: {
                                             amount: 0,
-                                            attendees: transaction?.attendees,
+                                            attendees: transaction?.comment?.attendees,
                                             currency: transaction?.currency ?? 'USD',
                                             created: transaction?.created ?? '',
                                             merchant: '',
@@ -482,7 +482,7 @@ function IOURequestStepScan({
             backTo,
             transaction?.currency,
             transaction?.created,
-            transaction?.attendees,
+            transaction?.comment?.attendees,
             iouType,
             report,
             transactionID,
@@ -571,13 +571,13 @@ function IOURequestStepScan({
                 filename,
                 (file) => {
                     const source = URL.createObjectURL(file);
-                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, undefined);
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
                     navigateToConfirmationStep(file, source, false, true);
                 },
                 (error) => {
                     console.error('Error reading test receipt:', error);
                 },
-                'image/png',
+                CONST.TEST_RECEIPT.FILE_TYPE,
             );
         } catch (error) {
             console.error('Error in setTestReceiptAndNavigate:', error);
@@ -590,7 +590,7 @@ function IOURequestStepScan({
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
-                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
+                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP);
             },
         },
     );

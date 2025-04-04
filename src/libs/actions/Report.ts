@@ -2833,6 +2833,17 @@ function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, sh
     });
 }
 
+function clearCreateChatError(report: OnyxEntry<Report>) {
+    const metaData = getReportMetadata(report?.reportID);
+    const isOptimisticReport = metaData?.isOptimisticReport;
+    if (report?.errorFields?.createChat && !isOptimisticReport) {
+        clearReportFieldKeyErrors(report.reportID, 'createChat');
+        return;
+    }
+
+    navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true);
+}
+
 /**
  * @param policyRoomReport The policy room report
  * @param policyRoomName The updated name for the policy room
@@ -4392,6 +4403,13 @@ function prepareOnboardingOnyxData(
                     },
                 },
                 {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                    value: {
+                        isOptimisticReport: true,
+                    },
+                },
+                {
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     value: {
@@ -4408,6 +4426,13 @@ function prepareOnboardingOnyxData(
                         pendingFields: {
                             createChat: null,
                         },
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                    value: {
+                        isOptimisticReport: false,
                     },
                 },
                 {
@@ -4600,6 +4625,10 @@ function updateLoadingInitialReportAction(reportID: string) {
         return;
     }
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isLoadingInitialReportActions: false});
+}
+
+function setNewRoomFormLoading(isLoading = true) {
+    Onyx.merge(`${ONYXKEYS.FORMS.NEW_ROOM_FORM}`, {isLoading});
 }
 
 function clearNewRoomFormError() {
@@ -5384,14 +5413,11 @@ function dismissChangePolicyModal() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
             value: {
-                [CONST.CHANGE_POLICY_TRAINING_MODAL]: {
-                    timestamp: DateUtils.getDBTime(date.valueOf()),
-                    dismissedMethod: 'click',
-                },
+                [CONST.CHANGE_POLICY_TRAINING_MODAL]: DateUtils.getDBTime(date.valueOf()),
             },
         },
     ];
-    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: CONST.CHANGE_POLICY_TRAINING_MODAL, dismissedMethod: 'click'}, {optimisticData});
+    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: CONST.CHANGE_POLICY_TRAINING_MODAL}, {optimisticData});
 }
 
 /**
@@ -5640,6 +5666,7 @@ export {
     clearGroupChat,
     clearIOUError,
     clearNewRoomFormError,
+    setNewRoomFormLoading,
     clearPolicyRoomNameErrors,
     clearPrivateNotesError,
     clearReportFieldKeyErrors,
@@ -5679,6 +5706,7 @@ export {
     navigateToAndOpenReportWithAccountIDs,
     navigateToConciergeChat,
     navigateToConciergeChatAndDeleteReport,
+    clearCreateChatError,
     notifyNewAction,
     openLastOpenedPublicRoom,
     openReport,

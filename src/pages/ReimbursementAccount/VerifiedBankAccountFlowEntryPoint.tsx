@@ -18,7 +18,7 @@ import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEarliestErrorField, getLatestError, getLatestErrorField} from '@libs/ErrorUtils';
+import {getEarliestErrorField, getLatestError, getLatestErrorField, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
@@ -219,8 +219,12 @@ function VerifiedBankAccountFlowEntryPoint({
                     )}
                     {shouldShowContinueSetupButton === true ? (
                         <OfflineWithFeedback
-                            errors={getLatestError(errors)}
+                            errors={
+                                reimbursementAccount?.maxAttemptsReached ? getMicroSecondOnyxErrorWithTranslationKey('connectBankAccountStep.maxAttemptsReached') : getLatestError(errors)
+                            }
+                            errorRowStyles={styles.mt2}
                             shouldShowErrorMessages
+                            canDismissError={!reimbursementAccount?.maxAttemptsReached}
                             onClose={resetReimbursementAccount}
                         >
                             <MenuItem
