@@ -6,6 +6,7 @@ import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
+import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -405,6 +406,14 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
  *
  * Do not use directly, use only via `getSections()` facade.
  */
+function getTaskSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {}
+
+/**
+ * @private
+ * Organizes data into List Sections for display, for the ReportActionListItemType of Search Results.
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
 function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
     const reportActionItems: ReportActionListItemType[] = [];
 
@@ -529,6 +538,9 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, shouldGroupByR
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return ChatListItem;
     }
+    if (type === CONST.SEARCH.DATA_TYPES.TASK) {
+        return TaskListItem;
+    }
     if (!shouldGroupByReports) {
         return TransactionListItem;
     }
@@ -542,9 +554,13 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
+    if (type === CONST.SEARCH.DATA_TYPES.TASK) {
+        return getReportActionsSections(data);
+    }
     if (!shouldGroupByReports) {
         return getTransactionsSections(data, metadata);
     }
+
     return getReportSections(data, metadata);
 }
 

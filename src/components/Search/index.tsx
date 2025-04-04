@@ -363,6 +363,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const ListItem = getListItem(type, status, shouldGroupByReports);
     const sortedData = getSortedSections(type, status, data, sortBy, sortOrder, shouldGroupByReports);
+
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const sortedSelectedData = sortedData.map((item) => {
         const baseKey = isChat
