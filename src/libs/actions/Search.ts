@@ -13,16 +13,14 @@ import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getSubmitToAccountID} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {hasHeldExpenses} from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, LastPaymentMethodType, ReportAction, SearchResults} from '@src/types/onyx';
+import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
-import {putOnHold, unholdRequest} from './IOU';
 
 let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
 Onyx.connect({
@@ -272,16 +270,6 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-function holdMoneyRequestOnMoneyRequestReport(transactionIDList: string[], comment: string, reportActions: ReportAction[]) {
-    transactionIDList.forEach((transactionID) => {
-        const action = getIOUActionForTransactionID(reportActions, transactionID);
-        if (!action?.childReportID) {
-            return;
-        }
-        putOnHold(transactionID, comment, action?.childReportID);
-    });
-}
-
 function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: SearchPolicy[], transactionIDList?: string[]) {
     const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
         {
@@ -367,16 +355,6 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function unholdMoneyRequestOnMoneyRequestReport(transactionIDList: string[], reportActions: ReportAction[]) {
-    transactionIDList.forEach((transactionID) => {
-        const action = getIOUActionForTransactionID(reportActions, transactionID);
-        if (!action?.childReportID) {
-            return;
-        }
-        unholdRequest(transactionID, action?.childReportID);
-    });
-}
-
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
@@ -435,9 +413,7 @@ export {
     search,
     updateSearchResultsWithTransactionThreadReportID,
     deleteMoneyRequestOnSearch,
-    holdMoneyRequestOnMoneyRequestReport,
     holdMoneyRequestOnSearch,
-    unholdMoneyRequestOnMoneyRequestReport,
     unholdMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     updateAdvancedFilters,

@@ -10,7 +10,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {exportReportToCSV} from '@libs/actions/Report';
-import {unholdMoneyRequestOnMoneyRequestReport} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
@@ -64,6 +63,7 @@ import {
     payInvoice,
     payMoneyRequest,
     submitReport,
+    unholdRequest,
 } from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -203,7 +203,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         const anyTransactionOnHold = selectedTransactions.some(isOnHoldTransactionUtils);
         const allTransactionOnHold = selectedTransactions.every(isOnHoldTransactionUtils);
 
-        if (!anyTransactionOnHold) {
+        if (!anyTransactionOnHold && selectedTransactions.length === 1) {
             options.push({
                 text: translate('iou.hold'),
                 icon: Expensicons.Stopwatch,
@@ -217,13 +217,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             });
         }
 
-        if (allTransactionOnHold) {
+        if (allTransactionOnHold && selectedTransactions.length === 1) {
             options.push({
                 text: translate('iou.unhold'),
                 icon: Expensicons.Stopwatch,
                 value: 'UNHOLD',
                 onSelected: () => {
-                    unholdMoneyRequestOnMoneyRequestReport(selectedTransactionsID, reportActions);
+                    selectedTransactionsID.forEach((transactionID) => {
+                        const action = getIOUActionForTransactionID(reportActions, transactionID);
+                        if (!action?.childReportID) {
+                            return;
+                        }
+                        unholdRequest(transactionID, action?.childReportID);
+                    });
                     // it's needed in order to recalculate options
                     setSelectedTransactionsID([...selectedTransactionsID]);
                 },
