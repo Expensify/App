@@ -24,6 +24,11 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           submodules: true
 
+      # This command is necessary to fetch any branch other than main in the submodule.
+      # See https://github.com/actions/checkout/issues/1815#issuecomment-2777836442 for further context.
+      - name: Enable branch-switching in submodules
+        run: git submodule foreach 'git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"'
+
       - name: Set up git for OSBotify
         id: setupGitForOSBotify
         uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
