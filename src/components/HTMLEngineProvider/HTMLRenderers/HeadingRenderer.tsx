@@ -17,6 +17,7 @@ function HeadingRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
                     <Text
                         style={[styles.webViewStyles.baseFontStyle, styles.h1, isChildOfTaskTitle && styles.taskTitleMenuItem]}
                         key={props.key}
+                        testID="h1"
                     >
                         {props.childElement}
                     </Text>
