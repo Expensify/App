@@ -5,8 +5,10 @@ import {toZonedTime} from 'date-fns-tz';
 import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -21,6 +23,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1484,5 +1487,66 @@ describe('actions/Report', () => {
         });
 
         expect(report?.lastMentionedTime).toBeUndefined();
+    });
+
+    it('should create new report and "create report" quick action, when createNewReport gets called', async () => {
+        const reportID = Report.createNewReport({accountID: 1234}, '5678');
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (reports) => {
+                    Onyx.disconnect(connection);
+                    const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+                    // assert correctness of crucial onyx data
+                    expect(createdReport?.reportID).toBe(reportID);
+                    expect(createdReport?.total).toBe(0);
+
+                    resolve();
+                },
+            });
+        });
+
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                callback: (quickAction) => {
+                    Onyx.disconnect(connection);
+
+                    // Then the quickAction.action should be set to CREATE_REPORT
+                    expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.CREATE_REPORT);
+                    resolve();
+                },
+            });
+        });
+    });
+    describe('isConciergeChatReport', () => {
+        const accountID = 2;
+        const conciergeChatReport1 = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
+        const conciergeChatReport2 = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
+
+        beforeAll(async () => {
+            Onyx.init({keys: ONYXKEYS});
+            await waitForBatchedUpdates();
+        });
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('should not return archived Concierge chat report', async () => {
+            initOnyxDerivedValues();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport1.reportID}`, conciergeChatReport1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport2.reportID}`, conciergeChatReport2);
+
+            // Set First conciergeChatReport1 to archived state
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${conciergeChatReport1.reportID}`, {
+                private_isArchived: new Date().toString(),
+            });
+            const derivedConciergeChatReportID = await OnyxUtils.get(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
+            expect(derivedConciergeChatReportID).toBe(conciergeChatReport2.reportID);
+        });
     });
 });

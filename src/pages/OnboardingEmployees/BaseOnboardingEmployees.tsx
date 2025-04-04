@@ -99,16 +99,13 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     // For other company sizes we want to complete onboarding here.
                     // At this point `onboardingPurposeSelected` should always exist as we set it in `BaseOnboardingPurpose`.
                     if (onboardingPurposeSelected) {
-                        completeOnboarding(
-                            onboardingPurposeSelected,
-                            CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-                            undefined,
-                            undefined,
+                        completeOnboarding({
+                            engagementChoice: onboardingPurposeSelected,
+                            onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                             adminsChatReportID,
-                            onboardingPolicyID,
-                            undefined,
-                            onboardingCompanySize,
-                        );
+                            onboardingPolicyID: policyID,
+                            companySize: selectedCompanySize,
+                        });
                     }
 
                     if (CONFIG.IS_HYBRID_APP) {

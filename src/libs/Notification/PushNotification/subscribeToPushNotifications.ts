@@ -1,9 +1,7 @@
 import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
-import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import Visibility from '@libs/Visibility';
 import {updateLastVisitedPath} from '@userActions/App';
@@ -13,7 +11,37 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
-import PushNotification from '..';
+import PushNotification from '.';
+import type {PushNotificationData} from './NotificationType';
+
+/**
+ * Manage push notification subscriptions on sign-in/sign-out.
+ */
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
+    callback: (notificationID) => {
+        if (notificationID) {
+            PushNotification.register(notificationID);
+            PushNotification.init();
+
+            // Subscribe handlers for different push notification types
+            PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, applyOnyxData);
+            PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, navigateToReport);
+
+            PushNotification.onReceived(PushNotification.TYPE.MONEY_REQUEST, applyOnyxData);
+            PushNotification.onSelected(PushNotification.TYPE.MONEY_REQUEST, navigateToReport);
+
+            PushNotification.onReceived(PushNotification.TYPE.REPORT_ACTION, applyOnyxData);
+            PushNotification.onSelected(PushNotification.TYPE.REPORT_ACTION, navigateToReport);
+
+            PushNotification.onReceived(PushNotification.TYPE.TRANSACTION, applyOnyxData);
+            PushNotification.onSelected(PushNotification.TYPE.TRANSACTION, navigateToReport);
+        } else {
+            PushNotification.deregister();
+            PushNotification.clearNotifications();
+        }
+    },
+});
 
 let lastVisitedPath: string | undefined;
 Onyx.connect({
@@ -37,22 +65,8 @@ Onyx.connect({
     },
 });
 
-function getLastUpdateIDAppliedToClient(): Promise<number> {
-    return new Promise((resolve) => {
-        Onyx.connect({
-            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-            callback: (value) => resolve(value ?? CONST.DEFAULT_NUMBER_ID),
-        });
-    });
-}
-
-function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: ReportActionPushNotificationData): Promise<void> {
-    Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
-
-    if (!ActiveClientManager.isClientTheLeader()) {
-        Log.info('[PushNotification] received report comment notification, but ignoring it since this is not the active client');
-        return Promise.resolve();
-    }
+function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasPendingOnyxUpdates = false}: PushNotificationData): Promise<void> {
+    Log.info(`[PushNotification] Applying onyx data in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID});
 
     const logMissingOnyxDataInfo = (isDataMissing: boolean): boolean => {
         if (isDataMissing) {
@@ -106,8 +120,8 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
     return getLastUpdateIDAppliedToClient().then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}));
 }
 
-function navigateToReport({reportID, reportActionID}: ReportActionPushNotificationData): Promise<void> {
-    Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
+function navigateToReport({reportID}: PushNotificationData): Promise<void> {
+    Log.info('[PushNotification] Navigating to report', false, {reportID});
 
     const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
 
@@ -118,7 +132,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                 // When transitioning to the new experience via the singleNewDotEntry flow, the navigation
                 // is handled elsewhere. So we cancel here to prevent double navigation.
                 if (isSingleNewDotEntry) {
-                    Log.info('[PushNotification] Not navigating because this is a singleNewDotEntry flow', false, {reportID, reportActionID});
+                    Log.info('[PushNotification] Not navigating because this is a singleNewDotEntry flow', false, {reportID});
                     return;
                 }
 
@@ -131,7 +145,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                     Navigation.goBack();
                 }
 
-                Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
+                Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID});
                 Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID});
                 updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
             } catch (error) {
@@ -140,7 +154,7 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                     errorMessage = error.message;
                 }
 
-                Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
+                Log.alert('[PushNotification] onSelected() - failed', {reportID, error: errorMessage});
             }
         });
     });
@@ -148,31 +162,11 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     return Promise.resolve();
 }
 
-/**
- * Manage push notification subscriptions on sign-in/sign-out.
- *
- * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
- * push subscription when the session changes here.
- */
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
-    callback: (notificationID) => {
-        if (notificationID) {
-            PushNotification.register(notificationID);
-            PushNotification.init();
-
-            // Subscribe handlers for different push notification types
-            PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, applyOnyxData);
-            PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, navigateToReport);
-
-            PushNotification.onReceived(PushNotification.TYPE.MONEY_REQUEST, applyOnyxData);
-            PushNotification.onSelected(PushNotification.TYPE.MONEY_REQUEST, navigateToReport);
-
-            PushNotification.onReceived(PushNotification.TYPE.REPORT_ACTION, applyOnyxData);
-            PushNotification.onSelected(PushNotification.TYPE.REPORT_ACTION, navigateToReport);
-        } else {
-            PushNotification.deregister();
-            PushNotification.clearNotifications();
-        }
-    },
-});
+function getLastUpdateIDAppliedToClient(): Promise<number> {
+    return new Promise((resolve) => {
+        Onyx.connect({
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+            callback: (value) => resolve(value ?? CONST.DEFAULT_NUMBER_ID),
+        });
+    });
+}
