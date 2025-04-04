@@ -11,7 +11,7 @@ export default function handleAddCardToWallet(card: Card, cardHolderName: string
             getSecureWalletInfo().then((data: AndroidWalletData) => {
                 createDigitalGoogleWallet(data)
                     .then((cardData: AndroidCardData) => {
-                        addCardToGoogleWallet(cardData)
+                        addCardToGoogleWallet({...cardData, cardHolderName})
                             .then(() => Log.info('addCardToWallet COMPLETE'))
                             .catch((error) => Log.warn(`addCardToGoogleWallet error: ${error}`));
                     })

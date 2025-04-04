@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// import {AddToWalletButton} from '@expensify/react-native-wallet';
 import {AddToWalletButton} from '@expensify/react-native-wallet';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -30,7 +28,6 @@ import handleAddCardToWallet from '@libs/Wallet';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {revealVirtualCardDetails} from '@userActions/Card';
 import {openOldDotLink} from '@userActions/Link';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
